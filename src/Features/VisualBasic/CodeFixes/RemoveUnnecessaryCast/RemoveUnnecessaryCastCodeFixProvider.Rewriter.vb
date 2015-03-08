@@ -19,14 +19,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
                 If TypeOf expression Is ParenthesizedExpressionSyntax Then
                     Return expression.WithAdditionalAnnotations(Simplifier.Annotation)
                 Else
-                    Return expression.Parenthesize()
+                    Return expression
                 End If
             End Function
 
             Public Overrides Function VisitCTypeExpression(node As CTypeExpressionSyntax) As SyntaxNode
                 If node Is _castExpression Then
                     Return node.WithExpression(GetExpression(node.Expression)) _
-                               .WithAdditionalAnnotations(Simplifier.Annotation)
+                               .WithAdditionalAnnotations(Simplifier.Annotation) _
+                               .Parenthesize()
                 End If
 
                 Return MyBase.VisitCTypeExpression(node)
@@ -35,7 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
             Public Overrides Function VisitDirectCastExpression(node As DirectCastExpressionSyntax) As SyntaxNode
                 If node Is _castExpression Then
                     Return node.WithExpression(GetExpression(node.Expression)) _
-                               .WithAdditionalAnnotations(Simplifier.Annotation)
+                               .WithAdditionalAnnotations(Simplifier.Annotation) _
+                               .Parenthesize()
                 End If
 
                 Return MyBase.VisitDirectCastExpression(node)
@@ -44,7 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
             Public Overrides Function VisitTryCastExpression(node As TryCastExpressionSyntax) As SyntaxNode
                 If node Is _castExpression Then
                     Return node.WithExpression(GetExpression(node.Expression)) _
-                               .WithAdditionalAnnotations(Simplifier.Annotation)
+                               .WithAdditionalAnnotations(Simplifier.Annotation) _
+                               .Parenthesize()
                 End If
 
                 Return MyBase.VisitTryCastExpression(node)
@@ -53,7 +56,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
             Public Overrides Function VisitPredefinedCastExpression(node As PredefinedCastExpressionSyntax) As SyntaxNode
                 If node Is _castExpression Then
                     Return node.WithExpression(GetExpression(node.Expression)) _
-                               .WithAdditionalAnnotations(Simplifier.Annotation)
+                               .WithAdditionalAnnotations(Simplifier.Annotation) _
+                               .Parenthesize()
                 End If
 
                 Return MyBase.VisitPredefinedCastExpression(node)

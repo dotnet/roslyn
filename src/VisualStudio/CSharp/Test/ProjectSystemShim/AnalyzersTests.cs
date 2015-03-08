@@ -181,6 +181,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
         [WorkItem(1092636)]
         [WorkItem(1040247)]
         [WorkItem(1048368)]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_ProjectSettingsOverrideSpecificOptionsAndRestore()
         {
             string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -207,7 +208,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
                 project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_WARNNOTASERRORLIST, "1014");
                 options = environment.GetUpdatedCompilationOptionOfSingleProject();
-                Assert.Equal(expected: ReportDiagnostic.Warn, actual: options.SpecificDiagnosticOptions["CS1014"]);
+                Assert.Equal(expected: ReportDiagnostic.Suppress, actual: options.SpecificDiagnosticOptions["CS1014"]);
 
                 project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_WARNNOTASERRORLIST, null);
                 options = environment.GetUpdatedCompilationOptionOfSingleProject();
@@ -216,6 +217,39 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_WARNASERRORLIST, null);
                 options = environment.GetUpdatedCompilationOptionOfSingleProject();
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: options.SpecificDiagnosticOptions["CS1014"]);
+            }
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        public void RuleSet_ProjectNoWarnOverridesOtherSettings()
+        {
+            string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
+  <IncludeAll Action=""Warning"" />
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CS1014"" Action=""Info"" />
+  </Rules>
+</RuleSet>
+";
+
+            using (var ruleSetFile = new DisposableFile())
+            using (var environment = new TestEnvironment())
+            {
+                File.WriteAllText(ruleSetFile.Path, ruleSetSource);
+
+                var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
+
+                project.SetRuleSetFile(ruleSetFile.Path);
+                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_NOWARNLIST, "1014");
+                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_WARNASERRORLIST, "1014");
+
+                var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
+                var options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
+
+                var ca1014DiagnosticOption = options.SpecificDiagnosticOptions["CS1014"];
+                Assert.Equal(expected: ReportDiagnostic.Suppress, actual: ca1014DiagnosticOption);
             }
         }
     }

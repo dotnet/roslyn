@@ -88,6 +88,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Native View.
+        /// </summary>
+        internal static string NativeView {
+            get {
+                return ResourceManager.GetString("NativeView", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to To inspect the native object, enable native code debugging..
+        /// </summary>
+        internal static string NativeViewNotNativeDebugging {
+            get {
+                return ResourceManager.GetString("NativeViewNotNativeDebugging", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Non-Public members.
         /// </summary>
         internal static string NonPublicMembers {

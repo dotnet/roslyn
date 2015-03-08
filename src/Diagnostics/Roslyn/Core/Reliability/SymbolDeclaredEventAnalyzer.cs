@@ -142,7 +142,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
-            internal void AnalyzeCompilationEnd(CompilationEndAnalysisContext context)
+            internal void AnalyzeCompilationEnd(CompilationAnalysisContext context)
             {
                 foreach (var sourceSymbol in _sourceSymbolsToCheck)
                 {

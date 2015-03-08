@@ -20,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         <Extension>
         Friend Function [GetType](compilation As VisualBasicCompilation, moduleVersionId As Guid, typeToken As Integer, <Out> ByRef metadataDecoder As MetadataDecoder) As PENamedTypeSymbol
             Dim [module] = compilation.GetModule(moduleVersionId)
+            CheckModule([module], moduleVersionId)
             Dim reader = [module].Module.MetadataReader
             Dim typeHandle = CType(MetadataTokens.Handle(typeToken), TypeDefinitionHandle)
             Dim type = [GetType]([module], typeHandle)
@@ -57,6 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         <Extension>
         Friend Function GetMethod(compilation As VisualBasicCompilation, moduleVersionId As Guid, methodHandle As MethodDefinitionHandle) As PEMethodSymbol
             Dim [module] = compilation.GetModule(moduleVersionId)
+            CheckModule([module], moduleVersionId)
             Dim reader = [module].Module.MetadataReader
             Dim typeHandle = reader.GetMethodDefinition(methodHandle).GetDeclaringType()
             Dim type = [GetType]([module], typeHandle)
@@ -80,6 +82,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return Nothing
         End Function
 
+        Private Sub CheckModule([module] As PEModuleSymbol, moduleVersionId As Guid)
+            If [module] Is Nothing Then
+                Throw New ArgumentException($"No module found with MVID '{moduleVersionId}'", NameOf(moduleVersionId))
+            End If
+        End Sub
+
         <Extension>
         Friend Function ToCompilation(metadataBlocks As ImmutableArray(Of MetadataBlock)) As VisualBasicCompilation
             Return VisualBasicCompilation.Create(
@@ -94,7 +102,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             platform:=Platform.AnyCpu, ' Platform should match PEModule.Machine, in this case I386.
             optimizationLevel:=OptimizationLevel.Release,
             assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default).
-            WithMetadataImportOptions(MetadataImportOptions.All)
+            WithMetadataImportOptions(MetadataImportOptions.All).
+            WithSuppressEmbeddedDeclarations(True)
 
     End Module
 

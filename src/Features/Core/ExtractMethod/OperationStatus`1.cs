@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             this.Data = data;
         }
 
-        public OperationStatus Status { get; private set; }
-        public T Data { get; private set; }
+        public OperationStatus Status { get; }
+        public T Data { get; }
 
         public OperationStatus<T> With(OperationStatus status)
         {

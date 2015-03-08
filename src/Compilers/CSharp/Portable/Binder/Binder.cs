@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (object)member == null
                     ? null
                     : member.Kind == SymbolKind.NamedType
-                        ? (NamedTypeSymbol)member 
+                        ? (NamedTypeSymbol)member
                         : member.ContainingType;
             }
         }
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             TypeSymbol throughTypeOpt = null)
         {
-            return this.Flags.Includes(BinderFlags.SuppressAccessChecks) || AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics, throughTypeOpt);
+            return this.Flags.Includes(BinderFlags.IgnoreAccessibility) || AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics, throughTypeOpt);
         }
 
         internal bool IsSymbolAccessibleConditional(
@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             ConsList<Symbol> basesBeingResolved = null)
         {
-            if (this.Flags.Includes(BinderFlags.SuppressAccessChecks))
+            if (this.Flags.Includes(BinderFlags.IgnoreAccessibility))
             {
                 failedThroughTypeCheck = false;
                 return true;

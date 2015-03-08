@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 c.RegisterSemanticModelAction(analyzer.AnalyzeSemanticModel);
             });
 
-            context.RegisterCompilationEndAction(CompilationAnalyzer.AnalyzeCompilation);
+            context.RegisterCompilationAction(CompilationAnalyzer.AnalyzeCompilation);
         }
     }
 }

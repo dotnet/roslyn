@@ -83,14 +83,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         public class ArgumentKey
         {
-            public readonly int ProviderId;
-            public readonly StateType StateTypeId;
+            public readonly DiagnosticAnalyzer Analyzer;
+            public readonly StateType StateType;
             public readonly object Key;
 
-            public ArgumentKey(int providerId, StateType stateTypeId, object key)
+            public ArgumentKey(DiagnosticAnalyzer analyzer, StateType stateTypeId, object key)
             {
-                this.ProviderId = providerId;
-                this.StateTypeId = stateTypeId;
+                this.Analyzer = analyzer;
+                this.StateType = stateTypeId;
                 this.Key = key;
             }
 
@@ -102,12 +102,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return false;
                 }
 
-                return ProviderId == other.ProviderId && StateTypeId == other.StateTypeId && Key == other.Key;
+                return Analyzer == other.Analyzer && StateType == other.StateType && Key == other.Key;
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(Key, Hash.Combine(ProviderId, (int)StateTypeId));
+                return Hash.Combine(Key, Hash.Combine(Analyzer.GetHashCode(), (int)StateType));
             }
         }
     }

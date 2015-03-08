@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             string featureName)
         {
             _listener = (from lazy in listeners
-                        where lazy.Metadata.FeatureName == featureName
-                        select lazy.Value).SingleOrDefault();
+                         where lazy.Metadata.FeatureName == featureName
+                         select lazy.Value).SingleOrDefault();
         }
 
         public static readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> EmptyListeners =

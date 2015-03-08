@@ -48,6 +48,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         <Fact>
+        Public Sub ErrorsRequiringVbCore()
+            Assert.Equal(EvaluationContextBase.MicrosoftVisualBasicIdentity, GetMissingAssemblyIdentities(ERRID.ERR_MissingRuntimeHelper).Single())
+        End Sub
+
+        <Fact>
         Public Sub MultipleAssemblyArguments()
             Dim identity1 = New AssemblyIdentity(GetUniqueName())
             Dim identity2 = New AssemblyIdentity(GetUniqueName())
@@ -192,6 +197,75 @@ End Class
                               EvaluationContextBase.SystemXmlLinqIdentity)
         End Sub
 
+        <Fact>
+        Public Sub ERR_MissingRuntimeAssembly()
+            Const source = "
+Public Class C
+    Public Sub M(o As Object)
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef)
+
+            Const expectedError = "(1,2): error BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Operators.CompareObjectEqual' is not defined."
+            Dim expectedMissingAssemblyIdentity = EvaluationContextBase.MicrosoftVisualBasicIdentity
+
+            Dim resultProperties As ResultProperties = Nothing
+            Dim actualError As String = Nothing
+            Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+
+            context.CompileExpression(
+                DefaultInspectionContext.Instance,
+                "o = o",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                resultProperties,
+                actualError,
+                actualMissingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData:=Nothing)
+            Assert.Equal(expectedError, actualError)
+            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
+        End Sub
+
+        <WorkItem(1114866)>
+        <ConditionalFact(GetType(OSVersionWin8))>
+        Public Sub ERR_UndefinedType1()
+            Dim source = "
+Class C
+    Sub M()
+    End Sub
+End Class
+"
+
+            Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
+            Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI")
+            Assert.True(runtimeAssemblies.Any())
+            Dim context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies))
+            Dim globalNamespace = context.Compilation.GlobalNamespace
+
+            Dim expectedIdentity = New AssemblyIdentity("Windows.Storage", contentType:=Reflection.AssemblyContentType.WindowsRuntime)
+
+            Dim actualIdentity = EvaluationContext.GetMissingAssemblyIdentitiesHelper(ERRID.ERR_UndefinedType1, {"Windows.Storage"}, globalNamespace).Single()
+            Assert.Equal(expectedIdentity, actualIdentity)
+
+            actualIdentity = EvaluationContext.GetMissingAssemblyIdentitiesHelper(ERRID.ERR_UndefinedType1, {"Global.Windows.Storage"}, globalNamespace).Single()
+            Assert.Equal(expectedIdentity, actualIdentity)
+
+            actualIdentity = EvaluationContext.GetMissingAssemblyIdentitiesHelper(ERRID.ERR_UndefinedType1, {"Global.Windows.Storage.Additional"}, globalNamespace).Single()
+            Assert.Equal(expectedIdentity, actualIdentity)
+
+
+            expectedIdentity = New AssemblyIdentity("Windows.UI.Xaml", contentType:=Reflection.AssemblyContentType.WindowsRuntime)
+
+            actualIdentity = EvaluationContext.GetMissingAssemblyIdentitiesHelper(ERRID.ERR_UndefinedType1, {"Windows.UI.Xaml"}, globalNamespace).Single()
+            Assert.Equal(expectedIdentity, actualIdentity)
+
+
+            Assert.True(EvaluationContext.GetMissingAssemblyIdentitiesHelper(ERRID.ERR_UndefinedType1, {"Windows.UI.Xaml(Of T)"}, globalNamespace).IsDefault)
+        End Sub
+
         <WorkItem(1124725, "DevDiv")>
         <WorkItem(597, "GitHub")>
         <Fact>
@@ -203,9 +277,10 @@ Public Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, {}, TestOptions.DebugDll)
-            Dim context = CreateMethodContextWithReferences(comp, "C.M", CSharpRef)
+            Dim context = CreateMethodContextWithReferences(comp, "C.M", CSharpRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference)
 
             Const expectedError = "(1,1): error BC30002: Type 'System.Void' is not defined."
+            Dim expectedMissingAssemblyIdentity = comp.Assembly.CorLibrary.Identity
 
             Dim resultProperties As ResultProperties = Nothing
             Dim actualError As String = Nothing
@@ -222,26 +297,135 @@ End Class
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData:=Nothing)
 
-            ' This behavior is reasonable, but it would be much nicer to report that comp.Assembly.CorLibrary.Identity
-            ' is missing, as in C# (GitHub #597).
-
             Assert.Equal(expectedError, actualError)
-            Assert.Empty(actualMissingAssemblyIdentities)
+            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
+        End Sub
+
+        <WorkItem(1114866)>
+        <ConditionalFact(GetType(OSVersionWin8))>
+        Public Sub NotYetLoadedWinMds()
+            Dim source = "
+Class C
+    Shared Sub M(f As Windows.Storage.StorageFolder)
+    End Sub
+End Class
+"
+
+            Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
+            Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage")
+            Assert.True(runtimeAssemblies.Any())
+            Dim context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies))
+
+            Const expectedError = "(1,1): error BC30456: 'UI' is not a member of 'Windows'."
+            Dim expectedMissingAssemblyIdentity = New AssemblyIdentity("Windows.UI", contentType:=System.Reflection.AssemblyContentType.WindowsRuntime)
+
+            Dim resultProperties As ResultProperties = Nothing
+            Dim actualError As String = Nothing
+            Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+            context.CompileExpression(
+                InspectionContextFactory.Empty,
+                "Windows.UI.Colors",
+                DkmEvaluationFlags.None,
+                DiagnosticFormatter.Instance,
+                resultProperties,
+                actualError,
+                actualMissingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData:=Nothing)
+            Assert.Equal(expectedError, actualError)
+            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
+        End Sub
+
+        ''' <remarks>
+        ''' Windows.UI.Xaml is the only (win8) winmd with more than two parts.
+        ''' </remarks>
+        <WorkItem(1114866)>
+        <ConditionalFact(GetType(OSVersionWin8))>
+        Public Sub NotYetLoadedWinMds_MultipleParts()
+            Dim source = "
+Class C
+    Shared Sub M(c As Windows.UI.Colors)
+    End Sub
+End Class
+"
+
+            Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
+            Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI")
+            Assert.True(runtimeAssemblies.Any())
+            Dim context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies))
+
+            Const expectedError = "(1,1): error BC30456: 'Xaml' is not a member of 'Windows.UI'."
+            Dim expectedMissingAssemblyIdentity = New AssemblyIdentity("Windows.UI.Xaml", contentType:=System.Reflection.AssemblyContentType.WindowsRuntime)
+
+            Dim resultProperties As ResultProperties = Nothing
+            Dim actualError As String = Nothing
+            Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+            context.CompileExpression(
+                InspectionContextFactory.Empty,
+                "Windows.[UI].Xaml.Application",
+                DkmEvaluationFlags.None,
+                DiagnosticFormatter.Instance,
+                resultProperties,
+                actualError,
+                actualMissingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData:=Nothing)
+            Assert.Equal(expectedError, actualError)
+            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
+        End Sub
+
+        <WorkItem(1114866)>
+        <ConditionalFact(GetType(OSVersionWin8))>
+        Public Sub NotYetLoadedWinMds_GetType()
+            Dim source = "
+Class C
+    Shared Sub M(f As Windows.Storage.StorageFolder)
+    End Sub
+End Class
+"
+
+            Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
+            Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage")
+            Assert.True(runtimeAssemblies.Any())
+            Dim context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies))
+
+            Const expectedError = "(1,9): error BC30002: Type 'Windows.UI.Colors' is not defined."
+            Dim expectedMissingAssemblyIdentity = New AssemblyIdentity("Windows.UI", contentType:=System.Reflection.AssemblyContentType.WindowsRuntime)
+
+            Dim resultProperties As ResultProperties = Nothing
+            Dim actualError As String = Nothing
+            Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+            context.CompileExpression(
+                InspectionContextFactory.Empty,
+                "GetType([Windows].UI.Colors)",
+                DkmEvaluationFlags.None,
+                DiagnosticFormatter.Instance,
+                resultProperties,
+                actualError,
+                actualMissingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData:=Nothing)
+            Assert.Equal(expectedError, actualError)
+            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
         End Sub
 
         Private Function CreateMethodContextWithReferences(comp As Compilation, methodName As String, ParamArray references As MetadataReference()) As EvaluationContext
+            Return CreateMethodContextWithReferences(comp, methodName, ImmutableArray.CreateRange(references))
+        End Function
+
+        Private Function CreateMethodContextWithReferences(comp As Compilation, methodName As String, references As ImmutableArray(Of MetadataReference)) As EvaluationContext
             Dim exeBytes As Byte() = Nothing
             Dim pdbBytes As Byte() = Nothing
             Dim unusedReferences As ImmutableArray(Of MetadataReference) = Nothing
             Dim result = comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
             Assert.True(result)
 
-            Dim runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.CreateRange(references), exeBytes, New SymReader(pdbBytes))
+            Dim runtime = CreateRuntimeInstance(GetUniqueName(), references, exeBytes, New SymReader(pdbBytes))
             Return CreateMethodContext(runtime, methodName)
         End Function
 
         Private Shared Function GetMissingAssemblyIdentities(code As ERRID, ParamArray arguments As Object()) As ImmutableArray(Of AssemblyIdentity)
-            Return EvaluationContext.GetMissingAssemblyIdentitiesHelper(code, arguments)
+            Return EvaluationContext.GetMissingAssemblyIdentitiesHelper(code, arguments, globalNamespace:=Nothing)
         End Function
     End Class
 End Namespace

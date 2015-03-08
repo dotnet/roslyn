@@ -96,13 +96,13 @@
     <CodeAnalysisRuleSet>..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Editting\SyntaxEditorTests.cs" />
     <Compile Include="ExtensionOrdererTests.cs" />
     <Compile Include="Host\WorkspaceServices\TestProjectCacheService.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.TextMerging.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.Features.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.cs" />
     <Compile Include="UtilityTest\AsyncLazyTests.cs" />
-    <Compile Include="UtilityTest\AsyncLazyTests.StopTheThreadPoolContext.cs" />
     <Compile Include="CodeCleanup\AddMissingTokensTests.cs" />
     <Compile Include="CodeCleanup\CodeCleanupTests.cs" />
     <Compile Include="CodeCleanup\Extensions.cs" />
@@ -299,6 +299,10 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="TestFiles\TestSolution_SolutionFolder.sln" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\VisualBasicProject_Circular_Target.vbproj" />
+    <EmbeddedResource Include="TestFiles\VisualBasicProject_Circular_Top.vbproj" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

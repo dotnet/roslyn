@@ -23,6 +23,10 @@
     <Compile Include="Implementation\AnalyzerDependencyConflict.cs" />
     <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
+    <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractSourceTreeItem.cs" />
+    <Compile Include="Implementation\Library\FindResults\TreeItems\ITreeItemWithReferenceCount.cs" />
+    <Compile Include="Implementation\Library\FindResults\TreeItems\MetadataDefinitionTreeItem.cs" />
+    <Compile Include="Implementation\Library\FindResults\TreeItems\SourceDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.MetadataReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
@@ -58,7 +62,7 @@
     <Compile Include="Implementation\Watson\WatsonErrorReport.cs" />
     <Compile Include="Implementation\Watson\WatsonReporter.cs" />
     <Compile Include="Implementation\Workspace\Esent\EsentLogger.cs" />
-    <Compile Include="SolutionBuildMonitor.cs" />
+    <Compile Include="SolutionEventMonitor.cs" />
     <Compile Include="Utilities\VSCodeAnalysisColors.cs" />
     <Compile Include="Implementation\WorkspaceCacheService.cs" />
   </ItemGroup>
@@ -186,7 +190,7 @@
     <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
     <Reference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll">
       <HintPath>$(DevEnvDir)\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll</HintPath>
-    </Reference> 
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
@@ -418,14 +422,14 @@
     <Compile Include="Implementation\Library\AbstractLibraryManager_IVsLibraryMgr.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryManager_IVsSimpleLibrary2.cs" />
     <Compile Include="Implementation\Library\AbstractObjectList.cs" />
-    <Compile Include="Implementation\Library\FindResults\AbstractListItem.cs" />
-    <Compile Include="Implementation\Library\FindResults\ExternalListItem.cs" />
+    <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractTreeItem.cs" />
+    <Compile Include="Implementation\Library\FindResults\TreeItems\ExternalLanguageDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\LibraryManager.cs" />
     <Compile Include="Implementation\Library\FindResults\LibraryManager_FindReferences.cs" />
     <Compile Include="Implementation\Library\FindResults\LibraryManager_GoToDefinition.cs" />
     <Compile Include="Implementation\Library\FindResults\NavInfo.cs" />
     <Compile Include="Implementation\Library\FindResults\ObjectList.cs" />
-    <Compile Include="Implementation\Library\FindResults\SourceListItem.cs" />
+    <Compile Include="Implementation\Library\FindResults\TreeItems\SourceReferenceTreeItem.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractDescriptionBuilder.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractDescriptionBuilder.LinkFlags.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager.cs" />

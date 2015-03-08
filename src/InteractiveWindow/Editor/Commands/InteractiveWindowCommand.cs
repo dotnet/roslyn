@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.StandardClassification;
@@ -13,7 +15,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
     /// 
     /// This interface is a MEF contract and can be implemented and exported to add commands to the REPL window.
     /// </summary>
-    public abstract class InteractiveWindowCommand : IInteractiveWindowCommand
+    internal abstract class InteractiveWindowCommand : IInteractiveWindowCommand
     {
         public virtual IEnumerable<ClassificationSpan> ClassifyArguments(ITextSnapshot snapshot, Span argumentsSpan, Span spanToClassify)
         {
@@ -38,7 +40,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             get { return null; }
         }
 
-        public virtual string Name
+        public virtual IEnumerable<string> Names
         {
             get { return null; }
         }

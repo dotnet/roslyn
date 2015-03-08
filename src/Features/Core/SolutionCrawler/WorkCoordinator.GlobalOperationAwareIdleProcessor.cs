@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _globalOperationNotificationService.Stopped += OnGlobalOperationStopped;
                     }
 
+                    protected abstract void PauseOnGlobalOperation();
+
                     private void OnGlobalOperationStarted(object sender, EventArgs e)
                     {
                         Contract.ThrowIfFalse(_globalOperation == null);
@@ -54,11 +56,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _globalOperationTask = _globalOperation.Task;
 
                         SolutionCrawlerLogger.LogGlobalOperation(this.Processor._logAggregator);
+
+                        PauseOnGlobalOperation();
                     }
 
                     private void OnGlobalOperationStopped(object sender, GlobalOperationEventArgs e)
                     {
-                        Contract.ThrowIfFalse(_globalOperation != null);
+                        if (_globalOperation == null)
+                        {
+                            // we subscribed to the event while it is already running.
+                            return;
+                        }
 
                         // events are serialized. no lock is needed
                         _globalOperation.SetResult(null);

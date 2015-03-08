@@ -240,18 +240,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// <para>
-        /// Get a source location key for sorting. For performance, it's important that this be 
+        /// Get a source location key for sorting. For performance, it's important that this
         /// be able to be returned from a symbol without doing any additional allocations (even
         /// if nothing is cached yet.)
         /// </para>
         /// <para>
-        /// Only members of source namespaces, original source types, and namespaces that can be merged
-        /// need implement this function.
+        /// Only (original) source symbols and namespaces that can be merged
+        /// need implement this function if they want to do so for efficiency.
         /// </para>
         /// </summary>
         internal virtual LexicalSortKey GetLexicalSortKey()
         {
-            throw ExceptionUtilities.Unreachable;
+            var locations = this.Locations;
+            var declaringCompilation = this.DeclaringCompilation;
+            Debug.Assert(declaringCompilation != null); // require that it is a source symbol
+            return (locations.Length > 0) ? new LexicalSortKey(locations[0], declaringCompilation) : LexicalSortKey.NotInSource;
         }
 
         /// <summary>
@@ -742,13 +745,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return $"{this.Kind} {this.ToDisplayString(SymbolDisplayFormat.TestFormat)}";
         }
 
-        internal void AddSemanticDiagnostics(DiagnosticBag diagnostics)
+        internal void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
         {
             if (!diagnostics.IsEmptyWithoutResolution)
             {
                 CSharpCompilation compilation = this.DeclaringCompilation;
                 Debug.Assert(compilation != null);
-                compilation.SemanticDiagnostics.AddRange(diagnostics);
+                compilation.DeclarationDiagnostics.AddRange(diagnostics);
             }
         }
 

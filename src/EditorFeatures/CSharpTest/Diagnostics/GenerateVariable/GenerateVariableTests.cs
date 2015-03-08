@@ -85,7 +85,7 @@ index: 2);
         {
             TestExactActionSetOffered(
 @"class Class { void Method(int i) { [|foo|] = 1; } }",
-new[] { "Generate field 'foo' in 'Class'", "Generate property 'Class.foo'", "Generate local 'foo'" });
+new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string.Format(FeaturesResources.GeneratePropertyIn, "foo", "Class"), string.Format(FeaturesResources.GenerateLocal, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -110,7 +110,7 @@ index: 1);
         {
             TestExactActionSetOffered(
 @"class Class { void Method(ref int i) { Method(ref [|foo|]); } }",
-new[] { "Generate field 'foo' in 'Class'", "Generate local 'foo'" });
+new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string.Format(FeaturesResources.GenerateLocal, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -126,7 +126,7 @@ new[] { "Generate field 'foo' in 'Class'", "Generate local 'foo'" });
         {
             TestExactActionSetOffered(
 @"class Class { void Method(out int i) { Method(out [|foo|]); } }",
-new[] { "Generate field 'foo' in 'Class'", "Generate local 'foo'" });
+new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string.Format(FeaturesResources.GenerateLocal, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -741,7 +741,7 @@ compareTokens: false);
         {
             TestExactActionSetOffered(
 @"class Program { static void Main ( ) { [|p|] ++ ; } } ",
-new[] { "Generate field 'p' in 'Program'", "Generate property 'Program.p'", "Generate local 'p'" });
+new[] { string.Format(FeaturesResources.GenerateFieldIn, "p", "Program"), string.Format(FeaturesResources.GeneratePropertyIn, "p", "Program"), string.Format(FeaturesResources.GenerateLocal, "p") });
 
             Test(
 @"class Program { static void Main ( ) { [|p|] ++ ; } } ",
@@ -1838,7 +1838,7 @@ class C
 #line hidden
 }
 ";
-            TestExactActionSetOffered(code, new[] { "Generate local 'Bar'" });
+            TestExactActionSetOffered(code, new[] { string.Format(FeaturesResources.GenerateLocal, "Bar") });
 
             Test(code,
 @"

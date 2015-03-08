@@ -1,11 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.DocumentationCommentFormatting;
-using Microsoft.CodeAnalysis.DocumentationCommentFormatting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.DocumentationCommentFormatting;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -39,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             var comment = "<summary>This is a summary.</summary>";
 
             var expected =
-@"Summary:
+$@"{FeaturesResources.Summary}
     This is a summary.";
 
             TestFormat(comment, expected);
@@ -51,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             var comment = "<summary>I am the very model of a modern major general. This is a very long comment. And getting longer by the minute.</summary>";
 
             var expected =
-@"Summary:
+$@"{FeaturesResources.Summary}
     I am the very model of a modern major general. This is a very long comment. And
     getting longer by the minute.";
 
@@ -63,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
         {
             var comment = "<summary>I amtheverymodelofamodernmajorgeneral.Thisisaverylongcomment.Andgettinglongerbythe minute.</summary>";
             var expected =
-@"Summary:
+$@"{FeaturesResources.Summary}
     I amtheverymodelofamodernmajorgeneral.Thisisaverylongcomment.Andgettinglongerbythe
     minute.";
 
@@ -76,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             var comment = @"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException</exception>";
 
             var expected =
-@"Exceptions:
+$@"{FeaturesResources.Exceptions}
   T:System.NotImplementedException:
     throws NotImplementedException";
 
@@ -92,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 <exception cref=""T:System.InvalidOperationException"">throws InvalidOperationException</exception>";
 
             var expected =
-@"Exceptions:
+$@"{FeaturesResources.Exceptions}
   T:System.NotImplementedException:
     throws NotImplementedException
 
@@ -112,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 <exception cref=""T:System.NotImplementedException"">also throws NotImplementedException for reason Y</exception>";
 
             var expected =
-@"Exceptions:
+$@"{FeaturesResources.Exceptions}
   T:System.NotImplementedException:
     throws NotImplementedException for reason X
 
@@ -131,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             var comment = @"<returns>A string is returned</returns>";
 
             var expected =
-@"Returns:
+$@"{FeaturesResources.Returns}
     A string is returned";
 
             TestFormat(comment, expected);
@@ -146,10 +143,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 <param name=""b"">The param named 'b'</param>";
 
             var expected =
-@"Summary:
+$@"{FeaturesResources.Summary}
     This is the summary.
 
-Parameters:
+{FeaturesResources.Parameters}
   a:
     The param named 'a'
 
@@ -167,7 +164,7 @@ Parameters:
 <typeparam name=""U"">The type param named 'U'</typeparam>";
 
             var expected =
-@"Type parameters:
+$@"{FeaturesResources.TypeParameters}
   T:
     The type param named 'T'
 
@@ -197,10 +194,10 @@ This is a summary of something.
 <remarks>This doc comment is really not very remarkable.</remarks>";
 
             var expected =
-@"Summary:
+$@"{FeaturesResources.Summary}
     This is a summary of something.
 
-Parameters:
+{FeaturesResources.Parameters}
   a:
     The param named 'a'.
 
@@ -209,7 +206,7 @@ Parameters:
   c:
     The param named 'c'.
 
-Type parameters:
+{FeaturesResources.TypeParameters}
   T:
     A type parameter.
 
@@ -218,10 +215,10 @@ Type parameters:
   V:
     Another type parameter.
 
-Returns:
+{FeaturesResources.Returns}
     This returns nothing.
 
-Exceptions:
+{FeaturesResources.Exceptions}
   System.FooException:
     Thrown for an unknown reason
 
@@ -230,7 +227,7 @@ Exceptions:
   System.BlahException:
     Thrown when blah blah blah
 
-Remarks:
+{FeaturesResources.Remarks}
     This doc comment is really not very remarkable.";
 
             TestFormat(comment, expected);

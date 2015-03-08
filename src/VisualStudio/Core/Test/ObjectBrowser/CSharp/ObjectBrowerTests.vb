@@ -4,7 +4,6 @@ Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
-Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.CSharp
     Public Class ObjectBrowserTests
@@ -247,7 +246,7 @@ namespace N { }
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
 
-                list.VerifyDescriptions("Project CSharpAssembly1")
+                list.VerifyDescriptions($"{ServicesVSResources.Library_Project}CSharpAssembly1")
             End Using
         End Sub
 
@@ -268,7 +267,7 @@ namespace N
 
                 list.VerifyDescriptions(
 "namespace N" & vbCrLf &
-"    Member of CSharpAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
@@ -287,9 +286,9 @@ sealed class C : B { }
 
                 list.VerifyDescriptions(
 "internal abstract class B" & vbCrLf &
-"    Member of CSharpAssembly1",
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}",
 "internal sealed class C : B" & vbCrLf &
-"    Member of CSharpAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
@@ -307,7 +306,7 @@ static class C { }
 
                 list.VerifyDescriptions(
 "internal static class C" & vbCrLf &
-"    Member of CSharpAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
@@ -335,7 +334,7 @@ class Z&lt;T,U,V&gt; : Dictionary&lt;U,V&gt;
 vbTab & "where T : struct" & vbCrLf &
 vbTab & "where U : V" & vbCrLf &
 vbTab & "where V : System.Collections.Generic.List<T>" & vbCrLf &
-"    Member of CSharpAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
@@ -355,11 +354,11 @@ interface I3 : I2, I1 { }
 
                 list.VerifyDescriptions(
 "internal interface I1" & vbCrLf &
-"    Member of CSharpAssembly1",
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}",
 "internal interface I2" & vbCrLf &
-"    Member of CSharpAssembly1",
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}",
 "internal interface I3" & vbCrLf &
-"    Member of CSharpAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
@@ -377,7 +376,7 @@ struct S { }
 
                 list.VerifyDescriptions(
 "internal struct S" & vbCrLf &
-"    Member of CSharpAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
@@ -401,7 +400,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private void M()" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -426,7 +425,7 @@ interface I
 
                 list.VerifyImmediateMemberDescriptions(
 "void M()" & vbCrLf &
-"    Member of I")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "I")}")
             End Using
         End Sub
 
@@ -450,7 +449,7 @@ static class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static void M(this C c)" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -477,7 +476,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private bool M(int x, ref string y, out System.Collections.Generic.List<int> z)" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -501,7 +500,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private void M([int x = 42])" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -527,7 +526,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private void M([double x = 3.14159265358979])" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -551,7 +550,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private void M([double? x = null])" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -575,7 +574,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private void M([double? x = 42])" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -599,7 +598,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private void M([C c = null])" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -624,7 +623,7 @@ unsafe class UnsafeC
 
                 list.VerifyImmediateMemberDescriptions(
 "private unsafe int* M()" & vbCrLf &
-"    Member of UnsafeC")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "UnsafeC")}")
             End Using
         End Sub
 
@@ -656,7 +655,7 @@ class C
 vbTab & "where T : class, new()" & vbCrLf &
 vbTab & "where U : V" & vbCrLf &
 vbTab & "where V : System.Collections.Generic.List<T>" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -678,7 +677,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "internal readonly int x" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -700,7 +699,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "protected internal const int x" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -726,7 +725,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public int P { get; set; }" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -751,7 +750,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public int P { get; }" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -776,7 +775,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public int P { set; }" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -798,7 +797,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public int P { get; set; }" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -820,7 +819,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public int P { get; private set; }" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -842,7 +841,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "internal int P { get; private set; }" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -868,7 +867,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private int this[int index] { get; set; }" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -893,7 +892,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private int this[int index] { get; }" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -918,7 +917,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "protected int this[int index] { set; }" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -939,7 +938,7 @@ enum E
 
                 list.VerifyDescriptions(
 "internal enum E" & vbCrLf &
-"    Member of CSharpAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
@@ -960,7 +959,7 @@ enum E : int
 
                 list.VerifyDescriptions(
 "internal enum E" & vbCrLf &
-"    Member of CSharpAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
@@ -981,7 +980,7 @@ enum E : byte
 
                 list.VerifyDescriptions(
 "internal enum E : byte" & vbCrLf &
-"    Member of CSharpAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
@@ -1003,7 +1002,7 @@ enum E
 
                 list.VerifyImmediateMemberDescriptions(
 "A" & vbCrLf &
-"    Member of E")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "E")}")
             End Using
         End Sub
 
@@ -1026,7 +1025,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public event System.EventHandler E" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1053,7 +1052,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public event System.EventHandler E" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1085,12 +1084,12 @@ class C
                 list.VerifyImmediateMemberDescriptions(
 "public TResult M<T, TResult>(T x, T y)" & vbCrLf &
 vbTab & "where TResult : class" & vbCrLf &
-"    Member of C" & vbCrLf &
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}" & vbCrLf &
 "" & vbCrLf &
-"Summary:" & vbCrLf &
+ServicesVSResources.Library_Summary & vbCrLf &
 "The M method." & vbCrLf &
 "" & vbCrLf &
-"Returns:" & vbCrLf &
+ServicesVSResources.Library_Returns & vbCrLf &
 "Returns a TResult.")
             End Using
         End Sub
@@ -1116,7 +1115,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static int operator +(C c, int i)" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1141,7 +1140,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static int operator -(C c, int i)" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1166,7 +1165,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static int operator *(C c, int i)" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1191,7 +1190,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static int operator /(C c, int i)" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1216,7 +1215,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static implicit operator bool(C c)" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1241,7 +1240,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static explicit operator bool(C c)" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1265,7 +1264,7 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static extern int MessageBox(System.IntPtr h, string m, string c, int type)" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 

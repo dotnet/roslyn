@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         {
             const string AttributeSuffix = "Attribute";
 
-            return state.IsAttribute && !state.NameIsVerbatim && !state.Name.EndsWith(AttributeSuffix)
+            return state.IsAttribute && !state.NameIsVerbatim && !state.Name.EndsWith(AttributeSuffix, StringComparison.Ordinal)
                 ? state.Name + AttributeSuffix
                 : state.Name;
         }

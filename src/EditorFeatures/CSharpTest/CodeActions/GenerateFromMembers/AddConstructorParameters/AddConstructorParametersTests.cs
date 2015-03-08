@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.AddConstructorParameters;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -57,7 +54,7 @@ index: 1);
         {
             TestSmartTagText(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
-@"Add parameters to 'Program(bool)'",
+string.Format(FeaturesResources.AddParametersTo, "Program", "bool"),
 index: 0);
         }
 
@@ -66,7 +63,7 @@ index: 0);
         {
             TestSmartTagText(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
-@"Add optional parameters to 'Program(bool)'",
+string.Format(FeaturesResources.AddOptionalParametersTo, "Program", "bool"),
 index: 1);
         }
     }

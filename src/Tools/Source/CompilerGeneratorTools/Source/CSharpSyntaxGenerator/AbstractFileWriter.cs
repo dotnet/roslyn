@@ -234,13 +234,13 @@ namespace CSharpSyntaxGenerator
 
         protected string StripNode(string name)
         {
-            return (_tree.Root.EndsWith("Node")) ? _tree.Root.Substring(0, _tree.Root.Length - 4) : _tree.Root;
+            return (_tree.Root.EndsWith("Node", StringComparison.Ordinal)) ? _tree.Root.Substring(0, _tree.Root.Length - 4) : _tree.Root;
         }
 
         protected string StripRoot(string name)
         {
             var root = StripNode(_tree.Root);
-            if (name.EndsWith(root))
+            if (name.EndsWith(root, StringComparison.Ordinal))
             {
                 return name.Substring(0, name.Length - root.Length);
             }
@@ -249,7 +249,7 @@ namespace CSharpSyntaxGenerator
 
         protected static string StripPost(string name, string post)
         {
-            return name.EndsWith(post)
+            return name.EndsWith(post, StringComparison.Ordinal)
                 ? name.Substring(0, name.Length - post.Length)
                 : name;
         }

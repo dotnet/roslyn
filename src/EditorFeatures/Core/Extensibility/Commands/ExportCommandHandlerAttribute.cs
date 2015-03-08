@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Editor
     [AttributeUsage(AttributeTargets.Class)]
     internal class ExportCommandHandlerAttribute : ExportAttribute
     {
-        public string Name { get; private set; }
-        public IEnumerable<string> ContentTypes { get; private set; }
+        public string Name { get; }
+        public IEnumerable<string> ContentTypes { get; }
 
         public ExportCommandHandlerAttribute(string name, params string[] contentTypes) :
             base(typeof(ICommandHandler))

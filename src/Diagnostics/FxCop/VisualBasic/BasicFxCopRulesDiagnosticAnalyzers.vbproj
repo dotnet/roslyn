@@ -96,7 +96,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Design\BasicCA1003DiagnosticAnalyzer.vb" />
-    <Compile Include="Design\BasicCA1019DiagnosticAnalyzer.vb" />
     <Compile Include="Design\BasicCA1024DiagnosticAnalyzer.vb" />
     <Compile Include="Design\BasicEnumWithFlagsDiagnosticAnalyzer.vb" />
     <Compile Include="Design\CodeFixes\CA1008BasicCodeFixProvider.vb" />
@@ -112,7 +111,6 @@
     <Compile Include="Usage\BasicCA2213DiagnosticAnalyzer.vb" />
     <Compile Include="Usage\BasicCA2214DiagnosticAnalyzer.vb" />
     <Compile Include="Usage\CodeFixes\CA2213BasicCodeFixProvider.vb" />
-    <Compile Include="Usage\CodeFixes\CA2231BasicCodeFixProvider.vb" />
     <Compile Include="Usage\CodeFixes\CA2235BasicCodeFixProvider.vb" />
   </ItemGroup>
   <ItemGroup>

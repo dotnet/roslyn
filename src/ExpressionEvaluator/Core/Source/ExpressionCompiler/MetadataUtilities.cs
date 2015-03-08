@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.SymReaderInterop;
 
@@ -51,9 +52,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         metadataBuilder.Add(metadata);
                     }
                 }
-                catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e))
+                catch (Exception e) when (IsBadMetadataException(e))
                 {
-                    // Ignore modules with "bad" or missing metadata.
+                    // Ignore modules with "bad" metadata.
                 }
             }
 
@@ -140,9 +141,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         }
                     }
                 }
-                catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e))
+                catch (Exception e) when (IsBadMetadataException(e))
                 {
-                    // Ignore modules with "bad" or missing metadata.
+                    // Ignore modules with "bad" metadata.
                 }
             }
 
@@ -191,6 +192,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static bool IsWindowsAssemblyName(string assemblyName)
         {
             return assemblyName.Equals("windows", StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static bool IsWindowsAssemblyIdentity(this AssemblyIdentity assemblyIdentity)
+        {
+            return IsWindowsAssemblyName(assemblyIdentity.Name) && 
+                assemblyIdentity.ContentType == System.Reflection.AssemblyContentType.WindowsRuntime;
         }
 
         internal static LocalInfo<TTypeSymbol> GetLocalInfo<TModuleSymbol, TTypeSymbol, TMethodSymbol, TFieldSymbol, TSymbol>(
@@ -385,23 +392,35 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return ConstantValue.Create(value, SpecialTypeExtensions.FromRuntimeTypeOfLiteralValue(value));
         }
 
-        internal static bool IsBadOrMissingMetadataException(Exception e, string moduleName = null)
+        private static bool IsBadMetadataException(Exception e)
         {
-            switch (unchecked((uint)e.HResult))
+            return GetHResult(e) == COR_E_BADIMAGEFORMAT;
+        }
+
+        internal static bool IsBadOrMissingMetadataException(Exception e, string moduleName)
+        {
+            Debug.Assert(moduleName != null);
+            switch (GetHResult(e))
             {
                 case COR_E_BADIMAGEFORMAT:
-                    // Some callers may not be able to provide a module name (the name may need to be read from
-                    // metadata, and this Exception indicates that we cannot construct a MetadataReader).
-                    Debug.WriteLine($"Module '{moduleName ?? "<unspecified>"}' contains corrupt metadata.");
+                    Debug.WriteLine($"Module '{moduleName}' contains corrupt metadata.");
                     return true;
                 case CORDBG_E_MISSING_METADATA:
-                    // All callers that pass this Exception should also have a module name available (from the DkmClrModuleInstance).
-                    Debug.Assert(moduleName != null);
                     Debug.WriteLine($"Module '{moduleName}' is missing metadata.");
                     return true;
                 default:
                     return false;
             }
+        }
+
+        private static uint GetHResult(Exception e)
+        {
+            return unchecked((uint)e.HResult);
+        }
+
+        internal static string GetUtf8String(this BlobHandle blobHandle, MetadataReader metadataReader)
+        {
+            return Encoding.UTF8.GetString(metadataReader.GetBlobBytes(blobHandle));
         }
     }
 }

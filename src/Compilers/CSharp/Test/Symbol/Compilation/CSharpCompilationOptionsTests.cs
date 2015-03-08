@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestProperty((old, value) => old.WithAllowUnsafe(value), opt => opt.AllowUnsafe, true);
             TestProperty((old, value) => old.WithCryptoKeyContainer(value), opt => opt.CryptoKeyContainer, "foo");
             TestProperty((old, value) => old.WithCryptoKeyFile(value), opt => opt.CryptoKeyFile, "foo");
+            TestProperty((old, value) => old.WithCryptoPublicKey(value), opt => opt.CryptoPublicKey, ImmutableArray.Create<byte>(0, 1, 2, 3));
             TestProperty((old, value) => old.WithDelaySign(value), opt => opt.DelaySign, true);
             TestProperty((old, value) => old.WithPlatform(value), opt => opt.Platform, Platform.Itanium);
             TestProperty((old, value) => old.WithGeneralDiagnosticOption(value), opt => opt.GeneralDiagnosticOption, ReportDiagnostic.Suppress);
@@ -336,6 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             bool allowUnsafe = false;
             string cryptoKeyContainer = null;
             string cryptoKeyFile = null;
+            ImmutableArray<byte> cryptoPublicKey = default(ImmutableArray<byte>);
             bool? delaySign = null;
             Platform platform = 0;
             ReportDiagnostic generalDiagnosticOption = 0;
@@ -351,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             MetadataImportOptions metadataImportOptions = 0;
             ImmutableArray<string> features = ImmutableArray<string>.Empty;
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, moduleName, mainTypeName, scriptClassName, usings,
-                optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, delaySign,
+                optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
                 concurrentBuild, extendedCustomDebugInformation, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
                 assemblyIdentityComparer, strongNameProvider, metadataImportOptions, features);
@@ -385,6 +387,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(compilationOptions.OptimizationLevel, deserializedCompilationOptions.OptimizationLevel);
             Assert.Equal(compilationOptions.ConcurrentBuild, deserializedCompilationOptions.ConcurrentBuild);
             Assert.Equal(compilationOptions.ExtendedCustomDebugInformation, deserializedCompilationOptions.ExtendedCustomDebugInformation);
+        }
+
+        [Fact]
+        public void WithCryptoPublicKey()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+
+            Assert.Equal(ImmutableArray<byte>.Empty, options.CryptoPublicKey);
+            Assert.Equal(ImmutableArray<byte>.Empty, options.WithCryptoPublicKey(default(ImmutableArray<byte>)).CryptoPublicKey);
+
+            Assert.Same(options, options.WithCryptoPublicKey(default(ImmutableArray<byte>)));
+            Assert.Same(options, options.WithCryptoPublicKey(ImmutableArray<byte>.Empty));
         }
     }
 }

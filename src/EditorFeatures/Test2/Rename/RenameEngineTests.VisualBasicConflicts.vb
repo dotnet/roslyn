@@ -2734,6 +2734,77 @@ End Class
                     result.AssertLabeledSpansAre("unresolved2", type:=RelatedLocationType.UnresolvedConflict)
                 End Using
             End Sub
+
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
+            <WorkItem(905, "https://github.com/dotnet/roslyn/issues/905")>
+            Public Sub RenamingCompilerGeneratedPropertyBackingField_InvokeFromProperty()
+                Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
+                            <Document>
+Class C1
+    Public ReadOnly Property [|X$$|] As String
+
+    Sub M()
+        {|backingfield:_X|} = "test"
+    End Sub
+End Class
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Y")
+
+                    result.AssertLabeledSpecialSpansAre("backingfield", "_Y", type:=RelatedLocationType.NoConflict)
+                End Using
+            End Sub
+
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
+            <WorkItem(905, "https://github.com/dotnet/roslyn/issues/905")>
+            Public Sub RenamingCompilerGeneratedPropertyBackingField_IntroduceConflict()
+                Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
+                            <Document>
+Class C1
+    Public ReadOnly Property [|X$$|] As String
+
+    Sub M()
+        {|Conflict:_X|} = "test"
+    End Sub
+
+    Dim _Y As String
+End Class
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Y")
+
+                    result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
+                End Using
+            End Sub
+
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
+            <WorkItem(905, "https://github.com/dotnet/roslyn/issues/905")>
+            Public Sub RenamingCompilerGeneratedPropertyBackingField_InvokableFromBackingFieldReference()
+                Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
+                            <Document>
+Class C1
+    Public ReadOnly Property [|X|] As String
+
+    Sub M()
+        {|backingfield:_X$$|} = "test"
+    End Sub
+End Class
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                    AssertTokenRenamable(workspace)
+                End Using
+            End Sub
         End Class
     End Class
 End Namespace

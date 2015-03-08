@@ -98,6 +98,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             m_Modules = moduleBuilder.ToImmutableAndFree()
 
+            If Not compilation.Options.CryptoPublicKey.IsEmpty Then
+                m_lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, MessageProvider.Instance)
+            End If
         End Sub
 
         ''' <summary>
@@ -1172,17 +1175,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 DetectAttributeAndOptionConflicts(diagnostics)
 
-                If IsDelaySign AndAlso Not Identity.HasPublicKey Then
+                If IsDelaySigned AndAlso Not Identity.HasPublicKey Then
                     diagnostics.Add(ERRID.WRN_DelaySignButNoKey, NoLocation.Singleton)
                 End If
 
-                'A container cannot contain just the public key. So if we have the public
-                'key, no keyPair, and no container, then the public key came from a file
-                'that contained only that. In that case we cannot sign.
+                ' If the options and attributes applied on the compilation imply real signing,
+                ' but we have no private key to sign it with report an error.
+                ' Note that if public key is set and delay sign is off we do OSS signing, which doesn't require private key.
+                ' Consider: should we allow to OSS sign if the key file only contains public key?
+
                 If DeclaringCompilation.Options.OutputKind <> OutputKind.NetModule AndAlso
+                   DeclaringCompilation.Options.CryptoPublicKey.IsEmpty AndAlso
                    Identity.HasPublicKey AndAlso
-                   Not IsDelaySign AndAlso
+                   Not IsDelaySigned AndAlso
                    Not StrongNameKeys.CanSign Then
+
+                    ' Since the container always contains both keys, the problem is that the key file didn't contain private key.
                     diagnostics.Add(ERRID.ERR_SignButNoPrivateKey, NoLocation.Singleton, StrongNameKeys.KeyFilePath)
                 End If
 
@@ -1310,7 +1318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Friend ReadOnly Property IsDelaySign As Boolean
+        Friend ReadOnly Property IsDelaySigned As Boolean
             Get
                 EnsureAttributesAreBound()
                 'TODO need to figure out the right behavior when command line and 

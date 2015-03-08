@@ -1830,7 +1830,7 @@ End Class
                 <Type>Void</Type>
             </Return>
         </Method>
-        <Method Name="_Lambda$__1" CallingConvention="HasThis">
+        <Method Name="_Lambda$__0" CallingConvention="HasThis">
             <MethodFlags>assembly specialname instance</MethodFlags>
             <MethodImplFlags>cil managed</MethodImplFlags>
             <Return>

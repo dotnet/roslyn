@@ -13,24 +13,25 @@ namespace Microsoft.CodeAnalysis
     [Serializable]
     public abstract class SerializableCompilationOptions : ISerializable
     {
-        protected const string OutputKindString = "OutputKind";
-        protected const string ModuleNameString = "ModuleName";
-        protected const string MainTypeNameString = "MainTypeName";
-        protected const string ScriptClassNameString = "ScriptClassName";
-        protected const string CryptoKeyContainerString = "CryptoKeyContainer";
-        protected const string CryptoKeyFileString = "CryptoKeyFile";
-        protected const string DelaySignString = "DelaySign";
-        protected const string CheckOverflowString = "CheckOverflow";
-        protected const string PlatformString = "Platform";
-        protected const string GeneralDiagnosticOptionString = "GeneralDiagnosticOption";
-        protected const string WarningLevelString = "WarningLevel";
-        protected const string SpecificDiagnosticOptionsString = "SpecificDiagnosticOptions";
-        protected const string DebugInformationKindString = "DebugInformationKind";
-        protected const string OptimizeString = "Optimize";
-        protected const string ConcurrentBuildString = "ConcurrentBuild";
+        internal const string OutputKindString = "OutputKind";
+        internal const string ModuleNameString = "ModuleName";
+        internal const string MainTypeNameString = "MainTypeName";
+        internal const string ScriptClassNameString = "ScriptClassName";
+        internal const string CryptoKeyContainerString = "CryptoKeyContainer";
+        internal const string CryptoKeyFileString = "CryptoKeyFile";
+        internal const string CryptoPublicKeyString = "CryptoPublicKey";
+        internal const string DelaySignString = "DelaySign";
+        internal const string CheckOverflowString = "CheckOverflow";
+        internal const string PlatformString = "Platform";
+        internal const string GeneralDiagnosticOptionString = "GeneralDiagnosticOption";
+        internal const string WarningLevelString = "WarningLevel";
+        internal const string SpecificDiagnosticOptionsString = "SpecificDiagnosticOptions";
+        internal const string DebugInformationKindString = "DebugInformationKind";
+        internal const string OptimizeString = "Optimize";
+        internal const string ConcurrentBuildString = "ConcurrentBuild";
         internal const string ExtendedCustomDebugInformationString = "ExtendedCustomDebugInformation";
-        protected const string MetadataImportOptionsString = "MetadataImportOptions";
-        protected const string FeaturesString = "Features";
+        internal const string MetadataImportOptionsString = "MetadataImportOptions";
+        internal const string FeaturesString = "Features";
 
         internal SerializableCompilationOptions()
         {
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis
             info.AddValue(ScriptClassNameString, options.ScriptClassName);
             info.AddValue(CryptoKeyContainerString, options.CryptoKeyContainer);
             info.AddValue(CryptoKeyFileString, options.CryptoKeyFile);
+            info.AddValue(CryptoPublicKeyString, options.CryptoPublicKey.ToArray());
             info.AddValue(DelaySignString, options.DelaySign);
             info.AddValue(CheckOverflowString, options.CheckOverflow);
             info.AddValue(PlatformString, (int)options.Platform);

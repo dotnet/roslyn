@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -5909,6 +5911,101 @@ class Program
         {
 
         }
+    }
+}";
+            AssertFormat(expected, code);
+        }
+
+        [WorkItem(285)]
+        [WorkItem(1089196)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatHashInBadDirectiveToZeroColumnAnywhereInsideIfDef()
+        {
+            const string code = @"class MyClass
+{
+    static void Main(string[] args)
+    {
+#if false
+
+            #
+
+#endif
+    }
+}";
+
+            const string expected = @"class MyClass
+{
+    static void Main(string[] args)
+    {
+#if false
+
+#
+
+#endif
+    }
+}";
+            AssertFormat(expected, code);
+        }
+
+        [WorkItem(285)]
+        [WorkItem(1089196)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatHashElseToZeroColumnAnywhereInsideIfDef()
+        {
+            const string code = @"class MyClass
+{
+    static void Main(string[] args)
+    {
+#if false
+
+            #else
+        Appropriate indentation should be here though #
+#endif
+    }
+}";
+
+            const string expected = @"class MyClass
+{
+    static void Main(string[] args)
+    {
+#if false
+
+#else
+        Appropriate indentation should be here though #
+#endif
+    }
+}";
+            AssertFormat(expected, code);
+        }
+
+        [WorkItem(285)]
+        [WorkItem(1089196)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatHashsToZeroColumnAnywhereInsideIfDef()
+        {
+            const string code = @"class MyClass
+{
+    static void Main(string[] args)
+    {
+#if false
+
+            #else
+        #
+
+#endif
+    }
+}";
+
+            const string expected = @"class MyClass
+{
+    static void Main(string[] args)
+    {
+#if false
+
+#else
+#
+
+#endif
     }
 }";
             AssertFormat(expected, code);

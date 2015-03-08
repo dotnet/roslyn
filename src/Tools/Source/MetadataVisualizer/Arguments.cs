@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -49,7 +51,7 @@ If /g is speficied the path must be baseline PE file (generation 0).
         result.Path = args[0];
         result.Recursive = Directory.Exists(args[0]);
 
-        result.EncDeltas = 
+        result.EncDeltas =
             (from arg in args
              where arg.StartsWith("/g:", StringComparison.Ordinal)
              let value = arg.Substring("/g:".Length).Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)

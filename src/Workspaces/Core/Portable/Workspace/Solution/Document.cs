@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
             // immediately.
             if (!this.SupportsSyntaxTree)
             {
-                return Task.FromResult<SyntaxTree>(null);
+                return SpecializedTasks.Default<SyntaxTree>();
             }
 
             if (_syntaxTreeResultTask != null)
@@ -274,11 +274,11 @@ namespace Microsoft.CodeAnalysis
                 original.SetTarget(result);
                 return result;
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         /// <summary>
         /// Creates a new instance of this document updated to have the source code kind specified.
@@ -365,11 +365,11 @@ namespace Microsoft.CodeAnalysis
                     return text.GetTextChanges(oldText).ToList();
                 }
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         /// <summary>
         /// Gets the list of <see cref="DocumentId"/>s that are linked to this

@@ -1,13 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.SolutionCrawler
+Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
@@ -52,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        </Workspace>
             Dim diagnostics = <Diagnostics>
                                   <Error Code="1519" Id="CS1519" MappedFile="Test.cs" MappedLine="1" MappedColumn="64" OriginalFile="Test.cs" OriginalLine="1" OriginalColumn="64"
-                                      Message="Invalid token '}' in class, struct, or interface member declaration"/>
+                                      Message=<%= String.Format(CSharpResources.ERR_InvalidMemberDecl, "}") %>/>
                               </Diagnostics>
 
             VerifyAllAvailableDiagnostics(test, diagnostics)
@@ -73,11 +74,11 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        </Workspace>
             Dim diagnostics = <Diagnostics>
                                   <Error Code="1519" Id="CS1519" MappedFile="Test.cs" MappedLine="1" MappedColumn="64" OriginalFile="Test.cs" OriginalLine="1" OriginalColumn="64"
-                                      Message="Invalid token '}' in class, struct, or interface member declaration"/>
+                                      Message=<%= String.Format(CSharpResources.ERR_InvalidMemberDecl, "}") %>/>
                                   <Error Code="1519" Id="CS1519" MappedFile="Test.cs" MappedLine="999" MappedColumn="65" OriginalFile="Test.cs" OriginalLine="3" OriginalColumn="65"
-                                      Message="Invalid token '}' in class, struct, or interface member declaration"/>
+                                      Message=<%= String.Format(CSharpResources.ERR_InvalidMemberDecl, "}") %>/>
                                   <Error Code="1519" Id="CS1519" MappedFile="Test.cs" MappedLine="5" MappedColumn="65" OriginalFile="Test.cs" OriginalLine="5" OriginalColumn="65"
-                                      Message="Invalid token '}' in class, struct, or interface member declaration"/>
+                                      Message=<%= String.Format(CSharpResources.ERR_InvalidMemberDecl, "}") %>/>
                               </Diagnostics>
 
             VerifyAllAvailableDiagnostics(test, diagnostics)
@@ -95,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
             Dim diagnostics = <Diagnostics>
                                   <Error Code="29" Id="CS0029" MappedFile="Test.cs" MappedLine="1" MappedColumn="60" OriginalFile="Test.cs" OriginalLine="1" OriginalColumn="60"
-                                      Message="Cannot implicitly convert type 'string' to 'int'"/>
+                                      Message=<%= String.Format(CSharpResources.ERR_NoImplicitConv, "string", "int") %>/>
                               </Diagnostics>
 
             VerifyAllAvailableDiagnostics(test, diagnostics)
@@ -116,13 +117,13 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
             Dim diagnostics = <Diagnostics>
                                   <Error Code="1519" Id="CS1519" MappedFile="Test.cs" MappedLine="1" MappedColumn="62" OriginalFile="Test.cs" OriginalLine="1" OriginalColumn="62"
-                                      Message="Invalid token '}' in class, struct, or interface member declaration"/>
+                                      Message=<%= String.Format(CSharpResources.ERR_InvalidMemberDecl, "}") %>/>
                                   <Error Code="1519" Id="CS1519" MappedFile="Test.cs" MappedLine="2" MappedColumn="53" OriginalFile="Test.cs" OriginalLine="2" OriginalColumn="53"
-                                      Message="Invalid token 'as' in class, struct, or interface member declaration"/>
+                                      Message=<%= String.Format(CSharpResources.ERR_InvalidMemberDecl, "as") %>/>
                                   <Warning Code="78" Id="CS0078" MappedFile="Test.cs" MappedLine="3" MappedColumn="63" OriginalFile="Test.cs" OriginalLine="3" OriginalColumn="63"
-                                      Message="The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity"/>
+                                      Message=<%= CSharpResources.WRN_LowercaseEllSuffix %>/>
                                   <Warning Code="1633" Id="CS1633" MappedFile="Test.cs" MappedLine="4" MappedColumn="48" OriginalFile="Test.cs" OriginalLine="4" OriginalColumn="48"
-                                      Message="Unrecognized #pragma directive"/>
+                                      Message=<%= CSharpResources.WRN_IllegalPragma %>/>
                               </Diagnostics>
 
             ' Note: The below is removed because of bug # 550593.
@@ -144,9 +145,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
             Dim diagnostics = <Diagnostics>
                                   <Error Code="1525" Id="CS1525" MappedFile="Test.cs" MappedLine="1" MappedColumn="72" OriginalFile="Test.cs" OriginalLine="1" OriginalColumn="72"
-                                      Message="Invalid expression term '}'"/>
+                                      Message=<%= String.Format(CSharpResources.ERR_InvalidExprTerm, "}") %>/>
                                   <Error Code="1002" Id="CS1002" MappedFile="Test.cs" MappedLine="1" MappedColumn="72" OriginalFile="Test.cs" OriginalLine="1" OriginalColumn="72"
-                                      Message="; expected"/>
+                                      Message=<%= CSharpResources.ERR_SemicolonExpected %>/>
                               </Diagnostics>
 
             VerifyAllAvailableDiagnostics(test, diagnostics)
@@ -179,13 +180,13 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
             Dim diagnostics = <Diagnostics>
                                   <Error Code="1519" Id="CS1519" MappedFile="Test.cs" MappedLine="3" MappedColumn="44" OriginalFile="Test.cs" OriginalLine="3" OriginalColumn="44"
-                                      Message="Invalid token '-' in class, struct, or interface member declaration"/>
+                                      Message=<%= String.Format(CSharpResources.ERR_InvalidMemberDecl, "-") %>/>
                                   <Error Code="19" Id="CS0019" MappedFile="Test.cs" MappedLine="6" MappedColumn="56" OriginalFile="Test.cs" OriginalLine="6" OriginalColumn="56"
-                                      Message="Operator '-' cannot be applied to operands of type 'int' and 'string'"/>
+                                      Message=<%= String.Format(CSharpResources.ERR_BadBinaryOps, "-", "int", "string") %>/>
                                   <Error Code="30026" Id="BC30026" MappedFile="Test.vb" MappedLine="2" MappedColumn="44" OriginalFile="Test.vb" OriginalLine="2" OriginalColumn="44"
-                                      Message="'End Sub' expected."/>
+                                      Message=<%= ERR_EndSubExpected %>/>
                                   <Error Code="30205" Id="BC30205" MappedFile="Test.vb" MappedLine="2" MappedColumn="55" OriginalFile="Test.vb" OriginalLine="2" OriginalColumn="55"
-                                      Message="End of statement expected."/>
+                                      Message=<%= ERR_ExpectedEOS %>/>
                               </Diagnostics>
 
             VerifyAllAvailableDiagnostics(test, diagnostics, ordered:=False)
@@ -243,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                     <Error Code="219" Id="CS0219"
                         MappedFile="Test.cs" MappedLine="5" MappedColumn="40"
                         OriginalFile="Test.cs" OriginalLine="5" OriginalColumn="40"
-                        Message="The variable 'a' is assigned but its value is never used"/>
+                        Message=<%= String.Format(CSharpResources.WRN_UnreferencedVarAssg, "a") %>/>
                 </Diagnostics>
 
             VerifyAllAvailableDiagnostics(test, diagnostics)

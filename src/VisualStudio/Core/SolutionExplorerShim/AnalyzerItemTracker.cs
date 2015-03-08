@@ -20,9 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private IVsMonitorSelection _vsMonitorSelection = null;
         private uint _selectionEventsCookie = 0;
 
-        public event EventHandler SelectedHierarchyChanged;
-        public event EventHandler SelectedDiagnosticItemsChanged;
-        public event EventHandler SelectedItemIdChanged;
+        public event EventHandler SelectedHierarchyItemChanged;
 
         [ImportingConstructor]
         public AnalyzerItemsTracker(SVsServiceProvider serviceProvider)
@@ -60,6 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             return VSConstants.S_OK;
         }
+
         int IVsSelectionEvents.OnSelectionChanged(
             IVsHierarchy pHierOld,
             uint itemidOld,
@@ -88,25 +87,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                                   .Select(b => b.Folder)
                                   .FirstOrDefault();
 
-            var oldSelectedDiagnosticItems = this.SelectedDiagnosticItems;
             this.SelectedDiagnosticItems = selectedObjects
                                            .OfType<DiagnosticItem.BrowseObject>()
                                            .Select(b => b.DiagnosticItem)
                                            .ToImmutableArray();
 
-            if (!object.ReferenceEquals(oldSelectedHierarchy, this.SelectedHierarchy))
+            if (!object.ReferenceEquals(oldSelectedHierarchy, this.SelectedHierarchy) ||
+                oldSelectedItemId != this.SelectedItemId)
             {
-                this.SelectedHierarchyChanged?.Invoke(this, EventArgs.Empty);
-            }
-
-            if (oldSelectedItemId != this.SelectedItemId)
-            {
-                this.SelectedItemIdChanged?.Invoke(this, EventArgs.Empty);
-            }
-
-            if (oldSelectedDiagnosticItems != this.SelectedDiagnosticItems)
-            {
-                this.SelectedDiagnosticItemsChanged?.Invoke(this, EventArgs.Empty);
+                this.SelectedHierarchyItemChanged?.Invoke(this, EventArgs.Empty);
             }
 
             return VSConstants.S_OK;

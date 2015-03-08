@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // will not be visiting or rewriting this error-recovery information.)
         //
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; private set; }
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
     internal partial class BoundUserDefinedConditionalLogicalOperator
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // will not be visiting or rewriting this error-recovery information.)
         //
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; private set; }
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
     internal partial class BoundUnaryOperator
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // will not be visiting or rewriting this error-recovery information.)
         //
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; private set; }
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
     internal partial class BoundIncrementOperator
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // will not be visiting or rewriting this error-recovery information.)
         //
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; private set; }
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
     internal partial class BoundCompoundAssignmentOperator
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // will not be visiting or rewriting this error-recovery information.)
         //
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; private set; }
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
     internal partial class BoundLiteral
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // will not be visiting or rewriting this error-recovery information.)
         //
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedConversionsOpt { get; private set; }
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedConversionsOpt { get; }
 
         public override bool SuppressVirtualCalls
         {

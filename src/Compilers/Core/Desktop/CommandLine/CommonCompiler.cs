@@ -12,7 +12,6 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -109,28 +108,25 @@ namespace Microsoft.CodeAnalysis
             TouchedFileLogger touchedFiles,
             out MetadataFileReferenceResolver referenceDirectiveResolver)
         {
-            using (Logger.LogBlock(FunctionId.Common_CommandLineCompiler_ResolveMetadataReferences))
+            List<MetadataReference> resolved = new List<MetadataReference>();
+            Arguments.ResolveMetadataReferences(new AssemblyReferenceResolver(externalReferenceResolver, metadataProvider), diagnostics, this.MessageProvider, resolved);
+
+            if (Arguments.IsInteractive)
             {
-                List<MetadataReference> resolved = new List<MetadataReference>();
-                Arguments.ResolveMetadataReferences(new AssemblyReferenceResolver(externalReferenceResolver, metadataProvider), diagnostics, this.MessageProvider, resolved);
-
-                if (Arguments.IsInteractive)
-                {
-                    referenceDirectiveResolver = externalReferenceResolver;
-                }
-                else
-                {
-                    // when compiling into an assembly (csc/vbc) we only allow #r that match references given on command line:
-                    referenceDirectiveResolver = new ExistingReferencesResolver(
-                        resolved.Where(r => r.Properties.Kind == MetadataImageKind.Assembly).OfType<PortableExecutableReference>().AsImmutable(),
-                        Arguments.ReferencePaths,
-                        Arguments.BaseDirectory,
-                        assemblyIdentityComparer,
-                        touchedFiles);
-                }
-
-                return resolved;
+                referenceDirectiveResolver = externalReferenceResolver;
             }
+            else
+            {
+                // when compiling into an assembly (csc/vbc) we only allow #r that match references given on command line:
+                referenceDirectiveResolver = new ExistingReferencesResolver(
+                    resolved.Where(r => r.Properties.Kind == MetadataImageKind.Assembly).OfType<PortableExecutableReference>().AsImmutable(),
+                    Arguments.ReferencePaths,
+                    Arguments.BaseDirectory,
+                    assemblyIdentityComparer,
+                    touchedFiles);
+            }
+
+            return resolved;
         }
 
 
@@ -198,7 +194,6 @@ namespace Microsoft.CodeAnalysis
             return diagnosticInfo;
         }
 
-
         internal bool PrintErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput)
         {
             bool hasErrors = false;
@@ -222,7 +217,16 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
+                // Catch exceptions from diagnostic formatter as diagnostic descriptors for analyzer diagnostics can throw an exception while formatting diagnostic message.
+                try
+                {
+                    consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
+                }
+                catch (Exception ex)
+                {
+                    var exceptionDiagnostic = AnalyzerExecutor.GetDescriptorDiagnostic(diag.Id, ex);
+                    consoleOutput.WriteLine(DiagnosticFormatter.Format(exceptionDiagnostic, this.Culture));
+                }
 
                 if (diag.Severity == DiagnosticSeverity.Error)
                 {
@@ -269,7 +273,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public virtual int Run(TextWriter consoleOutput, CancellationToken cancellationToken)
         {
-            var saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+            var saveUICulture = Thread.CurrentThread.CurrentUICulture;
 
             try
             {
@@ -332,10 +336,15 @@ namespace Microsoft.CodeAnalysis
             var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText, AdditionalTextFile>(additionalTextFiles));
 
             AnalyzerDriver analyzerDriver = null;
+            AnalyzerManager analyzerManager = null;
+            ConcurrentSet<Diagnostic> analyzerExceptionDiagnostics = null;
             if (!analyzers.IsDefaultOrEmpty)
             {
-                var analyzerManager = new AnalyzerManager();
-                analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, out compilation, cancellationToken);
+                analyzerManager = new AnalyzerManager();
+                analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
+                Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
+
+                analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, out compilation, cancellationToken);
             }
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
@@ -443,7 +452,9 @@ namespace Microsoft.CodeAnalysis
                 if (analyzerDriver != null)
                 {
                     var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
-                    if (PrintErrors(analyzerDiagnostics, consoleOutput))
+                    var allAnalyzerDiagnostics = analyzerDiagnostics.AddRange(analyzerExceptionDiagnostics);
+
+                    if (PrintErrors(allAnalyzerDiagnostics, consoleOutput))
                     {
                         return Failed;
                     }

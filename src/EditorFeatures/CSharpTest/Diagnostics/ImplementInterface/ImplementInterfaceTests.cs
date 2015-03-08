@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementInterface
 {
@@ -1398,7 +1399,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestCastedOptionalParameter1()
         {
-            var code = @"
+            const string code = @"
 using System;
 interface I
 {
@@ -1409,7 +1410,7 @@ class C : [|I|]
 {
 }";
 
-            var expected = @"
+            const string expected = @"
 using System;
 interface I
 {
@@ -1673,44 +1674,11 @@ class C : IDisposable
             Test(
 @"using System;
 class C : [|IDisposable|]",
-@"using System;
+$@"using System;
 class C : IDisposable
-{
-    #region IDisposable Support
-    private bool disposedValue = false; // To detect redundant calls
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects).          
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
-
-            disposedValue = true;
-        }
-    }
-
-    // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources. 
-    // ~C() {
-    //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-    //   Dispose(false);
-    // }
-
-    // This code added to correctly implement the disposable pattern.
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        Dispose(true);
-        // TODO: uncomment the following line if the finalizer is overridden above.
-        // GC.SuppressFinalize(this);
-    }
-    #endregion
-}
+{{
+{DisposePattern("protected virtual ", "C", "public void ")}
+}}
 ", index: 1, compareTokens: false);
         }
 
@@ -1746,48 +1714,15 @@ class C : [|System.IDisposable|]
     {
     }
 }",
-@"using System;
+$@"using System;
 class C : System.IDisposable
-{
+{{
     class IDisposable
-    {
-    }
+    {{
+    }}
 
-    #region IDisposable Support
-    private bool disposedValue = false; // To detect redundant calls
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects).          
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
-
-            disposedValue = true;
-        }
-    }
-
-    // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources. 
-    // ~C() {
-    //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-    //   Dispose(false);
-    // }
-
-    // This code added to correctly implement the disposable pattern.
-    void System.IDisposable.Dispose()
-    {
-        // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        Dispose(true);
-        // TODO: uncomment the following line if the finalizer is overridden above.
-        // GC.SuppressFinalize(this);
-    }
-    #endregion
-}", index: 3, compareTokens: false);
+{DisposePattern("protected virtual ", "C", "void System.IDisposable.")}
+}}", index: 3, compareTokens: false);
         }
 
         [WorkItem(994456)]
@@ -1835,43 +1770,10 @@ class C : IDisposable
         {
             Test(
 @"class C : [|System.IDisposable|]",
-@"class C : System.IDisposable
-{
-    #region IDisposable Support
-    private bool disposedValue = false; // To detect redundant calls
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects).          
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
-
-            disposedValue = true;
-        }
-    }
-
-    // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources. 
-    // ~C() {
-    //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-    //   Dispose(false);
-    // }
-
-    // This code added to correctly implement the disposable pattern.
-    void System.IDisposable.Dispose()
-    {
-        // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        Dispose(true);
-        // TODO: uncomment the following line if the finalizer is overridden above.
-        // GC.SuppressFinalize(this);
-    }
-    #endregion
-}
+$@"class C : System.IDisposable
+{{
+{DisposePattern("protected virtual ", "C", "void System.IDisposable.")}
+}}
 ", index: 3, compareTokens: false);
         }
 
@@ -1920,53 +1822,20 @@ interface I : IDisposable
 class C : [|I|]
 {
 }",
-@"using System;
+$@"using System;
 interface I : IDisposable
-{
+{{
     void F();
-}
+}}
 class C : I
-{
+{{
     public void F()
-    {
+    {{
         throw new NotImplementedException();
-    }
+    }}
 
-    #region IDisposable Support
-    private bool disposedValue = false; // To detect redundant calls
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects).          
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
-
-            disposedValue = true;
-        }
-    }
-
-    // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources. 
-    // ~C() {
-    //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-    //   Dispose(false);
-    // }
-
-    // This code added to correctly implement the disposable pattern.
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        Dispose(true);
-        // TODO: uncomment the following line if the finalizer is overridden above.
-        // GC.SuppressFinalize(this);
-    }
-    #endregion
-}", index: 1, compareTokens: false);
+{DisposePattern("protected virtual ", "C", "public void ")}
+}}", index: 1, compareTokens: false);
         }
 
         [WorkItem(951968)]
@@ -1982,53 +1851,20 @@ interface I : IDisposable
 class C : [|I|]
 {
 }",
-@"using System;
+$@"using System;
 interface I : IDisposable
-{
+{{
     void F();
-}
+}}
 class C : I
-{
+{{
     void I.F()
-    {
+    {{
         throw new NotImplementedException();
-    }
+    }}
 
-    #region IDisposable Support
-    private bool disposedValue = false; // To detect redundant calls
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects).          
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
-
-            disposedValue = true;
-        }
-    }
-
-    // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources. 
-    // ~C() {
-    //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-    //   Dispose(false);
-    // }
-
-    // This code added to correctly implement the disposable pattern.
-    void IDisposable.Dispose()
-    {
-        // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        Dispose(true);
-        // TODO: uncomment the following line if the finalizer is overridden above.
-        // GC.SuppressFinalize(this);
-    }
-    #endregion
-}", index: 3, compareTokens: false);
+{DisposePattern("protected virtual ", "C", "void IDisposable.")}
+}}", index: 3, compareTokens: false);
         }
 
         [WorkItem(941469)]
@@ -2459,47 +2295,13 @@ class Program : [|IDisposable|]
 {
 }
 ",
-@"
+$@"
 using System;
 
 class Program : IDisposable
-{
-
-    #region IDisposable Support
-    private bool disposedValue = false; // To detect redundant calls
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects).          
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
-
-            disposedValue = true;
-        }
-    }
-
-    // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources. 
-    // ~Program() {
-    //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-    //   Dispose(false);
-    // }
-
-    // This code added to correctly implement the disposable pattern.
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        Dispose(true);
-        // TODO: uncomment the following line if the finalizer is overridden above.
-        // GC.SuppressFinalize(this);
-    }
-    #endregion
-}
+{{
+{DisposePattern("protected virtual ", "C", "public void ")}
+}}
 ", index: 1);
         }
 
@@ -2515,48 +2317,14 @@ class Program : [|IDisposable|]
     private bool DisposedValue;
 }
 ",
-@"
+$@"
 using System;
 
 class Program : IDisposable
-{
+{{
     private bool DisposedValue;
-
-    #region IDisposable Support
-    private bool disposedValue = false; // To detect redundant calls
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects).          
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
-
-            disposedValue = true;
-        }
-    }
-
-    // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources. 
-    // ~Program() {
-    //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-    //   Dispose(false);
-    // }
-
-    // This code added to correctly implement the disposable pattern.
-    void IDisposable.Dispose()
-    {
-        // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        Dispose(true);
-        // TODO: uncomment the following line if the finalizer is overridden above.
-        // GC.SuppressFinalize(this);
-    }
-    #endregion
-}
+{DisposePattern("protected virtual ", "Program", "void IDisposable.")}
+}}
 ", index: 3);
         }
 
@@ -2629,47 +2397,13 @@ sealed class Program : [|IDisposable|]
 {
 }
 ",
-@"
+$@"
 using System;
 
 sealed class Program : IDisposable
-{
-
-    #region IDisposable Support
-    private bool disposedValue = false; // To detect redundant calls
-
-    void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects).          
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
-
-            disposedValue = true;
-        }
-    }
-
-    // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources. 
-    // ~Program() {
-    //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-    //   Dispose(false);
-    // }
-
-    // This code added to correctly implement the disposable pattern.
-    void IDisposable.Dispose()
-    {
-        // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        Dispose(true);
-        // TODO: uncomment the following line if the finalizer is overridden above.
-        // GC.SuppressFinalize(this);
-    }
-    #endregion
-}
+{{
+{DisposePattern("", "Program", "void IDisposable.")}
+}}
 ", index: 3);
         }
 
@@ -2749,6 +2483,7 @@ namespace Scenarios
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestDisposePatternWhenAdditionalUsingsAreIntroduced1()
         {
+            //CSharpFeaturesResources.DisposePattern
             Test(
 @"interface I<T, U> : System.IDisposable, System.IEquatable<int> where U : T
 {
@@ -2763,71 +2498,38 @@ partial class C
 partial class C : [|I<System.Exception, System.AggregateException>|], System.IDisposable
 {
 }",
-@"using System;
+$@"using System;
 using System.Collections.Generic;
 
 interface I<T, U> : System.IDisposable, System.IEquatable<int> where U : T
-{
+{{
     System.Collections.Generic.List<U> M(System.Collections.Generic.Dictionary<T, System.Collections.Generic.List<U>> a, T b, U c);
     System.Collections.Generic.List<UU> M<TT, UU>(System.Collections.Generic.Dictionary<TT, System.Collections.Generic.List<UU>> a, TT b, UU c) where UU : TT;
-}
+}}
 
 partial class C
-{
-}
+{{
+}}
 
 partial class C : I<System.Exception, System.AggregateException>, System.IDisposable
-{
+{{
     public bool Equals(int other)
-    {
+    {{
         throw new NotImplementedException();
-    }
+    }}
 
     public List<AggregateException> M(Dictionary<Exception, List<AggregateException>> a, Exception b, AggregateException c)
-    {
+    {{
         throw new NotImplementedException();
-    }
+    }}
 
     public List<UU> M<TT, UU>(Dictionary<TT, List<UU>> a, TT b, UU c) where UU : TT
-    {
+    {{
         throw new NotImplementedException();
-    }
+    }}
 
-    #region IDisposable Support
-    private bool disposedValue = false; // To detect redundant calls
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects).          
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
-
-            disposedValue = true;
-        }
-    }
-
-    // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources. 
-    // ~C() {
-    //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-    //   Dispose(false);
-    // }
-
-    // This code added to correctly implement the disposable pattern.
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        Dispose(true);
-        // TODO: uncomment the following line if the finalizer is overridden above.
-        // GC.SuppressFinalize(this);
-    }
-    #endregion
-}", index: 1, compareTokens: false);
+{DisposePattern("protected virtual ", "C", "public void ")}
+}}", index: 1, compareTokens: false);
         }
 
         [WorkItem(994328)]
@@ -2848,71 +2550,76 @@ partial class C : [|I<System.Exception, System.AggregateException>|], System.IDi
 partial class C
 {
 }",
-@"using System;
+$@"using System;
 using System.Collections.Generic;
 
 interface I<T, U> : System.IDisposable, System.IEquatable<int> where U : T
-{
+{{
     System.Collections.Generic.List<U> M(System.Collections.Generic.Dictionary<T, System.Collections.Generic.List<U>> a, T b, U c);
     System.Collections.Generic.List<UU> M<TT, UU>(System.Collections.Generic.Dictionary<TT, System.Collections.Generic.List<UU>> a, TT b, UU c) where UU : TT;
-}
+}}
 
 partial class C : I<System.Exception, System.AggregateException>, System.IDisposable
-{
+{{
     bool IEquatable<int>.Equals(int other)
-    {
+    {{
         throw new NotImplementedException();
-    }
+    }}
 
     List<AggregateException> I<Exception, AggregateException>.M(Dictionary<Exception, List<AggregateException>> a, Exception b, AggregateException c)
-    {
+    {{
         throw new NotImplementedException();
-    }
+    }}
 
     List<UU> I<Exception, AggregateException>.M<TT, UU>(Dictionary<TT, List<UU>> a, TT b, UU c)
-    {
+    {{
         throw new NotImplementedException();
-    }
+    }}
 
-    #region IDisposable Support
-    private bool disposedValue = false; // To detect redundant calls
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects).          
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
-
-            disposedValue = true;
-        }
-    }
-
-    // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources. 
-    // ~C() {
-    //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-    //   Dispose(false);
-    // }
-
-    // This code added to correctly implement the disposable pattern.
-    void IDisposable.Dispose()
-    {
-        // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        Dispose(true);
-        // TODO: uncomment the following line if the finalizer is overridden above.
-        // GC.SuppressFinalize(this);
-    }
-    #endregion
-}
+{DisposePattern("protected virtual ", "C", "void IDisposable.")}
+}}
 
 partial class C
-{
-}", index: 3, compareTokens: false);
+{{
+}}", index: 3, compareTokens: false);
+        }
+
+        private static string DisposePattern(string disposeVisibility, string className, string implementationVisibility)
+        {
+            return $@"    #region IDisposable Support
+    private bool disposedValue = false; // {FeaturesResources.ToDetectRedundantCalls}
+
+    {disposeVisibility}void Dispose(bool disposing)
+    {{
+        if (!disposedValue)
+        {{
+            if (disposing)
+            {{
+                // {FeaturesResources.DisposeManagedStateTodo}
+            }}
+
+            // {CSharpFeaturesResources.FreeUnmanagedResourcesTodo}
+            // {FeaturesResources.SetLargeFieldsToNullTodo}
+
+            disposedValue = true;
+        }}
+    }}
+
+    // {CSharpFeaturesResources.OverrideAFinalizerTodo}
+    // ~{className}() {{
+    //   // {CSharpFeaturesResources.DoNotChangeThisCodeUseDispose}
+    //   Dispose(false);
+    // }}
+
+    // {CSharpFeaturesResources.ThisCodeAddedToCorrectlyImplementDisposable}
+    {implementationVisibility}Dispose()
+    {{
+        // {CSharpFeaturesResources.DoNotChangeThisCodeUseDispose}
+        Dispose(true);
+        // {CSharpFeaturesResources.UncommentTheFollowingIfFinalizerOverriddenTodo}
+        // GC.SuppressFinalize(this);
+    }}
+    #endregion";
         }
     }
 }

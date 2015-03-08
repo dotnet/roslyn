@@ -26,41 +26,20 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// The element type of the array.
         /// </summary>
-        Cci.ITypeReference Cci.IMetadataCreateArray.ElementType
-        {
-            get
-            {
-                return _elementType;
-            }
-        }
+        Cci.ITypeReference Cci.IMetadataCreateArray.ElementType => _elementType;
 
-        uint Cci.IMetadataCreateArray.ElementCount
-        {
-            get
-            {
-                return (uint)_initializers.Length;
-            }
-        }
+        uint Cci.IMetadataCreateArray.ElementCount => (uint)_initializers.Length;
 
         /// <summary>
         /// The initial values of the array elements. May be empty.
         /// </summary>
-        IEnumerable<Cci.IMetadataExpression> Cci.IMetadataCreateArray.Elements
-        {
-            get
-            {
-                return _initializers;
-            }
-        }
+        IEnumerable<Cci.IMetadataExpression> Cci.IMetadataCreateArray.Elements => _initializers;
 
         void Cci.IMetadataExpression.Dispatch(Cci.MetadataVisitor visitor)
         {
             visitor.Visit(this);
         }
 
-        Cci.ITypeReference Cci.IMetadataExpression.Type
-        {
-            get { return _arrayType; }
-        }
+        Cci.ITypeReference Cci.IMetadataExpression.Type => _arrayType;
     }
 }

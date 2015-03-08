@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
     {
         internal class State
         {
-            public SyntaxNode Location { get; private set; }
-            public SyntaxNode ClassOrStructDecl { get; private set; }
-            public INamedTypeSymbol ClassOrStructType { get; private set; }
-            public IEnumerable<INamedTypeSymbol> InterfaceTypes { get; private set; }
-            public SemanticModel Model { get; private set; }
+            public SyntaxNode Location { get; }
+            public SyntaxNode ClassOrStructDecl { get; }
+            public INamedTypeSymbol ClassOrStructType { get; }
+            public IEnumerable<INamedTypeSymbol> InterfaceTypes { get; }
+            public SemanticModel Model { get; }
 
             // The members that are not implemented at all.
             public IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> UnimplementedMembers { get; private set; }

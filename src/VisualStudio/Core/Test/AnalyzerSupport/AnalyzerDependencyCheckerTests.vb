@@ -2,16 +2,34 @@
 
 Imports System.IO
 Imports System.Text
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
+Imports Microsoft.Win32
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Public Class AnalyzerDependencyCheckerTests
         Inherits TestBase
 
-        Shared CSharpCompilerExecutable As String = Path.Combine(Path.GetDirectoryName(GetType(AnalyzerDependencyCheckerTests).Assembly.Location), "csc.exe")
+        Private Shared s_msbuildDirectory As String
+        Private Shared ReadOnly Property MSBuildDirectory As String
+            Get
+                If s_msbuildDirectory Is Nothing Then
+                    Dim key = Registry.LocalMachine.OpenSubKey("SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", False)
+
+                    If key IsNot Nothing Then
+                        Dim toolsPath = key.GetValue("MSBuildToolsPath")
+                        If toolsPath IsNot Nothing Then
+                            s_msbuildDirectory = toolsPath.ToString()
+                        End If
+                    End If
+                End If
+
+                Return s_msbuildDirectory
+            End Get
+        End Property
+
+        Private Shared CSharpCompilerExecutable As String = Path.Combine(MSBuildDirectory, "csc.exe")
 
         <Fact, WorkItem(1064914)>
         Public Sub Test1()

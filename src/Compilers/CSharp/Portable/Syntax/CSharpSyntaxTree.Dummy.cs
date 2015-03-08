@@ -35,6 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            public override Encoding Encoding
+            {
+                get { return Encoding.UTF8; }
+            }
+
             public override int Length
             {
                 get { return 0; }

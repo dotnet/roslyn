@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV1;
 using Roslyn.Utilities;
@@ -26,12 +27,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // to be able to operate on a limited span of the document. In practical terms, no analyzer
                 // can have both SemanticDocumentAnalysis and SemanticSpanAnalysis as categories.
                 bool cantSupportSemanticSpanAnalysis = false;
-                var analyzerActions = AnalyzerManager.Default.GetAnalyzerActionsAsync(analyzer, 
-                    null,
-                    _ => { },
-                    null,
-                    driver.CatchAnalyzerExceptionHandler,
-                    driver.CancellationToken).WaitAndGetResult(driver.CancellationToken);
+                var analyzerActions = driver.GetAnalyzerActionsAsync(analyzer).WaitAndGetResult(driver.CancellationToken);
                 if (analyzerActions != null)
                 {
                     if (analyzerActions.SyntaxTreeActionsCount > 0)
@@ -53,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         cantSupportSemanticSpanAnalysis = true;
                     }
 
-                    if (analyzerActions.CompilationEndActionsCount > 0 || analyzerActions.CompilationStartActionsCount > 0)
+                    if (analyzerActions.CompilationEndActionsCount > 0 || analyzerActions.CompilationActionsCount > 0 || analyzerActions.CompilationStartActionsCount > 0)
                     {
                         category |= DiagnosticAnalyzerCategory.ProjectAnalysis;
                     }

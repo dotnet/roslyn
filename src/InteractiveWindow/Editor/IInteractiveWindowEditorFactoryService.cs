@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.Text;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
@@ -28,6 +30,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// <summary>
         /// Creates a new input buffer for the interactive window.
         /// </summary>
-        ITextBuffer CreateAndActivateBuffer(IInteractiveWindow window, IContentType contentType);
+        ITextBuffer CreateAndActivateBuffer(IInteractiveWindow window);
     }
 }

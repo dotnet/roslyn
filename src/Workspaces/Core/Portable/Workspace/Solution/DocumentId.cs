@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public class DocumentId : IEquatable<DocumentId>
     {
-        public ProjectId ProjectId { get; private set; }
-        public Guid Id { get; private set; }
+        public ProjectId ProjectId { get; }
+        public Guid Id { get; }
 
         private string _debugName;
 

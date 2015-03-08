@@ -121,11 +121,11 @@ namespace RunTests
             var errorOutput = string.Empty;
             var start = DateTime.UtcNow;
             var processOutput = await ProcessRunner.RunProcessAsync(
-                _xunitConsolePath, 
-                builder.ToString(), 
-                lowPriority: false, 
-                displayWindow: false, 
-                captureOutput: true, 
+                _xunitConsolePath,
+                builder.ToString(),
+                lowPriority: false,
+                displayWindow: false,
+                captureOutput: true,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
             var span = DateTime.UtcNow - start;
 
@@ -153,7 +153,7 @@ namespace RunTests
                     ? processOutput.ErrorLines.Aggregate((x, y) => x + Environment.NewLine + y)
                     : string.Format("xunit produced no error output but had exit code {0}", processOutput.ExitCode);
 
-                errorOutput = string.Format("Command: {0} {1}", _xunitConsolePath, builder.ToString()) 
+                errorOutput = string.Format("Command: {0} {1}", _xunitConsolePath, builder.ToString())
                     + Environment.NewLine
                     + errorOutput;
 

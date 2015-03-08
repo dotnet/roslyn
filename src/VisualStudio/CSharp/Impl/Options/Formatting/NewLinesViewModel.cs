@@ -98,7 +98,7 @@ class C {
 //]
     }
 }";
-            private static readonly string s_InitializerPreviewTrue = @"using System;
+        private static readonly string s_InitializerPreviewTrue = @"using System;
 using System.Collections.Generic;
 
 class C {
@@ -182,8 +182,8 @@ class B {
 }";
 
         public NewLinesViewModel(OptionSet options, IServiceProvider serviceProvider) : base(options, serviceProvider, LanguageNames.CSharp)
-            {
-                Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.NewLineBraces });
+        {
+            Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.NewLineBraces });
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInTypes, CSharpVSResources.NewLinesBracesType, s_previewText, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInMethods, CSharpVSResources.NewLinesForBracesMethod, s_methodPreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, CSharpVSResources.NewLinesForBracesInAnonymousMethods, s_anonymousMethodPreview, this, options));
@@ -192,17 +192,17 @@ class B {
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, CSharpVSResources.NewLinesForBracesInObjectCollectionArrayInitializers, s_InitializerPreviewTrue, s_InitializerPreviewFalse, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, CSharpVSResources.NewLinesForBracesInLambdaExpressionBody, s_lambdaPreview, this, options));
 
-                Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.NewLineKeywords });
+            Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.NewLineKeywords });
 
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLineForElse, CSharpVSResources.ElseOnNewLine, s_ifElsePreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLineForCatch, CSharpVSResources.CatchOnNewLine, s_tryCatchFinallyPreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLineForFinally, CSharpVSResources.FinallyOnNewLine, s_tryCatchFinallyPreview, this, options));
 
-                Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.NewLineExpressions });
+            Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.NewLineExpressions });
 
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLineForMembersInObjectInit, CSharpVSResources.NewLineForMembersInObjectInit, s_objectInitializerPreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLineForMembersInAnonymousTypes, CSharpVSResources.NewLineForMembersInAnonymousTypes, s_anonymousTypePreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLineForClausesInQuery, CSharpVSResources.NewLineForClausesInQuery, s_queryExpressionPreview, this, options));
-            }
         }
     }
+}

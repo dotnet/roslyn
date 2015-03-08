@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     [Serializable]
     public class EmitException : Exception
     {
-        public IEnumerable<Diagnostic> Diagnostics { get; private set; }
+        public IEnumerable<Diagnostic> Diagnostics { get; }
 
         protected EmitException(SerializationInfo info, StreamingContext context) : base(info, context) { }
 

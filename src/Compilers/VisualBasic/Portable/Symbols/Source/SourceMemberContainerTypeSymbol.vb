@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -1508,6 +1509,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend ReadOnly Members As Dictionary(Of String, ImmutableArray(Of Symbol))
             Friend ReadOnly StaticInitializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer))
             Friend ReadOnly InstanceInitializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer))
+            Friend ReadOnly StaticInitializersSyntaxLength As Integer
+            Friend ReadOnly InstanceInitializersSyntaxLength As Integer
 
             ''' <summary>
             ''' Initializes a new instance of the <see cref="MembersAndInitializers" /> class.
@@ -1518,11 +1521,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Sub New(
                 members As Dictionary(Of String, ImmutableArray(Of Symbol)),
                 staticInitializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer)),
-                instanceInitializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer)))
+                instanceInitializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer)),
+                staticInitializersSyntaxLength As Integer,
+                instanceInitializersSyntaxLength As Integer)
 
                 Me.Members = members
                 Me.StaticInitializers = staticInitializers
                 Me.InstanceInitializers = instanceInitializers
+
+                Debug.Assert(staticInitializersSyntaxLength = If(staticInitializers.IsDefaultOrEmpty, 0, staticInitializers.Sum(Function(s) s.Sum(Function(i) If(Not i.IsMetadataConstant, i.Syntax.Span.Length, 0)))))
+                Debug.Assert(instanceInitializersSyntaxLength = If(instanceInitializers.IsDefaultOrEmpty, 0, instanceInitializers.Sum(Function(s) s.Sum(Function(i) i.Syntax.Span.Length))))
+                Me.StaticInitializersSyntaxLength = staticInitializersSyntaxLength
+                Me.InstanceInitializersSyntaxLength = instanceInitializersSyntaxLength
             End Sub
         End Class
 
@@ -1536,6 +1546,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Friend ReadOnly DeferredMemberDiagnostic As ArrayBuilder(Of ValueTuple(Of Symbol, Binder)) = ArrayBuilder(Of ValueTuple(Of Symbol, Binder)).GetInstance()
 
+            Friend StaticSyntaxLength As Integer = 0
+            Friend InstanceSyntaxLength As Integer = 0
+
             Friend Function ToReadOnlyAndFree() As MembersAndInitializers
                 DeferredMemberDiagnostic.Free()
 
@@ -1547,7 +1560,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return New MembersAndInitializers(
                     readonlyMembers,
                     If(StaticInitializers IsNot Nothing, StaticInitializers.ToImmutableAndFree(), Nothing),
-                    If(InstanceInitializers IsNot Nothing, InstanceInitializers.ToImmutableAndFree(), Nothing))
+                    If(InstanceInitializers IsNot Nothing, InstanceInitializers.ToImmutableAndFree(), Nothing),
+                    StaticSyntaxLength,
+                    InstanceSyntaxLength)
             End Function
         End Class
 
@@ -1555,8 +1570,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Adds a field initializer for the field to list of field initializers
         ''' </summary>
         ''' <param name="initializers">All initializers.</param>
-        ''' <param name="initializer">The field initializer to add to the list of initializers.</param>
-        Friend Shared Sub AddInitializer(ByRef initializers As ArrayBuilder(Of FieldOrPropertyInitializer), initializer As FieldOrPropertyInitializer)
+        ''' <param name="computeInitializer">Compute the field initializer to add to the list of initializers.</param>
+        Friend Shared Sub AddInitializer(ByRef initializers As ArrayBuilder(Of FieldOrPropertyInitializer), computeInitializer As Func(Of Integer, FieldOrPropertyInitializer), ByRef aggregateSyntaxLength As Integer)
+            Dim initializer = computeInitializer(aggregateSyntaxLength)
+
             If initializers Is Nothing Then
                 initializers = ArrayBuilder(Of FieldOrPropertyInitializer).GetInstance()
             Else
@@ -1566,6 +1583,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             initializers.Add(initializer)
+
+            ' A constant field of type decimal needs a field initializer, so
+            ' check if it is a metadata constant, not just a constant to exclude
+            ' decimals. Other constants do not need field initializers.
+            If Not initializer.IsMetadataConstant Then
+                ' ignore leading and trailing trivia of the node
+                aggregateSyntaxLength += initializer.Syntax.Span.Length
+            End If
         End Sub
 
         ''' <summary>
@@ -2596,8 +2621,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 diagBag.Add(ERRID.ERR_InvalidInNamespace, memberSyntax.GetLocation())
                             End If
 
-                            Dim initializer = New FieldOrPropertyInitializer(binder.GetSyntaxReference(memberSyntax))
-                            SourceNamedTypeSymbol.AddInitializer(instanceInitializers, initializer)
+                            Dim initializer = Function(precedingInitializersLength As Integer)
+                                                  Return New FieldOrPropertyInitializer(binder.GetSyntaxReference(memberSyntax), precedingInitializersLength)
+                                              End Function
+                            SourceNamedTypeSymbol.AddInitializer(instanceInitializers, initializer, members.InstanceSyntaxLength)
                         End If
                     End If
             End Select
@@ -2627,10 +2654,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If equalsValueOrAsNewSyntax IsNot Nothing Then
                 Dim initializerOptRef = binder.GetSyntaxReference(equalsValueOrAsNewSyntax)
-                Dim initializer = New FieldOrPropertyInitializer(propertySymbol, initializerOptRef)
+                Dim initializer = Function(precedingInitializersLength As Integer)
+                                      Return New FieldOrPropertyInitializer(propertySymbol, initializerOptRef, precedingInitializersLength)
+                                  End Function
 
                 If propertySymbol.IsShared Then
-                    AddInitializer(staticInitializers, initializer)
+                    AddInitializer(staticInitializers, initializer, members.StaticSyntaxLength)
                 Else
                     ' auto implemented properties inside of structures can only have an initialization value
                     ' if they are shared.
@@ -2640,7 +2669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_AutoPropertyInitializedInStructure)
                     End If
 
-                    AddInitializer(instanceInitializers, initializer)
+                    AddInitializer(instanceInitializers, initializer, members.InstanceSyntaxLength)
                 End If
             End If
         End Sub
@@ -3203,19 +3232,88 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Function CalculateLocalSyntaxOffsetInSynthesizedConstructor(localPosition As Integer, localTree As SyntaxTree, isShared As Boolean) As Integer
-            Dim aggregateLength As Integer = 0
-
+        Friend Function CalculateSyntaxOffsetInSynthesizedConstructor(position As Integer, tree As SyntaxTree, isShared As Boolean) As Integer
             If IsScriptClass AndAlso Not isShared Then
+                Dim aggregateLength As Integer = 0
+
                 For Each declaration In Me.m_declaration.Declarations
                     Dim syntaxRef = declaration.SyntaxReference
 
-                    If localTree Is syntaxRef.SyntaxTree Then
-                        Return aggregateLength + localPosition
+                    If tree Is syntaxRef.SyntaxTree Then
+                        Return aggregateLength + position
                     End If
 
                     aggregateLength += syntaxRef.Span.Length
                 Next
+
+                ' This point should not be reachable.
+                Debug.Assert(False)
+                Return -1
+            End If
+
+            Dim syntaxOffset As Integer
+            If TryCalculateSyntaxOffsetOfPositionInInitializer(position, tree, isShared, syntaxOffset:=syntaxOffset) Then
+                Return syntaxOffset
+            End If
+
+            ' This point should not be reachable. An implicit constructor has no body and no initializer,
+            ' so the variable has to be declared in a member initializer.
+            Debug.Assert(False)
+            Return -1
+        End Function
+
+        ' Calculates a syntax offset of a syntax position that is contained in a property or field initializer (if it is in fact contained in one).
+        Friend Function TryCalculateSyntaxOffsetOfPositionInInitializer(position As Integer, tree As SyntaxTree, isShared As Boolean, ByRef syntaxOffset As Integer) As Boolean
+            Dim membersAndInitializers = GetMembersAndInitializers()
+            Dim allInitializers = If(isShared, membersAndInitializers.StaticInitializers, membersAndInitializers.InstanceInitializers)
+
+            Dim siblingInitializers = GetInitializersInSourceTree(tree, allInitializers)
+            Dim index = IndexOfInitializerContainingPosition(siblingInitializers, position)
+            If index < 0 Then
+                syntaxOffset = 0
+                Return False
+            End If
+
+            '                                 |<-----------distanceFromCtorBody---------->|
+            ' [      initializer 0    ][ initializer 1 ][ initializer 2 ][ initializer 3 ][ctor body]
+            ' |<--preceding init len-->|      ^
+            '                              position 
+            Dim initializersLength = If(isShared, membersAndInitializers.StaticInitializersSyntaxLength, membersAndInitializers.InstanceInitializersSyntaxLength)
+            Dim distanceFromInitializerStart = position - siblingInitializers(index).Syntax.Span.Start
+            Dim distanceFromCtorBody = initializersLength - (siblingInitializers(index).PrecedingInitializersLength + distanceFromInitializerStart)
+
+            Debug.Assert(distanceFromCtorBody > 0)
+
+            ' syntax offset 0 is at the start of the ctor body:
+            syntaxOffset = -distanceFromCtorBody
+            Return True
+        End Function
+
+        Private Shared Function GetInitializersInSourceTree(tree As SyntaxTree, initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer))) As ImmutableArray(Of FieldOrPropertyInitializer)
+            Dim builder = ArrayBuilder(Of FieldOrPropertyInitializer).GetInstance()
+            For Each siblingInitializers As ImmutableArray(Of FieldOrPropertyInitializer) In initializers
+                If (siblingInitializers.First().Syntax.SyntaxTree Is tree) Then
+                    builder.AddRange(siblingInitializers)
+                End If
+            Next
+
+            Return builder.ToImmutableAndFree()
+        End Function
+
+        Private Shared Function IndexOfInitializerContainingPosition(initializers As ImmutableArray(Of FieldOrPropertyInitializer), position As Integer) As Integer
+            ' Search for the start of the span (the spans are non-overlapping and sorted)
+            Dim index = initializers.BinarySearch(position, Function(initializer, pos) initializer.Syntax.Span.Start.CompareTo(pos))
+
+            ' Binary search returns non-negative result if the position is exactly the start of some span.
+            If index >= 0 Then
+                Return index
+            End If
+
+            ' Otherwise, "Not index" is the closest span whose start is greater than the position.
+            ' Make sure that this closest span contains the position.
+            index = (Not index) - 1
+            If index >= 0 AndAlso initializers(index).Syntax.Span.Contains(position) Then
+                Return index
             End If
 
             Return -1

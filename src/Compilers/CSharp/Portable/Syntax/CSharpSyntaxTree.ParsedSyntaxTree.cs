@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(textOpt == null || textOpt.Encoding == encodingOpt && textOpt.ChecksumAlgorithm == checksumAlgorithm);
 
                 _lazyText = textOpt;
-                _encodingOpt = encodingOpt;
+                _encodingOpt = encodingOpt ?? textOpt?.Encoding;
                 _checksumAlgorithm = checksumAlgorithm;
                 _options = options;
                 _path = path;
@@ -47,10 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyText == null)
                 {
-                    using (Logger.LogBlock(FunctionId.CSharp_SyntaxTree_GetText, message: this.FilePath, cancellationToken: cancellationToken))
-                    {
-                        Interlocked.CompareExchange(ref _lazyText, this.GetRoot(cancellationToken).GetText(_encodingOpt, _checksumAlgorithm), null);
-                    }
+                    Interlocked.CompareExchange(ref _lazyText, this.GetRoot(cancellationToken).GetText(_encodingOpt, _checksumAlgorithm), null);
                 }
 
                 return _lazyText;
@@ -60,6 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 text = _lazyText;
                 return text != null;
+            }
+
+            public override Encoding Encoding
+            {
+                get { return _encodingOpt; }
             }
 
             public override int Length

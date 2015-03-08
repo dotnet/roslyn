@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,15 +15,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     {
         private readonly int _correlationId;
         private readonly DiagnosticAnalyzerService _owner;
-        private readonly Workspace _workspace;
-        private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
+        private readonly HostAnalyzerManager _hostAnalyzerManager;
 
-        public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
+        public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            : base(workspace, hostDiagnosticUpdateSource)
         {
             _correlationId = correlationId;
             _owner = owner;
-            _workspace = workspace;
-            _workspaceAnalyzerManager = workspaceAnalyzerManager;
+            _hostAnalyzerManager = hostAnalyzerManager;
         }
 
         #region IIncrementalAnalyzer
@@ -61,13 +61,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public override void RemoveDocument(DocumentId documentId)
         {
             _owner.RaiseDiagnosticsUpdated(
-                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, documentId), _workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
+                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, documentId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
 
         public override void RemoveProject(ProjectId projectId)
         {
             _owner.RaiseDiagnosticsUpdated(
-                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, projectId), _workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
+                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, projectId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
         #endregion
 
@@ -154,13 +154,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            var analyzers = _workspaceAnalyzerManager.CreateDiagnosticAnalyzers(project);
+            var analyzers = _hostAnalyzerManager.CreateDiagnosticAnalyzers(project);
 
             var compilationWithAnalyzer = compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, cancellationToken);
 
             // REVIEW: this API is a bit strange. 
             //         if getting diagnostic is cancelled, it has to create new compilation and do everything from scretch again?
-            return GetDiagnosticData(project, await compilationWithAnalyzer.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false)).ToImmutableArrayOrEmpty();
+            var dxs = GetDiagnosticData(project, await compilationWithAnalyzer.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false)).ToImmutableArrayOrEmpty();
+
+            return dxs;
         }
 
         private IEnumerable<DiagnosticData> GetDiagnosticData(Project project, ImmutableArray<Diagnostic> diagnostics)

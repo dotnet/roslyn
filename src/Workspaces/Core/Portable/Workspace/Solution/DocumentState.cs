@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis
                 if (mode == PreservationMode.PreserveValue && solutionServices.SupportsCachingRecoverableObjects)
                 {
                     var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                    tree = treeFactory.CreateRecoverableTree(cacheKey, tree.FilePath, tree.Options, newTextSource, root);
+                    tree = treeFactory.CreateRecoverableTree(cacheKey, tree.FilePath, tree.Options, newTextSource, text.Encoding, root);
                 }
 
                 Contract.ThrowIfNull(tree);
@@ -368,9 +368,28 @@ namespace Microsoft.CodeAnalysis
             var newTextVersion = this.GetNewerVersion();
             var newTreeVersion = GetNewTreeVersionForUpdatedTree(newRoot, newTextVersion, mode);
 
+            // determine encoding
+            Encoding encoding;
+            SyntaxTree priorTree;
+            SourceText priorText;
+            if (this.TryGetSyntaxTree(out priorTree))
+            {
+                // this is most likely available since UpdateTree is normally called after modifying the existing tree.
+                encoding = priorTree.Encoding;
+            }
+            else if (this.TryGetText(out priorText))
+            {
+                encoding = priorText.Encoding;
+            }
+            else
+            {
+                // the existing encoding was never observed so is unknown.
+                encoding = null;
+            }
+
             var syntaxTreeFactory = _languageServices.GetService<ISyntaxTreeFactoryService>();
 
-            var result = CreateRecoverableTextAndTree(newRoot, newTextVersion, newTreeVersion, this.info, _options, syntaxTreeFactory, mode, this.solutionServices);
+            var result = CreateRecoverableTextAndTree(newRoot, newTextVersion, newTreeVersion, encoding, this.info, _options, syntaxTreeFactory, mode, this.solutionServices);
 
             return new DocumentState(
                 this.LanguageServices,
@@ -400,16 +419,11 @@ namespace Microsoft.CodeAnalysis
 
         // use static method so we don't capture references to this
         private static Tuple<AsyncLazy<TextAndVersion>, TreeAndVersion> CreateRecoverableTextAndTree(
-            SyntaxNode newRoot, VersionStamp textVersion, VersionStamp treeVersion,
+            SyntaxNode newRoot, VersionStamp textVersion, VersionStamp treeVersion, Encoding encoding,
             DocumentInfo info, ParseOptions options, ISyntaxTreeFactoryService factory, PreservationMode mode, SolutionServices solutionServices)
         {
             string filePath = info.FilePath;
             TreeAndVersion lazyTree = null;
-
-            // Since this text will be created from a tree, it doesn't have an explicit encoding.
-            // We'll check for this case when writing out the file, and look at the original file's
-            // encoding.
-            Encoding encoding = null;
 
             // this captures the lazyTree local
             var lazyText = new AsyncLazy<TextAndVersion>(
@@ -420,7 +434,7 @@ namespace Microsoft.CodeAnalysis
             lazyTree = TreeAndVersion.Create(
                 (mode == PreservationMode.PreserveIdentity) || !solutionServices.SupportsCachingRecoverableObjects
                     ? factory.CreateSyntaxTree(GetSyntaxTreeFilePath(info), options, newRoot, encoding)
-                    : factory.CreateRecoverableTree(info.Id.ProjectId, GetSyntaxTreeFilePath(info), options, lazyText, newRoot),
+                    : factory.CreateRecoverableTree(info.Id.ProjectId, GetSyntaxTreeFilePath(info), options, lazyText, encoding, newRoot),
                 treeVersion);
 
             return Tuple.Create(lazyText, lazyTree);

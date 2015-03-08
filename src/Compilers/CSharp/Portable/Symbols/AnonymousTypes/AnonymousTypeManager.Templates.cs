@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -34,11 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private struct SynthesizedDelegateKey : IEquatable<SynthesizedDelegateKey>
         {
-            private readonly BitArray _byRefs;
+            private readonly BitVector _byRefs;
             private readonly ushort _parameterCount;
             private readonly byte _returnsVoid;
 
-            public SynthesizedDelegateKey(int parameterCount, BitArray byRefs, bool returnsVoid)
+            public SynthesizedDelegateKey(int parameterCount, BitVector byRefs, bool returnsVoid)
             {
                 _parameterCount = (ushort)parameterCount;
                 _returnsVoid = (byte)(returnsVoid ? 1 : 0);
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal SynthesizedDelegateSymbol SynthesizeDelegate(int parameterCount, BitArray byRefParameters, bool returnsVoid)
+        internal SynthesizedDelegateSymbol SynthesizeDelegate(int parameterCount, BitVector byRefParameters, bool returnsVoid)
         {
             // parameterCount doesn't include return type
             Debug.Assert(byRefParameters.IsNull || parameterCount == byRefParameters.Capacity);
@@ -275,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var anonymousTypes = _lazyAnonymousTypeTemplates;
             if (anonymousTypes != null)
             {
-                foreach (var template in anonymousTypes.Values)
+                foreach (var template in from kv in anonymousTypes orderby kv.Key select kv.Value)
                 {
                     // NOTE: in interactive scenarios the cache may contain templates 
                     //       from other compilation, those should be discarded here

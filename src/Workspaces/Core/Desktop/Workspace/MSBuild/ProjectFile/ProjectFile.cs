@@ -189,22 +189,25 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return PathUtilities.GetFileName(assemblyName);
         }
 
-        protected virtual IEnumerable<ProjectFileReference> GetProjectReferences(MSB.Execution.ProjectInstance executedProject)
-        {
-            return executedProject.GetItems("ProjectReference")
-                .Select(reference => new ProjectFileReference(
-                    path: reference.EvaluatedInclude,
-                    aliases: ImmutableArray<string>.Empty));
-        }
-
-        protected IEnumerable<ProjectItemInstance> GetProjectReferenceItems(ProjectInstance executedProject)
+        protected IEnumerable<ProjectFileReference> GetProjectReferences(ProjectInstance executedProject)
         {
             return executedProject
                 .GetItems("ProjectReference")
                 .Where(i => !string.Equals(
                     i.GetMetadataValue("ReferenceOutputAssembly"),
                     bool.FalseString,
-                    StringComparison.OrdinalIgnoreCase));
+                    StringComparison.OrdinalIgnoreCase))
+                .Select(CreateProjectFileReference);
+        }
+
+        /// <summary>
+        /// Create a <see cref="ProjectFileReference"/> from a ProjectReference node in the MSBuild file.
+        /// </summary>
+        protected virtual ProjectFileReference CreateProjectFileReference(ProjectItemInstance reference)
+        {
+            return new ProjectFileReference(
+                path: reference.EvaluatedInclude,
+                aliases: ImmutableArray<string>.Empty);
         }
 
         protected virtual IEnumerable<MSB.Framework.ITaskItem> GetDocumentsFromModel(MSB.Execution.ProjectInstance executedProject)

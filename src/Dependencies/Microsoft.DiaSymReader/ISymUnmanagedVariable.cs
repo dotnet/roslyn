@@ -43,5 +43,5 @@ namespace Microsoft.DiaSymReader
 
         [PreserveSig]
         int GetEndOffset(out int offset);
-    } 
+    }
 }

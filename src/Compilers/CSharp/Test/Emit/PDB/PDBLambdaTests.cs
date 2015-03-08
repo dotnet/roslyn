@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -569,7 +569,7 @@ class C : B
           <closure offset=""0"" />
           <lambda offset=""-2"" closure=""0"" />
           <lambda offset=""41"" closure=""0"" />
-          <lambda offset=""63"" />
+          <lambda offset=""63"" closure=""this"" />
           <lambda offset=""87"" closure=""1"" />
         </encLambdaMap>
       </customDebugInfo>

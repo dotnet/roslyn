@@ -1959,52 +1959,34 @@ class C
             var result = context.CompileExpression(
                 "@0x123 ?? @0xa1b2c3 ?? (object)$exception ?? @0XA1B2C3.GetHashCode()",
                 out error, testData);
-            Assert.Equal(testData.Methods.Count, 3);
-            var assembly = ImmutableArray.CreateRange(result.Assembly);
+            Assert.Equal(testData.Methods.Count, 1);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       61 (0x3d)
   .maxstack  2
   IL_0000:  ldc.i4     0x123
   IL_0005:  conv.i8
-  IL_0006:  call       ""object <>x.<>GetObjectAtAddress(ulong)""
+  IL_0006:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectAtAddress(ulong)""
   IL_000b:  dup
   IL_000c:  brtrue.s   IL_003c
   IL_000e:  pop
   IL_000f:  ldc.i4     0xa1b2c3
   IL_0014:  conv.i8
-  IL_0015:  call       ""object <>x.<>GetObjectAtAddress(ulong)""
+  IL_0015:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectAtAddress(ulong)""
   IL_001a:  dup
   IL_001b:  brtrue.s   IL_003c
   IL_001d:  pop
-  IL_001e:  call       ""System.Exception <>x.$exception()""
+  IL_001e:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException()""
   IL_0023:  dup
   IL_0024:  brtrue.s   IL_003c
   IL_0026:  pop
   IL_0027:  ldc.i4     0xa1b2c3
   IL_002c:  conv.i8
-  IL_002d:  call       ""object <>x.<>GetObjectAtAddress(ulong)""
+  IL_002d:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectAtAddress(ulong)""
   IL_0032:  callvirt   ""int object.GetHashCode()""
   IL_0037:  box        ""int""
   IL_003c:  ret
 }");
-
-            assembly.VerifyIL("<>x.$exception",
-@"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
-}");
-
-            assembly.VerifyIL("<>x.<>GetObjectAtAddress",
-@"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
-}");
-
             testData = new CompilationTestData();
             // Report overflow, even though native EE does not.
             result = context.CompileExpression(
@@ -5832,7 +5814,7 @@ public class C
             var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
             Assert.True(result);
 
-            ISymUnmanagedReader symReader = new MockSymUnmanagedReader(ImmutableDictionary<int, MethodDebugInfo>.Empty);
+            ISymUnmanagedReader symReader = new MockSymUnmanagedReader(ImmutableDictionary<int, MethodDebugInfoBytes>.Empty);
 
             var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
             var evalContext = CreateMethodContext(runtime, "C.Main");

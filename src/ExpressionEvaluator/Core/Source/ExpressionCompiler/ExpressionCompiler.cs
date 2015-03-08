@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal abstract class ExpressionCompiler :
+    public abstract class ExpressionCompiler :
         IDkmClrExpressionCompiler,
         IDkmClrExpressionCompilerCallback,
         IDkmModuleModifiedNotification
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             try
             {
-                var references = instructionAddress.Process.GetMetadataBlocks(instructionAddress.ModuleInstance.AppDomain);
+                var references = instructionAddress.RuntimeInstance.GetMetadataBlocks(instructionAddress.ModuleInstance.AppDomain);
                 var context = this.CreateMethodContext(instructionAddress, references);
                 var builder = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             try
             {
                 var appDomain = instructionAddress.ModuleInstance.AppDomain;
-                var references = instructionAddress.Process.GetMetadataBlocks(appDomain);
+                var references = instructionAddress.RuntimeInstance.GetMetadataBlocks(appDomain);
 
                 ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
                 ResultProperties resultProperties;
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             try
             {
                 var appDomain = instructionAddress.ModuleInstance.AppDomain;
-                var references = instructionAddress.Process.GetMetadataBlocks(appDomain);
+                var references = instructionAddress.RuntimeInstance.GetMetadataBlocks(appDomain);
 
                 ResultProperties resultProperties;
                 ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             try
             {
                 var appDomain = moduleInstance.AppDomain;
-                var references = moduleInstance.Process.GetMetadataBlocks(appDomain);
+                var references = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain);
 
                 ResultProperties unusedResultProperties;
                 ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
@@ -249,13 +249,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 // No local signature. May occur when debugging .dmp.
                 localSignatureToken = 0;
-			}
-			catch (FileNotFoundException)
-			{
-				// No local signature. May occur when debugging heapless dumps.
-				localSignatureToken = 0;
-			}
-			return this.CreateMethodContext(
+            }
+            catch (FileNotFoundException)
+            {
+                // No local signature. May occur when debugging heapless dumps.
+                localSignatureToken = 0;
+            }
+            return this.CreateMethodContext(
                 moduleInstance.AppDomain,
                 metadataBlocks,
                 new Lazy<ImmutableArray<AssemblyReaders>>(() => instructionAddress.MakeAssemblyReaders(), LazyThreadSafetyMode.None),

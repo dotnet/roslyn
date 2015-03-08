@@ -1,18 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class MidKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MidHelpText()
             VerifyRecommendationDescriptionTextIs(<MethodBody>|</MethodBody>, "Mid",
-                                      <Text><![CDATA[
-Mid statement
-Replaces a specified number of characters in a String variable with characters from another string.
-Mid(<stringName>, <startIndex>, [<length>]) = <stringExpression>]]></Text>)
+$"{VBFeaturesResources.MidStatement}
+{ReplacesChars}
+Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}")
         End Sub
 
         <Fact>

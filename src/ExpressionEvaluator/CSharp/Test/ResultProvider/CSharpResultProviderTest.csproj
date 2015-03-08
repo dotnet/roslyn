@@ -86,21 +86,6 @@
     <Compile Include="..\..\..\..\Compilers\CSharp\Portable\SymbolDisplay\ObjectDisplay.cs">
       <Link>Compiler\SymbolDisplay\ObjectDisplay.cs</Link>
     </Compile>
-    <Compile Include="..\..\Source\ResultProvider\CSharpFormatter.cs">
-      <Link>ResultProvider\CSharpFormatter.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\CSharpFormatter.TypeNames.cs">
-      <Link>ResultProvider\CSharpFormatter.TypeNames.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\CSharpFormatter.Values.cs">
-      <Link>ResultProvider\CSharpFormatter.Values.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\CSharpResultProvider.cs">
-      <Link>ResultProvider\CSharpResultProvider.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Helpers\TypeExtensions.cs">
-      <Link>ResultProvider\Helpers\TypeExtensions.cs</Link>
-    </Compile>
     <Compile Include="..\..\Source\ResultProvider\Resources.Designer.cs">
       <Link>Resources.Designer.cs</Link>
       <AutoGen>True</AutoGen>
@@ -118,6 +103,7 @@
     <Compile Include="FormatSpecifierTests.cs" />
     <Compile Include="FullNameTests.cs" />
     <Compile Include="Helpers\TestTypeExtensions.cs" />
+    <Compile Include="NativeViewTests.cs" />
     <Compile Include="ObjectIdTests.cs" />
     <Compile Include="ResultsViewTests.cs" />
     <Compile Include="TypeNameFormatterTests.cs" />
@@ -135,6 +121,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <Import Project="..\..\Source\ResultProvider\CSharpResultProvider.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\..\build\VSL.Imports.Closed.targets" />

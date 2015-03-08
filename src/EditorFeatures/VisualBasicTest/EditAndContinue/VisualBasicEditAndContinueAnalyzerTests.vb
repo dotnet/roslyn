@@ -51,13 +51,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim i As Integer = 0
 
             While True
-                Dim start As Integer = source.IndexOf(StartTag, i)
+                Dim start As Integer = source.IndexOf(StartTag, i, StringComparison.Ordinal)
                 If start = -1 Then
                     Exit While
                 End If
 
                 start += StartTag.Length
-                Dim [end] As Integer = source.IndexOf(EndTag, start + 1)
+                Dim [end] As Integer = source.IndexOf(EndTag, start + 1, StringComparison.Ordinal)
 
                 Dim length = [end] - start
                 Dim position = source.IndexOf(PositionMark, start, length)
@@ -68,8 +68,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                     span = New TextSpan(start, length)
                 Else
                     position += 1
-                    span = TextSpan.FromBounds(source.IndexOf(StartSpanMark, start, length) + StartSpanMark.Length,
-                                               source.IndexOf(EndSpanMark, start, length))
+                    span = TextSpan.FromBounds(source.IndexOf(StartSpanMark, start, length, StringComparison.Ordinal) + StartSpanMark.Length,
+                                               source.IndexOf(EndSpanMark, start, length, StringComparison.Ordinal))
                 End If
 
                 Yield KeyValuePair.Create(position, span)
@@ -445,7 +445,7 @@ End Class
                 Dim newSyntaxRoot = newDocument.GetSyntaxRootAsync().Result
 
                 Dim oldStatementSource = "System.Console.WriteLine(1)"
-                Dim oldStatementPosition = source1.IndexOf(oldStatementSource)
+                Dim oldStatementPosition = source1.IndexOf(oldStatementSource, StringComparison.Ordinal)
                 Dim oldStatementTextSpan = New TextSpan(oldStatementPosition, oldStatementSource.Length)
                 Dim oldStatementSpan = oldText.Lines.GetLinePositionSpan(oldStatementTextSpan)
                 Dim oldStatementSyntax = oldSyntaxRoot.FindNode(oldStatementTextSpan)

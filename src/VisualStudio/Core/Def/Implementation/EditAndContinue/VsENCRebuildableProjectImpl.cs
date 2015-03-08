@@ -286,11 +286,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // The HResult is ignored by the debugger.
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         public int StopDebuggingPE()
         {
@@ -346,11 +346,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // The HResult is ignored by the debugger.
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         private static void LogEncSession()
         {
@@ -496,11 +496,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // The debugger ignores the result.
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         private void TrackingSpansChanged(bool leafChanged)
         {
@@ -751,11 +751,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     return VSConstants.S_OK;
                 }
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         /// <summary>
         /// Returns the state of the changes made to the source. 
@@ -822,11 +822,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     return VSConstants.S_OK;
                 }
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         private ProjectAnalysisSummary GetProjectAnalysisSummary(Project project)
         {
@@ -883,11 +883,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // HResult ignored by the debugger
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         public unsafe int BuildForEnc(object pUpdatePE)
         {
@@ -1002,11 +1002,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         private unsafe void SetFileUpdates(
             Interop.IDebugUpdateInMemoryPE2 updater,
@@ -1073,7 +1073,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 }
             }
 
-            byte[] debugInfo = _pdbReader.GetCustomDebugInfo(MetadataTokens.GetToken(methodHandle), methodVersion: 0);
+            int methodToken = MetadataTokens.GetToken(methodHandle);
+            byte[] debugInfo = _pdbReader.GetCustomDebugInfoBytes(methodToken, methodVersion: 0);
             if (debugInfo != null)
             {
                 try
@@ -1082,9 +1083,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     var lambdaMap = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLambdaMap);
                     return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
                 }
-                catch (InvalidOperationException e)
-            {
-                    log.Write("Error reading Local Slot Map CDI: {0}", e.Message);
+                catch (Exception e) when (e is InvalidOperationException || e is InvalidDataException)
+                {
+                    log.Write($"Error reading CDI of method 0x{methodToken:X8}: {e.Message}");
                 }
             }
 
@@ -1109,11 +1110,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         /// <summary>
         /// Called when changes are being applied.
@@ -1149,17 +1150,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         #region Testing 
 
 #if DEBUG
-            // Fault injection:
-            // If set we'll fail to read MVID of specified projects to test error reporting.
+        // Fault injection:
+        // If set we'll fail to read MVID of specified projects to test error reporting.
         internal static ImmutableArray<string> InjectMvidReadingFailure;
 
         private void InjectFault_MvidRead()

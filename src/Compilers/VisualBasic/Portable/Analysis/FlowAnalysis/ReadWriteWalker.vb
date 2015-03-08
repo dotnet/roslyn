@@ -15,22 +15,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits AbstractRegionDataFlowPass
 
         Friend Overloads Shared Sub Analyze(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
-                                            ByRef readInside As ImmutableArray(Of ISymbol),
-                                            ByRef writtenInside As ImmutableArray(Of ISymbol),
-                                            ByRef readOutside As ImmutableArray(Of ISymbol),
-                                            ByRef writtenOutside As ImmutableArray(Of ISymbol),
-                                            ByRef captured As ImmutableArray(Of ISymbol))
+                                            ByRef readInside As IEnumerable(Of Symbol),
+                                            ByRef writtenInside As IEnumerable(Of Symbol),
+                                            ByRef readOutside As IEnumerable(Of Symbol),
+                                            ByRef writtenOutside As IEnumerable(Of Symbol),
+                                            ByRef captured As IEnumerable(Of Symbol))
 
             Dim walker = New ReadWriteWalker(info, region)
             Try
                 If walker.Analyze() Then
-                    readInside = walker.readInside.Cast(Of ISymbol).ToImmutableArray()
-                    writtenInside = walker.writtenInside.Cast(Of ISymbol).ToImmutableArray()
-                    readOutside = walker.readOutside.Cast(Of ISymbol).ToImmutableArray()
-                    writtenOutside = walker.writtenOutside.Cast(Of ISymbol).ToImmutableArray()
-                    captured = walker.captured.Cast(Of ISymbol).ToImmutableArray()
+                    readInside = walker.readInside
+                    writtenInside = walker.writtenInside
+                    readOutside = walker.readOutside
+                    writtenOutside = walker.writtenOutside
+                    captured = walker.captured
                 Else
-                    readInside = ImmutableArray(Of ISymbol).Empty
+                    readInside = Enumerable.Empty(Of Symbol)()
                     writtenInside = readInside
                     readOutside = readInside
                     writtenOutside = readInside

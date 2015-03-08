@@ -370,6 +370,65 @@ class C : D
         }
 
         [Fact]
+        public void PartialClass()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+partial class C
+{
+    Func<int> m1 = <N:0>() => 1</N:0>;
+}
+
+partial class C
+{
+    Func<int> m2 = <N:1>() => 1</N:1>;
+}
+");
+            var source1 = MarkedSource(@"
+using System;
+
+partial class C
+{
+    Func<int> m1 = <N:0>() => 10</N:0>;
+}
+
+partial class C
+{
+    Func<int> m2 = <N:1>() => 10</N:1>;
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var ctor0 = compilation0.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
+            var ctor1 = compilation1.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // no new synthesized members generated (with #1 in names):
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__2_0, <>9__2_1, <.ctor>b__2_0, <.ctor>b__2_1}");
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default));
+        }
+
+        [Fact]
         public void JoinAndGroupByClauses()
         {
             var source0 = MarkedSource(@"

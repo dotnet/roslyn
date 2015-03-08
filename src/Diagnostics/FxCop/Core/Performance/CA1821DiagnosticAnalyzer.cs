@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
                 }
             }
 
-            public void AnalyzeCodeBlock(CodeBlockEndAnalysisContext context)
+            public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
             {
                 if (IsEmptyFinalizer(context.CodeBlock, context.SemanticModel))
                 {

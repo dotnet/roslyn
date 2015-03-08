@@ -23,20 +23,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private readonly DiagnosticDescriptor _descriptor;
         private ReportDiagnostic _effectiveSeverity;
         private readonly AnalyzerItem _analyzerItem;
-
-        private static readonly ContextMenuController s_diagnosticContextMenuController =
-            new ContextMenuController(
-                ID.RoslynCommands.DiagnosticContextMenu,
-                items => items.All(item => item is DiagnosticItem));
+        private readonly IContextMenuController _contextMenuController;
 
         public override event PropertyChangedEventHandler PropertyChanged;
 
-        public DiagnosticItem(AnalyzerItem analyzerItem, DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity)
+        public DiagnosticItem(AnalyzerItem analyzerItem, DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity, IContextMenuController contextMenuController)
             : base(string.Format("{0}: {1}", descriptor.Id, descriptor.Title))
         {
             _analyzerItem = analyzerItem;
             _descriptor = descriptor;
             _effectiveSeverity = effectiveSeverity;
+            _contextMenuController = contextMenuController;
         }
 
         public override ImageMoniker IconMoniker
@@ -80,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                return s_diagnosticContextMenuController;
+                return _contextMenuController;
             }
         }
 

@@ -1526,44 +1526,13 @@ Class Program
 
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
-<Text>Imports System
+$"Imports System
 Class Program
     Implements IDisposable
-
-#Region "IDisposable Support"
-    Private disposedValue As Boolean ' To detect redundant calls
-
-    ' IDisposable
-    Protected Overridable Sub Dispose(disposing As Boolean)
-        If Not disposedValue Then
-            If disposing Then
-                ' TODO: dispose managed state (managed objects).
-            End If
-
-            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-            ' TODO: set large fields to null.
-        End If
-        disposedValue = True
-    End Sub
-
-    ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
-    'Protected Overrides Sub Finalize()
-    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-    '    Dispose(False)
-    '    MyBase.Finalize()
-    'End Sub
-
-    ' This code added by Visual Basic to correctly implement the disposable pattern.
-    Public Sub Dispose() Implements IDisposable.Dispose
-        ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-        Dispose(True)
-        ' TODO: uncomment the following line if Finalize() is overridden above.
-        ' GC.SuppressFinalize(Me)
-    End Sub
-#End Region
+{DisposePattern("Overridable ")}
 
 End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
+",
 index:=1,
 compareTokens:=False)
         End Sub
@@ -1628,44 +1597,13 @@ Public NotInheritable Class Program
 
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
-<Text>Imports System
+$"Imports System
 Public NotInheritable Class Program
     Implements IDisposable
-
-#Region "IDisposable Support"
-    Private disposedValue As Boolean ' To detect redundant calls
-
-    ' IDisposable
-    Protected Sub Dispose(disposing As Boolean)
-        If Not disposedValue Then
-            If disposing Then
-                ' TODO: dispose managed state (managed objects).
-            End If
-
-            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-            ' TODO: set large fields to null.
-        End If
-        disposedValue = True
-    End Sub
-
-    ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
-    'Protected Overrides Sub Finalize()
-    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-    '    Dispose(False)
-    '    MyBase.Finalize()
-    'End Sub
-
-    ' This code added by Visual Basic to correctly implement the disposable pattern.
-    Public Sub Dispose() Implements IDisposable.Dispose
-        ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-        Dispose(True)
-        ' TODO: uncomment the following line if Finalize() is overridden above.
-        ' GC.SuppressFinalize(Me)
-    End Sub
-#End Region
+{DisposePattern("")}
 
 End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
+",
 index:=1,
 compareTokens:=False)
         End Sub
@@ -1792,40 +1730,9 @@ End Class
             Test(
 "Imports System
 Class C : Implements [|IDisposable|]",
-"Imports System
+$"Imports System
 Class C : Implements IDisposable
-
-#Region ""IDisposable Support""
-    Private disposedValue As Boolean ' To detect redundant calls
-
-    ' IDisposable
-    Protected Overridable Sub Dispose(disposing As Boolean)
-        If Not disposedValue Then
-            If disposing Then
-                ' TODO: dispose managed state (managed objects).
-            End If
-
-            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-            ' TODO: set large fields to null.
-        End If
-        disposedValue = True
-    End Sub
-
-    ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
-    'Protected Overrides Sub Finalize()
-    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-    '    Dispose(False)
-    '    MyBase.Finalize()
-    'End Sub
-
-    ' This code added by Visual Basic to correctly implement the disposable pattern.
-    Public Sub Dispose() Implements IDisposable.Dispose
-        ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-        Dispose(True)
-        ' TODO: uncomment the following line if Finalize() is overridden above.
-        ' GC.SuppressFinalize(Me)
-    End Sub
-#End Region
+{DisposePattern("Overridable ")}
 End Class
 ", index:=1, compareTokens:=False)
         End Sub
@@ -1873,42 +1780,11 @@ Class C : Implements [|System.IDisposable|]
     Class IDisposable
     End Class
 End Class",
-"Imports System
+$"Imports System
 Class C : Implements System.IDisposable
     Class IDisposable
     End Class
-
-#Region ""IDisposable Support""
-    Private disposedValue As Boolean ' To detect redundant calls
-
-    ' IDisposable
-    Protected Overridable Sub Dispose(disposing As Boolean)
-        If Not disposedValue Then
-            If disposing Then
-                ' TODO: dispose managed state (managed objects).
-            End If
-
-            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-            ' TODO: set large fields to null.
-        End If
-        disposedValue = True
-    End Sub
-
-    ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
-    'Protected Overrides Sub Finalize()
-    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-    '    Dispose(False)
-    '    MyBase.Finalize()
-    'End Sub
-
-    ' This code added by Visual Basic to correctly implement the disposable pattern.
-    Public Sub Dispose() Implements System.IDisposable.Dispose
-        ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-        Dispose(True)
-        ' TODO: uncomment the following line if Finalize() is overridden above.
-        ' GC.SuppressFinalize(Me)
-    End Sub
-#End Region
+{DisposePattern("Overridable ", simplifySystem:=False)}
 End Class", index:=1, compareTokens:=False)
         End Sub
 
@@ -1918,39 +1794,8 @@ End Class", index:=1, compareTokens:=False)
             Test(
 "Class C : Implements [|System.IDisposable|]
 ",
-"Class C : Implements System.IDisposable
-
-#Region ""IDisposable Support""
-    Private disposedValue As Boolean ' To detect redundant calls
-
-    ' IDisposable
-    Protected Overridable Sub Dispose(disposing As Boolean)
-        If Not disposedValue Then
-            If disposing Then
-                ' TODO: dispose managed state (managed objects).
-            End If
-
-            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-            ' TODO: set large fields to null.
-        End If
-        disposedValue = True
-    End Sub
-
-    ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
-    'Protected Overrides Sub Finalize()
-    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-    '    Dispose(False)
-    '    MyBase.Finalize()
-    'End Sub
-
-    ' This code added by Visual Basic to correctly implement the disposable pattern.
-    Public Sub Dispose() Implements System.IDisposable.Dispose
-        ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-        Dispose(True)
-        ' TODO: uncomment the following line if Finalize() is overridden above.
-        ' GC.SuppressFinalize(Me)
-    End Sub
-#End Region
+$"Class C : Implements System.IDisposable
+{DisposePattern("Overridable ", simplifySystem:=False)}
 End Class
 ", index:=1, compareTokens:=False)
         End Sub
@@ -1991,7 +1836,7 @@ Interface I : Inherits IDisposable
 End Interface
 Class C : Implements [|I|]
 End Class",
-"Imports System
+$"Imports System
 Interface I : Inherits IDisposable
     Sub F()
 End Interface
@@ -2000,38 +1845,7 @@ Class C : Implements I
     Public Sub F() Implements I.F
         Throw New NotImplementedException()
     End Sub
-
-#Region ""IDisposable Support""
-    Private disposedValue As Boolean ' To detect redundant calls
-
-    ' IDisposable
-    Protected Overridable Sub Dispose(disposing As Boolean)
-        If Not disposedValue Then
-            If disposing Then
-                ' TODO: dispose managed state (managed objects).
-            End If
-
-            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-            ' TODO: set large fields to null.
-        End If
-        disposedValue = True
-    End Sub
-
-    ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
-    'Protected Overrides Sub Finalize()
-    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-    '    Dispose(False)
-    '    MyBase.Finalize()
-    'End Sub
-
-    ' This code added by Visual Basic to correctly implement the disposable pattern.
-    Public Sub Dispose() Implements IDisposable.Dispose
-        ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-        Dispose(True)
-        ' TODO: uncomment the following line if Finalize() is overridden above.
-        ' GC.SuppressFinalize(Me)
-    End Sub
-#End Region
+{DisposePattern("Overridable ")}
 End Class", index:=1, compareTokens:=False)
         End Sub
 
@@ -2092,7 +1906,7 @@ End Class
 Partial Class C
     Implements IDisposable
 End Class",
-"Imports System
+$"Imports System
 Imports System.Collections.Generic
 
 Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of Integer)
@@ -2115,38 +1929,7 @@ Class _
     Public Function M(Of TT, UU As TT)(a As Dictionary(Of TT, List(Of UU)), b As TT, c As UU) As List(Of UU) Implements I(Of Exception, AggregateException).M
         Throw New NotImplementedException()
     End Function
-
-#Region ""IDisposable Support""
-    Private disposedValue As Boolean ' To detect redundant calls
-
-    ' IDisposable
-    Protected Overridable Sub Dispose(disposing As Boolean)
-        If Not disposedValue Then
-            If disposing Then
-                ' TODO: dispose managed state (managed objects).
-            End If
-
-            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-            ' TODO: set large fields to null.
-        End If
-        disposedValue = True
-    End Sub
-
-    ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
-    'Protected Overrides Sub Finalize()
-    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-    '    Dispose(False)
-    '    MyBase.Finalize()
-    'End Sub
-
-    ' This code added by Visual Basic to correctly implement the disposable pattern.
-    Public Sub Dispose() Implements IDisposable.Dispose
-        ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-        Dispose(True)
-        ' TODO: uncomment the following line if Finalize() is overridden above.
-        ' GC.SuppressFinalize(Me)
-    End Sub
-#End Region
+{DisposePattern("Overridable ")}
 End Class
 
 Partial Class C
@@ -2170,7 +1953,7 @@ Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of In
     Function M(a As System.Collections.Generic.Dictionary(Of T, System.Collections.Generic.List(Of U)), b As T, c As U) As System.Collections.Generic.List(Of U)
     Function M(Of TT, UU As TT)(a As System.Collections.Generic.Dictionary(Of TT, System.Collections.Generic.List(Of UU)), b As TT, c As UU) As System.Collections.Generic.List(Of UU)
 End Interface",
-"Imports System
+$"Imports System
 Imports System.Collections.Generic
 
 Class C
@@ -2191,38 +1974,7 @@ Partial Class C
     Public Function M(Of TT, UU As TT)(a As Dictionary(Of TT, List(Of UU)), b As TT, c As UU) As List(Of UU) Implements I(Of Exception, AggregateException).M
         Throw New NotImplementedException()
     End Function
-
-#Region ""IDisposable Support""
-    Private disposedValue As Boolean ' To detect redundant calls
-
-    ' IDisposable
-    Protected Overridable Sub Dispose(disposing As Boolean)
-        If Not disposedValue Then
-            If disposing Then
-                ' TODO: dispose managed state (managed objects).
-            End If
-
-            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-            ' TODO: set large fields to null.
-        End If
-        disposedValue = True
-    End Sub
-
-    ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
-    'Protected Overrides Sub Finalize()
-    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-    '    Dispose(False)
-    '    MyBase.Finalize()
-    'End Sub
-
-    ' This code added by Visual Basic to correctly implement the disposable pattern.
-    Public Sub Dispose() Implements IDisposable.Dispose
-        ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-        Dispose(True)
-        ' TODO: uncomment the following line if Finalize() is overridden above.
-        ' GC.SuppressFinalize(Me)
-    End Sub
-#End Region
+{DisposePattern("Overridable ")}
 End Class
 
 Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of Integer)
@@ -2230,5 +1982,47 @@ Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of In
     Function M(Of TT, UU As TT)(a As System.Collections.Generic.Dictionary(Of TT, System.Collections.Generic.List(Of UU)), b As TT, c As UU) As System.Collections.Generic.List(Of UU)
 End Interface", index:=1, compareTokens:=False)
         End Sub
+
+        Private Shared Function DisposePattern(disposeMethodModifiers As String, Optional simplifySystem As Boolean = True) As String
+            Dim code = $"
+#Region ""IDisposable Support""
+    Private disposedValue As Boolean ' {FeaturesResources.ToDetectRedundantCalls}
+
+    ' IDisposable
+    Protected {disposeMethodModifiers}Sub Dispose(disposing As Boolean)
+        If Not disposedValue Then
+            If disposing Then
+                ' {FeaturesResources.DisposeManagedStateTodo}
+            End If
+
+            ' {VBFeaturesResources.FreeUnmanagedResourcesTodo}
+            ' {FeaturesResources.SetLargeFieldsToNullTodo}
+        End If
+        disposedValue = True
+    End Sub
+
+    ' {VBFeaturesResources.OverrideFinalizerTodo}
+    'Protected Overrides Sub Finalize()
+    '    ' {VBFeaturesResources.DoNotChangeThisCodeUseDispose}
+    '    Dispose(False)
+    '    MyBase.Finalize()
+    'End Sub
+
+    ' {VBFeaturesResources.ThisCodeAddedToCorrectlyImplementDisposable}
+    Public Sub Dispose() Implements System.IDisposable.Dispose
+        ' {VBFeaturesResources.DoNotChangeThisCodeUseDispose}
+        Dispose(True)
+        ' {VBFeaturesResources.UncommentTheFollowingLineIfFinalizeIsOverridden}
+        ' GC.SuppressFinalize(Me)
+    End Sub
+#End Region"
+
+            ' some tests count on "System." being simplified out
+            If simplifySystem Then
+                code = code.Replace("System.IDisposable.Dispose", "IDisposable.Dispose")
+            End If
+
+            Return code
+        End Function
     End Class
 End Namespace

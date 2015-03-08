@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -648,8 +650,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
                 "abstract x p\r\n{\r\n    get;\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
+                _g.PropertyDeclaration("p", _g.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract | DeclarationModifiers.WriteOnly),
+                "abstract x p\r\n{\r\n    set;\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
                 _g.PropertyDeclaration("p", _g.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly),
                 "x p\r\n{\r\n    get\r\n    {\r\n    }\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                _g.PropertyDeclaration("p", _g.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly),
+                "x p\r\n{\r\n    set\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 _g.PropertyDeclaration("p", _g.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract),
@@ -658,6 +668,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
             VerifySyntax<PropertyDeclarationSyntax>(
                 _g.PropertyDeclaration("p", _g.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly, getAccessorStatements: new[] { _g.IdentifierName("y") }),
                 "x p\r\n{\r\n    get\r\n    {\r\n        y;\r\n    }\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                _g.PropertyDeclaration("p", _g.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly, setAccessorStatements: new[] { _g.IdentifierName("y") }),
+                "x p\r\n{\r\n    set\r\n    {\r\n        y;\r\n    }\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 _g.PropertyDeclaration("p", _g.IdentifierName("x"), setAccessorStatements: new[] { _g.IdentifierName("y") }),
@@ -672,6 +686,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
                 "abstract x this[y z]\r\n{\r\n    get;\r\n}");
 
             VerifySyntax<IndexerDeclarationSyntax>(
+                _g.IndexerDeclaration(new[] { _g.ParameterDeclaration("z", _g.IdentifierName("y")) }, _g.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract | DeclarationModifiers.WriteOnly),
+                "abstract x this[y z]\r\n{\r\n    set;\r\n}");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
                 _g.IndexerDeclaration(new[] { _g.ParameterDeclaration("z", _g.IdentifierName("y")) }, _g.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract),
                 "abstract x this[y z]\r\n{\r\n    get;\r\n    set;\r\n}");
 
@@ -680,9 +698,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
                 "x this[y z]\r\n{\r\n    get\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<IndexerDeclarationSyntax>(
+                _g.IndexerDeclaration(new[] { _g.ParameterDeclaration("z", _g.IdentifierName("y")) }, _g.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly),
+                "x this[y z]\r\n{\r\n    set\r\n    {\r\n    }\r\n}");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
                 _g.IndexerDeclaration(new[] { _g.ParameterDeclaration("z", _g.IdentifierName("y")) }, _g.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly,
                     getAccessorStatements: new[] { _g.IdentifierName("a") }),
                 "x this[y z]\r\n{\r\n    get\r\n    {\r\n        a;\r\n    }\r\n}");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                _g.IndexerDeclaration(new[] { _g.ParameterDeclaration("z", _g.IdentifierName("y")) }, _g.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly,
+                    setAccessorStatements: new[] { _g.IdentifierName("a") }),
+                "x this[y z]\r\n{\r\n    set\r\n    {\r\n        a;\r\n    }\r\n}");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 _g.IndexerDeclaration(new[] { _g.ParameterDeclaration("z", _g.IdentifierName("y")) }, _g.IdentifierName("x")),
@@ -1179,7 +1206,7 @@ public class C { } // end").Members[0];
             VerifySyntax<ClassDeclarationSyntax>(removed, "// comment\r\npublic class C\r\n{\r\n} // end\r\n");
 
             var attrWithComment = _g.GetAttributes(added).First();
-            VerifySyntax<AttributeListSyntax>(attrWithComment, "// comment\r\n[a]\r\n");
+            VerifySyntax<AttributeListSyntax>(attrWithComment, "// comment\r\n[a]");
 
             // added attributes are stripped of trivia
             var added2 = _g.AddAttributes(cls, attrWithComment);
@@ -1738,6 +1765,59 @@ public class C { } // end").Members[0];
             Assert.Equal("y", _g.GetExpression(_g.WithExpression(_g.VoidReturningLambdaExpression(_g.IdentifierName("x")), _g.IdentifierName("y"))).ToString());
 
             Assert.Null(_g.GetExpression(_g.WithExpression(_g.IdentifierName("e"), _g.IdentifierName("x"))));
+        }
+
+        [Fact]
+        public void TestAccessorDeclarations()
+        {
+            var prop = _g.PropertyDeclaration("p", _g.IdentifierName("T"));
+
+            Assert.Equal(2, _g.GetAccessors(prop).Count);
+
+            // get accessors from property
+            var getAccessor = _g.GetAccessor(prop, DeclarationKind.GetAccessor);
+            Assert.NotNull(getAccessor);
+            VerifySyntax<AccessorDeclarationSyntax>(getAccessor,
+@"get
+{
+}");
+
+            Assert.NotNull(getAccessor);
+            Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(getAccessor));
+
+            // get accessors from property
+            var setAccessor = _g.GetAccessor(prop, DeclarationKind.SetAccessor);
+            Assert.NotNull(setAccessor);
+            Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(setAccessor));
+
+            // remove accessors
+            Assert.Null(_g.GetAccessor(_g.RemoveNode(prop, getAccessor), DeclarationKind.GetAccessor));
+            Assert.Null(_g.GetAccessor(_g.RemoveNode(prop, setAccessor), DeclarationKind.SetAccessor));
+
+            // change accessor accessibility
+            Assert.Equal(Accessibility.Public, _g.GetAccessibility(_g.WithAccessibility(getAccessor, Accessibility.Public)));
+            Assert.Equal(Accessibility.Private, _g.GetAccessibility(_g.WithAccessibility(setAccessor, Accessibility.Private)));
+
+            // change accessor statements
+            Assert.Equal(0, _g.GetStatements(getAccessor).Count);
+            Assert.Equal(0, _g.GetStatements(setAccessor).Count);
+
+            var newGetAccessor = _g.WithStatements(getAccessor, null);
+            VerifySyntax<AccessorDeclarationSyntax>(newGetAccessor,
+@"get;");
+
+            var newNewGetAccessor = _g.WithStatements(newGetAccessor, new SyntaxNode[] { });
+            VerifySyntax<AccessorDeclarationSyntax>(newNewGetAccessor,
+@"get
+{
+}");
+
+            // change accessors
+            var newProp = _g.ReplaceNode(prop, getAccessor, _g.WithAccessibility(getAccessor, Accessibility.Public));
+            Assert.Equal(Accessibility.Public, _g.GetAccessibility(_g.GetAccessor(newProp, DeclarationKind.GetAccessor)));
+
+            newProp = _g.ReplaceNode(prop, setAccessor, _g.WithAccessibility(setAccessor, Accessibility.Public));
+            Assert.Equal(Accessibility.Public, _g.GetAccessibility(_g.GetAccessor(newProp, DeclarationKind.SetAccessor)));
         }
 
         [Fact]

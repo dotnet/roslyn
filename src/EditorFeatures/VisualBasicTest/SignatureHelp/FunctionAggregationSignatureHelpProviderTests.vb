@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.ComponentModel.Composition.Hosting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
 
@@ -26,8 +25,8 @@ End Module
 ]]></Text>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("<Extension> Count() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
-            expectedOrderedItems.Add(New SignatureHelpTestItem("<Extension> Count(<expression> As Boolean) As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{Extension}> Count() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{Extension}> Count({Expression1} As Boolean) As Integer", String.Empty, Nothing, currentParameterIndex:=0))
 
             Test(markup, expectedOrderedItems)
         End Sub
@@ -62,7 +61,7 @@ Public Module Foo
 End Module
 ]]></Text>.Value
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("<Extension> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
 
             TestSignatureHelpInEditorBrowsableContexts(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -101,7 +100,7 @@ Public Module Foo
 End Module
 ]]></Text>.Value
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("<Extension> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
 
             TestSignatureHelpInEditorBrowsableContexts(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -140,7 +139,7 @@ Public Module Foo
 End Module
 ]]></Text>.Value
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("<Extension> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
 
             TestSignatureHelpInEditorBrowsableContexts(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -194,11 +193,11 @@ Public Module Foo
 End Module
 ]]></Text>.Value
             Dim expectedOrderedItemsMetadataOnly = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItemsMetadataOnly.Add(New SignatureHelpTestItem("<Extension> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItemsMetadataOnly.Add(New SignatureHelpTestItem($"<{Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
 
             Dim expectedOrderedItemsSameSolution = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("<Extension> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
-            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("<Extension> GetRandomNumber(<expression> As Double) As Integer", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem($"<{Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem($"<{Extension}> GetRandomNumber({Expression1} As Double) As Integer", String.Empty, String.Empty, currentParameterIndex:=0))
 
             TestSignatureHelpInEditorBrowsableContexts(markup:=markup,
                                                 referencedCode:=referencedCode,

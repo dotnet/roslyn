@@ -13,12 +13,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Friend NotInheritable Class SynthesizedLambdaMethod
         Inherits SynthesizedMethod
+        Implements ISynthesizedMethodBodyImplementationSymbol
 
         Private ReadOnly m_lambda As LambdaSymbol
         Private ReadOnly m_parameters As ImmutableArray(Of ParameterSymbol)
         Private ReadOnly m_locations As ImmutableArray(Of Location)
         Private ReadOnly m_typeParameters As ImmutableArray(Of TypeParameterSymbol)
         Private ReadOnly m_typeMap As TypeSubstitution
+        Private ReadOnly m_topLevelMethod As MethodSymbol
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
@@ -39,19 +41,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' - it is either Frame or enclosing class in a case if we do not lift anything.</param>
         ''' <param name="topLevelMethod">Method that contains lambda expression for which we do the rewrite.</param>
         ''' <param name="lambdaNode">Lambda expression which is represented by this method.</param>
-        Friend Sub New(slotAllocatorOpt As VariableSlotAllocator,
-                       compilationState As TypeCompilationState,
-                       containingType As InstanceTypeSymbol,
+        Friend Sub New(containingType As InstanceTypeSymbol,
                        closureKind As ClosureKind,
                        topLevelMethod As MethodSymbol,
-                       topLevelMethodOrdinal As Integer,
+                       topLevelMethodId As MethodDebugId,
                        lambdaNode As BoundLambda,
                        lambdaOrdinal As Integer,
                        diagnostics As DiagnosticBag)
 
             MyBase.New(lambdaNode.Syntax,
                        containingType,
-                       MakeName(slotAllocatorOpt, compilationState, closureKind, topLevelMethodOrdinal, lambdaNode.LambdaSymbol.SynthesizedKind, lambdaOrdinal),
+                       MakeName(topLevelMethodId, closureKind, lambdaNode.LambdaSymbol.SynthesizedKind, lambdaOrdinal),
                        isShared:=False)
 
             Me.m_lambda = lambdaNode.LambdaSymbol
@@ -81,23 +81,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             Me.m_parameters = params.ToImmutableAndFree
+            Me.m_topLevelMethod = topLevelMethod
         End Sub
 
-        Private Shared Function MakeName(slotAllocatorOpt As VariableSlotAllocator,
-                                         compilationState As TypeCompilationState,
+        Private Shared Function MakeName(topLevelMethodId As MethodDebugId,
                                          closureKind As ClosureKind,
-                                         topLevelMethodOrdinal As Integer,
                                          lambdaKind As SynthesizedLambdaKind,
                                          lambdaOrdinal As Integer) As String
-
-            ' TODO: slotAllocatorOpt?.GetPrevious()
-
             ' Lambda method name must contain the declaring method ordinal to be unique unless the method is emitted into a closure class exclusive to the declaring method.
             ' Lambdas that only close over "Me" are emitted directly into the top-level method containing type.
             ' Lambdas that don't close over anything (static) are emitted into a shared closure singleton.
             Return GeneratedNames.MakeLambdaMethodName(
-                If(closureKind = ClosureKind.General, -1, topLevelMethodOrdinal),
-                If(compilationState.ModuleBuilderOpt?.CurrentGenerationOrdinal, 0), ' Note: module builder is not available only when testing emit diagnostics
+                If(closureKind = ClosureKind.General, -1, topLevelMethodId.Ordinal),
+                topLevelMethodId.Generation,
                 lambdaOrdinal,
                 lambdaKind)
         End Function
@@ -226,5 +222,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(localPosition >= bodyStart)
             Return localPosition - bodyStart
         End Function
+
+        ' The lambda method body needs to be updated when the containing top-level method body is updated.
+        Public ReadOnly Property HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+            Get
+                Return True
+            End Get
+        End Property
+
+        Public ReadOnly Property Method As IMethodSymbol Implements ISynthesizedMethodBodyImplementationSymbol.Method
+            Get
+                Return m_topLevelMethod
+            End Get
+        End Property
+
     End Class
 End Namespace

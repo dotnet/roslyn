@@ -2498,7 +2498,9 @@ End Structure
             Dim s2 = compilation.GlobalNamespace.GetTypeMembers("s2")(0)
             Assert.Equal(2, s2.InstanceConstructors.Length)
 
-            compilation.VerifyDiagnostics()
+            compilation.VerifyDiagnostics(
+                    Diagnostic(ERRID.ERR_NewInStruct, "new").WithLocation(2, 9)
+)
         End Sub
 
         <Fact, WorkItem(530171, "DevDiv")>

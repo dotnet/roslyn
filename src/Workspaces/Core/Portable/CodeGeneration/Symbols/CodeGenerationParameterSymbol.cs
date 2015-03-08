@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationParameterSymbol : CodeGenerationSymbol, IParameterSymbol
     {
-        public RefKind RefKind { get; private set; }
-        public bool IsParams { get; private set; }
-        public ITypeSymbol Type { get; private set; }
-        public bool IsOptional { get; private set; }
-        public int Ordinal { get; private set; }
+        public RefKind RefKind { get; }
+        public bool IsParams { get; }
+        public ITypeSymbol Type { get; }
+        public bool IsOptional { get; }
+        public int Ordinal { get; }
 
-        public bool HasExplicitDefaultValue { get; private set; }
-        public object ExplicitDefaultValue { get; private set; }
+        public bool HasExplicitDefaultValue { get; }
+        public object ExplicitDefaultValue { get; }
 
         public CodeGenerationParameterSymbol(
             INamedTypeSymbol containingType,

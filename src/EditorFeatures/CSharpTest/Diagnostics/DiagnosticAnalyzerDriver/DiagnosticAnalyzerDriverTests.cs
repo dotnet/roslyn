@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -85,7 +84,8 @@ class C
             }
         }
 
-        [Fact(Skip = "Failing test due to AnalyzerManager checkin")]
+        [Fact]
+        [WorkItem(759)]
         public void DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var source = TestResource.AllInOneCSharpCode;
@@ -93,7 +93,7 @@ class C
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
-                    DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length), donotCatchAnalyzerExceptions: false));
+                    DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length), logAnalyzerExceptionAsDiagnostics: true));
             }
         }
 
@@ -122,7 +122,7 @@ class C
                 exceptions.Add(e);
             }
 
-            Assert.True(exceptions.Count == 1);
+            Assert.True(exceptions.Count == 0);
         }
 
         [Fact]
@@ -252,7 +252,7 @@ class C
 
         private class CodeBlockAnalyzerFactory : DiagnosticAnalyzer
         {
-            public static DiagnosticDescriptor Desciptor = new TriggerDiagnosticDescriptor("DummyDiagnostic");
+            public static DiagnosticDescriptor Desciptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic");
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
@@ -284,7 +284,7 @@ class C
                     }
                 }
 
-                public void AnalyzeCodeBlock(CodeBlockEndAnalysisContext context)
+                public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
                 {
                 }
 

@@ -65,6 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestProperty(Function(old, value) old.WithOverflowChecks(value), Function(opt) opt.CheckOverflow, False)
             TestProperty(Function(old, value) old.WithCryptoKeyContainer(value), Function(opt) opt.CryptoKeyContainer, "foo")
             TestProperty(Function(old, value) old.WithCryptoKeyFile(value), Function(opt) opt.CryptoKeyFile, "foo")
+            TestProperty(Function(old, value) old.WithCryptoPublicKey(value), Function(opt) opt.CryptoPublicKey, ImmutableArray.CreateRange(Of Byte)({1, 2, 3, 4}))
             TestProperty(Function(old, value) old.WithDelaySign(value), Function(opt) opt.DelaySign, True)
             TestProperty(Function(old, value) old.WithPlatform(value), Function(opt) opt.Platform, Platform.X64)
             TestProperty(Function(old, value) old.WithGeneralDiagnosticOption(value), Function(opt) opt.GeneralDiagnosticOption, ReportDiagnostic.Suppress)
@@ -495,6 +496,7 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
                 "OptionExplicit",
                 "OptionCompareText",
                 "EmbedVbCoreRuntime",
+                "SuppressEmbeddedDeclarations",
                 "ParseOptions")
         End Sub
 
@@ -554,6 +556,17 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
                          deserializedCompilationOptions.EmbedVbCoreRuntime)
             Assert.Equal(compilationOptions.ExtendedCustomDebugInformation,
                          deserializedCompilationOptions.ExtendedCustomDebugInformation)
+        End Sub
+
+        <Fact>
+        Public Sub WithCryptoPublicKey()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
+
+            Assert.Equal(ImmutableArray(Of Byte).Empty, options.CryptoPublicKey)
+            Assert.Equal(ImmutableArray(Of Byte).Empty, options.WithCryptoPublicKey(Nothing).CryptoPublicKey)
+
+            Assert.Same(options, options.WithCryptoPublicKey(Nothing))
+            Assert.Same(options, options.WithCryptoPublicKey(ImmutableArray(Of Byte).Empty))
         End Sub
 
     End Class

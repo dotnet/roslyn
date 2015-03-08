@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.Organizing.Organizers
             this.Language = languageName;
         }
 
-        public string Language { get; private set; }
+        public string Language { get; }
     }
 }

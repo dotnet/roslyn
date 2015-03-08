@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 expression = ReportSyntaxError(InternalSyntaxFactory.MissingExpression(), ERRID.ERR_ExpectedExpression)
 
             Else
-                expression = ParseExpression()
+                expression = ParseExpressionCore()
 
                 ' Scanned this as a terminator. Fix it.
                 If CurrentToken.Kind = SyntaxKind.ColonToken Then

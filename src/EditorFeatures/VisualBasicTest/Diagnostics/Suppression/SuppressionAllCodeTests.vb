@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
         Public Sub TestPragmaWarningOnEveryNodes()
-            TestPragma(TestResource.AllInOneVisualBasicCode, VisualBasicParseOptions.Default, verifier:=Function(t) t.IndexOf("#Disable Warning") >= 0)
+            TestPragma(TestResource.AllInOneVisualBasicCode, VisualBasicParseOptions.Default, verifier:=Function(t) t.IndexOf("#Disable Warning", StringComparison.Ordinal) >= 0)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
 
                              Return Not TypeOf n Is StatementSyntax
                          End Function,
-                verifier:=Function(t) t.IndexOf("SuppressMessage") >= 0)
+                verifier:=Function(t) t.IndexOf("SuppressMessage", StringComparison.Ordinal) >= 0)
         End Sub
     End Class
 End Namespace

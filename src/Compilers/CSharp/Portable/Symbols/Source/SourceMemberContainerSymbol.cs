@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var diagnostics = DiagnosticBag.GetInstance();
                             CheckBase(diagnostics);
-                            AddSemanticDiagnostics(diagnostics);
+                            AddDeclarationDiagnostics(diagnostics);
                             state.NotePartComplete(CompletionPart.FinishBaseType);
                             diagnostics.Free();
                         }
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var diagnostics = DiagnosticBag.GetInstance();
                             CheckInterfaces(diagnostics);
-                            AddSemanticDiagnostics(diagnostics);
+                            AddDeclarationDiagnostics(diagnostics);
                             state.NotePartComplete(CompletionPart.FinishInterfaces);
                             diagnostics.Free();
                         }
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var diagnostics = DiagnosticBag.GetInstance();
                             AfterMembersChecks(diagnostics);
-                            AddSemanticDiagnostics(diagnostics);
+                            AddDeclarationDiagnostics(diagnostics);
                             var thisThreadCompleted = state.NotePartComplete(CompletionPart.FinishMemberChecks);
                             Debug.Assert(thisThreadCompleted);
                             diagnostics.Free();
@@ -951,22 +951,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal static ImmutableArray<FieldOrPropertyInitializer> GetInitializersInSourceTree(SyntaxTree tree, ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers)
+        private static ImmutableArray<FieldOrPropertyInitializer> GetInitializersInSourceTree(SyntaxTree tree, ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers)
         {
+            var builder = ArrayBuilder<FieldOrPropertyInitializer>.GetInstance();
             foreach (var siblingInitializers in initializers)
             {
                 Debug.Assert(!siblingInitializers.IsEmpty);
 
                 if (siblingInitializers[0].Syntax.SyntaxTree == tree)
                 {
-                    return siblingInitializers;
+                    builder.AddRange(siblingInitializers);
                 }
             }
 
-            return ImmutableArray<FieldOrPropertyInitializer>.Empty;
+            return builder.ToImmutableAndFree();
         }
 
-        internal static int IndexOfInitializerContainingPosition(ImmutableArray<FieldOrPropertyInitializer> initializers, int position)
+        private static int IndexOfInitializerContainingPosition(ImmutableArray<FieldOrPropertyInitializer> initializers, int position)
         {
             // Search for the start of the span (the spans are non-overlapping and sorted)
             int index = initializers.BinarySearch(position, (initializer, pos) => initializer.Syntax.Span.Start.CompareTo(pos));
@@ -1026,7 +1027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var diagnostics = DiagnosticBag.GetInstance();
                 if (Interlocked.CompareExchange(ref _lazyTypeMembers, MakeTypeMembers(diagnostics), null) == null)
                 {
-                    AddSemanticDiagnostics(diagnostics);
+                    AddDeclarationDiagnostics(diagnostics);
 
                     state.NotePartComplete(CompletionPart.TypeMembers);
                 }
@@ -1264,7 +1265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return alreadyKnown;
             }
 
-            AddSemanticDiagnostics(diagnostics);
+            AddDeclarationDiagnostics(diagnostics);
             diagnostics.Free();
 
             return membersAndInitializers;
@@ -1289,7 +1290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (Interlocked.CompareExchange(ref _lazyMembersDictionary, membersDictionary, null) == null)
                 {
                     MergePartialMethods(_lazyMembersDictionary, diagnostics);
-                    AddSemanticDiagnostics(diagnostics);
+                    AddDeclarationDiagnostics(diagnostics);
                     state.NotePartComplete(CompletionPart.Members);
                 }
 
@@ -1733,7 +1734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (Interlocked.CompareExchange(ref _lazyKnownCircularStruct, value, (int)ThreeState.Unknown) == (int)ThreeState.Unknown)
                         {
-                            AddSemanticDiagnostics(diagnostics);
+                            AddDeclarationDiagnostics(diagnostics);
                         }
 
                         Debug.Assert(value == _lazyKnownCircularStruct);
@@ -2723,13 +2724,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_EnumsCantContainDefaultConstructor, m.Locations[0]);
                         }
-                        else if (m.DeclaredAccessibility != Accessibility.Public)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_ParameterlessStructCtorsMustBePublic, m.Locations[0]);
-                        }
                         else
                         {
-                            Binder.CheckFeatureAvailability(m.Locations[0], MessageID.IDS_FeatureStructParameterlessConstructors, diagnostics);
+                            diagnostics.Add(ErrorCode.ERR_StructsCantContainDefaultConstructor, m.Locations[0]);
                         }
                     }
                 }

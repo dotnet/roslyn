@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -99,6 +100,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
+                public void RequestCancellationOnRunningTasks()
+                {
+                    lock (_gate)
+                    {
+                        // request to cancel all running works
+                        CancelAll_NoLock();
+                    }
+                }
+
                 public void Dispose()
                 {
                     lock (_gate)
@@ -109,8 +119,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         Dispose_NoLock();
 
-                        _cancellationMap.Do(p => p.Value.Cancel());
-                        _cancellationMap.Clear();
+                        CancelAll_NoLock();
                     }
                 }
 
@@ -120,6 +129,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         return WorkItemCount_NoLock > 0;
                     }
+                }
+
+                private void CancelAll_NoLock()
+                {
+                    // nothing to do
+                    if (_cancellationMap.Count == 0)
+                    {
+                        return;
+                    }
+
+                    var cancellations = _cancellationMap.Values.ToList();
+
+                    // it looks like Cancel can cause some code to run at the same thread, which can cause _cancellationMap to be changed.
+                    // make a copy of the list and call cancellation
+                    cancellations.Do(s => s.Cancel());
+
+                    // clear cancellation map
+                    _cancellationMap.Clear();
                 }
 
                 protected void Cancel_NoLock(object key)

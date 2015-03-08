@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -20,14 +20,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public readonly int SyntaxOffset;
 
         /// <summary>
-        /// The ordinal of the closure frame the lambda belongs to, or -1 if not applicable 
-        /// (static lambdas, lambdas closing over this pointer only).
+        /// The ordinal of the closure frame the lambda belongs to, or
+        /// <see cref="StaticClosureOrdinal"/> if the lambda is static, or
+        /// <see cref="ThisOnlyClosureOrdinal"/> if the lambda is closed over "this" pointer only.
         /// </summary>
         public readonly int ClosureOrdinal;
 
+        public const int StaticClosureOrdinal = -1;
+        public const int ThisOnlyClosureOrdinal = -2;
+        public const int MinClosureOrdinal = ThisOnlyClosureOrdinal;
+
         public LambdaDebugInfo(int syntaxOffset, int closureOrdinal)
         {
-            Debug.Assert(closureOrdinal >= -1);
+            Debug.Assert(closureOrdinal >= MinClosureOrdinal);
 
             this.SyntaxOffset = syntaxOffset;
             this.ClosureOrdinal = closureOrdinal;
@@ -51,7 +56,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override string ToString()
         {
-            return $"({SyntaxOffset}, {ClosureOrdinal})";
+            return 
+                ClosureOrdinal == StaticClosureOrdinal ? $"({SyntaxOffset}, static)" :
+                ClosureOrdinal == ThisOnlyClosureOrdinal ? $"({SyntaxOffset}, this)" :
+                $"({SyntaxOffset}, {ClosureOrdinal})";
         }
     }
 }

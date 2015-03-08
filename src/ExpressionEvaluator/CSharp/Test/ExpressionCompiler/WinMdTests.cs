@@ -282,7 +282,7 @@ class C
   // Code size       55 (0x37)
   .maxstack  2
   IL_0000:  ldstr      ""s""
-  IL_0005:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_000a:  castclass  ""Windows.Storage.StorageFolder""
   IL_000f:  callvirt   ""Windows.Storage.FileAttributes Windows.Storage.StorageFolder.Attributes.get""
   IL_0014:  box        ""Windows.Storage.FileAttributes""
@@ -290,7 +290,7 @@ class C
   IL_001a:  brtrue.s   IL_0036
   IL_001c:  pop
   IL_001d:  ldstr      ""d""
-  IL_0022:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0022:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0027:  unbox.any  ""Windows.Foundation.DateTime""
   IL_002c:  ldfld      ""long Windows.Foundation.DateTime.UniversalTime""
   IL_0031:  box        ""long""
@@ -334,7 +334,7 @@ class C
   // Code size       55 (0x37)
   .maxstack  2
   IL_0000:  ldstr      ""s""
-  IL_0005:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_000a:  castclass  ""Windows.Storage.StorageFolder""
   IL_000f:  callvirt   ""Windows.Storage.FileAttributes Windows.Storage.StorageFolder.Attributes.get""
   IL_0014:  box        ""Windows.Storage.FileAttributes""
@@ -342,7 +342,7 @@ class C
   IL_001a:  brtrue.s   IL_0036
   IL_001c:  pop
   IL_001d:  ldstr      ""d""
-  IL_0022:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0022:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0027:  unbox.any  ""Windows.Foundation.DateTime""
   IL_002c:  ldfld      ""long Windows.Foundation.DateTime.UniversalTime""
   IL_0031:  box        ""long""
@@ -366,7 +366,7 @@ class C
             compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
             return CreateRuntimeInstance(
                 ExpressionCompilerUtilities.GenerateUniqueName(),
-                runtimeReferences,
+                runtimeReferences.AddIntrinsicAssembly(),
                 exeBytes,
                 new SymReader(pdbBytes));
         }

@@ -9,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' SyntaxNode.GetCorrespondingLambdaBody(SyntaxNode)
         ''' </summary>
         Friend Shared Function GetCorrespondingLambdaBody(oldBody As SyntaxNode, newLambda As SyntaxNode) As SyntaxNode
+
             Dim oldLambda = oldBody.Parent
 
             Select Case oldLambda.Kind

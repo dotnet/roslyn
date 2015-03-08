@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -1441,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     const string AttributeName = "Attribute";
 
                     // an attribute that should keep it (unnecessary "Attribute" suffix should be annotated with a DontSimplifyAnnotation
-                    if (identifierToken.ValueText != AttributeName && identifierToken.ValueText.EndsWith(AttributeName) && !identifierToken.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation))
+                    if (identifierToken.ValueText != AttributeName && identifierToken.ValueText.EndsWith(AttributeName, StringComparison.Ordinal) && !identifierToken.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation))
                     {
                         // weird. the semantic model is able to bind attribute syntax like "[as()]" although it's not valid code.
                         // so we need another check for keywords manually.
@@ -2230,6 +2231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             switch (expression.Kind())
             {
                 case SyntaxKind.SimpleMemberAccessExpression:
+                case SyntaxKind.ConditionalAccessExpression:
                 case SyntaxKind.InvocationExpression:
                 case SyntaxKind.ElementAccessExpression:
                 case SyntaxKind.PostIncrementExpression:

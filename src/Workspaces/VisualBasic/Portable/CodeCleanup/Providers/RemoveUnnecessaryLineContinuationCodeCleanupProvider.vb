@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End If
 
                 ' check context
-                If token1.IsLastTokenOfStatement() Then
+                If token1.IsLastTokenOfStatement() AndAlso Not token1.IsMissing Then
                     ' check trivia
                     If Not GetTrailingTrivia(token1).Any(SyntaxKind.LineContinuationTrivia) AndAlso
                        Not GetLeadingTrivia(token2).Any(SyntaxKind.LineContinuationTrivia) Then

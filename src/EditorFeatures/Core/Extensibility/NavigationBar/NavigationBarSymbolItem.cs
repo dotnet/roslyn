@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
     internal class NavigationBarSymbolItem : NavigationBarItem
     {
-        public SymbolKey NavigationSymbolId { get; private set; }
-        public int? NavigationSymbolIndex { get; private set; }
+        public SymbolKey NavigationSymbolId { get; }
+        public int? NavigationSymbolIndex { get; }
 
         public NavigationBarSymbolItem(
             string text,

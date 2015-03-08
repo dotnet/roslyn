@@ -27,8 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private m_lazyDocComment As String
         Private m_lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
 
-        Private m_lazyLexicalSortKey As LexicalSortKey = LexicalSortKey.NotInitialized
-
         ' Set to 1 when the compilation event has been produced
         Private m_eventProduced As Integer
 
@@ -192,10 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
             ' WARNING: this should not allocate memory!
-            If Not m_lazyLexicalSortKey.IsInitialized Then
-                m_lazyLexicalSortKey.SetFrom(New LexicalSortKey(m_syntaxRef, Me.DeclaringCompilation))
-            End If
-            Return m_lazyLexicalSortKey
+            Return New LexicalSortKey(m_syntaxRef, Me.DeclaringCompilation)
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)

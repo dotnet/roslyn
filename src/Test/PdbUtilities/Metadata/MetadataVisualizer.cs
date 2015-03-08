@@ -51,37 +51,37 @@ namespace Roslyn.Test.MetadataUtilities
             Count
         }
 
-        private readonly TextWriter writer;
-        private readonly IReadOnlyList<MetadataReader> readers;
-        private readonly MetadataAggregator aggregator;
-        private readonly MetadataVisualizerOptions options;
+        private readonly TextWriter _writer;
+        private readonly IReadOnlyList<MetadataReader> _readers;
+        private readonly MetadataAggregator _aggregator;
+        private readonly MetadataVisualizerOptions _options;
 
         // enc map for each delta reader
-        private readonly ImmutableArray<ImmutableArray<Handle>> encMaps;
+        private readonly ImmutableArray<ImmutableArray<Handle>> _encMaps;
 
-        private MetadataReader reader;
-        private readonly List<string[]> pendingRows = new List<string[]>();
-        private readonly Dictionary<BlobHandle, BlobKind> BlobKinds = new Dictionary<BlobHandle, BlobKind>(); 
+        private MetadataReader _reader;
+        private readonly List<string[]> _pendingRows = new List<string[]>();
+        private readonly Dictionary<BlobHandle, BlobKind> _blobKinds = new Dictionary<BlobHandle, BlobKind>();
 
         private MetadataVisualizer(TextWriter writer, IReadOnlyList<MetadataReader> readers, MetadataVisualizerOptions options = MetadataVisualizerOptions.None)
         {
-            this.writer = writer;
-            this.readers = readers;
-            this.options = options;
+            _writer = writer;
+            _readers = readers;
+            _options = options;
 
             if (readers.Count > 1)
             {
                 var deltaReaders = new List<MetadataReader>(readers.Skip(1));
-                this.aggregator = new MetadataAggregator(readers[0], deltaReaders);
+                _aggregator = new MetadataAggregator(readers[0], deltaReaders);
 
-                this.encMaps = ImmutableArray.CreateRange(deltaReaders.Select(reader => ImmutableArray.CreateRange(reader.GetEditAndContinueMapEntries())));
+                _encMaps = ImmutableArray.CreateRange(deltaReaders.Select(reader => ImmutableArray.CreateRange(reader.GetEditAndContinueMapEntries())));
             }
         }
 
         public MetadataVisualizer(MetadataReader reader, TextWriter writer, MetadataVisualizerOptions options = MetadataVisualizerOptions.None)
             : this(writer, new[] { reader }, options)
         {
-            this.reader = reader;
+            _reader = reader;
         }
 
         public MetadataVisualizer(IReadOnlyList<MetadataReader> readers, TextWriter writer, MetadataVisualizerOptions options = MetadataVisualizerOptions.None)
@@ -91,12 +91,12 @@ namespace Roslyn.Test.MetadataUtilities
 
         public void VisualizeAllGenerations()
         {
-            for (int i = 0; i < readers.Count; i++)
+            for (int i = 0; i < _readers.Count; i++)
             {
-                writer.WriteLine(">>>");
-                writer.WriteLine($">>> Generation {i}:");
-                writer.WriteLine(">>>");
-                writer.WriteLine();
+                _writer.WriteLine(">>>");
+                _writer.WriteLine($">>> Generation {i}:");
+                _writer.WriteLine(">>>");
+                _writer.WriteLine();
 
                 Visualize(i);
             }
@@ -104,33 +104,33 @@ namespace Roslyn.Test.MetadataUtilities
 
         public void Visualize(int generation = -1)
         {
-            this.reader = (generation >= 0) ? readers[generation] : readers[readers.Count-1];
+            _reader = (generation >= 0) ? _readers[generation] : _readers[_readers.Count - 1];
 
-            WriteModule();                  
-            WriteTypeRef();                 
-            WriteTypeDef();                 
-            WriteField();                   
-            WriteMethod();                  
-            WriteParam();                   
-            WriteMemberRef();               
-            WriteConstant();                
-            WriteCustomAttribute();         
-            WriteDeclSecurity();            
-            WriteStandAloneSig();           
-            WriteEvent();                   
-            WriteProperty();                
-            WriteMethodImpl();              
-            WriteModuleRef();               
-            WriteTypeSpec();                
-            WriteEnCLog();                  
-            WriteEnCMap();                  
-            WriteAssembly();                
-            WriteAssemblyRef();             
+            WriteModule();
+            WriteTypeRef();
+            WriteTypeDef();
+            WriteField();
+            WriteMethod();
+            WriteParam();
+            WriteMemberRef();
+            WriteConstant();
+            WriteCustomAttribute();
+            WriteDeclSecurity();
+            WriteStandAloneSig();
+            WriteEvent();
+            WriteProperty();
+            WriteMethodImpl();
+            WriteModuleRef();
+            WriteTypeSpec();
+            WriteEnCLog();
+            WriteEnCMap();
+            WriteAssembly();
+            WriteAssemblyRef();
             WriteFile();
-            WriteExportedType();            
-            WriteManifestResource();        
-            WriteGenericParam();            
-            WriteMethodSpec();              
+            WriteExportedType();
+            WriteManifestResource();
+            WriteGenericParam();
+            WriteMethodSpec();
             WriteGenericParamConstraint();
 
             // debug tables:
@@ -154,7 +154,7 @@ namespace Roslyn.Test.MetadataUtilities
         {
             get
             {
-                return reader.GetTableRowCount(TableIndex.EncLog) > 0;
+                return _reader.GetTableRowCount(TableIndex.EncLog) > 0;
             }
         }
 
@@ -165,39 +165,39 @@ namespace Roslyn.Test.MetadataUtilities
 
         private string MakeTableName(TableIndex index)
         {
-            return $"{index} (index: 0x{(byte)index:X2}, size: {reader.GetTableRowCount(index) * reader.GetTableRowSize(index)}): ";
+            return $"{index} (index: 0x{(byte)index:X2}, size: {_reader.GetTableRowCount(index) * _reader.GetTableRowSize(index)}): ";
         }
 
         private void AddHeader(params string[] header)
         {
-            Debug.Assert(pendingRows.Count == 0);
-            pendingRows.Add(header);
+            Debug.Assert(_pendingRows.Count == 0);
+            _pendingRows.Add(header);
         }
 
         private void AddRow(params string[] fields)
         {
-            Debug.Assert(pendingRows.Count > 0 && pendingRows.Last().Length == fields.Length);
-            pendingRows.Add(fields);
+            Debug.Assert(_pendingRows.Count > 0 && _pendingRows.Last().Length == fields.Length);
+            _pendingRows.Add(fields);
         }
 
         private void WriteRows(string title)
         {
-            Debug.Assert(pendingRows.Count > 0);
+            Debug.Assert(_pendingRows.Count > 0);
 
-            if (pendingRows.Count == 1)
+            if (_pendingRows.Count == 1)
             {
-                pendingRows.Clear();
+                _pendingRows.Clear();
                 return;
             }
 
-            writer.Write(title);
-            writer.WriteLine();
+            _writer.Write(title);
+            _writer.WriteLine();
 
             string columnSeparator = "  ";
-            int rowNumberWidth = pendingRows.Count.ToString("x").Length;
+            int rowNumberWidth = _pendingRows.Count.ToString("x").Length;
 
-            int[] columnWidths = new int[pendingRows.First().Length];
-            foreach (var row in pendingRows)
+            int[] columnWidths = new int[_pendingRows.First().Length];
+            foreach (var row in _pendingRows)
             {
                 for (int c = 0; c < row.Length; c++)
                 {
@@ -208,48 +208,48 @@ namespace Roslyn.Test.MetadataUtilities
             int tableWidth = columnWidths.Sum() + columnWidths.Length;
             string horizontalSeparator = new string('=', tableWidth);
 
-            for (int r = 0; r < pendingRows.Count; r++)
+            for (int r = 0; r < _pendingRows.Count; r++)
             {
-                var row = pendingRows[r];
-               
+                var row = _pendingRows[r];
+
                 // header
                 if (r == 0)
                 {
-                    writer.WriteLine(horizontalSeparator);
-                    writer.Write(new string(' ', rowNumberWidth + 2));
+                    _writer.WriteLine(horizontalSeparator);
+                    _writer.Write(new string(' ', rowNumberWidth + 2));
                 }
                 else
                 {
                     string rowNumber = r.ToString("x");
-                    writer.Write(new string(' ', rowNumberWidth - rowNumber.Length));
-                    writer.Write(rowNumber);
-                    writer.Write(": ");
+                    _writer.Write(new string(' ', rowNumberWidth - rowNumber.Length));
+                    _writer.Write(rowNumber);
+                    _writer.Write(": ");
                 }
 
                 for (int c = 0; c < row.Length; c++)
                 {
                     var field = row[c];
 
-                    writer.Write(field);
-                    writer.Write(new string(' ', columnWidths[c] - field.Length));
+                    _writer.Write(field);
+                    _writer.Write(new string(' ', columnWidths[c] - field.Length));
                 }
 
-                writer.WriteLine();
+                _writer.WriteLine();
 
                 // header
                 if (r == 0)
                 {
-                    writer.WriteLine(horizontalSeparator);
+                    _writer.WriteLine(horizontalSeparator);
                 }
             }
 
-            writer.WriteLine();
-            pendingRows.Clear();
+            _writer.WriteLine();
+            _pendingRows.Clear();
         }
 
         private Handle GetAggregateHandle(Handle generationHandle, int generation)
         {
-            var encMap = encMaps[generation - 1];
+            var encMap = _encMaps[generation - 1];
 
             int start, count;
             if (!TryGetHandleRange(encMap, generationHandle.Kind, out start, out count))
@@ -302,15 +302,15 @@ namespace Roslyn.Test.MetadataUtilities
 
         private TEntity Get<TEntity>(Handle handle, Func<MetadataReader, Handle, TEntity> getter)
         {
-            if (aggregator != null)
+            if (_aggregator != null)
             {
                 int generation;
-                var generationHandle = aggregator.GetGenerationHandle(handle, out generation);
-                return getter(readers[generation], generationHandle);
+                var generationHandle = _aggregator.GetGenerationHandle(handle, out generation);
+                return getter(_readers[generation], generationHandle);
             }
             else
             {
-                return getter(this.reader, handle);
+                return getter(_reader, handle);
             }
         }
 
@@ -386,15 +386,15 @@ namespace Roslyn.Test.MetadataUtilities
 
             if (kind != BlobKind.None)
             {
-                BlobKinds[(BlobHandle)handle] = kind;
+                _blobKinds[(BlobHandle)handle] = kind;
             }
 
-            if (aggregator != null)
+            if (_aggregator != null)
             {
                 int generation;
-                Handle generationHandle = aggregator.GetGenerationHandle(handle, out generation);
+                Handle generationHandle = _aggregator.GetGenerationHandle(handle, out generation);
 
-                var generationReader = readers[generation];
+                var generationReader = _readers[generation];
                 string value = GetValueChecked(getValue, generationReader, generationHandle);
                 int offset = generationReader.GetHeapOffset(handle);
                 int generationOffset = generationReader.GetHeapOffset(generationHandle);
@@ -412,10 +412,10 @@ namespace Roslyn.Test.MetadataUtilities
             if (IsDelta)
             {
                 // we can't resolve the literal without aggregate reader
-                return string.Format("#{0:x}", reader.GetHeapOffset(handle));
+                return string.Format("#{0:x}", _reader.GetHeapOffset(handle));
             }
 
-            return $"{GetValueChecked(getValue, reader, handle):x} (#{reader.GetHeapOffset(handle):x})";
+            return $"{GetValueChecked(getValue, _reader, handle):x} (#{_reader.GetHeapOffset(handle):x})";
         }
 
         private string GetValueChecked(Func<MetadataReader, Handle, string> getValue, MetadataReader reader, Handle handle)
@@ -450,11 +450,11 @@ namespace Roslyn.Test.MetadataUtilities
             TableIndex table;
             if (displayTable && MetadataTokens.TryGetTableIndex(handle.Kind, out table))
             {
-                return string.Format("0x{0:x8} ({1})", reader.GetToken(handle), table);
+                return string.Format("0x{0:x8} ({1})", _reader.GetToken(handle), table);
             }
             else
             {
-                return string.Format("0x{0:x8}", reader.GetToken(handle));
+                return string.Format("0x{0:x8}", _reader.GetToken(handle));
             }
         }
 
@@ -489,7 +489,7 @@ namespace Roslyn.Test.MetadataUtilities
         private string FormatAwaits(BlobHandle handle)
         {
             var sb = new StringBuilder();
-            var blobReader = reader.GetBlobReader(handle);
+            var blobReader = _reader.GetBlobReader(handle);
 
             while (blobReader.RemainingBytes > 0)
             {
@@ -520,7 +520,7 @@ namespace Roslyn.Test.MetadataUtilities
 
             var sb = new StringBuilder();
 
-            foreach (var import in reader.GetImportDefinitions(handle))
+            foreach (var import in _reader.GetImportDefinitions(handle))
             {
                 if (sb.Length > 0)
                 {
@@ -594,7 +594,7 @@ namespace Roslyn.Test.MetadataUtilities
 
         private void WriteModule()
         {
-            var def = reader.GetModuleDefinition();
+            var def = _reader.GetModuleDefinition();
 
             AddHeader(
                 "Gen",
@@ -605,7 +605,7 @@ namespace Roslyn.Test.MetadataUtilities
             );
 
             AddRow(
-                def.Generation.ToString(), 
+                def.Generation.ToString(),
                 Literal(def.Name),
                 Literal(def.Mvid),
                 Literal(def.GenerationId),
@@ -622,9 +622,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Namespace"
             );
 
-            foreach (var handle in reader.TypeReferences)
+            foreach (var handle in _reader.TypeReferences)
             {
-                var entry = reader.GetTypeReference(handle);
+                var entry = _reader.GetTypeReference(handle);
 
                 AddRow(
                     Token(entry.ResolutionScope),
@@ -651,14 +651,14 @@ namespace Roslyn.Test.MetadataUtilities
                 "PackingSize"
             );
 
-            foreach (var handle in reader.TypeDefinitions)
+            foreach (var handle in _reader.TypeDefinitions)
             {
-                var entry = reader.GetTypeDefinition(handle);
+                var entry = _reader.GetTypeDefinition(handle);
 
                 var layout = entry.GetLayout();
-              
+
                 // TODO: Visualize InterfaceImplementations
-                var implementedInterfaces = entry.GetInterfaceImplementations().Select(h => reader.GetInterfaceImplementation(h).Interface).ToArray();
+                var implementedInterfaces = entry.GetInterfaceImplementations().Select(h => _reader.GetInterfaceImplementation(h).Interface).ToArray();
 
                 AddRow(
                     Literal(entry.Name),
@@ -688,9 +688,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "RVA"
             );
 
-            foreach (var handle in reader.FieldDefinitions)
+            foreach (var handle in _reader.FieldDefinitions)
             {
-                var entry = reader.GetFieldDefinition(handle);
+                var entry = _reader.GetFieldDefinition(handle);
 
                 int offset = entry.GetOffset();
 
@@ -722,9 +722,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "ImportModule"
             );
 
-            foreach (var handle in reader.MethodDefinitions)
+            foreach (var handle in _reader.MethodDefinitions)
             {
-                var entry = reader.GetMethodDefinition(handle);
+                var entry = _reader.GetMethodDefinition(handle);
                 var import = entry.GetImport();
 
                 AddRow(
@@ -753,9 +753,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Marshalling"
             );
 
-            for (int i = 1, count = reader.GetTableRowCount(TableIndex.Param); i <= count; i++)
+            for (int i = 1, count = _reader.GetTableRowCount(TableIndex.Param); i <= count; i++)
             {
-                var entry = reader.GetParameter(MetadataTokens.ParameterHandle(i));
+                var entry = _reader.GetParameter(MetadataTokens.ParameterHandle(i));
 
                 AddRow(
                     Literal(entry.Name),
@@ -776,9 +776,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Signature"
             );
 
-            foreach (var handle in reader.MemberReferences)
+            foreach (var handle in _reader.MemberReferences)
             {
-                var entry = reader.GetMemberReference(handle);
+                var entry = _reader.GetMemberReference(handle);
 
                 AddRow(
                     Token(entry.Parent),
@@ -798,9 +798,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Value"
             );
 
-            for (int i = 1, count = reader.GetTableRowCount(TableIndex.Constant); i <= count; i++)
+            for (int i = 1, count = _reader.GetTableRowCount(TableIndex.Constant); i <= count; i++)
             {
-                var entry = reader.GetConstant(MetadataTokens.ConstantHandle(i));
+                var entry = _reader.GetConstant(MetadataTokens.ConstantHandle(i));
 
                 AddRow(
                     Token(entry.Parent),
@@ -820,9 +820,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Value"
             );
 
-            foreach (var handle in reader.CustomAttributes)
+            foreach (var handle in _reader.CustomAttributes)
             {
-                var entry = reader.GetCustomAttribute(handle);
+                var entry = _reader.GetCustomAttribute(handle);
 
                 AddRow(
                     Token(entry.Parent),
@@ -842,9 +842,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Action"
             );
 
-            foreach (var handle in reader.DeclarativeSecurityAttributes)
+            foreach (var handle in _reader.DeclarativeSecurityAttributes)
             {
-                var entry = reader.GetDeclarativeSecurityAttribute(handle);
+                var entry = _reader.GetDeclarativeSecurityAttribute(handle);
 
                 AddRow(
                     Token(entry.Parent),
@@ -860,9 +860,9 @@ namespace Roslyn.Test.MetadataUtilities
         {
             AddHeader("Signature");
 
-            for (int i = 1, count = reader.GetTableRowCount(TableIndex.StandAloneSig); i <= count; i++)
+            for (int i = 1, count = _reader.GetTableRowCount(TableIndex.StandAloneSig); i <= count; i++)
             {
-                var value = reader.GetStandaloneSignature(MetadataTokens.StandaloneSignatureHandle(i)).Signature;
+                var value = _reader.GetStandaloneSignature(MetadataTokens.StandaloneSignatureHandle(i)).Signature;
 
                 AddRow(Literal(value, BlobKind.StandAloneSignature));
             }
@@ -880,9 +880,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Attributes"
             );
 
-            foreach (var handle in reader.EventDefinitions)
+            foreach (var handle in _reader.EventDefinitions)
             {
-                var entry = reader.GetEventDefinition(handle);
+                var entry = _reader.GetEventDefinition(handle);
                 var accessors = entry.GetAccessors();
 
                 AddRow(
@@ -906,9 +906,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Attributes"
             );
 
-            foreach (var handle in reader.PropertyDefinitions)
+            foreach (var handle in _reader.PropertyDefinitions)
             {
-                var entry = reader.GetPropertyDefinition(handle);
+                var entry = _reader.GetPropertyDefinition(handle);
                 var accessors = entry.GetAccessors();
 
                 AddRow(
@@ -930,9 +930,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Declaration"
             );
 
-            for (int i = 1, count = reader.GetTableRowCount(TableIndex.MethodImpl); i <= count; i++)
+            for (int i = 1, count = _reader.GetTableRowCount(TableIndex.MethodImpl); i <= count; i++)
             {
-                var entry = reader.GetMethodImplementation(MetadataTokens.MethodImplementationHandle(i));
+                var entry = _reader.GetMethodImplementation(MetadataTokens.MethodImplementationHandle(i));
 
                 AddRow(
                     Token(entry.Type),
@@ -948,9 +948,9 @@ namespace Roslyn.Test.MetadataUtilities
         {
             AddHeader("Name");
 
-            for (int i = 1, count = reader.GetTableRowCount(TableIndex.ModuleRef); i <= count; i++)
+            for (int i = 1, count = _reader.GetTableRowCount(TableIndex.ModuleRef); i <= count; i++)
             {
-                var value = reader.GetModuleReference(MetadataTokens.ModuleReferenceHandle(i)).Name;
+                var value = _reader.GetModuleReference(MetadataTokens.ModuleReferenceHandle(i)).Name;
                 AddRow(Literal(value));
             }
 
@@ -961,9 +961,9 @@ namespace Roslyn.Test.MetadataUtilities
         {
             AddHeader("Name");
 
-            for (int i = 1, count = reader.GetTableRowCount(TableIndex.TypeSpec); i <= count; i++)
+            for (int i = 1, count = _reader.GetTableRowCount(TableIndex.TypeSpec); i <= count; i++)
             {
-                var value = reader.GetTypeSpecification(MetadataTokens.TypeSpecificationHandle(i)).Signature;
+                var value = _reader.GetTypeSpecification(MetadataTokens.TypeSpecificationHandle(i)).Signature;
                 AddRow(Literal(value, BlobKind.TypeSpec));
             }
 
@@ -976,7 +976,7 @@ namespace Roslyn.Test.MetadataUtilities
                 "Entity",
                 "Operation");
 
-            foreach (var entry in reader.GetEditAndContinueLogEntries())
+            foreach (var entry in _reader.GetEditAndContinueLogEntries())
             {
                 AddRow(
                     Token(entry.Handle),
@@ -988,7 +988,7 @@ namespace Roslyn.Test.MetadataUtilities
 
         private void WriteEnCMap()
         {
-            if (aggregator != null)
+            if (_aggregator != null)
             {
                 AddHeader("Entity", "Gen", "Row", "Edit");
             }
@@ -998,20 +998,20 @@ namespace Roslyn.Test.MetadataUtilities
             }
 
 
-            foreach (var entry in reader.GetEditAndContinueMapEntries())
+            foreach (var entry in _reader.GetEditAndContinueMapEntries())
             {
-                if (aggregator != null)
+                if (_aggregator != null)
                 {
                     int generation;
-                    Handle primary = aggregator.GetGenerationHandle(entry, out generation);
-                    bool isUpdate = readers[generation] != reader;
+                    Handle primary = _aggregator.GetGenerationHandle(entry, out generation);
+                    bool isUpdate = _readers[generation] != _reader;
 
-                    var primaryModule = readers[generation].GetModuleDefinition();
+                    var primaryModule = _readers[generation].GetModuleDefinition();
 
                     AddRow(
                         Token(entry),
                         primaryModule.Generation.ToString(),
-                        "0x" + MetadataTokens.GetRowNumber(primary).ToString("x6"), 
+                        "0x" + MetadataTokens.GetRowNumber(primary).ToString("x6"),
                         isUpdate ? "update" : "add");
                 }
                 else
@@ -1025,7 +1025,7 @@ namespace Roslyn.Test.MetadataUtilities
 
         private void WriteAssembly()
         {
-            if (reader.IsAssembly)
+            if (_reader.IsAssembly)
             {
                 AddHeader(
                     "Name",
@@ -1036,7 +1036,7 @@ namespace Roslyn.Test.MetadataUtilities
                     "HashAlgorithm"
                 );
 
-                var entry = reader.GetAssemblyDefinition();
+                var entry = _reader.GetAssemblyDefinition();
 
                 AddRow(
                     Literal(entry.Name),
@@ -1061,9 +1061,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Flags"
             );
 
-            foreach (var handle in reader.AssemblyReferences)
+            foreach (var handle in _reader.AssemblyReferences)
             {
-                var entry = reader.GetAssemblyReference(handle);
+                var entry = _reader.GetAssemblyReference(handle);
 
                 AddRow(
                     Literal(entry.Name),
@@ -1085,9 +1085,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "HashValue"
             );
 
-            foreach (var handle in reader.AssemblyFiles)
+            foreach (var handle in _reader.AssemblyFiles)
             {
-                var entry = reader.GetAssemblyFile(handle);
+                var entry = _reader.GetAssemblyFile(handle);
 
                 AddRow(
                     Literal(entry.Name),
@@ -1108,9 +1108,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "TypeDefinitionId"
             );
 
-            foreach (var handle in reader.ExportedTypes)
+            foreach (var handle in _reader.ExportedTypes)
             {
-                var entry = reader.GetExportedType(handle);
+                var entry = _reader.GetExportedType(handle);
                 AddRow(
                     Literal(entry.Name),
                     Literal(entry.Namespace),
@@ -1132,9 +1132,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Implementation"
             );
 
-            foreach (var handle in reader.ManifestResources)
+            foreach (var handle in _reader.ManifestResources)
             {
-                var entry = reader.GetManifestResource(handle);
+                var entry = _reader.GetManifestResource(handle);
 
                 AddRow(
                     Literal(entry.Name),
@@ -1157,9 +1157,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "TypeConstraints"
             );
 
-            for (int i = 1, count = reader.GetTableRowCount(TableIndex.GenericParam); i <= count; i++)
+            for (int i = 1, count = _reader.GetTableRowCount(TableIndex.GenericParam); i <= count; i++)
             {
-                var entry = reader.GetGenericParameter(MetadataTokens.GenericParameterHandle(i));
+                var entry = _reader.GetGenericParameter(MetadataTokens.GenericParameterHandle(i));
 
                 AddRow(
                     Literal(entry.Name),
@@ -1180,9 +1180,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Signature"
             );
 
-            for (int i = 1, count = reader.GetTableRowCount(TableIndex.MethodSpec); i <= count; i++)
+            for (int i = 1, count = _reader.GetTableRowCount(TableIndex.MethodSpec); i <= count; i++)
             {
-                var entry = reader.GetMethodSpecification(MetadataTokens.MethodSpecificationHandle(i));
+                var entry = _reader.GetMethodSpecification(MetadataTokens.MethodSpecificationHandle(i));
 
                 AddRow(
                     Token(entry.Method),
@@ -1200,9 +1200,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Type"
             );
 
-            for (int i = 1, count = reader.GetTableRowCount(TableIndex.GenericParamConstraint); i <= count; i++)
+            for (int i = 1, count = _reader.GetTableRowCount(TableIndex.GenericParamConstraint); i <= count; i++)
             {
-                var entry = reader.GetGenericParameterConstraint(MetadataTokens.GenericParameterConstraintHandle(i));
+                var entry = _reader.GetGenericParameterConstraint(MetadataTokens.GenericParameterConstraintHandle(i));
 
                 AddRow(
                     Token(entry.Parameter),
@@ -1215,50 +1215,50 @@ namespace Roslyn.Test.MetadataUtilities
 
         private void WriteUserStrings()
         {
-            int size = reader.GetHeapSize(HeapIndex.UserString);
+            int size = _reader.GetHeapSize(HeapIndex.UserString);
             if (size == 0)
             {
                 return;
             }
 
             // TODO: the heap is aligned, don't display the trailing empty strings
-            writer.WriteLine($"#US (size = {size}):");
+            _writer.WriteLine($"#US (size = {size}):");
             var handle = MetadataTokens.UserStringHandle(0);
             do
             {
-                string value = reader.GetUserString(handle);
-                writer.WriteLine("  {0:x}: '{1}'", reader.GetHeapOffset(handle), value);
-                handle = reader.GetNextHandle(handle);
+                string value = _reader.GetUserString(handle);
+                _writer.WriteLine("  {0:x}: '{1}'", _reader.GetHeapOffset(handle), value);
+                handle = _reader.GetNextHandle(handle);
             }
             while (!handle.IsNil);
 
-            writer.WriteLine();
+            _writer.WriteLine();
         }
 
         private void WriteStrings()
         {
-            int size = reader.GetHeapSize(HeapIndex.String);
+            int size = _reader.GetHeapSize(HeapIndex.String);
             if (size == 0)
             {
                 return;
             }
 
-            writer.WriteLine($"#String (size = {size}):");
+            _writer.WriteLine($"#String (size = {size}):");
             var handle = MetadataTokens.StringHandle(0);
             do
             {
-                string value = reader.GetString(handle);
-                writer.WriteLine("  {0:x}: '{1}'", reader.GetHeapOffset(handle), value);
-                handle = reader.GetNextHandle(handle);
+                string value = _reader.GetString(handle);
+                _writer.WriteLine("  {0:x}: '{1}'", _reader.GetHeapOffset(handle), value);
+                handle = _reader.GetNextHandle(handle);
             }
             while (!handle.IsNil);
 
-            writer.WriteLine();
+            _writer.WriteLine();
         }
 
         private void WriteBlobs()
         {
-            int size = reader.GetHeapSize(HeapIndex.Blob);
+            int size = _reader.GetHeapSize(HeapIndex.Blob);
             if (size == 0)
             {
                 return;
@@ -1266,15 +1266,15 @@ namespace Roslyn.Test.MetadataUtilities
 
             int[] sizePerKind = new int[(int)BlobKind.Count];
 
-            writer.WriteLine($"#Blob (size = {size}):");
+            _writer.WriteLine($"#Blob (size = {size}):");
             var handle = MetadataTokens.BlobHandle(0);
             do
             {
-                byte[] value = reader.GetBlobBytes(handle);
+                byte[] value = _reader.GetBlobBytes(handle);
 
                 BlobKind kind;
                 string kindString;
-                if (BlobKinds.TryGetValue(handle, out kind))
+                if (_blobKinds.TryGetValue(handle, out kind))
                 {
                     kindString = " (" + kind + ")";
 
@@ -1286,46 +1286,46 @@ namespace Roslyn.Test.MetadataUtilities
                     kindString = "";
                 }
 
-                int displayLength = (options & MetadataVisualizerOptions.ShortenBlobs) != 0 ? Math.Min(4, value.Length) : value.Length;
+                int displayLength = (_options & MetadataVisualizerOptions.ShortenBlobs) != 0 ? Math.Min(4, value.Length) : value.Length;
                 string valueString = BitConverter.ToString(value, 0, displayLength) + (displayLength < value.Length ? "-..." : null);
 
-                writer.WriteLine($"  {reader.GetHeapOffset(handle):x}{kindString}: {valueString}");
-                handle = reader.GetNextHandle(handle);
+                _writer.WriteLine($"  {_reader.GetHeapOffset(handle):x}{kindString}: {valueString}");
+                handle = _reader.GetNextHandle(handle);
             }
             while (!handle.IsNil);
 
-            writer.WriteLine();
-            writer.WriteLine("Sizes:");
+            _writer.WriteLine();
+            _writer.WriteLine("Sizes:");
 
             for (int i = 0; i < sizePerKind.Length; i++)
             {
                 if (sizePerKind[i] > 0)
                 {
-                    writer.WriteLine($"  {(BlobKind)i}: {(decimal)sizePerKind[i]} bytes");
+                    _writer.WriteLine($"  {(BlobKind)i}: {(decimal)sizePerKind[i]} bytes");
                 }
             }
 
-            writer.WriteLine();
+            _writer.WriteLine();
         }
 
         private void WriteGuids()
         {
-            int size = reader.GetHeapSize(HeapIndex.Guid);
+            int size = _reader.GetHeapSize(HeapIndex.Guid);
             if (size == 0)
             {
                 return;
             }
 
-            writer.WriteLine(string.Format("#Guid (size = {0}):", size));
+            _writer.WriteLine(string.Format("#Guid (size = {0}):", size));
             int i = 1;
             while (i <= size / 16)
             {
-                string value = reader.GetGuid(MetadataTokens.GuidHandle(i)).ToString();
-                writer.WriteLine("  {0:x}: {{{1}}}", i, value);
+                string value = _reader.GetGuid(MetadataTokens.GuidHandle(i)).ToString();
+                _writer.WriteLine("  {0:x}: {{{1}}}", i, value);
                 i++;
             }
 
-            writer.WriteLine();
+            _writer.WriteLine();
         }
 
         private void WriteDocument()
@@ -1337,9 +1337,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Hash"
             );
 
-            foreach (var handle in reader.Documents)
+            foreach (var handle in _reader.Documents)
             {
-                var entry = reader.GetDocument(handle);
+                var entry = _reader.GetDocument(handle);
 
                 AddRow(
                     DocumentName(entry.Name),
@@ -1354,52 +1354,52 @@ namespace Roslyn.Test.MetadataUtilities
 
         private void WriteMethodBody()
         {
-            if (reader.MethodBodies.Count == 0)
+            if (_reader.MethodBodies.Count == 0)
             {
                 return;
             }
 
-            writer.WriteLine(MakeTableName(TableIndex.MethodBody));
-            writer.WriteLine(new string('=', 50));
+            _writer.WriteLine(MakeTableName(TableIndex.MethodBody));
+            _writer.WriteLine(new string('=', 50));
 
-            foreach (var handle in reader.MethodBodies)
+            foreach (var handle in _reader.MethodBodies)
             {
                 if (handle.IsNil)
                 {
                     continue;
                 }
 
-                var entry = reader.GetMethodBody(handle);
+                var entry = _reader.GetMethodBody(handle);
 
-                writer.WriteLine($"{MetadataTokens.GetRowNumber(handle)}: #{reader.GetHeapOffset(entry.SequencePoints)}");
+                _writer.WriteLine($"{MetadataTokens.GetRowNumber(handle)}: #{_reader.GetHeapOffset(entry.SequencePoints)}");
                 
                 if (entry.SequencePoints.IsNil)
                 {
                     continue;
                 }
 
-                BlobKinds[entry.SequencePoints] = BlobKind.SequencePoints;
+                _blobKinds[entry.SequencePoints] = BlobKind.SequencePoints;
 
-                writer.WriteLine("{");
+                _writer.WriteLine("{");
 
                 try
                 {
-                    var spReader = reader.GetSequencePointsReader(entry.SequencePoints);
+                    var spReader = _reader.GetSequencePointsReader(entry.SequencePoints);
                     while (spReader.MoveNext())
                     {
-                        writer.Write("  ");
-                        writer.WriteLine(SequencePoint(spReader.Current));
+                        _writer.Write("  ");
+                        _writer.WriteLine(SequencePoint(spReader.Current));
                     }
                 }
                 catch (BadImageFormatException)
                 {
-                    writer.WriteLine("<bad metadata>");
+                    _writer.WriteLine("<bad metadata>");
                 }
 
-                writer.WriteLine("}");
+                _writer.WriteLine("}");
             }
 
-            writer.WriteLine();
+            _writer.WriteLine();
         }
 
         private void WriteLocalScope()
@@ -1413,9 +1413,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Length"
             );
 
-            foreach (var handle in reader.LocalScopes)
+            foreach (var handle in _reader.LocalScopes)
             {
-                var entry = reader.GetLocalScope(handle);
+                var entry = _reader.GetLocalScope(handle);
 
                 AddRow(
                     Token(entry.Method),
@@ -1438,9 +1438,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Attributes"
             );
 
-            foreach (var handle in reader.LocalVariables)
+            foreach (var handle in _reader.LocalVariables)
             {
-                var entry = reader.GetLocalVariable(handle);
+                var entry = _reader.GetLocalVariable(handle);
 
                 AddRow(
                     Literal(entry.Name),
@@ -1460,9 +1460,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Value"
             );
 
-            foreach (var handle in reader.LocalConstants)
+            foreach (var handle in _reader.LocalConstants)
             {
-                var entry = reader.GetLocalConstant(handle);
+                var entry = _reader.GetLocalConstant(handle);
 
                 AddRow(
                     Literal(entry.Name),
@@ -1482,9 +1482,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Awaits"
             );
 
-            foreach (var handle in reader.AsyncMethods)
+            foreach (var handle in _reader.AsyncMethods)
             {
-                var entry = reader.GetAsyncMethod(handle);
+                var entry = _reader.GetAsyncMethod(handle);
 
                 AddRow(
                     Token(entry.KickoffMethod),
@@ -1503,11 +1503,11 @@ namespace Roslyn.Test.MetadataUtilities
                 "Imports"
             );
 
-            foreach (var handle in reader.ImportScopes)
+            foreach (var handle in _reader.ImportScopes)
             {
-                var entry = reader.GetImportScope(handle);
+                var entry = _reader.GetImportScope(handle);
 
-                BlobKinds[entry.Imports] = BlobKind.Imports;
+                _blobKinds[entry.Imports] = BlobKind.Imports;
 
                 AddRow(
                     Token(entry.Parent),
@@ -1525,9 +1525,9 @@ namespace Roslyn.Test.MetadataUtilities
                 "Value"
             );
 
-            foreach (var handle in reader.CustomDebugInformation)
+            foreach (var handle in _reader.CustomDebugInformation)
             {
-                var entry = reader.GetCustomDebugInformation(handle);
+                var entry = _reader.GetCustomDebugInformation(handle);
 
                 AddRow(
                     Token(entry.Parent),
@@ -1572,7 +1572,7 @@ namespace Roslyn.Test.MetadataUtilities
 
             builder.AppendLine();
 
-            writer.Write(builder.ToString());
+            _writer.Write(builder.ToString());
         }
 
         private sealed class TokenTypeComparer : IComparer<Handle>

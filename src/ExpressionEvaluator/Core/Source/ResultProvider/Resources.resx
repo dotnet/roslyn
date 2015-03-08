@@ -129,6 +129,14 @@
     <value>Cannot dereference '{0}'. The pointer is not valid.</value>
     <comment>Invalid pointer dereference</comment>
   </data>
+  <data name="NativeView" xml:space="preserve">
+    <value>Native View</value>
+    <comment>Native COM object expansion</comment>
+  </data>
+  <data name="NativeViewNotNativeDebugging" xml:space="preserve">
+    <value>To inspect the native object, enable native code debugging.</value>
+    <comment>Display value of Native View node when native debugging is not enabled</comment>
+  </data>
   <data name="NonPublicMembers" xml:space="preserve">
     <value>Non-Public members</value>
     <comment>Non-public type members</comment>

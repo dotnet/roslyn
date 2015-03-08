@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias PDB;
+
+
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using PDB::Microsoft.VisualStudio.SymReaderInterop;
@@ -139,6 +142,50 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
         }
 
         [Fact]
+        public void UncompressSlotMap1()
+        {
+            using (new EnsureEnglishUICulture())
+            {
+                var e = Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(ImmutableArray.Create(new byte[] { 0x01, 0x68, 0xff }), ImmutableArray<byte>.Empty));
+                Assert.Equal("Invalid data at offset 3: 01-68-FF*", e.Message);
+
+                e = Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(ImmutableArray.Create(new byte[] { 0x01, 0x68, 0xff, 0xff, 0xff, 0xff }), ImmutableArray<byte>.Empty));
+                Assert.Equal("Invalid data at offset 3: 01-68-FF*FF-FF-FF", e.Message);
+
+                e = Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(ImmutableArray.Create(new byte[] { 0xff, 0xff, 0xff, 0xff }), ImmutableArray<byte>.Empty));
+                Assert.Equal("Invalid data at offset 1: FF*FF-FF-FF", e.Message);
+
+                byte[] largeData = new byte[10000];
+                largeData[400] = 0xff;
+                largeData[401] = 0xff;
+                largeData[402] = 0xff;
+                largeData[403] = 0xff;
+                largeData[404] = 0xff;
+                largeData[405] = 0xff;
+
+                e = Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(ImmutableArray.Create(largeData), ImmutableArray<byte>.Empty));
+                Assert.Equal(
+                    "Invalid data at offset 401: 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00-FF*FF-FF-FF-FF-FF-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-" +
+                    "00-00-00-00-00-00-00-00-00-00-00...", e.Message);
+            }
+        }
+
+        [Fact]
         public void EditAndContinueLocalSlotMap_NegativeSyntaxOffsets()
         {
             var slots = ImmutableArray.Create(
@@ -167,14 +214,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
 
             var closures = ImmutableArray.Create(
-                new ClosureDebugInfo(-100), 
+                new ClosureDebugInfo(-100),
                 new ClosureDebugInfo(10),
                 new ClosureDebugInfo(-200));
 
             var lambdas = ImmutableArray.Create(
                 new LambdaDebugInfo(20, 1),
                 new LambdaDebugInfo(-50, 0),
-                new LambdaDebugInfo(-180, -1));
+                new LambdaDebugInfo(-180, LambdaDebugInfo.StaticClosureOrdinal));
 
             var customMetadata = new Cci.MemoryStream();
             var cmw = new Cci.BinaryWriter(customMetadata);
@@ -183,7 +230,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
 
             var bytes = customMetadata.ToImmutableArray();
 
-            AssertEx.Equal(new byte[] { 0x7C, 0x80, 0xC8, 0x03, 0x64, 0x80, 0xD2, 0x00, 0x80, 0xDC, 0x02, 0x80, 0x96, 0x01, 0x14, 0x00 }, bytes);
+            AssertEx.Equal(new byte[] { 0x7C, 0x80, 0xC8, 0x03, 0x64, 0x80, 0xD2, 0x00, 0x80, 0xDC, 0x03, 0x80, 0x96, 0x02, 0x14, 0x01 }, bytes);
 
             var deserialized = EditAndContinueMethodDebugInformation.Create(default(ImmutableArray<byte>), bytes);
 
@@ -197,7 +244,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
 
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
-            var lambdas = ImmutableArray.Create(new LambdaDebugInfo(20, -1));
+            var lambdas = ImmutableArray.Create(new LambdaDebugInfo(20, LambdaDebugInfo.StaticClosureOrdinal));
 
             var customMetadata = new Cci.MemoryStream();
             var cmw = new Cci.BinaryWriter(customMetadata);
@@ -206,7 +253,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
 
             var bytes = customMetadata.ToImmutableArray();
 
-            AssertEx.Equal(new byte[] { 0x00, 0x01, 0x00, 0x15, 0x00 }, bytes);
+            AssertEx.Equal(new byte[] { 0x00, 0x01, 0x00, 0x15, 0x01 }, bytes);
 
             var deserialized = EditAndContinueMethodDebugInformation.Create(default(ImmutableArray<byte>), bytes);
 

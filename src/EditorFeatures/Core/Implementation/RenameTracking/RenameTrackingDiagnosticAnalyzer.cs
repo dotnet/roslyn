@@ -10,20 +10,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     internal sealed class RenameTrackingDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         public const string DiagnosticId = "RenameTracking";
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(EditorFeaturesResources.RenameTracking), EditorFeaturesResources.ResourceManager, typeof(EditorFeaturesResources));
-        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(EditorFeaturesResources.RenameTo), EditorFeaturesResources.ResourceManager, typeof(EditorFeaturesResources));
+        public static DiagnosticDescriptor DiagnosticDescriptor = new DiagnosticDescriptor(
+            DiagnosticId, title: "", messageFormat: "", category: "",
+            defaultSeverity: DiagnosticSeverity.Hidden, isEnabledByDefault: true,
+            customTags: DiagnosticCustomTags.Microsoft.Append(WellKnownDiagnosticTags.NotConfigurable));
 
-        // TODO: Ideally we'd use a TriggerDiagnosticDescriptor here. However, this analyzer uses the message to communicate
-        // with it's fixer about what has changed. This analysis is not trivial to do for the fixer because of the temporal nature
-        // of this diagnostic. We should consider adding a field on diagnostic that is for extra data. If we have that we can
-        // turn this into a trigger diagnostic. For now, this just has the "NotConfigurable" tag to not show in the ruleset editor.
-        public static DiagnosticDescriptor DiagnosticDescriptor = new DiagnosticDescriptor(DiagnosticId,
-                                                                            s_localizableTitle,
-                                                                            s_localizableMessage,
-                                                                            "",
-                                                                            DiagnosticSeverity.Hidden,
-                                                                            isEnabledByDefault: true,
-                                                                            customTags: DiagnosticCustomTags.Microsoft.Append(WellKnownDiagnosticTags.NotConfigurable));
+        internal const string RenameFromPropertyKey = "RenameFrom";
+        internal const string RenameToPropertyKey = "RenameTo";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

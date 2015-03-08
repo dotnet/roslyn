@@ -100,23 +100,6 @@ abstract Microsoft.CodeAnalysis.SerializableCompilationOptions.CommonOptions.get
 abstract Microsoft.CodeAnalysis.SerializableCompilationOptions.GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
 abstract Microsoft.CodeAnalysis.SerializableParseOptions.CommonOptions.get
 abstract Microsoft.CodeAnalysis.SerializableParseOptions.GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.CheckOverflowString = "CheckOverflow"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.ConcurrentBuildString = "ConcurrentBuild"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.CryptoKeyContainerString = "CryptoKeyContainer"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.CryptoKeyFileString = "CryptoKeyFile"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.DebugInformationKindString = "DebugInformationKind"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.DelaySignString = "DelaySign"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.FeaturesString = "Features"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.GeneralDiagnosticOptionString = "GeneralDiagnosticOption"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.MainTypeNameString = "MainTypeName"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.MetadataImportOptionsString = "MetadataImportOptions"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.ModuleNameString = "ModuleName"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.OptimizeString = "Optimize"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.OutputKindString = "OutputKind"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.PlatformString = "Platform"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.ScriptClassNameString = "ScriptClassName"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.SpecificDiagnosticOptionsString = "SpecificDiagnosticOptions"
-const Microsoft.CodeAnalysis.SerializableCompilationOptions.WarningLevelString = "WarningLevel"
 override Microsoft.CodeAnalysis.CommandLineAnalyzerReference.Equals(object obj)
 override Microsoft.CodeAnalysis.CommandLineAnalyzerReference.GetHashCode()
 override Microsoft.CodeAnalysis.CommandLineReference.Equals(object obj)

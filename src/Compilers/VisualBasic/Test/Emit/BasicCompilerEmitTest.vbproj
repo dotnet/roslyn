@@ -155,6 +155,7 @@
     <Compile Include="CodeGen\WinRTCollectionTests.vb" />
     <Compile Include="Emit\CompilationEmitTests.vb" />
     <Compile Include="Emit\DeterministicTests.vb" />
+    <Compile Include="Emit\EditAndContinueClosureTests.vb" />
     <Compile Include="Emit\EditAndContinueStateMachineTests.vb" />
     <Compile Include="Emit\EditAndContinueTestBase.vb" />
     <Compile Include="Emit\EditAndContinueTests.vb" />
@@ -173,9 +174,11 @@
     <Compile Include="ExpressionTrees\Sources\ExprLambdaUtils.vb" />
     <Compile Include="ExpressionTrees\Sources\QueryHelper.vb" />
     <Compile Include="PDB\ChecksumTests.vb" />
+    <Compile Include="PDB\PDBAsyncTests.vb" />
     <Compile Include="PDB\PDBCollectionInitializerTests.vb" />
     <Compile Include="PDB\PDBConstLocalTests.vb" />
     <Compile Include="PDB\PDBExternalSourceDirectiveTests.vb" />
+    <Compile Include="PDB\PDBLambdaTests.vb" />
     <Compile Include="PDB\PDBVariableInitializerTests.vb" />
     <Compile Include="PDB\PDBIteratorTests.vb" />
     <Compile Include="PDB\PDBForEachTests.vb" />

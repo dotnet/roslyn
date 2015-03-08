@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         try
                         {
                             MethodChecks(diagnostics);
-                            AddSemanticDiagnostics(diagnostics);
+                            AddDeclarationDiagnostics(diagnostics);
                         }
                         finally
                         {
@@ -567,11 +567,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return this.syntaxReferenceOpt == null ? null : this.syntaxReferenceOpt.SyntaxTree;
             }
-        }
-
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            return new LexicalSortKey(locations[0], this.DeclaringCompilation);
         }
 
         /// <summary>

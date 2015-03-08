@@ -43,7 +43,7 @@ namespace AsyncPackage
 
             // Register a code action that will invoke the fix.
             context.RegisterCodeFix(
-                new AsyncVoidCodeAction("Async methods should not return void", 
+                new AsyncVoidCodeAction("Async methods should not return void",
                                         c => VoidToTaskAsync(context.Document, methodDeclaration, c)),
                 diagnostic);
         }
@@ -65,20 +65,20 @@ namespace AsyncPackage
 
         private class AsyncVoidCodeAction : CodeAction
         {
-            private Func<CancellationToken, Task<Document>> createDocument;
-            private string title;
+            private Func<CancellationToken, Task<Document>> _createDocument;
+            private string _title;
 
             public AsyncVoidCodeAction(string title, Func<CancellationToken, Task<Document>> createDocument)
             {
-                this.title = title;
-                this.createDocument = createDocument;
+                _title = title;
+                _createDocument = createDocument;
             }
 
-            public override string Title { get { return title; } }
+            public override string Title { get { return _title; } }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                return this.createDocument(cancellationToken);
+                return _createDocument(cancellationToken);
             }
         }
     }

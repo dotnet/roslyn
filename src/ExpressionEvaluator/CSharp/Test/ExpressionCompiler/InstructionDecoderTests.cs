@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     public class InstructionDecoderTests : ExpressionCompilerTestBase
     {
         [Fact]
-        void GetNameGenerics()
+        private void GetNameGenerics()
         {
             var source = @"
 using System;
@@ -59,9 +59,9 @@ class Class1<T>
                 "Class1<string>.M3<decimal>(System.Action<decimal> a)",
                 GetName(source, "Class1.M3", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, new[] { typeof(string), typeof(decimal) }));
         }
-
         [Fact]
-        void GetNameNullTypeArguments()
+
+        private void GetNameNullTypeArguments()
         {
             var source = @"
 using System;
@@ -84,9 +84,9 @@ class Class1<T>
                 "Class1<T>.M<U>(System.Action<U> a)",
                 GetName(source, "Class1.M", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, typeArguments: new[] { null, typeof(decimal) }));
         }
-
         [Fact]
-        void GetNameGenericArgumentTypeNotInReferences()
+
+        private void GetNameGenericArgumentTypeNotInReferences()
         {
             var source = @"
 class Class1
@@ -98,9 +98,9 @@ class Class1
                 "System.Collections.Generic.Comparer<Class1>.Create(System.Comparison<Class1> comparison)",
                 GetName(source, "System.Collections.Generic.Comparer.Create", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, typeArguments: new[] { serializedTypeArgumentName }));
         }
-
         [Fact, WorkItem(1107977)]
-        void GetNameGenericAsync()
+
+        private void GetNameGenericAsync()
         {
             var source = @"
 using System.Threading.Tasks;
@@ -117,9 +117,9 @@ class C
                     "C.M<System.Exception>(System.Exception x)",
                     GetName(source, "C.<M>d__0.MoveNext", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, new[] { typeof(Exception) }));
         }
-
         [Fact]
-        void GetNameLambda()
+
+        private void GetNameLambda()
         {
             var source = @"
 using System;
@@ -135,9 +135,9 @@ class C
                 "C.M.AnonymousMethod__0_0()",
                 GetName(source, "C.<>c.<M>b__0_0", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
         }
-
         [Fact]
-        void GetNameGenericLambda()
+
+        private void GetNameGenericLambda()
         {
             var source = @"
 using System;
@@ -153,9 +153,9 @@ class C<T>
                 "C<System.Exception>.M.AnonymousMethod__0_0(System.ArgumentException u)",
                 GetName(source, "C.<>c__0.<M>b__0_0", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, new[] { typeof(Exception), typeof(ArgumentException) }));
         }
-
         [Fact]
-        void GetNameProperties()
+
+        private void GetNameProperties()
         {
             var source = @"
 class C
@@ -184,9 +184,9 @@ class C
                 "C.this[object].set(object x, int value)",
                 GetName(source, "C.set_Item", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
         }
-
         [Fact]
-        void GetNameExplicitInterfaceImplementation()
+
+        private void GetNameExplicitInterfaceImplementation()
         {
             var source = @"
 using System;
@@ -199,9 +199,9 @@ class C : IDisposable
                 "C.System.IDisposable.Dispose()",
                 GetName(source, "C.System.IDisposable.Dispose", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
         }
-
         [Fact]
-        void GetNameExtensionMethod()
+
+        private void GetNameExtensionMethod()
         {
             var source = @"
 static class Extensions
@@ -213,9 +213,9 @@ static class Extensions
                 "Extensions.M(string this)",
                 GetName(source, "Extensions.M", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
         }
-
         [Fact]
-        void GetNameArgumentFlagsNone()
+
+        private void GetNameArgumentFlagsNone()
         {
             var source = @"
 static class C
@@ -232,9 +232,9 @@ static class C
                 "C.M2",
                 GetName(source, "C.M2", DkmVariableInfoFlags.None));
         }
-
         [Fact, WorkItem(1107978)]
-        void GetNameRefAndOutParameters()
+
+        private void GetNameRefAndOutParameters()
         {
             var source = @"
 class C
@@ -265,9 +265,9 @@ class C
                 "C.M(ref int x, out int y)",
                 GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names));
         }
-
         [Fact]
-        void GetNameParamsParameters()
+
+        private void GetNameParamsParameters()
         {
             var source = @"
 class C
@@ -281,9 +281,9 @@ class C
                 "C.M(int[] x)",
                 GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names));
         }
-
         [Fact]
-        void GetReturnTypeNamePrimitive()
+
+        private void GetReturnTypeNamePrimitive()
         {
             var source = @"
 static class C
@@ -293,9 +293,9 @@ static class C
 
             Assert.Equal("uint", GetReturnTypeName(source, "C.M1"));
         }
-
         [Fact]
-        void GetReturnTypeNameNested()
+
+        private void GetReturnTypeNameNested()
         {
             var source = @"
 static class C
@@ -314,9 +314,9 @@ namespace N
 
             Assert.Equal("N.D.E", GetReturnTypeName(source, "C.M1"));
         }
-
         [Fact]
-        void GetReturnTypeNameGenericOfPrimitive()
+
+        private void GetReturnTypeNameGenericOfPrimitive()
         {
             var source = @"
 using System;
@@ -327,9 +327,9 @@ class C
 
             Assert.Equal("System.Action<int>", GetReturnTypeName(source, "C.M1"));
         }
-
         [Fact]
-        void GetReturnTypeNameGenericOfNested()
+
+        private void GetReturnTypeNameGenericOfNested()
         {
             var source = @"
 using System;
@@ -343,9 +343,9 @@ class C
 
             Assert.Equal("System.Action<C.D>", GetReturnTypeName(source, "C.M1"));
         }
-
         [Fact]
-        void GetReturnTypeNameGenericOfGeneric()
+
+        private void GetReturnTypeNameGenericOfGeneric()
         {
             var source = @"
 using System;

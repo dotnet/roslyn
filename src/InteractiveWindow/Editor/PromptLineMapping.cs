@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
@@ -8,7 +10,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// </summary>
     internal sealed class PromptLineMapping
     {
-        private List<KeyValuePair<int, int>> map = new List<KeyValuePair<int, int>>();
+        private List<KeyValuePair<int, int>> _map = new List<KeyValuePair<int, int>>();
 
         /// <summary>
         /// If true the map might not be consistent with projection spans.
@@ -23,28 +25,28 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public void Clear()
         {
-            map = new List<KeyValuePair<int, int>>();
+            _map = new List<KeyValuePair<int, int>>();
         }
 
         public int Count
         {
-            get { return map.Count; }
+            get { return _map.Count; }
         }
 
         public void Add(int lineNumber, int projectionIndex)
         {
-            map.Add(new KeyValuePair<int, int>(lineNumber, projectionIndex));
+            _map.Add(new KeyValuePair<int, int>(lineNumber, projectionIndex));
         }
 
         public void RemoveLast()
         {
-            map.RemoveAt(map.Count - 1);
+            _map.RemoveAt(_map.Count - 1);
         }
 
         public KeyValuePair<int, int> this[int index]
         {
-            get { return map[index]; }
-            set { map[index] = value; }
+            get { return _map[index]; }
+            set { _map[index] = value; }
         }
 
         /// <summary>
@@ -55,13 +57,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         internal int GetMappingIndexByLineNumber(int lineNumber)
         {
             int start = 0;
-            int end = map.Count - 1;
+            int end = _map.Count - 1;
             while (true)
             {
                 Debug.Assert(start <= end);
 
                 int mid = start + ((end - start) >> 1);
-                int key = map[mid].Key;
+                int key = _map[mid].Key;
 
                 if (lineNumber == key)
                 {
@@ -71,7 +73,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 if (mid == start)
                 {
                     Debug.Assert(start == end || start == end - 1);
-                    return (lineNumber >= map[end].Key) ? end : mid;
+                    return (lineNumber >= _map[end].Key) ? end : mid;
                 }
 
                 if (lineNumber > key)
@@ -89,7 +91,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         public void Dump(string name)
         {
             Debug.Write("PLM (" + name + "): ");
-            foreach (var plm in map)
+            foreach (var plm in _map)
             {
                 Debug.Write(string.Format("{0} -> {1}; ", plm.Key, plm.Value));
             }

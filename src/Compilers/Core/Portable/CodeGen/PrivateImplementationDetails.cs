@@ -103,10 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
         }
 
-        private bool IsFrozen
-        {
-            get { return _frozen != 0; }
-        }
+        private bool IsFrozen => _frozen != 0;
 
         internal Cci.IFieldReference CreateDataField(ImmutableArray<byte> data)
         {
@@ -171,15 +168,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return System.Linq.Enumerable.OfType<ExplicitSizeStruct>(_orderedProxyTypes);
         }
 
-        public override string ToString()
-        {
-            return this.Name;
-        }
+        public override string ToString() => this.Name;
 
-        public override Cci.ITypeReference GetBaseClass(EmitContext context)
-        {
-            return _systemObject;
-        }
+        public override Cci.ITypeReference GetBaseClass(EmitContext context) => _systemObject;
 
         public override IEnumerable<Cci.ICustomAttribute> GetAttributes(EmitContext context)
         {
@@ -196,25 +187,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             visitor.Visit((Cci.INamespaceTypeDefinition)this);
         }
 
-        public override Cci.INamespaceTypeDefinition AsNamespaceTypeDefinition(EmitContext context)
-        {
-            return this;
-        }
+        public override Cci.INamespaceTypeDefinition AsNamespaceTypeDefinition(EmitContext context) => this;
 
-        public override Cci.INamespaceTypeReference AsNamespaceTypeReference
-        {
-            get { return this; }
-        }
+        public override Cci.INamespaceTypeReference AsNamespaceTypeReference => this;
 
-        public string Name
-        {
-            get { return _name; }
-        }
+        public string Name => _name;
 
-        public bool IsPublic
-        {
-            get { return false; }
-        }
+        public bool IsPublic => false;
 
         public Cci.IUnitReference GetUnit(EmitContext context)
         {
@@ -222,10 +201,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return _module;
         }
 
-        public string NamespaceName
-        {
-            get { return ""; }
-        }
+        public string NamespaceName => string.Empty;
 
         internal static string GenerateDataFieldName(ImmutableArray<byte> data)
         {
@@ -242,9 +218,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         private static char Hexchar(int x)
-        {
-            return (char)((x <= 9) ? (x + '0') : (x + ('A' - 10)));
-        }
+            => (char)((x <= 9) ? (x + '0') : (x + ('A' - 10)));
     }
 
     /// <summary>
@@ -264,69 +238,34 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public override string ToString()
-        {
-            return _containingType.ToString() + "." + this.Name;
-        }
+            => _containingType.ToString() + "." + this.Name;
 
-        override public ushort Alignment
-        {
-            get { return 1; }
-        }
+        override public ushort Alignment => 1;
 
-        override public Cci.ITypeReference GetBaseClass(EmitContext context)
-        {
-            return _sysValueType;
-        }
+        override public Cci.ITypeReference GetBaseClass(EmitContext context) => _sysValueType;
 
-        override public LayoutKind Layout
-        {
-            get { return LayoutKind.Explicit; }
-        }
+        override public LayoutKind Layout => LayoutKind.Explicit;
 
-        override public uint SizeOf
-        {
-            get { return _size; }
-        }
+        override public uint SizeOf => _size;
 
         override public void Dispatch(Cci.MetadataVisitor visitor)
         {
             visitor.Visit((Cci.INestedTypeDefinition)this);
         }
 
-        public string Name
-        {
-            get { return "__StaticArrayInitTypeSize=" + _size; }
-        }
+        public string Name => "__StaticArrayInitTypeSize=" + _size;
 
-        public Cci.ITypeDefinition ContainingTypeDefinition
-        {
-            get { return _containingType; }
-        }
+        public Cci.ITypeDefinition ContainingTypeDefinition => _containingType;
 
-        public Cci.TypeMemberVisibility Visibility
-        {
-            get { return Cci.TypeMemberVisibility.Private; }
-        }
+        public Cci.TypeMemberVisibility Visibility => Cci.TypeMemberVisibility.Private;
 
-        public override bool IsValueType
-        {
-            get { return true; }
-        }
+        public override bool IsValueType => true;
 
-        public Cci.ITypeReference GetContainingType(EmitContext context)
-        {
-            return _containingType;
-        }
+        public Cci.ITypeReference GetContainingType(EmitContext context) => _containingType;
 
-        public override Cci.INestedTypeDefinition AsNestedTypeDefinition(EmitContext context)
-        {
-            return this;
-        }
+        public override Cci.INestedTypeDefinition AsNestedTypeDefinition(EmitContext context) => this;
 
-        public override Cci.INestedTypeReference AsNestedTypeReference
-        {
-            get { return this; }
-        }
+        public override Cci.INestedTypeReference AsNestedTypeReference => this;
     }
 
     /// <summary>
@@ -352,90 +291,43 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _name = name;
         }
 
-        public override string ToString()
-        {
-            return string.Format("{0} {1}.{2}", _type, _containingType, this.Name);
-        }
+        public override string ToString() => $"{_type} {_containingType}.{this.Name}";
 
-        public Cci.IMetadataConstant GetCompileTimeValue(EmitContext context)
-        {
-            return null;
-        }
+        public Cci.IMetadataConstant GetCompileTimeValue(EmitContext context) => null;
 
-        public ImmutableArray<byte> MappedData
-        {
-            get { return _block; }
-        }
+        public ImmutableArray<byte> MappedData => _block;
 
-        public bool IsCompileTimeConstant
-        {
-            get { return false; }
-        }
+        public bool IsCompileTimeConstant => false;
 
-        public bool IsNotSerialized
-        {
-            get { return false; }
-        }
+        public bool IsNotSerialized => false;
 
-        public bool IsReadOnly
-        {
-            get { return true; }
-        }
+        public bool IsReadOnly => true;
 
-        public bool IsRuntimeSpecial
-        {
-            get { return false; }
-        }
+        public bool IsRuntimeSpecial => false;
 
-        public bool IsSpecialName
-        {
-            get { return false; }
-        }
+        public bool IsSpecialName => false;
 
-        public bool IsStatic
-        {
-            get { return true; }
-        }
+        public bool IsStatic => true;
 
-        public bool IsMarshalledExplicitly
-        {
-            get { return false; }
-        }
+        public bool IsMarshalledExplicitly => false;
 
-        public Cci.IMarshallingInformation MarshallingInformation
-        {
-            get { return null; }
-        }
+        public Cci.IMarshallingInformation MarshallingInformation => null;
 
-        public ImmutableArray<byte> MarshallingDescriptor
-        {
-            get { return default(ImmutableArray<byte>); }
-        }
+        public ImmutableArray<byte> MarshallingDescriptor => default(ImmutableArray<byte>);
 
         public uint Offset
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public Cci.ITypeDefinition ContainingTypeDefinition
-        {
-            get { return _containingType; }
-        }
+        public Cci.ITypeDefinition ContainingTypeDefinition => _containingType;
 
-        public Cci.TypeMemberVisibility Visibility
-        {
-            get { return Cci.TypeMemberVisibility.Assembly; }
-        }
+        public Cci.TypeMemberVisibility Visibility => Cci.TypeMemberVisibility.Assembly;
 
-        public Cci.ITypeReference GetContainingType(EmitContext context)
-        {
-            return _containingType;
-        }
+        public Cci.ITypeReference GetContainingType(EmitContext context) => _containingType;
 
         public IEnumerable<Cci.ICustomAttribute> GetAttributes(EmitContext context)
-        {
-            return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
-        }
+            => SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
 
         public void Dispatch(Cci.MetadataVisitor visitor)
         {
@@ -447,30 +339,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
             throw ExceptionUtilities.Unreachable;
         }
 
-        public string Name
-        {
-            get { return _name; }
-        }
+        public string Name => _name;
 
-        public bool IsContextualNamedEntity
-        {
-            get { return false; }
-        }
+        public bool IsContextualNamedEntity => false;
 
-        public Cci.ITypeReference GetType(EmitContext context)
-        {
-            return _type;
-        }
+        public Cci.ITypeReference GetType(EmitContext context) => _type;
 
-        public Cci.IFieldDefinition GetResolvedField(EmitContext context)
-        {
-            return this;
-        }
+        public Cci.IFieldDefinition GetResolvedField(EmitContext context) => this;
 
-        public Cci.ISpecializedFieldReference AsSpecializedFieldReference
-        {
-            get { return null; }
-        }
+        public Cci.ISpecializedFieldReference AsSpecializedFieldReference => null;
 
         public Cci.IMetadataConstant Constant
         {
@@ -484,223 +361,110 @@ namespace Microsoft.CodeAnalysis.CodeGen
     internal abstract class DefaultTypeDef : Cci.ITypeDefinition
     {
         public IEnumerable<Cci.IEventDefinition> Events
-        {
-            get { return SpecializedCollections.EmptyEnumerable<Cci.IEventDefinition>(); }
-        }
+            => SpecializedCollections.EmptyEnumerable<Cci.IEventDefinition>();
 
         public IEnumerable<Cci.MethodImplementation> GetExplicitImplementationOverrides(EmitContext context)
-        {
-            return SpecializedCollections.EmptyEnumerable<Cci.MethodImplementation>();
-        }
+            => SpecializedCollections.EmptyEnumerable<Cci.MethodImplementation>();
 
         virtual public IEnumerable<Cci.IFieldDefinition> GetFields(EmitContext context)
-        {
-            return SpecializedCollections.EmptyEnumerable<Cci.IFieldDefinition>();
-        }
+            => SpecializedCollections.EmptyEnumerable<Cci.IFieldDefinition>();
 
         public IEnumerable<Cci.IGenericTypeParameter> GenericParameters
-        {
-            get { return SpecializedCollections.EmptyEnumerable<Cci.IGenericTypeParameter>(); }
-        }
+            => SpecializedCollections.EmptyEnumerable<Cci.IGenericTypeParameter>();
 
-        public ushort GenericParameterCount
-        {
-            get { return 0; }
-        }
+        public ushort GenericParameterCount => 0;
 
-        public bool HasDeclarativeSecurity
-        {
-            get { return false; }
-        }
+        public bool HasDeclarativeSecurity => false;
 
         public IEnumerable<Cci.ITypeReference> Interfaces(EmitContext context)
-        {
-            return SpecializedCollections.EmptyEnumerable<Cci.ITypeReference>();
-        }
+            => SpecializedCollections.EmptyEnumerable<Cci.ITypeReference>();
 
-        public bool IsAbstract
-        {
-            get { return false; }
-        }
+        public bool IsAbstract => false;
 
-        public bool IsBeforeFieldInit
-        {
-            get { return false; }
-        }
+        public bool IsBeforeFieldInit => false;
 
-        public bool IsComObject
-        {
-            get { return false; }
-        }
+        public bool IsComObject => false;
 
-        public bool IsGeneric
-        {
-            get { return false; }
-        }
+        public bool IsGeneric => false;
 
-        public bool IsInterface
-        {
-            get { return false; }
-        }
+        public bool IsInterface => false;
 
-        public bool IsRuntimeSpecial
-        {
-            get { return false; }
-        }
+        public bool IsRuntimeSpecial => false;
 
-        public bool IsSerializable
-        {
-            get { return false; }
-        }
+        public bool IsSerializable => false;
 
-        public bool IsSpecialName
-        {
-            get { return false; }
-        }
+        public bool IsSpecialName => false;
 
-        public bool IsWindowsRuntimeImport
-        {
-            get { return false; }
-        }
+        public bool IsWindowsRuntimeImport => false;
 
-        public bool IsSealed
-        {
-            get { return true; }
-        }
+        public bool IsSealed => true;
 
         public virtual IEnumerable<Cci.IMethodDefinition> GetMethods(EmitContext context)
-        {
-            return SpecializedCollections.EmptyEnumerable<Cci.IMethodDefinition>();
-        }
+            => SpecializedCollections.EmptyEnumerable<Cci.IMethodDefinition>();
 
         public virtual IEnumerable<Cci.INestedTypeDefinition> GetNestedTypes(EmitContext context)
-        {
-            return SpecializedCollections.EmptyEnumerable<Cci.INestedTypeDefinition>();
-        }
+            => SpecializedCollections.EmptyEnumerable<Cci.INestedTypeDefinition>();
 
         public IEnumerable<Cci.IPropertyDefinition> GetProperties(EmitContext context)
-        {
-            return SpecializedCollections.EmptyEnumerable<Cci.IPropertyDefinition>();
-        }
+            => SpecializedCollections.EmptyEnumerable<Cci.IPropertyDefinition>();
 
         public IEnumerable<Cci.SecurityAttribute> SecurityAttributes
-        {
-            get { return SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>(); }
-        }
+            => SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
 
-        public CharSet StringFormat
-        {
-            get { return CharSet.Ansi; }
-        }
+        public CharSet StringFormat => CharSet.Ansi;
 
         public virtual IEnumerable<Cci.ICustomAttribute> GetAttributes(EmitContext context)
-        {
-            return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
-        }
+            => SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
 
-        public Cci.IDefinition AsDefinition(EmitContext context)
-        {
-            return this;
-        }
+        public Cci.IDefinition AsDefinition(EmitContext context) => this;
 
-        public bool IsEnum
-        {
-            get { return false; }
-        }
+        public bool IsEnum => false;
 
-        public Cci.ITypeDefinition GetResolvedType(EmitContext context)
-        {
-            return this;
-        }
+        public Cci.ITypeDefinition GetResolvedType(EmitContext context) => this;
 
-        public Cci.PrimitiveTypeCode TypeCode(EmitContext context)
-        {
-            return Cci.PrimitiveTypeCode.NotPrimitive;
-        }
+        public Cci.PrimitiveTypeCode TypeCode(EmitContext context) => Cci.PrimitiveTypeCode.NotPrimitive;
 
         public TypeDefinitionHandle TypeDef
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public Cci.IGenericMethodParameterReference AsGenericMethodParameterReference
-        {
-            get { return null; }
-        }
+        public Cci.IGenericMethodParameterReference AsGenericMethodParameterReference => null;
 
-        public Cci.IGenericTypeInstanceReference AsGenericTypeInstanceReference
-        {
-            get { return null; }
-        }
+        public Cci.IGenericTypeInstanceReference AsGenericTypeInstanceReference => null;
 
-        public Cci.IGenericTypeParameterReference AsGenericTypeParameterReference
-        {
-            get { return null; }
-        }
+        public Cci.IGenericTypeParameterReference AsGenericTypeParameterReference => null;
 
-        public virtual Cci.INamespaceTypeDefinition AsNamespaceTypeDefinition(EmitContext context)
-        {
-            return null;
-        }
+        public virtual Cci.INamespaceTypeDefinition AsNamespaceTypeDefinition(EmitContext context) => null;
 
-        public virtual Cci.INamespaceTypeReference AsNamespaceTypeReference
-        {
-            get { return null; }
-        }
+        public virtual Cci.INamespaceTypeReference AsNamespaceTypeReference => null;
 
-        public Cci.ISpecializedNestedTypeReference AsSpecializedNestedTypeReference
-        {
-            get { return null; }
-        }
+        public Cci.ISpecializedNestedTypeReference AsSpecializedNestedTypeReference => null;
 
-        public virtual Cci.INestedTypeDefinition AsNestedTypeDefinition(EmitContext context)
-        {
-            return null;
-        }
+        public virtual Cci.INestedTypeDefinition AsNestedTypeDefinition(EmitContext context) => null;
 
-        public virtual Cci.INestedTypeReference AsNestedTypeReference
-        {
-            get { return null; }
-        }
+        public virtual Cci.INestedTypeReference AsNestedTypeReference => null;
 
-        public Cci.ITypeDefinition AsTypeDefinition(EmitContext context)
-        {
-            return this;
-        }
+        public Cci.ITypeDefinition AsTypeDefinition(EmitContext context) => this;
 
-        public bool MangleName
-        {
-            get { return false; }
-        }
+        public bool MangleName => false;
 
-        public virtual ushort Alignment
-        {
-            get { return 0; }
-        }
+        public virtual ushort Alignment => 0;
 
         public virtual Cci.ITypeReference GetBaseClass(EmitContext context)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public virtual LayoutKind Layout
-        {
-            get { return LayoutKind.Auto; }
-        }
+        public virtual LayoutKind Layout => LayoutKind.Auto;
 
-        public virtual uint SizeOf
-        {
-            get { return 0; }
-        }
+        public virtual uint SizeOf => 0;
 
         public virtual void Dispatch(Cci.MetadataVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public virtual bool IsValueType
-        {
-            get { return false; }
-        }
+        public virtual bool IsValueType => false;
     }
 }

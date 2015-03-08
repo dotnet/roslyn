@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return
                     x.RefKind == y.RefKind &&
                     nameComparisonCheck &&
+                    _symbolEqualityComparer.GetEquivalenceVisitor().AreEquivalent(x.CustomModifiers, y.CustomModifiers, equivalentTypesWithDifferingAssemblies) &&
                     _symbolEqualityComparer.SignatureTypeEquivalenceComparer.Equals(x.Type, y.Type, equivalentTypesWithDifferingAssemblies);
             }
 

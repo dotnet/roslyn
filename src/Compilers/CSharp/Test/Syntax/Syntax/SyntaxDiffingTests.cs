@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -255,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestQualifyWithThis()
         {
-            var original =  @"
+            var original = @"
 class C
 {
     int Sign;
@@ -276,21 +277,21 @@ class C
 }";
             var oldTree = SyntaxFactory.ParseSyntaxTree(original);
             var root = oldTree.GetRoot();
-            
+
             var indexText = "Sign +";
 
             // Expected behavior: Qualifying identifier 'Sign' with 'this.' and doing a diff between trees 
             // should return a single text change with 'this.' as added text.
 
             // Works as expected for last index
-            var index = original.LastIndexOf(indexText);
+            var index = original.LastIndexOf(indexText, StringComparison.Ordinal);
             TestQualifyWithThisCore(root, index);
 
             // Doesn't work as expected for first index.
             // It returns 2 changes with add followed by delete, 
             // causing the 2 isolated edits of adding "this." to seem conflicting edits, even though they are not.
             // See https://github.com/dotnet/roslyn/issues/320 for details.
-            index = original.IndexOf(indexText);
+            index = original.IndexOf(indexText, StringComparison.Ordinal);
             TestQualifyWithThisCore(root, index);
         }
 

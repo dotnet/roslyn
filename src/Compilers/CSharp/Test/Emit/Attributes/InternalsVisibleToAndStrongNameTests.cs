@@ -180,7 +180,6 @@ public class Test
                 // error CS7027: Error signing output with public key from file '..\KeyPair_6187d0d6-f691-47fd-985b-03570bc0668d.snk' -- aaa.dll not found.
                 Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("..\\" + keyFileName, "aaa.dll not found.").WithLocation(1, 1)
             );
-
         }
 
         [Fact]
@@ -330,7 +329,7 @@ public class Test
             Assert.Equal((int)ErrorCode.ERR_PublicKeyContainerFailure, err.Code);
             Assert.Equal(2, err.Arguments.Count);
             Assert.Equal("foo", err.Arguments[0]);
-            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)"));
+            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal));
 
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         }
@@ -377,6 +376,67 @@ public class Test
             var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
             other.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PublicKeyFromOptions_DelaySigned()
+        {
+            string source = @"
+[assembly: System.Reflection.AssemblyDelaySign(true)]
+public class C {}";
+
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey));
+            c.VerifyDiagnostics();
+            Assert.True(ByteSequenceComparer.Equals(s_publicKey, c.Assembly.Identity.PublicKey));
+
+            var metadata = ModuleMetadata.CreateFromImage(c.EmitToArray());
+            var identity = metadata.Module.ReadAssemblyIdentityOrThrow();
+
+            Assert.True(identity.HasPublicKey);
+            AssertEx.Equal(identity.PublicKey, s_publicKey);
+            Assert.Equal(CorFlags.ILOnly, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
+        }
+
+        [Fact]
+        public void PublicKeyFromOptions_OssSigned()
+        {
+            // attributes are ignored
+            string source = @"
+[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")] 
+[assembly: System.Reflection.AssemblyKeyFile(""some file"")] 
+public class C {}
+";
+
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey));
+            c.VerifyDiagnostics();
+            Assert.True(ByteSequenceComparer.Equals(s_publicKey, c.Assembly.Identity.PublicKey));
+
+            var metadata = ModuleMetadata.CreateFromImage(c.EmitToArray());
+            var identity = metadata.Module.ReadAssemblyIdentityOrThrow();
+
+            Assert.True(identity.HasPublicKey);
+            AssertEx.Equal(identity.PublicKey, s_publicKey);
+            Assert.Equal(CorFlags.ILOnly | CorFlags.StrongNameSigned, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
+        }
+
+        [Fact]
+        public void PublicKeyFromOptions_InvalidCompilationOptions()
+        {
+            string source = @"public class C {}";
+
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.
+                WithCryptoPublicKey(ImmutableArray.Create<byte>(1,2,3)).
+                WithCryptoKeyContainer("roslynTestContainer").
+                WithCryptoKeyFile("file.snk").
+                WithStrongNameProvider(s_defaultProvider));
+
+            c.VerifyDiagnostics(
+                // error CS7102: Compilation options 'CryptoPublicKey' and 'CryptoKeyFile' can't both be specified at the same time.
+                Diagnostic(ErrorCode.ERR_MutuallyExclusiveOptions).WithArguments("CryptoPublicKey", "CryptoKeyFile").WithLocation(1, 1),
+                // error CS7102: Compilation options 'CryptoPublicKey' and 'CryptoKeyContainer' can't both be specified at the same time.
+                Diagnostic(ErrorCode.ERR_MutuallyExclusiveOptions).WithArguments("CryptoPublicKey", "CryptoKeyContainer").WithLocation(1, 1),
+                // error CS7088: Invalid 'CryptoPublicKey' value: '01-02-03'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("CryptoPublicKey", "01-02-03").WithLocation(1, 1));
         }
 
         #endregion
@@ -867,7 +927,7 @@ public class Z
             Assert.Equal((int)ErrorCode.ERR_PublicKeyContainerFailure, err.Code);
             Assert.Equal(2, err.Arguments.Count);
             Assert.Equal("bogus", err.Arguments[0]);
-            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)"));
+            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal));
         }
 
         [Fact]
@@ -1614,7 +1674,7 @@ bebd207fe9963cbbe995f66bb227ac4c0cfd91c3dce095617a66ce0e9d0b9e8eae9b25965c514278
 e29df38b5c72727c1333f32001949a0a0e2c10f8af0a344300ab2123052840cb16e30176c72818100000c85fc49900080000", filePath: "Signed.dll");
 
             var compilation = CreateCompilationWithMscorlib(
-                "interface IDerived : ISigned { }", 
+                "interface IDerived : ISigned { }",
                 references: new[] { signed },
                 options: TestOptions.ReleaseDll
                     .WithGeneralDiagnosticOption(ReportDiagnostic.Error)

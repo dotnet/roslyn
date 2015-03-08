@@ -29,20 +29,20 @@ namespace Roslyn.Test.PdbUtilities
         // For printing integers in a standard hex format.
         private const string IntHexFormat = "0x{0:X}";
 
-        private readonly MetadataReader metadataReader;
-        private readonly TempPdbReader pdbReader;
-        private readonly PdbToXmlOptions options;
-        private readonly XmlWriter writer;
+        private readonly MetadataReader _metadataReader;
+        private readonly TempPdbReader _pdbReader;
+        private readonly PdbToXmlOptions _options;
+        private readonly XmlWriter _writer;
 
         // Maps files to ids. 
-        private readonly Dictionary<string, int> m_fileMapping = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> _fileMapping = new Dictionary<string, int>();
 
         private PdbToXmlConverter(XmlWriter writer, TempPdbReader pdbReader, MetadataReader metadataReader, PdbToXmlOptions options)
         {
-            this.pdbReader = pdbReader;
-            this.metadataReader = metadataReader;
-            this.writer = writer;
-            this.options = options;
+            _pdbReader = pdbReader;
+            _metadataReader = metadataReader;
+            _writer = writer;
+            _options = options;
         }
 
         public unsafe static string DeltaPdbToXml(Stream deltaPdb, IEnumerable<int> methodTokens)
@@ -166,48 +166,48 @@ namespace Roslyn.Test.PdbUtilities
 
         private void WriteRoot(IEnumerable<MethodDefinitionHandle> methodHandles)
         {
-            writer.WriteStartDocument();
+            _writer.WriteStartDocument();
 
-            writer.WriteStartElement("symbols");
+            _writer.WriteStartElement("symbols");
 
             WriteDocList();
             WriteEntryPoint();
             WriteAllMethods(methodHandles);
 
-            if ((options & PdbToXmlOptions.IncludeMethodSpans) != 0)
+            if ((_options & PdbToXmlOptions.IncludeMethodSpans) != 0)
             {
                 WriteAllMethodSpans();
             }
 
-            writer.WriteEndElement();
+            _writer.WriteEndElement();
         }
 
         // Dump all of the methods in the given ISymbolReader to the XmlWriter provided in the ctor.
         private void WriteAllMethods(IEnumerable<MethodDefinitionHandle> methodHandles)
         {
-            writer.WriteStartElement("methods");
+            _writer.WriteStartElement("methods");
 
             foreach (var methodHandle in methodHandles)
             {
                 WriteMethod(methodHandle);
             }
 
-            writer.WriteEndElement();
+            _writer.WriteEndElement();
         }
 
         private void WriteMethod(MethodDefinitionHandle methodHandle)
         {
-            int token = metadataReader.GetToken(methodHandle);
+            int token = _metadataReader.GetToken(methodHandle);
 
-            byte[] cdi = pdbReader.SymbolReader.GetCustomDebugInfo(token, methodVersion: 0);
-            ISymUnmanagedMethod method = pdbReader.SymbolReader.GetMethod(token);
+            byte[] cdi = _pdbReader.SymbolReader.GetCustomDebugInfoBytes(token, methodVersion: 0);
+            ISymUnmanagedMethod method = _pdbReader.SymbolReader.GetMethod(token);
             if (cdi == null && method == null)
             {
                 // no debug info for the method
                 return;
             }
 
-            writer.WriteStartElement("method");
+            _writer.WriteStartElement("method");
             WriteMethodAttributes(token, isReference: false);
 
             if (cdi != null)
@@ -252,7 +252,7 @@ namespace Roslyn.Test.PdbUtilities
                 WriteAsyncInfo(method);
             }
 
-            writer.WriteEndElement(); // method
+            _writer.WriteEndElement(); // method
         }
 
         /// <summary>
@@ -263,7 +263,7 @@ namespace Roslyn.Test.PdbUtilities
         {
             var records = CustomDebugInfoReader.GetCustomDebugInfoRecords(bytes).ToArray();
 
-            writer.WriteStartElement("customDebugInfo");
+            _writer.WriteStartElement("customDebugInfo");
 
             foreach (var record in records)
             {
@@ -306,7 +306,7 @@ namespace Roslyn.Test.PdbUtilities
                 }
             }
 
-            writer.WriteEndElement(); //customDebugInfo
+            _writer.WriteEndElement(); //customDebugInfo
         }
 
         /// <summary>
@@ -316,9 +316,9 @@ namespace Roslyn.Test.PdbUtilities
         /// </summary>
         private void WriteUnknownCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            writer.WriteStartElement("unknown");
-            writer.WriteAttributeString("kind", record.Kind.ToString());
-            writer.WriteAttributeString("version", record.Version.ToString());
+            _writer.WriteStartElement("unknown");
+            _writer.WriteAttributeString("kind", record.Kind.ToString());
+            _writer.WriteAttributeString("version", record.Version.ToString());
 
             PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
             StringBuilder builder = pooled.Builder;
@@ -327,9 +327,9 @@ namespace Roslyn.Test.PdbUtilities
                 builder.AppendFormat("{0:X2}", b);
             }
 
-            writer.WriteAttributeString("payload", pooled.ToStringAndFree());
+            _writer.WriteAttributeString("payload", pooled.ToStringAndFree());
 
-            writer.WriteEndElement(); //unknown
+            _writer.WriteEndElement(); //unknown
         }
 
         /// <summary>
@@ -343,18 +343,18 @@ namespace Roslyn.Test.PdbUtilities
         {
             Debug.Assert(record.Kind == CustomDebugInfoKind.UsingInfo);
 
-            writer.WriteStartElement("using");
+            _writer.WriteStartElement("using");
 
             ImmutableArray<short> counts = CDI.DecodeUsingRecord(record.Data);
 
             foreach (short importCount in counts)
             {
-                writer.WriteStartElement("namespace");
-                writer.WriteAttributeString("usingCount", importCount.ToString());
-                writer.WriteEndElement(); //namespace
+                _writer.WriteStartElement("namespace");
+                _writer.WriteAttributeString("usingCount", importCount.ToString());
+                _writer.WriteEndElement(); //namespace
             }
 
-            writer.WriteEndElement(); //using
+            _writer.WriteEndElement(); //using
         }
 
         /// <summary>
@@ -368,12 +368,12 @@ namespace Roslyn.Test.PdbUtilities
         {
             Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardInfo);
 
-            writer.WriteStartElement("forward");
+            _writer.WriteStartElement("forward");
 
             int token = CDI.DecodeForwardRecord(record.Data);
             WriteMethodAttributes(token, isReference: true);
 
-            writer.WriteEndElement(); //forward
+            _writer.WriteEndElement(); //forward
         }
 
         /// <summary>
@@ -388,12 +388,12 @@ namespace Roslyn.Test.PdbUtilities
         {
             Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardToModuleInfo);
 
-            writer.WriteStartElement("forwardToModule");
+            _writer.WriteStartElement("forwardToModule");
 
             int token = CDI.DecodeForwardRecord(record.Data);
             WriteMethodAttributes(token, isReference: true);
 
-            writer.WriteEndElement(); //forwardToModule
+            _writer.WriteEndElement(); //forwardToModule
         }
 
         /// <summary>
@@ -408,19 +408,19 @@ namespace Roslyn.Test.PdbUtilities
         {
             Debug.Assert(record.Kind == CustomDebugInfoKind.StateMachineHoistedLocalScopes);
 
-            writer.WriteStartElement("hoistedLocalScopes");
+            _writer.WriteStartElement("hoistedLocalScopes");
 
             var scopes = CDI.DecodeStateMachineHoistedLocalScopesRecord(record.Data);
 
             foreach (StateMachineHoistedLocalScope scope in scopes)
             {
-                writer.WriteStartElement("slot");
-                writer.WriteAttributeString("startOffset", AsILOffset(scope.StartOffset));
-                writer.WriteAttributeString("endOffset", AsILOffset(scope.EndOffset));
-                writer.WriteEndElement(); //bucket
+                _writer.WriteStartElement("slot");
+                _writer.WriteAttributeString("startOffset", AsILOffset(scope.StartOffset));
+                _writer.WriteAttributeString("endOffset", AsILOffset(scope.EndOffset));
+                _writer.WriteEndElement(); //bucket
             }
 
-            writer.WriteEndElement();
+            _writer.WriteEndElement();
         }
 
         /// <summary>
@@ -434,13 +434,13 @@ namespace Roslyn.Test.PdbUtilities
         {
             Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardIterator);
 
-            writer.WriteStartElement("forwardIterator");
+            _writer.WriteStartElement("forwardIterator");
 
             string name = CDI.DecodeForwardIteratorRecord(record.Data);
 
-            writer.WriteAttributeString("name", name);
+            _writer.WriteAttributeString("name", name);
 
-            writer.WriteEndElement(); //forwardIterator
+            _writer.WriteEndElement(); //forwardIterator
         }
 
         /// <summary>
@@ -454,7 +454,7 @@ namespace Roslyn.Test.PdbUtilities
         {
             Debug.Assert(record.Kind == CustomDebugInfoKind.DynamicLocals);
 
-            writer.WriteStartElement("dynamicLocals");
+            _writer.WriteStartElement("dynamicLocals");
 
             var buckets = CDI.DecodeDynamicLocalsRecord(record.Data);
 
@@ -470,22 +470,22 @@ namespace Roslyn.Test.PdbUtilities
                     flagsBuilder.Append((flags >> f) & 1UL);
                 }
 
-                writer.WriteStartElement("bucket");
-                writer.WriteAttributeString("flagCount", flagCount.ToString());
-                writer.WriteAttributeString("flags", pooled.ToStringAndFree());
-                writer.WriteAttributeString("slotId", bucket.SlotId.ToString());
-                writer.WriteAttributeString("localName", bucket.Name);
-                writer.WriteEndElement(); //bucket
+                _writer.WriteStartElement("bucket");
+                _writer.WriteAttributeString("flagCount", flagCount.ToString());
+                _writer.WriteAttributeString("flags", pooled.ToStringAndFree());
+                _writer.WriteAttributeString("slotId", bucket.SlotId.ToString());
+                _writer.WriteAttributeString("localName", bucket.Name);
+                _writer.WriteEndElement(); //bucket
             }
 
-            writer.WriteEndElement(); //dynamicLocals
+            _writer.WriteEndElement(); //dynamicLocals
         }
 
         private unsafe void WriteEditAndContinueLocalSlotMap(CustomDebugInfoRecord record)
         {
             Debug.Assert(record.Kind == CustomDebugInfoKind.EditAndContinueLocalSlotMap);
 
-            writer.WriteStartElement("encLocalSlotMap");
+            _writer.WriteStartElement("encLocalSlotMap");
             try
             {
                 int syntaxOffsetBaseline = -1;
@@ -502,7 +502,7 @@ namespace Roslyn.Test.PdbUtilities
                         {
                             if (!blobReader.TryReadCompressedInteger(out syntaxOffsetBaseline))
                             {
-                                writer.WriteElementString("baseline", "?");
+                                _writer.WriteElementString("baseline", "?");
                                 return;
                             }
 
@@ -510,12 +510,12 @@ namespace Roslyn.Test.PdbUtilities
                             continue;
                         }
 
-                        writer.WriteStartElement("slot");
+                        _writer.WriteStartElement("slot");
 
                         if (b == 0)
                         {
                             // short-lived temp, no info
-                            writer.WriteAttributeString("kind", "temp");
+                            _writer.WriteAttributeString("kind", "temp");
                         }
                         else
                         {
@@ -529,22 +529,22 @@ namespace Roslyn.Test.PdbUtilities
                             int ordinal = 0;
                             bool badOrdinal = hasOrdinal && !blobReader.TryReadCompressedInteger(out ordinal);
 
-                            writer.WriteAttributeString("kind", synthesizedKind.ToString());
-                            writer.WriteAttributeString("offset", badSyntaxOffset ? "?" : syntaxOffset.ToString());
+                            _writer.WriteAttributeString("kind", synthesizedKind.ToString());
+                            _writer.WriteAttributeString("offset", badSyntaxOffset ? "?" : syntaxOffset.ToString());
 
                             if (badOrdinal || hasOrdinal)
                             {
-                                writer.WriteAttributeString("ordinal", badOrdinal ? "?" : ordinal.ToString());
+                                _writer.WriteAttributeString("ordinal", badOrdinal ? "?" : ordinal.ToString());
                             }
                         }
 
-                        writer.WriteEndElement();
+                        _writer.WriteEndElement();
                     }
                 }
             }
             finally
             {
-                writer.WriteEndElement(); //encLocalSlotMap
+                _writer.WriteEndElement(); //encLocalSlotMap
             }
         }
 
@@ -552,7 +552,7 @@ namespace Roslyn.Test.PdbUtilities
         {
             Debug.Assert(record.Kind == CustomDebugInfoKind.EditAndContinueLambdaMap);
 
-            writer.WriteStartElement("encLambdaMap");
+            _writer.WriteStartElement("encLambdaMap");
             try
             {
                 if (record.Data.Length == 0)
@@ -570,97 +570,102 @@ namespace Roslyn.Test.PdbUtilities
 
                     if (!blobReader.TryReadCompressedInteger(out methodOrdinal))
                     {
-                        writer.WriteElementString("methodOrdinal", "?");
-                        writer.WriteEndElement();
+                        _writer.WriteElementString("methodOrdinal", "?");
+                        _writer.WriteEndElement();
                         return;
                     }
 
                     // [-1, inf)
                     methodOrdinal--;
-                    writer.WriteElementString("methodOrdinal", methodOrdinal.ToString());
+                    _writer.WriteElementString("methodOrdinal", methodOrdinal.ToString());
 
                     if (!blobReader.TryReadCompressedInteger(out syntaxOffsetBaseline))
                     {
-                        writer.WriteElementString("baseline", "?");
-                        writer.WriteEndElement();
+                        _writer.WriteElementString("baseline", "?");
+                        _writer.WriteEndElement();
                         return;
                     }
 
                     syntaxOffsetBaseline = -syntaxOffsetBaseline;
                     if (!blobReader.TryReadCompressedInteger(out closureCount))
                     {
-                        writer.WriteElementString("closureCount", "?");
-                        writer.WriteEndElement();
+                        _writer.WriteElementString("closureCount", "?");
+                        _writer.WriteEndElement();
                         return;
                     }
 
                     for (int i = 0; i < closureCount; i++)
                     {
-                        writer.WriteStartElement("closure");
+                        _writer.WriteStartElement("closure");
                         try
                         {
                             int syntaxOffset;
                             if (!blobReader.TryReadCompressedInteger(out syntaxOffset))
                             {
-                                writer.WriteElementString("offset", "?");
+                                _writer.WriteElementString("offset", "?");
                                 break;
                             }
 
-                            writer.WriteAttributeString("offset", (syntaxOffset + syntaxOffsetBaseline).ToString());
+                            _writer.WriteAttributeString("offset", (syntaxOffset + syntaxOffsetBaseline).ToString());
                         }
                         finally
                         {
-                            writer.WriteEndElement();
+                            _writer.WriteEndElement();
                         }
                     }
 
                     while (blobReader.RemainingBytes > 0)
                     {
-                        writer.WriteStartElement("lambda");
+                        _writer.WriteStartElement("lambda");
                         try
                         {
                             int syntaxOffset;
                             if (!blobReader.TryReadCompressedInteger(out syntaxOffset))
                             {
-                                writer.WriteElementString("offset", "?");
+                                _writer.WriteElementString("offset", "?");
                                 return;
                             }
 
-                            writer.WriteAttributeString("offset", (syntaxOffset + syntaxOffsetBaseline).ToString());
+                            _writer.WriteAttributeString("offset", (syntaxOffset + syntaxOffsetBaseline).ToString());
 
                             int closureOrdinal;
                             if (!blobReader.TryReadCompressedInteger(out closureOrdinal))
                             {
-                                writer.WriteElementString("closure", "?");
+                                _writer.WriteElementString("closure", "?");
                                 return;
                             }
 
-                            closureOrdinal--;
-                            if (closureOrdinal != -1)
+                            closureOrdinal -= 2;
+
+                            if (closureOrdinal == -2)
                             {
-                                writer.WriteAttributeString("closure",
-                                    closureOrdinal.ToString() + (closureOrdinal < -1 || closureOrdinal >= closureCount ? " (invalid)" : ""));
+                                _writer.WriteAttributeString("closure", "this");
+                            }
+                            else if (closureOrdinal != -1)
+                            {
+                                _writer.WriteAttributeString("closure",
+                                    closureOrdinal.ToString() + (closureOrdinal >= closureCount ? " (invalid)" : ""));
                             }
                         }
                         finally
                         {
-                            writer.WriteEndElement();
+                            _writer.WriteEndElement();
                         }
                     }
                 }
             }
             finally
             {
-                writer.WriteEndElement(); //encLocalSlotMap
+                _writer.WriteEndElement(); //encLocalSlotMap
             }
         }
 
         private void WriteScopes(ISymUnmanagedScope scope)
         {
-            writer.WriteStartElement("scope");
+            _writer.WriteStartElement("scope");
             {
-                writer.WriteAttributeString("startOffset", AsILOffset(scope.GetStartOffset()));
-                writer.WriteAttributeString("endOffset", AsILOffset(scope.GetEndOffset()));
+                _writer.WriteAttributeString("startOffset", AsILOffset(scope.GetStartOffset()));
+                _writer.WriteAttributeString("endOffset", AsILOffset(scope.GetEndOffset()));
                 {
                     foreach (ISymUnmanagedNamespace @namespace in scope.GetNamespaces())
                     {
@@ -674,7 +679,7 @@ namespace Roslyn.Test.PdbUtilities
                     WriteScopes(child);
                 }
             }
-            writer.WriteEndElement(); // </scope>
+            _writer.WriteEndElement(); // </scope>
         }
 
         private void WriteNamespace(ISymUnmanagedNamespace @namespace)
@@ -724,14 +729,14 @@ namespace Roslyn.Test.PdbUtilities
             }
             catch (ArgumentException) // TODO: filter
             {
-                if ((options & PdbToXmlOptions.ThrowOnError) != 0)
+                if ((_options & PdbToXmlOptions.ThrowOnError) != 0)
                 {
                     throw;
                 }
 
-                writer.WriteStartElement("invalid-custom-data");
-                writer.WriteAttributeString("raw", rawName);
-                writer.WriteEndElement();
+                _writer.WriteStartElement("invalid-custom-data");
+                _writer.WriteAttributeString("raw", rawName);
+                _writer.WriteEndElement();
                 return;
             }
 
@@ -741,112 +746,113 @@ namespace Roslyn.Test.PdbUtilities
                     Debug.Assert(alias == null);
                     Debug.Assert(externAlias == null);
                     Debug.Assert(scope == ImportScope.Unspecified);
-                    writer.WriteStartElement("currentnamespace");
-                    writer.WriteAttributeString("name", target);
-                    writer.WriteEndElement(); // </currentnamespace>
+                    _writer.WriteStartElement("currentnamespace");
+                    _writer.WriteAttributeString("name", target);
+                    _writer.WriteEndElement(); // </currentnamespace>
                     break;
                 case ImportTargetKind.DefaultNamespace:
                     Debug.Assert(alias == null);
                     Debug.Assert(externAlias == null);
                     Debug.Assert(scope == ImportScope.Unspecified);
-                    writer.WriteStartElement("defaultnamespace");
-                    writer.WriteAttributeString("name", target);
-                    writer.WriteEndElement(); // </defaultnamespace>
+                    _writer.WriteStartElement("defaultnamespace");
+                    _writer.WriteAttributeString("name", target);
+                    _writer.WriteEndElement(); // </defaultnamespace>
                     break;
                 case ImportTargetKind.MethodToken:
                     Debug.Assert(alias == null);
                     Debug.Assert(externAlias == null);
                     Debug.Assert(scope == ImportScope.Unspecified);
                     int token = Convert.ToInt32(target);
-                    writer.WriteStartElement("importsforward");
+                    _writer.WriteStartElement("importsforward");
                     WriteMethodAttributes(token, isReference: true);
-                    writer.WriteEndElement(); // </importsforward>
+                    _writer.WriteEndElement(); // </importsforward>
                     break;
                 case ImportTargetKind.XmlNamespace:
                     Debug.Assert(externAlias == null);
-                    writer.WriteStartElement("xmlnamespace");
-                    writer.WriteAttributeString("prefix", alias);
-                    writer.WriteAttributeString("name", target);
+                    _writer.WriteStartElement("xmlnamespace");
+                    _writer.WriteAttributeString("prefix", alias);
+                    _writer.WriteAttributeString("name", target);
                     WriteScopeAttribute(scope);
-                    writer.WriteEndElement(); // </xmlnamespace>
+                    _writer.WriteEndElement(); // </xmlnamespace>
                     break;
                 case ImportTargetKind.NamespaceOrType:
                     Debug.Assert(externAlias == null);
-                    writer.WriteStartElement("alias");
-                    writer.WriteAttributeString("name", alias);
-                    writer.WriteAttributeString("target", target);
-                    writer.WriteAttributeString("kind", "namespace"); // Strange, but retaining to avoid breaking tests.
+                    _writer.WriteStartElement("alias");
+                    _writer.WriteAttributeString("name", alias);
+                    _writer.WriteAttributeString("target", target);
+                    _writer.WriteAttributeString("kind", "namespace"); // Strange, but retaining to avoid breaking tests.
                     WriteScopeAttribute(scope);
-                    writer.WriteEndElement(); // </alias>
+                    _writer.WriteEndElement(); // </alias>
                     break;
                 case ImportTargetKind.Namespace:
                     if (alias != null)
                     {
-                        writer.WriteStartElement("alias");
-                        writer.WriteAttributeString("name", alias);
-                        if (externAlias != null) writer.WriteAttributeString("qualifier", externAlias);
-                        writer.WriteAttributeString("target", target);
-                        writer.WriteAttributeString("kind", "namespace");
+                        _writer.WriteStartElement("alias");
+                        _writer.WriteAttributeString("name", alias);
+                        if (externAlias != null) _writer.WriteAttributeString("qualifier", externAlias);
+                        _writer.WriteAttributeString("target", target);
+                        _writer.WriteAttributeString("kind", "namespace");
                         Debug.Assert(scope == ImportScope.Unspecified); // Only C# hits this case.
-                        writer.WriteEndElement(); // </alias>
+                        _writer.WriteEndElement(); // </alias>
                     }
                     else
                     {
-                        writer.WriteStartElement("namespace");
-                        if (externAlias != null) writer.WriteAttributeString("qualifier", externAlias);
-                        writer.WriteAttributeString("name", target);
+                        _writer.WriteStartElement("namespace");
+                        if (externAlias != null) _writer.WriteAttributeString("qualifier", externAlias);
+                        _writer.WriteAttributeString("name", target);
                         WriteScopeAttribute(scope);
-                        writer.WriteEndElement(); // </namespace>
+                        _writer.WriteEndElement(); // </namespace>
                     }
                     break;
                 case ImportTargetKind.Type:
                     Debug.Assert(externAlias == null);
                     if (alias != null)
                     {
-                        writer.WriteStartElement("alias");
-                        writer.WriteAttributeString("name", alias);
-                        writer.WriteAttributeString("target", target);
-                        writer.WriteAttributeString("kind", "type");
+                        _writer.WriteStartElement("alias");
+                        _writer.WriteAttributeString("name", alias);
+                        _writer.WriteAttributeString("target", target);
+                        _writer.WriteAttributeString("kind", "type");
                         Debug.Assert(scope == ImportScope.Unspecified); // Only C# hits this case.
-                        writer.WriteEndElement(); // </alias>
+                        _writer.WriteEndElement(); // </alias>
                     }
                     else
                     {
-                        writer.WriteStartElement("type");
-                        writer.WriteAttributeString("name", target);
+                        _writer.WriteStartElement("type");
+                        _writer.WriteAttributeString("name", target);
                         WriteScopeAttribute(scope);
-                        writer.WriteEndElement(); // </type>
+                        _writer.WriteEndElement(); // </type>
                     }
                     break;
                 case ImportTargetKind.Assembly:
-                    Debug.Assert(alias == null);
+                    Debug.Assert(alias != null);
+                    Debug.Assert(externAlias == null);
                     Debug.Assert(scope == ImportScope.Unspecified);
                     if (target == null)
                     {
-                        writer.WriteStartElement("extern");
-                        writer.WriteAttributeString("alias", externAlias);
-                        writer.WriteEndElement(); // </extern>
+                        _writer.WriteStartElement("extern");
+                        _writer.WriteAttributeString("alias", alias);
+                        _writer.WriteEndElement(); // </extern>
                     }
                     else
                     {
-                        writer.WriteStartElement("externinfo");
-                        writer.WriteAttributeString("alias", externAlias);
-                        writer.WriteAttributeString("assembly", target);
-                        writer.WriteEndElement(); // </externinfo>
+                        _writer.WriteStartElement("externinfo");
+                        _writer.WriteAttributeString("alias", alias);
+                        _writer.WriteAttributeString("assembly", target);
+                        _writer.WriteEndElement(); // </externinfo>
                     }
                     break;
                 case ImportTargetKind.Defunct:
                     Debug.Assert(alias == null);
                     Debug.Assert(scope == ImportScope.Unspecified);
-                    writer.WriteStartElement("defunct");
-                    writer.WriteAttributeString("name", rawName);
-                    writer.WriteEndElement(); // </defunct>
+                    _writer.WriteStartElement("defunct");
+                    _writer.WriteAttributeString("name", rawName);
+                    _writer.WriteEndElement(); // </defunct>
                     break;
                 default:
                     Debug.Assert(false, "Unexpected import kind '" + kind + "'");
-                    writer.WriteStartElement("unknown");
-                    writer.WriteAttributeString("name", rawName);
-                    writer.WriteEndElement(); // </unknown>
+                    _writer.WriteStartElement("unknown");
+                    _writer.WriteAttributeString("name", rawName);
+                    _writer.WriteEndElement(); // </unknown>
                     break;
             }
         }
@@ -855,11 +861,11 @@ namespace Roslyn.Test.PdbUtilities
         {
             if (scope == ImportScope.File)
             {
-                writer.WriteAttributeString("importlevel", "file");
+                _writer.WriteAttributeString("importlevel", "file");
             }
             else if (scope == ImportScope.Project)
             {
-                writer.WriteAttributeString("importlevel", "project");
+                _writer.WriteAttributeString("importlevel", "project");
             }
             else
             {
@@ -875,30 +881,30 @@ namespace Roslyn.Test.PdbUtilities
                 return;
             }
 
-            writer.WriteStartElement("asyncInfo");
+            _writer.WriteStartElement("asyncInfo");
 
             var catchOffset = asyncMethod.GetCatchHandlerILOffset();
             if (catchOffset >= 0)
             {
-                writer.WriteStartElement("catchHandler");
-                writer.WriteAttributeString("offset", AsILOffset(catchOffset));
-                writer.WriteEndElement();
+                _writer.WriteStartElement("catchHandler");
+                _writer.WriteAttributeString("offset", AsILOffset(catchOffset));
+                _writer.WriteEndElement();
             }
 
-            writer.WriteStartElement("kickoffMethod");
+            _writer.WriteStartElement("kickoffMethod");
             WriteMethodAttributes(asyncMethod.GetKickoffMethod(), isReference: true);
-            writer.WriteEndElement();
+            _writer.WriteEndElement();
 
             foreach (var info in asyncMethod.GetAsyncStepInfos())
             {
-                writer.WriteStartElement("await");
-                writer.WriteAttributeString("yield", AsILOffset(info.YieldOffset));
-                writer.WriteAttributeString("resume", AsILOffset(info.ResumeOffset));
+                _writer.WriteStartElement("await");
+                _writer.WriteAttributeString("yield", AsILOffset(info.YieldOffset));
+                _writer.WriteAttributeString("resume", AsILOffset(info.ResumeOffset));
                 WriteMethodAttributes(info.ResumeMethod, isReference: true);
-                writer.WriteEndElement();
+                _writer.WriteEndElement();
             }
 
-            writer.WriteEndElement();
+            _writer.WriteEndElement();
         }
 
         // Write all the locals in the given method out to an XML file.
@@ -909,19 +915,19 @@ namespace Roslyn.Test.PdbUtilities
         // (Note this would still break down if you had an empty scope nested in another scope.
         private void WriteLocals(ISymUnmanagedMethod method, Dictionary<int, ImmutableArray<string>> slotNames)
         {
-            writer.WriteStartElement("locals");
+            _writer.WriteStartElement("locals");
             // If there are no locals, then this element will just be empty.
             WriteLocalsHelper(method.GetRootScope(), slotNames, includeChildScopes: true);
-            writer.WriteEndElement();
+            _writer.WriteEndElement();
         }
 
         private void WriteLocalsHelper(ISymUnmanagedScope scope, Dictionary<int, ImmutableArray<string>> slotNames, bool includeChildScopes)
         {
             foreach (ISymUnmanagedVariable l in scope.GetLocals())
             {
-                writer.WriteStartElement("local");
+                _writer.WriteStartElement("local");
                 {
-                    writer.WriteAttributeString("name", l.GetName());
+                    _writer.WriteAttributeString("name", l.GetName());
 
                     // Each local maps to a "IL Index" or "slot" number. 
                     // The index is not necessarily unique. Several locals may refer to the same slot. 
@@ -932,7 +938,7 @@ namespace Roslyn.Test.PdbUtilities
                     //       These locals always map to the slot #0 which is just a valid number that is 
                     //       not used. Only scoping information is used by EE in this case.
                     int slot = l.GetSlot();
-                    writer.WriteAttributeString("il_index", CultureInvariantToString(slot));
+                    _writer.WriteAttributeString("il_index", CultureInvariantToString(slot));
 
                     bool reusingSlot = false;
 
@@ -952,25 +958,25 @@ namespace Roslyn.Test.PdbUtilities
                     }
 
                     // Provide scope range
-                    writer.WriteAttributeString("il_start", AsILOffset(scope.GetStartOffset()));
-                    writer.WriteAttributeString("il_end", AsILOffset(scope.GetEndOffset()));
-                    writer.WriteAttributeString("attributes", l.GetAttributes().ToString());
+                    _writer.WriteAttributeString("il_start", AsILOffset(scope.GetStartOffset()));
+                    _writer.WriteAttributeString("il_end", AsILOffset(scope.GetEndOffset()));
+                    _writer.WriteAttributeString("attributes", l.GetAttributes().ToString());
 
                     if (reusingSlot)
                     {
-                        writer.WriteAttributeString("reusingslot", reusingSlot.ToString(CultureInfo.InvariantCulture));
+                        _writer.WriteAttributeString("reusingslot", reusingSlot.ToString(CultureInfo.InvariantCulture));
                     }
                 }
-                writer.WriteEndElement(); // </local>
+                _writer.WriteEndElement(); // </local>
             }
 
             foreach (ISymUnmanagedConstant c in scope.GetConstants())
             {
                 // Note: We can retrieve constant tokens by saving it into signature blob
                 // in our implementation of IMetadataImport.GetSigFromToken.
-                writer.WriteStartElement("constant");
+                _writer.WriteStartElement("constant");
                 {
-                    writer.WriteAttributeString("name", c.GetName());
+                    _writer.WriteAttributeString("name", c.GetName());
 
                     object value = c.GetValue();
                     string typeName = value.GetType().Name;
@@ -1001,10 +1007,10 @@ namespace Roslyn.Test.PdbUtilities
                         pooled.Free();
                     }
 
-                    writer.WriteAttributeString("value", value.ToString());
-                    writer.WriteAttributeString("type", typeName);
+                    _writer.WriteAttributeString("value", value.ToString());
+                    _writer.WriteAttributeString("type", typeName);
                 }
-                writer.WriteEndElement(); // </constant>
+                _writer.WriteEndElement(); // </constant>
             }
 
             if (includeChildScopes)
@@ -1021,140 +1027,140 @@ namespace Roslyn.Test.PdbUtilities
         // A single method could span multiple files (use C#'s #line directive to see for yourself).        
         private void WriteSequencePoints(ISymUnmanagedMethod method)
         {
-            writer.WriteStartElement("sequencePoints");
+            _writer.WriteStartElement("sequencePoints");
 
             var sequencePoints = method.GetSequencePoints();
 
             // Write out sequence points
             foreach (var sequencePoint in sequencePoints)
             {
-                writer.WriteStartElement("entry");
-                writer.WriteAttributeString("offset", AsILOffset(sequencePoint.Offset));
+                _writer.WriteStartElement("entry");
+                _writer.WriteAttributeString("offset", AsILOffset(sequencePoint.Offset));
 
                 if (sequencePoint.IsHidden)
                 {
                     if (sequencePoint.StartLine != sequencePoint.EndLine || sequencePoint.StartColumn != 0 || sequencePoint.EndColumn != 0)
                     {
-                        writer.WriteAttributeString("hidden", "invalid");
+                        _writer.WriteAttributeString("hidden", "invalid");
                     }
                     else
                     {
-                        writer.WriteAttributeString("hidden", XmlConvert.ToString(true));
+                        _writer.WriteAttributeString("hidden", XmlConvert.ToString(true));
                     }
                 }
                 else
                 {
-                    writer.WriteAttributeString("startLine", CultureInvariantToString(sequencePoint.StartLine));
-                    writer.WriteAttributeString("startColumn", CultureInvariantToString(sequencePoint.StartColumn));
-                    writer.WriteAttributeString("endLine", CultureInvariantToString(sequencePoint.EndLine));
-                    writer.WriteAttributeString("endColumn", CultureInvariantToString(sequencePoint.EndColumn));
+                    _writer.WriteAttributeString("startLine", CultureInvariantToString(sequencePoint.StartLine));
+                    _writer.WriteAttributeString("startColumn", CultureInvariantToString(sequencePoint.StartColumn));
+                    _writer.WriteAttributeString("endLine", CultureInvariantToString(sequencePoint.EndLine));
+                    _writer.WriteAttributeString("endColumn", CultureInvariantToString(sequencePoint.EndColumn));
                 }
 
                 int documentId;
-                this.m_fileMapping.TryGetValue(sequencePoint.Document.GetName(), out documentId);
-                writer.WriteAttributeString("document", CultureInvariantToString(documentId));
+                _fileMapping.TryGetValue(sequencePoint.Document.GetName(), out documentId);
+                _writer.WriteAttributeString("document", CultureInvariantToString(documentId));
 
-                writer.WriteEndElement();
+                _writer.WriteEndElement();
             }
 
-            writer.WriteEndElement(); // sequencepoints
+            _writer.WriteEndElement(); // sequencepoints
         }
 
         // Write all docs, and add to the m_fileMapping list.
         // Other references to docs will then just refer to this list.
         private void WriteDocList()
         {
-            var documents = pdbReader.SymbolReader.GetDocuments();
+            var documents = _pdbReader.SymbolReader.GetDocuments();
             if (documents.Length == 0)
             {
                 return;
             }
 
             int id = 0;
-            writer.WriteStartElement("files");
+            _writer.WriteStartElement("files");
             foreach (ISymUnmanagedDocument doc in documents)
             {
                 string name = doc.GetName();
 
                 // Symbol store may give out duplicate documents. We'll fold them here
-                if (m_fileMapping.ContainsKey(name))
+                if (_fileMapping.ContainsKey(name))
                 {
-                    writer.WriteComment("There is a duplicate entry for: " + name);
+                    _writer.WriteComment("There is a duplicate entry for: " + name);
                     continue;
                 }
 
                 id++;
-                m_fileMapping.Add(name, id);
+                _fileMapping.Add(name, id);
 
-                writer.WriteStartElement("file");
+                _writer.WriteStartElement("file");
 
-                writer.WriteAttributeString("id", CultureInvariantToString(id));
-                writer.WriteAttributeString("name", name);
-                writer.WriteAttributeString("language", doc.GetLanguage().ToString());
-                writer.WriteAttributeString("languageVendor", doc.GetLanguageVendor().ToString());
-                writer.WriteAttributeString("documentType", doc.GetDocumentType().ToString());
+                _writer.WriteAttributeString("id", CultureInvariantToString(id));
+                _writer.WriteAttributeString("name", name);
+                _writer.WriteAttributeString("language", doc.GetLanguage().ToString());
+                _writer.WriteAttributeString("languageVendor", doc.GetLanguageVendor().ToString());
+                _writer.WriteAttributeString("documentType", doc.GetDocumentType().ToString());
 
                 var checkSum = string.Concat(doc.GetCheckSum().Select(b => string.Format("{0,2:X}", b) + ", "));
 
                 if (!string.IsNullOrEmpty(checkSum))
                 {
-                    writer.WriteAttributeString("checkSumAlgorithmId", doc.GetHashAlgorithm().ToString());
-                    writer.WriteAttributeString("checkSum", checkSum);
+                    _writer.WriteAttributeString("checkSumAlgorithmId", doc.GetHashAlgorithm().ToString());
+                    _writer.WriteAttributeString("checkSum", checkSum);
                 }
 
-                writer.WriteEndElement(); // file
+                _writer.WriteEndElement(); // file
             }
-            writer.WriteEndElement(); // files
+            _writer.WriteEndElement(); // files
         }
 
         private void WriteAllMethodSpans()
         {
-            writer.WriteStartElement("method-spans");
+            _writer.WriteStartElement("method-spans");
 
-            foreach (ISymUnmanagedDocument doc in pdbReader.SymbolReader.GetDocuments())
+            foreach (ISymUnmanagedDocument doc in _pdbReader.SymbolReader.GetDocuments())
             {
-                foreach (ISymUnmanagedMethod method in pdbReader.SymbolReader.GetMethodsInDocument(doc))
+                foreach (ISymUnmanagedMethod method in _pdbReader.SymbolReader.GetMethodsInDocument(doc))
                 {
-                    writer.WriteStartElement("method");
+                    _writer.WriteStartElement("method");
 
                     WriteMethodAttributes(method.GetToken(), isReference: true);
 
                     foreach (var methodDocument in method.GetDocumentsForMethod())
                     {
-                        writer.WriteStartElement("document");
+                        _writer.WriteStartElement("document");
 
                         int startLine, endLine;
                         method.GetSourceExtentInDocument(methodDocument, out startLine, out endLine);
 
-                        writer.WriteAttributeString("startLine", startLine.ToString());
-                        writer.WriteAttributeString("endLine", endLine.ToString());
+                        _writer.WriteAttributeString("startLine", startLine.ToString());
+                        _writer.WriteAttributeString("endLine", endLine.ToString());
 
-                        writer.WriteEndElement();
+                        _writer.WriteEndElement();
                     }
 
-                    writer.WriteEndElement();
+                    _writer.WriteEndElement();
                 }
             }
 
-            writer.WriteEndElement();
+            _writer.WriteEndElement();
         }
 
         // Write out a reference to the entry point method (if one exists)
         private void WriteEntryPoint()
         {
-            int token = pdbReader.SymbolReader.GetUserEntryPoint();
+            int token = _pdbReader.SymbolReader.GetUserEntryPoint();
             if (token != 0)
             {
-                writer.WriteStartElement("entryPoint");
+                _writer.WriteStartElement("entryPoint");
                 WriteMethodAttributes(token, isReference: true);
-                writer.WriteEndElement();
+                _writer.WriteEndElement();
             }
         }
 
         // Write out XML snippet to refer to the given method.
         private void WriteMethodAttributes(int token, bool isReference)
         {
-            if ((options & PdbToXmlOptions.ResolveTokens) != 0)
+            if ((_options & PdbToXmlOptions.ResolveTokens) != 0)
             {
                 var handle = MetadataTokens.Handle(token);
 
@@ -1172,23 +1178,23 @@ namespace Roslyn.Test.PdbUtilities
 
                         default:
                             WriteToken(token);
-                            writer.WriteAttributeString("error", string.Format("Unexpected token type: {0}", handle.Kind));
+                            _writer.WriteAttributeString("error", string.Format("Unexpected token type: {0}", handle.Kind));
                             break;
                     }
                 }
                 catch (BadImageFormatException e) // TODO: filter
                 {
-                    if ((options & PdbToXmlOptions.ThrowOnError) != 0)
+                    if ((_options & PdbToXmlOptions.ThrowOnError) != 0)
                     {
                         throw;
                     }
 
                     WriteToken(token);
-                    writer.WriteAttributeString("metadata-error", e.Message);
+                    _writer.WriteAttributeString("metadata-error", e.Message);
                 }
             }
 
-            if ((options & PdbToXmlOptions.IncludeTokens) != 0)
+            if ((_options & PdbToXmlOptions.IncludeTokens) != 0)
             {
                 WriteToken(token);
             }
@@ -1207,44 +1213,44 @@ namespace Roslyn.Test.PdbUtilities
 
         private void WriteResolvedToken(MethodDefinitionHandle methodHandle, bool isReference)
         {
-            var method = metadataReader.GetMethodDefinition(methodHandle);
+            var method = _metadataReader.GetMethodDefinition(methodHandle);
 
             // type name
             var containingTypeHandle = method.GetDeclaringType();
-            var fullName = GetFullTypeName(metadataReader, containingTypeHandle);
+            var fullName = GetFullTypeName(_metadataReader, containingTypeHandle);
             if (fullName != null)
             {
-                writer.WriteAttributeString(isReference ? "declaringType" : "containingType", fullName);
+                _writer.WriteAttributeString(isReference ? "declaringType" : "containingType", fullName);
             }
 
             // method name
-            writer.WriteAttributeString(isReference ? "methodName" : "name", metadataReader.GetString(method.Name));
+            _writer.WriteAttributeString(isReference ? "methodName" : "name", _metadataReader.GetString(method.Name));
 
             // parameters:
             var parameterNames = (from paramHandle in method.GetParameters()
-                                  let parameter = metadataReader.GetParameter(paramHandle)
+                                  let parameter = _metadataReader.GetParameter(paramHandle)
                                   where parameter.SequenceNumber > 0 // exclude return parameter
-                                  select parameter.Name.IsNil ? "?" : metadataReader.GetString(parameter.Name)).ToArray();
+                                  select parameter.Name.IsNil ? "?" : _metadataReader.GetString(parameter.Name)).ToArray();
 
             if (parameterNames.Length > 0)
             {
-                writer.WriteAttributeString("parameterNames", string.Join(", ", parameterNames));
+                _writer.WriteAttributeString("parameterNames", string.Join(", ", parameterNames));
             }
         }
 
         private void WriteResolvedToken(MemberReferenceHandle memberRefHandle)
         {
-            var memberRef = metadataReader.GetMemberReference(memberRefHandle);
+            var memberRef = _metadataReader.GetMemberReference(memberRefHandle);
 
             // type name
-            string fullName = GetFullTypeName(metadataReader, memberRef.Parent);
+            string fullName = GetFullTypeName(_metadataReader, memberRef.Parent);
             if (fullName != null)
             {
-                writer.WriteAttributeString("declaringType", fullName);
+                _writer.WriteAttributeString("declaringType", fullName);
             }
 
             // method name
-            writer.WriteAttributeString("methodName", metadataReader.GetString(memberRef.Name));
+            _writer.WriteAttributeString("methodName", _metadataReader.GetString(memberRef.Name));
         }
 
         private static bool IsNested(TypeAttributes flags)
@@ -1298,7 +1304,7 @@ namespace Roslyn.Test.PdbUtilities
 
         private void WriteToken(int token)
         {
-            writer.WriteAttributeString("token", AsToken(token));
+            _writer.WriteAttributeString("token", AsToken(token));
         }
 
         internal static string AsToken(int i)

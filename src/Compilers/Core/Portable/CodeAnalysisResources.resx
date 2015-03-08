@@ -363,6 +363,9 @@
   <data name="CompilerAnalyzerThrows" xml:space="preserve">
     <value>The Compiler Analyzer '{0}' threw an exception with message '{1}'.</value>
   </data>
+  <data name="DiagnosticDescriptorThrows" xml:space="preserve">
+    <value>The DiagnosticDescriptor with ID '{0}' threw an exception with message '{1}'.</value>
+  </data>
   <data name="PEImageDoesntContainManagedMetadata" xml:space="preserve">
     <value>PE image doesn't contain managed metadata.</value>
   </data>
@@ -425,5 +428,8 @@
   </data>
   <data name="InvalidPublicKeyToken" xml:space="preserve">
     <value>Invalid public key token.</value>
+  </data>
+  <data name="InvalidDataAtOffset" xml:space="preserve">
+    <value>Invalid data at offset {0}: {1}{2}*{3}{4}</value>
   </data>
 </root>

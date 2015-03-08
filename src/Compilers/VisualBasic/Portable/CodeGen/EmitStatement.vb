@@ -344,6 +344,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         Case BoundKind.FieldAccess
                             Dim left = DirectCast(exceptionSource, BoundFieldAccess)
                             If Not left.FieldSymbol.IsShared Then
+
+                                Dim stateMachineField = TryCast(left.FieldSymbol, StateMachineFieldSymbol)
+                                If (stateMachineField IsNot Nothing) AndAlso (stateMachineField.SlotIndex >= 0) Then
+                                    DefineUserDefinedStateMachineHoistedLocal(stateMachineField)
+                                End If
+
                                 ' When assigning to a field
                                 ' we need to push param address below the exception
                                 Dim temp = AllocateTemp(exceptionSource.Type, exceptionSource.Syntax)
@@ -1414,30 +1420,28 @@ OtherExpressions:
             '  817                  // we skip loading this lifted field since it is out of scope.
 
             For Each field In scope.Fields
-                Dim name As String = Nothing
-                Dim index As Integer = 0
-                Dim parsedOk As Boolean = GeneratedNames.TryParseStateMachineHoistedUserVariableName(field.Name, name, index)
-                Debug.Assert(parsedOk)
-                Debug.Assert(index >= 0)
-                If parsedOk Then
-                    Dim fakePdbOnlyLocal = New LocalDefinition(
+                DefineUserDefinedStateMachineHoistedLocal(DirectCast(field, StateMachineFieldSymbol))
+            Next
+
+            EmitStatement(scope.Statement)
+
+            _builder.CloseLocalScope()
+        End Sub
+
+        Private Sub DefineUserDefinedStateMachineHoistedLocal(field As StateMachineFieldSymbol)
+            Debug.Assert(field.SlotIndex >= 0)
+            Dim fakePdbOnlyLocal = New LocalDefinition(
                         symbolOpt:=Nothing,
                         nameOpt:=field.Name,
                         type:=Nothing,
-                        slot:=index,
+                        slot:=field.SlotIndex,
                         synthesizedKind:=SynthesizedLocalKind.EmitterTemp,
                         id:=Nothing,
                         pdbAttributes:=Cci.PdbWriter.DefaultLocalAttributesValue,
                         constraints:=LocalSlotConstraints.None,
                         isDynamic:=False,
                         dynamicTransformFlags:=Nothing)
-                    _builder.AddLocalToScope(fakePdbOnlyLocal)
-                End If
-            Next
-
-            EmitStatement(scope.Statement)
-
-            _builder.CloseLocalScope()
+            _builder.AddLocalToScope(fakePdbOnlyLocal)
         End Sub
 
         Private Sub EmitUnstructuredExceptionResumeSwitch(node As BoundUnstructuredExceptionResumeSwitch)

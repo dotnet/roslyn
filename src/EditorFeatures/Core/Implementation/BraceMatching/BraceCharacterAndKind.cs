@@ -4,8 +4,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 {
     internal struct BraceCharacterAndKind
     {
-        public char Character { get; private set; }
-        public int Kind { get; private set; }
+        public char Character { get; }
+        public int Kind { get; }
 
         public BraceCharacterAndKind(char character, int kind)
             : this()

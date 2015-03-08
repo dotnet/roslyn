@@ -459,6 +459,191 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Sub
 
+        <WorkItem(1124544)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Sub CompletionUsesContextBufferPositions()
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>
+                                   e.InnerException
+{"Exception of type 'System.Exception' was thrown."}
+    Data: {System.Collections.ListDictionaryInternal}
+    HResult: -2146233088
+    HelpLink: null
+    InnerException: null
+    Message: "Exception of type 'System.Exception' was thrown."
+    Source: null
+    StackTrace: null
+    TargetSite: null
+e.
+(1,3): error CS1001: Identifier expected
+e.
+(1,3): error CS1001: Identifier expected
+e.
+(1,3): error CS1001: Identifier expected
+e.
+(1,3): error CS1001: Identifier expected
+e.
+(1,3): error CS1001: Identifier expected
+e.InnerException
+{"Exception of type 'System.Exception' was thrown."}
+    Data: {System.Collections.ListDictionaryInternal}
+    HResult: -2146233088
+    HelpLink: null
+    InnerException: null
+    Message: "Exception of type 'System.Exception' was thrown."
+    Source: null
+    StackTrace: null
+    TargetSite: null
+e.InnerException
+{"Exception of type 'System.Exception' was thrown."}
+    Data: {System.Collections.ListDictionaryInternal}
+    HResult: -2146233088
+    HelpLink: null
+    InnerException: null
+    Message: "Exception of type 'System.Exception' was thrown."
+    Source: null
+    StackTrace: null
+    TargetSite: null
+e.InnerException
+{"Exception of type 'System.Exception' was thrown."}
+    Data: {System.Collections.ListDictionaryInternal}
+    HResult: -2146233088
+    HelpLink: null
+    InnerException: null
+    Message: "Exception of type 'System.Exception' was thrown."
+    Source: null
+    StackTrace: null
+    TargetSite: null
+e.InnerException
+{"Exception of type 'System.Exception' was thrown."}
+    Data: {System.Collections.ListDictionaryInternal}
+    HResult: -2146233088
+    HelpLink: null
+    InnerException: null
+    Message: "Exception of type 'System.Exception' was thrown."
+    Source: null
+    StackTrace: null
+    TargetSite: null
+e.InnerException
+{"Exception of type 'System.Exception' was thrown."}
+    Data: {System.Collections.ListDictionaryInternal}
+    HResult: -2146233088
+    HelpLink: null
+    InnerException: null
+    Message: "Exception of type 'System.Exception' was thrown."
+    Source: null
+    StackTrace: null
+    TargetSite: null
+e.InnerException
+{"Exception of type 'System.Exception' was thrown."}
+    Data: {System.Collections.ListDictionaryInternal}
+    HResult: -2146233088
+    HelpLink: null
+    InnerException: null
+    Message: "Exception of type 'System.Exception' was thrown."
+    Source: null
+    StackTrace: null
+    TargetSite: null
+e.InnerException
+{"Exception of type 'System.Exception' was thrown."}
+    Data: {System.Collections.ListDictionaryInternal}
+    HResult: -2146233088
+    HelpLink: null
+    InnerException: null
+    Message: "Exception of type 'System.Exception' was thrown."
+    Source: null
+    StackTrace: null
+    TargetSite: null
+e.InnerException
+{"Exception of type 'System.Exception' was thrown."}
+    Data: {System.Collections.ListDictionaryInternal}
+    HResult: -2146233088
+    HelpLink: null
+    InnerException: null
+    Message: "Exception of type 'System.Exception' was thrown."
+    Source: null
+    StackTrace: null
+    TargetSite: null
+e.InnerException
+{"Exception of type 'System.Exception' was thrown."}
+    Data: {System.Collections.ListDictionaryInternal}
+    HResult: -2146233088
+    HelpLink: null
+    InnerException: null
+    Message: "Exception of type 'System.Exception' was thrown."
+    Source: null
+    StackTrace: null
+    TargetSite: null
+e.InnerException
+{"Exception of type 'System.Exception' was thrown."}
+    Data: {System.Collections.ListDictionaryInternal}
+    HResult: -2146233088
+    HelpLink: null
+    InnerException: null
+    Message: "Exception of type 'System.Exception' was thrown."
+    Source: null
+    StackTrace: null
+    TargetSite: null
+e.InnerException
+{"Exception of type 'System.Exception' was thrown."}
+    Data: {System.Collections.ListDictionaryInternal}
+    HResult: -2146233088
+    HelpLink: null
+    InnerException: null
+    Message: "Exception of type 'System.Exception' was thrown."
+    Source: null
+    StackTrace: null
+    TargetSite: null
+$$</Document>
+                               <Document>class Program
+{
+    static void Main(string[] args)
+    [|{|]
+
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, True)
+                state.SendTypeChars("arg")
+                Assert.Equal("arg", state.GetCurrentViewLineText())
+                state.AssertCompletionSession()
+                state.SendTab()
+                Assert.Equal("args", state.GetCurrentViewLineText())
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Sub CompletionOnTypeCharacterInLinkedFileContext()
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>
+123123123123123123123123123 + $$</Document>
+                               <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
+                           </Project>
+                           <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
+                               <Document FilePath="C.cs">
+{
+    static void Main(string[] args)
+    [|{|]
+
+    }
+}
+                              </Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, True)
+                state.SendTypeChars("arg")
+                Assert.Equal("123123123123123123123123123 + arg", state.GetCurrentViewLineText())
+                state.AssertCompletionSession()
+                state.SendTab()
+                Assert.Contains("args", state.GetCurrentViewLineText())
+            End Using
+        End Sub
+
         Private Sub VerifyCompletionAndDotAfter(item As String, state As TestState)
             state.SendTypeChars(item)
             state.AssertSelectedCompletionItem(item)
