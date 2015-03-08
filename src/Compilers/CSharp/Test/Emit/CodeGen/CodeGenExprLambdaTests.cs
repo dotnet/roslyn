@@ -2275,7 +2275,7 @@ public class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
 
             // Also verify with the assemblies on which the tests are running, as there's a higher
-            // liklihood that they have Array.Empty, and we want to verify that Array.Empty is not used
+            // likelihood that they have Array.Empty, and we want to verify that Array.Empty is not used
             // in expression lambdas.  This can be changed to use the mscorlib 4.6 metadata once it's
             // available in the Roslyn tests.
             CompileAndVerify(CreateCompilation(
