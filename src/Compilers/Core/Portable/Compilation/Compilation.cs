@@ -1383,8 +1383,8 @@ namespace Microsoft.CodeAnalysis
             return Emit(
                 peStreamProvider,
                 pdbOutputInfo,
-                xmlDocumentationStream,
-                win32Resources,
+                new SimpleEmitStreamProvider(xmlDocumentationStream),
+                new SimpleEmitStreamProvider(win32Resources),
                 manifestResources,
                 options,
                 testData: null,
@@ -1494,8 +1494,8 @@ namespace Microsoft.CodeAnalysis
             return Emit(
                 new SimpleEmitStreamProvider(peStream),
                 new Cci.PdbOutputInfo(pdbStream),
-                xmlDocumentationStream,
-                win32Resources,
+                new SimpleEmitStreamProvider(xmlDocumentationStream),
+                new SimpleEmitStreamProvider(win32Resources),
                 manifestResources,
                 options,
                 testData,
@@ -1511,8 +1511,8 @@ namespace Microsoft.CodeAnalysis
         internal EmitResult Emit(
             EmitStreamProvider peStreamProvider,
             Cci.PdbOutputInfo pdbOutputInfo,
-            Stream xmlDocumentationStream,
-            Stream win32Resources,
+            EmitStreamProvider xmlDocumentationStreamProvider,
+            EmitStreamProvider win32ResourcesStreamProvider,
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions options,
             CompilationTestData testData,
@@ -1563,6 +1563,8 @@ namespace Microsoft.CodeAnalysis
                     return ToEmitResultAndFree(diagnostics, success: false);
                 }
 
+                var win32Resources = win32ResourcesStreamProvider.GetStream(diagnostics);
+                var xmlDocumentationStream = xmlDocumentationStreamProvider.GetStream(diagnostics);
                 if (!this.Compile(
                     moduleBeingBuilt,
                     win32Resources,
@@ -1588,7 +1590,6 @@ namespace Microsoft.CodeAnalysis
                     moduleBeingBuilt,
                     peStreamProvider,
                     pdbOutputInfo,
-                    options.PdbFilePath,
                     (testData != null) ? testData.SymWriterFactory : null,
                     diagnostics,
                     metadataOnly: options.EmitMetadataOnly,
@@ -1607,7 +1608,6 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBeingBuilt,
             EmitStreamProvider peStreamProvider,
             Cci.PdbOutputInfo pdbOutputInfo,
-            string pdbFileName,
             Func<object> testSymWriterFactory,
             DiagnosticBag diagnostics,
             bool metadataOnly,
