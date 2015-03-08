@@ -425,5 +425,72 @@ End Class
     </methods>
 </symbols>)
         End Sub
+
+        <Fact>
+        Public Sub PartiallydefinedClass_3()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+Partial Class C2
+    Public Shared m1 As Func(Of Integer) = Function() 1
+End Class
+    </file>
+    <file name="b.vb">
+Imports System
+Partial Class C2
+    Shared Sub New()
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+                    source,
+                    TestOptions.DebugDll)
+
+            compilation.VerifyPdb(
+<symbols>
+    <files>
+        <file id="1" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="37, E0,  6, E1,  3,  9, 97, 5A, F5, 8F, 79, EE, 92, BC, 7C, 63, A6, EB, FF, D4, "/>
+        <file id="2" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="D2, 29, EA, DE, F7, E6, E9, BC, A0, CE, E4, FB, 93, 74,  5, 37, 16, D8, 89, F1, "/>
+    </files>
+    <methods>
+        <method containingType="C2" name=".cctor">
+            <customDebugInfo>
+                <encLambdaMap>
+                    <methodOrdinal>2</methodOrdinal>
+                    <lambda offset="-12"/>
+                </encLambdaMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="21" document="1"/>
+                <entry offset="0x1" startLine="3" startColumn="19" endLine="3" endColumn="56" document="2"/>
+                <entry offset="0x16" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
+            </sequencePoints>
+            <locals/>
+            <scope startOffset="0x0" endOffset="0x17">
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
+            </scope>
+        </method>
+        <method containingType="C2+_Closure$__" name="_Lambda$__2-0">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="21" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="3" startColumn="44" endLine="3" endColumn="54" document="2"/>
+                <entry offset="0x1" startLine="3" startColumn="55" endLine="3" endColumn="56" document="2"/>
+            </sequencePoints>
+            <locals/>
+            <scope startOffset="0x0" endOffset="0x7">
+                <importsforward declaringType="C2" methodName=".cctor"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
     End Class
 End Namespace
