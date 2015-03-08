@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     Cci.PeWriter.WritePeToStream(
                         new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
                         context.MessageProvider,
-                        stream,
+                        () => stream,
                         nativePdbWriterOpt: null,
                         allowMissingMethodBodies: false,
                         deterministic: false,
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     Cci.PeWriter.WritePeToStream(
                         new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
                         context.MessageProvider,
-                        stream,
+                        () => stream,
                         nativePdbWriterOpt: null,
                         allowMissingMethodBodies: false,
                         deterministic: false,
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     Cci.PeWriter.WritePeToStream(
                         new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
                         context.MessageProvider,
-                        stream,
+                        () => stream,
                         nativePdbWriterOpt: null,
                         allowMissingMethodBodies: false,
                         deterministic: false,

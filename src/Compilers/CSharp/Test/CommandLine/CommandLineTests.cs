@@ -5970,33 +5970,6 @@ class Program
         }
 
         [Fact]
-        public void IOFailure_OpenPdbFile()
-        {
-            string sourcePath = MakeTrivialExe();
-            string exePath = Path.Combine(Path.GetDirectoryName(sourcePath), "test.exe");
-            string pdbPath = Path.ChangeExtension(exePath, ".pdb");
-            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/debug+", $"/out:{exePath}", sourcePath });
-            csc.FileOpen = (file, mode, access, share) =>
-            {
-                if (file == pdbPath)
-                {
-                    throw new IOException();
-                }
-
-                return File.Open(file, mode, access, share);
-            };
-
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            Assert.Equal(1, csc.Run(outWriter));
-            Assert.Contains($"error CS2012: Cannot open '{pdbPath}' for writing", outWriter.ToString());
-
-            System.IO.File.Delete(sourcePath);
-            System.IO.File.Delete(exePath);
-            System.IO.File.Delete(pdbPath);
-            CleanupAllGeneratedFiles(sourcePath);
-        }
-
-        [Fact]
         public void IOFailure_OpenPdbFileNotCalled()
         {
             string sourcePath = MakeTrivialExe();
