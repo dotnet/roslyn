@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Exts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
@@ -2068,14 +2069,12 @@ FullWidthRepeat2:
                 ' // Check AM/PM
 
                 If TryPeek(offset, c) Then
-                    If c = "A"c OrElse c = FULLWIDTH_LATIN_CAPITAL_LETTER_A OrElse
-                       c = "a"c OrElse c = FULLWIDTH_LATIN_SMALL_LETTER_A Then
+                    If c.IsAnyOf( "A"c, FULLWIDTH_LATIN_CAPITAL_LETTER_A, "a"c, FULLWIDTH_LATIN_SMALL_LETTER_A) Then
 
                         HaveAM = True
                         offset += 1
 
-                    ElseIf c = "P"c OrElse c = FULLWIDTH_LATIN_CAPITAL_LETTER_P OrElse
-                           c = "p"c OrElse c = FULLWIDTH_LATIN_SMALL_LETTER_P Then
+                    ElseIf c.IsAnyOf("P"c, FULLWIDTH_LATIN_CAPITAL_LETTER_P, "p"c, FULLWIDTH_LATIN_SMALL_LETTER_P) Then
 
                         HavePM = True
                         offset += 1
@@ -2083,11 +2082,8 @@ FullWidthRepeat2:
                     End If
 
                     If TryPeek(offset, c) AndAlso (HaveAM OrElse HavePM) Then
-                        If c = "M"c OrElse c = FULLWIDTH_LATIN_CAPITAL_LETTER_M OrElse
-                           c = "m"c OrElse c = FULLWIDTH_LATIN_SMALL_LETTER_M Then
-
-                            offset = GetWhitespaceLength(offset + 1)
-
+                        If c.IsAnyOf("M"c, FULLWIDTH_LATIN_CAPITAL_LETTER_M ,"m"c, FULLWIDTH_LATIN_SMALL_LETTER_M) Then
+                           offset = GetWhitespaceLength(offset + 1)
                         Else
                             GoTo baddate
                         End If
