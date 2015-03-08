@@ -8,34 +8,47 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     /// <summary>
-    /// Values returned from StringBreaker routines.
-    /// Optimized for short strings with up to 4 spans.
-    /// Each span is encoded in a byte using 6 bits for a length and 2 bits as the gap.
+    /// Values returned from <see cref="StringBreaker"/> routines.
+    /// Optimized for short strings with a handful of spans.
+    /// Each span is encoded in two bitfields 'gap' and 'length' and these
+    /// bitfields are stored in a 32-bit bitmap.
     /// Falls back to a <see cref="List{T}"/> if the encoding won't work.
     /// </summary>
     internal struct StringBreaks
     {
         private readonly List<TextSpan> _spans;
-        private readonly FourBytes _encodedSpans;
+        private readonly EncodedSpans _encodedSpans;
 
-        private const int MaxGap = 3;
-        private const int MaxLength = 63;
+        // These two values may be adjusted. The remaining constants are
+        // derived from them. The values are chosen to minimize the number
+        // of fallbacks during normal typing. With 5 total bits per span, we
+        // can encode up to 6 spans, each as long as 15 chars with 0 or 1 char
+        // gap. This is sufficient for the vast majority of framework symbols.
+        private const int BitsForGap = 1;
+        private const int BitsForLength = 4;
 
-        private unsafe struct FourBytes
+        private const int BitsPerEncodedSpan = BitsForGap + BitsForLength;
+        private const int MaxShortSpans = 32 / BitsPerEncodedSpan;
+        private const int MaxGap = (1 << BitsForGap) - 1;
+        private const int MaxLength = (1 << BitsForLength) - 1;
+
+        private struct EncodedSpans
         {
-            private fixed byte _bytes[4];
+            private const uint Mask = (1u << BitsPerEncodedSpan) - 1u;
+            private uint _value;
 
             public byte this[int index]
             {
                 get
                 {
-                    Debug.Assert(index >= 0 && index < 4);
-                    fixed (byte* b = _bytes) return b[index];
+                    Debug.Assert(index >= 0 && index < MaxShortSpans);
+                    return (byte)((_value >> (index * BitsPerEncodedSpan)) & Mask);
                 }
                 set
                 {
-                    Debug.Assert(index >= 0 && index < 4);
-                    fixed (byte* b = _bytes) b[index] = value;
+                    Debug.Assert(index >= 0 && index < MaxShortSpans);
+                    int shift = index * BitsPerEncodedSpan;
+                    _value = (_value & ~(Mask << shift)) | ((uint)value << shift);
                 }
             }
         }
@@ -45,63 +58,64 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             Debug.Assert(text != null);
             Debug.Assert(spanGenerator != null);
 
-            if (text.Length == 0)
-            {
-                return default(StringBreaks);
-            }
+            EncodedSpans encodedSpans;
+            return TryEncodeSpans(text, spanGenerator, out encodedSpans)
+                ? new StringBreaks(encodedSpans)
+                : new StringBreaks(CreateFallbackList(text, spanGenerator));
+        }
 
-            int b = 0;
-            FourBytes encodedBytes;
-            for (int i = 0; i < text.Length;)
+        private static bool TryEncodeSpans(string text, Func<string, int, TextSpan> spanGenerator, out EncodedSpans encodedSpans)
+        {
+            encodedSpans = default(EncodedSpans);
+            for (int start = 0, b = 0; start < text.Length; )
             {
-                var span = spanGenerator(text, i);
-                if (span.Length == 0)
+                var span = spanGenerator(text, start);
+                if (span.IsEmpty)
                 {
                     // All done
                     break;
                 }
 
-                Debug.Assert(span.Start >= i, "Bad generator.");
+                int gap = span.Start - start;
+                Debug.Assert(gap >= 0, "Bad generator.");
 
-                if (b < 4)
+                if (b >= MaxShortSpans ||
+                    span.Length > MaxLength ||
+                    gap > MaxGap)
                 {
-                    int gap = span.Start - i;
-                    if (span.Length <= MaxLength && gap <= MaxGap)
-                    {
-                        encodedBytes[b++] = Encode(gap, span.Length);
-                        i = span.End;
-                        continue;
-                    }
+                    // Too many spans, or span cannot be encoded.
+                    return false;
                 }
 
-                return CreateFallback(text, spanGenerator);
+                encodedSpans[b++] = Encode(gap, span.Length);
+                start = span.End;
             }
 
-            return new StringBreaks(encodedBytes);
+            return true;
         }
 
-        private static StringBreaks CreateFallback(string text, Func<string, int, TextSpan> spanGenerator)
+        private static List<TextSpan> CreateFallbackList(string text, Func<string, int, TextSpan> spanGenerator)
         {
             List<TextSpan> list = new List<TextSpan>();
-            for (int i = 0; i < text.Length;)
+            for (int start = 0; start < text.Length;)
             {
-                var span = spanGenerator(text, i);
-                if (span.Length == 0)
+                var span = spanGenerator(text, start);
+                if (span.IsEmpty)
                 {
                     // All done
                     break;
                 }
 
-                Debug.Assert(span.Start >= i, "Bad generator.");
+                Debug.Assert(span.Start >= start, "Bad generator.");
 
                 list.Add(span);
-                i = span.End;
+                start = span.End;
             }
 
-            return new StringBreaks(list);
+            return list;
         }
 
-        private StringBreaks(FourBytes encodedSpans)
+        private StringBreaks(EncodedSpans encodedSpans)
         {
             this._encodedSpans = encodedSpans;
             this._spans = null;
@@ -109,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private StringBreaks(List<TextSpan> spans)
         {
-            this._encodedSpans = default(FourBytes);
+            this._encodedSpans = default(EncodedSpans);
             this._spans = spans;
         }
 
@@ -123,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
 
                 int i;
-                for (i = 0; i < 4; i++)
+                for (i = 0; i < MaxShortSpans; i++)
                 {
                     if (_encodedSpans[i] == 0) break;
                 }
@@ -138,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 if (index < 0)
                 {
-                    throw new IndexOutOfRangeException("index");
+                    throw new IndexOutOfRangeException(nameof(index));
                 }
 
                 if (_spans != null)
@@ -146,12 +160,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return _spans[index];
                 }
 
-                for (int i = 0, start = 0; ; i++)
+                for (int i = 0, start = 0; i < MaxShortSpans; i++)
                 {
                     byte b = _encodedSpans[i];
                     if (b == 0)
                     {
-                        throw new IndexOutOfRangeException("index");
+                        break;
                     }
 
                     start += DecodeGap(b);
@@ -163,19 +177,21 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                     start += length;
                 }
+
+                throw new IndexOutOfRangeException(nameof(index));
             }
         }
 
         private static byte Encode(int gap, int length)
         {
-            Debug.Assert(gap >= 0 && gap < MaxGap);
-            Debug.Assert(length >= 0 && length < MaxLength);
-            return unchecked((byte)((gap << 6) | length));
+            Debug.Assert(gap >= 0 && gap <= MaxGap);
+            Debug.Assert(length >= 0 && length <= MaxLength);
+            return unchecked((byte)((gap << BitsForLength) | length));
         }
 
-        private static int DecodeLength(byte b) => b & 0x3F;
+        private static int DecodeLength(byte b) => b & MaxLength;
 
-        private static int DecodeGap(byte b) => b >> 6;
+        private static int DecodeGap(byte b) => b >> BitsForLength;
     }
 
     internal static class StringBreaker
@@ -183,16 +199,16 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Breaks an identifier string into constituent parts.
         /// </summary>
-        public static StringBreaks BreakIntoCharacterParts(string identifier) => StringBreaks.Create(identifier, CharacterPartsGenerator);
+        public static StringBreaks BreakIntoCharacterParts(string identifier) => StringBreaks.Create(identifier, s_characterPartsGenerator);
 
         /// <summary>
         /// Breaks an identifier string into constituent parts.
         /// </summary>
-        public static StringBreaks BreakIntoWordParts(string identifier) => StringBreaks.Create(identifier, WordPartsGenerator);
+        public static StringBreaks BreakIntoWordParts(string identifier) => StringBreaks.Create(identifier, s_wordPartsGenerator);
 
-        private static TextSpan CharacterPartsGenerator(string identifier, int start) => GenerateSpan(identifier, start, word: false);
+        private static readonly Func<string, int, TextSpan> s_characterPartsGenerator = (identifier, start) => GenerateSpan(identifier, start, word: false);
 
-        private static TextSpan WordPartsGenerator(string identifier, int start) => GenerateSpan(identifier, start, word: true);
+        private static readonly Func<string, int, TextSpan> s_wordPartsGenerator = (identifier, start) => GenerateSpan(identifier, start, word: true);
 
         public static TextSpan GenerateSpan(string identifier, int wordStart, bool word)
         {
