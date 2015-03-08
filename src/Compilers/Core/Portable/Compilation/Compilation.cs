@@ -1362,7 +1362,7 @@ namespace Microsoft.CodeAnalysis
         /// Emit the IL for the compiled source code into the specified stream.
         /// </summary>
         /// <param name="peStreamProvider">Provides the PE stream the compiler will write to.</param>
-        /// <param name="pdbStreamProvider">Provides the PDB stream the compiler will write to.</param>
+        /// <param name="pdbOutputInfo">Provides the PDB stream the compiler will write to.</param>
         /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
         /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).  
         /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
@@ -1372,7 +1372,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="cancellationToken">To cancel the emit process.</param>
         internal EmitResult Emit(
             EmitStreamProvider peStreamProvider,
-            EmitStreamProvider pdbStreamProvider,
+            Cci.PdbOutputInfo pdbOutputInfo,
             Stream xmlDocumentationStream = null,
             Stream win32Resources = null,
             IEnumerable<ResourceDescription> manifestResources = null,
@@ -1382,7 +1382,7 @@ namespace Microsoft.CodeAnalysis
         {
             return Emit(
                 peStreamProvider,
-                pdbStreamProvider,
+                pdbOutputInfo,
                 xmlDocumentationStream,
                 win32Resources,
                 manifestResources,
@@ -1493,7 +1493,7 @@ namespace Microsoft.CodeAnalysis
         {
             return Emit(
                 new SimpleEmitStreamProvider(peStream),
-                pdbStream != null ? new SimpleEmitStreamProvider(pdbStream) : null,
+                new Cci.PdbOutputInfo(pdbStream),
                 xmlDocumentationStream,
                 win32Resources,
                 manifestResources,
@@ -1510,7 +1510,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if emit succeeded.</returns>
         internal EmitResult Emit(
             EmitStreamProvider peStreamProvider,
-            EmitStreamProvider pdbStreamProvider,
+            Cci.PdbOutputInfo pdbOutputInfo,
             Stream xmlDocumentationStream,
             Stream win32Resources,
             IEnumerable<ResourceDescription> manifestResources,
@@ -1567,7 +1567,7 @@ namespace Microsoft.CodeAnalysis
                     moduleBeingBuilt,
                     win32Resources,
                     xmlDocumentationStream,
-                    generateDebugInfo: pdbStreamProvider != null,
+                    generateDebugInfo: pdbOutputInfo.IsValid,
                     diagnostics: diagnostics,
                     filterOpt: null,
                     cancellationToken: cancellationToken))
@@ -1587,7 +1587,7 @@ namespace Microsoft.CodeAnalysis
                 bool success = SerializeToPeStream(
                     moduleBeingBuilt,
                     peStreamProvider,
-                    pdbStreamProvider,
+                    pdbOutputInfo,
                     options.PdbFilePath,
                     (testData != null) ? testData.SymWriterFactory : null,
                     diagnostics,
@@ -1606,7 +1606,7 @@ namespace Microsoft.CodeAnalysis
         internal bool SerializeToPeStream(
             CommonPEModuleBuilder moduleBeingBuilt,
             EmitStreamProvider peStreamProvider,
-            EmitStreamProvider pdbStreamProvider,
+            Cci.PdbOutputInfo pdbOutputInfo,
             string pdbFileName,
             Func<object> testSymWriterFactory,
             DiagnosticBag diagnostics,
@@ -1621,24 +1621,10 @@ namespace Microsoft.CodeAnalysis
             }
             Debug.Assert(peStream.CanWrite);
 
-            Stream pdbStream = null;
-            if (pdbStreamProvider != null)
-            {
-                pdbStream = pdbStreamProvider.GetStream(diagnostics);
-                if (pdbStream == null)
-                {
-                    Debug.Assert(diagnostics.HasAnyErrors());
-                    return false;
-                }
-
-                Debug.Assert(pdbStream.CanWrite);
-            }
-
             return SerializeToPeStream(
                 moduleBeingBuilt,
                 peStream,
-                pdbFileName,
-                pdbStream,
+                pdbOutputInfo,
                 testSymWriterFactory,
                 diagnostics,
                 metadataOnly,
@@ -1648,15 +1634,13 @@ namespace Microsoft.CodeAnalysis
         internal bool SerializeToPeStream(
             CommonPEModuleBuilder moduleBeingBuilt,
             Stream executableStream,
-            string pdbFileName,
-            Stream pdbStream,
+            Cci.PdbOutputInfo pdbOutputInfo,
             Func<object> testSymWriterFactory,
             DiagnosticBag diagnostics,
             bool metadataOnly,
             CancellationToken cancellationToken)
         {
             Debug.Assert(executableStream.CanWrite);
-            Debug.Assert(pdbStream == null || pdbStream.CanWrite);
 
             using (Logger.LogBlock(FunctionId.Common_Compilation_SerializeToPeStream, message: this.AssemblyName, cancellationToken: cancellationToken))
             {
@@ -1666,6 +1650,7 @@ namespace Microsoft.CodeAnalysis
                 Stream signingInputStream = null;
                 DiagnosticBag metadataDiagnostics = null;
                 DiagnosticBag pdbBag = null;
+                Stream pdbOriginalStream = null;
                 Stream pdbTempStream = null;
                 Stream peTempStream = null;
 
@@ -1673,20 +1658,21 @@ namespace Microsoft.CodeAnalysis
 
                 try
                 {
-                    if (pdbStream != null)
+                    if (pdbOutputInfo.IsValid)
                     {
                         // Native PDB writer is able to update an existing stream.
                         // It checks for length to determine whether the given stream has existing data to be updated,
                         // or whether it should start writing PDB data from scratch. Thus if not writing to a seekable empty stream ,
                         // let's create an in-memory temp stream for the PDB writer and copy all data to the actual stream at once at the end.
-                        if (!pdbStream.CanSeek || pdbStream.Length != 0)
+                        if (pdbOutputInfo.Stream != null && (!pdbOutputInfo.Stream.CanSeek || pdbOutputInfo.Stream.Length != 0))
                         {
+                            pdbOriginalStream = pdbOutputInfo.Stream;
                             pdbTempStream = new MemoryStream();
+                            pdbOutputInfo = pdbOutputInfo.WithStream(pdbTempStream);
                         }
 
                         nativePdbWriter = new Cci.PdbWriter(
-                            pdbFileName ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
-                            pdbTempStream ?? pdbStream,
+                            pdbOutputInfo,
                             testSymWriterFactory);
                     }
 
@@ -1738,10 +1724,10 @@ namespace Microsoft.CodeAnalysis
                         {
                             // Note: Native PDB writer may operate on the underlying stream during disposal.
                             // So close it here before we read data from the underlying stream.
-                            nativePdbWriter?.Close();
+                            nativePdbWriter.WritePdbToOutput();
 
                             pdbTempStream.Position = 0;
-                            pdbTempStream.CopyTo(pdbStream);
+                            pdbTempStream.CopyTo(pdbOriginalStream);
                         }
                     }
                     catch (Cci.PdbWritingException ex)
