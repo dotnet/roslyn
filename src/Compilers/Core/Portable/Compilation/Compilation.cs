@@ -1617,35 +1617,6 @@ namespace Microsoft.CodeAnalysis
             bool metadataOnly,
             CancellationToken cancellationToken)
         {
-            Stream peStream = peStreamProvider.GetStream(diagnostics);
-            if (peStream == null)
-            {
-                Debug.Assert(diagnostics.HasAnyErrors());
-                return false;
-            }
-            Debug.Assert(peStream.CanWrite);
-
-            return SerializeToPeStream(
-                moduleBeingBuilt,
-                peStream,
-                pdbOutputInfo,
-                testSymWriterFactory,
-                diagnostics,
-                metadataOnly,
-                cancellationToken);
-        }
-
-        internal bool SerializeToPeStream(
-            CommonPEModuleBuilder moduleBeingBuilt,
-            Stream executableStream,
-            Cci.PdbOutputInfo pdbOutputInfo,
-            Func<object> testSymWriterFactory,
-            DiagnosticBag diagnostics,
-            bool metadataOnly,
-            CancellationToken cancellationToken)
-        {
-            Debug.Assert(executableStream.CanWrite);
-
             cancellationToken.ThrowIfCancellationRequested();
 
             Cci.PdbWriter nativePdbWriter = null;
@@ -1654,6 +1625,7 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag pdbBag = null;
             Stream pdbOriginalStream = null;
             Stream pdbTempStream = null;
+            Stream peStream = null;
             Stream peTempStream = null;
 
             bool deterministic = this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
@@ -1678,31 +1650,43 @@ namespace Microsoft.CodeAnalysis
                         testSymWriterFactory);
                 }
 
-                // Signing can only be done to on-disk files. This is a limitation of the CLR APIs which we use 
-                // to perform strong naming. If this binary is configured to be signed, create a temp file, output to that
-                // then stream that to the stream that this method was called with. Otherwise output to the
-                // stream that this method was called with.
-
-                Stream peStream;
-                if (!metadataOnly && IsRealSigned)
+                Func<Stream> getPeStream = () =>
                 {
-                    Debug.Assert(Options.StrongNameProvider != null);
+                    peStream = peStreamProvider.GetStream(diagnostics);
+                    if (peStream == null)
+                    {
+                        Debug.Assert(diagnostics.HasAnyErrors());
+                        return null;
+                    }
 
-                    signingInputStream = Options.StrongNameProvider.CreateInputStream();
-                    peStream = signingInputStream;
-                }
-                else
-                {
-                    signingInputStream = null;
-                    peStream = executableStream;
-                }
+                    // Signing can only be done to on-disk files. This is a limitation of the CLR APIs which we use 
+                    // to perform strong naming. If this binary is configured to be signed, create a temp file, output to that
+                    // then stream that to the stream that this method was called with. Otherwise output to the
+                    // stream that this method was called with.
+                    Stream retStream;
+                    if (!metadataOnly && ShouldBeSigned)
+                    {
+                        Debug.Assert(Options.StrongNameProvider != null);
 
-                // when in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
-                // If the underlying stream isn't readable and seekable, we need to use a temp stream.
-                if (!peStream.CanSeek || deterministic && !peStream.CanRead)
-                {
-                    peTempStream = new MemoryStream();
-                }
+                        signingInputStream = Options.StrongNameProvider.CreateInputStream();
+                        retStream = signingInputStream;
+                    }
+                    else
+                    {
+                        signingInputStream = null;
+                        retStream = peStream;
+                    }
+
+                    // when in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
+                    // If the underlying stream isn't readable and seekable, we need to use a temp stream.
+                    if (!retStream.CanSeek || deterministic && !retStream.CanRead)
+                    {
+                        peTempStream = new MemoryStream();
+                        return peTempStream;
+                    }
+
+                    return retStream;
+                };
 
                 metadataDiagnostics = DiagnosticBag.GetInstance();
                 try
@@ -1710,7 +1694,7 @@ namespace Microsoft.CodeAnalysis
                     Cci.PeWriter.WritePeToStream(
                         new EmitContext((Cci.IModule)moduleBeingBuilt, null, metadataDiagnostics),
                         this.MessageProvider,
-                        peTempStream ?? peStream,
+                        getPeStream,
                         nativePdbWriter,
                         metadataOnly,
                         deterministic,
@@ -1754,13 +1738,13 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                if (signingInputStream != null)
+                if (signingInputStream != null && peStream != null)
                 {
                     Debug.Assert(Options.StrongNameProvider != null);
 
                     try
                     {
-                        Options.StrongNameProvider.SignAssembly(StrongNameKeys, signingInputStream, executableStream);
+                        Options.StrongNameProvider.SignAssembly(StrongNameKeys, signingInputStream, peStream);
                     }
                     catch (IOException ex)
                     {

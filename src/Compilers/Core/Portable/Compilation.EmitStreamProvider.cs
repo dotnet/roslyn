@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
             public abstract Stream GetStream(DiagnosticBag diagnostics);
         }
 
-        private sealed class SimpleEmitStreamProvider : EmitStreamProvider
+        internal sealed class SimpleEmitStreamProvider : EmitStreamProvider
         {
             private readonly Stream _stream;
 

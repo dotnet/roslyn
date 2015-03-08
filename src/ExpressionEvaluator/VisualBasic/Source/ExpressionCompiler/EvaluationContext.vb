@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Cci.PeWriter.WritePeToStream(
                         New EmitContext(DirectCast(moduleBuilder, Cci.IModule), Nothing, diagnostics),
                         context.MessageProvider,
-                        stream,
+                        Function() stream,
                         nativePdbWriterOpt:=Nothing,
                         allowMissingMethodBodies:=False,
                         deterministic:=False,
@@ -395,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Cci.PeWriter.WritePeToStream(
                         New EmitContext(DirectCast(modulebuilder, Cci.IModule), Nothing, diagnostics),
                         context.MessageProvider,
-                        stream,
+                        Function() stream,
                         nativePdbWriterOpt:=Nothing,
                         allowMissingMethodBodies:=False,
                         deterministic:=False,
@@ -443,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Cci.PeWriter.WritePeToStream(
                         New EmitContext(DirectCast(modulebuilder, Cci.IModule), Nothing, diagnostics),
                         context.MessageProvider,
-                        stream,
+                        Function() stream,
                         nativePdbWriterOpt:=Nothing,
                         allowMissingMethodBodies:=False,
                         deterministic:=False,
