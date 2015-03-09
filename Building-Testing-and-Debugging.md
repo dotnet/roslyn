@@ -61,19 +61,8 @@ From the command prompt, change directory to `<clone dir>` and run `Src\.nuget\n
 
 This ensures that all of the references and tools needed to build Roslyn are present on the computer.  Because we use toolset packages, it's important to do this before opening the solution.
 
-## Building the command line compilers
-In order to build the command line compilers, you can simply open "Src\RoslynLight.sln" from the directory where you created your git clone.  Alternatively, you can build from the command line using `msbuild Src\RoslynLight.sln`.  If you want to debug the C# compiler, you should set the “Compilers\CSharp\csc” project as the startup project.  For the Visual Basic compiler, it’s the "Compilers\VisualBasic\vbc" project.
-
-Note that in most situations the compilers will NOT be invoked through csc and vbc for performance reasons, but they are the simplest way to debug.  Other entry points include:
-
-* csc2.exe and vbc2.exe.  These are extremely small native executables that simply start or connect to a VBCSCompiler.exe process and send command line arguments to it.  This allows the VBCSCompiler.exe process to reuse loaded assemblies for multiple projects.
-* MSBuild tasks. In the Compilers\Core\MSBuildTasks project there are MSBuild tasks that also connect to VBCSCompiler.exe and send the arguments across.
-* Custom hosts of the API.  This includes the Visual Studio IDE experience calling into the compiler, as well as any other application written using the SDK.  Debugging the binaries used by Visual Studio is covered below.
-
-NOTE: By default VBCSCompiler.exe will run for 3 hours after starting.  If you are making changes and rebuilding it often, you can change the timeout by editing Src\Compilers\Core\VBCSCompiler\App.config 
-
 ## Deploying changes to Visual Studio
-When you build using VS 2015 the updates will be deployed to the Roslyn Hive and ready for debugging.
+When you build using VS 2015 the updates will be deployed to the Roslyn Hive and ready for debugging.  Note that only the components up to the Workspaces layer will be deployed.  
 
 **Debugging Visual Studio**
 
