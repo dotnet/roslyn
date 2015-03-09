@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
         public struct ArityEnumerator : IEnumerator<int>
         {
             private int _current;
-            private int _low32bits;
+            private readonly int _low32bits;
             private int[] _arities;
 
             private const int resetValue = -1;
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
-        public ICollection<String> Names => _nameMap.Keys;
+        public ICollection<string> Names => _nameMap.Keys;
 
         public int Count => _nameMap.Count;
 
@@ -264,10 +264,6 @@ namespace Microsoft.CodeAnalysis
         /// If <paramref name="uniqueSymbol"/> is set, then <paramref name="arities"/> will be null.
         /// The only arity in that case will be encoded in the symbol. 
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="arities"></param>
-        /// <param name="uniqueSymbol"></param>
-        /// <returns></returns>
         public bool TryGetAritiesAndUniqueSymbol(
             string name,
             out IArityEnumerable arities,

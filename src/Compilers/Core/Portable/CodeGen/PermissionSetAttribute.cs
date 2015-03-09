@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Emit;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.Cci;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// 3) Convert each byte in the file content into two bytes containing hexa-decimal characters (see method <see cref="ConvertToHex"/>).
     /// 4) Replacing the 'File = fileName' named argument with 'Hex = hexFileContent' argument, where hexFileContent is the converted output from step 3) above.
     /// </remarks>
-    internal class PermissionSetAttributeWithFileReference : Cci.ICustomAttribute
+    internal class PermissionSetAttributeWithFileReference : ICustomAttribute
     {
-        private readonly Cci.ICustomAttribute _sourceAttribute;
-        private string _resolvedPermissionSetFilePath;
+        private readonly ICustomAttribute _sourceAttribute;
+        private readonly string _resolvedPermissionSetFilePath;
         internal static readonly string FilePropertyName = "File";
         internal static readonly string HexPropertyName = "Hex";
 
-        public PermissionSetAttributeWithFileReference(Cci.ICustomAttribute sourceAttribute, string resolvedPermissionSetFilePath)
+        public PermissionSetAttributeWithFileReference(ICustomAttribute sourceAttribute, string resolvedPermissionSetFilePath)
         {
             Debug.Assert(resolvedPermissionSetFilePath != null);
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Zero or more positional arguments for the attribute constructor.
         /// </summary>
-        public ImmutableArray<Cci.IMetadataExpression> GetArguments(EmitContext context)
+        public ImmutableArray<IMetadataExpression> GetArguments(EmitContext context)
         {
             return _sourceAttribute.GetArguments(context);
         }
@@ -50,16 +50,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// A reference to the constructor that will be used to instantiate this custom attribute during execution (if the attribute is inspected via Reflection).
         /// </summary>
-        public Cci.IMethodReference Constructor(EmitContext context)
+        public IMethodReference Constructor(EmitContext context)
             => _sourceAttribute.Constructor(context);
 
         /// <summary>
         /// Zero or more named arguments that specify values for fields and properties of the attribute.
         /// </summary>
-        public ImmutableArray<Cci.IMetadataNamedArgument> GetNamedArguments(EmitContext context)
+        public ImmutableArray<IMetadataNamedArgument> GetNamedArguments(EmitContext context)
         {
             // Perform fixup 
-            Cci.ITypeReference stringType = context.Module.GetPlatformType(Cci.PlatformType.SystemString, context);
+            ITypeReference stringType = context.Module.GetPlatformType(PlatformType.SystemString, context);
 
 #if DEBUG
             // Must have exactly 1 named argument.
@@ -69,11 +69,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // Named argument must be 'File' property of string type
             var fileArg = namedArgs.First();
             Debug.Assert(fileArg.ArgumentName == FilePropertyName);
-            Debug.Assert(context.Module.IsPlatformType(fileArg.Type, Cci.PlatformType.SystemString));
+            Debug.Assert(context.Module.IsPlatformType(fileArg.Type, PlatformType.SystemString));
 
             // Named argument value must be a non-empty string
-            Debug.Assert(fileArg.ArgumentValue is Cci.IMetadataConstant);
-            var fileName = (string)((Cci.IMetadataConstant)fileArg.ArgumentValue).Value;
+            Debug.Assert(fileArg.ArgumentValue is IMetadataConstant);
+            var fileName = (string)((IMetadataConstant)fileArg.ArgumentValue).Value;
             Debug.Assert(!String.IsNullOrEmpty(fileName));
 
             // PermissionSetAttribute type must have a writable public string type property member 'Hex'
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Synthesize a named attribute argument "Hex = hexFileContent".
-            return ImmutableArray.Create<Cci.IMetadataNamedArgument>(new HexPropertyMetadataNamedArgument(stringType, new MetadataConstant(stringType, hexFileContent)));
+            return ImmutableArray.Create<IMetadataNamedArgument>(new HexPropertyMetadataNamedArgument(stringType, new MetadataConstant(stringType, hexFileContent)));
         }
 
         // internal for testing purposes.
@@ -151,28 +151,27 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// The type of the attribute. For example System.AttributeUsageAttribute.
         /// </summary>
-        public Cci.ITypeReference GetType(EmitContext context) => _sourceAttribute.GetType(context);
+        public ITypeReference GetType(EmitContext context) => _sourceAttribute.GetType(context);
 
         public bool AllowMultiple => _sourceAttribute.AllowMultiple;
 
-        private struct HexPropertyMetadataNamedArgument : Cci.IMetadataNamedArgument
+        private struct HexPropertyMetadataNamedArgument : IMetadataNamedArgument
         {
-            private readonly Cci.ITypeReference _type;
-            private readonly Cci.IMetadataExpression _value;
+            private readonly ITypeReference _type;
 
-            public HexPropertyMetadataNamedArgument(Cci.ITypeReference type, Cci.IMetadataExpression value)
+            public HexPropertyMetadataNamedArgument(ITypeReference type, IMetadataExpression value)
             {
                 _type = type;
-                _value = value;
+                ArgumentValue = value;
             }
 
             public string ArgumentName { get { return HexPropertyName; } }
-            public Cci.IMetadataExpression ArgumentValue { get { return _value; } }
+            public IMetadataExpression ArgumentValue { get; }
             public bool IsField { get { return false; } }
 
-            Cci.ITypeReference Cci.IMetadataExpression.Type { get { return _type; } }
+            ITypeReference IMetadataExpression.Type { get { return _type; } }
 
-            void Cci.IMetadataExpression.Dispatch(Cci.MetadataVisitor visitor)
+            void IMetadataExpression.Dispatch(MetadataVisitor visitor)
             {
                 visitor.Visit(this);
             }
@@ -184,15 +183,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal class PermissionSetFileReadException : Exception
     {
-        private readonly string _file;
-
         public PermissionSetFileReadException(string message, string file)
             : base(message)
         {
-            _file = file;
+            FileName = file;
         }
 
-        public string FileName => _file;
+        public string FileName { get; }
 
         public string PropertyName => PermissionSetAttributeWithFileReference.FilePropertyName;
     }

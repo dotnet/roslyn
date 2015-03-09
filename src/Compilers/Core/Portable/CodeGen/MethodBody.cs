@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
     {
         private readonly Cci.IMethodDefinition _parent;
 
-        private readonly byte[] _ilBits;
         private readonly ushort _maxStack;
         private readonly ImmutableArray<Cci.ILocalDefinition> _locals;
         private readonly ImmutableArray<Cci.ExceptionHandlerRegion> _exceptionHandlers;
@@ -30,10 +29,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly Cci.AsyncMethodBodyDebugInfo _asyncMethodDebugInfo;
 
         // Debug information emitted to Debug PDBs supporting EnC:
-        private readonly int _methodOrdinal;
         private readonly ImmutableArray<EncHoistedLocalInfo> _stateMachineHoistedLocalSlots;
-        private readonly ImmutableArray<LambdaDebugInfo> _lambdaDebugInfo;
-        private readonly ImmutableArray<ClosureDebugInfo> _closureDebugInfo;
+        public int MethodOrdinal { get; }
+        public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }
+        public ImmutableArray<ClosureDebugInfo> ClosureDebugInfo { get; }
 
         // Data used when emitting EnC delta:
         private readonly ImmutableArray<Cci.ITypeReference> _stateMachineAwaiterSlots;
@@ -62,11 +61,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(!exceptionHandlers.IsDefault);
             Debug.Assert(!localScopes.IsDefault);
 
-            _ilBits = ilBits;
+            IL = ilBits;
             _asyncMethodDebugInfo = asyncMethodDebugInfo;
             _maxStack = maxStack;
             _parent = parent;
-            _methodOrdinal = methodOrdinal;
+            MethodOrdinal = methodOrdinal;
             _locals = locals;
             _sequencePoints = sequencePoints;
             _debugDocumentProvider = debugDocumentProvider;
@@ -74,8 +73,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _localScopes = localScopes;
             _hasDynamicLocalVariables = hasDynamicLocalVariables;
             _importScopeOpt = importScopeOpt;
-            _lambdaDebugInfo = lambdaDebugInfo;
-            _closureDebugInfo = closureDebugInfo;
+            LambdaDebugInfo = lambdaDebugInfo;
+            ClosureDebugInfo = closureDebugInfo;
             _stateMachineTypeNameOpt = stateMachineTypeNameOpt;
             _stateMachineHoistedLocalScopes = stateMachineHoistedLocalScopes;
             _stateMachineHoistedLocalSlots = stateMachineHoistedLocalSlots;
@@ -99,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         ushort Cci.IMethodBody.MaxStack => _maxStack;
 
-        public byte[] IL => _ilBits;
+        public byte[] IL { get; }
 
         public ImmutableArray<Cci.SequencePoint> GetSequencePoints()
         {
@@ -134,10 +133,5 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         bool Cci.IMethodBody.HasDynamicLocalVariables => _hasDynamicLocalVariables;
 
-        public int MethodOrdinal => _methodOrdinal;
-
-        public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo => _lambdaDebugInfo;
-
-        public ImmutableArray<ClosureDebugInfo> ClosureDebugInfo => _closureDebugInfo;
     }
 }

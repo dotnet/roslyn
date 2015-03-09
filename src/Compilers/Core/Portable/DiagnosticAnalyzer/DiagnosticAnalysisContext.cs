@@ -156,30 +156,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public abstract class CompilationStartAnalysisContext
     {
-        private readonly Compilation _compilation;
-        private readonly AnalyzerOptions _options;
-        private readonly CancellationToken _cancellationToken;
-
         /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> that is the subject of the analysis.
         /// </summary>
-        public Compilation Compilation { get { return _compilation; } }
+        public Compilation Compilation { get; }
 
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
-        public AnalyzerOptions Options { get { return _options; } }
+        public AnalyzerOptions Options { get; }
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken { get; }
 
         protected CompilationStartAnalysisContext(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            _compilation = compilation;
-            _options = options;
-            _cancellationToken = cancellationToken;
+            Compilation = compilation;
+            Options = options;
+            CancellationToken = cancellationToken;
         }
 
         /// <summary>
@@ -269,32 +265,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public struct CompilationAnalysisContext
     {
-        private readonly Compilation _compilation;
-        private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
-        private readonly CancellationToken _cancellationToken;
 
         /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> that is the subject of the analysis.
         /// </summary>
-        public Compilation Compilation { get { return _compilation; } }
+        public Compilation Compilation { get; }
 
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
-        public AnalyzerOptions Options { get { return _options; } }
+        public AnalyzerOptions Options { get; }
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken { get; }
 
         public CompilationAnalysisContext(Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
-            _compilation = compilation;
-            _options = options;
+            Compilation = compilation;
+            Options = options;
             _reportDiagnostic = reportDiagnostic;
-            _cancellationToken = cancellationToken;
+            CancellationToken = cancellationToken;
         }
 
         /// <summary>
@@ -317,32 +310,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public struct SemanticModelAnalysisContext
     {
-        private readonly SemanticModel _semanticModel;
-        private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
-        private readonly CancellationToken _cancellationToken;
 
         /// <summary>
         /// <see cref="CodeAnalysis.SemanticModel"/> that is the subject of the analysis.
         /// </summary>
-        public SemanticModel SemanticModel { get { return _semanticModel; } }
+        public SemanticModel SemanticModel { get; }
 
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
-        public AnalyzerOptions Options { get { return _options; } }
+        public AnalyzerOptions Options { get; }
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken { get; }
 
         public SemanticModelAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
-            _semanticModel = semanticModel;
-            _options = options;
+            SemanticModel = semanticModel;
+            Options = options;
             _reportDiagnostic = reportDiagnostic;
-            _cancellationToken = cancellationToken;
+            CancellationToken = cancellationToken;
         }
 
         /// <summary>
@@ -365,39 +355,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public struct SymbolAnalysisContext
     {
-        private readonly ISymbol _symbol;
-        private readonly Compilation _compilation;
-        private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
-        private readonly CancellationToken _cancellationToken;
 
         /// <summary>
         /// <see cref="ISymbol"/> that is the subject of the analysis.
         /// </summary>
-        public ISymbol Symbol { get { return _symbol; } }
+        public ISymbol Symbol { get; }
 
         /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="ISymbol"/>.
         /// </summary>
-        public Compilation Compilation { get { return _compilation; } }
+        public Compilation Compilation { get; }
 
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
-        public AnalyzerOptions Options { get { return _options; } }
+        public AnalyzerOptions Options { get; }
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken { get; }
 
         public SymbolAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
-            _symbol = symbol;
-            _compilation = compilation;
-            _options = options;
+            Symbol = symbol;
+            Compilation = compilation;
+            Options = options;
             _reportDiagnostic = reportDiagnostic;
-            _cancellationToken = cancellationToken;
+            CancellationToken = cancellationToken;
         }
 
         /// <summary>
@@ -429,44 +415,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public abstract class CodeBlockStartAnalysisContext<TLanguageKindEnum> where TLanguageKindEnum : struct
     {
-        private readonly SyntaxNode _codeBlock;
-        private readonly ISymbol _owningSymbol;
-        private readonly SemanticModel _semanticModel;
-        private readonly AnalyzerOptions _options;
-        private readonly CancellationToken _cancellationToken;
-
         /// <summary>
         /// Method body or expression subjext to analysis.
         /// </summary>
-        public SyntaxNode CodeBlock { get { return _codeBlock; } }
+        public SyntaxNode CodeBlock { get; }
 
         /// <summary>
         /// <see cref="ISymbol"/> for which the code block provides a definition or value.
         /// </summary>
-        public ISymbol OwningSymbol { get { return _owningSymbol; } }
+        public ISymbol OwningSymbol { get; }
 
         /// <summary>
         /// <see cref="CodeAnalysis.SemanticModel"/> that can provide semantic information about the <see cref="SyntaxNode"/>s in the code block.
         /// </summary>
-        public SemanticModel SemanticModel { get { return _semanticModel; } }
+        public SemanticModel SemanticModel { get; }
 
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
-        public AnalyzerOptions Options { get { return _options; } }
+        public AnalyzerOptions Options { get; }
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken { get; }
 
         protected CodeBlockStartAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            _codeBlock = codeBlock;
-            _owningSymbol = owningSymbol;
-            _semanticModel = semanticModel;
-            _options = options;
-            _cancellationToken = cancellationToken;
+            CodeBlock = codeBlock;
+            OwningSymbol = owningSymbol;
+            SemanticModel = semanticModel;
+            Options = options;
+            CancellationToken = cancellationToken;
         }
 
         /// <summary>
@@ -504,46 +484,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public struct CodeBlockAnalysisContext
     {
-        private readonly SyntaxNode _codeBlock;
-        private readonly ISymbol _owningSymbol;
-        private readonly SemanticModel _semanticModel;
-        private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
-        private readonly CancellationToken _cancellationToken;
 
         /// <summary>
         /// Code block that is the subject of the analysis.
         /// </summary>
-        public SyntaxNode CodeBlock { get { return _codeBlock; } }
+        public SyntaxNode CodeBlock { get; }
 
         /// <summary>
         /// <see cref="ISymbol"/> for which the code block provides a definition or value.
         /// </summary>
-        public ISymbol OwningSymbol { get { return _owningSymbol; } }
+        public ISymbol OwningSymbol { get; }
 
         /// <summary>
         /// <see cref="CodeAnalysis.SemanticModel"/> that can provide semantic information about the <see cref="SyntaxNode"/>s in the code block.
         /// </summary>
-        public SemanticModel SemanticModel { get { return _semanticModel; } }
+        public SemanticModel SemanticModel { get; }
 
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
-        public AnalyzerOptions Options { get { return _options; } }
+        public AnalyzerOptions Options { get; }
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken { get; }
 
         public CodeBlockAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
-            _codeBlock = codeBlock;
-            _owningSymbol = owningSymbol;
-            _semanticModel = semanticModel;
-            _options = options;
+            CodeBlock = codeBlock;
+            OwningSymbol = owningSymbol;
+            SemanticModel = semanticModel;
+            Options = options;
             _reportDiagnostic = reportDiagnostic;
-            _cancellationToken = cancellationToken;
+            CancellationToken = cancellationToken;
         }
 
         /// <summary>
@@ -566,32 +541,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public struct SyntaxTreeAnalysisContext
     {
-        private readonly SyntaxTree _tree;
-        private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
-        private readonly CancellationToken _cancellationToken;
 
         /// <summary>
         /// <see cref="SyntaxTree"/> that is the subject of the analysis.
         /// </summary>
-        public SyntaxTree Tree { get { return _tree; } }
+        public SyntaxTree Tree { get; }
 
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
-        public AnalyzerOptions Options { get { return _options; } }
+        public AnalyzerOptions Options { get; }
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken { get; }
 
         public SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
-            _tree = tree;
-            _options = options;
+            Tree = tree;
+            Options = options;
             _reportDiagnostic = reportDiagnostic;
-            _cancellationToken = cancellationToken;
+            CancellationToken = cancellationToken;
         }
 
         /// <summary>
@@ -614,39 +586,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public struct SyntaxNodeAnalysisContext
     {
-        private readonly SyntaxNode _node;
-        private readonly SemanticModel _semanticModel;
-        private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
-        private readonly CancellationToken _cancellationToken;
 
         /// <summary>
         /// <see cref="SyntaxNode"/> that is the subject of the analysis.
         /// </summary>
-        public SyntaxNode Node { get { return _node; } }
+        public SyntaxNode Node { get; }
 
         /// <summary>
         /// <see cref="CodeAnalysis.SemanticModel"/> that can provide semantic information about the <see cref="SyntaxNode"/>.
         /// </summary>
-        public SemanticModel SemanticModel { get { return _semanticModel; } }
+        public SemanticModel SemanticModel { get; }
 
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
-        public AnalyzerOptions Options { get { return _options; } }
+        public AnalyzerOptions Options { get; }
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken { get; }
 
         public SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
-            _node = node;
-            _semanticModel = semanticModel;
-            _options = options;
+            Node = node;
+            SemanticModel = semanticModel;
+            Options = options;
             _reportDiagnostic = reportDiagnostic;
-            _cancellationToken = cancellationToken;
+            CancellationToken = cancellationToken;
         }
 
         /// <summary>
