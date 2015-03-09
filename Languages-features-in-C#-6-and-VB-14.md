@@ -27,8 +27,8 @@ The [VS2015 CTP 6](http://visualstudio.com/en-us/downloads/visual-studio-2015-ct
 | TypeOf IsNot | `If TypeOf x IsNot Customer Then …` | N/A | Added |
 | Expression-bodied members | `public double Dist => Sqrt(X * X + Y * Y);` | Added | No |
 | [Null propagation](http://roslyn.codeplex.com/discussions/540883) | `customer?.Orders?[5]` | Added | Added |
-| [String interpolation](http://roslyn.codeplex.com/discussions/570292) | `$"{p.Name} is {p.Age} years old."` | Added | Planned |
-| [nameof operator](http://roslyn.codeplex.com/discussions/570551) | `string s = nameof(Console.Write);` | Added | Planned |
+| [String interpolation](http://roslyn.codeplex.com/discussions/570292) | `$"{p.Name} is {p.Age} years old."` | Added | Added |
+| [nameof operator](http://roslyn.codeplex.com/discussions/570551) | `string s = nameof(Console.Write);` | Added | Added |
 | [#pragma](http://roslyn.codeplex.com/discussions/543476) | `#Disable Warning BC40008` | Added | Added |
 | Smart name resolution |    | N/A | Added | 
 | ReadWrite props can implement ReadOnly |   | Exists | Added |
