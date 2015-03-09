@@ -3109,7 +3109,7 @@ namespace Microsoft.CodeAnalysis
         {
             public static readonly StringTableDecoder Instance = new StringTableDecoder();
 
-            public StringTableDecoder() : base(System.Text.Encoding.UTF8) { }
+            private StringTableDecoder() : base(System.Text.Encoding.UTF8) { }
 
             public unsafe override string GetString(byte* bytes, int byteCount)
             {

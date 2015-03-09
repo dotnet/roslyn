@@ -11,7 +11,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -746,7 +745,7 @@ namespace Microsoft.Cci
 
         private uint GetCustomAttributeSignatureIndex(ICustomAttribute customAttribute)
         {
-            uint result = 0;
+            uint result;
             if (_customAtributeSignatureIndex.TryGetValue(customAttribute, out result))
             {
                 return result;
@@ -862,7 +861,7 @@ namespace Microsoft.Cci
 
         internal uint GetFieldSignatureIndex(IFieldReference fieldReference)
         {
-            uint result = 0;
+            uint result;
             ISpecializedFieldReference specializedFieldReference = fieldReference.AsSpecializedFieldReference;
             if (specializedFieldReference != null)
             {
@@ -920,7 +919,7 @@ namespace Microsoft.Cci
         private uint GetFileRefIndex(IModuleReference mref)
         {
             string key = mref.Name;
-            uint result = 0;
+            uint result;
             if (_fileRefIndex.TryGetValue(key, out result))
             {
                 return result;
@@ -1023,7 +1022,7 @@ namespace Microsoft.Cci
             ITypeDefinition parentTypeDef = memberRef.GetContainingType(Context).AsTypeDefinition(Context);
             if (parentTypeDef != null)
             {
-                uint parentTypeDefIndex = 0;
+                uint parentTypeDefIndex;
                 this.TryGetTypeDefIndex(parentTypeDef, out parentTypeDefIndex);
                 if (parentTypeDefIndex > 0)
                 {
@@ -1038,7 +1037,7 @@ namespace Microsoft.Cci
                     {
                         if (methodRef.AcceptsExtraArguments)
                         {
-                            uint methodIndex = 0;
+                            uint methodIndex;
                             if (this.TryGetMethodDefIndex(methodRef.GetResolvedMethod(Context), out methodIndex))
                             {
                                 return (methodIndex << 3) | 3;
@@ -1149,7 +1148,7 @@ namespace Microsoft.Cci
 
         internal uint GetMethodInstanceSignatureIndex(IGenericMethodInstanceReference methodInstanceReference)
         {
-            uint result = 0;
+            uint result;
             if (_methodInstanceSignatureIndex.TryGetValue(methodInstanceReference, out result))
             {
                 return result;
@@ -1172,7 +1171,7 @@ namespace Microsoft.Cci
 
         private uint GetMarshallingDescriptorIndex(IMarshallingInformation marshallingInformation)
         {
-            uint result = 0;
+            uint result;
             if (_marshallingDescriptorIndex.TryGetValue(marshallingInformation, out result))
             {
                 return result;
@@ -1211,7 +1210,7 @@ namespace Microsoft.Cci
 
         internal uint GetMethodSignatureIndex(IMethodReference methodReference)
         {
-            uint result = 0;
+            uint result;
             ISpecializedMethodReference specializedMethodReference = methodReference.AsSpecializedMethodReference;
             if (specializedMethodReference != null)
             {
@@ -1254,7 +1253,7 @@ namespace Microsoft.Cci
 
         internal virtual uint GetMethodToken(IMethodReference methodReference)
         {
-            uint methodDefIndex = 0;
+            uint methodDefIndex;
             IMethodDefinition methodDef = null;
             IUnitReference definingUnit = GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
             if (definingUnit != null && ReferenceEquals(definingUnit, this.module))
@@ -1319,7 +1318,7 @@ namespace Microsoft.Cci
         private uint GetPermissionSetIndex(ImmutableArray<ICustomAttribute> permissionSet)
         {
             MemoryStream sig = MemoryStream.GetInstance();
-            uint result = 0;
+            uint result;
             try
             {
                 BinaryWriter writer = new BinaryWriter(sig);
@@ -1359,7 +1358,7 @@ namespace Microsoft.Cci
 
         private uint GetPropertySignatureIndex(IPropertyDefinition propertyDef)
         {
-            uint result = 0;
+            uint result;
             if (_signatureIndex.TryGetValue(propertyDef, out result))
             {
                 return result;
@@ -1741,7 +1740,7 @@ namespace Microsoft.Cci
 
         private uint GetTypeDefOrRefCodedIndex(ITypeReference typeReference, bool treatRefAsPotentialTypeSpec)
         {
-            uint typeDefIndex = 0;
+            uint typeDefIndex;
             var typeDefinition = typeReference.AsTypeDefinition(this.Context);
             if ((typeDefinition != null) && this.TryGetTypeDefIndex(typeDefinition, out typeDefIndex))
             {
@@ -1860,7 +1859,7 @@ namespace Microsoft.Cci
 
         internal uint GetTypeSpecSignatureIndex(ITypeReference typeReference)
         {
-            uint result = 0;
+            uint result;
             if (_typeSpecSignatureIndex.TryGetValue(typeReference, out result))
             {
                 return result;
@@ -1896,7 +1895,7 @@ namespace Microsoft.Cci
 
         internal virtual uint GetTypeToken(ITypeReference typeReference)
         {
-            uint typeDefIndex = 0;
+            uint typeDefIndex;
             var typeDefinition = typeReference.AsTypeDefinition(this.Context);
             if ((typeDefinition != null) && this.TryGetTypeDefIndex(typeDefinition, out typeDefIndex))
             {
@@ -2027,10 +2026,7 @@ namespace Microsoft.Cci
 
         public void WriteMetadataAndIL(PdbWriter pdbWriterOpt, Stream metadataStream, Stream ilStream, out MetadataSizes metadataSizes)
         {
-            if (pdbWriterOpt != null)
-            {
-                pdbWriterOpt.SetMetadataEmitter(this);
-            }
+            pdbWriterOpt?.SetMetadataEmitter(this);
 
             // TODO: we can precalculate the exact size of IL stream
             var ilBuffer = new MemoryStream(1024);
@@ -2644,7 +2640,7 @@ namespace Microsoft.Cci
                 // at multi-module assembly build time.
                 AddAssemblyAttributesToTable(
                     this.module.AssemblySecurityAttributes.Select(sa => sa.Attribute),
-                    writingNetModule,   // needsDummyParent
+                    true,               // needsDummyParent
                     true);              // isSecurity
             }
 
@@ -2885,8 +2881,8 @@ namespace Microsoft.Cci
                 foreach (ITypeExport typeExport in this.module.GetExportedTypes(Context))
                 {
                     ITypeReference exportedType = typeExport.ExportedType;
-                    INestedTypeReference nestedRef = null;
-                    INamespaceTypeReference namespaceTypeRef = null;
+                    INestedTypeReference nestedRef;
+                    INamespaceTypeReference namespaceTypeRef;
                     ExportedTypeRow r = new ExportedTypeRow();
                     r.TypeDefId = (uint)MetadataTokens.GetToken(exportedType.TypeDef);
                     if ((namespaceTypeRef = exportedType.AsNamespaceTypeReference) != null)
@@ -4121,10 +4117,7 @@ namespace Microsoft.Cci
                         // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
                         rva = this.SerializeMethodBody(body, writer, localSignatureToken);
 
-                        if (pdbWriterOpt != null)
-                        {
-                            pdbWriterOpt.SerializeDebugInfo(body, localSignatureToken, customDebugInfoWriter);
-                        }
+                        pdbWriterOpt?.SerializeDebugInfo(body, localSignatureToken, customDebugInfoWriter);
                     }
                     else
                     {
@@ -4786,9 +4779,6 @@ namespace Microsoft.Cci
                     }
 
                     break;
-
-                default:
-                    break;
             }
         }
 
@@ -4806,7 +4796,7 @@ namespace Microsoft.Cci
             StringBuilder sb = pooled.Builder;
             sb.Append(assemblyReference.Name);
             sb.AppendFormat(CultureInfo.InvariantCulture, ", Version={0}.{1}.{2}.{3}", assemblyReference.Version.Major, assemblyReference.Version.Minor, assemblyReference.Version.Build, assemblyReference.Version.Revision);
-            if (assemblyReference.Culture != null && assemblyReference.Culture.Length > 0)
+            if (!string.IsNullOrEmpty(assemblyReference.Culture))
             {
                 sb.AppendFormat(CultureInfo.InvariantCulture, ", Culture={0}", assemblyReference.Culture);
             }
@@ -4845,15 +4835,11 @@ namespace Microsoft.Cci
                 string typeName = customAttribute.GetType(context).GetSerializedTypeName(context, ref isAssemblyQualified);
                 if (!isAssemblyQualified)
                 {
-                    IAssemblyReference referencedAssembly = null;
                     INamespaceTypeReference namespaceType = customAttribute.GetType(context).AsNamespaceTypeReference;
-                    if (namespaceType != null)
+                    var referencedAssembly = namespaceType?.GetUnit(context) as IAssemblyReference;
+                    if (referencedAssembly != null)
                     {
-                        referencedAssembly = namespaceType.GetUnit(context) as IAssemblyReference;
-                        if (referencedAssembly != null)
-                        {
-                            typeName = typeName + ", " + StrongName(referencedAssembly);
-                        }
+                        typeName = typeName + ", " + StrongName(referencedAssembly);
                     }
                 }
 
@@ -4979,14 +4965,11 @@ namespace Microsoft.Cci
                                 this.SerializeTypeName(pointerTypeReference, writer);
                                 return;
                             }
-                            else
-                            {
-                                writer.WriteByte(0x0f);
-                                typeReference = pointerTypeReference.GetTargetType(Context);
-                                noTokens = false;
-                                treatRefAsPotentialTypeSpec = true;
-                                continue;
-                            }
+
+                            writer.WriteByte(0x0f);
+                            typeReference = pointerTypeReference.GetTargetType(Context);
+                            treatRefAsPotentialTypeSpec = true;
+                            continue;
                         }
 
                         break;
@@ -4999,14 +4982,11 @@ namespace Microsoft.Cci
                                 this.SerializeTypeName(managedPointerTypeReference, writer);
                                 return;
                             }
-                            else
-                            {
-                                writer.WriteByte(0x10);
-                                typeReference = managedPointerTypeReference.GetTargetType(Context);
-                                noTokens = false;
-                                treatRefAsPotentialTypeSpec = true;
-                                continue;
-                            }
+
+                            writer.WriteByte(0x10);
+                            typeReference = managedPointerTypeReference.GetTargetType(Context);
+                            treatRefAsPotentialTypeSpec = true;
+                            continue;
                         }
 
                         break;
@@ -5218,7 +5198,7 @@ namespace Microsoft.Cci
             private readonly List<T> _rows;
             private readonly uint _firstRowId;
 
-            public HeapOrReferenceIndexBase(MetadataWriter writer, uint lastRowId)
+            protected HeapOrReferenceIndexBase(MetadataWriter writer, uint lastRowId)
             {
                 _writer = writer;
                 _rows = new List<T>();

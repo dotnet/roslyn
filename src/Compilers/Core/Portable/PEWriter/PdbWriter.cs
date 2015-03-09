@@ -392,7 +392,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    result = TypeNameSerializer.GetSerializedTypeName(typeReference, Context);
+                    result = typeReference.GetSerializedTypeName(Context);
                 }
 
                 _qualifiedNameCache.Add(typeReference, result);
@@ -403,9 +403,9 @@ namespace Microsoft.Cci
 
         private string SerializeVisualBasicImportTypeReference(ITypeReference typeReference)
         {
-            Debug.Assert(typeReference as IArrayTypeReference == null);
-            Debug.Assert(typeReference as IPointerTypeReference == null);
-            Debug.Assert(typeReference as IManagedPointerTypeReference == null);
+            Debug.Assert(!(typeReference is IArrayTypeReference));
+            Debug.Assert(!(typeReference is IPointerTypeReference));
+            Debug.Assert(!(typeReference is IManagedPointerTypeReference));
             Debug.Assert(!typeReference.IsTypeSpecification());
 
             var result = PooledStringBuilder.GetInstance();
@@ -575,7 +575,7 @@ namespace Microsoft.Cci
         public unsafe PeDebugDirectory GetDebugDirectory()
         {
             ImageDebugDirectory debugDir = new ImageDebugDirectory();
-            uint dataCount = 0;
+            uint dataCount;
 
             try
             {
@@ -943,7 +943,7 @@ namespace Microsoft.Cci
                     {
                         yields[i] = (uint)yieldOffsets[i];
                         resumes[i] = (uint)resumeOffsets[i];
-                        methods[i] = (uint)thisMethodToken;
+                        methods[i] = thisMethodToken;
                     }
 
                     try

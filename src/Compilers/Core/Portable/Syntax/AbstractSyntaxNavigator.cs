@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -116,10 +113,10 @@ namespace Microsoft.CodeAnalysis
             Func<SyntaxTrivia, bool> stepInto)
         {
             Debug.Assert(stepInto != null);
-            var token = default(SyntaxToken);
 
             foreach (var trivia in list.Reverse())
             {
+                SyntaxToken token;
                 if (TryGetLastTokenForStructuredTrivia(trivia, predicate, stepInto, out token))
                 {
                     return token;
@@ -316,12 +313,11 @@ namespace Microsoft.CodeAnalysis
             Func<SyntaxTrivia, bool> stepInto,
             ref bool returnPrevious)
         {
-            var token = default(SyntaxToken);
-
             foreach (var trivia in list.Reverse())
             {
                 if (returnPrevious)
                 {
+                    SyntaxToken token;
                     if (TryGetLastTokenForStructuredTrivia(trivia, predicate, stepInto, out token))
                     {
                         return token;

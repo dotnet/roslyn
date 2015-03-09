@@ -505,12 +505,7 @@ namespace Roslyn.Utilities
             else
             {
                 _dataMap.Add(type);
-
-                if (_binder != null)
-                {
-                    _binder.Record(type);
-                }
-
+                _binder?.Record(type);
                 _writer.Write((byte)DataKind.Type);
 
                 string assemblyName = type.GetTypeInfo().Assembly.FullName;
@@ -571,12 +566,7 @@ namespace Roslyn.Utilities
 
             Type type = instance.GetType();
             this.WriteType(type);
-
-            if (_binder != null)
-            {
-                _binder.Record(instance);
-            }
-
+            _binder?.Record(instance);
             instance.WriteTo(this);
         }
 

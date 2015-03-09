@@ -336,7 +336,6 @@ namespace Roslyn.Utilities
                 case DataKind.Array_3:
                     length = 3;
                     break;
-                case DataKind.Array:
                 default:
                     length = (int)this.ReadCompressedUInt();
                     break;

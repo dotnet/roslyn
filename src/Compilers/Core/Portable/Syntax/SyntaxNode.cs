@@ -832,14 +832,14 @@ namespace Microsoft.CodeAnalysis
         {
             if (!this.FullSpan.Contains(span))
             {
-                throw new ArgumentOutOfRangeException("span");
+                throw new ArgumentOutOfRangeException(nameof(span));
             }
 
             var node = FindToken(span.Start, findInsideTrivia)
                 .Parent
                 .FirstAncestorOrSelf<SyntaxNode>(a => a.FullSpan.Contains(span));
 
-            var cuRoot = node.SyntaxTree != null ? node.SyntaxTree.GetRoot() : null;
+            var cuRoot = node.SyntaxTree?.GetRoot();
 
             // Tie-breaking.
             if (!getInnermostNodeForTie)
