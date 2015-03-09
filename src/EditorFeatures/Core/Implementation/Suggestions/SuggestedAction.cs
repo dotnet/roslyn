@@ -4,17 +4,16 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -29,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         protected readonly object Provider;
         protected readonly CodeAction CodeAction;
+        // protected const int TimeOutMilliseconds = 100;
 
         protected SuggestedAction(
             Workspace workspace,
@@ -112,23 +112,46 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         private IEnumerable<CodeActionOperation> _operations;
-        protected SolutionPreviewResult GetPreviewResult(CancellationToken cancellationToken)
+        protected async Task<SolutionPreviewResult> GetPreviewResultAsync(CancellationToken cancellationToken)
         {
             if (_operations == null)
             {
-                _operations = Task.Run(
-                    async () => await this.CodeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false), cancellationToken).WaitAndGetResult(cancellationToken);
+                _operations = await this.CodeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false);
             }
 
             return EditHandler.GetPreviews(Workspace, _operations, cancellationToken);
         }
 
-        public virtual object GetPreview(CancellationToken cancellationToken)
+        public virtual bool HasPreview
+        {
+            get
+            {
+                // var source = new CancellationTokenSource();
+                // var task = Task.Run(async () => await GetPreviewAsync(source.Token).ConfigureAwait(false), source.Token);
+                // var completed = task.Wait(TimeOutMilliseconds, source.Token);
+                // if (completed)
+                // {
+                //     // If the operation completed, then we know whether or not we have a preview.
+                //     return task.Result != null;
+                // }
+                // else
+                // {
+                //     // If the operation did not complete, then we don't know whether or not we have a preview.
+                //     // Return true since we want light bulb to call GetPreviewAsync() in this cases.
+                //     source.Cancel();
+                //     return true;
+                // }
+
+                return true;
+            }
+        }
+
+        public virtual async Task<object> GetPreviewAsync(CancellationToken cancellationToken)
         {
             var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
-            var previewContent = extensionManager.PerformFunction(Provider, () =>
+            var previewContent = await extensionManager.PerformFunctionAsync(Provider, async () =>
             {
-                var previewResult = GetPreviewResult(cancellationToken);
+                var previewResult = await GetPreviewResultAsync(cancellationToken).ConfigureAwait(false);
                 if (previewResult == null)
                 {
                     return null;
@@ -140,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     return previewResult.TakeNextPreview(preferredDocumentId, preferredProjectid);
                 }
-            });
+            }).ConfigureAwait(false);
 
             var optionService = Workspace.Services.GetService<IOptionService>();
             if (optionService == null || !optionService.GetOption(InternalFeatureOnOffOptions.EnhancedPreviewPane))
@@ -168,12 +191,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // do nothing
         }
 
-        public virtual IEnumerable<SuggestedActionSet> ActionSets
+        public virtual bool HasActionSets
         {
             get
             {
-                return null;
+                return false;
             }
+        }
+
+        public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IEnumerable<SuggestedActionSet>>(null);
         }
 
         string ISuggestedAction.IconAutomationText
@@ -185,12 +213,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        ImageSource ISuggestedAction.IconSource
+        ImageMoniker ISuggestedAction.IconMoniker
         {
             get
             {
                 // no icon support
-                return null;
+                return default(ImageMoniker);
             }
         }
 

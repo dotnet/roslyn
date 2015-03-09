@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -33,36 +34,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _fix = fix;
         }
 
-        private ImmutableArray<SuggestedActionSet> _actionSets;
-        public override IEnumerable<SuggestedActionSet> ActionSets
+        public override bool HasActionSets
         {
             get
             {
-                if (_actionSets != null)
-                {
-                    return _actionSets;
-                }
-
                 var suppressionAction = (SuppressionCodeAction)this.CodeAction;
-                if ((suppressionAction.NestedActions != null) && suppressionAction.NestedActions.Any())
+                return (suppressionAction.NestedActions != null) && suppressionAction.NestedActions.Any();
+            }
+        }
+
+        private IEnumerable<SuggestedActionSet> _actionSets;
+        public override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
+        {
+            if (_actionSets != null)
+            {
+                return Task.FromResult(_actionSets);
+            }
+
+            var suppressionAction = (SuppressionCodeAction)this.CodeAction;
+            if ((suppressionAction.NestedActions != null) && suppressionAction.NestedActions.Any())
+            {
+                var nestedSuggestedActions = ImmutableArray.CreateBuilder<SuggestedAction>();
+
+                foreach (var c in suppressionAction.NestedActions)
                 {
-                    var nestedSuggestedActions = ImmutableArray.CreateBuilder<SuggestedAction>();
-
-                    foreach (var c in suppressionAction.NestedActions)
-                    {
-                        nestedSuggestedActions.Add(new CodeFixSuggestedAction(
-                                this.Workspace, this.SubjectBuffer, this.EditHandler,
-                                new CodeFix(c, _fix.Diagnostics), this.Provider, null));
-                    }
-
-                    _actionSets = ImmutableArray.Create(
-                        new SuggestedActionSet(nestedSuggestedActions.ToImmutable()));
-
-                    return _actionSets;
+                    nestedSuggestedActions.Add(new CodeFixSuggestedAction(
+                            this.Workspace, this.SubjectBuffer, this.EditHandler,
+                            new CodeFix(c, _fix.Diagnostics), this.Provider, null));
                 }
 
-                return null;
+                _actionSets = ImmutableArray.Create(
+                    new SuggestedActionSet(nestedSuggestedActions.ToImmutable()));
+
+                return Task.FromResult(_actionSets);
             }
+
+            return Task.FromResult<IEnumerable<SuggestedActionSet>>(null);
         }
 
         public override void Invoke(CancellationToken cancellationToken)
@@ -73,14 +80,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 nameof(SuppressionSuggestedAction),
                 nameof(Invoke),
                 nameof(ISuggestedAction),
-                nameof(ActionSets)));
+                nameof(GetActionSetsAsync)));
         }
 
-        public override object GetPreview(CancellationToken cancellationToken)
+        public override bool HasPreview
+        {
+            get
+            {
+                // The top-level action won't show any preview.
+                // However, the nested sub-actions returned above will show preview.
+                return false;
+            }
+        }
+
+        public override Task<object> GetPreviewAsync(CancellationToken cancellationToken)
         {
             // The top-level action won't show any preview.
             // However, the nested sub-actions returned above will show preview.
-            return null;
+            return Task.FromResult<object>(null);
         }
 
         public string GetDiagnosticID()
