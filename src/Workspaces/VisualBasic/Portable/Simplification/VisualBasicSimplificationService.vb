@@ -164,12 +164,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 TypeOf node.Parent Is FieldDeclarationSyntax
         End Function
 
+        Private Shared ReadOnly BC50000_UnusedImportsClause As String = "BC50000"
+        Private Shared ReadOnly BC50001_UnusedImportsStatement As String = "BC50001"
+
         Protected Overrides Sub GetUnusedNamespaceImports(model As SemanticModel, namespaceImports As HashSet(Of SyntaxNode), cancellationToken As CancellationToken)
             Dim root = model.SyntaxTree.GetRoot()
             Dim diagnostics = model.GetDiagnostics(cancellationToken:=cancellationToken)
 
             For Each diagnostic In diagnostics
-                If diagnostic.Id = "BC50000" OrElse diagnostic.Id = "BC50001" Then
+                If diagnostic.Id = BC50000_UnusedImportsClause OrElse diagnostic.Id = BC50001_UnusedImportsStatement Then
                     Dim node = root.FindNode(diagnostic.Location.SourceSpan)
                     Dim statement = TryCast(node, ImportsStatementSyntax)
                     Dim clause = TryCast(node, ImportsStatementSyntax)
