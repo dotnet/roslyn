@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     [Export(typeof(IInteractiveWindowCommand))]
-    internal sealed class LoadCommand : InteractiveWindowCommand
+    internal sealed class LoadCommand : IInteractiveWindowCommand
     {
         private const string CommandName = "load";
         private readonly IStandardClassificationService _registry;
@@ -24,22 +24,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             _registry = registry;
         }
 
-        public override string Description
+        public IEnumerable<KeyValuePair<string, string>> ParametersDescription
+        {
+            get { return null; }
+        }
+
+        public IEnumerable<string> DetailedDescription
+        {
+            get { return null; }
+        }
+
+        public string Description
         {
             get { return "Executes the specified file within the current interactive session."; }
         }
 
-        public override string Name
+        public IEnumerable<string> Names
         {
-            get { return CommandName; }
+            get { yield return CommandName; }
         }
 
-        public override string CommandLine
+        public string CommandLine
         {
             get { return "\"path to .csx file\""; }
         }
 
-        public override Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments)
+        public Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments)
         {
             var engine = window.Evaluator as InteractiveEvaluator;
             if (engine != null)
@@ -65,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             return ExecutionResult.Failed;
         }
 
-        public override IEnumerable<ClassificationSpan> ClassifyArguments(ITextSnapshot snapshot, Span argumentsSpan, Span spanToClassify)
+        public IEnumerable<ClassificationSpan> ClassifyArguments(ITextSnapshot snapshot, Span argumentsSpan, Span spanToClassify)
         {
             string path;
             var arguments = snapshot.GetText();
@@ -83,6 +93,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             {
                 yield return new ClassificationSpan(new SnapshotSpan(snapshot, Span.FromBounds(start, end)), _registry.Comment);
             }
+        }
+
+        private void ReportInvalidArguments(IInteractiveWindow window)
+        {
+            var commands = (IInteractiveWindowCommands)window.Properties[typeof(IInteractiveWindowCommands)];
+            commands.DisplayCommandUsage(this, window.ErrorOutputWriter, displayDetails: false);
         }
     }
 }

@@ -351,7 +351,6 @@
     <Compile Include="Implementation\Diagnostics\ClassificationTypeDefinitions.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsClassificationTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsClassificationTaggerProvider.TagSource.cs" />
-    <Compile Include="Implementation\Diagnostics\InternalDiagnosticsOptions.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsSquiggleTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsSquiggleTaggerProvider.TagSource.cs" />
     <Compile Include="Implementation\DocumentationComments\AbstractDocumentationCommentCommandHandler.cs" />
@@ -683,7 +682,7 @@
     <Compile Include="Shared\Options\FeatureOnOffOptions.cs" />
     <Compile Include="Shared\Options\InternalFeatureOnOffOptions.cs" />
     <Compile Include="Shared\Options\PerformanceFunctionIdOptionsProvider.cs" />
-    <Compile Include="Shared\Preview\PreviewWorkCoordinatorRegistrationService.cs" />
+    <Compile Include="Shared\Preview\PreviewSolutionCrawlerRegistrationService.cs" />
     <Compile Include="Shared\Preview\PredefinedPreviewTaggerKeys.cs" />
     <Compile Include="Shared\Preview\PreviewWorkspace.cs" />
     <Compile Include="Shared\SuggestionSupport\IDocumentSupportsSuggestionService.cs" />

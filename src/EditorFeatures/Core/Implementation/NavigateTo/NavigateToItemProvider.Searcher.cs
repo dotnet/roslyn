@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             private readonly ItemDisplayFactory _displayFactory;
             private readonly INavigateToCallback _callback;
             private readonly string _searchPattern;
-            private readonly PatternMatcher _patternMatcher;
             private readonly ProgressTracker _progress;
             private readonly IAsynchronousOperationListener _asyncListener;
             private readonly CancellationToken _cancellationToken;
@@ -37,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _displayFactory = displayFactory;
                 _callback = callback;
                 _searchPattern = searchPattern;
-                _patternMatcher = new PatternMatcher();
                 _cancellationToken = cancellationToken;
                 _progress = new ProgressTracker(callback.ReportProgress);
                 _asyncListener = asyncListener;
@@ -107,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     result.SecondarySort,
                     result,
                     result.MatchKind,
-                    result.IsCaseSensitive, 
+                    result.IsCaseSensitive,
                     _displayFactory);
                 _callback.AddItem(navigateToItem);
             }

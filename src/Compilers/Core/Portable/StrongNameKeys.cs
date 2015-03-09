@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -68,6 +69,21 @@ namespace Microsoft.CodeAnalysis
             this.KeyFilePath = keyFilePath;
         }
 
+        internal static StrongNameKeys Create(ImmutableArray<byte> publicKey, CommonMessageProvider messageProvider)
+        {
+            Debug.Assert(!publicKey.IsDefaultOrEmpty);
+
+            if (MetadataHelpers.IsValidPublicKey(publicKey))
+            {
+                return new StrongNameKeys(default(ImmutableArray<byte>), publicKey, null, null);
+            }
+            else
+            {
+                return new StrongNameKeys(messageProvider.CreateDiagnostic(messageProvider.ERR_BadCompilationOptionValue, Location.None, 
+                    nameof(CompilationOptions.CryptoPublicKey), BitConverter.ToString(publicKey.ToArray())));
+            }
+        }
+
         internal static StrongNameKeys Create(StrongNameProvider providerOpt, string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider)
         {
             if (string.IsNullOrEmpty(keyFilePath) && string.IsNullOrEmpty(keyContainerName))
@@ -84,11 +100,25 @@ namespace Microsoft.CodeAnalysis
             return providerOpt.CreateKeys(keyFilePath, keyContainerName, messageProvider);
         }
 
+        /// <summary>
+        /// True if the compilation can be signed using these keys.
+        /// </summary>
         internal bool CanSign
         {
             get
             {
                 return !KeyPair.IsDefault || KeyContainer != null;
+            }
+        }
+
+        /// <summary>
+        /// True if a strong name can be created for the compilation using these keys.
+        /// </summary>
+        internal bool CanProvideStrongName
+        {
+            get
+            {
+                return CanSign || !PublicKey.IsDefault;
             }
         }
 

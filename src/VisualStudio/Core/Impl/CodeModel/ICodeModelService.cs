@@ -172,6 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         string GetImportAlias(SyntaxNode node);
         string GetImportNamespaceOrType(SyntaxNode node);
         string GetParameterName(SyntaxNode node);
+        string GetParameterFullName(SyntaxNode node);
         EnvDTE80.vsCMParameterKind GetParameterKind(SyntaxNode node);
         SyntaxNode SetParameterKind(SyntaxNode node, EnvDTE80.vsCMParameterKind kind);
 
@@ -196,6 +197,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         string GetDocComment(SyntaxNode node);
         SyntaxNode SetDocComment(SyntaxNode node, string value);
+
+        EnvDTE.vsCMFunction GetFunctionKind(IMethodSymbol symbol);
 
         EnvDTE80.vsCMInheritanceKind GetInheritanceKind(SyntaxNode typeNode, INamedTypeSymbol typeSymbol);
         SyntaxNode SetInheritanceKind(SyntaxNode node, EnvDTE80.vsCMInheritanceKind kind);

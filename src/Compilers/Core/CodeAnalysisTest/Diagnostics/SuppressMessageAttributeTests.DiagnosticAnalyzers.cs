@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             public override void Initialize(AnalysisContext analysisContext)
             {
-                analysisContext.RegisterCompilationEndAction(
+                analysisContext.RegisterCompilationAction(
                     (context) =>
                         {
                             context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, Location.None, messageArgs: Id));
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 analysisContext.RegisterSymbolAction(
                     (context) =>
                         {
-                            if (context.Symbol.Name.StartsWith(_errorSymbolPrefix))
+                            if (context.Symbol.Name.StartsWith(_errorSymbolPrefix, StringComparison.Ordinal))
                             {
                                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, context.Symbol.Locations.First(), messageArgs: context.Symbol.Name));
                             }

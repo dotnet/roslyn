@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -47,8 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// only need one wrapper to call it non-virtually.
         /// </summary>
         private Dictionary<MethodSymbol, MethodSymbol> _wrappers;
-        
-        private readonly NamedTypeSymbol _type;
+
+        /// <summary>
+        /// Type symbol being compiled, or null if we compile a synthesized type that doesn't have a symbol (e.g. PrivateImplementationDetails).
+        /// </summary>
+        private readonly NamedTypeSymbol _typeOpt;
 
         /// <summary>
         /// The builder for generating code, or null if not in emit phase.
@@ -65,10 +70,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public LambdaFrame staticLambdaFrame;
 
-        public TypeCompilationState(NamedTypeSymbol type, CSharpCompilation compilation, PEModuleBuilder moduleBuilderOpt)
+        /// <summary>
+        /// A graph of method->method references for this(...) constructor initializers.
+        /// Used to detect and report initializer cycles.
+        /// </summary>
+        private SmallDictionary<MethodSymbol, MethodSymbol> _constructorInitializers;
+
+        public TypeCompilationState(NamedTypeSymbol typeOpt, CSharpCompilation compilation, PEModuleBuilder moduleBuilderOpt)
         {
             this.Compilation = compilation;
-            _type = type;
+            _typeOpt = typeOpt;
             this.ModuleBuilderOpt = moduleBuilderOpt;
         }
 
@@ -80,9 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 // NOTE: currently it can be null if only private implementation type methods are compiled
-                // TODO: is it used? if yes, make sure it is not accessed when type is not available; 
-                Debug.Assert((object)_type != null);
-                return _type;
+                Debug.Assert((object)_typeOpt != null);
+                return _typeOpt;
             }
         }
 
@@ -162,6 +172,58 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             _wrappers = null;
+            _constructorInitializers = null;
+        }
+
+        /// <summary>
+        /// Report an error if adding the edge (method1, method2) to the ctor-initializer
+        /// graph would add a new cycle to that graph.
+        /// </summary>
+        /// <param name="method1">a calling ctor</param>
+        /// <param name="method2">the chained-to ctor</param>
+        /// <param name="syntax">where to report a cyclic error if needed</param>
+        /// <param name="diagnostics">a diagnostic bag for receiving the diagnostic</param>
+        internal void ReportCtorInitializerCycles(MethodSymbol method1, MethodSymbol method2, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            // precondition and postcondition: the graph _constructorInitializers is acyclic.
+            // If adding the edge (method1, method2) would induce a cycle, we report an error
+            // and do not add it to the set of edges. If it would not induce a cycle we add
+            // it to the set of edges and return.
+
+            if (method1 == method2)
+            {
+                // direct recursion is diagnosed elsewhere
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            if (_constructorInitializers == null)
+            {
+                _constructorInitializers = new SmallDictionary<MethodSymbol, MethodSymbol>();
+                _constructorInitializers.Add(method1, method2);
+                return;
+            }
+
+            MethodSymbol next = method2;
+            while (true)
+            {
+                if (_constructorInitializers.TryGetValue(next, out next))
+                {
+                    Debug.Assert((object)next != null);
+                    if (method1 == next)
+                    {
+                        // We found a (new) cycle containing the edge (method1, method2). Report an
+                        // error and do not add the edge.
+                        diagnostics.Add(ErrorCode.ERR_IndirectRecursiveConstructorCall, syntax.Location, method1);
+                        return;
+                    }
+                }
+                else
+                {
+                    // we've reached the end of the path without finding a cycle. Add the new edge.
+                    _constructorInitializers.Add(method1, method2);
+                    return;
+                }
+            }
         }
     }
 }

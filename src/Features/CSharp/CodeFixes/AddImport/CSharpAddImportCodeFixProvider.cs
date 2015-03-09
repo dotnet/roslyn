@@ -159,6 +159,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                     {
                         node = (node as MemberBindingExpressionSyntax).Name;
                     }
+                    else if (node.Parent.IsKind(SyntaxKind.CollectionInitializerExpression))
+                    {
+                        return true;
+                    }
 
                     break;
                 case CS0122:
@@ -559,7 +563,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             var leftExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(expression) ?? syntaxFacts.GetExpressionOfConditionalMemberAccessExpression(expression);
             if (leftExpression == null)
             {
-                return false;
+                if (expression.IsKind(SyntaxKind.CollectionInitializerExpression))
+                {
+                    leftExpression = expression.GetAncestor<ObjectCreationExpressionSyntax>();
+                }
+                else
+                {
+                    return false;
+                }
             }
 
             var semanticInfo = semanticModel.GetTypeInfo(leftExpression, cancellationToken);
@@ -608,6 +619,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             }
 
             return string.Compare(propertyOrField.ContainingType.Name, leftName.Identifier.Text, this.IgnoreCase) == 0;
+        }
+
+        internal override bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel)
+        {
+            if (node.Parent.IsKind(SyntaxKind.CollectionInitializerExpression))
+            {
+                var objectCreationExpressionSyntax = node.GetAncestor<ObjectCreationExpressionSyntax>();
+                if (objectCreationExpressionSyntax == null)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -295,6 +295,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot apply operation while a rename session is active..
+        /// </summary>
+        internal static string CannotApplyOperationWhileRenameSessionIsActive {
+            get {
+                return ResourceManager.GetString("CannotApplyOperationWhileRenameSessionIsActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot navigate to the symbol under the caret..
         /// </summary>
         internal static string CannotNavigateToTheSymbol {
@@ -1592,15 +1601,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Rename Tracking.
-        /// </summary>
-        internal static string RenameTracking {
-            get {
-                return ResourceManager.GetString("RenameTracking", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Renaming anonymous type members is not yet supported..
         /// </summary>
         internal static string RenamingAnonymousTypeMemberNotSupported {
@@ -1718,6 +1718,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The rename tracking session was cancelled and is no longer available..
+        /// </summary>
+        internal static string TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable {
+            get {
+                return ResourceManager.GetString("TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The token is not contained in the workspace..
         /// </summary>
         internal static string TheTokenIsNotContainedInWorkspace {
@@ -1831,15 +1840,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Warning {
             get {
                 return ResourceManager.GetString("Warning", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to  with preview....
-        /// </summary>
-        internal static string WithPreview {
-            get {
-                return ResourceManager.GetString("WithPreview", resourceCulture);
             }
         }
         

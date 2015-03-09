@@ -1,4 +1,7 @@
-﻿Imports System.Collections.Immutable
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Utilities
 
@@ -62,26 +65,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
             syntax As VisualBasicSyntaxNode,
-            isLValue As Boolean) As BoundExpression
+            isLValue As Boolean,
+            diagnostics As DiagnosticBag) As BoundExpression
 
         Friend Shared Function ConvertToLocalType(
             compilation As VisualBasicCompilation,
             expr As BoundExpression,
-            type As TypeSymbol) As BoundExpression
+            type As TypeSymbol,
+            diagnostics As DiagnosticBag) As BoundExpression
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Dim pair = Conversions.ClassifyConversion(expr.Type, type, useSiteDiagnostics)
-            Debug.Assert(pair.Value Is Nothing)
+            Dim syntax = expr.Syntax
+            Dim exprType = expr.Type
 
-            Dim conversionKind = pair.Key
-            Debug.Assert(Conversions.ConversionExists(conversionKind))
-            Debug.Assert((useSiteDiagnostics Is Nothing) OrElse useSiteDiagnostics.All(Function(d) d.Severity < DiagnosticSeverity.Error))
+            Dim conversionKind As ConversionKind
+            If type.IsErrorType() Then
+                diagnostics.Add(type.GetUseSiteErrorInfo(), syntax.GetLocation())
+                conversionKind = Nothing
+            ElseIf exprType.IsErrorType() Then
+                diagnostics.Add(exprType.GetUseSiteErrorInfo(), syntax.GetLocation())
+                conversionKind = Nothing
+            Else
+                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                Dim pair = Conversions.ClassifyConversion(exprType, type, useSiteDiagnostics)
+                Debug.Assert(useSiteDiagnostics Is Nothing, "If this happens, please add a test")
+
+                diagnostics.Add(syntax, useSiteDiagnostics)
+
+                Debug.Assert(pair.Value Is Nothing) ' Conversion method.
+                conversionKind = pair.Key
+            End If
 
             Return New BoundDirectCast(
-                expr.Syntax,
+                syntax,
                 expr,
                 conversionKind,
-                type).MakeCompilerGenerated()
+                type,
+                hasErrors:=Not Conversions.ConversionExists(conversionKind)).MakeCompilerGenerated()
+        End Function
+
+        Friend Shared Function GetIntrinsicMethod(compilation As VisualBasicCompilation, methodName As String) As MethodSymbol
+            Dim type = compilation.GetTypeByMetadataName(ExpressionCompilerConstants.IntrinsicAssemblyTypeMetadataName)
+            Dim members = type.GetMembers(methodName)
+            Debug.Assert(members.Length = 1)
+            Return DirectCast(members(0), MethodSymbol)
         End Function
 
     End Class

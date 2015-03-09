@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var suppressionProvidersPerLanguageMap = suppressionProviders.ToPerLanguageMapWithMultipleLanguages();
 
             _workspaceFixersMap = GetFixerPerLanguageMap(fixersPerLanguageMap);
-            _suppressionProvidersMap = GetSupressionProvidersPerLanguageMap(suppressionProvidersPerLanguageMap);
+            _suppressionProvidersMap = GetSuppressionProvidersPerLanguageMap(suppressionProvidersPerLanguageMap);
 
             // REVIEW: currently, fixer's priority is statically defined by the fixer itself. might considering making it more dynamic or configurable.
             _fixerPriorityMap = GetFixerPriorityPerLanguageMap(fixersPerLanguageMap);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             using (var diagnostics = SharedPools.Default<List<DiagnosticData>>().GetPooledObject())
             {
-                var fullResult = await _diagnosticService.TryGetDiagnosticsForSpanAsync(document, range, diagnostics.Object, cancellationToken).ConfigureAwait(false);
+                var fullResult = await _diagnosticService.TryAppendDiagnosticsForSpanAsync(document, range, diagnostics.Object, cancellationToken).ConfigureAwait(false);
                 foreach (var diagnostic in diagnostics.Object)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return fixerMap;
         }
 
-        private static ImmutableDictionary<LanguageKind, Lazy<ISuppressionFixProvider>> GetSupressionProvidersPerLanguageMap(
+        private static ImmutableDictionary<LanguageKind, Lazy<ISuppressionFixProvider>> GetSuppressionProvidersPerLanguageMap(
             Dictionary<LanguageKind, List<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>> suppressionProvidersPerLanguage)
         {
             var suppressionFixerMap = ImmutableDictionary.Create<LanguageKind, Lazy<ISuppressionFixProvider>>();

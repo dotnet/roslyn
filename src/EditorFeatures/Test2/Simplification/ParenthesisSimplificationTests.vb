@@ -628,7 +628,7 @@ class C
 {
     void M()
     {
-        var x = $"{true ? 1 : 0}";
+        var x = $"{(true ? 1 : 0)}";
     }
 }
 </code>
@@ -661,6 +661,146 @@ class C
     void M()
     {
         var x = $"{(true ? 1 : 0):x}";
+    }
+}
+</code>
+
+            Test(input, expected)
+
+        End Sub
+
+        <WorkItem(724, "#724")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_SimplifyParenthesesInsideInterpolation3()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        var x = $"{{|Simplify:(global::System.Guid.Empty)|}}";
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    void M()
+    {
+        var x = $"{(global::System.Guid.Empty)}";
+    }
+}
+</code>
+
+            Test(input, expected)
+
+        End Sub
+
+        <WorkItem(724, "#724")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_SimplifyParenthesesInsideInterpolation4()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        var g = System.Guid.NewGuid();
+        var x = $"{g == {|Simplify:(global::System.Guid.Empty)|}}";
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    void M()
+    {
+        var g = System.Guid.NewGuid();
+        var x = $"{g == (global::System.Guid.Empty)}";
+    }
+}
+</code>
+
+            Test(input, expected)
+
+        End Sub
+
+        <WorkItem(724, "#724")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_SimplifyParenthesesInsideInterpolation5()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        var g = System.Guid.NewGuid();
+        var x = $"{{|Simplify:(g == (global::System.Guid.Empty))|}}";
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    void M()
+    {
+        var g = System.Guid.NewGuid();
+        var x = $"{g == (global::System.Guid.Empty)}";
+    }
+}
+</code>
+
+            Test(input, expected)
+
+        End Sub
+
+        <WorkItem(724, "#724")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_SimplifyParenthesesInsideInterpolation6()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        var x = 19;
+        var y = 23;
+        var z = $"{{|Simplify:((true ? x : y) == 42)|}}";
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    void M()
+    {
+        var x = 19;
+        var y = 23;
+        var z = $"{(true ? x : y) == 42}";
     }
 }
 </code>

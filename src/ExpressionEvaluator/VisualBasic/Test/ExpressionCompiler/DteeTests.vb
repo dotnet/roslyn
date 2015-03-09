@@ -1,10 +1,13 @@
-﻿Imports System.Collections.Immutable
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection.Metadata
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.VisualStudio.SymReaderInterop
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
@@ -161,8 +164,8 @@ End Class
                 compModuleInstance2,
                 MscorlibRef.ToModuleInstance(Nothing, Nothing)))
 
-            Dim [imports] = EvaluationContext.SynthesizeImportStringsForDtee(MakeAssemblyReaders(runtimeInstance))
-            AssertEx.SetEqual([imports], "@P:root1", "@P:root2", "*")
+            Dim methodDebugInfo = EvaluationContext.SynthesizeMethodDebugInfoForDtee(MakeAssemblyReaders(runtimeInstance))
+            CheckDteeMethodDebugInfo(methodDebugInfo, "root1", "root2")
         End Sub
 
         <Fact>
@@ -216,8 +219,8 @@ End Namespace
                 MscorlibRef.ToModuleInstance(Nothing, Nothing),
                 MsvbRef.ToModuleInstance(Nothing, Nothing)))
 
-            Dim [imports] = EvaluationContext.SynthesizeImportStringsForDtee(MakeAssemblyReaders(runtimeInstance))
-            AssertEx.SetEqual([imports], "@P:N1", "@P:N2.N3", "@P:N5.N6", "*")
+            Dim methodDebugInfo = EvaluationContext.SynthesizeMethodDebugInfoForDtee(MakeAssemblyReaders(runtimeInstance))
+            CheckDteeMethodDebugInfo(methodDebugInfo, "N1", "N2.N3", "N5.N6")
         End Sub
 
         <Fact>
@@ -232,8 +235,8 @@ End Namespace
 
             ' Since there are no methods in the assembly, there is no import custom debug info, so we
             ' have no way to find the root namespace.
-            Dim [imports] = EvaluationContext.SynthesizeImportStringsForDtee(MakeAssemblyReaders(runtimeInstance))
-            AssertEx.SetEqual([imports], "*")
+            Dim methodDebugInfo = EvaluationContext.SynthesizeMethodDebugInfoForDtee(MakeAssemblyReaders(runtimeInstance))
+            CheckDteeMethodDebugInfo(methodDebugInfo)
         End Sub
 
         <Fact>
@@ -263,8 +266,8 @@ End Namespace
                 MscorlibRef.ToModuleInstance(Nothing, Nothing),
                 MsvbRef.ToModuleInstance(Nothing, Nothing)))
 
-            Dim [imports] = EvaluationContext.SynthesizeImportStringsForDtee(MakeAssemblyReaders(runtimeInstance))
-            AssertEx.SetEqual([imports], "@P:N2", "*")
+            Dim methodDebugInfo = EvaluationContext.SynthesizeMethodDebugInfoForDtee(MakeAssemblyReaders(runtimeInstance))
+            CheckDteeMethodDebugInfo(methodDebugInfo, "N2")
         End Sub
 
         <Fact>
@@ -315,8 +318,8 @@ End Namespace
                 MscorlibRef.ToModuleInstance(Nothing, Nothing),
                 MsvbRef.ToModuleInstance(Nothing, Nothing)))
 
-            Dim [imports] = EvaluationContext.SynthesizeImportStringsForDtee(MakeAssemblyReaders(runtimeInstance))
-            AssertEx.SetEqual([imports], "*")
+            Dim methodDebugInfo = EvaluationContext.SynthesizeMethodDebugInfoForDtee(MakeAssemblyReaders(runtimeInstance))
+            CheckDteeMethodDebugInfo(methodDebugInfo)
         End Sub
 
         <Fact>
@@ -348,8 +351,8 @@ End Namespace
                 MscorlibRef.ToModuleInstance(Nothing, Nothing),
                 MsvbRef.ToModuleInstance(Nothing, Nothing)))
 
-            Dim [imports] = EvaluationContext.SynthesizeImportStringsForDtee(MakeAssemblyReaders(runtimeInstance))
-            AssertEx.SetEqual([imports], "*")
+            Dim methodDebugInfo = EvaluationContext.SynthesizeMethodDebugInfoForDtee(MakeAssemblyReaders(runtimeInstance))
+            CheckDteeMethodDebugInfo(methodDebugInfo)
         End Sub
 
         <Fact>
@@ -380,8 +383,8 @@ End Namespace
                 MscorlibRef.ToModuleInstance(Nothing, Nothing),
                 MsvbRef.ToModuleInstance(Nothing, Nothing)))
 
-            Dim [imports] = EvaluationContext.SynthesizeImportStringsForDtee(MakeAssemblyReaders(runtimeInstance))
-            AssertEx.SetEqual([imports], "*")
+            Dim methodDebugInfo = EvaluationContext.SynthesizeMethodDebugInfoForDtee(MakeAssemblyReaders(runtimeInstance))
+            CheckDteeMethodDebugInfo(methodDebugInfo)
         End Sub
 
         <Fact>
@@ -491,5 +494,22 @@ End Namespace
             Dim compRef = AssemblyMetadata.CreateFromImage(peBytes).GetReference()
             Return compRef.ToModuleInstance(peBytes.ToArray(), New SymReader(pdbBytes.ToArray()))
         End Function
+
+        Private Shared Sub CheckDteeMethodDebugInfo(methodDebugInfo As MethodDebugInfo, ParamArray namespaceNames As String())
+            Assert.Equal("", methodDebugInfo.DefaultNamespaceName)
+
+            Dim importRecordGroups = methodDebugInfo.ImportRecordGroups
+            Assert.Equal(2, importRecordGroups.Length)
+            Dim projectLevelImportRecords As ImmutableArray(Of ImportRecord) = importRecordGroups(0)
+            Dim fileLevelImportRecords As ImmutableArray(Of ImportRecord) = importRecordGroups(1)
+
+            Assert.Empty(fileLevelImportRecords)
+
+            AssertEx.All(projectLevelImportRecords, Function(record) TypeOf record Is NativeImportRecord)
+            AssertEx.All(projectLevelImportRecords, Function(record) DirectCast(record, NativeImportRecord).ExternAlias Is Nothing)
+            AssertEx.All(projectLevelImportRecords, Function(record) record.TargetKind = ImportTargetKind.Namespace)
+            AssertEx.All(projectLevelImportRecords, Function(record) record.Alias Is Nothing)
+            AssertEx.SetEqual(projectLevelImportRecords.Select(Function(record) record.TargetString), namespaceNames)
+        End Sub
     End Class
 End Namespace

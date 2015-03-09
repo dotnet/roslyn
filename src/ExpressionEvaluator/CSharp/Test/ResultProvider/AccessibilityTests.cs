@@ -88,20 +88,19 @@ class C
             var bytesB = compilationB.EmitToArray();
             var assemblyA = ReflectionUtilities.Load(bytesA);
             var assemblyB = ReflectionUtilities.Load(bytesB);
-            DkmClrValue valueWithNonPublicHidden;
+            DkmClrValue value;
 
             using (ReflectionUtilities.LoadAssemblies(assemblyA, assemblyB))
             {
                 var runtime = new DkmClrRuntimeInstance(new[] { assemblyB });
                 var type = assemblyB.GetType("C", throwOnError: true);
-                valueWithNonPublicHidden = CreateDkmClrValue(
+                value = CreateDkmClrValue(
                     Activator.CreateInstance(type),
-                    runtime.GetType((TypeImpl)type),
-                    inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers));
+                    runtime.GetType((TypeImpl)type));
             }
 
             var rootExpr = "new C()";
-            var evalResult = FormatResult(rootExpr, valueWithNonPublicHidden);
+            var evalResult = FormatResult(rootExpr, value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers));
             Verify(evalResult,
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
 
@@ -250,20 +249,19 @@ class C
             var bytesB = compilationB.EmitToArray();
             var assemblyA = ReflectionUtilities.Load(bytesA);
             var assemblyB = ReflectionUtilities.Load(bytesB);
-            DkmClrValue valueWithNonPublicHidden;
+            DkmClrValue value;
 
             using (ReflectionUtilities.LoadAssemblies(assemblyA, assemblyB))
             {
                 var runtime = new DkmClrRuntimeInstance(new[] { assemblyA });
                 var type = assemblyB.GetType("C", throwOnError: true);
-                valueWithNonPublicHidden = CreateDkmClrValue(
+                value = CreateDkmClrValue(
                     Activator.CreateInstance(type),
-                    runtime.GetType((TypeImpl)type),
-                    inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers));
+                    runtime.GetType((TypeImpl)type));
             }
 
             var rootExpr = "new C()";
-            var evalResult = FormatResult(rootExpr, valueWithNonPublicHidden);
+            var evalResult = FormatResult(rootExpr, value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers));
             Verify(evalResult,
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
 
@@ -360,9 +358,8 @@ class C
             var type = assembly.GetType("C");
             var value = CreateDkmClrValue(
                 Activator.CreateInstance(type),
-                runtime.GetType((TypeImpl)type),
-                inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers));
-            var evalResult = FormatResult("o", value);
+                runtime.GetType((TypeImpl)type));
+            var evalResult = FormatResult("o", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers));
             Verify(evalResult,
                 EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
         }

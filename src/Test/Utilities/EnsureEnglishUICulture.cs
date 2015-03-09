@@ -13,8 +13,8 @@ namespace Roslyn.Test.Utilities
         {
             get
             {
-                var currentUICulture = Thread.CurrentThread.CurrentUICulture;
-                if (currentUICulture.Name.StartsWith("en") || currentUICulture.Name == "")
+                var currentUICultureName = Thread.CurrentThread.CurrentUICulture.Name;
+                if (currentUICultureName.Length == 0 || currentUICultureName.StartsWith("en", StringComparison.OrdinalIgnoreCase))
                 {
                     return null;
                 }
@@ -23,31 +23,31 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private bool needToRestore;
-        private readonly CultureInfo threadUICulture;
-        private readonly int threadId;
+        private bool _needToRestore;
+        private readonly CultureInfo _threadUICulture;
+        private readonly int _threadId;
 
         public EnsureEnglishUICulture()
         {
-            threadId = Thread.CurrentThread.ManagedThreadId;
+            _threadId = Thread.CurrentThread.ManagedThreadId;
             var preferred = PreferredOrNull;
 
             if (preferred != null)
             {
-                threadUICulture = Thread.CurrentThread.CurrentUICulture;
-                needToRestore = true;
+                _threadUICulture = Thread.CurrentThread.CurrentUICulture;
+                _needToRestore = true;
                 Thread.CurrentThread.CurrentUICulture = preferred;
             }
         }
 
         public void Dispose()
         {
-            Debug.Assert(threadId == Thread.CurrentThread.ManagedThreadId);
+            Debug.Assert(_threadId == Thread.CurrentThread.ManagedThreadId);
 
-            if (needToRestore && threadId == Thread.CurrentThread.ManagedThreadId)
+            if (_needToRestore && _threadId == Thread.CurrentThread.ManagedThreadId)
             {
-                needToRestore = false;
-                Thread.CurrentThread.CurrentUICulture = threadUICulture;
+                _needToRestore = false;
+                Thread.CurrentThread.CurrentUICulture = _threadUICulture;
             }
         }
     }

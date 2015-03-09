@@ -3,6 +3,7 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -54,7 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // Handle expression-level ambiguities
             if (RemovalMayIntroduceCastAmbiguity(node) ||
-                RemovalMayIntroduceCommaListAmbiguity(node))
+                RemovalMayIntroduceCommaListAmbiguity(node) ||
+                RemovalMayIntroduceInterpolationAmbiguity(node))
             {
                 return false;
             }
@@ -68,8 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // Cases:
             //   $"{(x)}" -> $"{x}"
-            if (node.IsParentKind(SyntaxKind.Interpolation) &&
-                !RemovalMayIntroduceInterpolationAmbiguity(node))
+            if (node.IsParentKind(SyntaxKind.Interpolation))
             {
                 return true;
             }
@@ -122,20 +123,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 : false;
         }
 
+        private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool = new ObjectPool<Stack<SyntaxNode>>(() => new Stack<SyntaxNode>());
+
         private static bool RemovalMayIntroduceInterpolationAmbiguity(ParenthesizedExpressionSyntax node)
         {
-            if (node.IsParentKind(SyntaxKind.Interpolation))
+            // First, find the parenting interpolation. If we find a parenthesize expression first,
+            // we can bail out early.
+            InterpolationSyntax interpolation = null;
+            foreach (var ancestor in node.Parent.AncestorsAndSelf())
             {
-                // Can't remove parentheses in this case:
-                //   $"{(true ? == 0 : 1):x"
-                var interpolation = (InterpolationSyntax)node.Parent;
-                if (node.Expression.IsKind(SyntaxKind.ConditionalExpression) &&
-                    interpolation.AlignmentClause == null &&
-                    interpolation.FormatClause != null &&
-                    !interpolation.FormatClause.ColonToken.IsMissing)
+                switch (ancestor.Kind())
                 {
-                    return true;
+                    case SyntaxKind.ParenthesizedExpression:
+                        return false;
+                    case SyntaxKind.Interpolation:
+                        interpolation = (InterpolationSyntax)ancestor;
+                        break;
                 }
+            }
+
+            if (interpolation == null)
+            {
+                return false;
+            }
+
+            // In order determine whether removing this parenthesized expression will introduce a
+            // parsing ambiguity, we must dig into the child tokens and nodes to determine whether
+            // they include any : or :: tokens. If they do, we can't remove the parentheses because
+            // the parser would assume that the first : would begin the format clause of the interpolation.
+
+            var stack = s_nodeStackPool.AllocateAndClear();
+            try
+            {
+                stack.Push(node.Expression);
+
+                while (stack.Count > 0)
+                {
+                    var expression = stack.Pop();
+
+                    foreach (var nodeOrToken in expression.ChildNodesAndTokens())
+                    {
+                        // Note: There's no need drill into other parenthesized expressions, since any colons in them would be unambiguous.
+                        if (nodeOrToken.IsNode && !nodeOrToken.IsKind(SyntaxKind.ParenthesizedExpression))
+                        {
+                            stack.Push(nodeOrToken.AsNode());
+                        }
+                        else if (nodeOrToken.IsToken)
+                        {
+                            if (nodeOrToken.IsKind(SyntaxKind.ColonToken) || nodeOrToken.IsKind(SyntaxKind.ColonColonToken))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                s_nodeStackPool.ClearAndFree(stack);
             }
 
             return false;
@@ -230,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 if (expression.IsKind(SyntaxKind.NumericLiteralExpression))
                 {
                     var numericLiteral = (LiteralExpressionSyntax)expression;
-                    if (numericLiteral.Token.ValueText.StartsWith("-"))
+                    if (numericLiteral.Token.ValueText.StartsWith("-", StringComparison.Ordinal))
                     {
                         return true;
                     }

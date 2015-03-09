@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode syntaxNode,
             Compilation currentCompilation,
             DiagnosticBag diagnostics,
-            BitArray skipParameters = default(BitArray))
+            BitVector skipParameters = default(BitVector))
         {
             if (!RequiresChecking(method))
             {
@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
-            BitArray skipParameters = default(BitArray))
+            BitVector skipParameters = default(BitVector))
         {
             return CheckConstraints(
                 method,
@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
-            BitArray skipParameters = default(BitArray))
+            BitVector skipParameters = default(BitVector))
         {
             Debug.Assert(typeParameters.Length == typeArguments.Length);
             Debug.Assert(typeParameters.Length > 0);
@@ -656,8 +656,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (typeArgument.IsStatic)
             {
-                // Caller should have already reported ERR_GenericArgIsStaticClass.
-                // (For consistency, consider moving that error reporting here.)
+                // "'{0}': static types cannot be used as type arguments"
+                diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_GenericArgIsStaticClass, typeArgument)));
                 return false;
             }
 

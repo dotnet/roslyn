@@ -178,7 +178,10 @@
     <value>option '{0}' can be followed only by '+' or '-'</value>
   </data>
   <data name="ERR_InvalidSwitchValue" xml:space="preserve">
-    <value>the value '{0}' is invalid for option '{1}'</value>
+    <value>the value '{1}' is invalid for option '{0}'</value>
+  </data>
+  <data name="ERR_MutuallyExclusiveOptions" xml:space="preserve">
+    <value>Compilation options '{0}' and '{1}' can't both be specified at the same time.</value>
   </data>
   <data name="WRN_BadUILang" xml:space="preserve">
     <value>The language name '{0}' is invalid.</value>
@@ -1356,7 +1359,7 @@
     <value>Structures cannot have 'Inherits' statements.</value>
   </data>
   <data name="ERR_NewInStruct" xml:space="preserve">
-    <value>The feature 'Parameterless Instance Constructors in Structures' requires language version 14 or above.</value>
+    <value>Structures cannot declare a non-shared 'Sub New' with no parameters.</value>
   </data>
   <data name="ERR_InvalidEndGet" xml:space="preserve">
     <value>'End Get' must be preceded by a matching 'Get'.</value>
@@ -5204,9 +5207,6 @@
   </data>
   <data name="ERR_NullPropagatingOpInExpressionTree" xml:space="preserve">
     <value>A null propagating operator cannot be converted into an expression tree.</value>
-  </data>
-  <data name="ERR_StructParameterlessInstanceCtorMustBePublic" xml:space="preserve">
-    <value>Parameterless instance constructors in structures must be public.</value>
   </data>
   <data name="ERR_TooLongOrComplexExpression" xml:space="preserve">
     <value>An expression is too long or complex to compile</value>

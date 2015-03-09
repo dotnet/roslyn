@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.Text
             /// <summary>
             /// Use a separate class for closed files to simplify memory leak investigations
             /// </summary>
-            internal class ClosedSnapshotSourceText : SnapshotSourceText
+            internal sealed class ClosedSnapshotSourceText : SnapshotSourceText
             {
-                public ClosedSnapshotSourceText(ITextSnapshot roslynSnapshot, Encoding encoding)
-                    : base(roslynSnapshot, encoding, containerOpt: null)
+                public ClosedSnapshotSourceText(ITextSnapshot roslynSnapshot, Encoding encodingOpt)
+                    : base(roslynSnapshot, encodingOpt, containerOpt: null)
                 {
                 }
             }
@@ -40,29 +40,26 @@ namespace Microsoft.CodeAnalysis.Text
             /// The ITextSnapshot backing the SourceText instance
             /// </summary>
             protected readonly ITextSnapshot RoslynSnapshot;
-            private readonly Encoding _encoding;
+            private readonly Encoding _encodingOpt;
             private readonly TextBufferContainer _containerOpt;
             private readonly int _reiteratedVersion;
-            private LineInfo _lineInfo;
 
-            private SnapshotSourceText(ITextSnapshot editorSnapshot, Encoding encoding)
+            private SnapshotSourceText(ITextSnapshot editorSnapshot, Encoding encodingOpt)
             {
                 Contract.ThrowIfNull(editorSnapshot);
-                Contract.ThrowIfNull(encoding);
 
                 this.RoslynSnapshot = TextBufferMapper.ToRoslyn(editorSnapshot);
                 _containerOpt = TextBufferContainer.From(editorSnapshot.TextBuffer);
                 _reiteratedVersion = editorSnapshot.Version.ReiteratedVersionNumber;
-                _encoding = encoding;
+                _encodingOpt = encodingOpt;
             }
 
-            public SnapshotSourceText(ITextSnapshot roslynSnapshot, Encoding encoding, TextBufferContainer containerOpt)
+            public SnapshotSourceText(ITextSnapshot roslynSnapshot, Encoding encodingOpt, TextBufferContainer containerOpt)
             {
                 Contract.ThrowIfNull(roslynSnapshot);
-                Contract.ThrowIfNull(encoding);
 
                 this.RoslynSnapshot = roslynSnapshot;
-                _encoding = encoding;
+                _encodingOpt = encodingOpt;
                 _containerOpt = containerOpt;
             }
 
@@ -101,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             public override Encoding Encoding
             {
-                get { return _encoding; }
+                get { return _encodingOpt; }
             }
 
             public ITextSnapshot EditorSnapshot
@@ -147,17 +144,9 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             #region Lines
-            public override TextLineCollection Lines
+            protected override TextLineCollection GetLinesCore()
             {
-                get
-                {
-                    if (_lineInfo == null)
-                    {
-                        System.Threading.Interlocked.CompareExchange(ref _lineInfo, new LineInfo(this), null);
-                    }
-
-                    return _lineInfo;
-                }
+                return new LineInfo(this);
             }
 
             private class LineInfo : TextLineCollection

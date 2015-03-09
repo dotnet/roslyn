@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Check if we need to escape this contextual keyword
             needsEscaping = needsEscaping || (isQueryContext && SyntaxFacts.IsQueryContextualKeyword(SyntaxFacts.GetContextualKeywordKind(identifier)));
 
-            return needsEscaping ? '@' + identifier : identifier;
+            return needsEscaping ? "@" + identifier : identifier;
         }
 
         public static SyntaxToken ToIdentifierToken(
@@ -39,14 +40,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return SyntaxFactory.Identifier(escaped);
             }
 
-            var unescaped = identifier.StartsWith("@")
+            var unescaped = identifier.StartsWith("@", StringComparison.Ordinal)
                 ? identifier.Substring(1)
                 : identifier;
 
             var token = SyntaxFactory.Identifier(
-                default(SyntaxTriviaList), SyntaxKind.None, '@' + unescaped, unescaped, default(SyntaxTriviaList));
+                default(SyntaxTriviaList), SyntaxKind.None, "@" + unescaped, unescaped, default(SyntaxTriviaList));
 
-            if (!identifier.StartsWith("@"))
+            if (!identifier.StartsWith("@", StringComparison.Ordinal))
             {
                 token = token.WithAdditionalAnnotations(Simplifier.Annotation);
             }

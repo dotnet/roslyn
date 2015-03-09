@@ -133,7 +133,7 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 var namedType = (INamedTypeSymbol)context.Symbol;
                 if (!namedType.IsAbstract &&
-                    namedType.Name.StartsWith("Source") &&
+                    namedType.Name.StartsWith("Source", StringComparison.Ordinal) &&
                     !namedType.Name.Contains("Backing") &&
                     namedType.AllInterfaces.Contains(_symbolType) &&
                     namedType.GetBaseTypesAndThis().Any(b => SymbolTypesWithExpectedSymbolDeclaredEvent.Contains(b.Name, StringComparer.Ordinal)))
@@ -142,7 +142,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
-            internal void AnalyzeCompilationEnd(CompilationEndAnalysisContext context)
+            internal void AnalyzeCompilationEnd(CompilationAnalysisContext context)
             {
                 foreach (var sourceSymbol in _sourceSymbolsToCheck)
                 {

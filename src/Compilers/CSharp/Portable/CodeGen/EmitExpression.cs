@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitPseudoVariableValue(BoundPseudoVariable expression, bool used)
         {
-            EmitExpression(expression.EmitExpressions.GetValue(expression), used);
+            EmitExpression(expression.EmitExpressions.GetValue(expression, _diagnostics), used);
         }
 
         private void EmitSequencePointExpression(BoundSequencePointExpression node, bool used)

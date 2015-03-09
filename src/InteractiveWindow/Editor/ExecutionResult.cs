@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
@@ -12,18 +14,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         public static readonly Task<ExecutionResult> Succeeded = Task.FromResult(Success);
         public static readonly Task<ExecutionResult> Failed = Task.FromResult(Failure);
 
-        private readonly bool isSuccessful;
+        private readonly bool _isSuccessful;
 
         public ExecutionResult(bool isSuccessful)
         {
-            this.isSuccessful = isSuccessful;
+            _isSuccessful = isSuccessful;
         }
 
         public bool IsSuccessful
         {
             get
             {
-                return isSuccessful;
+                return _isSuccessful;
             }
         }
     }

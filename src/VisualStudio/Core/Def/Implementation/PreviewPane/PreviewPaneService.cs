@@ -65,22 +65,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         object IPreviewPaneService.GetPreviewPane(Diagnostic diagnostic, object previewContent)
         {
-            var telemetry = diagnostic == null ? false : diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry);
+            var title = diagnostic?.GetMessage();
 
-            if ((diagnostic == null) || (diagnostic.Descriptor is TriggerDiagnosticDescriptor))
+            if (string.IsNullOrWhiteSpace(title))
             {
+                if (previewContent == null)
+                {
+                    // Bail out in cases where there is nothing to put in the header section
+                    // of the preview pane and no preview content (i.e. no diff view) either.
+                    return null;
+                }
+
                 return new PreviewPane(
-                    null, null, null, null, null, null, telemetry, previewContent, _serviceProvider);
+                    severityIcon: null, id: null, title: null, helpMessage: null,
+                    description: null, helpLink: null, telemetry: false,
+                    previewContent: previewContent, serviceProvider: _serviceProvider);
             }
-            else
-            {
-                return new PreviewPane(
-                    GetSeverityIconForDiagnostic(diagnostic),
-                    diagnostic.Id, diagnostic.GetMessage(),
-                    diagnostic.Descriptor.MessageFormat.ToString(DiagnosticData.USCultureInfo),
-                    diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
-                    diagnostic.Descriptor.HelpLinkUri, telemetry, previewContent, _serviceProvider);
-            }
+
+            return new PreviewPane(
+                GetSeverityIconForDiagnostic(diagnostic),
+                diagnostic.Id, title,
+                diagnostic.Descriptor.MessageFormat.ToString(DiagnosticData.USCultureInfo),
+                diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
+                diagnostic.Descriptor.HelpLinkUri,
+                diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry),
+                previewContent, _serviceProvider);
         }
     }
 }

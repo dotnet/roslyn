@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal sealed partial class WorkCoordinatorRegistrationService
+    internal sealed partial class SolutionCrawlerRegistrationService
     {
         private sealed partial class WorkCoordinator
         {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         base(listener, processor, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
                     {
                         _lazyAnalyzers = lazyAnalyzers;
-                        _workItemQueue = new AsyncProjectWorkItemQueue();
+                        _workItemQueue = new AsyncProjectWorkItemQueue(processor._registration.ProgressReporter);
 
                         Start();
                     }
@@ -69,11 +69,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 await ProcessProjectAsync(this.Analyzers, workItem, projectCancellation).ConfigureAwait(false);
                             }
                         }
-                        catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
-                        }
+                    }
+
+                    protected override void PauseOnGlobalOperation()
+                    {
+                        _workItemQueue.RequestCancellationOnRunningTasks();
+                    }
 
                     public void Enqueue(WorkItem item)
                     {
@@ -135,7 +140,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                             processedEverything = true;
                         }
-                        catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }

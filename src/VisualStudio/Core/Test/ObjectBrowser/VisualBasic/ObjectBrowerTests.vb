@@ -1,10 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
-Imports Roslyn.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
-Imports System.Threading
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.VisualBasic
     Public Class ObjectBrowserTests
@@ -250,7 +249,7 @@ End Namespace
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
 
-                list.VerifyDescriptions("Project VisualBasicAssembly1")
+                list.VerifyDescriptions($"{ServicesVSResources.Library_Project}VisualBasicAssembly1")
             End Using
         End Sub
 
@@ -271,7 +270,7 @@ End Namespace
 
                 list.VerifyDescriptions(
 "Namespace N" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -289,7 +288,7 @@ Delegate Function D(x As Integer) As Boolean
 
                 list.VerifyDescriptions(
 "Friend Delegate Function D(x As Integer) As Boolean" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -307,7 +306,7 @@ Delegate Sub D(y As String)
 
                 list.VerifyDescriptions(
 "Friend Delegate Sub D(y As String)" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -325,7 +324,7 @@ Delegate Function F(Of T As {Class, New}, U As V, V As List(Of T))(x As T, y As 
 
                 list.VerifyDescriptions(
 "Friend Delegate Function F(Of T As {Class, New}, U As V, V As System.Collections.Generic.List(Of T))(x As T, y As U) As V" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -345,7 +344,7 @@ End Class
                 list.VerifyDescriptions(
 "Friend Class C" & vbCrLf &
 "        Inherits Object" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -365,7 +364,7 @@ End Class
                 list.VerifyDescriptions(
 "Friend MustInherit Class C" & vbCrLf &
 "        Inherits Object" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -385,7 +384,7 @@ End Class
                 list.VerifyDescriptions(
 "Friend NotInheritable Class C" & vbCrLf &
 "        Inherits Object" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -405,7 +404,7 @@ End Class
                 list.VerifyDescriptions(
 "Public Class C(Of T As Class)" & vbCrLf &
 "        Inherits Object" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -429,10 +428,10 @@ End Class
                 list.VerifyDescriptions(
 "Friend Class C(Of T As Class)" & vbCrLf &
 "        Inherits B" & vbCrLf &
-"    Member of VisualBasicAssembly1",
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}",
 "Friend Class B" & vbCrLf &
 "        Inherits Object" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -456,10 +455,10 @@ End Class
                 list.VerifyDescriptions(
 "Friend MustInherit Class B" & vbCrLf &
 "        Inherits Object" & vbCrLf &
-"    Member of VisualBasicAssembly1",
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}",
 "Friend NotInheritable Class C" & vbCrLf &
 "        Inherits B" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -478,7 +477,7 @@ End Structure
 
                 list.VerifyDescriptions(
 "Friend Structure S" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -497,7 +496,7 @@ End Structure
 
                 list.VerifyDescriptions(
 "Public Structure S" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -516,7 +515,7 @@ End Module
 
                 list.VerifyDescriptions(
 "Friend Module M" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -535,7 +534,7 @@ End Module
 
                 list.VerifyDescriptions(
 "Public Module M" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -557,7 +556,7 @@ End Enum
 
                 list.VerifyDescriptions(
 "Friend Enum E" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -579,7 +578,7 @@ End Enum
 
                 list.VerifyDescriptions(
 "Friend Enum E As Byte" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -607,11 +606,11 @@ End Interface
 
                 list.VerifyDescriptions(
 "Friend Interface I1" & vbCrLf &
-"    Member of VisualBasicAssembly1",
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}",
 "Friend Interface I2" & vbCrLf &
-"    Member of VisualBasicAssembly1",
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}",
 "Friend Interface I3" & vbCrLf &
-"    Member of VisualBasicAssembly1")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "VisualBasicAssembly1")}")
             End Using
         End Sub
 
@@ -636,7 +635,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Sub M()" & vbCrLf &
-"    Member of N.C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Sub
 
@@ -661,7 +660,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Sub M(x As Integer)" & vbCrLf &
-"    Member of N.C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Sub
 
@@ -686,7 +685,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Sub M(ByRef x As Integer)" & vbCrLf &
-"    Member of N.C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Sub
 
@@ -711,7 +710,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Sub M(Optional x As Integer = 42)" & vbCrLf &
-"    Member of N.C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Sub
 
@@ -738,7 +737,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Sub M(Optional x As Double = 3.14159265358979)" & vbCrLf &
-"    Member of N.C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Sub
 
@@ -763,7 +762,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Sub M(Optional x As Double? = Nothing)" & vbCrLf &
-"    Member of N.C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Sub
 
@@ -788,7 +787,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Sub M(Optional x As Double? = 42)" & vbCrLf &
-"    Member of N.C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Sub
 
@@ -813,7 +812,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Sub M()" & vbCrLf &
-"    Member of N.I")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.I")}")
             End Using
         End Sub
 
@@ -838,7 +837,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Function M() As Integer" & vbCrLf &
-"    Member of N.C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Sub
 
@@ -863,7 +862,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Function M() As Integer" & vbCrLf &
-"    Member of N.C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Sub
 
@@ -887,7 +886,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Public MustOverride Function M() As Integer" & vbCrLf &
-"    Member of N.C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Sub
 
@@ -911,7 +910,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Protected Overridable Function M() As Integer" & vbCrLf &
-"    Member of N.C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Sub
 
@@ -935,7 +934,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Public NotOverridable Function M() As Integer" & vbCrLf &
-"    Member of N.C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Sub
 
@@ -961,7 +960,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Function M() As System.Collections.Generic.IEnumerable(Of Integer)" & vbCrLf &
-"    Member of N.C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Sub
 
@@ -987,7 +986,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Sub New()" & vbCrLf &
-"    Member of N.C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Sub
 
@@ -1013,7 +1012,7 @@ End Namespace
 
                 list.VerifyImmediateMemberDescriptions(
 "Private Shared Sub New()" & vbCrLf &
-"    Member of N.C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Sub
 
@@ -1034,7 +1033,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Property P As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1055,7 +1054,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Property P As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1076,7 +1075,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Property P As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1097,7 +1096,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Property P As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1122,7 +1121,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public ReadOnly Property P As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1147,7 +1146,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public ReadOnly Property P As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1171,7 +1170,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public WriteOnly Property P As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1197,7 +1196,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Property P As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1223,7 +1222,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Property P(index As Integer) As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1248,7 +1247,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public ReadOnly Property P As System.Collections.Generic.IEnumerable(Of Integer)" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1269,7 +1268,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Private Const F As Integer = 42" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1290,7 +1289,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Private Const F As Integer = 42" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1311,7 +1310,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Private x As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1332,7 +1331,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Private x As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1353,7 +1352,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Private ReadOnly x As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1374,7 +1373,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Private Shared ReadOnly x As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1397,11 +1396,11 @@ End Enum
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Const A As E = 0" & vbCrLf &
-"    Member of E",
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "E")}",
 "Public Const B As E = 1" & vbCrLf &
-"    Member of E",
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "E")}",
 "Public Const C As E = 2" & vbCrLf &
-"    Member of E")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "E")}")
             End Using
         End Sub
 
@@ -1433,13 +1432,13 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Event E1()" & vbCrLf &
-"    Member of C",
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}",
 "Public Event E2(i As Integer)" & vbCrLf &
-"    Member of C",
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}",
 "Public Event E3(sender As Object, e As System.EventArgs)" & vbCrLf &
-"    Member of C",
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}",
 "Public Event E4(sender As Object, e As System.EventArgs)" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1461,7 +1460,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator +(c As C, x As Integer) As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1483,7 +1482,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator -(c As C, x As Integer) As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1505,7 +1504,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator *(c As C, x As Integer) As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1527,7 +1526,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator /(c As C, x As Integer) As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1549,7 +1548,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator \(c As C, x As Integer) As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1571,7 +1570,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator Mod(c As C, x As Integer) As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1593,7 +1592,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator ^(c As C, x As Integer) As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1615,7 +1614,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator &(c As C, x As Integer) As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1637,7 +1636,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator =(c As C, x As Integer) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1659,7 +1658,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator <>(c As C, x As Integer) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1681,7 +1680,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator <(c As C, x As Integer) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1703,7 +1702,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator <=(c As C, x As Integer) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1725,7 +1724,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator >(c As C, x As Integer) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1747,7 +1746,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator >=(c As C, x As Integer) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1769,7 +1768,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator Like(c As C, i As Integer) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1791,7 +1790,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator Not(c As C) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1813,7 +1812,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator And(c As C, i As Integer) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1835,7 +1834,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator Or(c As C, i As Integer) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1857,7 +1856,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator Xor(c As C, i As Integer) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1879,7 +1878,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator <<(c As C, x As Integer) As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1901,7 +1900,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator >>(c As C, x As Integer) As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1923,7 +1922,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator IsTrue(c As C) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1945,7 +1944,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Operator IsFalse(c As C) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1967,7 +1966,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Narrowing Operator CType(c As C) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -1989,7 +1988,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Widening Operator CType(c As C) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -2020,7 +2019,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Shared Function moveFile(src As String, dst As String) As Boolean" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -2041,7 +2040,7 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Declare Ansi Function getUserName Lib ""advapi32.dll"" Alias ""GetUserNameA""(ByRef lpBuffer As String, ByRef nSize As Integer) As Integer" & vbCrLf &
-"    Member of C")
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
@@ -2073,19 +2072,19 @@ End Class
 
                 list.VerifyImmediateMemberDescriptions(
 "Public Sub M(Of T)(i As Integer, s As String)" & vbCrLf &
-"    Member of C" & vbCrLf &
+$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}" & vbCrLf &
 "" & vbCrLf &
-"Summary:" & vbCrLf &
+ServicesVSResources.Library_Summary & vbCrLf &
 "The is my summary!" & vbCrLf &
 "" & vbCrLf &
-"Type Parameters:" & vbCrLf &
+ServicesVSResources.Library_TypeParameters & vbCrLf &
 "T: Hello from a type parameter" & vbCrLf &
 "" & vbCrLf &
-"Parameters:" & vbCrLf &
+ServicesVSResources.Library_Parameters & vbCrLf &
 "i: The parameter i" & vbCrLf &
 "s: The parameter t" & vbCrLf &
 "" & vbCrLf &
-"Remarks:" & vbCrLf &
+ServicesVSResources.Library_Remarks & vbCrLf &
 "Takes i and s.")
             End Using
         End Sub

@@ -200,6 +200,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return result;
             }
 
+            public override SyntaxNode VisitInterpolation(InterpolationSyntax node)
+            {
+                var result = (InterpolationSyntax)base.VisitInterpolation(node);
+
+                if (result.Expression != null && !result.Expression.IsKind(SyntaxKind.ParenthesizedExpression))
+                {
+                    result = result.WithExpression(result.Expression.Parenthesize());
+                }
+
+                return result;
+            }
+
             public override SyntaxNode VisitXmlNameAttribute(XmlNameAttributeSyntax node)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
@@ -418,10 +430,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         symbol = symbol.ContainingType;
                         var name = symbol.Name;
 
-                        Debug.Assert(name.StartsWith(originalSimpleName.Identifier.ValueText));
+                        Debug.Assert(name.StartsWith(originalSimpleName.Identifier.ValueText, StringComparison.Ordinal));
 
                         // if the user already used the Attribute suffix in the attribute, we'll maintain it.
-                        if (identifier.ValueText == name && name.EndsWith("Attribute"))
+                        if (identifier.ValueText == name && name.EndsWith("Attribute", StringComparison.Ordinal))
                         {
                             identifier = identifier.WithAdditionalAnnotations(SimplificationHelpers.DontSimplifyAnnotation);
                         }

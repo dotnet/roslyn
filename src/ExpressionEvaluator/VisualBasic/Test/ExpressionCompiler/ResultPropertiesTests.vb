@@ -1,4 +1,6 @@
-﻿Imports System.Collections.Immutable
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.VisualStudio.Debugger.Evaluation
@@ -34,7 +36,7 @@ End Class
             Next
 
             Assert.Equal(DkmEvaluationResultCategory.Method, GetResultProperties(context, "M()").Category)
-            Assert.Equal(DkmEvaluationResultCategory.Property, GetResultProperties(context, "P").Category)
+            Assert.Equal(DkmEvaluationResultCategory.Property, GetResultProperties(context, "Me.P").Category)
         End Sub
 
         <Fact>

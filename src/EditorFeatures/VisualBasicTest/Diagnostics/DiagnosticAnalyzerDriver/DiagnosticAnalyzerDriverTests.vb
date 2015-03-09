@@ -59,12 +59,13 @@ End Class
     End Sub
 
     <Fact>
+    <WorkItem(759)>
     Public Sub DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         Dim source = TestResource.AllInOneVisualBasicCode
         Using Workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(source)
             Dim document = Workspace.CurrentSolution.Projects.Single().Documents.Single()
             ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptions(
-                Function(analyzer) DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length), donotCatchAnalyzerExceptions:=False), AnalyzerDriverHelper.DiagnosticId)
+                Function(analyzer) DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length), logAnalyzerExceptionAsDiagnostics:=True))
         End Using
     End Sub
 

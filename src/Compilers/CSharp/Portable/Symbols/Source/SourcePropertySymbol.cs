@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var result = this.ComputeType(binder, syntax, diagnostics);
                     if ((object)Interlocked.CompareExchange(ref _lazyType, result, null) == null)
                     {
-                        this.AddSemanticDiagnostics(diagnostics);
+                        this.AddDeclarationDiagnostics(diagnostics);
                     }
                     diagnostics.Free();
                 }
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var result = this.ComputeParameters(binder, syntax, diagnostics);
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, result))
                     {
-                        this.AddSemanticDiagnostics(diagnostics);
+                        this.AddDeclarationDiagnostics(diagnostics);
                     }
                     diagnostics.Free();
                 }
@@ -1182,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (_state.NotePartComplete(CompletionPart.Type))
                             {
-                                this.AddSemanticDiagnostics(diagnostics);
+                                this.AddDeclarationDiagnostics(diagnostics);
                             }
 
                             diagnostics.Free();
@@ -1204,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 if (_state.NotePartComplete(CompletionPart.Parameters))
                                 {
-                                    this.AddSemanticDiagnostics(diagnostics);
+                                    this.AddDeclarationDiagnostics(diagnostics);
                                     DeclaringCompilation.SymbolDeclaredEvent(this);
                                 }
 

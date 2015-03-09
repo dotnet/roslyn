@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -14,7 +16,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     internal sealed class SmartUpDownOption : EditorOptionDefinition<bool>
     {
         internal const string OptionName = "InteractiveSmartUpDown";
-        
+
         public override EditorOptionKey<bool> Key
         {
             get

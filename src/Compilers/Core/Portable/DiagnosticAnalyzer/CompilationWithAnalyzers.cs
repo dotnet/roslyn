@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerDriver _driver;
         private readonly Compilation _compilation;
         private readonly CancellationToken _cancellationToken;
+        private readonly ConcurrentSet<Diagnostic> _exceptionDiagnostics;
 
         public Compilation Compilation
         {
@@ -29,7 +31,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
-            _driver = AnalyzerDriver.Create(compilation, analyzers, options, out _compilation, _cancellationToken);
+            _exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
+            _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Instance, AddExceptionDiagnostic, out _compilation, _cancellationToken);
+        }
+
+        private void AddExceptionDiagnostic(Diagnostic diagnostic)
+        {
+            _exceptionDiagnostics.Add(diagnostic);
         }
 
         /// <summary>
@@ -53,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<Diagnostic> compilerDiagnostics = _compilation.GetDiagnostics(_cancellationToken);
 
             ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
-            return compilerDiagnostics.AddRange(analyzerDiagnostics);
+            return compilerDiagnostics.AddRange(analyzerDiagnostics).AddRange(_exceptionDiagnostics);
         }
 
         /// <summary>
@@ -91,9 +99,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
-        /// <paramref name="continueOnAnalyzerException"/> says whether the caller would like the exception thrown by the analyzers to be handled or not. If true - Handles ; False - Not handled.
+        /// <param name="analyzer">Analyzer to be checked for suppression.</param>
+        /// <param name="options">Compilation options.</param>
+        /// <param name="onAnalyzerException">
+        /// Optional delegate which is invoked when an analyzer throws an exception.
+        /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
+        /// </param>
         /// </summary>
-        public static bool IsDiagnosticAnalyzerSuppressed(DiagnosticAnalyzer analyzer, CompilationOptions options, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException)
+        public static bool IsDiagnosticAnalyzerSuppressed(DiagnosticAnalyzer analyzer, CompilationOptions options, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
         {
             if (analyzer == null)
             {
@@ -105,13 +118,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(options));
             }
 
-            if (continueOnAnalyzerException == null)
-            {
-                throw new ArgumentNullException(nameof(continueOnAnalyzerException));
-            }
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> voidHandler = (ex, a, diag) => { };
+            onAnalyzerException = onAnalyzerException ?? voidHandler;
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, CancellationToken.None);
 
-            Action<Diagnostic> dummy = _ => { };
-            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, dummy, continueOnAnalyzerException, CancellationToken.None);
+            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, AnalyzerManager.Instance, analyzerExecutor);
         }
     }
 }

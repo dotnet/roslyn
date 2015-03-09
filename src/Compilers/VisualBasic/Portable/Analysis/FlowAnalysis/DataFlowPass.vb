@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Tracks variables for which we have already reported a definite assignment error.  This
         ''' allows us to report at most one such error per variable.
         ''' </summary>
-        Private alreadyReported As BitArray
+        Private alreadyReported As BitVector
 
         ''' <summary>
         ''' Did we see [On Error] or [Resume] statement? Used to suppress some diagnostics.
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 MakeSlot(parameter)
             Next
 
-            Me.alreadyReported = BitArray.Empty          ' no variables yet reported unassigned
+            Me.alreadyReported = BitVector.Empty          ' no variables yet reported unassigned
             Me.EnterParameters(MethodParameters)         ' with parameters assigned
             Dim methodMeParameter = Me.MeParameter       ' and with 'Me' assigned as well
             If methodMeParameter IsNot Nothing Then
@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub Free()
-            Me.alreadyReported = BitArray.Null
+            Me.alreadyReported = BitVector.Null
             MyBase.Free()
         End Sub
 
@@ -211,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return builder.ToString()
         End Function
 
-        Protected Sub AppendBitNames(a As BitArray, builder As StringBuilder)
+        Protected Sub AppendBitNames(a As BitVector, builder As StringBuilder)
             Dim any As Boolean = False
             For Each bit In a.TrueBits
                 If any Then
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' they enable us to clearly document a discarded return value from a method invocation, e.g. var
                     ' discardedValue = F(); >shrug<
                     ' Note, this rule only applies to local variables and not to const locals, i.e. we always report unused 
-                    ' const locals. In addition, if the value has errors then supress these diagnostics in all cases.
+                    ' const locals. In addition, if the value has errors then suppress these diagnostics in all cases.
                     _unusedVariables.Remove(local)
                 End If
             End If
@@ -1442,7 +1442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End Region
 
         Protected Overrides Function ReachableState() As LocalState
-            Return New LocalState(BitArray.Empty)
+            Return New LocalState(BitVector.Empty)
         End Function
 
         Private Sub EnterParameters(parameters As ImmutableArray(Of ParameterSymbol))
@@ -1486,7 +1486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function AllBitsSet() As LocalState
-            Dim result = New LocalState(BitArray.AllSet(nextVariableSlot))
+            Dim result = New LocalState(BitVector.AllSet(nextVariableSlot))
             result.Unassign(SlotKind.Unreachable)
             Return result
         End Function

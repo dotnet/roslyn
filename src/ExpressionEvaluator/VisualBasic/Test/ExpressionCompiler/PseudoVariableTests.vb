@@ -1,4 +1,6 @@
-﻿Imports System.Collections.Immutable
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -55,7 +57,7 @@ End Class
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression(
+            context.CompileExpression(
                 InspectionContextFactory.Empty.Add("$exception", GetType(System.IO.IOException)).Add("$stowedexception", GetType(System.InvalidOperationException)),
                 "If($Exception, If($exception, $stowedexception))",
                 DkmEvaluationFlags.TreatAsExpression,
@@ -66,41 +68,25 @@ End Class
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData)
             Assert.Empty(missingAssemblyIdentities)
-            Assert.Equal(testData.Methods.Count, 4)
+            Assert.Equal(testData.Methods.Count, 2)
 
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       39 (0x27)
   .maxstack  2
-  IL_0000:  call       ""Function <>x.$exception() As System.Exception""
+  IL_0000:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException() As System.Exception""
   IL_0005:  castclass  ""System.IO.IOException""
   IL_000a:  dup
   IL_000b:  brtrue.s   IL_0026
   IL_000d:  pop
-  IL_000e:  call       ""Function <>x.$exception() As System.Exception""
+  IL_000e:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException() As System.Exception""
   IL_0013:  castclass  ""System.IO.IOException""
   IL_0018:  dup
   IL_0019:  brtrue.s   IL_0026
   IL_001b:  pop
-  IL_001c:  call       ""Function <>x.$stowedexception() As System.Exception""
+  IL_001c:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetStowedException() As System.Exception""
   IL_0021:  castclass  ""System.InvalidOperationException""
   IL_0026:  ret
-}")
-
-            Dim assembly = ImmutableArray.CreateRange(result.Assembly)
-            assembly.VerifyIL("<>x.$exception",
-"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
-}")
-            assembly.VerifyIL("<>x.$stowedexception",
-"{
-  // Code size        2 (0x2)
-            .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
 }")
         End Sub
 
@@ -114,7 +100,7 @@ End Class
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression(
+            context.CompileExpression(
                 InspectionContextFactory.Empty.Add("$ReturnValue", GetType(Object)).Add("$ReturnValue2", GetType(String)),
                 "If($ReturnValue, $ReturnValue2)",
                 DkmEvaluationFlags.TreatAsExpression,
@@ -130,28 +116,19 @@ End Class
   // Code size       22 (0x16)
   .maxstack  2
   IL_0000:  ldc.i4.0
-  IL_0001:  call       ""Function <>x.<>GetReturnValue(Integer) As Object""
+  IL_0001:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(Integer) As Object""
   IL_0006:  dup
   IL_0007:  brtrue.s   IL_0015
   IL_0009:  pop
   IL_000a:  ldc.i4.2
-  IL_000b:  call       ""Function <>x.<>GetReturnValue(Integer) As Object""
+  IL_000b:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(Integer) As Object""
   IL_0010:  castclass  ""String""
   IL_0015:  ret
 }")
 
-            Dim assembly = ImmutableArray.CreateRange(result.Assembly)
-            assembly.VerifyIL("<>x.<>GetReturnValue",
-"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
-}")
-
             ' Value type $ReturnValue.
             testData = New CompilationTestData()
-            result = context.CompileExpression(
+            context.CompileExpression(
                 InspectionContextFactory.Empty.Add("$ReturnValue", GetType(Nullable(Of Integer))),
                 "DirectCast($ReturnValue, Integer?).HasValue",
                 DkmEvaluationFlags.TreatAsExpression,
@@ -168,7 +145,7 @@ End Class
   .maxstack  1
   .locals init (Integer? V_0)
   IL_0000:  ldc.i4.0
-  IL_0001:  call       ""Function <>x.<>GetReturnValue(Integer) As Object""
+  IL_0001:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(Integer) As Object""
   IL_0006:  unbox.any  ""Integer?""
   IL_000b:  stloc.0
   IL_000c:  ldloca.s   V_0
@@ -196,7 +173,7 @@ End Class
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldc.i4.0
-  IL_0001:  call       ""Function <>x.<>GetReturnValue(Integer) As Object""
+  IL_0001:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(Integer) As Object""
   IL_0006:  ldc.i4.2
   IL_0007:  box        ""Integer""
   IL_000c:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.SubtractObject(Object, Object) As Object""
@@ -227,13 +204,13 @@ End Class"
   // Code size       40 (0x28)
   .maxstack  2
   IL_0000:  ldstr      ""23""
-  IL_0005:  call       ""Function <>x.<>GetObjectByAlias(String) As Object""
+  IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_000a:  castclass  ""String""
   IL_000f:  dup
   IL_0010:  brtrue.s   IL_0027
   IL_0012:  pop
   IL_0013:  ldstr      ""4""
-  IL_0018:  call       ""Function <>x.<>GetObjectByAlias(String) As Object""
+  IL_0018:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_001d:  castclass  ""System.Type""
   IL_0022:  callvirt   ""Function System.Type.get_BaseType() As System.Type""
   IL_0027:  ret
@@ -250,7 +227,7 @@ End Class"
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression(
+            context.CompileExpression(
                 InspectionContextFactory.Empty.Add("$exception", GetType(System.IO.IOException)).Add("$stowedexception", GetType(Exception)),
                 "If($ExcEptIOn, $SToWeDeXCePTioN)",
                 DkmEvaluationFlags.TreatAsExpression,
@@ -265,29 +242,13 @@ End Class"
 "{
   // Code size       20 (0x14)
   .maxstack  2
-  IL_0000:  call       ""Function <>x.$exception() As System.Exception""
+  IL_0000:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException() As System.Exception""
   IL_0005:  castclass  ""System.IO.IOException""
   IL_000a:  dup
   IL_000b:  brtrue.s   IL_0013
   IL_000d:  pop
-  IL_000e:  call       ""Function <>x.$stowedexception() As System.Exception""
+  IL_000e:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetStowedException() As System.Exception""
   IL_0013:  ret
-}")
-
-            Dim assembly = ImmutableArray.CreateRange(result.Assembly)
-            assembly.VerifyIL("<>x.$exception",
-"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
-}")
-            assembly.VerifyIL("<>x.$stowedexception",
-"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
 }")
         End Sub
 
@@ -325,7 +286,7 @@ End Class"
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldstr      ""s""
-  IL_0005:  call       ""Function <>x.<>GetObjectByAlias(String) As Object""
+  IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_000a:  unbox.any  ""C.S(Of Integer)""
   IL_000f:  ldfld      ""C.S(Of Integer).F As Integer""
   IL_0014:  ldc.i4.1
@@ -365,10 +326,10 @@ End Class"
   // Code size       44 (0x2c)
   .maxstack  4
   IL_0000:  ldstr      ""a""
-  IL_0005:  call       ""Function <>x.<>GetObjectByAlias(String) As Object""
+  IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_000a:  castclass  ""C()""
   IL_000f:  ldstr      ""b""
-  IL_0014:  call       ""Function <>x.<>GetObjectByAlias(String) As Object""
+  IL_0014:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_0019:  castclass  ""Integer(,)""
   IL_001e:  ldc.i4.1
   IL_001f:  ldc.i4.0
@@ -449,16 +410,16 @@ End Class"
 
         <Fact>
         Public Sub Variables()
-            CheckVariable("$exception", valid:=True, methodNames:={"<>x.$exception()"})
-            CheckVariable("$eXCePTioN", valid:=True, methodNames:={"<>x.$exception()"})
-            CheckVariable("$stowedexception", valid:=True, methodNames:={"<>x.$stowedexception()"})
-            CheckVariable("$stOwEdExcEptIOn", valid:=True, methodNames:={"<>x.$stowedexception()"})
-            CheckVariable("$ReturnValue", valid:=True, methodNames:={"<>x.<>GetReturnValue(Integer)"})
-            CheckVariable("$rEtUrnvAlUe", valid:=True, methodNames:={"<>x.<>GetReturnValue(Integer)"})
-            CheckVariable("$ReturnValue0", valid:=True, methodNames:={"<>x.<>GetReturnValue(Integer)"})
-            CheckVariable("$ReturnValue21", valid:=True, methodNames:={"<>x.<>GetReturnValue(Integer)"})
+            CheckVariable("$exception", valid:=True)
+            CheckVariable("$eXCePTioN", valid:=True)
+            CheckVariable("$stowedexception", valid:=True)
+            CheckVariable("$stOwEdExcEptIOn", valid:=True)
+            CheckVariable("$ReturnValue", valid:=True)
+            CheckVariable("$rEtUrnvAlUe", valid:=True)
+            CheckVariable("$ReturnValue0", valid:=True)
+            CheckVariable("$ReturnValue21", valid:=True)
             CheckVariable("$ReturnValue3A", valid:=False)
-            CheckVariable("$33", valid:=True, methodNames:={"<>x.<>GetObjectByAlias(String)", "<>x.<>GetVariableAddress(Of <>T)(String)"})
+            CheckVariable("$33", valid:=True)
             CheckVariable("$03", valid:=False)
             CheckVariable("$3A", valid:=False)
             CheckVariable("$0", valid:=False)
@@ -466,7 +427,7 @@ End Class"
             CheckVariable("$Unknown", valid:=False)
         End Sub
 
-        Private Sub CheckVariable(variableName As String, valid As Boolean, Optional methodNames As String() = Nothing)
+        Private Sub CheckVariable(variableName As String, valid As Boolean)
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
@@ -479,13 +440,7 @@ End Class"
                 errorMessage:=errorMessage)
 
             If valid Then
-                Dim builder = ArrayBuilder(Of String).GetInstance()
-                builder.Add("<>x.<>m0(C)")
-                If methodNames IsNot Nothing Then
-                    builder.AddRange(methodNames)
-                End If
-                builder.Add("<invalid-global-code>..ctor()") ' Unnecessary <invalid-global-code> (DevDiv #1010243)
-                Dim expectedNames = builder.ToImmutableAndFree()
+                Dim expectedNames = {"<>x.<>m0(C)", "<invalid-global-code>..ctor()"} ' Unnecessary <invalid-global-code> (DevDiv #1010243)
                 Dim actualNames = testData.Methods.Keys
                 AssertEx.SetEqual(expectedNames, actualNames)
             Else
@@ -507,7 +462,8 @@ End Class"
                 expr:="$ReturnValue(Of Object)",
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC32045: '$ReturnValue' has no type parameters and so cannot have type arguments.", errorMessage)
+            ' TODO (acasey): don't canonicalize name (GH #878)
+            Assert.Equal("(1) : error BC32045: '$returnvalue' has no type parameters and so cannot have type arguments.", errorMessage)
 
             Const source = "
 Class C
@@ -531,7 +487,7 @@ End Class
   // Code size       19 (0x13)
   .maxstack  3
   IL_0000:  ldc.i4.2
-  IL_0001:  call       ""Function <>x.<>GetReturnValue(Integer) As Object""
+  IL_0001:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(Integer) As Object""
   IL_0006:  ldc.i4.0
   IL_0007:  newarr     ""Object""
   IL_000c:  ldnull
@@ -562,7 +518,7 @@ End Class
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName:="C.M",
                 expr:="F(Function() If(o, $exception))")
-            testData.GetMethodData("<>x._Closure$__0-0._Lambda$__1()").VerifyIL(
+            testData.GetMethodData("<>x._Closure$__0-0._Lambda$__0()").VerifyIL(
 "{
   // Code size       16 (0x10)
   .maxstack  2
@@ -571,7 +527,7 @@ End Class
   IL_0006:  dup
   IL_0007:  brtrue.s   IL_000f
   IL_0009:  pop
-  IL_000a:  call       ""Function <>x.$exception() As System.Exception""
+  IL_000a:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException() As System.Exception""
   IL_000f:  ret
 }")
         End Sub
@@ -596,12 +552,12 @@ End Class
 {
   // Code size       22 (0x16)
   .maxstack  2
-  IL_0000:  call       ""Function <>x.$exception() As System.Exception""
+  IL_0000:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException() As System.Exception""
   IL_0005:  callvirt   ""Function System.Exception.get_InnerException() As System.Exception""
   IL_000a:  dup
   IL_000b:  brtrue.s   IL_0013
   IL_000d:  pop
-  IL_000e:  call       ""Function <>x.$exception() As System.Exception""
+  IL_000e:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException() As System.Exception""
   IL_0013:  starg.s    V_0
   IL_0015:  ret
 }
@@ -674,7 +630,7 @@ End Class
   .maxstack  1
   .locals init (T V_0, //F
   System.Exception V_1)
-  IL_0000:  call       ""Function <>x.$exception() As System.Exception""
+  IL_0000:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException() As System.Exception""
   IL_0005:  stloc.1
   IL_0006:  ldloca.s   V_1
   IL_0008:  call       ""Function C.F(Of System.Exception)(ByRef System.Exception) As System.Exception""
@@ -757,7 +713,7 @@ End Class
   .maxstack  2
   .locals init (T V_0) //F
   IL_0000:  ldstr      ""x""
-  IL_0005:  call       ""Function <>x.<>GetVariableAddress(Of Integer)(String) As Integer""
+  IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Integer)(String) As Integer""
   IL_000a:  ldc.i4.0
   IL_000b:  stind.i4
   IL_000c:  ret
@@ -781,7 +737,7 @@ End Class
   .maxstack  1
   .locals init (T V_0) //F
   IL_0000:  ldstr      ""x""
-  IL_0005:  call       ""Function <>x.<>GetVariableAddress(Of Integer)(String) As Integer""
+  IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Integer)(String) As Integer""
   IL_000a:  call       ""Function C.F(Of Integer)(ByRef Integer) As Integer""
   IL_000f:  ret
 }")
@@ -808,9 +764,9 @@ End Class
   IL_0000:  ldtoken    ""Object""
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
   IL_000a:  ldstr      ""x""
-  IL_000f:  call       ""Sub <>x.<>CreateVariable(System.Type, String)""
+  IL_000f:  call       ""Sub Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, String)""
   IL_0014:  ldstr      ""x""
-  IL_0019:  call       ""Function <>x.<>GetVariableAddress(Of Object)(String) As Object""
+  IL_0019:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
   IL_001e:  ldnull
   IL_001f:  stind.ref
   IL_0020:  ret
@@ -836,19 +792,12 @@ End Class
   IL_0000:  ldtoken    ""Object""
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
   IL_000a:  ldstr      ""x""
-  IL_000f:  call       ""Sub <>x.<>CreateVariable(System.Type, String)""
+  IL_000f:  call       ""Sub Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, String)""
   IL_0014:  ldstr      ""x""
-  IL_0019:  call       ""Function <>x.<>GetVariableAddress(Of Object)(String) As Object""
+  IL_0019:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
   IL_001e:  call       ""Function C.F(Of Object)(ByRef Object) As Object""
   IL_0023:  pop
   IL_0024:  ret
-}")
-            testData.GetMethodData("<>x.<>GetVariableAddress(Of <>T)").VerifyIL(
-"{
-  // Code size        2 (0x2)
-  .maxstack  1
-  IL_0000:  ldnull
-  IL_0001:  throw
 }")
         End Sub
 
@@ -898,7 +847,7 @@ End Class"
             Dim referenceA2 = compilationA2.EmitToImageReference()
             Dim runtime = CreateRuntimeInstance(
                 assemblyNameB,
-                ImmutableArray.Create(MscorlibRef, referenceA2),
+                ImmutableArray.Create(MscorlibRef, referenceA2).AddIntrinsicAssembly(),
                 exeBytes,
                 New SymReader(pdbBytes))
 
@@ -926,18 +875,18 @@ End Class"
   // Code size       44 (0x2c)
   .maxstack  2
   .locals init (A(Of Object) V_0) //o
-  IL_0000:  call       ""Function <>x.$exception() As System.Exception""
+  IL_0000:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException() As System.Exception""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_0018
   IL_0008:  pop
   IL_0009:  ldstr      ""1""
-  IL_000e:  call       ""Function <>x.<>GetObjectByAlias(String) As Object""
+  IL_000e:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_0013:  castclass  ""A(Of B(Of Object))""
   IL_0018:  dup
   IL_0019:  brtrue.s   IL_002b
   IL_001b:  pop
   IL_001c:  ldstr      ""2""
-  IL_0021:  call       ""Function <>x.<>GetObjectByAlias(String) As Object""
+  IL_0021:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_0026:  castclass  ""B(Of A(Of Object)())""
   IL_002b:  ret
 }")
@@ -994,6 +943,7 @@ End Class"
             modulesBuilder.Add(MscorlibRef.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing))
             modulesBuilder.Add(referenceA.ToModuleInstance(fullImage:=exeA, symReader:=New SymReader(pdbA)))
             modulesBuilder.Add(referenceB.ToModuleInstance(fullImage:=exeB, symReader:=New SymReader(pdbB)))
+            modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing))
 
             Using runtime = New RuntimeInstance(modulesBuilder.ToImmutableAndFree())
                 Dim context = CreateMethodContext(runtime, "A.M")
@@ -1018,7 +968,7 @@ End Class"
   .maxstack  1
   .locals init (Object V_0, //o
                 System.Exception V_1)
-  IL_0000:  call       ""Function <>x(Of T).$exception() As System.Exception""
+  IL_0000:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException() As System.Exception""
   IL_0005:  castclass  ""E""
   IL_000a:  ret
 }")
@@ -1041,7 +991,7 @@ End Class"
   .locals init (Object V_0, //o
                 System.Exception V_1)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""Function <>x(Of T).<>GetObjectByAlias(String) As Object""
+  IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_000a:  castclass  ""A(Of B)""
   IL_000f:  stloc.0
   IL_0010:  ret

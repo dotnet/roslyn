@@ -121,6 +121,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 verify: verify);
         }
 
+        internal CompilationVerifier CompileAndVerifyWinRt(
+            string source,
+            string expectedOutput = null,
+            MetadataReference[] additionalRefs = null,
+            TestEmitters emitOptions = TestEmitters.All,
+            CSharpCompilationOptions options = null,
+            bool verify = true)
+        {
+            if (options == null)
+            {
+                options = expectedOutput != null ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
+            }
+
+            var compilation = CreateCompilation(source,
+                                                WinRtRefs.Concat(additionalRefs ?? Enumerable.Empty<MetadataReference>()),
+                                                options);
+
+            return CompileAndVerify(
+                compilation: compilation,
+                expectedOutput: expectedOutput,
+                emitOptions: emitOptions,
+                verify: verify);
+        }
+
+        internal CompilationVerifier CompileAndVerifyOnWin8Only(
+            string source,
+            MetadataReference[] additionalRefs = null,
+            TestEmitters emitOptions = TestEmitters.All,
+            string expectedOutput = null)
+        {
+            var isWin8 = OSVersion.IsWin8;
+            return CompileAndVerifyWinRt(
+                source,
+                additionalRefs: additionalRefs,
+                expectedOutput: isWin8 ? expectedOutput : null,
+                emitOptions: emitOptions,
+                verify: isWin8);
+        }
+
         internal CompilationVerifier CompileAndVerify(
             string[] sources,
             MetadataReference[] additionalRefs = null,
@@ -176,92 +215,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 collectEmittedAssembly,
                 verify);
         }
-
-        internal CompilationVerifier CompileAndVerifyOnWin8Only(
-            string source,
-            MetadataReference[] additionalRefs = null,
-            IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitOptions = TestEmitters.All,
-            Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly> validator = null,
-            Action<ModuleSymbol> symbolValidator = null,
-            SignatureDescription[] expectedSignatures = null,
-            string expectedOutput = null,
-            CompilationOptions options = null,
-            bool collectEmittedAssembly = true)
-        {
-            return base.CompileAndVerifyOnWin8Only(
-                source,
-                additionalRefs,
-                dependencies,
-                emitOptions,
-                Translate(sourceSymbolValidator),
-                validator,
-                Translate(symbolValidator),
-                expectedSignatures,
-                expectedOutput,
-                options,
-                collectEmittedAssembly);
-        }
-
-        internal CompilationVerifier CompileAndVerifyOnWin8Only(
-            Compilation compilation,
-            IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitOptions = TestEmitters.All,
-            Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly> validator = null,
-            Action<ModuleSymbol> symbolValidator = null,
-            SignatureDescription[] expectedSignatures = null,
-            string expectedOutput = null,
-            bool collectEmittedAssembly = true)
-        {
-            return base.CompileAndVerifyOnWin8Only(
-                compilation,
-                dependencies,
-                emitOptions,
-                Translate(sourceSymbolValidator),
-                validator,
-                Translate(symbolValidator),
-                expectedSignatures,
-                expectedOutput,
-                collectEmittedAssembly);
-        }
-
-        internal CompilationVerifier CompileAndVerifyOnWin8Only(
-            string[] sources,
-            MetadataReference[] additionalRefs = null,
-            IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitOptions = TestEmitters.All,
-            Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly> validator = null,
-            Action<ModuleSymbol> symbolValidator = null,
-            SignatureDescription[] expectedSignatures = null,
-            string expectedOutput = null,
-            CompilationOptions options = null,
-            bool collectEmittedAssembly = true,
-            bool verify = true)
-        {
-            return base.CompileAndVerifyOnWin8Only(
-                sources,
-                additionalRefs,
-                dependencies,
-                emitOptions,
-                Translate(sourceSymbolValidator),
-                validator,
-                Translate(symbolValidator),
-                expectedSignatures,
-                expectedOutput,
-                options,
-                collectEmittedAssembly,
-                verify);
-        }
     }
 
     public abstract class CSharpTestBaseBase : CommonTestBase
     {
-        public static CSharpCompilation CreateWinRtCompilation(string text)
+        public static CSharpCompilation CreateWinRtCompilation(string text, MetadataReference[] additionalRefs = null)
         {
-            return CSharpTestBase.CreateCompilationWithMscorlib(text, WinRtRefs, TestOptions.ReleaseExe);
+            return CSharpTestBase.CreateCompilation(text,
+                                                    WinRtRefs.Concat(additionalRefs ?? Enumerable.Empty<MetadataReference>()),
+                                                    TestOptions.ReleaseExe);
         }
 
         internal static DiagnosticDescription Diagnostic(ErrorCode code, string squiggledText = null, object[] arguments = null,
@@ -355,11 +317,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             bool appendDefaultHeader = true)
         {
-            if (string.IsNullOrEmpty(ilSource))
-            {
-                return CreateCompilationWithMscorlib(source, references, options);
-            }
-
             IEnumerable<MetadataReference> metadataReferences = new[] { CompileIL(ilSource, appendDefaultHeader) };
             if (references != null)
             {
@@ -725,12 +682,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             // =================
             // Get Binding Text
             string text = tree.GetRoot().ToFullString();
-            int start = text.IndexOf(startTag);
+            int start = text.IndexOf(startTag, StringComparison.Ordinal);
             if (start < 0)
                 return null;
 
             start += startTag.Length;
-            int end = text.IndexOf(endTag);
+            int end = text.IndexOf(endTag, StringComparison.Ordinal);
             Assert.True(end > start, "Bind Pos: end > start");
             // get rid of white spaces if any
             var bindText = text.Substring(start, end - start).Trim();

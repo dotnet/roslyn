@@ -301,6 +301,81 @@ End Class
     End Sub
 
     <Fact>
+    Public Sub PublicKeyFromOptions_DelaySigned()
+        Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+<assembly: System.Reflection.AssemblyDelaySign(True)>
+Public Class C 
+End Class
+]]>
+    </file>
+</compilation>
+
+        Dim c = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithCryptoPublicKey(PublicKey))
+        c.VerifyDiagnostics()
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, c.Assembly.Identity.PublicKey))
+
+        Dim Metadata = ModuleMetadata.CreateFromImage(c.EmitToArray())
+        Dim identity = Metadata.Module.ReadAssemblyIdentityOrThrow()
+
+        Assert.True(identity.HasPublicKey)
+        AssertEx.Equal(identity.PublicKey, PublicKey)
+        Assert.Equal(CorFlags.ILOnly, Metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags)
+    End Sub
+
+    <Fact>
+    Public Sub PublicKeyFromOptions_OssSigned()
+        ' attributes are ignored
+        Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+<assembly: System.Reflection.AssemblyKeyName("roslynTestContainer")>
+<assembly: System.Reflection.AssemblyKeyFile("some file")>
+Public Class C
+End Class
+]]>
+    </file>
+</compilation>
+
+        Dim c = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithCryptoPublicKey(PublicKey))
+        c.VerifyDiagnostics()
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, c.Assembly.Identity.PublicKey))
+
+        Dim Metadata = ModuleMetadata.CreateFromImage(c.EmitToArray())
+        Dim identity = Metadata.Module.ReadAssemblyIdentityOrThrow()
+
+        Assert.True(identity.HasPublicKey)
+        AssertEx.Equal(identity.PublicKey, PublicKey)
+        Assert.Equal(CorFlags.ILOnly Or CorFlags.StrongNameSigned, Metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags)
+    End Sub
+
+    <Fact>
+    Public Sub PublicKeyFromOptions_InvalidCompilationOptions()
+        Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class C 
+End Class
+]]>
+    </file>
+</compilation>
+
+        Dim c = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.
+            WithCryptoPublicKey(ImmutableArray.Create(Of Byte)(1, 2, 3)).
+            WithCryptoKeyContainer("roslynTestContainer").
+            WithCryptoKeyFile("file.snk").
+            WithStrongNameProvider(DefaultProvider))
+
+        AssertTheseDiagnostics(c,
+<error>
+BC2014: the value '01-02-03' is invalid for option 'CryptoPublicKey'
+BC2046: Compilation options 'CryptoPublicKey' and 'CryptoKeyContainer' can't both be specified at the same time.
+BC2046: Compilation options 'CryptoPublicKey' and 'CryptoKeyFile' can't both be specified at the same time.
+</error>)
+    End Sub
+
+    <Fact>
     Public Sub PubKeyFileBogusOptions()
         Dim tmp = Temp.CreateFile().WriteAllBytes(New Byte() {1, 2, 3, 4})
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
@@ -344,7 +419,7 @@ End Class
         Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
         Assert.Equal(2, Err.Arguments.Count)
         Assert.Equal("foo", DirectCast(err.Arguments(0), String))
-        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80090016)"))
+        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal))
 
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
@@ -495,7 +570,7 @@ End Class
         Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("bogus", DirectCast(err.Arguments(0), String))
-        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80090016)"))
+        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal))
     End Sub
 
     <Fact>
@@ -1437,7 +1512,7 @@ End Class
         Assert.Equal(ERRID.ERR_PublicKeyFileFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal(KeyPairFile, DirectCast(err.Arguments(0), String))
-        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80131423)"))
+        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80131423)", StringComparison.Ordinal))
     End Sub
 
     <Fact>

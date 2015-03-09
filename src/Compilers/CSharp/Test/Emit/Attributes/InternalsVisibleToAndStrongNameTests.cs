@@ -8,7 +8,6 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
@@ -181,7 +180,6 @@ public class Test
                 // error CS7027: Error signing output with public key from file '..\KeyPair_6187d0d6-f691-47fd-985b-03570bc0668d.snk' -- aaa.dll not found.
                 Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("..\\" + keyFileName, "aaa.dll not found.").WithLocation(1, 1)
             );
-
         }
 
         [Fact]
@@ -331,7 +329,7 @@ public class Test
             Assert.Equal((int)ErrorCode.ERR_PublicKeyContainerFailure, err.Code);
             Assert.Equal(2, err.Arguments.Count);
             Assert.Equal("foo", err.Arguments[0]);
-            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)"));
+            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal));
 
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         }
@@ -378,6 +376,67 @@ public class Test
             var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
             other.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PublicKeyFromOptions_DelaySigned()
+        {
+            string source = @"
+[assembly: System.Reflection.AssemblyDelaySign(true)]
+public class C {}";
+
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey));
+            c.VerifyDiagnostics();
+            Assert.True(ByteSequenceComparer.Equals(s_publicKey, c.Assembly.Identity.PublicKey));
+
+            var metadata = ModuleMetadata.CreateFromImage(c.EmitToArray());
+            var identity = metadata.Module.ReadAssemblyIdentityOrThrow();
+
+            Assert.True(identity.HasPublicKey);
+            AssertEx.Equal(identity.PublicKey, s_publicKey);
+            Assert.Equal(CorFlags.ILOnly, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
+        }
+
+        [Fact]
+        public void PublicKeyFromOptions_OssSigned()
+        {
+            // attributes are ignored
+            string source = @"
+[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")] 
+[assembly: System.Reflection.AssemblyKeyFile(""some file"")] 
+public class C {}
+";
+
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey));
+            c.VerifyDiagnostics();
+            Assert.True(ByteSequenceComparer.Equals(s_publicKey, c.Assembly.Identity.PublicKey));
+
+            var metadata = ModuleMetadata.CreateFromImage(c.EmitToArray());
+            var identity = metadata.Module.ReadAssemblyIdentityOrThrow();
+
+            Assert.True(identity.HasPublicKey);
+            AssertEx.Equal(identity.PublicKey, s_publicKey);
+            Assert.Equal(CorFlags.ILOnly | CorFlags.StrongNameSigned, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
+        }
+
+        [Fact]
+        public void PublicKeyFromOptions_InvalidCompilationOptions()
+        {
+            string source = @"public class C {}";
+
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.
+                WithCryptoPublicKey(ImmutableArray.Create<byte>(1,2,3)).
+                WithCryptoKeyContainer("roslynTestContainer").
+                WithCryptoKeyFile("file.snk").
+                WithStrongNameProvider(s_defaultProvider));
+
+            c.VerifyDiagnostics(
+                // error CS7102: Compilation options 'CryptoPublicKey' and 'CryptoKeyFile' can't both be specified at the same time.
+                Diagnostic(ErrorCode.ERR_MutuallyExclusiveOptions).WithArguments("CryptoPublicKey", "CryptoKeyFile").WithLocation(1, 1),
+                // error CS7102: Compilation options 'CryptoPublicKey' and 'CryptoKeyContainer' can't both be specified at the same time.
+                Diagnostic(ErrorCode.ERR_MutuallyExclusiveOptions).WithArguments("CryptoPublicKey", "CryptoKeyContainer").WithLocation(1, 1),
+                // error CS7088: Invalid 'CryptoPublicKey' value: '01-02-03'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("CryptoPublicKey", "01-02-03").WithLocation(1, 1));
         }
 
         #endregion
@@ -868,7 +927,7 @@ public class Z
             Assert.Equal((int)ErrorCode.ERR_PublicKeyContainerFailure, err.Code);
             Assert.Equal(2, err.Arguments.Count);
             Assert.Equal("bogus", err.Arguments[0]);
-            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)"));
+            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal));
         }
 
         [Fact]
@@ -1589,6 +1648,42 @@ public class C
                     // warning CS8002: Referenced assembly 'Unsigned, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' does not have a strong name.
                     Diagnostic(ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName).WithArguments("Unsigned, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
             }
+        }
+
+        [Fact(Skip = "Bug 399")]
+        [WorkItem(399, "GitHub")]
+        public void Bug399()
+        {
+            // The referenced assembly Signed.dll from the repro steps
+            var signed = CreateMetadataReferenceFromHexGZipImage(@"
+1f8b0800000000000400f38d9ac0c0ccc0c0c002c4ffff3330ec6080000706c2a00188f9e477f1316ce13cabb883d1e7ac62
+484666b14241517e7a5162ae4272625e5e7e894252aa4251699e42669e828b7fb0426e7e4aaa1e2f2f970ad48c005706061f
+4626869e0db74260e63e606052e466e486388a0922f64f094828c01d26006633419430302068860488f8790f06a0bf1c5a41
+4a410841c32930580334d71f9f2781f6f11011161800e83e0e242e0790ef81c4d72b49ad2801b99b19a216d9af484624e815
+a5e6e42743dde00055c386e14427729c08020f9420b407d86856860b404bef30323070a2a90b5080c4372120f781b1f3ada8
+5ec1078b0a8f606f87dacdfeae3b162edb7de055d1af12c942bde5a267ef37e6c6b787945936b0ece367e8f6f87566c6f7bd
+46a67f5da4f50d2f8a7e95e159552d1bf747b3ccdae1679c666dd10626bb1bf9815ad1c1876d04a76d78163e4b32a8a77fb3
+a77adbec4d15c75de79cd9a3a4a5155dd1fc50b86ce5bd7797cce73b057b3931323082dd020ab332133d033d630363434b90
+082b430e90ac0162e53a06861740da00c40e2e29cacc4b2f06a9906084c49b72683083022324ad28bb877aba80d402f96b40
+7ca79cfc24a87f81d1c1c8ca000daf5faac60c620c60db41d1c408c50c0c5c509a012e0272e3425078c1792c0d0c48aa407a
+d41890d2355895288263e39b9f529a936ac7109c999e979aa2979293c3905b9c9c5f949399c4e0091184ca81d5332b80a9a9
+8764e24b67aff2dff0feb1f6c7b7e6d50c1cdbab62c2244d1e74362c6000664a902ba600d5b1813c00e407053b1a821c0172
+e1dddd9665aa576abb26acf9f6e2eaeaab7527ed1f49174726fc8f395ad7c676f650da9c159bbcd6a73cd031d8a9762d8d6b
+47f9eac4955b0566f61fbc9010e4bbf0c405d6e6cc8392f63e6f4bc5339f2d9bb9725d79c0d5cecbacacc9af4522debeb30a
+bebd207fe9963cbbe995f66bb227ac4c0cfd91c3dce095617a66ce0e9d0b9e8eae9b25965c514278ff1dac3cc0021e2821f3
+e29df38b5c72727c1333f32001949a0a0e2c10f8af0a344300ab2123052840cb16e30176c72818100000c85fc49900080000", filePath: "Signed.dll");
+
+            var compilation = CreateCompilationWithMscorlib(
+                "interface IDerived : ISigned { }",
+                references: new[] { signed },
+                options: TestOptions.ReleaseDll
+                    .WithGeneralDiagnosticOption(ReportDiagnostic.Error)
+                    .WithStrongNameProvider(s_defaultProvider)
+                    .WithCryptoKeyFile(s_keyPairFile));
+
+            // ACTUAL: error CS8002: Referenced assembly 'Signed, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' does not have a strong name.
+            // EXPECTED: no errors
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]

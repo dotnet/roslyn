@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -39,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 using (cacheService.EnableCaching(project.Id))
                 {
-                    var results = await FindNavigableSourceSymbolsAsync(project, _searchPattern, cancellationToken).ConfigureAwait(false);
+                    var results = await FindNavigableSourceSymbolsAsync(project, cancellationToken).ConfigureAwait(false);
 
                     foreach (var result in results)
                     {
@@ -102,14 +103,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return memberNode;
         }
 
-        internal static async Task<IEnumerable<ValueTuple<ISymbol, IEnumerable<PatternMatch>>>> FindNavigableSourceSymbolsAsync(
-            Project project, string pattern, CancellationToken cancellationToken)
+        internal async Task<IEnumerable<ValueTuple<ISymbol, IEnumerable<PatternMatch>>>> FindNavigableSourceSymbolsAsync(
+            Project project, CancellationToken cancellationToken)
         {
             var results = new List<ValueTuple<ISymbol, IEnumerable<PatternMatch>>>();
 
-            var patternMatcher = new PatternMatcher();
+            // The compiler API only supports a predicate which is given a symbol's name.  Because
+            // we only have the name, and nothing else, we need to check it against the last segment
+            // of the pattern.  i.e. if the pattern is 'Console.WL' and we are given 'WriteLine', then
+            // we don't want to check the whole pattern against it (as it will clearly fail), instead
+            // we only want to check the 'WL' portion.  Then, after we get all the candidate symbols
+            // we'll check if the full name matches the full pattern.
+            var patternMatcher = new PatternMatcher(_searchPattern);
             var symbols = await SymbolFinder.FindSourceDeclarationsAsync(
-                project, k => patternMatcher.MatchPattern(k, pattern) != null, SymbolFilter.TypeAndMember, cancellationToken).ConfigureAwait(false);
+                project, k => patternMatcher.GetMatchesForLastSegmentOfPattern(k) != null, SymbolFilter.TypeAndMember, cancellationToken).ConfigureAwait(false);
 
             symbols = symbols.Where(s =>
                 !s.IsConstructor()
@@ -121,7 +128,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var matches = patternMatcher.MatchPattern(GetSearchName(symbol), pattern);
+                // As an optimization, don't bother getting the container for this symbol if this
+                // isn't a dotted pattern.  Getting the container could cause lots of string 
+                // allocations that we don't if we're never going to check it.
+                var matches = !patternMatcher.IsDottedPattern
+                    ? patternMatcher.GetMatches(GetSearchName(symbol))
+                    : patternMatcher.GetMatches(GetSearchName(symbol), GetContainer(symbol));
+
+                if (matches == null)
+                {
+                    continue;
+                }
+
                 results.Add(ValueTuple.Create(symbol, matches));
 
                 // also report matching constructors (using same match result as type)
@@ -147,6 +165,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
 
             return results;
+        }
+
+        public static readonly SymbolDisplayFormat DottedNameFormat =
+            new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle: SymbolDisplayDelegateStyle.NameOnly,
+                extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
+                propertyStyle: SymbolDisplayPropertyStyle.NameOnly);
+
+        private static string GetContainer(ISymbol symbol)
+        {
+            var container = symbol.ContainingSymbol;
+            if (container == null)
+            {
+                return null;
+            }
+
+            return container.ToDisplayString(DottedNameFormat);
         }
 
         private static string GetSearchName(ISymbol symbol)

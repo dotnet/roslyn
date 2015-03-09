@@ -1,4 +1,6 @@
-﻿Imports System.Collections.Immutable
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Utilities
@@ -23,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' CONSIDER: It would be nice to capture this behavior with a test.
         ''' </remarks>
         Private Shared Function BuildNameToSymbolMap(parameters As ImmutableArray(Of ParameterSymbol), locals As ImmutableArray(Of LocalSymbol)) As Dictionary(Of String, Symbol)
-            Dim nameToSymbolMap As New Dictionary(Of String, Symbol)()
+            Dim nameToSymbolMap As New Dictionary(Of String, Symbol)(CaseInsensitiveComparison.Comparer)
 
             For Each parameter In parameters
                 nameToSymbolMap(parameter.Name) = parameter

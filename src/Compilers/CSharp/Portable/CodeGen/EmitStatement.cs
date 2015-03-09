@@ -893,6 +893,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         Debug.Assert(!left.FieldSymbol.IsStatic, "Not supported");
                         Debug.Assert(!left.ReceiverOpt.Type.IsTypeParameter());
 
+                        var stateMachineField = left.FieldSymbol as StateMachineFieldSymbol;
+                        if (((object)stateMachineField != null) && (stateMachineField.SlotIndex >= 0))
+                        {
+                            _builder.DefineUserDefinedStateMachineHoistedLocal(stateMachineField.SlotIndex);
+                        }
+
                         // When assigning to a field
                         // we need to push param address below the exception
                         var temp = AllocateTemp(exceptionSource.Type, exceptionSource.Syntax);

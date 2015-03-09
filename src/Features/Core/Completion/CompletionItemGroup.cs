@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// If multiple groups are marked as exclusive, only the first one returned from a provider
         /// will be used.  Providers can be ordered using the OrderAttribute.
         /// </summary>
-        public bool IsExclusive { get; private set; }
+        public bool IsExclusive { get; }
 
         /// <summary>
         /// The list of completion items to present to the user.  Can not be empty.
         /// </summary>
-        public IEnumerable<CompletionItem> Items { get; private set; }
+        public IEnumerable<CompletionItem> Items { get; }
 
         /// <summary>
         /// A completion builder to present to the user.  Can be null if no builder need be
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// can be declared.  By offering a builder the user has the option of declaring a new item
         /// in an unimpeded manner.
         /// </summary>
-        public CompletionItem Builder { get; private set; }
+        public CompletionItem Builder { get; }
 
         public CompletionItemGroup(IEnumerable<CompletionItem> items, CompletionItem builder = null, bool isExclusive = false)
         {

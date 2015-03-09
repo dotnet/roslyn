@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         static private void RemoveTrailingComma(StringBuilder sb)
         {
-            if (sb.ToString().EndsWith(", "))
+            if (sb.ToString().EndsWith(", ", StringComparison.Ordinal))
             {
                 sb.Length -= 2;
             }
@@ -99,9 +99,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             foreach (var attribute in parameter.GetCustomAttributesData())
             {
                 // these are pseudo-custom attributes that are added by Reflection but don't appear in metadata as custom attributes:
-                if (attribute.AttributeType != typeof(OptionalAttribute) && 
-                    attribute.AttributeType != typeof(InAttribute) && 
-                    attribute.AttributeType != typeof(OutAttribute) && 
+                if (attribute.AttributeType != typeof(OptionalAttribute) &&
+                    attribute.AttributeType != typeof(InAttribute) &&
+                    attribute.AttributeType != typeof(OutAttribute) &&
                     attribute.AttributeType != typeof(MarshalAsAttribute))
                 {
                     AppendCustomAttributeData(attribute, sb);
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if ((attributes & FieldAttributes.HasDefault) != 0) sb.Append(" default");
                 if ((attributes & FieldAttributes.HasFieldRVA) != 0) sb.Append(" rva");
             }
-            
+
             return sb;
         }
 
@@ -254,8 +254,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if ((attributes & MethodAttributes.Virtual) != 0) sb.Append(" virtual");
             if ((attributes & MethodAttributes.Final) != 0) sb.Append(" final");
 
-            sb.Append((attributes & MethodAttributes.Static) != 0 ? " static" : " instance"); 
-            
+            sb.Append((attributes & MethodAttributes.Static) != 0 ? " static" : " instance");
+
             if (all)
             {
                 if ((attributes & MethodAttributes.PinvokeImpl) != 0) sb.Append(" pinvokeimpl");
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 default:
                     throw new InvalidOperationException();
-            } 
+            }
 
             sb.Append(codeType);
             sb.Append(" ");
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             return sb;
         }
-        
+
         public static StringBuilder AppendTypeAttributes(StringBuilder sb, TypeAttributes attributes)
         {
             string visibility;
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if ((attributes & TypeAttributes.BeforeFieldInit) != 0) sb.Append(" beforefieldinit");
             if ((attributes & TypeAttributes.SpecialName) != 0) sb.Append(" specialname");
             if ((attributes & TypeAttributes.RTSpecialName) != 0) sb.Append(" rtspecialname");
-            
+
             return sb;
         }
 
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var type = assembly.GetType(fullyQualifiedTypeName);
             if (type != null)
             {
-                foreach (var constructor in type.GetConstructors(BINDING_FLAGS).OrderBy((member)=>member.Name))
+                foreach (var constructor in type.GetConstructors(BINDING_FLAGS).OrderBy((member) => member.Name))
                 {
                     AppendConstructorInfo(constructor, sb);
                     candidates.Add(sb.ToString());

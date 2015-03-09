@@ -1551,11 +1551,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' an LValue. In this case, containingMember will be a LambdaSymbol rather than a symbol for
             ' constructor.
 
-            If Me.ContainingMember.ContainingSymbol Is field.ContainingSymbol Then
-                Return True
-            End If
-
-            Return False
+            ' We duplicate a bug in the native compiler for compatibility in non-strict mode
+            Return If(Me.Compilation.FeatureStrictEnabled,
+                Me.ContainingMember.ContainingSymbol Is field.ContainingSymbol,
+                Me.ContainingMember.ContainingSymbol.OriginalDefinition Is field.ContainingSymbol.OriginalDefinition)
         End Function
 
         ''' <summary>

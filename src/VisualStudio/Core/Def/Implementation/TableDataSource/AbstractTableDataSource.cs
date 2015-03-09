@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
@@ -36,7 +37,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         protected abstract AbstractTableEntriesFactory<TData> CreateTableEntryFactory(object key, TArgs data);
 
-        protected void OnDataAddedOrChanged(object key, TArgs data)
+        protected void ConnectToSolutionCrawlerService(Workspace workspace)
+        {
+            var crawlerService = workspace.Services.GetService<ISolutionCrawlerService>();
+            var reporter = crawlerService.GetProgressReporter(workspace);
+
+            // set initial value
+            ChangeStableState(stable: !reporter.InProgress);
+
+            reporter.Started += OnSolutionCrawlerStarted;
+            reporter.Stopped += OnSolutionCrawlerStopped;
+        }
+
+        private void OnSolutionCrawlerStarted(object sender, EventArgs e)
+        {
+            ChangeStableState(stable: false);
+        }
+
+        private void OnSolutionCrawlerStopped(object sender, EventArgs e)
+        {
+            ChangeStableState(stable: true);
+        }
+
+        protected void OnDataAddedOrChanged(object key, TArgs data, int itemCount)
         {
             // reuse factory. it is okay to re-use factory since we make sure we remove the factory before
             // adding it back
@@ -55,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            factory.OnUpdated();
+            factory.OnUpdated(itemCount);
 
             for (var i = 0; i < snapshot.Length; i++)
             {
@@ -81,10 +104,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _map.Remove(key);
             }
 
+            factory.OnUpdated(0);
+
             // let table manager know that we want to clear the entries
             for (var i = 0; i < snapshot.Length; i++)
             {
                 snapshot[i].Remove(factory);
+            }
+        }
+
+        private void ChangeStableState(bool stable)
+        {
+            ImmutableArray<SubscriptionWithoutLock> snapshot;
+
+            lock (_gate)
+            {
+                snapshot = _subscriptions;
+            }
+
+            for (var i = 0; i < snapshot.Length; i++)
+            {
+                snapshot[i].IsStable = stable;
             }
         }
 
@@ -104,6 +144,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 foreach (var factory in factories)
                 {
+                    factory.OnRefreshed();
+
                     snapshot[i].AddOrUpdate(factory, newFactory: false);
                 }
             }
@@ -134,6 +176,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 Register();
                 ReportInitialData();
+            }
+
+            public bool IsStable
+            {
+                get
+                {
+                    return _sink.IsStable;
+                }
+
+                set
+                {
+                    _sink.IsStable = value;
+                }
             }
 
             public void AddOrUpdate(ITableEntriesSnapshotFactory provider, bool newFactory)

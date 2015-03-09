@@ -204,6 +204,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             return _right.WithText(UpdateBufferText());
         }
 
+        public bool IsAdditionalDocumentChange => !((_left ?? _right) is Document);
+
         internal override void GetDisplayData(VSTREEDISPLAYDATA[] pData)
         {
             var document = _right ?? _left;

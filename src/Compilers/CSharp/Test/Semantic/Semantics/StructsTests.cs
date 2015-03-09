@@ -603,12 +603,12 @@ public struct X1
 
 ";
             CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
-    // (4,13): error CS8075: Parameterless struct constructors must be public
-    //     private X()
-    Diagnostic(ErrorCode.ERR_ParameterlessStructCtorsMustBePublic, "X").WithLocation(4, 13),
-    // (11,5): error CS8075: Parameterless struct constructors must be public
+    // (11,5): error CS0568: Structs cannot contain explicit parameterless constructors
     //     X1()
-    Diagnostic(ErrorCode.ERR_ParameterlessStructCtorsMustBePublic, "X1").WithLocation(11, 5)
+    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "X1").WithLocation(11, 5),
+    // (4,13): error CS0568: Structs cannot contain explicit parameterless constructors
+    //     private X()
+    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "X").WithLocation(4, 13)
                 );
         }
     }

@@ -1,8 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeActions
+Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.CSharp.CodeRefactorings.IntroduceVariable
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.VisualStudio.Text
@@ -842,8 +848,8 @@ End Class
 
                 VerifyTagsAreCorrect(workspace, "BarFoo")
                 Assert.True(previewService.Called)
-                Assert.Equal("Preview Changes - Rename", previewService.Title)
-                Assert.Equal("Rename 'Foo' to 'BarFoo':", previewService.Description)
+                Assert.Equal(String.Format(EditorFeaturesResources.PreviewChangesOf, EditorFeaturesResources.Rename), previewService.Title)
+                Assert.Equal(String.Format(EditorFeaturesResources.RenameToTitle, "Foo", "BarFoo"), previewService.Description)
                 Assert.Equal("Foo", previewService.TopLevelName)
                 Assert.Equal(Glyph.ClassInternal, previewService.TopLevelGlyph)
             End Using
@@ -982,6 +988,85 @@ End Class
 
                 session.Commit()
                 VerifyTagsAreCorrect(workspace, "maw")
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(554, "https://github.com/dotnet/roslyn/issues/554")>
+        Public Sub CodeActionCannotCommitDuringInlineRename()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
+                            <Document FilePath="C.cs">
+class C
+{
+    void M()
+    {
+        var z = {|introducelocal:5 + 5|};
+        var q = [|x$$|];
+    }
+
+    int [|x|];
+}</Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.First().TextBuffer
+                textBuffer.Insert(caretPosition, "yz")
+                WaitForRename(workspace)
+
+                ' Invoke a CodeAction
+                Dim introduceVariableRefactoringProvider = New IntroduceVariableCodeRefactoringProvider()
+                Dim actions = New List(Of CodeAction)
+                Dim context = New CodeRefactoringContext(
+                    workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
+                    workspace.Documents.Single().AnnotatedSpans()("introducelocal").Single(),
+                    Sub(a) actions.Add(a),
+                    CancellationToken.None)
+
+                workspace.Documents.Single().AnnotatedSpans.Clear()
+                introduceVariableRefactoringProvider.ComputeRefactoringsAsync(context).Wait()
+
+                Dim editHandler = workspace.ExportProvider.GetExportedValue(Of ICodeActionEditHandlerService)
+
+                Dim actualSeverity As NotificationSeverity = Nothing
+                Dim notificationService = DirectCast(workspace.Services.GetService(Of INotificationService)(), INotificationServiceCallback)
+                notificationService.NotificationCallback = Sub(message, title, severity) actualSeverity = severity
+
+                editHandler.Apply(
+                    workspace,
+                    workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
+                    actions.First().GetOperationsAsync(CancellationToken.None).Result,
+                    "unused",
+                    CancellationToken.None)
+
+                ' CodeAction should be rejected
+                Assert.Equal(NotificationSeverity.Error, actualSeverity)
+                Assert.Equal("
+class C
+{
+    void M()
+    {
+        var z = 5 + 5;
+        var q = xyz;
+    }
+
+    int xyz;
+}",
+                    textBuffer.CurrentSnapshot.GetText())
+
+                ' Rename should still be active
+                VerifyTagsAreCorrect(workspace, "xyz")
+
+                textBuffer.Insert(caretPosition + 2, "q")
+                WaitForRename(workspace)
+                VerifyTagsAreCorrect(workspace, "xyzq")
             End Using
         End Sub
     End Class

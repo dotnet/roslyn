@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             this.NoSpacing = noSpacing;
         }
 
-        public TextSpan TextSpan { get; private set; }
-        public bool NoSpacing { get; private set; }
+        public TextSpan TextSpan { get; }
+        public bool NoSpacing { get; }
     }
 }

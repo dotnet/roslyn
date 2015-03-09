@@ -59,10 +59,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                 RegisterObjectBrowserLibraryManager();
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
             }
-            }
+        }
 
         protected override VisualStudioWorkspaceImpl CreateWorkspace()
         {

@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _isWritable; }
         }
 
-        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax)
+        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             return RewriteLocalInternal(compilation, container, syntax, this);
         }
@@ -35,63 +36,46 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static BoundExpression RewriteLocalInternal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax, LocalSymbol local)
         {
-            var parameterType = compilation.GetSpecialType(SpecialType.System_String);
-            var getValueMethod = container.GetOrAddSynthesizedMethod(
-                ExpressionCompilerConstants.GetVariableValueMethodName,
-                (c, n, s) =>
-                {
-                    var returnType = compilation.GetSpecialType(SpecialType.System_Object);
-                    return new PlaceholderMethodSymbol(
-                        c,
-                        s,
-                        n,
-                        returnType,
-                        m => ImmutableArray.Create<ParameterSymbol>(new SynthesizedParameterSymbol(m, parameterType, ordinal: 0, refKind: RefKind.None)));
-                });
-            var getAddressMethod = container.GetOrAddSynthesizedMethod(
-                ExpressionCompilerConstants.GetVariableAddressMethodName,
-                (c, n, s) =>
-                {
-                    return new PlaceholderMethodSymbol(
-                        c,
-                        s,
-                        n,
-                        m => ImmutableArray.Create<TypeParameterSymbol>(new SimpleTypeParameterSymbol(m, 0, "<>T")),
-                        m => m.TypeParameters[0], // return type is <>T&
-                        m => ImmutableArray.Create<ParameterSymbol>(new SynthesizedParameterSymbol(m, parameterType, ordinal: 0, refKind: RefKind.None)),
-                        returnValueIsByRef: true);
-                });
             return new BoundPseudoVariable(
                 syntax,
                 local,
-                new ObjectIdExpressions(compilation, getValueMethod, getAddressMethod),
+                new ObjectIdExpressions(compilation),
                 local.Type);
         }
 
         private sealed class ObjectIdExpressions : PseudoVariableExpressions
         {
             private readonly CSharpCompilation _compilation;
-            private readonly MethodSymbol _getValueMethod;
-            private readonly MethodSymbol _getAddressMethod;
 
-            internal ObjectIdExpressions(CSharpCompilation compilation, MethodSymbol getValueMethod, MethodSymbol getAddressMethod)
+            internal ObjectIdExpressions(CSharpCompilation compilation)
             {
                 _compilation = compilation;
-                _getValueMethod = getValueMethod;
-                _getAddressMethod = getAddressMethod;
             }
 
-            internal override BoundExpression GetValue(BoundPseudoVariable variable)
+            internal override BoundExpression GetValue(BoundPseudoVariable variable, DiagnosticBag diagnostics)
             {
+                var method = GetIntrinsicMethod(_compilation, ExpressionCompilerConstants.GetVariableValueMethodName);
                 var local = variable.LocalSymbol;
-                var expr = InvokeGetMethod(_getValueMethod, variable.Syntax, local.Name);
-                return ConvertToLocalType(_compilation, expr, local.Type);
+                var expr = InvokeGetMethod(method, variable.Syntax, local.Name);
+                return ConvertToLocalType(_compilation, expr, local.Type, diagnostics);
             }
 
             internal override BoundExpression GetAddress(BoundPseudoVariable variable)
             {
+                var method = GetIntrinsicMethod(_compilation, ExpressionCompilerConstants.GetVariableAddressMethodName);
+                // Currently the MetadataDecoder does not support byref return types
+                // so the return type of GetVariableAddress(Of T)(name As String)
+                // is an error type. Since the method is only used for emit, an
+                // updated placeholder method is used instead.
+                Debug.Assert(method.ReturnType.TypeKind == TypeKind.Error); // If byref return types are supported in the future, use method as is.
+                method = new PlaceholderMethodSymbol(
+                    method.ContainingType,
+                    method.Name,
+                    m => method.TypeParameters.SelectAsArray(t => (TypeParameterSymbol)new SimpleTypeParameterSymbol(m, t.Ordinal, t.Name)),
+                    m => m.TypeParameters[0], // return type is <>T&
+                    m => method.Parameters.SelectAsArray(p => (ParameterSymbol)new SynthesizedParameterSymbol(m, p.Type, p.Ordinal, p.RefKind, p.Name, p.CustomModifiers)));
                 var local = variable.LocalSymbol;
-                return InvokeGetMethod(_getAddressMethod.Construct(local.Type), variable.Syntax, local.Name);
+                return InvokeGetMethod(method.Construct(local.Type), variable.Syntax, local.Name);
             }
 
             private static BoundExpression InvokeGetMethod(MethodSymbol method, CSharpSyntaxNode syntax, string name)

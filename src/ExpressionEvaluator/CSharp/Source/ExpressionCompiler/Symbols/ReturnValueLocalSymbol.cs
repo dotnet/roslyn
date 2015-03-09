@@ -21,21 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax)
+        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            var method = container.GetOrAddSynthesizedMethod(
-                ExpressionCompilerConstants.GetReturnValueMethodName,
-                (c, n, s) =>
-                {
-                    var parameterType = compilation.GetSpecialType(SpecialType.System_Int32);
-                    var returnType = compilation.GetSpecialType(SpecialType.System_Object);
-                    return new PlaceholderMethodSymbol(
-                        c,
-                        s,
-                        n,
-                        returnType,
-                        m => ImmutableArray.Create<ParameterSymbol>(new SynthesizedParameterSymbol(m, parameterType, ordinal: 0, refKind: RefKind.None)));
-                });
+            var method = GetIntrinsicMethod(compilation, ExpressionCompilerConstants.GetReturnValueMethodName);
             var argument = new BoundLiteral(
                 syntax,
                 Microsoft.CodeAnalysis.ConstantValue.Create(_index),
@@ -45,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 receiverOpt: null,
                 method: method,
                 arguments: ImmutableArray.Create<BoundExpression>(argument));
-            return ConvertToLocalType(compilation, call, this.Type);
+            return ConvertToLocalType(compilation, call, this.Type, diagnostics);
         }
     }
 }

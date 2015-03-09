@@ -3,9 +3,12 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
+using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -885,17 +888,15 @@ class D
 
             // Non-null value.
             var value = CreateDkmClrValue(Activator.CreateInstance(type),
-                type: type,
-                inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
-            var evalResult = FormatResult("o", value);
+                type: type);
+            var evalResult = FormatResult("o", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
             Verify(evalResult,
                 EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.None));
 
             // Null value.
             value = CreateDkmClrValue(null,
-                type: type,
-                inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
-            evalResult = FormatResult("o", value);
+                type: type);
+            evalResult = FormatResult("o", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
             Verify(evalResult,
                 EvalResult("o", "null", "C", "o", DkmEvaluationResultFlags.None));
 
@@ -940,9 +941,8 @@ internal class P
             var assembly = GetAssembly(source);
             var type = assembly.GetType("C");
             var value = CreateDkmClrValue(Activator.CreateInstance(type),
-                type: type,
-                inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
-            var evalResult = FormatResult("o", value);
+                type: type);
+            var evalResult = FormatResult("o", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
             Verify(evalResult,
                 EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.None));
 
@@ -961,9 +961,8 @@ internal class P
         [Fact]
         public void NoExpansion_Array()
         {
-            var value = CreateDkmClrValue(new[] { 1, 2, 3 },
-                inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
-            var evalResult = FormatResult("a", value);
+            var value = CreateDkmClrValue(new[] { 1, 2, 3 });
+            var evalResult = FormatResult("a", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
             Verify(evalResult,
                 EvalResult("a", "{int[3]}", "int[]", "a", DkmEvaluationResultFlags.None));
         }
@@ -1677,8 +1676,8 @@ class E : System.Exception
                 EvalResult("c", "4660 '\u1234'", "char", "c", editableValue: "'\u1234'"));
 
             // This char is not printable, so we expect the EditableValue to be the unicode escape representation.
-            value = CreateDkmClrValue('\u0007', typeof(char), inspectionContext: CreateDkmInspectionContext(radix: 16));
-            evalResult = FormatResult("c", value);
+            value = CreateDkmClrValue('\u0007', typeof(char));
+            evalResult = FormatResult("c", value, inspectionContext: CreateDkmInspectionContext(radix: 16));
             Verify(evalResult,
                 EvalResult("c", "0x0007 '\u0007'", "char", "c", editableValue: "'\\u0007'"));
         }
@@ -2155,6 +2154,154 @@ class B : A
 
             // Also need to check Access, StorageType, and TypeModifierFlags fields.
             // ...
+        }
+
+        [WorkItem(1130978)]
+        [Fact]
+        public void NullableValue_Error()
+        {
+            var source =
+@"class C
+{
+    bool F() { return false; }
+    int? P
+    {
+        get
+        {
+            while (!F()) { }
+            return null;
+        }
+    }
+}";
+            DkmClrRuntimeInstance runtime = null;
+            GetMemberValueDelegate getMemberValue = (v, m) => (m == "P") ? CreateErrorValue(runtime.GetType(typeof(int?)), "Function evaluation timed out") : null;
+            runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue: getMemberValue);
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
+                var evalResult = FormatResult("o.P", memberValue);
+                Verify(evalResult,
+                    EvalFailedResult("o.P", "Function evaluation timed out", "int?", "o.P"));
+            }
+        }
+
+        /// <summary>
+        /// Get many items synchronously.
+        /// </summary>
+        [Fact]
+        public void ManyItemsSync()
+        {
+            const int n = 10000;
+            var value = CreateDkmClrValue(Enumerable.Range(0, n).ToArray());
+            var evalResult = FormatResult("a", value);
+            IDkmClrResultProvider resultProvider = new CSharpResultProvider();
+            var workList = new DkmWorkList();
+
+            // GetChildren
+            var getChildrenResult = default(DkmGetChildrenAsyncResult);
+            resultProvider.GetChildren(evalResult, workList, n, DefaultInspectionContext, r => getChildrenResult = r);
+            Assert.Equal(workList.Length, 0);
+            Assert.Equal(getChildrenResult.InitialChildren.Length, n);
+
+            // GetItems
+            var getItemsResult = default(DkmEvaluationEnumAsyncResult);
+            resultProvider.GetItems(getChildrenResult.EnumContext, workList, 0, n, r => getItemsResult = r);
+            Assert.Equal(workList.Length, 0);
+            Assert.Equal(getItemsResult.Items.Length, n);
+        }
+
+        /// <summary>
+        /// Multiple items, some completed asynchronously.
+        /// </summary>
+        [Fact]
+        public void MultipleItemsAsync()
+        {
+            var source =
+@"using System.Diagnostics;
+[DebuggerDisplay(""{F}"")]
+class C
+{
+    object F;
+}";
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(GetAssembly(source)));
+            using (runtime.Load())
+            {
+                int n = 10;
+                var type = runtime.GetType("C");
+                // C[] with alternating null and non-null values.
+                var value = CreateDkmClrValue(Enumerable.Range(0, n).Select(i => (i % 2) == 0 ? type.Instantiate() : null).ToArray());
+                var evalResult = FormatResult("a", value);
+
+                IDkmClrResultProvider resultProvider = new CSharpResultProvider();
+                var workList = new DkmWorkList();
+
+                // GetChildren
+                var getChildrenResult = default(DkmGetChildrenAsyncResult);
+                resultProvider.GetChildren(evalResult, workList, n, DefaultInspectionContext, r => getChildrenResult = r);
+                Assert.Equal(workList.Length, 1);
+                workList.Execute();
+                Assert.Equal(getChildrenResult.InitialChildren.Length, n);
+
+                // GetItems
+                var getItemsResult = default(DkmEvaluationEnumAsyncResult);
+                resultProvider.GetItems(getChildrenResult.EnumContext, workList, 0, n, r => getItemsResult = r);
+                Assert.Equal(workList.Length, 1);
+                workList.Execute();
+                Assert.Equal(getItemsResult.Items.Length, n);
+            }
+        }
+
+        [Fact]
+        public void MultipleItemsAndExceptions()
+        {
+            var source =
+@"using System.Diagnostics;
+[DebuggerDisplay(""{P}"")]
+class C
+{
+    public C(int f) { this.f = f; }
+    private readonly int f;
+    object P
+    {
+        get
+        {
+            if (this.f % 4 == 3) throw new System.ArgumentException();
+            return this.f;
+        }
+    }
+}";
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(GetAssembly(source)));
+            using (runtime.Load())
+            {
+                int n = 10;
+                int nFailures = 2;
+                var type = runtime.GetType("C");
+                var value = CreateDkmClrValue(Enumerable.Range(0, n).Select(i => type.Instantiate(i)).ToArray());
+                var evalResult = FormatResult("a", value);
+
+                IDkmClrResultProvider resultProvider = new CSharpResultProvider();
+                var workList = new DkmWorkList();
+
+                // GetChildren
+                var getChildrenResult = default(DkmGetChildrenAsyncResult);
+                resultProvider.GetChildren(evalResult, workList, n, DefaultInspectionContext, r => getChildrenResult = r);
+                Assert.Equal(workList.Length, 1);
+                workList.Execute();
+                var items = getChildrenResult.InitialChildren;
+                Assert.Equal(items.Length, n);
+                Assert.Equal(items.OfType<DkmFailedEvaluationResult>().Count(), nFailures);
+
+                // GetItems
+                var getItemsResult = default(DkmEvaluationEnumAsyncResult);
+                resultProvider.GetItems(getChildrenResult.EnumContext, workList, 0, n, r => getItemsResult = r);
+                Assert.Equal(workList.Length, 1);
+                workList.Execute();
+                items = getItemsResult.Items;
+                Assert.Equal(items.Length, n);
+                Assert.Equal(items.OfType<DkmFailedEvaluationResult>().Count(), nFailures);
+            }
         }
     }
 }

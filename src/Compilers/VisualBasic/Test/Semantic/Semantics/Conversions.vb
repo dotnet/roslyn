@@ -4072,7 +4072,7 @@ End Module
             Dim model = c.GetSemanticModel(tree)
 
             ' Get VariableDeclaratorSyntax corresponding to variable 'ii' above.
-            Dim variableDeclarator = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ii")).Parent.Parent, VariableDeclaratorSyntax)
+            Dim variableDeclarator = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ii", StringComparison.Ordinal)).Parent.Parent, VariableDeclaratorSyntax)
 
             ' Get TypeSymbol corresponding to above VariableDeclaratorSyntax.
             Dim targetType As TypeSymbol = CType(model.GetDeclaredSymbol(variableDeclarator.Names.Single), LocalSymbol).Type
@@ -4081,13 +4081,13 @@ End Module
             Assert.Equal(1, local.Locations.Length)
 
             ' Perform ClassifyConversion for expressions from within the above SyntaxTree.
-            Dim sourceExpression1 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("jj)")).Parent, ExpressionSyntax)
+            Dim sourceExpression1 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("jj)", StringComparison.Ordinal)).Parent, ExpressionSyntax)
             Dim conversion As Conversion = model.ClassifyConversion(sourceExpression1, targetType)
 
             Assert.True(conversion.IsWidening)
             Assert.True(conversion.IsNumeric)
 
-            Dim sourceExpression2 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ss)")).Parent, ExpressionSyntax)
+            Dim sourceExpression2 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ss)", StringComparison.Ordinal)).Parent, ExpressionSyntax)
             conversion = model.ClassifyConversion(sourceExpression2, targetType)
 
             Assert.True(conversion.IsNarrowing)
@@ -4096,7 +4096,7 @@ End Module
             ' Perform ClassifyConversion for constructed expressions
             ' at the position identified by the comment "' Perform ..." above.
             Dim sourceExpression3 As ExpressionSyntax = SyntaxFactory.IdentifierName("jj")
-            Dim position = source.IndexOf("' ")
+            Dim position = source.IndexOf("' ", StringComparison.Ordinal)
             conversion = model.ClassifyConversion(position, sourceExpression3, targetType)
 
             Assert.True(conversion.IsWidening)
@@ -4158,7 +4158,7 @@ End Module
             Dim model = c.GetSemanticModel(tree)
 
             ' Get VariableDeclaratorSyntax corresponding to variable 'ii' above.
-            Dim variableDeclarator = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ii")).Parent.Parent, VariableDeclaratorSyntax)
+            Dim variableDeclarator = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ii", StringComparison.Ordinal)).Parent.Parent, VariableDeclaratorSyntax)
 
             ' Get TypeSymbol corresponding to above VariableDeclaratorSyntax.
             Dim targetType As TypeSymbol = CType(model.GetDeclaredSymbol(variableDeclarator.Names.Single), LocalSymbol).Type
@@ -4167,13 +4167,13 @@ End Module
             Assert.Equal(1, local.Locations.Length)
 
             ' Perform ClassifyConversion for expressions from within the above SyntaxTree.
-            Dim sourceExpression1 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("jj)")).Parent, ExpressionSyntax)
+            Dim sourceExpression1 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("jj)", StringComparison.Ordinal)).Parent, ExpressionSyntax)
             Dim conversion As Conversion = model.ClassifyConversion(sourceExpression1, targetType)
 
             Assert.True(conversion.IsWidening)
             Assert.True(conversion.IsNumeric)
 
-            Dim sourceExpression2 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ss)")).Parent, ExpressionSyntax)
+            Dim sourceExpression2 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ss)", StringComparison.Ordinal)).Parent, ExpressionSyntax)
             conversion = model.ClassifyConversion(sourceExpression2, targetType)
 
             Assert.True(conversion.IsNarrowing)
@@ -4182,7 +4182,7 @@ End Module
             ' Perform ClassifyConversion for constructed expressions
             ' at the position identified by the comment "' Perform ..." above.
             Dim sourceExpression3 As ExpressionSyntax = SyntaxFactory.IdentifierName("jj")
-            Dim position = source.IndexOf("' ")
+            Dim position = source.IndexOf("' ", StringComparison.Ordinal)
             conversion = model.ClassifyConversion(position, sourceExpression3, targetType)
 
             Assert.True(conversion.IsWidening)

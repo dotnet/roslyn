@@ -6,10 +6,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         internal const string TypeVariablesLocalName = "<>TypeVariables";
         internal const string TypeVariablesClassName = "<>c__TypeVariables";
-        internal const string GetObjectAtAddressMethodName = "<>GetObjectAtAddress";
-        internal const string GetReturnValueMethodName = "<>GetReturnValue";
-        internal const string CreateVariableMethodName = "<>CreateVariable";
-        internal const string GetVariableValueMethodName = "<>GetObjectByAlias";
-        internal const string GetVariableAddressMethodName = "<>GetVariableAddress";
+        internal const string IntrinsicAssemblyTypeMetadataName = "Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods";
+        internal const string GetExceptionMethodName = "GetException";
+        internal const string GetStowedExceptionMethodName = "GetStowedException";
+        internal const string GetObjectAtAddressMethodName = "GetObjectAtAddress";
+        internal const string GetReturnValueMethodName = "GetReturnValue";
+        internal const string CreateVariableMethodName = "CreateVariable";
+        internal const string GetVariableValueMethodName = "GetObjectByAlias";
+        internal const string GetVariableAddressMethodName = "GetVariableAddress";
     }
 }

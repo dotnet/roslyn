@@ -33,8 +33,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         protected abstract IEnumerable<ITypeSymbol> GetProposedTypes(string name, List<ITypeSymbol> accessibleTypeSymbols, SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope);
         internal abstract bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
         internal abstract bool IsViableProperty(IPropertySymbol property, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
+        internal abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
 
-        [SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
+
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
@@ -238,9 +239,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             var expression = node.Parent;
 
-            var symbols = await GetSymbolsAsync(project, diagnostic, node, semanticModel, syntaxFacts, cancellationToken).ConfigureAwait(false);
+            var extensionMethods = SpecializedCollections.EmptyEnumerable<INamespaceSymbol>();
+            var symbols = await GetSymbolsAsync(project, node, semanticModel, syntaxFacts, cancellationToken).ConfigureAwait(false);
+            if (symbols != null)
+            {
+                extensionMethods = FilterForExtensionMethods(semanticModel, namespacesInScope, syntaxFacts, expression, symbols, cancellationToken);
+            }
 
-            return FilterForExtensionMethods(semanticModel, namespacesInScope, syntaxFacts, expression, symbols, cancellationToken);
+            var addMethods = SpecializedCollections.EmptyEnumerable<INamespaceSymbol>();
+            var methodSymbols = await GetAddMethodsAsync(project, diagnostic, node, semanticModel, namespacesInScope, syntaxFacts, expression, cancellationToken).ConfigureAwait(false);
+            if (methodSymbols != null)
+            {
+                addMethods = GetProposedNamespaces(
+                methodSymbols.Select(s => s.ContainingNamespace),
+                semanticModel,
+                namespacesInScope);
+            }
+
+            return extensionMethods.Concat(addMethods);
         }
 
         private async Task<IEnumerable<INamespaceSymbol>> GetNamespacesForMatchingFieldsAndPropertiesAsync(
@@ -259,9 +275,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             var expression = node.Parent;
 
-            var symbols = await GetSymbolsAsync(project, diagnostic, node, semanticModel, syntaxFacts, cancellationToken).ConfigureAwait(false);
+            var symbols = await GetSymbolsAsync(project, node, semanticModel, syntaxFacts, cancellationToken).ConfigureAwait(false);
 
-            return FilterForFieldsAndProperties(semanticModel, namespacesInScope, syntaxFacts, expression, symbols, cancellationToken);
+            if (symbols != null)
+            {
+                return FilterForFieldsAndProperties(semanticModel, namespacesInScope, syntaxFacts, expression, symbols, cancellationToken);
+            }
+
+            return null;
         }
 
         private IEnumerable<INamespaceSymbol> FilterForFieldsAndProperties(SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope, ISyntaxFactsService syntaxFacts, SyntaxNode expression, IEnumerable<ISymbol> symbols, CancellationToken cancellationToken)
@@ -286,7 +307,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private Task<IEnumerable<ISymbol>> GetSymbolsAsync(
             Project project,
-            Diagnostic diagnostic,
             SyntaxNode node,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
@@ -297,14 +317,49 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             // See if the name binds.  If it does, there's nothing further we need to do.
             if (ExpressionBinds(node, semanticModel, cancellationToken, checkForExtensionMethods: true))
             {
-                return null;
+                return SpecializedTasks.EmptyEnumerable<ISymbol>();
             }
 
             string name;
             int arity;
             syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
+            if (name == null)
+            {
+                return SpecializedTasks.EmptyEnumerable<ISymbol>();
+            }
 
             return SymbolFinder.FindDeclarationsAsync(project, name, this.IgnoreCase, SymbolFilter.Member, cancellationToken);
+        }
+
+        private async Task<IEnumerable<IMethodSymbol>> GetAddMethodsAsync(
+            Project project,
+            Diagnostic diagnostic,
+            SyntaxNode node,
+            SemanticModel semanticModel,
+            ISet<INamespaceSymbol> namespacesInScope,
+            ISyntaxFactsService syntaxFacts,
+            SyntaxNode expression,
+            CancellationToken cancellationToken)
+        {
+            string name;
+            int arity;
+            syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
+            if (name != null)
+            {
+                return SpecializedCollections.EmptyEnumerable<IMethodSymbol>();
+            }
+
+            if (IsAddMethodContext(node, semanticModel))
+            {
+                var symbols = await SymbolFinder.FindDeclarationsAsync(project, "Add", this.IgnoreCase, SymbolFilter.Member, cancellationToken).ConfigureAwait(false);
+                return symbols
+                    .OfType<IMethodSymbol>()
+                    .Where(method => method.IsExtensionMethod &&
+                                     method.ContainingType?.IsAccessibleWithin(semanticModel.Compilation.Assembly) == true &&
+                                     IsViableExtensionMethod(method, expression, semanticModel, syntaxFacts, cancellationToken));
+            }
+
+            return SpecializedCollections.EmptyEnumerable<IMethodSymbol>();
         }
 
         private IEnumerable<INamespaceSymbol> FilterForExtensionMethods(SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope, ISyntaxFactsService syntaxFacts, SyntaxNode expression, IEnumerable<ISymbol> symbols, CancellationToken cancellationToken)

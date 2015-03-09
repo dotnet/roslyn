@@ -1470,6 +1470,7 @@ class C
         <forward declaringType=""C"" methodName=""F"" />
         <hoistedLocalScopes>
           <slot startOffset=""0xe"" endOffset=""0xed"" />
+          <slot startOffset=""0x29"" endOffset=""0x32"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />

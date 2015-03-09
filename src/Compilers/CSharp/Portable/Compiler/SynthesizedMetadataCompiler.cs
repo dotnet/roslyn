@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Instrumentation;
 
 #if DEBUG
 using Roslyn.Utilities;
@@ -42,11 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(moduleBeingBuilt != null);
 
-            using (Logger.LogBlock(FunctionId.CSharp_Compiler_CompileSynthesizedMethodMetadata, message: compilation.AssemblyName, cancellationToken: cancellationToken))
-            {
-                var compiler = new SynthesizedMetadataCompiler(moduleBeingBuilt, cancellationToken);
-                compiler.Visit(compilation.SourceModule.GlobalNamespace);
-            }
+            var compiler = new SynthesizedMetadataCompiler(moduleBeingBuilt, cancellationToken);
+            compiler.Visit(compilation.SourceModule.GlobalNamespace);
         }
 
         public override void VisitNamespace(NamespaceSymbol symbol)

@@ -244,11 +244,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         return result;
                     }
-                    catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                    },
+                },
                 cacheResult: true);
 
             _analyses[document.Id] = new Analysis(document, lazyResults);
@@ -320,11 +320,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     ProjectAnalysisSummary.ValidChanges :
                     ProjectAnalysisSummary.ValidInsignificantChanges;
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         private async Task<ProjectChanges> GetProjectChangesAsync(Project project, CancellationToken cancellationToken)
         {
@@ -356,11 +356,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return new ProjectChanges(allEdits, allLineEdits);
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         public async Task<Deltas> EmitProjectDeltaAsync(Project project, EmitBaseline baseline, CancellationToken cancellationToken)
         {
@@ -392,11 +392,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return new Deltas(ilStream.ToArray(), metadataStream.ToArray(), updateMethodTokens, pdbStream, changes.LineChanges, result);
                 }
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         internal void LogRudeEditErrors(ImmutableArray<RudeEditDiagnostic> rudeEditErrors)
         {

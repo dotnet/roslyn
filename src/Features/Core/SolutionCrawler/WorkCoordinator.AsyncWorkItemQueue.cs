@@ -2,25 +2,34 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal partial class WorkCoordinatorRegistrationService
+    internal partial class SolutionCrawlerRegistrationService
     {
         private partial class WorkCoordinator
         {
             private abstract class AsyncWorkItemQueue<TKey> : IDisposable
                 where TKey : class
             {
-                private readonly AsyncSemaphore _semaphore = new AsyncSemaphore(initialCount: 0);
+                private readonly object _gate;
+                private readonly AsyncSemaphore _semaphore;
+                private readonly SolutionCrawlerProgressReporter _progressReporter;
 
                 // map containing cancellation source for the item given out.
-                private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = new Dictionary<object, CancellationTokenSource>();
+                private readonly Dictionary<object, CancellationTokenSource> _cancellationMap;
 
-                private readonly object _gate = new object();
+                public AsyncWorkItemQueue(SolutionCrawlerProgressReporter progressReporter)
+                {
+                    _gate = new object();
+                    _semaphore = new AsyncSemaphore(initialCount: 0);
+                    _cancellationMap = new Dictionary<object, CancellationTokenSource>();
+                    _progressReporter = progressReporter;
+                }
 
                 protected abstract int WorkItemCount_NoLock { get; }
 
@@ -38,7 +47,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         lock (_gate)
                         {
-                            return WorkItemCount_NoLock > 0;
+                            return HasAnyWork_NoLock;
                         }
                     }
                 }
@@ -72,6 +81,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public bool AddOrReplace(WorkItem item)
                 {
+                    if (!HasAnyWork)
+                    {
+                        // first work is added.
+                        _progressReporter.Start();
+                    }
+
                     lock (_gate)
                     {
                         if (AddOrReplace_NoLock(item))
@@ -85,15 +100,53 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
+                public void RequestCancellationOnRunningTasks()
+                {
+                    lock (_gate)
+                    {
+                        // request to cancel all running works
+                        CancelAll_NoLock();
+                    }
+                }
+
                 public void Dispose()
                 {
                     lock (_gate)
                     {
+                        // here we don't need to care about progress reporter since
+                        // it will be only called when host is shutting down.
+                        // we do the below since we want to kill any pending tasks
+
                         Dispose_NoLock();
 
-                        _cancellationMap.Do(p => p.Value.Cancel());
-                        _cancellationMap.Clear();
+                        CancelAll_NoLock();
                     }
+                }
+
+                private bool HasAnyWork_NoLock
+                {
+                    get
+                    {
+                        return WorkItemCount_NoLock > 0;
+                    }
+                }
+
+                private void CancelAll_NoLock()
+                {
+                    // nothing to do
+                    if (_cancellationMap.Count == 0)
+                    {
+                        return;
+                    }
+
+                    var cancellations = _cancellationMap.Values.ToList();
+
+                    // it looks like Cancel can cause some code to run at the same thread, which can cause _cancellationMap to be changed.
+                    // make a copy of the list and call cancellation
+                    cancellations.Do(s => s.Cancel());
+
+                    // clear cancellation map
+                    _cancellationMap.Clear();
                 }
 
                 protected void Cancel_NoLock(object key)
@@ -112,6 +165,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         if (TryTake_NoLock(key, out workInfo))
                         {
+                            if (!HasAnyWork_NoLock)
+                            {
+                                // last work is done.
+                                _progressReporter.Stop();
+                            }
+
                             source = GetNewCancellationSource_NoLock(key);
                             workInfo.AsyncToken.Dispose();
                             return true;
@@ -131,6 +190,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // there must be at least one item in the map when this is called unless host is shutting down.
                         if (TryTakeAnyWork_NoLock(preferableProjectId, out workItem))
                         {
+                            if (!HasAnyWork_NoLock)
+                            {
+                                // last work is done.
+                                _progressReporter.Stop();
+                            }
+
                             source = GetNewCancellationSource_NoLock(workItem.Key);
                             workItem.AsyncToken.Dispose();
                             return true;

@@ -1,10 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -30,10 +28,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             _unknownContentType = contentTypeRegistryService.UnknownContentType;
         }
 
-        private static readonly Encoding ThrowingUtf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+        private static readonly Encoding s_throwingUtf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
         public SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default(CancellationToken))
         {
+            // this API is for a case where user wants us to figure out encoding from the given stream.
+            // if defaultEncoding is given, we will use it if we couldn't figure out encoding used in the stream ourselves.
             Debug.Assert(stream != null);
             Debug.Assert(stream.CanSeek);
             Debug.Assert(stream.CanRead);
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                 // Try UTF-8
                 try
                 {
-                    return CreateTextInternal(stream, ThrowingUtf8Encoding, cancellationToken);
+                    return CreateTextInternal(stream, s_throwingUtf8Encoding, cancellationToken);
                 }
                 catch (DecoderFallbackException)
                 {
@@ -62,6 +62,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             }
         }
 
+        public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // this API is for a case where user just wants to create a source text with explicit encoding.
+            var buffer = CreateTextBuffer(reader, cancellationToken);
+
+            // use the given encoding as it is.
+            return buffer.CurrentSnapshot.AsRoslynText(encoding);
+        }
+
         private ITextBuffer CreateTextBuffer(TextReader reader, CancellationToken cancellationToken = default(CancellationToken))
         {
             return _textBufferFactory.CreateTextBuffer(reader, _unknownContentType);
@@ -72,80 +81,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             cancellationToken.ThrowIfCancellationRequested();
             stream.Seek(0, SeekOrigin.Begin);
 
-            // Detect text coming from temporary storage
-            var accessor = stream as ISupportDirectMemoryAccess;
-            if (accessor != null)
-            {
-                return CreateTextFromTemporaryStorage(accessor, (int)stream.Length, cancellationToken);
-            }
-
             using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
             {
                 var buffer = CreateTextBuffer(reader, cancellationToken);
                 return buffer.CurrentSnapshot.AsRoslynText(reader.CurrentEncoding ?? Encoding.UTF8);
             }
         }
-
-        private unsafe SourceText CreateTextFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength, CancellationToken cancellationToken)
-        {
-            char* src = (char*)accessor.GetPointer();
-            Debug.Assert(*src == 0xFEFF); // BOM: Unicode, little endian
-            // Skip the BOM when creating the reader
-            using (var reader = new DirectMemoryAccessStreamReader(src + 1, streamLength / sizeof(char) - 1))
-            {
-                var buffer = CreateTextBuffer(reader, cancellationToken);
-                return buffer.CurrentSnapshot.AsRoslynText(Encoding.Unicode);
-            }
-        }
-
-        private unsafe class DirectMemoryAccessStreamReader : TextReader
-        {
-            private char* _position;
-            private readonly char* _end;
-
-            public DirectMemoryAccessStreamReader(char* src, int length)
-            {
-                Debug.Assert(src != null);
-                Debug.Assert(length >= 0);
-                _position = src;
-                _end = _position + length;
-            }
-
-            public override int Read()
-            {
-                if(_position >= _end)
-                {
-                    return -1;
-                }
-
-                return *_position++;
-            }
-
-            public override int Read(char[] buffer, int index, int count)
-            {
-                if (buffer == null)
-                {
-                    throw new ArgumentNullException(nameof(buffer));
-                }
-
-                if (index < 0 || index >= buffer.Length)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(index));
-                }
-
-                if (count < 0 || (index + count) > buffer.Length)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(count));
-                }
-
-                count = Math.Min(count, (int)(_end - _position));
-                if (count > 0)
-                {
-                    Marshal.Copy((IntPtr)_position, buffer, index, count);
-                    _position += count;
-                }
-                return count;
-            }
-        }
     }
 }
+

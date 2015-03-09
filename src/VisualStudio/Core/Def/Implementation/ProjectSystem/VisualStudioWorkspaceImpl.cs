@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -44,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private VisualStudioProjectTracker _projectTracker;
 
         // document worker coordinator
-        private IWorkCoordinatorRegistrationService _workCoordinatorService;
+        private ISolutionCrawlerRegistrationService _registrationService;
 
         public VisualStudioWorkspaceImpl(
             SVsServiceProvider serviceProvider,
@@ -913,14 +914,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void StartSolutionCrawler()
         {
-            if (_workCoordinatorService == null)
+            if (_registrationService == null)
             {
                 lock (this)
                 {
-                    if (_workCoordinatorService == null)
+                    if (_registrationService == null)
                     {
-                        _workCoordinatorService = this.Services.GetService<IWorkCoordinatorRegistrationService>();
-                        _workCoordinatorService.Register(this);
+                        _registrationService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
+                        _registrationService.Register(this);
                     }
                 }
             }
@@ -928,14 +929,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void StopSolutionCrawler()
         {
-            if (_workCoordinatorService != null)
+            if (_registrationService != null)
             {
                 lock (this)
                 {
-                    if (_workCoordinatorService != null)
+                    if (_registrationService != null)
                     {
-                        _workCoordinatorService.Unregister(this, blockingShutdown: true);
-                        _workCoordinatorService = null;
+                        _registrationService.Unregister(this, blockingShutdown: true);
+                        _registrationService = null;
                     }
                 }
             }
@@ -1037,7 +1038,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // a crash. Until this is fixed, we will leak a HierarchyEventsSink every time a
                 // Mercury shared document is closed.
                 // UnsubscribeFromSharedHierarchyEvents(documentId);
-                _workspace.OnDocumentClosed(documentId, loader, updateActiveContext);
+                using (_workspace.Services.GetService<IGlobalOperationNotificationService>().Start("Document Closed"))
+                {
+                    _workspace.OnDocumentClosed(documentId, loader, updateActiveContext);
+                }
             }
 
             void IVisualStudioWorkspaceHost.OnDocumentOpened(DocumentId documentId, ITextBuffer textBuffer, bool currentContext)
@@ -1143,7 +1147,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             void IVisualStudioWorkspaceHost.OnProjectAdded(ProjectInfo projectInfo)
             {
-                _workspace.OnProjectAdded(projectInfo);
+                using (_workspace.Services.GetService<IGlobalOperationNotificationService>()?.Start("Add Project"))
+                {
+                    _workspace.OnProjectAdded(projectInfo);
+                }
             }
 
             void IVisualStudioWorkspaceHost.OnProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)
@@ -1158,7 +1165,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             void IVisualStudioWorkspaceHost.OnProjectRemoved(ProjectId projectId)
             {
-                _workspace.OnProjectRemoved(projectId);
+                using (_workspace.Services.GetService<IGlobalOperationNotificationService>()?.Start("Remove Project"))
+                {
+                    _workspace.OnProjectRemoved(projectId);
+                }
             }
 
             void IVisualStudioWorkspaceHost.OnSolutionAdded(SolutionInfo solutionInfo)

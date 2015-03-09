@@ -47,11 +47,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action);
 
         /// <summary>
-        /// Register an action to be executed at compilation end.
-        /// A compilation end action reports <see cref="Diagnostic"/>s about the <see cref="Compilation"/>.
+        /// Register an action to be executed for a complete compilation.
+        /// A compilation action reports <see cref="Diagnostic"/>s about the <see cref="Compilation"/>.
         /// </summary>
         /// <param name="action">Action to be executed at compilation end.</param>
-        public abstract void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action);
+        public abstract void RegisterCompilationAction(Action<CompilationAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of a document,
@@ -89,12 +89,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at the start of semantic analysis of a code block.</param>
         public abstract void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct;
 
-        /// <summary>
-        /// Register an action to be executed at the end of semantic analysis of a method body or an expression appearing outside a method body.
-        /// A code block end action reports <see cref="Diagnostic"/>s about code blocks.
-        /// </summary>
-        /// <param name="action">Action to be executed at the end of semantic analysis of a code block.</param>
-        public abstract void RegisterCodeBlockEndAction(Action<CodeBlockEndAnalysisContext> action);
+        /// <summary> 
+        /// Register an action to be executed after semantic analysis of a method body or an expression appearing outside a method body. 
+        /// A code block action reports <see cref="Diagnostic"/>s about code blocks. 
+        /// </summary> 
+        /// <param name="action">Action to be executed for a code block.</param> 
+        public abstract void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext> action); 
 
         /// <summary>
         /// Register an action to be executed at completion of parsing of a code document.
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// A compilation end action reports <see cref="Diagnostic"/>s about the <see cref="CodeAnalysis.Compilation"/>.
         /// </summary>
         /// <param name="action">Action to be executed at compilation end.</param>
-        public abstract void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action);
+        public abstract void RegisterCompilationEndAction(Action<CompilationAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of a document,
@@ -224,13 +224,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at the start of semantic analysis of a code block.</param>
         public abstract void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct;
-
-        /// <summary>
-        /// Register an action to be executed at the end of semantic analysis of a method body or an expression appearing outside a method body.
-        /// A code block end action reports <see cref="Diagnostic"/>s about code blocks.
-        /// </summary>
-        /// <param name="action">Action to be executed at the end of semantic analysis of a code block.</param>
-        public abstract void RegisterCodeBlockEndAction(Action<CodeBlockEndAnalysisContext> action);
+        
+        /// <summary> 
+        /// Register an action to be executed at the end of semantic analysis of a method body or an expression appearing outside a method body. 
+        /// A code block action reports <see cref="Diagnostic"/>s about code blocks. 
+        /// </summary> 
+        /// <param name="action">Action to be executed for a code block.</param> 
+        public abstract void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at completion of parsing of a code document.
@@ -264,10 +264,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     }
 
     /// <summary>
-    /// Context for a compilation end action.
-    /// A compilation end action can use a <see cref="CompilationEndAnalysisContext"/> to report <see cref="Diagnostic"/>s about a <see cref="CodeAnalysis.Compilation"/>.
+    /// Context for a compilation action or compilation end action.
+    /// A compilation action or compilation end action can use a <see cref="CompilationAnalysisContext"/> to report <see cref="Diagnostic"/>s about a <see cref="CodeAnalysis.Compilation"/>.
     /// </summary>
-    public struct CompilationEndAnalysisContext
+    public struct CompilationAnalysisContext
     {
         private readonly Compilation _compilation;
         private readonly AnalyzerOptions _options;
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
-        public CompilationEndAnalysisContext(Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        public CompilationAnalysisContext(Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             _compilation = compilation;
             _options = options;
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// A code block end action reports <see cref="Diagnostic"/>s about code blocks.
         /// </summary>
         /// <param name="action">Action to be executed at the end of semantic analysis of a code block.</param>
-        public abstract void RegisterCodeBlockEndAction(Action<CodeBlockEndAnalysisContext> action);
+        public abstract void RegisterCodeBlockEndAction(Action<CodeBlockAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/> with an appropriate Kind.
@@ -499,10 +499,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     }
 
     /// <summary>
-    /// Context for a code block end action.
-    /// A code block end action can use a <see cref="CodeBlockEndAnalysisContext"/> to report <see cref="Diagnostic"/>s about a code block.
+    /// Context for a code block action or code block end action.
+    /// A code block action or code block end action can use a <see cref="CodeBlockAnalysisContext"/> to report <see cref="Diagnostic"/>s about a code block.
     /// </summary>
-    public struct CodeBlockEndAnalysisContext
+    public struct CodeBlockAnalysisContext
     {
         private readonly SyntaxNode _codeBlock;
         private readonly ISymbol _owningSymbol;
@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
-        public CodeBlockEndAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        public CodeBlockAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             _codeBlock = codeBlock;
             _owningSymbol = owningSymbol;

@@ -139,6 +139,23 @@ Delegate Sub $$Foo(i As Integer)
 
 #End Region
 
+#Region "Attributes"
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Attributes()
+            Dim code =
+<Code>
+Imports System
+
+&lt;CLSCompliant(False)&gt;
+Delegate Sub $$D()
+</Code>
+
+            TestAttributes(code, IsElement("CLSCompliant"))
+        End Sub
+
+#End Region
+
 #Region "BaseClass tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

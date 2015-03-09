@@ -39,6 +39,14 @@
     <Compile Include="FrameDecoder.cs" />
     <Compile Include="InstructionDecoder.cs" />
     <Compile Include="LanguageInstructionDecoder.cs" />
+    <Compile Include="PDB\ExternAliasRecord.cs" />
+    <Compile Include="PDB\MethodDebugInfo.cs" />
+    <Compile Include="PDB\ImportRecord.cs" />
+    <Compile Include="PDB\PdbHelpers.cs" />
+    <Compile Include="PDB\PortableImportRecord.cs" />
+    <Compile Include="PDB\NativeImportRecord.cs" />
+    <Compile Include="PDB\PortableExternAliasRecord.cs" />
+    <Compile Include="PDB\NativeExternAliasRecord.cs" />
     <Compile Include="ResultProperties.cs" />
     <Compile Include="ExpressionCompilerUtilities.cs" />
     <Compile Include="ExpressionEvaluatorFatalError.cs" />
@@ -54,7 +62,6 @@
     <Compile Include="MethodScope.cs" />
     <Compile Include="NamedLocalConstant.cs" />
     <Compile Include="PseudoVariableUtilities.cs" />
-    <Compile Include="PdbHelpers.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -83,10 +90,10 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DefineConstants>TRACE;DEBUG;EXPRESSIONCOMPILER</DefineConstants>
+    <DefineConstants>$(DefineConstants);EXPRESSIONCOMPILER</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DefineConstants>TRACE;EXPRESSIONCOMPILER</DefineConstants>
+    <DefineConstants>$(DefineConstants);EXPRESSIONCOMPILER</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

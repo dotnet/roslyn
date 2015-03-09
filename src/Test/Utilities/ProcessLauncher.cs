@@ -12,24 +12,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <summary>
         /// Launch a process, wait for it to complete, and return output, error, and exit code.
         /// </summary>
-        public static ProcessResult Run(string fileName, string arguments, string workingDirectory = null, Dictionary<string, string> additionalEnvironmentVars = null)
+        public static ProcessResult Run(
+            string fileName,
+            string arguments,
+            string workingDirectory = null,
+            IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null)
         {
             if (fileName == null) throw new ArgumentNullException("fileName");
 
             var startInfo = new ProcessStartInfo
-                                       {
-                                           FileName = fileName,
-                                           Arguments = arguments,
-                                           UseShellExecute = false,
-                                           CreateNoWindow = true,
-                                           RedirectStandardOutput = true,
-                                           RedirectStandardError = true,
-                                           WorkingDirectory = workingDirectory
-                                       };
+            {
+                FileName = fileName,
+                Arguments = arguments,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                WorkingDirectory = workingDirectory
+            };
 
             if (additionalEnvironmentVars != null)
             {
-                foreach (KeyValuePair<string, string> entry in additionalEnvironmentVars)
+                foreach (var entry in additionalEnvironmentVars)
                 {
                     startInfo.EnvironmentVariables[entry.Key] = entry.Value;
                 }
@@ -39,15 +43,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 StringBuilder outputBuilder = new StringBuilder();
                 StringBuilder errorBuilder = new StringBuilder();
-                process.OutputDataReceived += (sender, args) => 
-                { 
+                process.OutputDataReceived += (sender, args) =>
+                {
                     if (args.Data != null)
-                        outputBuilder.AppendLine(args.Data); 
+                        outputBuilder.AppendLine(args.Data);
                 };
-                process.ErrorDataReceived += (sender, args) => 
-                { 
+                process.ErrorDataReceived += (sender, args) =>
+                {
                     if (args.Data != null)
-                        errorBuilder.AppendLine(args.Data); 
+                        errorBuilder.AppendLine(args.Data);
                 };
 
                 process.Start();

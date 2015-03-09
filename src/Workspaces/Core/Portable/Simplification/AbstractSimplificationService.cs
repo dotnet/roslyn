@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -39,8 +40,10 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
             using (Logger.LogBlock(FunctionId.Simplifier_ReduceAsync, cancellationToken))
             {
+                var spanList = spans?.ToList() ?? new List<TextSpan>();
+
                 // we have no span
-                if (!spans.Any())
+                if (!spanList.Any())
                 {
                     return document;
                 }
@@ -53,36 +56,31 @@ namespace Microsoft.CodeAnalysis.Simplification
                 // Hence make sure we always start working off of the actual SemanticModel instead of a speculative SemanticModel.
                 Contract.Assert(!semanticModel.IsSpeculativeSemanticModel);
 
-                var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var originalRoot = root;
+                var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
 
 #if DEBUG
                 bool originalDocHasErrors = await document.HasAnyErrors(cancellationToken).ConfigureAwait(false);
 #endif
 
-                root = this.Reduce(document, root, semanticModel, spans, optionSet, reducers, cancellationToken);
+                var reduced = await this.ReduceAsyncInternal(document, spanList, optionSet, reducers, cancellationToken).ConfigureAwait(false);
 
-                if (originalRoot != root)
+                if (reduced != document)
                 {
-                    document = document.WithSyntaxRoot(root);
-
 #if DEBUG
                     if (!originalDocHasErrors)
                     {
-                        await document.VerifyNoErrorsAsync("Error introduced by Simplification Service", cancellationToken).ConfigureAwait(false);
+                        await reduced.VerifyNoErrorsAsync("Error introduced by Simplification Service", cancellationToken).ConfigureAwait(false);
                     }
 #endif
                 }
 
-                return document;
+                return reduced;
             }
         }
 
-        private SyntaxNode Reduce(
+        private async Task<Document> ReduceAsyncInternal(
             Document document,
-            SyntaxNode root,
-            SemanticModel semanticModel,
-            IEnumerable<TextSpan> spans,
+            List<TextSpan> spans,
             OptionSet optionSet,
             IEnumerable<AbstractReducer> reducers,
             CancellationToken cancellationToken)
@@ -93,8 +91,24 @@ namespace Microsoft.CodeAnalysis.Simplification
             Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans = (nodeOrToken) =>
                 !spansTree.GetOverlappingIntervals(nodeOrToken.FullSpan.Start, nodeOrToken.FullSpan.Length).Any();
 
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+
+            // prep namespace imports marked for simplification 
+            var removeIfUnusedAnnotation = new SyntaxAnnotation();
+            var originalRoot = root;
+            root = this.PrepareNamespaceImportsForRemovalIfUnused(document, root, removeIfUnusedAnnotation, isNodeOrTokenOutsideSimplifySpans);
+            var hasImportsToSimplify = root != originalRoot;
+
+            if (hasImportsToSimplify)
+            {
+                document = document.WithSyntaxRoot(root);
+                semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+            }
+
             // Get the list of syntax nodes and tokens that need to be reduced.
-            ImmutableArray<NodeOrTokenToReduce> nodesAndTokensToReduce = this.GetNodesAndTokensToReduce(root, isNodeOrTokenOutsideSimplifySpans);
+            var nodesAndTokensToReduce = this.GetNodesAndTokensToReduce(root, isNodeOrTokenOutsideSimplifySpans);
 
             if (nodesAndTokensToReduce.Any())
             {
@@ -109,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 // Reduce all the nodesAndTokensToReduce using the given reducers/rewriters and
                 // store the reduced nodes and/or tokens in the reduced nodes/tokens maps.
                 // Note that this method doesn't update the original syntax tree.
-                this.Reduce(document, root, nodesAndTokensToReduce, reducers, optionSet, semanticModel, reducedNodesMap, reducedTokensMap, cancellationToken);
+                await this.ReduceAsync(document, root, nodesAndTokensToReduce, reducers, optionSet, semanticModel, reducedNodesMap, reducedTokensMap, cancellationToken).ConfigureAwait(false);
 
                 if (reducedNodesMap.Any() || reducedTokensMap.Any())
                 {
@@ -121,13 +135,21 @@ namespace Microsoft.CodeAnalysis.Simplification
                         computeReplacementToken: (o, n) => reducedTokensMap[o],
                         trivia: SpecializedCollections.EmptyEnumerable<SyntaxTrivia>(),
                         computeReplacementTrivia: null);
+
+                    document = document.WithSyntaxRoot(root);
                 }
             }
 
-            return root;
+            if (hasImportsToSimplify)
+            {
+                // remove any unused namespace imports that were marked for simplification
+                document = await this.RemoveUnusedNamespaceImportsAsync(document, removeIfUnusedAnnotation, cancellationToken).ConfigureAwait(false);
+            }
+
+            return document;
         }
 
-        private void Reduce(
+        private Task ReduceAsync(
             Document document,
             SyntaxNode root,
             ImmutableArray<NodeOrTokenToReduce> nodesAndTokensToReduce,
@@ -231,8 +253,54 @@ namespace Microsoft.CodeAnalysis.Simplification
             }, cancellationToken);
             }
 
-            Task.WaitAll(simplifyTasks, cancellationToken);
+            return Task.WhenAll(simplifyTasks);
         }
+
+        // find any namespace imports / using directives marked for simplification in the specified spans
+        // and add removeIfUnused annotation
+        private SyntaxNode PrepareNamespaceImportsForRemovalIfUnused(
+            Document document,
+            SyntaxNode root,
+            SyntaxAnnotation removeIfUnusedAnnotation,
+            Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpan)
+        {
+            var gen = SyntaxGenerator.GetGenerator(document);
+
+            var importsToSimplify = root.DescendantNodes().Where(n => 
+                !isNodeOrTokenOutsideSimplifySpan(n) 
+                && gen.GetDeclarationKind(n) == DeclarationKind.NamespaceImport
+                && n.HasAnnotation(Simplifier.Annotation));
+
+            return root.ReplaceNodes(importsToSimplify, (o, r) => r.WithAdditionalAnnotations(removeIfUnusedAnnotation));
+        }
+
+        private async Task<Document> RemoveUnusedNamespaceImportsAsync(
+            Document document,
+            SyntaxAnnotation removeIfUnusedAnnotation,
+            CancellationToken cancellationToken)
+        {
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = model.SyntaxTree.GetRoot();
+            var addedImports = root.GetAnnotatedNodes(removeIfUnusedAnnotation);
+            var unusedImports = new HashSet<SyntaxNode>();
+            this.GetUnusedNamespaceImports(model, unusedImports, cancellationToken);
+
+            // only remove the unused imports that we added
+            unusedImports.IntersectWith(addedImports);
+
+            if (unusedImports.Count > 0)
+            {
+                var gen = SyntaxGenerator.GetGenerator(document);
+                var newRoot = gen.RemoveNodes(root, unusedImports);
+                return document.WithSyntaxRoot(newRoot);
+            }
+            else
+            {
+                return document;
+            }
+        }
+
+        protected abstract void GetUnusedNamespaceImports(SemanticModel model, HashSet<SyntaxNode> namespaceImports, CancellationToken cancellationToken);
     }
 
     internal struct NodeOrTokenToReduce

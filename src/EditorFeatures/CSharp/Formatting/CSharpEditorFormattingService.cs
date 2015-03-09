@@ -12,12 +12,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation;
-using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -142,7 +142,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         private static bool TokenShouldNotFormatOnTypeChar(SyntaxToken token)
         {
-            return token.IsKind(SyntaxKind.CloseParenToken) && !token.Parent.IsKind(SyntaxKind.UsingStatement);
+            return (token.IsKind(SyntaxKind.CloseParenToken) && !token.Parent.IsKind(SyntaxKind.UsingStatement)) ||
+                (token.IsKind(SyntaxKind.ColonToken) && !(token.Parent.IsKind(SyntaxKind.LabeledStatement) || token.Parent.IsKind(SyntaxKind.CaseSwitchLabel) || token.Parent.IsKind(SyntaxKind.DefaultSwitchLabel)));
         }
 
         public async Task<IList<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int caretPosition, CancellationToken cancellationToken)
@@ -159,7 +160,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return null;
             }
 
-            // Check to see if the token is ')' and also the parent is a using statement. If not, bail
+            var service = document.GetLanguageService<ISyntaxFactsService>();
+            if (service != null && service.IsInNonUserCode(token.SyntaxTree, caretPosition, cancellationToken))
+            {
+                return null;
+            }
+
+            // Check to see if any of the below. If not, bail.
+            // case 1: The token is ')' and the parent is an using statement.
+            // case 2: The token is ':' and the parent is either labelled statement or case switch or default switch
             if (TokenShouldNotFormatOnTypeChar(token))
             {
                 return null;

@@ -7,20 +7,20 @@ namespace Roslyn.Test.Utilities
 {
     public class TestStream : Stream
     {
-        private readonly bool canRead, canSeek, canWrite;
+        private readonly bool _canRead, _canSeek, _canWrite;
 
         public TestStream(bool canRead = false, bool canSeek = false, bool canWrite = false)
         {
-            this.canRead = canRead;
-            this.canSeek = canSeek;
-            this.canWrite = canWrite;
+            _canRead = canRead;
+            _canSeek = canSeek;
+            _canWrite = canWrite;
         }
 
         public override bool CanRead
         {
             get
             {
-                return canRead;
+                return _canRead;
             }
         }
 
@@ -28,7 +28,7 @@ namespace Roslyn.Test.Utilities
         {
             get
             {
-                return canSeek;
+                return _canSeek;
             }
         }
 
@@ -36,7 +36,7 @@ namespace Roslyn.Test.Utilities
         {
             get
             {
-                return canWrite;
+                return _canWrite;
             }
         }
 

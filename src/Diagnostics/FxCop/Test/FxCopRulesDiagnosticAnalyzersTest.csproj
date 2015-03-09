@@ -80,20 +80,13 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Design\CA1001Tests.cs" />
     <Compile Include="Design\CA1003Tests.cs" />
     <Compile Include="Design\CA1008Tests.cs" />
     <Compile Include="Design\CA1012Tests.cs" />
-    <Compile Include="Design\CA1014Tests.cs" />
-    <Compile Include="Design\CA1016Tests.cs" />
-    <Compile Include="Design\CA1017Tests.cs" />
-    <Compile Include="Design\CA1018Tests.cs" />
-    <Compile Include="Design\CA1019Tests.cs" />
     <Compile Include="Design\CA1024Tests.cs" />
     <Compile Include="Design\CA1052Tests.cs" />
     <Compile Include="Design\CA1053Tests.cs" />
     <Compile Include="Design\CA1060Tests.cs" />
-    <Compile Include="Design\CodeFixes\CA1001FixerTests.cs" />
     <Compile Include="Design\CodeFixes\CA1008FixerTests.cs" />
     <Compile Include="Design\CodeFixes\CA1012FixerTests.cs" />
     <Compile Include="Design\CodeFixes\EnumWithFlagsAttributesRulesFixerTests.cs" />
@@ -110,17 +103,14 @@
     <Compile Include="Performance\CodeFixes\CA1813FixerTests.cs" />
     <Compile Include="Performance\CodeFixes\CA1821FixerTests.cs" />
     <Compile Include="Reliability\CA2002Tests.cs" />
-    <Compile Include="Design\CA1036Tests.cs" />
     <Compile Include="Usage\CA2200Tests.cs" />
     <Compile Include="Usage\CA2213Tests.cs" />
     <Compile Include="Usage\CA2214Tests.cs" />
     <Compile Include="Usage\CA2229Tests.cs" />
-    <Compile Include="Usage\CA2231Tests.cs" />
     <Compile Include="Usage\CA2235Tests.cs" />
     <Compile Include="Usage\CA2237Tests.cs" />
     <Compile Include="Usage\CodeFixes\CA2213FixerTests.cs" />
     <Compile Include="Usage\CodeFixes\CA2229FixerTests.cs" />
-    <Compile Include="Usage\CodeFixes\CA2231FixerTests.cs" />
     <Compile Include="Usage\CodeFixes\CA2235FixerTests.cs" />
     <Compile Include="Usage\CodeFixes\CA2237FixerTests.cs" />
   </ItemGroup>

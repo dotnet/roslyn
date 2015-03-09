@@ -345,7 +345,122 @@ class C
             Assert.Throws<Exception>(() => ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
         }
 
+        [WorkItem(1124725, "DevDiv")]
+        [Fact]
+        public void PseudoVariableType()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var context = CreateMethodContextWithReferences(comp, "C.M", CSharpRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference);
+
+            const string expectedError = "error CS0012: The type 'Exception' is defined in an assembly that is not referenced. You must add a reference to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.";
+            var expectedMissingAssemblyIdentity = comp.Assembly.CorLibrary.Identity;
+
+            ResultProperties resultProperties;
+            string actualError;
+            ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
+            var result = context.CompileExpression(
+                InspectionContextFactory.Empty.Add("$stowedexception", "Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
+                "$stowedexception",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out actualError,
+                out actualMissingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData: null);
+            Assert.Equal(expectedError, actualError);
+            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+        }
+
+        [WorkItem(1114866)]
+        [ConditionalFact(typeof(OSVersionWin8))]
+        public void NotYetLoadedWinMds()
+        {
+            var source =
+@"class C
+{
+    static void M(Windows.Storage.StorageFolder f)
+    {
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.DebugDll);
+            var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage");
+            Assert.True(runtimeAssemblies.Any());
+            var context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies));
+
+            const string expectedError = "error CS0234: The type or namespace name 'UI' does not exist in the namespace 'Windows' (are you missing an assembly reference?)";
+            var expectedMissingAssemblyIdentity = new AssemblyIdentity("Windows.UI", contentType: System.Reflection.AssemblyContentType.WindowsRuntime);
+
+            ResultProperties resultProperties;
+            string actualError;
+            ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
+            context.CompileExpression(
+                InspectionContextFactory.Empty,
+                "typeof(@Windows.UI.Colors)",
+                DkmEvaluationFlags.None,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out actualError,
+                out actualMissingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData: null);
+            Assert.Equal(expectedError, actualError);
+            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+        }
+
+        /// <remarks>
+        /// Windows.UI.Xaml is the only (win8) winmd with more than two parts.
+        /// </remarks>
+        [WorkItem(1114866)]
+        [ConditionalFact(typeof(OSVersionWin8))]
+        public void NotYetLoadedWinMds_MultipleParts()
+        {
+            var source =
+@"class C
+{
+    static void M(Windows.UI.Colors c)
+    {
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.DebugDll);
+            var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI");
+            Assert.True(runtimeAssemblies.Any());
+            var context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies));
+
+            const string expectedError = "error CS0234: The type or namespace name 'Xaml' does not exist in the namespace 'Windows.UI' (are you missing an assembly reference?)";
+            var expectedMissingAssemblyIdentity = new AssemblyIdentity("Windows.UI.Xaml", contentType: System.Reflection.AssemblyContentType.WindowsRuntime);
+
+            ResultProperties resultProperties;
+            string actualError;
+            ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
+            context.CompileExpression(
+                InspectionContextFactory.Empty,
+                "typeof(Windows.@UI.Xaml.Application)",
+                DkmEvaluationFlags.None,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out actualError,
+                out actualMissingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData: null);
+            Assert.Equal(expectedError, actualError);
+            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+        }
+
         private EvaluationContext CreateMethodContextWithReferences(Compilation comp, string methodName, params MetadataReference[] references)
+        {
+            return CreateMethodContextWithReferences(comp, methodName, ImmutableArray.CreateRange(references));
+        }
+
+        private EvaluationContext CreateMethodContextWithReferences(Compilation comp, string methodName, ImmutableArray<MetadataReference> references)
         {
             byte[] exeBytes;
             byte[] pdbBytes;
@@ -353,7 +468,7 @@ class C
             var result = comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
             Assert.True(result);
 
-            var runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.CreateRange(references), exeBytes, new SymReader(pdbBytes));
+            var runtime = CreateRuntimeInstance(GetUniqueName(), references, exeBytes, new SymReader(pdbBytes));
             return CreateMethodContext(runtime, methodName);
         }
 

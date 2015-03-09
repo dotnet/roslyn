@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias PDB;
+
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,50 +26,50 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public class CompilationVerifier
         {
-            private readonly CommonTestBase test;
-            private readonly Compilation compilation;
-            private CompilationTestData testData;
-            private readonly IEnumerable<ModuleData> dependencies;
-            private ImmutableArray<Diagnostic> diagnostics;
-            private IModuleSymbol lazyModuleSymbol;
-            private IList<ModuleData> allModuleData;
+            private readonly CommonTestBase _test;
+            private readonly Compilation _compilation;
+            private CompilationTestData _testData;
+            private readonly IEnumerable<ModuleData> _dependencies;
+            private ImmutableArray<Diagnostic> _diagnostics;
+            private IModuleSymbol _lazyModuleSymbol;
+            private IList<ModuleData> _allModuleData;
 
             internal ImmutableArray<byte> EmittedAssemblyData;
             internal ImmutableArray<byte> EmittedAssemblyPdb;
 
             public CompilationVerifier(
-                CommonTestBase test, 
+                CommonTestBase test,
                 Compilation compilation,
                 IEnumerable<ModuleData> dependencies = null)
             {
-                this.test = test;
-                this.compilation = compilation;
-                this.dependencies = dependencies;
+                _test = test;
+                _compilation = compilation;
+                _dependencies = dependencies;
             }
 
             public CompilationVerifier Clone()
             {
-                return new CompilationVerifier(test, compilation, dependencies);
+                return new CompilationVerifier(_test, _compilation, _dependencies);
             }
 
             internal CompilationTestData TestData
             {
-                get { return testData; }
+                get { return _testData; }
             }
 
             public Compilation Compilation
             {
-                get { return compilation; }
+                get { return _compilation; }
             }
 
             public TempRoot Temp
             {
-                get { return test.Temp; }
+                get { return _test.Temp; }
             }
 
             internal ImmutableArray<Diagnostic> Diagnostics
             {
-                get { return diagnostics; }
+                get { return _diagnostics; }
             }
 
             internal ImmutableArray<ModuleMetadata> GetAllModuleMetadata()
@@ -79,9 +81,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 ImmutableArray<ModuleMetadata> modules = ImmutableArray.Create(ModuleMetadata.CreateFromImage(EmittedAssemblyData));
 
-                if (allModuleData != null)
+                if (_allModuleData != null)
                 {
-                    var netModules = allModuleData.Where(m => m.Kind == OutputKind.NetModule);
+                    var netModules = _allModuleData.Where(m => m.Kind == OutputKind.NetModule);
                     if (netModules.Any())
                     {
                         modules = modules.Concat(
@@ -94,10 +96,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public void Emit(string expectedOutput, IEnumerable<ResourceDescription> manifestResources, bool peVerify, SignatureDescription[] expectedSignatures)
             {
-                using (var testEnvironment = new HostedRuntimeEnvironment(dependencies))
+                using (var testEnvironment = new HostedRuntimeEnvironment(_dependencies))
                 {
                     string mainModuleName = Emit(testEnvironment, manifestResources);
-                    allModuleData = testEnvironment.GetAllModuleData();
+                    _allModuleData = testEnvironment.GetAllModuleData();
 
                     if (peVerify)
                     {
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Replace bool verify parameter with string[] expectedPeVerifyOutput. If null, no verification. If empty verify have to succeed. Otherwise compare errors.
             public void EmitAndVerify(params string[] expectedPeVerifyOutput)
             {
-                using (var testEnvironment = new HostedRuntimeEnvironment(dependencies))
+                using (var testEnvironment = new HostedRuntimeEnvironment(_dependencies))
                 {
                     string mainModuleName = Emit(testEnvironment, null);
                     string[] actualOutput = testEnvironment.PeVerifyModules(new[] { mainModuleName }, throwOnError: false);
@@ -130,20 +132,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             private string Emit(HostedRuntimeEnvironment testEnvironment, IEnumerable<ResourceDescription> manifestResources)
             {
-                testEnvironment.Emit(compilation, manifestResources);
+                testEnvironment.Emit(_compilation, manifestResources);
 
-                diagnostics = testEnvironment.GetDiagnostics();
+                _diagnostics = testEnvironment.GetDiagnostics();
                 EmittedAssemblyData = testEnvironment.GetMainImage();
                 EmittedAssemblyPdb = testEnvironment.GetMainPdb();
-                testData = testEnvironment.GetCompilationTestData();
+                _testData = testEnvironment.GetCompilationTestData();
 
-                return compilation.Assembly.Identity.GetDisplayName();
+                return _compilation.Assembly.Identity.GetDisplayName();
             }
 
             public CompilationVerifier VerifyIL(
-                string qualifiedMethodName, 
-                XCData expectedIL, 
-                bool realIL = false, 
+                string qualifiedMethodName,
+                XCData expectedIL,
+                bool realIL = false,
                 string sequencePoints = null,
                 [CallerFilePath]string callerPath = null,
                 [CallerLineNumber]int callerLine = 0)
@@ -174,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // TODO: Currently the qualifiedMethodName is a symbol display name while PDB need metadata name.
                 // So we need to pass the PDB metadata name of the method to sequencePoints (instead of just bool).
 
-                var methodData = testData.GetMethodData(qualifiedMethodName);
+                var methodData = _testData.GetMethodData(qualifiedMethodName);
 
                 // verify IL emitted via CCI, if any:
                 string actualCciIL = VisualizeIL(methodData, realIL, sequencePoints, useRefEmitter: false);
@@ -192,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 [CallerLineNumber]int expectedValueSourceLine = 0,
                 [CallerFilePath]string expectedValueSourcePath = null)
             {
-                this.compilation.VerifyPdb(expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 
@@ -201,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 [CallerLineNumber]int expectedValueSourceLine = 0,
                 [CallerFilePath]string expectedValueSourcePath = null)
             {
-                this.compilation.VerifyPdb(expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 
@@ -211,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 [CallerLineNumber]int expectedValueSourceLine = 0,
                 [CallerFilePath]string expectedValueSourcePath = null)
             {
-                this.compilation.VerifyPdb(qualifiedMethodName, expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 
@@ -221,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                [CallerLineNumber]int expectedValueSourceLine = 0,
                [CallerFilePath]string expectedValueSourcePath = null)
             {
-                this.compilation.VerifyPdb(qualifiedMethodName, expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 
@@ -252,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null, bool useRefEmitter = false)
             {
-                return VisualizeIL(testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, useRefEmitter);
+                return VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, useRefEmitter);
             }
 
             private string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints, bool useRefEmitter)
@@ -262,9 +264,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (sequencePoints != null)
                 {
                     var actualPdbXml = PdbToXmlConverter.ToXml(
-                        pdbStream: new MemoryStream(EmittedAssemblyPdb.ToArray()), 
-                        peStream: new MemoryStream(EmittedAssemblyData.ToArray()), 
-                        options: PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError, 
+                        pdbStream: new MemoryStream(EmittedAssemblyPdb.ToArray()),
+                        peStream: new MemoryStream(EmittedAssemblyData.ToArray()),
+                        options: PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError,
                         methodName: sequencePoints);
 
                     markers = GetMarkers(actualPdbXml);
@@ -276,24 +278,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 var module = this.GetModuleSymbolForEmittedImage();
-                return module != null ? test.VisualizeRealIL(module, methodData, markers) : null;
+                return module != null ? _test.VisualizeRealIL(module, methodData, markers) : null;
             }
 
             public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)
             {
-                Assert.Equal(expected, testData.Methods.ContainsKey(methodName));
+                Assert.Equal(expected, _testData.Methods.ContainsKey(methodName));
                 return this;
             }
 
             public CompilationVerifier VerifyDiagnostics(params DiagnosticDescription[] expected)
             {
-                diagnostics.Verify(expected);
+                _diagnostics.Verify(expected);
                 return this;
             }
 
             public IModuleSymbol GetModuleSymbolForEmittedImage()
             {
-                return GetModuleSymbolForEmittedImage(ref lazyModuleSymbol, EmittedAssemblyData);
+                return GetModuleSymbolForEmittedImage(ref _lazyModuleSymbol, EmittedAssemblyData);
             }
 
             private IModuleSymbol GetModuleSymbolForEmittedImage(ref IModuleSymbol moduleSymbol, ImmutableArray<byte> peImage)
@@ -307,9 +309,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     Debug.Assert(!peImage.IsDefault);
 
-                    var targetReference = LoadTestEmittedExecutableForSymbolValidation(peImage, compilation.Options.OutputKind, display: compilation.AssemblyName);
-                    var references = compilation.References.Concat(new[] { targetReference });
-                    var assemblies = test.ReferencesToModuleSymbols(references, compilation.Options.MetadataImportOptions);
+                    var targetReference = LoadTestEmittedExecutableForSymbolValidation(peImage, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
+                    var references = _compilation.References.Concat(new[] { targetReference });
+                    var assemblies = _test.ReferencesToModuleSymbols(references, _compilation.Options.MetadataImportOptions);
                     var module = assemblies.Last();
                     moduleSymbol = module;
                 }

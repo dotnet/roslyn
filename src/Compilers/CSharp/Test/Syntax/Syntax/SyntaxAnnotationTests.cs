@@ -663,8 +663,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private class Collector : CSharpSyntaxWalker
         {
-            public List<SyntaxNodeOrToken> NodeOrTokens { get; private set; }
-            public List<SyntaxTrivia> Trivia { get; private set; }
+            public List<SyntaxNodeOrToken> NodeOrTokens { get; }
+            public List<SyntaxTrivia> Trivia { get; }
 
             public Collector()
                 : base(SyntaxWalkerDepth.StructuredTrivia)

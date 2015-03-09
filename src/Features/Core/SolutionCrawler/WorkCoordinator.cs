@@ -16,18 +16,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal partial class WorkCoordinatorRegistrationService
+    internal partial class SolutionCrawlerRegistrationService
     {
         private partial class WorkCoordinator
         {
             private const int MinimumDelayInMS = 50;
 
+            private readonly Registration _registration;
+
             private readonly LogAggregator _logAggregator;
             private readonly IAsynchronousOperationListener _listener;
             private readonly IOptionService _optionService;
-
-            private readonly int _correlationId;
-            private readonly Workspace _workspace;
 
             private readonly CancellationTokenSource _shutdownNotificationSource;
             private readonly CancellationToken _shutdownToken;
@@ -40,17 +39,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public WorkCoordinator(
                  IAsynchronousOperationListener listener,
                  IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
-                 int correlationId, Workspace workspace)
+                 Registration registration)
             {
                 _logAggregator = new LogAggregator();
 
-                _listener = listener;
-                _optionService = workspace.Services.GetService<IOptionService>();
-                _optionService.OptionChanged += OnOptionChanged;
+                _registration = registration;
 
-                // set up workspace 
-                _correlationId = correlationId;
-                _workspace = workspace;
+                _listener = listener;
+                _optionService = _registration.GetService<IOptionService>();
+                _optionService.OptionChanged += OnOptionChanged;
 
                 // event and worker queues
                 _shutdownNotificationSource = new CancellationTokenSource();
@@ -61,26 +58,27 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var activeFileBackOffTimeSpanInMS = _optionService.GetOption(SolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS);
                 var allFilesWorkerBackOffTimeSpanInMS = _optionService.GetOption(SolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpanInMS);
                 var entireProjectWorkerBackOffTimeSpanInMS = _optionService.GetOption(SolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS);
+
                 _documentAndProjectWorkerProcessor = new IncrementalAnalyzerProcessor(
-                    listener, correlationId, workspace, analyzerProviders, activeFileBackOffTimeSpanInMS, allFilesWorkerBackOffTimeSpanInMS, entireProjectWorkerBackOffTimeSpanInMS, _shutdownToken);
+                    listener, analyzerProviders, _registration, activeFileBackOffTimeSpanInMS, allFilesWorkerBackOffTimeSpanInMS, entireProjectWorkerBackOffTimeSpanInMS, _shutdownToken);
 
                 var semanticBackOffTimeSpanInMS = _optionService.GetOption(SolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS);
                 var projectBackOffTimeSpanInMS = _optionService.GetOption(SolutionCrawlerOptions.ProjectPropagationBackOffTimeSpanInMS);
 
-                _semanticChangeProcessor = new SemanticChangeProcessor(listener, correlationId, workspace, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpanInMS, projectBackOffTimeSpanInMS, _shutdownToken);
+                _semanticChangeProcessor = new SemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpanInMS, projectBackOffTimeSpanInMS, _shutdownToken);
 
                 // if option is on
                 if (_optionService.GetOption(SolutionCrawlerOptions.SolutionCrawler))
                 {
-                    _workspace.WorkspaceChanged += OnWorkspaceChanged;
-                    _workspace.DocumentOpened += OnDocumentOpened;
-                    _workspace.DocumentClosed += OnDocumentClosed;
+                    _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+                    _registration.Workspace.DocumentOpened += OnDocumentOpened;
+                    _registration.Workspace.DocumentClosed += OnDocumentClosed;
                 }
             }
 
             public int CorrelationId
             {
-                get { return _correlationId; }
+                get { return _registration.CorrelationId; }
             }
 
             public void Shutdown(bool blockingShutdown)
@@ -88,16 +86,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _optionService.OptionChanged -= OnOptionChanged;
 
                 // detach from the workspace
-                _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-                _workspace.DocumentOpened -= OnDocumentOpened;
-                _workspace.DocumentClosed -= OnDocumentClosed;
+                _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+                _registration.Workspace.DocumentOpened -= OnDocumentOpened;
+                _registration.Workspace.DocumentClosed -= OnDocumentClosed;
 
                 // cancel any pending blocks
                 _shutdownNotificationSource.Cancel();
 
                 _documentAndProjectWorkerProcessor.Shutdown();
 
-                SolutionCrawlerLogger.LogWorkCoordiantorShutdown(_correlationId, _logAggregator);
+                SolutionCrawlerLogger.LogWorkCoordiantorShutdown(CorrelationId, _logAggregator);
 
                 if (blockingShutdown)
                 {
@@ -110,7 +108,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     if (!shutdownTask.IsCompleted)
                     {
-                        SolutionCrawlerLogger.LogWorkCoordiantorShutdownTimeout(_correlationId);
+                        SolutionCrawlerLogger.LogWorkCoordiantorShutdownTimeout(CorrelationId);
                     }
                 }
             }
@@ -123,19 +121,27 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     var value = (bool)e.Value;
                     if (value)
                     {
-                        _workspace.WorkspaceChanged += OnWorkspaceChanged;
-                        _workspace.DocumentOpened += OnDocumentOpened;
-                        _workspace.DocumentClosed += OnDocumentClosed;
+                        _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+                        _registration.Workspace.DocumentOpened += OnDocumentOpened;
+                        _registration.Workspace.DocumentClosed += OnDocumentClosed;
                     }
                     else
                     {
-                        _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-                        _workspace.DocumentOpened -= OnDocumentOpened;
-                        _workspace.DocumentClosed -= OnDocumentClosed;
+                        _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+                        _registration.Workspace.DocumentOpened -= OnDocumentOpened;
+                        _registration.Workspace.DocumentClosed -= OnDocumentClosed;
                     }
 
-                    SolutionCrawlerLogger.LogOptionChanged(_correlationId, value);
+                    SolutionCrawlerLogger.LogOptionChanged(CorrelationId, value);
                     return;
+                }
+
+                // TODO: remove this once prototype is done
+                //       it is here just because it was convenient to add per workspace option change monitoring 
+                //       for incremental analyzer
+                if (e.Option == Diagnostics.InternalDiagnosticsOptions.UseDiagnosticEngineV2)
+                {
+                    _documentAndProjectWorkerProcessor.ChangeDiagnosticsEngine((bool)e.Value);
                 }
 
                 ReanalyzeOnOptionChange(sender, e);
@@ -149,7 +155,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     if (analyzer.NeedsReanalysisOnOptionChanged(sender, e))
                     {
-                        set = set ?? _workspace.CurrentSolution.Projects.SelectMany(p => p.DocumentIds).ToSet();
+                        set = set ?? _registration.CurrentSolution.Projects.SelectMany(p => p.DocumentIds).ToSet();
                         this.Reanalyze(analyzer, set);
                     }
                 }
@@ -161,7 +167,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _eventProcessingQueue.ScheduleTask(
                     () => EnqueueWorkItem(analyzer, documentIds), _shutdownToken).CompletesAsyncOperation(asyncToken);
 
-                SolutionCrawlerLogger.LogReanalyze(_correlationId, analyzer, documentIds);
+                SolutionCrawlerLogger.LogReanalyze(CorrelationId, analyzer, documentIds);
             }
 
             private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
@@ -427,7 +433,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void EnqueueWorkItem(IIncrementalAnalyzer analyzer, IEnumerable<DocumentId> documentIds)
             {
-                var solution = _workspace.CurrentSolution;
+                var solution = _registration.CurrentSolution;
                 foreach (var documentId in documentIds)
                 {
                     var document = solution.GetDocument(documentId);
@@ -567,7 +573,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> workers)
             {
-                var solution = _workspace.CurrentSolution;
+                var solution = _registration.CurrentSolution;
                 var list = new List<WorkItem>();
 
                 foreach (var project in solution.Projects)

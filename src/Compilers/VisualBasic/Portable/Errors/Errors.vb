@@ -67,6 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_InvalidFormatForGuidForOption = 2043
         ERR_MissingGuidForOption = 2044
         ERR_BadChecksumAlgorithm = 2045
+        ERR_MutuallyExclusiveOptions = 2046
 
         '// The naming convention is that if your error requires arguments, to append
         '// the number of args taken, e.g. AmbiguousName2
@@ -1666,7 +1667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_NullPropagatingOpInExpressionTree = 37240
         ERR_TooLongOrComplexExpression = 37241
 
-        ERR_StructParameterlessInstanceCtorMustBePublic = 37242
+        ' available: 37242
         ERR_AutoPropertyCantBeWriteOnly = 37243
 
         ERR_ExpressionDoesntHaveName = 37244

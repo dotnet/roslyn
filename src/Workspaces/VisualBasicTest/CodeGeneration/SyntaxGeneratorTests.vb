@@ -688,11 +688,22 @@ End Function</x>.Value)
                 g.PropertyDeclaration("p", g.IdentifierName("x"), modifiers:=DeclarationModifiers.Abstract + DeclarationModifiers.ReadOnly),
 <x>MustInherit ReadOnly Property p As x</x>.Value)
 
+            VerifySyntax(Of PropertyStatementSyntax)(
+                g.PropertyDeclaration("p", g.IdentifierName("x"), modifiers:=DeclarationModifiers.Abstract + DeclarationModifiers.WriteOnly),
+<x>MustInherit WriteOnly Property p As x</x>.Value)
+
             VerifySyntax(Of PropertyBlockSyntax)(
                 g.PropertyDeclaration("p", g.IdentifierName("x"), modifiers:=DeclarationModifiers.ReadOnly),
 <x>ReadOnly Property p As x
     Get
     End Get
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                g.PropertyDeclaration("p", g.IdentifierName("x"), modifiers:=DeclarationModifiers.WriteOnly),
+<x>WriteOnly Property p As x
+    Set(value As x)
+    End Set
 End Property</x>.Value)
 
             VerifySyntax(Of PropertyStatementSyntax)(
@@ -705,6 +716,14 @@ End Property</x>.Value)
     Get
         y
     End Get
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                g.PropertyDeclaration("p", g.IdentifierName("x"), modifiers:=DeclarationModifiers.WriteOnly, setAccessorStatements:={g.IdentifierName("y")}),
+<x>WriteOnly Property p As x
+    Set(value As x)
+        y
+    End Set
 End Property</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
@@ -726,6 +745,10 @@ End Property</x>.Value)
 <x>Default MustInherit ReadOnly Property Item(z As y) As x</x>.Value)
 
             VerifySyntax(Of PropertyStatementSyntax)(
+                g.IndexerDeclaration({g.ParameterDeclaration("z", g.IdentifierName("y"))}, g.IdentifierName("x"), modifiers:=DeclarationModifiers.Abstract + DeclarationModifiers.WriteOnly),
+<x>Default MustInherit WriteOnly Property Item(z As y) As x</x>.Value)
+
+            VerifySyntax(Of PropertyStatementSyntax)(
                 g.IndexerDeclaration({g.ParameterDeclaration("z", g.IdentifierName("y"))}, g.IdentifierName("x"), modifiers:=DeclarationModifiers.Abstract),
 <x>Default MustInherit Property Item(z As y) As x</x>.Value)
 
@@ -737,12 +760,28 @@ End Property</x>.Value)
 End Property</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
+                g.IndexerDeclaration({g.ParameterDeclaration("z", g.IdentifierName("y"))}, g.IdentifierName("x"), modifiers:=DeclarationModifiers.WriteOnly),
+<x>Default WriteOnly Property Item(z As y) As x
+    Set(value As x)
+    End Set
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
                 g.IndexerDeclaration({g.ParameterDeclaration("z", g.IdentifierName("y"))}, g.IdentifierName("x"), modifiers:=DeclarationModifiers.ReadOnly,
                     getAccessorStatements:={g.IdentifierName("a")}),
 <x>Default ReadOnly Property Item(z As y) As x
     Get
         a
     End Get
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                g.IndexerDeclaration({g.ParameterDeclaration("z", g.IdentifierName("y"))}, g.IdentifierName("x"), modifiers:=DeclarationModifiers.WriteOnly,
+                    setAccessorStatements:={g.IdentifierName("a")}),
+<x>Default WriteOnly Property Item(z As y) As x
+    Set(value As x)
+        a
+    End Set
 End Property</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
@@ -1198,9 +1237,28 @@ End Namespace
 <x>Public Function m() As t Implements i.m
 End Function</x>.Value)
 
+            VerifySyntax(Of MethodBlockBaseSyntax)(
+                g.AsPublicInterfaceImplementation(
+                    g.MethodDeclaration("m", returnType:=g.IdentifierName("t"), modifiers:=DeclarationModifiers.None),
+                    g.IdentifierName("i")),
+<x>Public Function m() As t Implements i.m
+End Function</x>.Value)
+
             VerifySyntax(Of PropertyBlockSyntax)(
                 g.AsPublicInterfaceImplementation(
                     g.PropertyDeclaration("p", g.IdentifierName("t"), accessibility:=Accessibility.Private, modifiers:=DeclarationModifiers.Abstract),
+                    g.IdentifierName("i")),
+<x>Public Property p As t Implements i.p
+    Get
+    End Get
+
+    Set(value As t)
+    End Set
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                g.AsPublicInterfaceImplementation(
+                    g.PropertyDeclaration("p", g.IdentifierName("t"), accessibility:=Accessibility.Private, modifiers:=DeclarationModifiers.None),
                     g.IdentifierName("i")),
 <x>Public Property p As t Implements i.p
     Get
@@ -1663,8 +1721,7 @@ End Class ' end</x>.Value)
             VerifySyntax(Of AttributeListSyntax)(
                 attrWithComment,
 <x>' comment
-&lt;a&gt;
-</x>.Value)
+&lt;a&gt;</x>.Value)
 
             ' added attributes are stripped of trivia
             Dim added2 = g.AddAttributes(cls, attrWithComment)
@@ -2130,6 +2187,53 @@ End Sub</x>.Value)
                 g.WithStatements(g.ValueReturningLambdaExpression(g.IdentifierName("e")), {}),
 <x>Function()
 End Function</x>.Value)
+        End Sub
+
+        <Fact>
+        Public Sub TestAccessorDeclarations()
+            Dim _g = g
+            Dim prop = _g.PropertyDeclaration("p", _g.IdentifierName("T"))
+
+            Assert.Equal(2, _g.GetAccessors(prop).Count)
+
+            ' get accessors from property
+            Dim getAccessor = _g.GetAccessor(prop, DeclarationKind.GetAccessor)
+            Assert.NotNull(getAccessor)
+            VerifySyntax(Of AccessorBlockSyntax)(getAccessor,
+<x>Get
+End Get</x>.Value)
+
+            Assert.NotNull(getAccessor)
+            Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(getAccessor))
+
+            ' get accessors from property
+            Dim setAccessor = _g.GetAccessor(prop, DeclarationKind.SetAccessor)
+            Assert.NotNull(setAccessor)
+            Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(setAccessor))
+
+            ' remove accessors
+            Assert.Null(_g.GetAccessor(_g.RemoveNode(prop, getAccessor), DeclarationKind.GetAccessor))
+            Assert.Null(_g.GetAccessor(_g.RemoveNode(prop, setAccessor), DeclarationKind.SetAccessor))
+
+            ' change accessor accessibility
+            Assert.Equal(Accessibility.Public, _g.GetAccessibility(_g.WithAccessibility(getAccessor, Accessibility.Public)))
+            Assert.Equal(Accessibility.Private, _g.GetAccessibility(_g.WithAccessibility(setAccessor, Accessibility.Private)))
+
+            ' change accessor statements
+            Assert.Equal(0, _g.GetStatements(getAccessor).Count)
+            Assert.Equal(0, _g.GetStatements(setAccessor).Count)
+
+            Dim newGetAccessor = _g.WithStatements(getAccessor, Nothing)
+            VerifySyntax(Of AccessorBlockSyntax)(newGetAccessor,
+<x>Get
+End Get</x>.Value)
+
+            ' change accessors
+            Dim newProp = _g.ReplaceNode(prop, getAccessor, _g.WithAccessibility(getAccessor, Accessibility.Public))
+            Assert.Equal(Accessibility.Public, _g.GetAccessibility(_g.GetAccessor(newProp, DeclarationKind.GetAccessor)))
+
+            newProp = _g.ReplaceNode(prop, setAccessor, _g.WithAccessibility(setAccessor, Accessibility.Public))
+            Assert.Equal(Accessibility.Public, _g.GetAccessibility(_g.GetAccessor(newProp, DeclarationKind.SetAccessor)))
         End Sub
 
         <Fact>

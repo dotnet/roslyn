@@ -162,8 +162,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var startingWithLetter = originalName.SkipWhile(c => !char.IsLetter(c)).ToArray();
             var name = startingWithLetter.Length == 0 ? originalName : new string(startingWithLetter);
 
-            var methodName = char.IsUpper(name[0]) ? name : char.ToUpper(name[0]) + name.Substring(1);
-            return prefix + methodName;
+            return char.IsUpper(name[0]) ?
+                prefix + name :
+                prefix + char.ToUpper(name[0]).ToString() + name.Substring(1);
         }
     }
 }

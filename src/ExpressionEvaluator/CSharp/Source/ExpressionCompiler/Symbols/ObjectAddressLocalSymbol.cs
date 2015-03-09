@@ -24,20 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax)
+        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            var method = container.GetOrAddSynthesizedMethod(
-                ExpressionCompilerConstants.GetObjectAtAddressMethodName,
-                (c, n, s) =>
-                {
-                    var parameterType = compilation.GetSpecialType(SpecialType.System_UInt64);
-                    return new PlaceholderMethodSymbol(
-                        c,
-                        s,
-                        n,
-                        this.Type,
-                        m => ImmutableArray.Create<ParameterSymbol>(new SynthesizedParameterSymbol(m, parameterType, ordinal: 0, refKind: RefKind.None)));
-                });
+            var method = GetIntrinsicMethod(compilation, ExpressionCompilerConstants.GetObjectAtAddressMethodName);
             var argument = new BoundLiteral(
                 syntax,
                 Microsoft.CodeAnalysis.ConstantValue.Create(_address),

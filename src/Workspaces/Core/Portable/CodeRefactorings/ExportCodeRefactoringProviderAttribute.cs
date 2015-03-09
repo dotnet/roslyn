@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// The source languages for which this provider can provide refactorings. See <see cref="LanguageNames"/>.
         /// </summary>
-        public string[] Languages { get; private set; }
+        public string[] Languages { get; }
 
         /// <summary>
         /// Attribute constructor used to specify availability of a code refactoring provider.

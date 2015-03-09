@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             }
 
             var lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, optionSet);
-            if (lineOperation != null)
+            if (lineOperation != null && lineOperation.Option != AdjustNewLinesOption.ForceLinesIfOnSingleLine)
             {
                 return true;
             }
@@ -109,7 +109,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 
                 if (node is BaseParameterListSyntax ||
                     node is TypeArgumentListSyntax ||
-                    node is TypeParameterListSyntax)
+                    node is TypeParameterListSyntax ||
+                    node.IsKind(SyntaxKind.Interpolation))
                 {
                     AddIndentBlockOperations(list, node);
                     return;

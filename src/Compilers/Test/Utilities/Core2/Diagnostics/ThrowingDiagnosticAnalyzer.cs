@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static void VerifyAnalyzerEngineIsSafeAgainstExceptions(Func<DiagnosticAnalyzer, IEnumerable<Diagnostic>> runAnalysis, string exceptionDiagnosticId)
+        public static void VerifyAnalyzerEngineIsSafeAgainstExceptions(Func<DiagnosticAnalyzer, IEnumerable<Diagnostic>> runAnalysis)
         {
             var handled = new bool?[AllAnalyzerMemberNames.Length];
             for (int i = 0; i < AllAnalyzerMemberNames.Length; i++)
@@ -52,18 +52,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 analyzer.ThrowOn(member);
                 try
                 {
-                    var diagnosticIds = runAnalysis(analyzer).Select(d => d.Id).Distinct();
+                    var diagnostics = runAnalysis(analyzer).Distinct();
                     handled[i] = analyzer.Thrown ? true : (bool?)null;
                     if (analyzer.Thrown)
                     {
-                        if (diagnosticIds.Any())
-                        {
-                            Assert.Equal(exceptionDiagnosticId, diagnosticIds.Single());
-                        }
+                        Assert.True(diagnostics.Any(AnalyzerExecutor.IsAnalyzerExceptionDiagnostic));
                     }
                     else
                     {
-                        Assert.False(diagnosticIds.Any());
+                        Assert.False(diagnostics.Any(AnalyzerExecutor.IsAnalyzerExceptionDiagnostic));
                     }
                 }
                 catch (DeliberateException)

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public override Task AnalyzeSyntaxAsync(Document document, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
         {
             // No syntax diagnostics produced by the EnC engine.  
-            return Task.FromResult(false);
+            return SpecializedTasks.EmptyTask;
         }
 
         public override async Task AnalyzeSemanticsAsync(Document document, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                 }
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
         }
     }
+}

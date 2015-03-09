@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.ComponentModel.Composition.Hosting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
 
@@ -24,9 +23,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     "CType(<expression>, <typeName>) As <result>",
-                                     "Returns the result of explicitly converting an expression to a specified data type.",
-                                     "The expression to be evaluated and converted.",
+                                     $"CType({Expression1}, {VBWorkspaceResources.Typename}) As {Result}",
+                                     ReturnsConvertResult,
+                                     ExpressionToConvert,
                                      currentParameterIndex:=0))
 
             Test(markup, expectedOrderedItems)
@@ -44,9 +43,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     "CType(<expression>, <typeName>) As <result>",
-                                     "Returns the result of explicitly converting an expression to a specified data type.",
-                                     "The name of the data type to which the value of expression will be converted.",
+                                     $"CType({Expression1}, {VBWorkspaceResources.Typename}) As {Result}",
+                                     ReturnsConvertResult,
+                                     NameOfTypeToConvert,
                                      currentParameterIndex:=1))
 
             Test(markup, expectedOrderedItems)
@@ -65,9 +64,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     "DirectCast(<expression>, <typeName>) As <result>",
-                                     "Introduces a type conversion operation similar to CType. The difference is that CType succeeds as long as there is a valid conversion, whereas DirectCast requires that one type inherit from or implement the other type.",
-                                     "The expression to be evaluated and converted.",
+                                     $"DirectCast({Expression1}, {VBWorkspaceResources.Typename}) As {Result}",
+                                     IntroducesTypeConversion,
+                                     ExpressionToConvert,
                                      currentParameterIndex:=0))
 
             Test(markup, expectedOrderedItems)
@@ -86,9 +85,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     "TryCast(<expression>, <typeName>) As <result>",
-                                     "Introduces a type conversion operation that does not throw an exception. If an attempted conversion fails, TryCast returns Nothing, which your program can test for.",
-                                     "The expression to be evaluated and converted.",
+                                     $"TryCast({Expression1}, {VBWorkspaceResources.Typename}) As {Result}",
+                                     IntroducesSafeTypeConversion,
+                                     ExpressionToConvert,
                                      currentParameterIndex:=0))
 
             Test(markup, expectedOrderedItems)

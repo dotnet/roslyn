@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         /// Get the blob of binary custom debug info for a given method.
         /// TODO: consume <paramref name="methodVersion"/> (DevDiv #1068138).
         /// </summary>
-        public static byte[] GetCustomDebugInfo(this ISymUnmanagedReader reader, int methodToken, int methodVersion)
+        public static byte[] GetCustomDebugInfoBytes(this ISymUnmanagedReader reader, int methodToken, int methodVersion)
         {
             return GetItems(reader, new SymbolToken(methodToken), CdiAttributeName,
                 (ISymUnmanagedReader a, SymbolToken b, string c, int d, out int e, byte[] f) => a.GetSymAttribute(b, c, d, out e, f));
@@ -239,7 +239,6 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             if (hr < 0)
             {
                 // method has no symbol info
-                Debug.WriteLine(string.Format("Invalid method token '0x{0:x8}' or version '{1}' (hresult = 0x{2:x8})", methodToken, methodVersion, hr));
                 return null;
             }
 

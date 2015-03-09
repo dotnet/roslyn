@@ -615,7 +615,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var paramArrayType = parameters[paramsParam].Type;
             var arrayArgs = paramArray.ToImmutableAndFree();
 
-            if (arrayArgs.Length == 0) // if this is a zero-length array, rather than using "new T[0]", optimize with "Array.Empty<T>()" if it's available
+            // If this is a zero-length array, rather than using "new T[0]", optimize with "Array.Empty<T>()" 
+            // if it's available.  However, we also disable the optimization if we're in an expression lambda, the 
+            // point of which is just to represent the semantics of an operation, and we don't know that all consumers
+            // of expression lambdas will appropriately understand Array.Empty<T>().
+            if (arrayArgs.Length == 0 && !_inExpressionLambda)
             {
                 ArrayTypeSymbol ats = paramArrayType as ArrayTypeSymbol;
                 if (ats != null) // could be null if there's a semantic error, e.g. the params parameter type isn't an array

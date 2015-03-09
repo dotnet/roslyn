@@ -100,20 +100,20 @@ namespace AsyncPackage
 
         private class CancellationCodeAction : CodeAction
         {
-            private Func<CancellationToken, Task<Document>> createDocument;
-            private string title;
+            private Func<CancellationToken, Task<Document>> _createDocument;
+            private string _title;
 
             public CancellationCodeAction(string title, Func<CancellationToken, Task<Document>> createDocument)
             {
-                this.title = title;
-                this.createDocument = createDocument;
+                _title = title;
+                _createDocument = createDocument;
             }
 
-            public override string Title { get { return title; } }
+            public override string Title { get { return _title; } }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                return this.createDocument(cancellationToken);
+                return _createDocument(cancellationToken);
             }
         }
     }

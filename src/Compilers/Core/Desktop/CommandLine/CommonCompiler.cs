@@ -12,7 +12,6 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -58,7 +57,6 @@ namespace Microsoft.CodeAnalysis
         public CommandLineArguments Arguments { get; private set; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
-        private readonly string _tempPath;
 
         protected abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger);
         protected abstract void PrintLogo(TextWriter consoleOutput);
@@ -68,14 +66,11 @@ namespace Microsoft.CodeAnalysis
         protected abstract void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession);
         protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles);
 
-        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string baseDirectory, string additionalReferencePaths, string tempPath)
+        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string baseDirectory, string additionalReferencePaths)
         {
             IEnumerable<string> allArgs = args;
 
             Debug.Assert(null == responseFile || PathUtilities.IsAbsolute(responseFile));
-            Debug.Assert(tempPath != null);
-
-            _tempPath = FileUtilities.ResolveRelativePath(tempPath, baseDirectory);
 
             if (!SuppressDefaultResponseFile(args) && File.Exists(responseFile))
             {
@@ -109,30 +104,26 @@ namespace Microsoft.CodeAnalysis
             TouchedFileLogger touchedFiles,
             out MetadataFileReferenceResolver referenceDirectiveResolver)
         {
-            using (Logger.LogBlock(FunctionId.Common_CommandLineCompiler_ResolveMetadataReferences))
+            List<MetadataReference> resolved = new List<MetadataReference>();
+            Arguments.ResolveMetadataReferences(new AssemblyReferenceResolver(externalReferenceResolver, metadataProvider), diagnostics, this.MessageProvider, resolved);
+
+            if (Arguments.IsInteractive)
             {
-                List<MetadataReference> resolved = new List<MetadataReference>();
-                Arguments.ResolveMetadataReferences(new AssemblyReferenceResolver(externalReferenceResolver, metadataProvider), diagnostics, this.MessageProvider, resolved);
-
-                if (Arguments.IsInteractive)
-                {
-                    referenceDirectiveResolver = externalReferenceResolver;
-                }
-                else
-                {
-                    // when compiling into an assembly (csc/vbc) we only allow #r that match references given on command line:
-                    referenceDirectiveResolver = new ExistingReferencesResolver(
-                        resolved.Where(r => r.Properties.Kind == MetadataImageKind.Assembly).OfType<PortableExecutableReference>().AsImmutable(),
-                        Arguments.ReferencePaths,
-                        Arguments.BaseDirectory,
-                        assemblyIdentityComparer,
-                        touchedFiles);
-                }
-
-                return resolved;
+                referenceDirectiveResolver = externalReferenceResolver;
             }
-        }
+            else
+            {
+                // when compiling into an assembly (csc/vbc) we only allow #r that match references given on command line:
+                referenceDirectiveResolver = new ExistingReferencesResolver(
+                    resolved.Where(r => r.Properties.Kind == MetadataImageKind.Assembly).OfType<PortableExecutableReference>().AsImmutable(),
+                    Arguments.ReferencePaths,
+                    Arguments.BaseDirectory,
+                    assemblyIdentityComparer,
+                    touchedFiles);
+            }
 
+            return resolved;
+        }
 
         /// <summary>
         /// Reads content of a source file.
@@ -198,7 +189,6 @@ namespace Microsoft.CodeAnalysis
             return diagnosticInfo;
         }
 
-
         internal bool PrintErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput)
         {
             bool hasErrors = false;
@@ -222,7 +212,16 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
+                // Catch exceptions from diagnostic formatter as diagnostic descriptors for analyzer diagnostics can throw an exception while formatting diagnostic message.
+                try
+                {
+                    consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
+                }
+                catch (Exception ex)
+                {
+                    var exceptionDiagnostic = AnalyzerExecutor.GetDescriptorDiagnostic(diag.Id, ex);
+                    consoleOutput.WriteLine(DiagnosticFormatter.Format(exceptionDiagnostic, this.Culture));
+                }
 
                 if (diag.Severity == DiagnosticSeverity.Error)
                 {
@@ -269,7 +268,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public virtual int Run(TextWriter consoleOutput, CancellationToken cancellationToken)
         {
-            var saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+            var saveUICulture = Thread.CurrentThread.CurrentUICulture;
 
             try
             {
@@ -331,10 +330,19 @@ namespace Microsoft.CodeAnalysis
 
             var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText, AdditionalTextFile>(additionalTextFiles));
 
-            AnalyzerDriver analyzerDriver = null;
+            Func<ImmutableArray<Diagnostic>> getAnalyzerDiagnostics = null;
             if (!analyzers.IsDefaultOrEmpty)
             {
-                analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, out compilation, cancellationToken);
+                var analyzerManager = new AnalyzerManager();
+                var analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
+                Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
+
+                var analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, out compilation, cancellationToken);
+                getAnalyzerDiagnostics = () =>
+                    {
+                        var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
+                        return analyzerDiagnostics.AddRange(analyzerExceptionDiagnostics);
+                    };
             }
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
@@ -350,194 +358,133 @@ namespace Microsoft.CodeAnalysis
 
             EmitResult emitResult;
 
-            // EDMAURER: Don't yet know if there are method body errors. don't overwrite
-            // any existing output files until the compilation is known to be successful.
-            string tempExeFilename = null;
-            string tempPdbFilename = null;
-
             // NOTE: as native compiler does, we generate the documentation file
             // NOTE: 'in place', replacing the contents of the file if it exists
 
-            try
+            string finalOutputPath;
+            string finalPdbFilePath;
+            string finalXmlFilePath;
+
+            FileStream xml = null;
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            finalXmlFilePath = Arguments.DocumentationPath;
+            if (finalXmlFilePath != null)
             {
-                FileStream output = CreateTempFile(consoleOutput, out tempExeFilename);
-
-                // Can happen when temp directory is "full"
-                if (output == null)
+                xml = OpenFile(finalXmlFilePath, consoleOutput, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                if (xml == null)
                 {
                     return Failed;
                 }
 
-                string finalOutputPath;
-                string finalPdbFilePath;
-                string finalXmlFilePath;
-
-                using (output)
-                {
-                    FileStream pdb = null;
-                    FileStream xml = null;
-
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    if (Arguments.EmitPdb)
-                    {
-                        pdb = CreateTempFile(consoleOutput, out tempPdbFilename);
-                        if (pdb == null)
-                        {
-                            return Failed;
-                        }
-                    }
-
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    finalXmlFilePath = Arguments.DocumentationPath;
-                    if (finalXmlFilePath != null)
-                    {
-                        xml = OpenFile(finalXmlFilePath, consoleOutput, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
-                        if (xml == null)
-                        {
-                            return Failed;
-                        }
-
-                        xml.SetLength(0);
-                    }
-
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    IEnumerable<DiagnosticInfo> errors;
-                    using (var win32Res = GetWin32Resources(Arguments, compilation, out errors))
-                    using (pdb)
-                    using (xml)
-                    {
-                        if (PrintErrors(errors, consoleOutput))
-                        {
-                            return Failed;
-                        }
-
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        string outputName = GetOutputFileName(compilation, cancellationToken);
-
-                        finalOutputPath = Path.Combine(Arguments.OutputDirectory, outputName);
-                        finalPdbFilePath = Arguments.PdbPath ?? Path.ChangeExtension(finalOutputPath, ".pdb");
-
-                        // NOTE: Unlike the PDB path, the XML doc path is not embedded in the assembly, so we don't need to pass it to emit.
-                        var emitOptions = Arguments.EmitOptions.
-                            WithOutputNameOverride(outputName).
-                            WithPdbFilePath(finalPdbFilePath);
-
-                        emitResult = compilation.Emit(output, pdb, xml, win32Res, Arguments.ManifestResources, emitOptions, cancellationToken);
-                    }
-                }
-
-                GenerateSqmData(Arguments.CompilationOptions, emitResult.Diagnostics);
-
-                if (PrintErrors(emitResult.Diagnostics, consoleOutput))
-                {
-                    return Failed;
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (analyzerDriver != null)
-                {
-                    var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
-                    if (PrintErrors(analyzerDiagnostics, consoleOutput))
-                    {
-                        return Failed;
-                    }
-
-                    cancellationToken.ThrowIfCancellationRequested();
-                }
-
-                bool errorsReadingAdditionalFiles = false;
-                foreach (var additionalFile in additionalTextFiles)
-                {
-                    if (PrintErrors(additionalFile.Diagnostics, consoleOutput))
-                    {
-                        errorsReadingAdditionalFiles = true;
-                    }
-                }
-
-                if (errorsReadingAdditionalFiles)
-                {
-                    return Failed;
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (!TryDeleteFile(finalOutputPath, consoleOutput) || !TryMoveFile(tempExeFilename, finalOutputPath, consoleOutput))
-                {
-                    return Failed;
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (tempPdbFilename != null)
-                {
-                    if (!TryDeleteFile(finalPdbFilePath, consoleOutput) || !TryMoveFile(tempPdbFilename, finalPdbFilePath, consoleOutput))
-                    {
-                        return Failed;
-                    }
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (Arguments.TouchedFilesPath != null)
-                {
-                    Debug.Assert(touchedFilesLogger != null);
-
-                    touchedFilesLogger.AddWritten(tempExeFilename);
-                    touchedFilesLogger.AddWritten(finalOutputPath);
-                    if (tempPdbFilename != null)
-                    {
-                        touchedFilesLogger.AddWritten(tempPdbFilename);
-                        touchedFilesLogger.AddWritten(finalPdbFilePath);
-                    }
-                    if (finalXmlFilePath != null)
-                    {
-                        touchedFilesLogger.AddWritten(finalXmlFilePath);
-                    }
-
-
-                    var readStream = OpenFile(Arguments.TouchedFilesPath + ".read", consoleOutput, FileMode.OpenOrCreate);
-                    if (readStream == null)
-                    {
-                        return Failed;
-                    }
-
-                    using (var writer = new StreamWriter(readStream))
-                    {
-                        touchedFilesLogger.WriteReadPaths(writer);
-                    }
-
-                    var writtenStream = OpenFile(Arguments.TouchedFilesPath + ".write", consoleOutput, FileMode.OpenOrCreate);
-                    if (writtenStream == null)
-                    {
-                        return Failed;
-                    }
-
-                    using (var writer = new StreamWriter(writtenStream))
-                    {
-                        touchedFilesLogger.WriteWrittenPaths(writer);
-                    }
-                }
-
-
-                return Succeeded;
+                xml.SetLength(0);
             }
-            finally
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            IEnumerable<DiagnosticInfo> errors;
+            using (var win32Res = GetWin32Resources(Arguments, compilation, out errors))
+            using (xml)
             {
-                if (tempExeFilename != null)
+                if (PrintErrors(errors, consoleOutput))
                 {
-                    TryDeleteFile(tempExeFilename, consoleOutput: null);
+                    return Failed;
                 }
 
-                if (tempPdbFilename != null)
+                cancellationToken.ThrowIfCancellationRequested();
+
+                string outputName = GetOutputFileName(compilation, cancellationToken);
+
+                finalOutputPath = Path.Combine(Arguments.OutputDirectory, outputName);
+                finalPdbFilePath = Arguments.PdbPath ?? Path.ChangeExtension(finalOutputPath, ".pdb");
+
+                // NOTE: Unlike the PDB path, the XML doc path is not embedded in the assembly, so we don't need to pass it to emit.
+                var emitOptions = Arguments.EmitOptions.
+                    WithOutputNameOverride(outputName).
+                    WithPdbFilePath(finalPdbFilePath);
+
+                var pdbOutputInfo = Arguments.EmitPdb
+                    ? new Cci.PdbOutputInfo(finalPdbFilePath)
+                    : Cci.PdbOutputInfo.None;
+
+                using (var peStreamProvider = new CompilerEmitStreamProvider(this, touchedFilesLogger, finalOutputPath))
                 {
-                    TryDeleteFile(tempPdbFilename, consoleOutput: null);
+                    emitResult = compilation.Emit(
+                        peStreamProvider, 
+                        pdbOutputInfo, 
+                        xml,
+                        win32Res,
+                        Arguments.ManifestResources, 
+                        emitOptions, 
+                        getAnalyzerDiagnostics, 
+                        cancellationToken);
+
+                    if (emitResult.Success && !pdbOutputInfo.IsNone && touchedFilesLogger != null)
+                    {
+                        touchedFilesLogger.AddWritten(pdbOutputInfo.FileName);
+                    }
                 }
             }
+
+            GenerateSqmData(Arguments.CompilationOptions, emitResult.Diagnostics);
+
+            if (PrintErrors(emitResult.Diagnostics, consoleOutput))
+            {
+                return Failed;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            bool errorsReadingAdditionalFiles = false;
+            foreach (var additionalFile in additionalTextFiles)
+            {
+                if (PrintErrors(additionalFile.Diagnostics, consoleOutput))
+                {
+                    errorsReadingAdditionalFiles = true;
+                }
+            }
+
+            if (errorsReadingAdditionalFiles)
+            {
+                return Failed;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (Arguments.TouchedFilesPath != null)
+            {
+                Debug.Assert(touchedFilesLogger != null);
+
+                if (finalXmlFilePath != null)
+                {
+                    touchedFilesLogger.AddWritten(finalXmlFilePath);
+                }
+
+                var readStream = OpenFile(Arguments.TouchedFilesPath + ".read", consoleOutput, FileMode.OpenOrCreate);
+                if (readStream == null)
+                {
+                    return Failed;
+                }
+
+                using (var writer = new StreamWriter(readStream))
+                {
+                    touchedFilesLogger.WriteReadPaths(writer);
+                }
+
+                var writtenStream = OpenFile(Arguments.TouchedFilesPath + ".write", consoleOutput, FileMode.OpenOrCreate);
+                if (writtenStream == null)
+                {
+                    return Failed;
+                }
+
+                using (var writer = new StreamWriter(writtenStream))
+                {
+                    touchedFilesLogger.WriteWrittenPaths(writer);
+                }
+            }
+
+            return Succeeded;
         }
 
         private ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFilesLogger)
@@ -604,7 +551,7 @@ namespace Microsoft.CodeAnalysis
                                 switch (options)
                                 {
                                     case ReportDiagnostic.Suppress:
-                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SUPPRESSWARNINGNUMBERS, code);      // Supress warning
+                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SUPPRESSWARNINGNUMBERS, code);      // Suppress warning
                                         break;
 
                                     case ReportDiagnostic.Error:
@@ -658,63 +605,6 @@ namespace Microsoft.CodeAnalysis
         }
         private Func<string, FileMode, FileAccess, FileShare, FileStream> _fileOpen;
 
-        /// <summary>
-        /// Test hook for intercepting File.Delete.
-        /// </summary>
-        internal Action<string> FileDelete
-        {
-            get { return _fileDelete ?? File.Delete; }
-            set { _fileDelete = value; }
-        }
-        private Action<string> _fileDelete;
-
-        /// <summary>
-        /// Test hook for intercepting File.Move.
-        /// </summary>
-        internal Action<string, string> FileMove
-        {
-            get { return _fileMove ?? File.Move; }
-            set { _fileMove = value; }
-        }
-        private Action<string, string> _fileMove;
-
-        private string GetTempFileName()
-        {
-            return Path.Combine(_tempPath, Guid.NewGuid().ToString("N") + ".tmp");
-        }
-
-        /// <summary>
-        /// Test hook for intercepting creation of temporary files.
-        /// </summary>
-        internal event Action<string, FileStream> OnCreateTempFile;
-
-        private FileStream CreateTempFile(TextWriter consoleOutput, out string fileName)
-        {
-            // now catching in response to watson bucket 148019219
-            try
-            {
-                fileName = GetTempFileName();
-                var result = FileOpen(fileName, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
-                if (OnCreateTempFile != null)
-                {
-                    OnCreateTempFile(fileName, result);
-                }
-
-                return result;
-            }
-            catch (IOException ex)
-            {
-                if (consoleOutput != null)
-                {
-                    DiagnosticInfo diagnosticInfo = new DiagnosticInfo(MessageProvider, (int)MessageProvider.ERR_FailedToCreateTempFile, ex.Message);
-                    consoleOutput.WriteLine(diagnosticInfo.ToString(Culture));
-                }
-            }
-
-            fileName = null;
-            return null;
-        }
-
         private FileStream OpenFile(string filePath, TextWriter consoleOutput, FileMode mode = FileMode.Open, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.None)
         {
             try
@@ -731,61 +621,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return null;
-            }
-        }
-
-        private bool TryDeleteFile(string filePath, TextWriter consoleOutput)
-        {
-            try
-            {
-                if (File.Exists(filePath))
-                {
-                    FileDelete(filePath);
-                }
-
-                return true;
-            }
-            catch (Exception e)
-            {
-                // Treat all possible exceptions uniformly, so we report 
-                // "Could not write to output file"/"can't open '***' for writing" 
-                // for all as in the native CS/VB compiler.
-
-                if (consoleOutput != null)
-                {
-                    DiagnosticInfo diagnosticInfo = new DiagnosticInfo(MessageProvider, (int)MessageProvider.ERR_OutputWriteFailed, filePath, e.Message);
-                    consoleOutput.WriteLine(diagnosticInfo.ToString(Culture));
-                }
-
-                return false;
-            }
-        }
-
-        private bool TryMoveFile(string sourcePath, string destinationPath, TextWriter consoleOutput)
-        {
-            try
-            {
-                FileMove(sourcePath, destinationPath);
-
-                return true;
-            }
-            catch (Exception e)
-            {
-                // There can be various exceptions caught here including:
-                //  - DirectoryNotFoundException when a given path is not found
-                //  - IOException when a device like a:\ is not ready
-                //  - UnauthorizedAccessException when a given path is not accessible 
-                //  - NotSupportedException when a given path is in an invalid format
-                //
-                // Treat them uniformly, so we report "Cannot open 'filename' for writing" for all as in the native VB compiler.
-
-                if (consoleOutput != null)
-                {
-                    DiagnosticInfo diagnosticInfo = new DiagnosticInfo(MessageProvider, (int)MessageProvider.ERR_CantOpenFileWrite, destinationPath, e.Message);
-                    consoleOutput.WriteLine(diagnosticInfo.ToString(Culture));
-                }
-
-                return false;
             }
         }
 
@@ -873,7 +708,7 @@ namespace Microsoft.CodeAnalysis
         internal static bool TryGetCompilerDiagnosticCode(string diagnosticId, string expectedPrefix, out uint code)
         {
             code = 0;
-            return diagnosticId.StartsWith(expectedPrefix) && uint.TryParse(diagnosticId.Substring(expectedPrefix.Length), out code);
+            return diagnosticId.StartsWith(expectedPrefix, StringComparison.Ordinal) && uint.TryParse(diagnosticId.Substring(expectedPrefix.Length), out code);
         }
 
         /// <summary>

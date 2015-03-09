@@ -1,4 +1,6 @@
-﻿Imports System.Collections.Immutable
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -816,7 +818,7 @@ End Class
 
         Private Function EvaluateStatement(source As String, methodName As String, expr As String, <Out> ByRef errorMessage As String, Optional atLineNumber As Integer = -1) As CompilationTestData
             Dim compilationFlags = DkmEvaluationFlags.None
-            If expr IsNot Nothing AndAlso expr.StartsWith("?") Then
+            If expr IsNot Nothing AndAlso expr.StartsWith("?", StringComparison.Ordinal) Then
                 ' This mimics Immediate Window behavior...
                 compilationFlags = DkmEvaluationFlags.TreatAsExpression
                 expr = expr.Substring(1)

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Completion.Rules;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -8,17 +9,33 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal partial class AbstractCompletionService
     {
-        private class CompletionRules : ICompletionRules
+        protected class CompletionRules : ICompletionRules
         {
+            private readonly object _gate = new object();
             private readonly AbstractCompletionService _completionService;
-            private readonly PatternMatcher _patternMatcher = new PatternMatcher(verbatimIdentifierPrefixIsWordCharacter: true);
+            private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
 
             public CompletionRules(AbstractCompletionService completionService)
             {
                 _completionService = completionService;
             }
 
-            public bool? MatchesFilterText(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason)
+            protected PatternMatcher GetPatternMatcher(string value)
+            {
+                lock (_gate)
+                {
+                    PatternMatcher patternMatcher;
+                    if (!_patternMatcherMap.TryGetValue(value, out patternMatcher))
+                    {
+                        patternMatcher = new PatternMatcher(value, verbatimIdentifierPrefixIsWordCharacter: true);
+                        _patternMatcherMap.Add(value, patternMatcher);
+                    }
+
+                    return patternMatcher;
+                }
+            }
+
+            public virtual bool? MatchesFilterText(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason)
             {
                 // If the user hasn't typed anything, and this item was preselected, or was in the
                 // MRU list, then we definitely want to include it.
@@ -37,9 +54,8 @@ namespace Microsoft.CodeAnalysis.Completion
                     return false;
                 }
 
-                var match = _patternMatcher.MatchPatternFirstOrNullable(
-                            _completionService.GetCultureSpecificQuirks(item.FilterText),
-                            _completionService.GetCultureSpecificQuirks(filterText));
+                var patternMatcher = this.GetPatternMatcher(_completionService.GetCultureSpecificQuirks(filterText));
+                var match = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item.FilterText));
                 return match != null;
             }
 
@@ -56,14 +72,11 @@ namespace Microsoft.CodeAnalysis.Completion
                 return true;
             }
 
-            public bool? IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason)
+            public virtual bool? IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason)
             {
-                var match1 = _patternMatcher.MatchPatternFirstOrNullable(
-                            _completionService.GetCultureSpecificQuirks(item1.FilterText),
-                            _completionService.GetCultureSpecificQuirks(filterText));
-                var match2 = _patternMatcher.MatchPatternFirstOrNullable(
-                            _completionService.GetCultureSpecificQuirks(item2.FilterText),
-                            _completionService.GetCultureSpecificQuirks(filterText));
+                var patternMatcher = GetPatternMatcher(_completionService.GetCultureSpecificQuirks(filterText));
+                var match1 = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item1.FilterText));
+                var match2 = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item2.FilterText));
 
                 if (match1 != null && match2 != null)
                 {
@@ -105,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return item1MRUIndex < item2MRUIndex;
             }
 
-            public bool? ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo)
+            public virtual bool? ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo)
             {
                 return filterText.Length == 0 && !item.Preselect;
             }
@@ -115,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 _completionService.CompletionItemComitted(item);
             }
 
-            public bool? ItemsMatch(CompletionItem item1, CompletionItem item2)
+            public virtual bool? ItemsMatch(CompletionItem item1, CompletionItem item2)
             {
                 return
                     item1.FilterSpan == item2.FilterSpan &&

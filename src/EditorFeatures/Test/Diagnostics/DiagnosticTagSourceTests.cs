@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFiles(new string[] { "class A { }", "class E { }" }, CSharpParseOptions.Default))
             {
-                var registrationService = workspace.Services.GetService<IWorkCoordinatorRegistrationService>();
+                var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
                 registrationService.Register(workspace);
 
                 var diagnosticWaiter = new DiagnosticServiceWaiter();
@@ -42,11 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     Assert.True(arg.Spans.First().Span.Contains(new Span(0, 1)));
                 };
 
-                var solutionWorkCoordinator = workspace.Services.GetService<IWorkCoordinatorRegistrationService>() as WorkCoordinatorRegistrationService;
+                var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
                 var incrementalAnalyzers = ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace));
 
                 // test first update
-                solutionWorkCoordinator.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
+                service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
 
                 diagnosticWaiter.CreateWaitTask().PumpingWait();
                 squiggleWaiter.CreateWaitTask().PumpingWait();
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var text = document.GetTextAsync().Result;
                 workspace.TryApplyChanges(document.WithText(text.WithChanges(new TextChange(new TextSpan(text.Length - 1, 1), string.Empty))).Project.Solution);
 
-                solutionWorkCoordinator.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
+                service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
 
                 diagnosticWaiter.CreateWaitTask().PumpingWait();
                 squiggleWaiter.CreateWaitTask().PumpingWait();
@@ -90,13 +90,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private class Analyzer : DiagnosticAnalyzer
         {
-            private DiagnosticDescriptor rule = new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Error, true);
+            private DiagnosticDescriptor _rule = new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Error, true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get
                 {
-                    return ImmutableArray.Create(rule);
+                    return ImmutableArray.Create(_rule);
                 }
             }
 
@@ -104,13 +104,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 context.RegisterSyntaxTreeAction(c =>
                 {
-                    c.ReportDiagnostic(Diagnostic.Create(rule, Location.Create(c.Tree, new Text.TextSpan(0, 1))));
+                    c.ReportDiagnostic(Diagnostic.Create(_rule, Location.Create(c.Tree, new Text.TextSpan(0, 1))));
                 });
             }
 
             public void ChangeSeverity()
             {
-                rule = new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Warning, true);
+                _rule = new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Warning, true);
             }
         }
 

@@ -3733,7 +3733,7 @@ End Class
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            Dim position = (source...<file>.Single().Value.IndexOf("' bind-position"))
+            Dim position = (source...<file>.Single().Value.IndexOf("' bind-position", StringComparison.Ordinal))
 
             Dim bindings = compilation.GetSemanticModel(CompilationUtils.GetTree(compilation, "a.vb"))
             Assert.Equal(SpecialType.System_Int32, bindings.GetSpeculativeSemanticInfoSummary(position, SyntaxFactory.ParseExpression("Foo().Items(1)"), SpeculativeBindingOption.BindAsExpression).Type.SpecialType)

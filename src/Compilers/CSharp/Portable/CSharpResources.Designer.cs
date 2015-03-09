@@ -4760,6 +4760,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Constructor &apos;{0}&apos; cannot call itself through another constructor.
+        /// </summary>
+        internal static string ERR_IndirectRecursiveConstructorCall {
+            get {
+                return ResourceManager.GetString("ERR_IndirectRecursiveConstructorCall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;in&apos; expected.
         /// </summary>
         internal static string ERR_InExpected {
@@ -5777,6 +5786,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Compilation options &apos;{0}&apos; and &apos;{1}&apos; can&apos;t both be specified at the same time..
+        /// </summary>
+        internal static string ERR_MutuallyExclusiveOptions {
+            get {
+                return ResourceManager.GetString("ERR_MutuallyExclusiveOptions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Named attribute argument expected.
         /// </summary>
         internal static string ERR_NamedArgumentExpected {
@@ -6682,15 +6700,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ParameterIsStaticClass {
             get {
                 return ResourceManager.GetString("ERR_ParameterIsStaticClass", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Parameterless instance constructors in structs must be public.
-        /// </summary>
-        internal static string ERR_ParameterlessStructCtorsMustBePublic {
-            get {
-                return ResourceManager.GetString("ERR_ParameterlessStructCtorsMustBePublic", resourceCulture);
             }
         }
         
@@ -9077,15 +9086,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureStaticClasses {
             get {
                 return ResourceManager.GetString("IDS_FeatureStaticClasses", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to struct instance parameterless constructors.
-        /// </summary>
-        internal static string IDS_FeatureStructParameterlessConstructors {
-            get {
-                return ResourceManager.GetString("IDS_FeatureStructParameterlessConstructors", resourceCulture);
             }
         }
         

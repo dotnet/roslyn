@@ -45,6 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return RewriteStringConcatInExpressionLambda(syntax, operatorKind, loweredLeft, loweredRight, type);
             }
 
+            // avoid run time boxing and ToString operations if we can reasonably convert to a string at compile time
+            loweredLeft = ConvertConcatExprToStringIfPossible(syntax, loweredLeft);
+            loweredRight = ConvertConcatExprToStringIfPossible(syntax, loweredRight);
+
             // try fold two args without flattening.
             var folded = TryFoldTwoConcatOperands(syntax, loweredLeft, loweredRight);
             if (folded != null)
@@ -345,6 +349,83 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)method != null);
 
             return new BoundBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, default(ConstantValue), method, default(LookupResultKind), type);
+        }
+
+        /// <summary>
+        /// Checks whether the expression represents a boxing conversion of a special value type.
+        /// If it does, it tries to return a string-based representation instead in order
+        /// to avoid allocations.  If it can't, the original expression is returned.
+        /// </summary>
+        private BoundExpression ConvertConcatExprToStringIfPossible(CSharpSyntaxNode syntax, BoundExpression expr)
+        {
+            if (expr.Kind == BoundKind.Conversion)
+            {
+                BoundConversion conv = (BoundConversion)expr;
+                if (conv.ConversionKind == ConversionKind.Boxing)
+                {
+                    BoundExpression operand = conv.Operand;
+                    if (operand != null)
+                    {
+                        // Is the expression a literal char?  If so, we can
+                        // simply make it a literal string instead and avoid any 
+                        // allocations for converting the char to a string at run time.
+                        if (operand.Kind == BoundKind.Literal)
+                        {
+                            ConstantValue cv = ((BoundLiteral)operand).ConstantValue;
+                            if (cv != null && cv.SpecialType == SpecialType.System_Char)
+                            {
+                                return _factory.StringLiteral(cv.CharValue.ToString());
+                            }
+                        }
+
+                        // Can the expression be optimized with a ToString call?
+                        // If so, we can synthesize a ToString call to avoid boxing.
+                        if (ConcatExprCanBeOptimizedWithToString(operand.Type))
+                        {
+                            var toString = GetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString);
+                            return BoundCall.Synthesized(syntax, operand, toString);
+                        }
+                    }
+                }
+            }
+
+            // Optimization not possible; just return the original expression.
+            return expr;
+        }
+
+        /// <summary>
+        /// Gets whether the type of an argument used in string concatenation can
+        /// be optimized by first calling ToString on it before passing the argument
+        /// to the String.Concat function.
+        /// </summary>
+        /// <param name="symbol">The type symbol of the argument.</param>
+        /// <returns>
+        /// true if ToString may be used; false if using ToString could lead to observable differences in behavior.
+        /// </returns>
+        private static bool ConcatExprCanBeOptimizedWithToString(TypeSymbol symbol)
+        {
+            // There are several constraints applied here in support of backwards compatibility:
+            // - This optimization potentially changes the order in which ToString is called
+            //   on the arguments.  That's a a compatibility issue if one argument's ToString
+            //   depends on state mutated by another, such as current culture.
+            // - For value types, this optimization causes ToString to be called on the original
+            //   value rather than on a boxed copy.  That means a mutating ToString implementation
+            //   could change the original rather than the copy.
+            // For these reasons, this optimization is currently restricted to primitives
+            // known to have a non-mutating ToString implementation that is independent
+            // of externally mutable state.  Common value types such as Int32 and Double
+            // do not meet this bar.
+
+            switch (symbol.SpecialType)
+            {
+                case SpecialType.System_Boolean:
+                case SpecialType.System_Char:
+                case SpecialType.System_IntPtr:
+                case SpecialType.System_UIntPtr:
+                    return true;
+                default:
+                    return false;
+            }
         }
     }
 }

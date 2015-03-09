@@ -19,31 +19,31 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static readonly DiagnosticDescription[] Any = null;
 
         // common fields for all DiagnosticDescriptions
-        private readonly object code;
-        private readonly bool isWarningAsError;
-        private readonly string squiggledText;
-        private readonly object[] arguments;
-        private readonly LinePosition? startPosition; // May not have a value only in the case that we're constructed via factories
-        private bool showPosition; // show start position in ToString if comparison fails
-        private readonly bool argumentOrderDoesNotMatter;
-        private readonly Type errorCodeType;
-        private readonly bool ignoreArgumentsWhenComparing;
+        private readonly object _code;
+        private readonly bool _isWarningAsError;
+        private readonly string _squiggledText;
+        private readonly object[] _arguments;
+        private readonly LinePosition? _startPosition; // May not have a value only in the case that we're constructed via factories
+        private bool _showPosition; // show start position in ToString if comparison fails
+        private readonly bool _argumentOrderDoesNotMatter;
+        private readonly Type _errorCodeType;
+        private readonly bool _ignoreArgumentsWhenComparing;
 
         // fields for DiagnosticDescriptions constructed via factories
-        private readonly Func<SyntaxNode, bool> syntaxPredicate;
-        private bool showPredicate; // show predicate in ToString if comparison fails
+        private readonly Func<SyntaxNode, bool> _syntaxPredicate;
+        private bool _showPredicate; // show predicate in ToString if comparison fails
 
         // fields for DiagnosticDescriptions constructed from Diagnostics
-        private readonly Location location;
+        private readonly Location _location;
 
-        private IEnumerable<string> argumentsAsStrings;
+        private IEnumerable<string> _argumentsAsStrings;
         private IEnumerable<string> GetArgumentsAsStrings()
         {
-            if (argumentsAsStrings == null)
+            if (_argumentsAsStrings == null)
             {
                 // We'll use IFormattable here, because it is more explicit than just calling .ToString()
                 // (and is closer to what the compiler actually does when displaying error messages)
-                argumentsAsStrings = arguments.Select(o =>
+                _argumentsAsStrings = _arguments.Select(o =>
                                                         {
                                                             var embedded = o as DiagnosticInfo;
                                                             if (embedded != null)
@@ -54,27 +54,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                                             return String.Format(EnsureEnglishUICulture.PreferredOrNull, "{0}", o);
                                                         });
             }
-            return argumentsAsStrings;
+            return _argumentsAsStrings;
         }
 
         public DiagnosticDescription(
-            object code, 
+            object code,
             bool isWarningAsError,
             string squiggledText,
-            object[] arguments, 
+            object[] arguments,
             LinePosition? startLocation,
-            Func<SyntaxNode, bool> syntaxNodePredicate, 
+            Func<SyntaxNode, bool> syntaxNodePredicate,
             bool argumentOrderDoesNotMatter,
             Type errorCodeType = null)
         {
-            this.code = code;
-            this.isWarningAsError = isWarningAsError;
-            this.squiggledText = squiggledText;
-            this.arguments = arguments;
-            startPosition = startLocation;
-            syntaxPredicate = syntaxNodePredicate;
-            this.argumentOrderDoesNotMatter = argumentOrderDoesNotMatter;
-            this.errorCodeType = errorCodeType ?? code.GetType();
+            _code = code;
+            _isWarningAsError = isWarningAsError;
+            _squiggledText = squiggledText;
+            _arguments = arguments;
+            _startPosition = startLocation;
+            _syntaxPredicate = syntaxNodePredicate;
+            _argumentOrderDoesNotMatter = argumentOrderDoesNotMatter;
+            _errorCodeType = errorCodeType ?? code.GetType();
         }
 
         public DiagnosticDescription(
@@ -86,93 +86,93 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool argumentOrderDoesNotMatter,
             Type errorCodeType = null)
         {
-            this.code = code;
-            this.isWarningAsError = false;
-            this.squiggledText = squiggledText;
-            this.arguments = arguments;
-            startPosition = startLocation;
-            syntaxPredicate = syntaxNodePredicate;
-            this.argumentOrderDoesNotMatter = argumentOrderDoesNotMatter;
-            this.errorCodeType = errorCodeType ?? code.GetType();
+            _code = code;
+            _isWarningAsError = false;
+            _squiggledText = squiggledText;
+            _arguments = arguments;
+            _startPosition = startLocation;
+            _syntaxPredicate = syntaxNodePredicate;
+            _argumentOrderDoesNotMatter = argumentOrderDoesNotMatter;
+            _errorCodeType = errorCodeType ?? code.GetType();
         }
 
         internal DiagnosticDescription(Diagnostic d, bool errorCodeOnly, bool showPosition = false)
         {
-            this.code = d.Code;
-            this.isWarningAsError = d.IsWarningAsError;
-            this.location = d.Location;
+            _code = d.Code;
+            _isWarningAsError = d.IsWarningAsError;
+            _location = d.Location;
 
             DiagnosticWithInfo dinfo = null;
             if (d.Code == 0)
             {
-                code = d.Id;
-                errorCodeType = typeof(string);
+                _code = d.Id;
+                _errorCodeType = typeof(string);
             }
             else
             {
                 dinfo = d as DiagnosticWithInfo;
                 if (dinfo == null)
                 {
-                    code = d.Code;
-                    errorCodeType = typeof(int);
+                    _code = d.Code;
+                    _errorCodeType = typeof(int);
                 }
                 else
                 {
-                    errorCodeType = dinfo.Info.MessageProvider.ErrorCodeType;
-                    code = d.Code;
+                    _errorCodeType = dinfo.Info.MessageProvider.ErrorCodeType;
+                    _code = d.Code;
                 }
             }
 
-            this.ignoreArgumentsWhenComparing = errorCodeOnly;
-            this.showPosition = showPosition;
+            _ignoreArgumentsWhenComparing = errorCodeOnly;
+            _showPosition = showPosition;
 
-            if (!this.ignoreArgumentsWhenComparing)
+            if (!_ignoreArgumentsWhenComparing)
             {
-                if (this.location.IsInSource)
+                if (_location.IsInSource)
                 {
                     // we don't just want to do SyntaxNode.GetText(), because getting the text via the SourceTree validates the public API
-                    this.squiggledText = this.location.SourceTree.GetText().ToString(this.location.SourceSpan);
+                    _squiggledText = _location.SourceTree.GetText().ToString(_location.SourceSpan);
                 }
 
                 if (dinfo != null)
                 {
-                    arguments = dinfo.Info.Arguments;
+                    _arguments = dinfo.Info.Arguments;
                 }
                 else
                 {
                     var args = d.Arguments;
                     if (args == null || args.Count == 0)
                     {
-                        arguments = null;
+                        _arguments = null;
                     }
                     else
                     {
-                        arguments = d.Arguments.ToArray();
+                        _arguments = d.Arguments.ToArray();
                     }
                 }
 
-                if (this.arguments != null && this.arguments.Length == 0)
+                if (_arguments != null && _arguments.Length == 0)
                 {
-                    this.arguments = null;
+                    _arguments = null;
                 }
             }
 
-            this.startPosition = this.location.GetMappedLineSpan().StartLinePosition;
+            _startPosition = _location.GetMappedLineSpan().StartLinePosition;
         }
 
         public DiagnosticDescription WithArguments(params string[] arguments)
         {
-            return new DiagnosticDescription(code, isWarningAsError, squiggledText, arguments, startPosition, syntaxPredicate, false, errorCodeType);
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, false, _errorCodeType);
         }
 
         public DiagnosticDescription WithArgumentsAnyOrder(params string[] arguments)
         {
-            return new DiagnosticDescription(code, isWarningAsError, squiggledText, arguments, startPosition, syntaxPredicate, true, errorCodeType);
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, true, _errorCodeType);
         }
 
         public DiagnosticDescription WithWarningAsError(bool isWarningAsError)
         {
-            return new DiagnosticDescription(code, isWarningAsError, squiggledText, arguments, startPosition, syntaxPredicate, true, errorCodeType);
+            return new DiagnosticDescription(_code, isWarningAsError, _squiggledText, _arguments, _startPosition, _syntaxPredicate, true, _errorCodeType);
         }
 
         /// <summary>
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         public DiagnosticDescription WithLocation(int line, int column)
         {
-            return new DiagnosticDescription(code, isWarningAsError, squiggledText, arguments, new LinePosition(line - 1, column - 1), syntaxPredicate, argumentOrderDoesNotMatter, errorCodeType);
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, new LinePosition(line - 1, column - 1), _syntaxPredicate, _argumentOrderDoesNotMatter, _errorCodeType);
         }
 
         /// <summary>
@@ -189,8 +189,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <param name="syntaxPredicate">The argument to syntaxPredicate will be the nearest SyntaxNode whose Span contains first squiggled character.</param>
         public DiagnosticDescription WhereSyntax(Func<SyntaxNode, bool> syntaxPredicate)
         {
-            return new DiagnosticDescription(code, isWarningAsError, squiggledText, arguments, startPosition, syntaxPredicate, argumentOrderDoesNotMatter, errorCodeType);
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, _startPosition, syntaxPredicate, _argumentOrderDoesNotMatter, _errorCodeType);
         }
+
+        public object Code => _code;
 
         public override bool Equals(object obj)
         {
@@ -199,80 +201,80 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (obj == null)
                 return false;
 
-            if (!code.Equals(d.code))
+            if (!_code.Equals(d._code))
                 return false;
 
-            if (isWarningAsError != d.isWarningAsError)
+            if (_isWarningAsError != d._isWarningAsError)
                 return false;
 
-            if (!ignoreArgumentsWhenComparing)
+            if (!_ignoreArgumentsWhenComparing)
             {
-                if (squiggledText != d.squiggledText)
+                if (_squiggledText != d._squiggledText)
                     return false;
             }
 
-            if (startPosition != null)
+            if (_startPosition != null)
             {
-                if (d.startPosition != null)
+                if (d._startPosition != null)
                 {
-                    if (startPosition.Value != d.startPosition.Value)
+                    if (_startPosition.Value != d._startPosition.Value)
                     {
-                        showPosition = true;
-                        d.showPosition = true;
+                        _showPosition = true;
+                        d._showPosition = true;
                         return false;
                     }
 
-                    showPosition = false;
-                    d.showPosition = false;
+                    _showPosition = false;
+                    d._showPosition = false;
                 }
             }
 
-            if (syntaxPredicate != null)
+            if (_syntaxPredicate != null)
             {
-                if (d.location == null)
+                if (d._location == null)
                     return false;
 
-                if (!syntaxPredicate(d.location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start, true).Parent))
+                if (!_syntaxPredicate(d._location.SourceTree.GetRoot().FindToken(_location.SourceSpan.Start, true).Parent))
                 {
-                    showPredicate = true;
+                    _showPredicate = true;
                     return false;
                 }
 
-                showPredicate = false;
+                _showPredicate = false;
             }
-            if (d.syntaxPredicate != null)
+            if (d._syntaxPredicate != null)
             {
-                if (location == null)
+                if (_location == null)
                     return false;
 
-                if (!d.syntaxPredicate(location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start, true).Parent))
+                if (!d._syntaxPredicate(_location.SourceTree.GetRoot().FindToken(_location.SourceSpan.Start, true).Parent))
                 {
-                    d.showPredicate = true;
+                    d._showPredicate = true;
                     return false;
                 }
 
-                d.showPredicate = false;
+                d._showPredicate = false;
             }
 
             // If ignoring arguments, we can skip the rest of this method.
-            if (ignoreArgumentsWhenComparing || d.ignoreArgumentsWhenComparing)
+            if (_ignoreArgumentsWhenComparing || d._ignoreArgumentsWhenComparing)
                 return true;
 
             // Only validation of arguments should happen between here and the end of this method.
-            if (arguments == null)
+            if (_arguments == null)
             {
-                if (d.arguments != null)
+                if (d._arguments != null)
                     return false;
             }
             else // _arguments != null
             {
-                if (d.arguments == null)
+                if (d._arguments == null)
                     return false;
 
                 // we'll compare the arguments as strings
                 var args1 = GetArgumentsAsStrings();
                 var args2 = d.GetArgumentsAsStrings();
-                if (argumentOrderDoesNotMatter || d.argumentOrderDoesNotMatter)
+                if (_argumentOrderDoesNotMatter || d._argumentOrderDoesNotMatter)
                 {
                     if (args1.Count() != args2.Count() || !args1.SetEquals(args2))
                         return false;
@@ -290,14 +292,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override int GetHashCode()
         {
             int hashCode;
-            hashCode = code.GetHashCode();
-            hashCode = Hash.Combine(isWarningAsError.GetHashCode(), hashCode);
+            hashCode = _code.GetHashCode();
+            hashCode = Hash.Combine(_isWarningAsError.GetHashCode(), hashCode);
 
             // TODO: !!! This implementation isn't consistent with Equals, which might ignore inequality of some members based on ignoreArgumentsWhenComparing flag, etc.
-            hashCode = Hash.Combine(squiggledText, hashCode);
-            hashCode = Hash.Combine(arguments, hashCode);
-            if (startPosition != null)
-                hashCode = Hash.Combine(hashCode, startPosition.Value.GetHashCode());
+            hashCode = Hash.Combine(_squiggledText, hashCode);
+            hashCode = Hash.Combine(_arguments, hashCode);
+            if (_startPosition != null)
+                hashCode = Hash.Combine(hashCode, _startPosition.Value.GetHashCode());
             return hashCode;
         }
 
@@ -306,28 +308,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var sb = new StringBuilder();
 
             sb.Append("Diagnostic(");
-            if (errorCodeType == typeof(string))
+            if (_errorCodeType == typeof(string))
             {
-                sb.Append("\"").Append(code).Append("\"");
+                sb.Append("\"").Append(_code).Append("\"");
             }
             else
             {
-                sb.Append(errorCodeType.Name);
+                sb.Append(_errorCodeType.Name);
                 sb.Append(".");
-                sb.Append(Enum.GetName(errorCodeType, code));
+                sb.Append(Enum.GetName(_errorCodeType, _code));
             }
 
-            if (squiggledText != null)
+            if (_squiggledText != null)
             {
-                if (squiggledText.Contains("\n") || squiggledText.Contains("\\") || squiggledText.Contains("\""))
+                if (_squiggledText.Contains("\n") || _squiggledText.Contains("\\") || _squiggledText.Contains("\""))
                 {
                     sb.Append(", @\"");
-                    sb.Append(squiggledText.Replace("\"", "\"\""));
+                    sb.Append(_squiggledText.Replace("\"", "\"\""));
                 }
                 else
                 {
                     sb.Append(", \"");
-                    sb.Append(squiggledText);
+                    sb.Append(_squiggledText);
                 }
 
                 sb.Append('"');
@@ -335,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             sb.Append(")");
 
-            if (arguments != null)
+            if (_arguments != null)
             {
                 sb.Append(".WithArguments(");
                 var argumentStrings = GetArgumentsAsStrings().GetEnumerator();
@@ -344,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     sb.Append("\"");
                     sb.Append(argumentStrings.Current);
                     sb.Append("\"");
-                    if (i < arguments.Length - 1)
+                    if (i < _arguments.Length - 1)
                     {
                         sb.Append(", ");
                     }
@@ -352,21 +354,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sb.Append(")");
             }
 
-            if (startPosition != null && showPosition)
+            if (_startPosition != null && _showPosition)
             {
                 sb.Append(".WithLocation(");
-                sb.Append(startPosition.Value.Line + 1);
+                sb.Append(_startPosition.Value.Line + 1);
                 sb.Append(", ");
-                sb.Append(startPosition.Value.Character + 1);
+                sb.Append(_startPosition.Value.Character + 1);
                 sb.Append(")");
             }
 
-            if (isWarningAsError)
+            if (_isWarningAsError)
             {
                 sb.Append(".WithWarningAsError(true)");
             }
 
-            if (syntaxPredicate != null && showPredicate)
+            if (_syntaxPredicate != null && _showPredicate)
             {
                 sb.Append(".WhereSyntax(...)");
             }
@@ -381,8 +383,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             const int CSharp = 1;
             const int VisualBasic = 2;
-            var language = actual.Any() && actual.First().Id.StartsWith("CS") ? CSharp : VisualBasic;
-            
+            var language = actual.Any() && actual.First().Id.StartsWith("CS", StringComparison.Ordinal) ? CSharp : VisualBasic;
+
             if (language == CSharp)
             {
                 includeDiagnosticMessagesAsComments = true;

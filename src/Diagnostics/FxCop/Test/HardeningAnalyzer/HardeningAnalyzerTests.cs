@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.HardeningAnalyzer
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WorkItem(759)]
         public void TestTypeParameterNamesCSharp()
         {
             var source = @"
@@ -43,7 +44,7 @@ public class Class6<TTypeParameter>
 ";
             var diagnosticsBag = DiagnosticBag.GetInstance();
             var documentsAndSpan = GetDocumentsAndSpans(new[] { source }, LanguageNames.CSharp);
-            AnalyzeDocumentCore(GetCSharpDiagnosticAnalyzer(), documentsAndSpan.Item1[0], diagnosticsBag.Add, null, continueOnAnalyzerException: DiagnosticExtensions.AlwaysCatchAnalyzerExceptions);
+            AnalyzeDocumentCore(GetCSharpDiagnosticAnalyzer(), documentsAndSpan.Item1[0], diagnosticsBag.Add, null, logAnalyzerExceptionAsDiagnostics: true);
             var diagnostics = diagnosticsBag.ToReadOnlyAndFree();
             Assert.True(diagnostics.Length > 0);
             Assert.Equal(string.Format("info AD0001: " + AnalyzerDriverResources.AnalyzerThrows, GetCSharpDiagnosticAnalyzer().GetType(), "The method or operation is not implemented."),

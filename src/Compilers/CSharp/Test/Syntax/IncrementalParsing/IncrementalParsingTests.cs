@@ -1017,7 +1017,7 @@ class A
     }
 }
 ");
-            int locationOfInsert = oldText.ToString().IndexOf("0") + 1;
+            int locationOfInsert = oldText.ToString().IndexOf('0') + 1;
             SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
 
             // The bug was that this would simply assert
@@ -1034,7 +1034,7 @@ string s = @
 }
 ";
             var oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
-            var newTree = oldTree.WithInsertAt(oldText.IndexOf("@"), ";");
+            var newTree = oldTree.WithInsertAt(oldText.IndexOf('@'), ";");
         }
 
         [WorkItem(536717, "DevDiv")]
@@ -1121,7 +1121,7 @@ string s = @
         public void CommentCodeInGOTOStatement()
         {
             SourceText oldText = SourceText.From(@"class CSTR020mod{ public static void CSTR020()  {  ON ERROR GOTO ErrorTrap; } }");
-            int locationOfChange = oldText.ToString().IndexOf("ON"), widthOfChange = 2;
+            int locationOfChange = oldText.ToString().IndexOf("ON", StringComparison.Ordinal), widthOfChange = 2;
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
 
@@ -1141,7 +1141,7 @@ string s = @
     const byte X4var As Byte = 55;
 }
 ");
-            int locationOfChange = oldText.ToString().IndexOf("const"), widthOfChange = 5;
+            int locationOfChange = oldText.ToString().IndexOf("const", StringComparison.Ordinal), widthOfChange = 5;
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
 
@@ -1161,7 +1161,7 @@ string s = @
      protected delegate void ProtectedDel(dynamic d);
 }
 ");
-            int locationOfChange = oldText.ToString().IndexOf("class"), widthOfChange = 5;
+            int locationOfChange = oldText.ToString().IndexOf("class", StringComparison.Ordinal), widthOfChange = 5;
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
 
@@ -1184,7 +1184,7 @@ string s = @
     public MyEnum[] Property_MyEnumArr { set; private get; }
 }
 ");
-            int locationOfChange = oldText.ToString().IndexOf("}"), widthOfChange = 5;
+            int locationOfChange = oldText.ToString().IndexOf('}'), widthOfChange = 5;
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
 
@@ -1206,7 +1206,7 @@ string s = @
         public fixed byte Array[dy[""Test""]];
     }
 }");
-            int locationOfChange = oldText.ToString().IndexOf("fixed"), widthOfChange = 5;
+            int locationOfChange = oldText.ToString().IndexOf("fixed", StringComparison.Ordinal), widthOfChange = 5;
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
 
@@ -1227,7 +1227,7 @@ class Test
 {
 }
 ");
-            int locationOfChange = oldText.ToString().IndexOf("@global"), widthOfChange = 7;
+            int locationOfChange = oldText.ToString().IndexOf("@global", StringComparison.Ordinal), widthOfChange = 7;
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
 
@@ -1259,7 +1259,7 @@ class Test
 }
 ");
             string txtToCmnt = @"using @global=System.Int32;";
-            int locationOfChange = oldText.ToString().IndexOf(txtToCmnt), widthOfChange = txtToCmnt.Length;
+            int locationOfChange = oldText.ToString().IndexOf(txtToCmnt, StringComparison.Ordinal), widthOfChange = txtToCmnt.Length;
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
 
@@ -1284,7 +1284,7 @@ class Test
 }
 ");
             string txtToCmnt = @"Main";
-            int locationOfChange = oldText.ToString().IndexOf(txtToCmnt), widthOfChange = txtToCmnt.Length;
+            int locationOfChange = oldText.ToString().IndexOf(txtToCmnt, StringComparison.Ordinal), widthOfChange = txtToCmnt.Length;
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
 
@@ -1938,7 +1938,7 @@ namespace N");
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
             string textToRemove = "Test";
-            int locationOfChange = oldText.ToString().IndexOf(textToRemove);
+            int locationOfChange = oldText.ToString().IndexOf(textToRemove, StringComparison.Ordinal);
             int widthOfChange = textToRemove.Length;
 
             // This function will remove the "Test" token from oldText
@@ -1966,7 +1966,7 @@ namespace N");
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
             string textToRemove = ")[";
-            int locationOfChange = oldText.ToString().IndexOf(textToRemove);
+            int locationOfChange = oldText.ToString().IndexOf(textToRemove, StringComparison.Ordinal);
             int widthOfChange = textToRemove.Length;
 
             // This function will remove the ")[" token from oldText
@@ -1988,7 +1988,7 @@ namespace N");
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
             string textToRemove = "()";
-            int locationOfChange = oldText.ToString().IndexOf(textToRemove);
+            int locationOfChange = oldText.ToString().IndexOf(textToRemove, StringComparison.Ordinal);
             int widthOfChange = textToRemove.Length;
 
             // This function will remove the "()" text from oldText
@@ -2039,7 +2039,7 @@ namespace N");
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
             string textToRemove = "()";
-            int locationOfChange = oldText.ToString().IndexOf(textToRemove);
+            int locationOfChange = oldText.ToString().IndexOf(textToRemove, StringComparison.Ordinal);
             int widthOfChange = textToRemove.Length;
 
             // This function will remove the "()" text from oldText
@@ -2072,7 +2072,7 @@ namespace N");
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
             string textToRemove = "int";
-            int locationOfChange = oldText.ToString().IndexOf(textToRemove);
+            int locationOfChange = oldText.ToString().IndexOf(textToRemove, StringComparison.Ordinal);
             int widthOfChange = textToRemove.Length;
 
             // This function will remove the "int" text from oldText
@@ -2098,7 +2098,7 @@ namespace N");
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
             string textToRemove = "string";
-            int locationOfChange = oldText.ToString().IndexOf(textToRemove);
+            int locationOfChange = oldText.ToString().IndexOf(textToRemove, StringComparison.Ordinal);
             int widthOfChange = textToRemove.Length;
 
             // This function will remove the "string" text from oldText
@@ -2123,7 +2123,7 @@ namespace N");
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
             string textToRemove = "int";
-            int locationOfChange = oldText.ToString().IndexOf(textToRemove);
+            int locationOfChange = oldText.ToString().IndexOf(textToRemove, StringComparison.Ordinal);
             int widthOfChange = textToRemove.Length;
 
             // This function will remove the "int" text from oldText
@@ -2152,7 +2152,7 @@ namespace N");
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
             string textToRemove = "System";
-            int locationOfChange = oldText.ToString().IndexOf(textToRemove);
+            int locationOfChange = oldText.ToString().IndexOf(textToRemove, StringComparison.Ordinal);
             int widthOfChange = textToRemove.Length;
 
             // This function will remove the "System" text from oldText
@@ -2179,7 +2179,7 @@ namespace N");
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
             string textToRemove = "Main";
-            int locationOfChange = oldText.ToString().IndexOf(textToRemove);
+            int locationOfChange = oldText.ToString().IndexOf(textToRemove, StringComparison.Ordinal);
             int widthOfChange = textToRemove.Length;
 
             // This function will remove the "Main" text from oldText
@@ -2203,7 +2203,7 @@ namespace N");
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
             string textToRemove = "null";
-            int locationOfChange = oldText.ToString().IndexOf(textToRemove);
+            int locationOfChange = oldText.ToString().IndexOf(textToRemove, StringComparison.Ordinal);
             int widthOfChange = textToRemove.Length;
 
             // This function will remove the "null" text from oldText
@@ -2234,7 +2234,7 @@ namespace N");
 #endif
 			static RecordNotFound Method(){}";
 
-            int locationOfChange = oldText.ToString().IndexOf(txtToCmnt), widthOfChange = txtToCmnt.Length;
+            int locationOfChange = oldText.ToString().IndexOf(txtToCmnt, StringComparison.Ordinal), widthOfChange = txtToCmnt.Length;
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
 
@@ -2262,7 +2262,7 @@ namespace N");
 
             string txtToCmnt = @"select new { e, delegate }";
 
-            int locationOfChange = oldText.ToString().IndexOf(txtToCmnt), widthOfChange = txtToCmnt.Length;
+            int locationOfChange = oldText.ToString().IndexOf(txtToCmnt, StringComparison.Ordinal), widthOfChange = txtToCmnt.Length;
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
 
@@ -2285,7 +2285,7 @@ namespace N");
 
             string txtToCmnt = @"(this int x )";
 
-            int locationOfChange = oldText.ToString().IndexOf(txtToCmnt), widthOfChange = txtToCmnt.Length;
+            int locationOfChange = oldText.ToString().IndexOf(txtToCmnt, StringComparison.Ordinal), widthOfChange = txtToCmnt.Length;
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
 
@@ -2319,11 +2319,9 @@ class Program
             var tree = SyntaxFactory.ParseSyntaxTree(text);
 
             var text2 = text.WithChanges(
-                new TextChange[] {
-                    new TextChange(new TextSpan(str.IndexOf(" abc"), 0), "//"),
-                    new TextChange(new TextSpan(str.IndexOf(" 123"), 0), "//"),
-                    new TextChange(new TextSpan(str.IndexOf(" def"), 0), "//")
-                });
+                new TextChange(new TextSpan(str.IndexOf(" abc", StringComparison.Ordinal), 0), "//"),
+                new TextChange(new TextSpan(str.IndexOf(" 123", StringComparison.Ordinal), 0), "//"),
+                new TextChange(new TextSpan(str.IndexOf(" def", StringComparison.Ordinal), 0), "//"));
 
             var parsedTree = SyntaxFactory.ParseSyntaxTree(text2);
             var reparsedTree = tree.WithChangedText(text2);
@@ -2506,7 +2504,7 @@ class equals
             var currIText = currTree.GetText();
 
             // Insert "// " before the "x" in "select x"; the next statement becomes part of the query.
-            var span = new TextSpan(text.LastIndexOf("x"), 0);
+            var span = new TextSpan(text.LastIndexOf('x'), 0);
             var change = new TextChange(span, "// ");
 
             currIText = currIText.WithChanges(change);

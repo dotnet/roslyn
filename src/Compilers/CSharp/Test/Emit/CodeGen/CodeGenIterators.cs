@@ -1946,7 +1946,7 @@ class Program
             var comp = CreateCompilationWithMscorlib45(parsed);
             var verifier = this.CompileAndVerify(comp);
             var il = verifier.VisualizeIL("Program.<Foo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
-            Assert.Contains("System.Environment.CurrentManagedThreadId.get", il);
+            Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -1979,7 +1979,7 @@ namespace System
             comp.MakeMemberMissing(WellKnownMember.System_Threading_Thread__ManagedThreadId);
             var verifier = this.CompileAndVerify(comp);
             var il = verifier.VisualizeIL("Program.<Foo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
-            Assert.Contains("System.Environment.CurrentManagedThreadId.get", il);
+            Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -2330,7 +2330,7 @@ class Program
   IL_00ae:  ldloc.0
   IL_00af:  ret
 }");
-            Assert.True(expectedIL.IndexOf("<>_") < 0);
+            Assert.True(expectedIL.IndexOf("<>_", StringComparison.Ordinal) < 0);
         }
     }
 }

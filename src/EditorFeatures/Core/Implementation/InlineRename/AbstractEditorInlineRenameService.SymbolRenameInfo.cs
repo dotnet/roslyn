@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private readonly bool _shortenedTriggerSpan;
             private readonly bool _isRenamingAttributePrefix;
 
-            public bool CanRename { get; private set; }
-            public string LocalizedErrorMessage { get; private set; }
-            public TextSpan TriggerSpan { get; private set; }
-            public ISymbol RenameSymbol { get; private set; }
-            public bool HasOverloads { get; private set; }
+            public bool CanRename { get; }
+            public string LocalizedErrorMessage { get; }
+            public TextSpan TriggerSpan { get; }
+            public ISymbol RenameSymbol { get; }
+            public bool HasOverloads { get; }
 
             public SymbolInlineRenameInfo(
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices, Document document, TextSpan triggerSpan, ISymbol renameSymbol, CancellationToken cancellationToken)
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var nameWithoutAttribute = this.RenameSymbol.Name.GetWithoutAttributeSuffix(isCaseSensitive: true);
                 var triggerText = GetSpanText(document, triggerSpan, cancellationToken);
 
-                return triggerText.StartsWith(triggerText);
+                return triggerText.StartsWith(triggerText); // TODO: Always true? What was it supposed to do?
             }
 
             /// <summary>
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
 
                 var spanText = GetSpanText(location.Document, location.TextSpan, cancellationToken);
-                var index = spanText.LastIndexOf(searchName);
+                var index = spanText.LastIndexOf(searchName, StringComparison.Ordinal);
 
                 if (index < 0)
                 {
@@ -121,13 +121,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken)
             {
                 var spanText = GetSpanText(location.Document, location.TextSpan, cancellationToken);
-                var position = spanText.LastIndexOf(replacementText);
+                var position = spanText.LastIndexOf(replacementText, StringComparison.Ordinal);
 
                 if (_isRenamingAttributePrefix)
                 {
                     // We're only renaming the attribute prefix part.  We want to adjust the span of 
                     // the reference we've found to only update the prefix portion.
-                    var index = spanText.LastIndexOf(replacementText + AttributeSuffix);
+                    var index = spanText.LastIndexOf(replacementText + AttributeSuffix, StringComparison.Ordinal);
                     position = index >= 0 ? index : position;
                 }
 

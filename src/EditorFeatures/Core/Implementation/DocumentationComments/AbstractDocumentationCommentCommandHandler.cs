@@ -343,14 +343,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // Previous line must begin with a doc comment
             var previousLine = text.Lines[currentLine.LineNumber - 1];
             var previousLineText = previousLine.ToString().Trim();
-            if (!previousLineText.StartsWith(ExteriorTriviaText))
+            if (!previousLineText.StartsWith(ExteriorTriviaText, StringComparison.Ordinal))
             {
                 return false;
             }
 
-            var nextLineStartsWithDocComment = text.Lines.Count > currentLine.LineNumber + 1
-                ? text.Lines[currentLine.LineNumber + 1].ToString().Trim().StartsWith(ExteriorTriviaText)
-                : false;
+            var nextLineStartsWithDocComment = text.Lines.Count > currentLine.LineNumber + 1 &&
+                text.Lines[currentLine.LineNumber + 1].ToString().Trim().StartsWith(ExteriorTriviaText, StringComparison.Ordinal);
 
             // if previous line has only exterior trivia, current line is empty and next line doen't being
             // with exterior triviathen stop inserting auto generated xml doc string
@@ -515,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return;
             }
 
-            if (currentLineText.IndexOf(ExteriorTriviaText) != offset)
+            if (currentLineText.IndexOf(ExteriorTriviaText, StringComparison.Ordinal) != offset)
             {
                 nextHandler();
                 return;

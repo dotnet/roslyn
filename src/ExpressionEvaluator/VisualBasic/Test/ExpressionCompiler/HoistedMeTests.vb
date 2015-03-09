@@ -1,4 +1,6 @@
-﻿Imports System.Collections.Immutable
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -79,7 +81,7 @@ End Class
             ' This test documents the fact that, as in dev12, "Me"
             ' is unavailable while stepping through the lambda.  It
             ' would be preferable if it were.
-            VerifyNoMe(source, "C._Closure$__._Lambda$__1-1")
+            VerifyNoMe(source, "C._Closure$__._Lambda$__1-0")
         End Sub
 
         <Fact()>
@@ -100,7 +102,7 @@ End Class
   IL_0001:  ret
 }
 "
-            VerifyHasMe(source, "C._Lambda$__1-1", "C", expectedIL)
+            VerifyHasMe(source, "C._Lambda$__1-0", "C", expectedIL)
         End Sub
 
         <Fact>
@@ -176,7 +178,7 @@ End Class
   IL_0006:  ret
 }
 "
-            VerifyHasMe(source, "C._Closure$__2-0._Lambda$__1", "C", expectedIL)
+            VerifyHasMe(source, "C._Closure$__2-0._Lambda$__0", "C", expectedIL)
         End Sub
 
         <Fact()>
@@ -199,7 +201,7 @@ End Class
   IL_0001:  ret
 }
 "
-            VerifyHasMe(source, "C._Lambda$__2-1", "C", expectedIL)
+            VerifyHasMe(source, "C._Lambda$__2-0", "C", expectedIL)
         End Sub
 
         <Fact>
@@ -275,7 +277,7 @@ End Class
   IL_0006:  ret
 }
 "
-            VerifyHasMe(source, "C._Closure$__2-0._Lambda$__1", "C(Of T)", expectedIL)
+            VerifyHasMe(source, "C._Closure$__2-0._Lambda$__0", "C(Of T)", expectedIL)
         End Sub
 
         ' Note: Not actually an issue in VB, since the name isn't mangled.
@@ -365,7 +367,7 @@ End Class
   IL_0006:  ret
 }
 "
-            VerifyHasMe(source, "C._Closure$__2-0._Lambda$__1", "C", expectedIL)
+            VerifyHasMe(source, "C._Closure$__2-0._Lambda$__0", "C", expectedIL)
         End Sub
 
         <Fact>
@@ -405,7 +407,7 @@ Module M
     End Sub
 End Module
 "
-            VerifyNoMe(source, "M._Closure$__0-0._Lambda$__1")
+            VerifyNoMe(source, "M._Closure$__0-0._Lambda$__0")
         End Sub
 
         <Fact>
@@ -448,7 +450,7 @@ Module M
     End Sub
 End Module
 "
-            VerifyNoMe(source, "M._Closure$__0-0._Lambda$__1")
+            VerifyNoMe(source, "M._Closure$__0-0._Lambda$__0")
         End Sub
 
         <WorkItem(1072296)>
@@ -560,7 +562,7 @@ End Class
             Assert.True(displayClassTypes.Any())
             For Each displayClassType In displayClassTypes
                 Dim displayClassName = displayClassType.Name
-                Assert.True(displayClassName.StartsWith(StringConstants.DisplayClassPrefix))
+                Assert.True(displayClassName.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal))
                 For Each displayClassMethod In displayClassType.GetMembers().OfType(Of MethodSymbol)().Where(AddressOf IsLambda)
                     Dim lambdaMethodName = String.Format("C.{0}.{1}", displayClassName, displayClassMethod.Name)
                     Dim context = CreateMethodContext(runtime, lambdaMethodName)
@@ -615,7 +617,7 @@ End Module
             Assert.True(displayClassTypes.Any())
             For Each displayClassType In displayClassTypes
                 Dim displayClassName = displayClassType.Name
-                Assert.True(displayClassName.StartsWith(StringConstants.DisplayClassPrefix))
+                Assert.True(displayClassName.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal))
                 For Each displayClassMethod In displayClassType.GetMembers().OfType(Of MethodSymbol)().Where(AddressOf IsLambda)
                     Dim lambdaMethodName = String.Format("M.{0}.{1}", displayClassName, displayClassMethod.Name)
                     Dim context = CreateMethodContext(runtime, lambdaMethodName)
@@ -759,7 +761,7 @@ End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C._Lambda$__2-1")
+            Dim context = CreateMethodContext(runtime, "C._Lambda$__2-0")
 
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
@@ -924,7 +926,7 @@ End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "Derived._Lambda$__2-1")
+            Dim context = CreateMethodContext(runtime, "Derived._Lambda$__2-0")
 
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
@@ -1127,7 +1129,7 @@ End Class
                 source,
                 Function(m) m.Name = "M" AndAlso isDesiredOverload(m),
                 Function(originalType)
-                    Dim stateMachineType = originalType.GetMembers().OfType(Of NamedTypeSymbol).Single(Function(t) t.Name.StartsWith(StringConstants.StateMachineTypeNamePrefix))
+                    Dim stateMachineType = originalType.GetMembers().OfType(Of NamedTypeSymbol).Single(Function(t) t.Name.StartsWith(StringConstants.StateMachineTypeNamePrefix, StringComparison.Ordinal))
                     Return stateMachineType.GetMember(Of MethodSymbol)("MoveNext")
                 End Function)
         End Sub
@@ -1137,7 +1139,7 @@ End Class
                 source,
                 isDesiredOverload,
                 Function(originalType)
-                    Dim displayClass As NamedTypeSymbol = originalType.GetMembers().OfType(Of NamedTypeSymbol).Single(Function(t) t.Name.StartsWith(StringConstants.DisplayClassPrefix))
+                    Dim displayClass As NamedTypeSymbol = originalType.GetMembers().OfType(Of NamedTypeSymbol).Single(Function(t) t.Name.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal))
                     Return displayClass.GetMembers().OfType(Of MethodSymbol).Single(AddressOf IsLambda)
                 End Function)
         End Sub

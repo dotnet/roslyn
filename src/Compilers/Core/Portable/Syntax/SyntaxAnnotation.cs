@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// A SynatxAnnotation is used to annotate syntax elements with additional information. 
+    /// A SyntaxAnnotation is used to annotate syntax elements with additional information. 
     /// 
     /// Since syntax elements are immutable, annotating them requires creating new instances of them
     /// with the annotations attached.
@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis
         private static long s_nextId;
 
         // use a value identity instead of object identity so a deserialized instance matches the original instance.
-        public string Kind { get; private set; }
-        public string Data { get; private set; }
+        public string Kind { get; }
+        public string Data { get; }
 
         public SyntaxAnnotation()
         {

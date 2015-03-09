@@ -1,4 +1,6 @@
-﻿Imports System.Collections.Immutable
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -24,20 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
             syntax As VisualBasicSyntaxNode,
-            isLValue As Boolean) As BoundExpression
+            isLValue As Boolean,
+            diagnostics As DiagnosticBag) As BoundExpression
 
-            Dim method = container.GetOrAddSynthesizedMethod(
-                ExpressionCompilerConstants.GetReturnValueMethodName,
-                Function(c, n, s)
-                    Dim parameterType = compilation.GetSpecialType(SpecialType.System_Int32)
-                    Dim returnType = compilation.GetSpecialType(SpecialType.System_Object)
-                    Return New PlaceholderMethodSymbol(
-                        c,
-                        s,
-                        n,
-                        returnType,
-                        Function(m) ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSymbol(m, parameterType, ordinal:=0, isByRef:=False)))
-                End Function)
+            Dim method = GetIntrinsicMethod(compilation, ExpressionCompilerConstants.GetReturnValueMethodName)
             Dim argument As New BoundLiteral(
                 syntax,
                 Microsoft.CodeAnalysis.ConstantValue.Create(_index),
@@ -51,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 constantValueOpt:=Nothing,
                 suppressObjectClone:=False,
                 type:=method.ReturnType)
-            Return ConvertToLocalType(compilation, [call], Type)
+            Return ConvertToLocalType(compilation, [call], Type, diagnostics)
         End Function
 
     End Class

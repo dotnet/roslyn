@@ -1,4 +1,6 @@
-﻿Imports System.Collections.Immutable
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.Cci
@@ -18,12 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private ReadOnly _syntax As VisualBasicSyntaxNode
         Private ReadOnly _typeParameters As ImmutableArray(Of TypeParameterSymbol)
         Private ReadOnly _methods As ImmutableArray(Of MethodSymbol)
-
-        Private _lazySynthesizedMethods As Dictionary(Of String, PlaceholderMethodSymbol)
-
-#If DEBUG Then
-        Private _sealed As Boolean
-#End If
 
         Friend Sub New(
             container As NamespaceSymbol,
@@ -109,18 +105,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return SpecializedCollections.EmptyEnumerable(Of FieldSymbol)()
         End Function
 
-        Friend Overrides Iterator Function GetMethodsToEmit() As IEnumerable(Of MethodSymbol)
-            For Each method In _methods
-                Yield method
-            Next
-#If DEBUG Then
-            _sealed = True
-#End If
-            If _lazySynthesizedMethods IsNot Nothing Then
-                For Each method In _lazySynthesizedMethods.Values
-                    Yield method
-                Next
-            End If
+        Friend Overrides Function GetMethodsToEmit() As IEnumerable(Of MethodSymbol)
+            Return _methods
         End Function
 
         Friend Overrides Function GetInterfacesToEmit() As IEnumerable(Of NamedTypeSymbol)
@@ -359,26 +345,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeSymbol
             Throw ExceptionUtilities.Unreachable
-        End Function
-
-        Friend Delegate Function CreateSynthesizedMethod(container As EENamedTypeSymbol, methodName As String, syntax As VisualBasicSyntaxNode) As PlaceholderMethodSymbol
-
-        ' Not thread-safe
-        Friend Function GetOrAddSynthesizedMethod(methodName As String, factory As CreateSynthesizedMethod) As PlaceholderMethodSymbol
-#If DEBUG Then
-            Debug.Assert(Not _sealed)
-#End If
-            If _lazySynthesizedMethods Is Nothing Then
-                _lazySynthesizedMethods = New Dictionary(Of String, PlaceholderMethodSymbol)()
-            End If
-            Dim method As PlaceholderMethodSymbol = Nothing
-            If Not _lazySynthesizedMethods.TryGetValue(methodName, method) Then
-                method = factory(Me, methodName, _syntax)
-                Debug.Assert(method IsNot Nothing)
-                Debug.Assert(method.Name = methodName)
-                _lazySynthesizedMethods.Add(methodName, method)
-            End If
-            Return method
         End Function
 
         <Conditional("DEBUG")>

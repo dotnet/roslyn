@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         public static NodeOperations Empty = new NodeOperations();
 
-        public Task<List<IndentBlockOperation>> IndentBlockOperationTask { get; private set; }
-        public Task<List<SuppressOperation>> SuppressOperationTask { get; private set; }
-        public Task<List<AlignTokensOperation>> AlignmentOperationTask { get; private set; }
-        public Task<List<AnchorIndentationOperation>> AnchorIndentationOperationsTask { get; private set; }
+        public Task<List<IndentBlockOperation>> IndentBlockOperationTask { get; }
+        public Task<List<SuppressOperation>> SuppressOperationTask { get; }
+        public Task<List<AlignTokensOperation>> AlignmentOperationTask { get; }
+        public Task<List<AnchorIndentationOperation>> AnchorIndentationOperationsTask { get; }
 
         public NodeOperations(Task<List<IndentBlockOperation>> indentBlockOperationTask, Task<List<SuppressOperation>> suppressOperationTask, Task<List<AnchorIndentationOperation>> anchorIndentationOperationsTask, Task<List<AlignTokensOperation>> alignmentOperationTask)
         {

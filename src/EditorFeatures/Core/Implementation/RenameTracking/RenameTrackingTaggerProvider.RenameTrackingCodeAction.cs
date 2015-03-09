@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
@@ -60,7 +61,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                             return Task.FromResult(SpecializedCollections.SingletonEnumerable(committerOperation as CodeActionOperation));
                         }
 
-                        Debug.Assert(false, "RenameTracking codefix invoked on a document with a StateMachine which cannot invoke rename.");
+                        // The rename tracking could be dismissed while a codefix is still cached
+                        // in the lightbulb. If this happens, do not perform the rename requested
+                        // and instead let the user know their fix will not be applied. 
+                        _document.Project.Solution.Workspace.Services.GetService<INotificationService>()
+                            ?.SendNotification(EditorFeaturesResources.TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable, severity: NotificationSeverity.Error);
+                        return SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
                     }
                 }
 

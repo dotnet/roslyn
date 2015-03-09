@@ -1468,7 +1468,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 lambdaBinders = ImmutableArray.Create(Of Binder)(outerKeyBinder, innerKeyBinder)
             End If
 
-
             Dim joinSelectorLambda As New BoundQueryLambda(joinSelectorSyntax,
                                                            joinSelectorLambdaSymbol,
                                                            joinSelectorRangeVariables,

@@ -846,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.MustBeInvocableIfMember;
             }
 
-            if (!IsInMethodBody)
+            if (!IsInMethodBody && this.EnclosingNameofArgument == null)
             {
                 Debug.Assert((options & LookupOptions.NamespacesOrTypesOnly) == 0);
                 options |= LookupOptions.MustNotBeMethodTypeParameter;
@@ -1052,7 +1052,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Local:
                     {
                         var localSymbol = (LocalSymbol)symbol;
-                        var constantValueOpt = localSymbol.IsConst ? localSymbol.GetConstantValue(node, this.LocalInProgress, diagnostics) : null;
+                        var constantValueOpt = localSymbol.IsConst && this.EnclosingNameofArgument == null
+                            ? localSymbol.GetConstantValue(node, this.LocalInProgress, diagnostics) : null;
                         TypeSymbol type;
 
                         Location localSymbolLocation = localSymbol.Locations[0];
@@ -1277,7 +1278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (currentType.IsEqualToOrDerivedFrom(member.ContainingType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
             {
                 bool hasErrors = false;
-                if (!IsNameofArgument(node))
+                if (EnclosingNameofArgument != node)
                 {
                     if (InFieldInitializer && !currentType.IsScriptClass)
                     {
@@ -2686,7 +2687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         ((ConstructorInitializerSyntax)initializerArgumentListOpt.Parent).ThisOrBaseKeyword.GetLocation(),
                                         constructor);
 
-                        hasErrors = true; //will prevent recursive constructor from being emitted
+                        hasErrors = true; // prevent recursive constructor from being emitted
                     }
                     else if (resultMember.HasUnsafeParameter())
                     {
@@ -4594,7 +4595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Error(diagnostics, ErrorCode.ERR_BadSKunknown, boundLeft.Syntax, leftType, MessageID.IDS_SK_TYVAR.Localize());
                                 return BadExpression(node, LookupResultKind.NotAValue, boundLeft);
                             }
-                            else if (this.IsNameofArgument(node))
+                            else if (this.EnclosingNameofArgument == node)
                             {
                                 // Support selecing an extension method from a type name in nameof(.)
                                 return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, diagnostics);
@@ -5244,7 +5245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ConstantValue constantValueOpt = null;
 
-            if (fieldSymbol.IsConst)
+            if (fieldSymbol.IsConst && this.EnclosingNameofArgument == null)
             {
                 constantValueOpt = fieldSymbol.GetConstantValue(this.ConstantFieldsInProgress, this.IsEarlyAttributeBinder);
                 if (constantValueOpt == ConstantValue.Unset)
@@ -5386,7 +5387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (instanceReceiver == false && !IsNameofArgument(node))
+                if (instanceReceiver == false && EnclosingNameofArgument != node)
                 {
                     Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, symbol);
                     resultKind = LookupResultKind.StaticInstanceMismatch;
@@ -6306,10 +6307,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // access cannot be a pointer
             if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerType())
             {
-                // Assume result type of the access is void when result value isn't used and cannot be made nullable.
-                // We are not doing this for types that can be made nullable to still allow expression evaluator to 
-                // to get the value.
-                bool resultIsNotUsed = false;
+                // Result type of the access is void when result value cannot be made nullable.
+                // For improved diagnostics we detect the cases where the value will be used and produce a
+                // more specific (though not technically correct) diagnostic here:
+                // "Error CS0023: Operator '?' cannot be applied to operand of type 'T'"
+                bool resultIsUsed = true;
                 CSharpSyntaxNode parent = node.Parent;
 
                 if (parent != null)
@@ -6317,37 +6319,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (parent.Kind())
                     {
                         case SyntaxKind.ExpressionStatement:
-                            resultIsNotUsed = ((ExpressionStatementSyntax)parent).Expression == node;
+                            resultIsUsed = ((ExpressionStatementSyntax)parent).Expression != node;
                             break;
 
                         case SyntaxKind.SimpleLambdaExpression:
-                            resultIsNotUsed = (((SimpleLambdaExpressionSyntax)parent).Body == node) && ContainingMethodOrLambdaReturnsVoid();
+                            resultIsUsed = (((SimpleLambdaExpressionSyntax)parent).Body != node) || ContainingMethodOrLambdaRequiresValue();
                             break;
 
                         case SyntaxKind.ParenthesizedLambdaExpression:
-                            resultIsNotUsed = (((ParenthesizedLambdaExpressionSyntax)parent).Body == node) && ContainingMethodOrLambdaReturnsVoid();
+                            resultIsUsed = (((ParenthesizedLambdaExpressionSyntax)parent).Body != node) || ContainingMethodOrLambdaRequiresValue();
                             break;
 
                         case SyntaxKind.ArrowExpressionClause:
-                            resultIsNotUsed = (((ArrowExpressionClauseSyntax)parent).Expression == node) && ContainingMethodOrLambdaReturnsVoid();
+                            resultIsUsed = (((ArrowExpressionClauseSyntax)parent).Expression != node) || ContainingMethodOrLambdaRequiresValue();
                             break;
 
                         case SyntaxKind.ForStatement:
                             // Incrementors and Initializers doesn't have to produce a value
                             var loop = (ForStatementSyntax)parent;
-                            resultIsNotUsed = loop.Incrementors.Contains(node) || loop.Initializers.Contains(node);
+                            resultIsUsed = !loop.Incrementors.Contains(node) && !loop.Initializers.Contains(node);
                             break;
                     }
                 }
 
-                if (resultIsNotUsed)
-                {
-                    accessType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
-                }
-                else
+                if (resultIsUsed)
                 {
                     return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
                 }
+
+                accessType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
             }
 
             // if access has value type, the type of the conditional access is nullable of that
@@ -6359,10 +6359,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConditionalAccess(node, receiver, access, accessType);
         }
 
-        private bool ContainingMethodOrLambdaReturnsVoid()
+        private bool ContainingMethodOrLambdaRequiresValue()
         {
-            Symbol containingMember = ContainingMemberOrLambda;
-            return (object)containingMember != null && containingMember.Kind == SymbolKind.Method && ((MethodSymbol)containingMember).ReturnsVoid;
+            var containingMethod = ContainingMemberOrLambda as MethodSymbol;
+            return
+                (object)containingMethod == null ||
+                    !containingMethod.ReturnsVoid &&
+                    !containingMethod.IsTaskReturningAsync(this.Compilation);
         }
 
         private BoundConditionalAccess GenerateBadConditionalAccessNodeError(ConditionalAccessExpressionSyntax node, BoundExpression receiver, BoundExpression access, DiagnosticBag diagnostics)

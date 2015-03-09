@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Notification
             _done = false;
         }
 
-        public string Operation { get; private set; }
+        public string Operation { get; }
 
         public void Done()
         {

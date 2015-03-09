@@ -10101,29 +10101,6 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
         }
 
         [Fact]
-        public void CS0568ERR_StructsCantContainDefaultConstructor01()
-        {
-            var text = @"namespace NS
-{
-    public struct S1
-    {
-        public S1() {}
-
-        struct S2<T>
-        {
-            S2() { }
-        }
-    }
-}
-";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterlessStructCtorsMustBePublic, Line = 9, Column = 13 });
-
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
-        }
-
-        [Fact]
         public void CS0569ERR_CantOverrideBogusMethod()
         {
             var source1 =
@@ -10207,7 +10184,7 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
         }
 
         [Fact]
-        public void InstanceCtorInsTructPre60()
+        public void CS0568ERR_StructsCantContainDefaultConstructor01()
         {
             var text = @"namespace x
 {
@@ -10224,12 +10201,12 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
 ";
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
             comp.VerifyDiagnostics(
-    // (5,16): error CS8026: Feature 'struct instance parameterless constructors' is not available in C# 5.  Please use language version 6 or greater.
+    // (5,16): error CS0568: Structs cannot contain explicit parameterless constructors
     //         public S1() {}
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "S1").WithArguments("struct instance parameterless constructors", "6").WithLocation(5, 16),
-    // (9,13): error CS8075: Parameterless instance constructors in structs must be public
+    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S1").WithLocation(5, 16),
+    // (9,13): error CS0568: Structs cannot contain explicit parameterless constructors
     //             S2() { }
-    Diagnostic(ErrorCode.ERR_ParameterlessStructCtorsMustBePublic, "S2").WithLocation(9, 13)
+    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S2").WithLocation(9, 13)
    );
         }
 
@@ -12462,8 +12439,30 @@ static class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlib(text);
 
+            // these diagnostics correspond to those produced by the native compiler.
+            comp.VerifyDiagnostics(
+                // (9,11): error CS0039: Cannot convert type 'int' to 'C' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
+                //         M(1 as C);
+                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "1 as C").WithArguments("int", "C").WithLocation(9, 11),
+                // (10,11): error CS0039: Cannot convert type 'string' to 'C' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
+                //         M("a" as C);
+                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, @"""a"" as C").WithArguments("string", "C").WithLocation(10, 11),
+                // (14,11): warning CS0184: The given expression is never of the provided ('C') type
+                //         M(null is C);         // legal in native, warns
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "null is C").WithArguments("C").WithLocation(14, 11),
+                // (15,11): warning CS0184: The given expression is never of the provided ('C') type
+                //         M(1 is C);            // legal in native, warns
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "1 is C").WithArguments("C").WithLocation(15, 11),
+                // (16,11): warning CS0184: The given expression is never of the provided ('C') type
+                //         M("a" is C);        // legal in native, warns
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, @"""a"" is C").WithArguments("C").WithLocation(16, 11)
+                );
+
+            // in strict mode we also diagnose "is" and "as" operators with a static type.
+            comp = comp.WithOptions(comp.Options.WithFeatures(new string[] { "strict" }.ToImmutableArray()));
+            comp.VerifyDiagnostics(
                 // In the native compiler these three produce no errors.
 
                 Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "o as C").WithArguments("C"),
@@ -12487,7 +12486,8 @@ static class C
 
                 Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "null is C").WithArguments("C"),
                 Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "1 is C").WithArguments("C"),
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "\"a\" is C").WithArguments("C"));
+                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "\"a\" is C").WithArguments("C")
+                );
         }
 
         [Fact]
@@ -12528,21 +12528,26 @@ static class S
 }";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (10,11): error CS0718: 'S': static types cannot be used as type arguments
+                //         I<S> i = null;
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "S").WithArguments("S").WithLocation(10, 11),
                 // (11,11): error CS0718: 'S': static types cannot be used as type arguments
+                //         C<S> c = null;
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "S").WithArguments("S").WithLocation(11, 11),
                 // (12,11): error CS0718: 'S': static types cannot be used as type arguments
+                //         C<S>.M();
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "S").WithArguments("S").WithLocation(12, 11),
                 // (13,9): error CS0718: 'S': static types cannot be used as type arguments
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "S").WithArguments("S").WithLocation(13, 11),
+                //         M<S>();
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "M<S>").WithArguments("S").WithLocation(13, 9),
                 // (14,29): error CS0718: 'S': static types cannot be used as type arguments
+                //         object o = typeof(I<S>);
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "S").WithArguments("S").WithLocation(14, 29),
                 // (10,14): warning CS0219: The variable 'i' is assigned but its value is never used
                 //         I<S> i = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i"),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(10, 14),
                 // (11,14): warning CS0219: The variable 'c' is assigned but its value is never used
                 //         C<S> c = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c")
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(11, 14)
                 );
         }
 
@@ -17163,8 +17168,8 @@ public class B : A
     Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "B").WithArguments("B.B()").WithLocation(8, 17)
                                 );
 
-            Assert.True(verifier.TestData.Methods.Keys.Any(n => n.StartsWith("A..ctor")));
-            Assert.False(verifier.TestData.Methods.Keys.Any(n => n.StartsWith("B..ctor"))); // Haven't tried to emit it
+            Assert.True(verifier.TestData.Methods.Keys.Any(n => n.StartsWith("A..ctor", StringComparison.Ordinal)));
+            Assert.False(verifier.TestData.Methods.Keys.Any(n => n.StartsWith("B..ctor", StringComparison.Ordinal))); // Haven't tried to emit it
         }
 
         [WorkItem(1084682, "DevDiv"), WorkItem(1036359, "DevDiv"), WorkItem(386, "CodePlex")]
@@ -19089,6 +19094,48 @@ public class Test
             var comp4 = CreateCompilationWithMscorlib(source3, new[] { comp2.EmitToImageReference() }, options: TestOptions.ReleaseDll);
 
             comp4.GetDiagnostics().Verify(expected);
+        }
+
+        [Fact, WorkItem(345, "https://github.com/dotnet/roslyn")]
+        public void InferredStaticTypeArgument()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        M(default(C));
+    }
+    public static void M<T>(T t)
+    {
+    }
+}
+
+static class C
+{
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,9): error CS0718: 'C': static types cannot be used as type arguments
+                //         M(default(C));
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "M").WithArguments("C").WithLocation(5, 9)
+                );
+        }
+
+        [Fact, WorkItem(511, "https://github.com/dotnet/roslyn")]
+        public void StaticTypeArgumentOfDynamicInvocation()
+        {
+            var source =
+@"static class S {}
+class C
+{
+    static void M()
+    {
+        dynamic d1 = 123;
+        d1.N<S>(); // The dev11 compiler does not diagnose this
+    }
+    static void Main() {}
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
     }
 }

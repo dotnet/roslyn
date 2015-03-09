@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -20,13 +21,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function GetText(Optional cancellationToken As CancellationToken = Nothing) As SourceText
-                Return SourceText.From(String.Empty)
+                Return SourceText.From(String.Empty, Encoding.UTF8)
             End Function
 
             Public Overrides Function TryGetText(ByRef text As SourceText) As Boolean
-                text = SourceText.From(String.Empty)
+                text = SourceText.From(String.Empty, Encoding.UTF8)
                 Return True
             End Function
+
+            Public Overrides ReadOnly Property Encoding As Encoding
+                Get
+                    Return Encoding.UTF8
+                End Get
+            End Property
 
             Public Overrides ReadOnly Property Length As Integer
                 Get

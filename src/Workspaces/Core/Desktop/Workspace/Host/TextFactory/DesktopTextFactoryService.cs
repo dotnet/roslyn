@@ -17,5 +17,12 @@ namespace Microsoft.CodeAnalysis.Host
             cancellationToken.ThrowIfCancellationRequested();
             return EncodedStringText.Create(stream, defaultEncoding);
         }
+
+        public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return SourceText.From(reader.ReadToEnd(), encoding);
+        }
     }
 }
+

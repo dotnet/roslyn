@@ -40,7 +40,7 @@ namespace Roslyn.Test.Utilities
         private const string NamedSpanStartString = "{|";
         private const string NamedSpanEndString = "|}";
 
-        private static readonly Regex NamedSpanStartRegex = new Regex(@"\{\| ([-_.A-Za-z0-9]+) \:",
+        private static readonly Regex s_namedSpanStartRegex = new Regex(@"\{\| ([-_.A-Za-z0-9]+) \:",
             RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace);
 
         private static void Parse(string input, out string output, out int? position, out IDictionary<string, IList<TextSpan>> spans)
@@ -70,7 +70,7 @@ namespace Roslyn.Test.Utilities
                 AddMatch(input, SpanEndString, currentIndexInInput, matches);
                 AddMatch(input, NamedSpanEndString, currentIndexInInput, matches);
 
-                var namedSpanStartMatch = NamedSpanStartRegex.Match(input, currentIndexInInput);
+                var namedSpanStartMatch = s_namedSpanStartRegex.Match(input, currentIndexInInput);
                 if (namedSpanStartMatch.Success)
                 {
                     matches.Add(Tuple.Create(namedSpanStartMatch.Index, namedSpanStartMatch.Value));
@@ -201,7 +201,7 @@ namespace Roslyn.Test.Utilities
 
         private static void AddMatch(string input, string value, int currentIndex, List<Tuple<int, string>> matches)
         {
-            var index = input.IndexOf(value, currentIndex);
+            var index = input.IndexOf(value, currentIndex, StringComparison.Ordinal);
             if (index >= 0)
             {
                 matches.Add(Tuple.Create(index, value));

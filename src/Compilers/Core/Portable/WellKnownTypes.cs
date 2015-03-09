@@ -496,14 +496,41 @@ namespace Microsoft.CodeAnalysis
 
         static WellKnownTypes()
         {
+            AssertEnumAndTableInSync();
+
             for (int i = 0; i < s_metadataNames.Length; i++)
             {
                 var name = s_metadataNames[i];
                 var typeId = (WellKnownType)(i + WellKnownType.First);
+                s_nameToTypeIdMap.Add(name, typeId);
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private static void AssertEnumAndTableInSync()
+        {
+            for (int i = 0; i < s_metadataNames.Length; i++)
+            {
+                var name = s_metadataNames[i];
+                var typeId = (WellKnownType)(i + WellKnownType.First);
+
+                string typeIdName;
+                if (typeId == WellKnownType.First)
+                {
+                    typeIdName = "System.Math";
+                }
+                else if (typeId == WellKnownType.Last)
+                {
+                    typeIdName = "System.IFormatProvider";
+                }
+                else
+                {
+                    typeIdName = typeId.ToString().Replace("__", "+").Replace('_', '.');
+                }
+
                 Debug.Assert(name == "Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl"
                           || name.IndexOf('`') > 0 // a generic type
-                          || name == (typeId.ToString() == "First" ? "System.Math" : typeId.ToString().Replace("__", "+").Replace('_', '.')));
-                s_nameToTypeIdMap.Add(name, typeId);
+                          || name == typeIdName);
             }
         }
 

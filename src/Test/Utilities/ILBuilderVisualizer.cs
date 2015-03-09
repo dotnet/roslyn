@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias PDB;
 
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,21 +17,21 @@ namespace Roslyn.Test.Utilities
 {
     internal sealed class ILBuilderVisualizer : ILVisualizer
     {
-        private readonly ITokenDeferral tokenDeferral;
+        private readonly ITokenDeferral _tokenDeferral;
 
         public ILBuilderVisualizer(ITokenDeferral tokenDeferral)
         {
-            this.tokenDeferral = tokenDeferral;
+            _tokenDeferral = tokenDeferral;
         }
 
         public override string VisualizeUserString(uint token)
         {
-            return "\"" + tokenDeferral.GetStringFromToken(token) + "\"";
+            return "\"" + _tokenDeferral.GetStringFromToken(token) + "\"";
         }
 
         public override string VisualizeSymbol(uint token)
         {
-            Cci.IReference reference = tokenDeferral.GetReferenceFromToken(token);
+            Cci.IReference reference = _tokenDeferral.GetReferenceFromToken(token);
             ISymbol symbol = reference as ISymbol;
             return string.Format("\"{0}\"", symbol == null ? (object)reference : symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat));
         }

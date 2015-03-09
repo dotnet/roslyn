@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var text = CreateSourceText(HelloWorld);
             Assert.Throws(typeof(IndexOutOfRangeException), () => text[-1]);
             Assert.Throws(typeof(IndexOutOfRangeException), () => text[HelloWorld.Length]);
-            for(int i = HelloWorld.Length - 1; i >= 0; i--)
+            for (int i = HelloWorld.Length - 1; i >= 0; i--)
             {
                 Assert.Equal(HelloWorld[i], text[i]);
             }
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             const int destOffset = 10;
             char[] buffer = new char[HelloWorld.Length + destOffset];
-            
+
             // Copy the entire text to a non-zero offset in the destination
             text.CopyTo(0, buffer, destOffset, text.Length);
 
@@ -109,7 +111,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     }
                 }
 
-                var text = CreateSourceText(stream);
+                var text = SourceText.From(stream);
+                Assert.IsType(typeof(LargeEncodedText), text);
 
                 char[] buffer = new char[HelloWorld.Length];
                 for (int start = 0; start < text.Length; start += HelloWorld.Length)
@@ -118,6 +121,197 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     Assert.Equal(HelloWorld, new string(buffer));
                 }
             }
+        }
+
+        private static void CheckEqualLine(TextLine first, TextLine second)
+        {
+            Assert.Equal(first, second);
+#if false
+            // We do not guarantee either identity or Equals!
+            Assert.Equal(first.Extent, second.Extent);
+            Assert.Equal(first.ExtentIncludingLineBreak, second.ExtentIncludingLineBreak);
+#endif
+        }
+
+        private static void CheckNotEqualLine(TextLine first, TextLine second)
+        {
+            Assert.NotEqual(first, second);
+#if false
+            Assert.NotEqual(first, second);
+            Assert.NotEqual(first.Extent, second.Extent);
+            Assert.NotEqual(first.ExtentIncludingLineBreak, second.ExtentIncludingLineBreak);
+#endif
+        }
+
+        private static void CheckLine(SourceText text, int lineNumber, int start, int length, int newlineLength, string lineText)
+        {
+            var textLine = text.Lines[lineNumber];
+
+            Assert.Equal(start, textLine.Start);
+            Assert.Equal(start + length, textLine.End);
+            Assert.Equal(start + length + newlineLength, textLine.EndIncludingLineBreak);
+            Assert.Equal(start, textLine.Span.Start);
+            Assert.Equal(length, textLine.Span.Length);
+            Assert.Equal(start, textLine.SpanIncludingLineBreak.Start);
+            Assert.Equal(length + newlineLength, textLine.SpanIncludingLineBreak.Length);
+            Assert.Equal(lineNumber, textLine.LineNumber);
+            Assert.Equal(lineText, textLine.ToString());
+            Assert.Equal(text.ToString().Substring(start, length), textLine.ToString());
+
+            CheckEqualLine(textLine, text.Lines[lineNumber]);
+            for (int p = textLine.Start; p < textLine.EndIncludingLineBreak; ++p)
+            {
+                CheckEqualLine(textLine, text.Lines.GetLineFromPosition(p));
+                Assert.Equal(lineNumber, text.Lines.IndexOf(p));
+                Assert.Equal(lineNumber, text.Lines.GetLinePosition(p).Line);
+                Assert.Equal(p - start, text.Lines.GetLinePosition(p).Character);
+            }
+
+            if (start != 0)
+            {
+                CheckNotEqualLine(textLine, text.Lines.GetLineFromPosition(start - 1));
+                Assert.Equal(lineNumber - 1, text.Lines.IndexOf(start - 1));
+                Assert.Equal(lineNumber - 1, text.Lines.GetLinePosition(start - 1).Line);
+            }
+
+            int nextPosition = start + length + newlineLength;
+            if (nextPosition < text.Length)
+            {
+                CheckNotEqualLine(textLine, text.Lines.GetLineFromPosition(nextPosition));
+                Assert.Equal(lineNumber + 1, text.Lines.IndexOf(nextPosition));
+                Assert.Equal(lineNumber + 1, text.Lines.GetLinePosition(nextPosition).Line);
+            }
+        }
+
+        [Fact]
+        public void NewLines1()
+        {
+            var data = CreateSourceText("foo" + Environment.NewLine + " bar");
+            Assert.Equal(2, data.Lines.Count);
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "foo");
+            CheckLine(data, lineNumber: 1, start: 5, length: 4, newlineLength: 0, lineText: " bar");
+        }
+
+        [Fact]
+        public void NewLines2()
+        {
+            var text =
+@"foo
+bar
+baz";
+            var data = CreateSourceText(text);
+            Assert.Equal(3, data.Lines.Count);
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "foo");
+            CheckLine(data, lineNumber: 1, start: 5, length: 3, newlineLength: 2, lineText: "bar");
+            CheckLine(data, lineNumber: 2, start: 10, length: 3, newlineLength: 0, lineText: "baz");
+        }
+
+        [Fact]
+        public void NewLines3()
+        {
+            var data = CreateSourceText("foo\r\nbar");
+            Assert.Equal(2, data.Lines.Count);
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "foo");
+            CheckLine(data, lineNumber: 1, start: 5, length: 3, newlineLength: 0, lineText: "bar");
+        }
+
+        [Fact]
+        public void NewLines4()
+        {
+            var data = CreateSourceText("foo\n\rbar\u2028");
+            Assert.Equal(4, data.Lines.Count);
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 1, lineText: "foo");
+            CheckLine(data, lineNumber: 1, start: 4, length: 0, newlineLength: 1, lineText: "");
+            CheckLine(data, lineNumber: 2, start: 5, length: 3, newlineLength: 1, lineText: "bar");
+            CheckLine(data, lineNumber: 3, start: 9, length: 0, newlineLength: 0, lineText: "");
+        }
+
+        [Fact]
+        public void NewLines5()
+        {
+            // Trailing CR
+            var data = CreateSourceText("foo\r");
+            Assert.Equal(2, data.Lines.Count);
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 1, lineText: "foo");
+            CheckLine(data, lineNumber: 1, start: 4, length: 0, newlineLength: 0, lineText: "");
+        }
+
+        [Fact]
+        public void NewLines6()
+        {
+            // Trailing CR+LF
+            var data = CreateSourceText("foo\r\n");
+            Assert.Equal(2, data.Lines.Count);
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "foo");
+            CheckLine(data, lineNumber: 1, start: 5, length: 0, newlineLength: 0, lineText: "");
+        }
+
+        [Fact]
+        public void NewLines7()
+        {
+            // Consecutive CR
+            var data = CreateSourceText("foo\r\rbar");
+            Assert.Equal(3, data.Lines.Count);
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 1, lineText: "foo");
+            CheckLine(data, lineNumber: 1, start: 4, length: 0, newlineLength: 1, lineText: "");
+            CheckLine(data, lineNumber: 2, start: 5, length: 3, newlineLength: 0, lineText: "bar");
+        }
+
+        [Fact]
+        public void NewLines8()
+        {
+            // Mix CR with CR+LF
+            const string cr = "\r";
+            const string crLf = "\r\n";
+            var data = CreateSourceText("foo" + cr + crLf + cr + "bar");
+            Assert.Equal(4, data.Lines.Count);
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 1, lineText: "foo");
+            CheckLine(data, lineNumber: 1, start: 4, length: 0, newlineLength: 2, lineText: "");
+            CheckLine(data, lineNumber: 2, start: 6, length: 0, newlineLength: 1, lineText: "");
+            CheckLine(data, lineNumber: 3, start: 7, length: 3, newlineLength: 0, lineText: "bar");
+        }
+
+        [Fact]
+        public void NewLines9()
+        {
+            // Mix CR with CR+LF
+            const string cr = "\r";
+            const string crLf = "\r\n";
+            const string lf = "\n";
+            var data = CreateSourceText("foo" + cr + crLf + lf + "bar");
+            Assert.Equal(4, data.Lines.Count);
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 1, lineText: "foo");
+            CheckLine(data, lineNumber: 1, start: 4, length: 0, newlineLength: 2, lineText: "");
+            CheckLine(data, lineNumber: 2, start: 6, length: 0, newlineLength: 1, lineText: "");
+            CheckLine(data, lineNumber: 3, start: 7, length: 3, newlineLength: 0, lineText: "bar");
+        }
+
+        [Fact]
+        public void Empty()
+        {
+            var data = CreateSourceText("");
+            Assert.Equal(1, data.Lines.Count);
+            CheckLine(data, lineNumber: 0, start: 0, length: 0, newlineLength: 0, lineText: "");
+        }
+
+        [Fact]
+        public void LinesGetText1()
+        {
+            var text =
+@"foo
+bar baz";
+            var data = CreateSourceText(text);
+            Assert.Equal(2, data.Lines.Count);
+            Assert.Equal("foo", data.Lines[0].ToString());
+            Assert.Equal("bar baz", data.Lines[1].ToString());
+        }
+
+        [Fact]
+        public void LinesGetText2()
+        {
+            var text = "foo";
+            var data = CreateSourceText(text);
+            Assert.Equal("foo", data.Lines[0].ToString());
         }
     }
 }

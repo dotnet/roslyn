@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     {
         protected class Node
         {
-            internal T Value { get; private set; }
+            internal T Value { get; }
 
             internal Node Left { get; private set; }
             internal Node Right { get; private set; }

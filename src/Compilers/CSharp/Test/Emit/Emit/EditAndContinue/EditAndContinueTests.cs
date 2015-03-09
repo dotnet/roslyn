@@ -2436,7 +2436,7 @@ class C
             {
                 var reader0 = md0.MetadataReader;
                 var typeNames = new[] { reader0 }.GetStrings(reader0.GetTypeDefNames());
-                Assert.NotNull(typeNames.FirstOrDefault(n => n.StartsWith("<PrivateImplementationDetails>")));
+                Assert.NotNull(typeNames.FirstOrDefault(n => n.StartsWith("<PrivateImplementationDetails>", StringComparison.Ordinal)));
             }
 
             var methodData0 = testData0.GetMethodData("C.M");
@@ -3775,7 +3775,6 @@ class C
         /// Reuse existing anonymous types.
         /// </summary>
         [WorkItem(825903, "DevDiv")]
-        [Fact]
         public void AnonymousTypes()
         {
             var source0 =

@@ -20,7 +20,7 @@ namespace Roslyn.Test.Utilities
 
                 if ((path = item as string) != null)
                 {
-                    var kind = (string.Equals(Path.GetExtension(path), ".netmodule", StringComparison.OrdinalIgnoreCase)) ? 
+                    var kind = (string.Equals(Path.GetExtension(path), ".netmodule", StringComparison.OrdinalIgnoreCase)) ?
                         MetadataImageKind.Module : MetadataImageKind.Assembly;
 
                     yield return MetadataReference.CreateFromFile(path, new MetadataReferenceProperties(kind));

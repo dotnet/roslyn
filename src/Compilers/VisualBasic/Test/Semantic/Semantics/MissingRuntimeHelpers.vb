@@ -87,7 +87,7 @@ End Namespace
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, New MetadataReference() {})
 
-            CompilationUtils.AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC35000: Requested operation is not available because the runtime library function 'System.DateTime.New' is not defined.
     Dim Da as Date = Nothing
@@ -126,7 +126,6 @@ BC35000: Requested operation is not available because the runtime library functi
     Test(CInt([Do]))
          ~~~~~~~~~~
 </expected>)
-
         End Sub
 
         <Fact>
@@ -162,7 +161,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef)
 
-            CompilationUtils.AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Operators.CompareString' is not defined.
     Test(St > St)

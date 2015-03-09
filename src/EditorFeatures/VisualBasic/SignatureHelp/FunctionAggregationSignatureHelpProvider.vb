@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                 method, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 False,
-                method.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, cancellationToken),
+                method.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(method, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(method, semanticModel, position),
@@ -145,16 +145,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                    Not delegateInvokeMethod.ReturnsVoid Then
 
                     Dim parts = New List(Of SymbolDisplayPart)
-                    parts.Add(Text("<expression>"))
+                    parts.Add(Text(Expression1))
                     parts.Add(Space())
                     parts.Add(Keyword(SyntaxKind.AsKeyword))
                     parts.Add(Space())
                     parts.AddRange(delegateInvokeMethod.ReturnType.ToMinimalDisplayParts(semanticModel, position))
 
                     Dim sigHelpParameter = New SignatureHelpParameter(
-                        "<expression>",
+                        Expression1,
                         parameter.IsOptional,
-                        parameter.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, cancellationToken),
+                        parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                         parts)
 
                     Return SpecializedCollections.SingletonEnumerable(sigHelpParameter)

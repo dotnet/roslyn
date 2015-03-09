@@ -1400,14 +1400,14 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
             }
-            catch (Exception e) when(e is UnsupportedSignatureContent || e is BadImageFormatException)
+            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
             {
                 positionalArgs = SpecializedCollections.EmptyArray<TypedConstant>();
                 namedArgs = SpecializedCollections.EmptyArray<KeyValuePair<String, TypedConstant>>();
             }
 
             return false;
-            }
+        }
 
         internal bool GetCustomAttribute(CustomAttributeHandle handle, out TypeSymbol attributeClass, out MethodSymbol attributeCtor)
         {
@@ -1535,7 +1535,7 @@ namespace Microsoft.CodeAnalysis
                     throw new UnsupportedSignatureContent();
                 }
             }
-            catch (Exception e) when(e is UnsupportedSignatureContent || e is BadImageFormatException)
+            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
             {
                 for (; paramIndex <= paramCount; paramIndex++)
                 {
@@ -1550,7 +1550,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return paramInfo;
-            }
+        }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         private static void GetSignatureCountsOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int parameterCount, out int typeParameterCount)
@@ -1936,12 +1936,9 @@ namespace Microsoft.CodeAnalysis
             return new TypedConstant(type, kind, value);
         }
 
-        private readonly static object s_boxedTrue = true;
-        private readonly static object s_boxedFalse = false;
-
         private TypedConstant CreateTypedConstant(TypeSymbol type, TypedConstantKind kind, bool value)
         {
-            return CreateTypedConstant(type, kind, value ? s_boxedTrue : s_boxedFalse);
+            return CreateTypedConstant(type, kind, Boxes.Box(value));
         }
 
         /// <summary>

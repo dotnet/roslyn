@@ -1,9 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -14,7 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
     internal partial class PreviewUpdater
     {
-        private class PreviewDialogWorkspace : PreviewWorkspace
+        // internal for testing
+        internal class PreviewDialogWorkspace : PreviewWorkspace
         {
             public PreviewDialogWorkspace(Solution solution) : base(solution)
             {
@@ -24,14 +21,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             {
             }
 
-            public void CloseDocument(DocumentId id, SourceText text)
+            public void CloseDocument(TextDocument document, SourceText text)
             {
-                OnDocumentClosed(id, new PreviewTextLoader(text));
+                if (document is Document)
+                {
+                    OnDocumentClosed(document.Id, new PreviewTextLoader(text));
+                }
+                else
+                {
+                    OnAdditionalDocumentClosed(document.Id, new PreviewTextLoader(text));
+                }
+            }
+
+            public void OpenDocument(TextDocument document)
+            {
+                if (document is Document)
+                {
+                    OpenDocument(document.Id);
+                }
+                else
+                {
+                    OpenAdditionalDocument(document.Id);
+                }
             }
 
             protected override void ApplyDocumentTextChanged(DocumentId id, SourceText text)
             {
                 OnDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
+            }
+
+            protected override void ApplyAdditionalDocumentTextChanged(DocumentId id, SourceText text)
+            {
+                OnAdditionalDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
             }
 
             private class PreviewTextLoader : TextLoader

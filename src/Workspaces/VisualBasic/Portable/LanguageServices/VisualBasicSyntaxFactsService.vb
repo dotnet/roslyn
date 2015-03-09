@@ -880,8 +880,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     name = moduleDecl.ModuleStatement.Identifier.ValueText
                     typeParameterList = moduleDecl.ModuleStatement.TypeParameterList
                 Case SyntaxKind.NamespaceBlock
-                    Return GetNodeName(CType(node, NamespaceBlockSyntax).NamespaceStatement.Name, includeTypeParameters:=False)
-                    typeParameterList = Nothing
+                    Dim nameSyntax = CType(node, NamespaceBlockSyntax).NamespaceStatement.Name
+                    If nameSyntax.Kind() = SyntaxKind.GlobalName Then
+                        Return Nothing
+                    Else
+                        Return GetNodeName(nameSyntax, includeTypeParameters:=False)
+                    End If
                 Case SyntaxKind.QualifiedName
                     Dim qualified = CType(node, QualifiedNameSyntax)
                     If qualified.Left.Kind() = SyntaxKind.GlobalName Then

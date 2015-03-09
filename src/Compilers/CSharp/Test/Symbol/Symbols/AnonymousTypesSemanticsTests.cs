@@ -959,11 +959,11 @@ public class Program
 
         private static IEnumerable<int> FindAll(string source, string what)
         {
-            int index = source.IndexOf(what);
+            int index = source.IndexOf(what, StringComparison.Ordinal);
             while (index >= 0)
             {
                 yield return index;
-                index = source.IndexOf(what, index + 1);
+                index = source.IndexOf(what, index + 1, StringComparison.Ordinal);
             }
         }
 
@@ -974,12 +974,12 @@ public class Program
             {
                 if (!string.IsNullOrWhiteSpace(line))
                 {
-                    if (!line.Trim().StartsWith("//"))
+                    if (!line.Trim().StartsWith("//", StringComparison.Ordinal))
                     {
-                        for (int index = line.IndexOf("new "); index >= 0;)
+                        for (int index = line.IndexOf("new ", StringComparison.Ordinal); index >= 0;)
                         {
                             cnt++;
-                            index = line.IndexOf("new ", index + 1);
+                            index = line.IndexOf("new ", index + 1, StringComparison.Ordinal);
                         }
                     }
                 }

@@ -1,4 +1,6 @@
-﻿extern alias PDB;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+extern alias PDB;
 // Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (!map.TryGetValue(qualifiedMethodName + "()", out methodData))
                 {
                     // now try to match single method with any parameter list
-                    var keys = map.Keys.Where(k => k.StartsWith(qualifiedMethodName + "("));
+                    var keys = map.Keys.Where(k => k.StartsWith(qualifiedMethodName + "(", StringComparison.Ordinal));
                     if (keys.Count() == 1)
                     {
                         methodData = map[keys.First()];
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         internal static void VerifyIL(
-            this CompilationTestData.MethodData method, 
+            this CompilationTestData.MethodData method,
             string expectedIL,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // TODO:
             return new EditAndContinueMethodDebugInformation(
                 0,
-                Cci.CustomDebugInfoWriter.GetLocalSlotDebugInfos(methodData.ILBuilder.LocalSlotManager.LocalsInOrder()),
+                Cci.MetadataWriter.GetLocalSlotDebugInfos(methodData.ILBuilder.LocalSlotManager.LocalsInOrder()),
                 closures: ImmutableArray<ClosureDebugInfo>.Empty,
                 lambdas: ImmutableArray<LambdaDebugInfo>.Empty);
         }
@@ -276,11 +278,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         // Swallow any exceptions as the cleanup should not necessarily block the test
                     }
-
                 }
             }
-
         }
     }
-
 }

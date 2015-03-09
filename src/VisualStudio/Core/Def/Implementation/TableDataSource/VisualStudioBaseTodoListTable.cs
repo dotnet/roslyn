@@ -50,6 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _identifier = identifier;
                 _todoListProvider = todoListProvider;
                 _todoListProvider.TodoListUpdated += OnTodoListUpdated;
+
+                ConnectToSolutionCrawlerService(_workspace);
             }
 
             public override string DisplayName
@@ -91,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return;
                 }
 
-                OnDataAddedOrChanged(e.DocumentId, e);
+                OnDataAddedOrChanged(e.DocumentId, e, e.TaskItems.Length);
             }
 
             protected override AbstractTableEntriesFactory<TodoTaskItem> CreateTableEntryFactory(object key, TaskListEventArgs data)

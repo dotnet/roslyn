@@ -103,11 +103,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 startLength = 2
             End If
 
-            Dim lastChar = If(token.IsKind(SyntaxKind.CharacterLiteralToken), "'"c, """"c)
+            Dim lastChar = If(token.IsKind(SyntaxKind.CharacterLiteralToken), "'", """")
             Return _
                 position = token.Span.End AndAlso
                  (token.Span.Length = startLength OrElse
-                  (token.Span.Length > startLength AndAlso Not token.ToString().EndsWith(lastChar)))
+                  (token.Span.Length > startLength AndAlso Not token.ToString().EndsWith(lastChar, StringComparison.Ordinal)))
         End Function
 
         <Extension()>

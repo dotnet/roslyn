@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     internal class InteractiveWorkspace : Workspace
     {
-        private readonly IWorkCoordinatorRegistrationService _workCoordinatorService;
+        private readonly ISolutionCrawlerRegistrationService _registrationService;
 
-        internal InteractiveEvaluator Engine { get; private set; }
+        internal InteractiveEvaluator Engine { get; }
         private SourceTextContainer _openTextContainer;
         private DocumentId _openDocumentId;
 
@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             this.Engine = engine;
 
             // register work coordinator for this workspace
-            _workCoordinatorService = this.Services.GetService<IWorkCoordinatorRegistrationService>();
-            _workCoordinatorService.Register(this);
+            _registrationService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
+            _registrationService.Register(this);
         }
 
         protected override void Dispose(bool finalize)
         {
             // workspace is going away. unregister this workspace from work coordinator
-            _workCoordinatorService.Unregister(this, blockingShutdown: true);
+            _registrationService.Unregister(this, blockingShutdown: true);
 
             base.Dispose(finalize);
         }

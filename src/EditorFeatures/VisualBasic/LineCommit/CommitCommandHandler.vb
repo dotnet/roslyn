@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim oldCaretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer)
 
             ' When we call nextHandler(), it's possible that some other feature might try to move the caret
-            ' or something similar. We want this "outer" commit to be the real one, so start supressing any
+            ' or something similar. We want this "outer" commit to be the real one, so start suppressing any
             ' re-entrant commits.
             Dim suppressionHandle = bufferManager.BeginSuppressingCommits()
 

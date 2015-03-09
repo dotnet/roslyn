@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -78,6 +79,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.NotSame(text, text2);
             Assert.Equal(text.ToString(), text2.ToString());
+            Assert.Equal(text.Encoding, text2.Encoding);
 
             temporaryStorage.Dispose();
         }
@@ -322,6 +324,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     }
                 }
             }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestTemporaryStorageTextEncoding()
+        {
+            var textFactory = new TextFactoryService();
+            var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
+
+            // test normal string
+            var text = SourceText.From(new string(' ', 4096) + "public class A {}", Encoding.ASCII);
+            TestTemporaryStorage(service, text);
+
+            // test empty string
+            text = SourceText.From(string.Empty);
+            TestTemporaryStorage(service, text);
+
+            // test large string
+            text = SourceText.From(new string(' ', 1024 * 1024) + "public class A {}");
+            TestTemporaryStorage(service, text);
         }
     }
 }

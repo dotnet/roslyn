@@ -3381,7 +3381,7 @@ End Module
             Dim reference = compVerifier.Compilation.EmitToImageReference()
             Dim comp = VisualBasicCompilation.Create("Name", references:={reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
-            Dim pid = DirectCast(comp.GlobalNamespace.GetMembers().Where(Function(s) s.Name.StartsWith("<PrivateImplementationDetails>")).Single(), NamedTypeSymbol)
+            Dim pid = DirectCast(comp.GlobalNamespace.GetMembers().Single(Function(s) s.Name.StartsWith("<PrivateImplementationDetails>", StringComparison.Ordinal)), NamedTypeSymbol)
 
             Dim member = pid.GetMembers(PrivateImplementationDetails.SynthesizedStringHashFunctionName).Single()
             Assert.Equal(Accessibility.Friend, member.DeclaredAccessibility)
@@ -4531,7 +4531,7 @@ Class C
 End Class
 ]]></file>
 </compilation>, OutputKind.DynamicallyLinkedLibrary).
-            VerifyDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "number").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareString"))
+            VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "number").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareString"))
         End Sub
 
         <WorkItem(529047, "DevDiv")>

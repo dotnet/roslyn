@@ -128,6 +128,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Public Sub ReplaceSnapshot(oldSnapshot As ITableEntriesSnapshot, newSnapshot As ITableEntriesSnapshot) Implements ITableDataSink.ReplaceSnapshot
                     Throw New NotImplementedException()
                 End Sub
+
+                Public Property IsStable As Boolean Implements ITableDataSink.IsStable
+                    Get
+                        Throw New NotImplementedException()
+                    End Get
+                    Set(value As Boolean)
+                        Throw New NotImplementedException()
+                    End Set
+                End Property
             End Class
         End Class
     End Class

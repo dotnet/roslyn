@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _compilation = compilation;
             _root = root;
             _memberSymbol = memberSymbol;
-            this.RootBinder = rootBinder.WithAdditionalFlags(BinderFlags.SemanticModel);
+            this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
             _parentSemanticModelOpt = parentSemanticModelOpt;
             _speculatedPosition = speculatedPosition;
         }
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = new TypeofBinder(typeOfArgument, binder);
             }
 
-            return binder.WithAdditionalFlags(BinderFlags.SemanticModel);
+            return binder.WithAdditionalFlags(GetSemanticModelBinderFlags());
         }
 
         private static Binder AdjustBinderForPositionWithinStatement(int position, Binder binder, StatementSyntax stmt)
@@ -1223,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(result != null);
-            return result.WithAdditionalFlags(BinderFlags.SemanticModel);
+            return result.WithAdditionalFlags(GetSemanticModelBinderFlags());
         }
 
         /// <remarks>

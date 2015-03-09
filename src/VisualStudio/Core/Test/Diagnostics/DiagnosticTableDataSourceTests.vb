@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.IO
 Imports System.Threading
 Imports System.Windows
 Imports System.Windows.Controls
@@ -118,7 +119,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.OriginalFilePath, filename)
+                Assert.Equal(Path.Combine(item.OriginalFilePath, item.OriginalFilePath), filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -156,7 +157,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim factory = TryCast(sink.Entries.First(), AbstractTableEntriesFactory(Of DiagnosticData))
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
-                factory.OnUpdated()
+                factory.OnUpdated(snapshot1.Count)
+
                 Dim snapshot2 = factory.GetCurrentSnapshot()
 
                 Assert.Equal(snapshot1.VersionNumber + 1, snapshot2.VersionNumber)
@@ -165,7 +167,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.OriginalFilePath, filename)
+                Assert.Equal(Path.Combine(item.OriginalFilePath, item.OriginalFilePath), filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -514,8 +516,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Function
 
         Private Function CreateItem(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing) As DiagnosticData
-            Return New DiagnosticData("test", "test", "test", "test format", severity, severity, True, 0, ImmutableArray(Of String).Empty,
-                                      workspace, projectId, documentId, TextSpan.FromBounds(0, 10), Nothing, 10, 10, 10, 10, "test", 20, 20, 20, 20,
+            Return New DiagnosticData("test", "test", "test", "test format", severity, True, 0,
+                                      workspace, projectId, documentId, TextSpan.FromBounds(0, 10), "test", 20, 20, 20, 20,
                                       title:="Title", description:="Description", helpLink:=link)
         End Function
 

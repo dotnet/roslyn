@@ -60,16 +60,16 @@ class Class
         [|int x = 0;|]
     }
 }",
-        @"
+        $@"
 class Class
-{
+{{
     void Method()
-    {
-#pragma warning disable CS0219 // Variable is assigned but its value is never used
+    {{
+#pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
         int x = 0;
-#pragma warning restore CS0219 // Variable is assigned but its value is never used
-    }
-}");
+#pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
+    }}
+}}");
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -85,17 +85,17 @@ class Class
               + 1;|]
     }
 }",
-        @"
+        $@"
 class Class
-{
+{{
     void Method()
-    {
-#pragma warning disable CS0219 // Variable is assigned but its value is never used
+    {{
+#pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
         int x = 0
-#pragma warning restore CS0219 // Variable is assigned but its value is never used
+#pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
               + 1;
-    }
-}");
+    }}
+}}");
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -112,19 +112,19 @@ class Class
         /* End comment next line */
     }
 }",
-        @"
+        $@"
 class Class
-{
+{{
     void Method()
-    {
-#pragma warning disable CS0219 // Variable is assigned but its value is never used
+    {{
+#pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
                               // Start comment previous line
                               /* Start comment same line */
         int x = 0; // End comment same line
-#pragma warning restore CS0219 // Variable is assigned but its value is never used
+#pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
                               /* End comment next line */
-    }
-}");
+    }}
+}}");
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -139,16 +139,16 @@ class Class
         [|int x = 0, y = 0;|]
     }
 }",
-        @"
+        $@"
 class Class
-{
+{{
     void Method()
-    {
-#pragma warning disable CS0219 // Variable is assigned but its value is never used
+    {{
+#pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
         int x = 0, y = 0;
-#pragma warning restore CS0219 // Variable is assigned but its value is never used
-    }
-}");
+#pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
+    }}
+}}");
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -164,17 +164,17 @@ class Class
         [|int x = ""0"";|]
     }
 }",
-        @"
+        $@"
 class Class
-{
+{{
     void Method()
-    {
+    {{
         return 0;
-#pragma warning disable CS0162 // Unreachable code detected
+#pragma warning disable CS0162 // {CSharpResources.WRN_UnreachableCode_Title}
         int x = ""0"";
-#pragma warning restore CS0162 // Unreachable code detected
-    }
-}");
+#pragma warning restore CS0162 // {CSharpResources.WRN_UnreachableCode_Title}
+    }}
+}}");
                 }
 
                 [WorkItem(956453)]
@@ -183,9 +183,9 @@ class Class
                 {
                     Test(
         @"class Class { void Method() { [|int x = 0;|] } }",
-        @"#pragma warning disable CS0219 // Variable is assigned but its value is never used
-class Class { void Method() { int x = 0; } }
-#pragma warning restore CS0219 // Variable is assigned but its value is never used");
+        $@"#pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
+class Class {{ void Method() {{ int x = 0; }} }}
+#pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}");
                 }
 
                 [WorkItem(970129)]
@@ -204,19 +204,19 @@ class Program
       [|Session|]
     }
 }",
-        @"
+        $@"
 using System;
 [Obsolete]
-class Session { }
+class Session {{ }}
 class Program
-{
+{{
     static void Main()
-    {
-#pragma warning disable CS0612 // Type or member is obsolete
+    {{
+#pragma warning disable CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
         Session
-#pragma warning restore CS0612 // Type or member is obsolete
-    }
-}");
+#pragma warning restore CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+    }}
+}}");
                 }
 
                 [WorkItem(1066576)]
@@ -239,23 +239,23 @@ class Class
 
 
 }",
-        @"
+        $@"
 class Class
-{
+{{
     void Method()
-    {
+    {{
 
-#pragma warning disable CS1633 // Unrecognized #pragma directive
+#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
                               // Comment
                               // Comment
 #pragma abcde
 
-    }    // Comment   
-#pragma warning restore CS1633 // Unrecognized #pragma directive
+    }}    // Comment   
+#pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
 
 
 
-}");
+}}");
                 }
 
                 [WorkItem(1066576)]
@@ -264,9 +264,9 @@ class Class
                 {
                     Test(
         @"[|#pragma abcde|]",
-        @"#pragma warning disable CS1633 // Unrecognized #pragma directive
+        $@"#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
 #pragma abcde
-#pragma warning restore CS1633 // Unrecognized #pragma directive");
+#pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}");
                 }
 
                 [WorkItem(1066576)]
@@ -275,9 +275,9 @@ class Class
                 {
                     Test(
         @"  [|#pragma abcde|]  ",
-        @"#pragma warning disable CS1633 // Unrecognized #pragma directive
+        $@"#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
 #pragma abcde  
-#pragma warning restore CS1633 // Unrecognized #pragma directive");
+#pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}");
                 }
 
                 [WorkItem(1066576)]
@@ -291,12 +291,12 @@ class Class
 class C { }
 
 ",
-        @"
+        $@"
 
-#pragma warning disable CS1633 // Unrecognized #pragma directive
+#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
 #pragma abc
-class C { }
-#pragma warning restore CS1633 // Unrecognized #pragma directive
+class C {{ }}
+#pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
 
 ");
                 }
@@ -310,12 +310,12 @@ class C { }
 [|#pragma abc|]
 class C2 { }
 class C3 { }",
-        @"class C1 { }
-#pragma warning disable CS1633 // Unrecognized #pragma directive
+        $@"class C1 {{ }}
+#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
 #pragma abc
-class C2 { }
-#pragma warning restore CS1633 // Unrecognized #pragma directive
-class C3 { }");
+class C2 {{ }}
+#pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
+class C3 {{ }}");
                 }
 
                 [WorkItem(1066576)]
@@ -704,13 +704,13 @@ using System;
         int x = 0;
     }
 }",
-            @"
+            $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""~T:Class"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:Class"")]
 
 ", isAddedDocument: true);
 
@@ -747,13 +747,13 @@ using System;
         }
     }
 }",
-            @"
+            $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""namespace"", Target = ""~N:N"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""namespace"", Target = ""~N:N"")]
 
 ", index: 1, isAddedDocument: true);
 
@@ -796,13 +796,13 @@ namespace N1
         }
     }
 }",
-            @"
+            $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""~T:N1.N2.Class"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:N1.N2.Class"")]
 
 ", isAddedDocument: true);
 
@@ -848,13 +848,13 @@ namespace N
         }
     }
 }",
-            @"
+            $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""~T:N.Generic`1.Class"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:N.Generic`1.Class"")]
 
 ", isAddedDocument: true);
 
@@ -900,13 +900,13 @@ namespace N
         }
     }
 }",
-            @"
+            $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method~System.Int32"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method~System.Int32"")]
 
 ", isAddedDocument: true);
 
@@ -957,13 +957,13 @@ namespace N
         }
     }
 }",
-            @"
+            $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method(System.Int32,System.Char@)~System.Int32"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method(System.Int32,System.Char@)~System.Int32"")]
 
 ", isAddedDocument: true);
 
@@ -1017,13 +1017,13 @@ namespace N
         }
     }
 }",
-            @"
+            $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method~System.Int32"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method~System.Int32"")]
 
 ", isAddedDocument: true);
                 }
@@ -1048,13 +1048,13 @@ namespace N
         }
     }
 }",
-            @"
+            $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method``1(``0)~System.Int32"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method``1(``0)~System.Int32"")]
 
 ", isAddedDocument: true);
 
@@ -1100,13 +1100,13 @@ namespace N
         }
     }
 }",
-            @"
+            $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""member"", Target = ""~P:N.Generic.Class.Property"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~P:N.Generic.Class.Property"")]
 
 ", isAddedDocument: true);
 
@@ -1143,13 +1143,13 @@ class Class
 {
     [|int field = 0;|]
 }",
-            @"
+            $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""member"", Target = ""~F:Class.field"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~F:Class.field"")]
 
 ", isAddedDocument: true);
 
@@ -1177,13 +1177,13 @@ class Class
 {
     int [|field = 0|], field2 = 1;
 }",
-            @"
+            $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""member"", Target = ""~F:Class.field"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~F:Class.field"")]
 
 ", isAddedDocument: true);
 
@@ -1225,13 +1225,13 @@ class Class
         remove { }
     }|]
 }",
-            @"
+            $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""member"", Target = ""~E:Class.SampleEvent"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~E:Class.SampleEvent"")]
 
 ", isAddedDocument: true);
 
@@ -1287,14 +1287,14 @@ class Class { }
     </Project>
 </Workspace>";
                     var expectedText =
-                        @"
+                        $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""Class"")]
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""~T:Class2"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:Class2"")]
 
 ";
 
@@ -1324,13 +1324,13 @@ class Class { }
     </Project>
 </Workspace>";
                     var expectedText =
-                        @"
+                        $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""~T:Class2"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:Class2"")]
 
 ";
 
@@ -1369,14 +1369,14 @@ class Class { }
     </Project>
 </Workspace>";
                     var expectedText =
-                        @"
+                        $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""Class"")]
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""~T:Class2"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:Class2"")]
 
 ";
 
@@ -1454,19 +1454,19 @@ using System;
         int x = 0;
     }
 }";
-                    var expected = @"
+                    var expected = $@"
 using System;
 
 // Some trivia
 /* More Trivia */
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]
 class Class
-{
+{{
     int Method()
-    {
+    {{
         int x = 0;
-    }
-}";
+    }}
+}}";
                     Test(initial, expected);
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
@@ -1491,20 +1491,20 @@ using System;
         int x = 0;
     }
 }";
-                    var expected = @"
+                    var expected = $@"
 using System;
 
 // Some trivia
 /* More Trivia */
 [System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]
 class Class
-{
+{{
     int Method()
-    {
+    {{
         int x = 0;
-    }
-}";
+    }}
+}}";
                     Test(initial, expected);
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
@@ -1530,21 +1530,21 @@ using System;
         int x = 0;
     }
 }";
-                    var expected = @"
+                    var expected = $@"
 using System;
 
 // Some trivia
 /* More Trivia */
 [System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]
 /* Some More Trivia */
 class Class
-{
+{{
     int Method()
-    {
+    {{
         int x = 0;
-    }
-}";
+    }}
+}}";
                     Test(initial, expected);
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
@@ -1571,23 +1571,23 @@ namespace N1
         }
     }
 }";
-                    var expected = @"
+                    var expected = $@"
 using System;
 
 namespace N1
-{
+{{
     namespace N2
-    {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"")]
+    {{
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]
         class Class
-        {
+        {{
             int Method()
-            {
+            {{
                 int x = 0;
-            }
-        }
-    }
-}";
+            }}
+        }}
+    }}
+}}";
                     Test(initial, expected);
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
@@ -1614,23 +1614,23 @@ namespace N
         }
     }
 }";
-                    var expected = @"
+                    var expected = $@"
 using System;
 
 namespace N
-{
+{{
     class Generic<T>
-    {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"")]
+    {{
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]
         class Class
-        {
+        {{
             int Method()
-            {
+            {{
                 int x = 0;
-            }
-        }
-    }
-}";
+            }}
+        }}
+    }}
+}}";
                     Test(initial, expected);
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
@@ -1657,23 +1657,23 @@ namespace N
         }
     }
 }";
-                    var expected = @"
+                    var expected = $@"
 using System;
 
 namespace N
-{
+{{
     class Generic<T>
-    {
+    {{
         class Class
-        {
-            [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"")]
+        {{
+            [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]
             int Method()
-            {
+            {{
                 int x = 0;
-            }
-        }
-    }
-}";
+            }}
+        }}
+    }}
+}}";
                     Test(initial, expected);
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.

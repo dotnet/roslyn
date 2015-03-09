@@ -1891,11 +1891,15 @@ static class S
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (6,9): error CS0718: 'S': static types cannot be used as type arguments
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "S").WithArguments("S").WithLocation(6, 16),
+                //         this.E<S>(null);
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "this.E<S>").WithArguments("S").WithLocation(6, 9),
                 // (7,16): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                //         this.E<A>(null);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 16),
                 // (8,14): error CS0305: Using the generic method 'C.E<T>()' requires 1 type arguments
-                Diagnostic(ErrorCode.ERR_BadArity, "E<int, int>").WithArguments("C.E<T>()", "method", "1").WithLocation(8, 14));
+                //         this.E<int, int>(1);
+                Diagnostic(ErrorCode.ERR_BadArity, "E<int, int>").WithArguments("C.E<T>()", "method", "1").WithLocation(8, 14)
+                );
         }
 
         [Fact]
@@ -2672,7 +2676,7 @@ class Program
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
 
-            var node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("GetHashCode")).Parent;
+            var node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("GetHashCode", StringComparison.Ordinal)).Parent;
             var symbolInfo = model.GetSymbolInfo((SimpleNameSyntax)node);
             var methodSymbol = (MethodSymbol)symbolInfo.Symbol;
             Assert.False(methodSymbol.IsFromCompilation(compilation));
@@ -2682,7 +2686,7 @@ class Program
             Assert.Equal(parameter.ContainingSymbol, methodSymbol);
 
             // Get the GenericNameSyntax node Cast<T1> for binding
-            node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("Cast<T1>")).Parent;
+            node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("Cast<T1>", StringComparison.Ordinal)).Parent;
             symbolInfo = model.GetSymbolInfo((GenericNameSyntax)node);
             methodSymbol = (MethodSymbol)symbolInfo.Symbol;
             Assert.False(methodSymbol.IsFromCompilation(compilation));

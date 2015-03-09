@@ -17,16 +17,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         private static readonly DiagnosticDescriptorComparer s_comparer = new DiagnosticDescriptorComparer();
 
-        private AnalyzerItem _item;
+        private readonly AnalyzerItem _item;
+        private readonly IAnalyzersCommandHandler _commandHandler;
         private BulkObservableCollection<DiagnosticItem> _diagnosticItems;
         private Workspace _workspace;
         private ProjectId _projectId;
         private ReportDiagnostic _generalDiagnosticOption;
         private ImmutableDictionary<string, ReportDiagnostic> _specificDiagnosticOptions;
 
-        public DiagnosticItemSource(AnalyzerItem item)
+        public DiagnosticItemSource(AnalyzerItem item, IAnalyzersCommandHandler commandHandler)
         {
             _item = item;
+            _commandHandler = commandHandler;
         }
 
         public object SourceItem
@@ -94,7 +96,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 .Select(g =>
                 {
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
-                    return new DiagnosticItem(_item, selectedDiagnostic, GetEffectiveSeverity(selectedDiagnostic.Id, _specificDiagnosticOptions, _generalDiagnosticOption, selectedDiagnostic.DefaultSeverity, selectedDiagnostic.IsEnabledByDefault));
+                    var effectiveSeverity = GetEffectiveSeverity(selectedDiagnostic.Id, _specificDiagnosticOptions, _generalDiagnosticOption, selectedDiagnostic.DefaultSeverity, selectedDiagnostic.IsEnabledByDefault);
+                    return new DiagnosticItem(_item, selectedDiagnostic, effectiveSeverity, _commandHandler.DiagnosticContextMenuController);
                 });
         }
 

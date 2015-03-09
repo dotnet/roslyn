@@ -1,4 +1,6 @@
-﻿Imports System.Collections.Immutable
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -26,7 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
             syntax As VisualBasicSyntaxNode,
-            isLValue As Boolean) As BoundExpression
+            isLValue As Boolean,
+            diagnostics As DiagnosticBag) As BoundExpression
 
             Return RewriteLocalInternal(compilation, container, syntax, Me, isLValue:=isLValue)
         End Function
@@ -48,36 +51,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             local As LocalSymbol,
             isLValue As Boolean) As BoundExpression
 
-            Dim parameterType = compilation.GetSpecialType(SpecialType.System_String)
-            Dim getValueMethod = container.GetOrAddSynthesizedMethod(
-                ExpressionCompilerConstants.GetVariableValueMethodName,
-                Function(c, n, s)
-                    Dim returnType = compilation.GetSpecialType(SpecialType.System_Object)
-                    Return New PlaceholderMethodSymbol(
-                        c,
-                        s,
-                        n,
-                        returnType,
-                        Function(m) ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSymbol(m, parameterType, ordinal:=0, isByRef:=False)))
-                End Function)
-            Dim getAddressMethod = container.GetOrAddSynthesizedMethod(
-                ExpressionCompilerConstants.GetVariableAddressMethodName,
-                Function(c, n, s)
-                    Dim returnType = compilation.GetSpecialType(SpecialType.System_Object)
-                    Return New PlaceholderMethodSymbol(
-                        c,
-                        s,
-                        n,
-                        Function(m) ImmutableArray.Create(Of TypeParameterSymbol)(New SimpleTypeParameterSymbol(m, 0, "<>T")),
-                        Function(m) m.TypeParameters(0), ' return type is <>T&
-                        Function(m) ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSymbol(m, parameterType, ordinal:=0, isByRef:=False)),
-                        returnValueIsByRef:=True)
-                End Function)
             Dim variable = New BoundPseudoVariable(
                 syntax,
                 local,
                 isLValue:=True,
-                emitExpressions:=New ObjectIdExpressions(compilation, getValueMethod, getAddressMethod),
+                emitExpressions:=New ObjectIdExpressions(compilation),
                 type:=local.Type).MakeCompilerGenerated()
             If isLValue Then
                 Return variable
@@ -89,28 +67,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Inherits PseudoVariableExpressions
 
             Private ReadOnly _compilation As VisualBasicCompilation
-            Private ReadOnly _getValueMethod As MethodSymbol
-            Private ReadOnly _getAddressMethod As MethodSymbol
 
-            Friend Sub New(
-                compilation As VisualBasicCompilation,
-                getValueMethod As MethodSymbol,
-                getAddressMethod As MethodSymbol)
-
+            Friend Sub New(compilation As VisualBasicCompilation)
                 _compilation = compilation
-                _getValueMethod = getValueMethod
-                _getAddressMethod = getAddressMethod
             End Sub
 
-            Friend Overrides Function GetValue(variable As BoundPseudoVariable) As BoundExpression
+            Friend Overrides Function GetValue(variable As BoundPseudoVariable, diagnostics As DiagnosticBag) As BoundExpression
+                Dim method = GetIntrinsicMethod(_compilation, ExpressionCompilerConstants.GetVariableValueMethodName)
                 Dim local = variable.LocalSymbol
-                Dim expr = InvokeGetMethod(_getValueMethod, variable.Syntax, local.Name)
-                Return ConvertToLocalType(_compilation, expr, local.Type)
+                Dim expr = InvokeGetMethod(method, variable.Syntax, local.Name)
+                Return ConvertToLocalType(_compilation, expr, local.Type, diagnostics)
             End Function
 
             Friend Overrides Function GetAddress(variable As BoundPseudoVariable) As BoundExpression
+                Dim method = GetIntrinsicMethod(_compilation, ExpressionCompilerConstants.GetVariableAddressMethodName)
+                ' Currently the MetadataDecoder does not support byref return types
+                ' so the return type of GetVariableAddress(Of T)(name As String)
+                ' is an error type. Since the method is only used for emit, an
+                ' updated placeholder method is used instead.
+                Debug.Assert(method.ReturnType.TypeKind = TypeKind.Error) ' If byref return types are supported in the future, use method as is.
+                method = New PlaceholderMethodSymbol(
+                    method.ContainingType,
+                    method.Name,
+                    Function(m) method.TypeParameters.SelectAsArray(Function(t) DirectCast(New SimpleTypeParameterSymbol(m, t.Ordinal, t.Name), TypeParameterSymbol)),
+                    Function(m) m.TypeParameters(0), ' return type is <>T&
+                    Function(m) method.Parameters.SelectAsArray(Function(p) DirectCast(New SynthesizedParameterSymbol(m, p.Type, p.Ordinal, p.IsByRef, p.Name), ParameterSymbol)))
                 Dim local = variable.LocalSymbol
-                Return InvokeGetMethod(_getAddressMethod.Construct(local.Type), variable.Syntax, local.Name)
+                Return InvokeGetMethod(method.Construct(local.Type), variable.Syntax, local.Name)
             End Function
 
             Private Shared Function InvokeGetMethod(method As MethodSymbol, syntax As VisualBasicSyntaxNode, name As String) As BoundExpression

@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim PrevEvaluatingConditionCompilationExpressions As Boolean = m_EvaluatingConditionCompilationExpression
             m_EvaluatingConditionCompilationExpression = True
 
-            Dim Expr = ParseExpression()
+            Dim Expr = ParseExpressionCore()
 
             m_EvaluatingConditionCompilationExpression = PrevEvaluatingConditionCompilationExpressions
 

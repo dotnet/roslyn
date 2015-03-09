@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV1;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -33,23 +34,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {
                     new DiagnosticData(
                         "test1", "Test", "test1 message", "test1 message format",
-                        DiagnosticSeverity.Info, DiagnosticSeverity.Info, false, 1, ImmutableArray<string>.Empty,
+                        DiagnosticSeverity.Info, DiagnosticSeverity.Info, false, 1,
+                        ImmutableArray<string>.Empty, ImmutableDictionary<string, string>.Empty,
                         workspace, document.Project.Id, document.Id,
                         new TextSpan(10, 20), "mappedFile1", 10, 10, 20, 20, "originalFile1", 30, 30, 40, 40),
                     new DiagnosticData(
                         "test2", "Test", "test2 message", "test2 message format",
-                        DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 0, ImmutableArray.Create<string>("Test2"),
+                        DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 0,
+                        ImmutableArray.Create<string>("Test2"), ImmutableDictionary<string, string>.Empty.Add("propertyKey", "propertyValue"),
                         workspace, document.Project.Id, document.Id,
                         new TextSpan(30, 40), "mappedFile2", 50, 50, 60, 60, "originalFile2", 70, 70, 80, 80, title: "test2 title", description: "test2 description", helpLink: "http://test2link"),
                     new DiagnosticData(
                         "test3", "Test", "test3 message", "test3 message format",
-                        DiagnosticSeverity.Error, DiagnosticSeverity.Warning, true, 2, ImmutableArray.Create<string>("Test3", "Test3_2"),
+                        DiagnosticSeverity.Error, DiagnosticSeverity.Warning, true, 2,
+                        ImmutableArray.Create<string>("Test3", "Test3_2"), ImmutableDictionary<string, string>.Empty.Add("p1Key", "p1Value").Add("p2Key", "p2Value"),
                         workspace, document.Project.Id, document.Id,
                         new TextSpan(50, 60), "mappedFile3", 90, 90, 100, 100, "originalFile3", 110, 110, 120, 120, title: "test3 title", description: "test3 description", helpLink: "http://test3link"),
                 };
 
-                var original = new DiagnosticAnalyzerService.AnalysisData(version1, version2, diagnostics.ToImmutableArray());
-                var state = new DiagnosticAnalyzerService.DiagnosticIncrementalAnalyzer.DiagnosticState("Test", VersionStamp.Default, LanguageNames.CSharp);
+                var original = new DiagnosticIncrementalAnalyzer.AnalysisData(version1, version2, diagnostics.ToImmutableArray());
+                var state = new DiagnosticIncrementalAnalyzer.DiagnosticState("Test", VersionStamp.Default, LanguageNames.CSharp);
                 state.PersistAsync(document, original, CancellationToken.None).Wait();
 
                 var recovered = state.TryGetExistingDataAsync(document, CancellationToken.None).Result;
@@ -75,20 +79,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {
                     new DiagnosticData(
                         "test1", "Test", "test1 message", "test1 message format",
-                        DiagnosticSeverity.Info, DiagnosticSeverity.Info, false, 1, ImmutableArray<string>.Empty,
+                        DiagnosticSeverity.Info, DiagnosticSeverity.Info, false, 1,
+                        ImmutableArray<string>.Empty, ImmutableDictionary<string, string>.Empty,
                         workspace, document.Project.Id, description: "test1 description", helpLink: "http://test1link"),
                     new DiagnosticData(
                         "test2", "Test", "test2 message", "test2 message format",
-                        DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 0, ImmutableArray.Create<string>("Test2"),
+                        DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 0,
+                        ImmutableArray.Create<string>("Test2"), ImmutableDictionary<string, string>.Empty.Add("p1Key", "p2Value"),
                         workspace, document.Project.Id),
                     new DiagnosticData(
                         "test3", "Test", "test3 message", "test3 message format",
-                        DiagnosticSeverity.Error, DiagnosticSeverity.Warning, true, 2, ImmutableArray.Create<string>("Test3", "Test3_2"),
+                        DiagnosticSeverity.Error, DiagnosticSeverity.Warning, true, 2,
+                        ImmutableArray.Create<string>("Test3", "Test3_2"), ImmutableDictionary<string, string>.Empty.Add("p2Key", "p2Value").Add("p1Key", "p1Value"),
                         workspace, document.Project.Id, description: "test3 description", helpLink: "http://test3link"),
                 };
 
-                var original = new DiagnosticAnalyzerService.AnalysisData(version1, version2, diagnostics.ToImmutableArray());
-                var state = new DiagnosticAnalyzerService.DiagnosticIncrementalAnalyzer.DiagnosticState("Test", VersionStamp.Default, LanguageNames.CSharp);
+                var original = new DiagnosticIncrementalAnalyzer.AnalysisData(version1, version2, diagnostics.ToImmutableArray());
+                var state = new DiagnosticIncrementalAnalyzer.DiagnosticState("Test", VersionStamp.Default, LanguageNames.CSharp);
                 state.PersistAsync(document.Project, original, CancellationToken.None).Wait();
 
                 var recovered = state.TryGetExistingDataAsync(document.Project, CancellationToken.None).Result;
@@ -120,6 +127,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {
                     Assert.Equal(items1[i].CustomTags[j], items2[i].CustomTags[j]);
                 }
+
+                Assert.Equal(items1[i].Properties.Count, items2[i].Properties.Count);
+                Assert.True(items1[i].Properties.SetEquals(items2[i].Properties));
 
                 Assert.Equal(items1[i].Workspace, items2[i].Workspace);
                 Assert.Equal(items1[i].ProjectId, items2[i].ProjectId);

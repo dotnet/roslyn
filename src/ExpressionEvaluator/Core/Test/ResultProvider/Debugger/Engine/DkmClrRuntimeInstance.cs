@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
 
     internal delegate DkmClrModuleInstance GetModuleDelegate(DkmClrRuntimeInstance runtime, Assembly assembly);
 
-    public class DkmClrRuntimeInstance
+    public class DkmClrRuntimeInstance : DkmRuntimeInstance
     {
         internal static readonly DkmClrRuntimeInstance DefaultRuntime = new DkmClrRuntimeInstance(new Assembly[0]);
 
@@ -30,7 +30,9 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         internal DkmClrRuntimeInstance(
             Assembly[] assemblies,
             GetModuleDelegate getModule = null,
-            GetMemberValueDelegate getMemberValue = null)
+            GetMemberValueDelegate getMemberValue = null,
+            bool enableNativeDebugging = false)
+            : base(enableNativeDebugging)
         {
             if (getModule == null)
             {

@@ -4,8 +4,8 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.ExceptionServices;
+using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Type type = null,
             string alias = null,
             DkmEvaluationResultFlags evalFlags = DkmEvaluationResultFlags.None,
-            DkmClrValueFlags valueFlags = DkmClrValueFlags.None,
-            DkmInspectionContext inspectionContext = null)
+            DkmClrValueFlags valueFlags = DkmClrValueFlags.None)
         {
             if (type == null)
             {
@@ -47,8 +46,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 alias,
                 _formatter,
                 evalFlags,
-                valueFlags,
-                inspectionContext);
+                valueFlags);
         }
 
         internal DkmClrValue CreateDkmClrValue(
@@ -57,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             string alias = null,
             DkmEvaluationResultFlags evalFlags = DkmEvaluationResultFlags.None,
             DkmClrValueFlags valueFlags = DkmClrValueFlags.None,
-            DkmInspectionContext inspectionContext = null)
+            bool isComObject = false)
         {
             return new DkmClrValue(
                 value,
@@ -67,13 +65,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 _formatter,
                 evalFlags,
                 valueFlags,
-                inspectionContext);
+                isComObject);
         }
 
         internal DkmClrValue CreateErrorValue(
             DkmClrType type,
-            string message,
-            DkmInspectionContext inspectionContext = null)
+            string message)
         {
             return new DkmClrValue(
                 value: null,
@@ -82,8 +79,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 alias: null,
                 formatter: _formatter,
                 evalFlags: DkmEvaluationResultFlags.None,
-                valueFlags: DkmClrValueFlags.Error,
-                inspectionContext: inspectionContext);
+                valueFlags: DkmClrValueFlags.Error);
         }
 
         #region Formatter Tests
@@ -100,11 +96,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal string FormatValue(object value, Type type, bool useHexadecimal = false)
         {
-            var clrValue = CreateDkmClrValue(
-                value,
-                type,
-                inspectionContext: CreateDkmInspectionContext(_formatter, DkmEvaluationFlags.None, radix: useHexadecimal ? 16u : 10u));
-            return clrValue.GetValueString();
+            var clrValue = CreateDkmClrValue(value, type);
+            var inspectionContext = CreateDkmInspectionContext(_formatter, DkmEvaluationFlags.None, radix: useHexadecimal ? 16u : 10u);
+            return clrValue.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers);
         }
 
         internal bool HasUnderlyingString(object value)
@@ -115,13 +109,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal bool HasUnderlyingString(object value, Type type)
         {
             var clrValue = GetValueForUnderlyingString(value, type);
-            return clrValue.HasUnderlyingString();
+            return clrValue.HasUnderlyingString(DefaultInspectionContext);
         }
 
         internal string GetUnderlyingString(object value)
         {
             var clrValue = GetValueForUnderlyingString(value, value.GetType());
-            return clrValue.GetUnderlyingString();
+            return clrValue.GetUnderlyingString(DefaultInspectionContext);
         }
 
         internal DkmClrValue GetValueForUnderlyingString(object value, Type type)
@@ -129,48 +123,72 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return CreateDkmClrValue(
                 value,
                 type,
-                evalFlags: DkmEvaluationResultFlags.RawString,
-                inspectionContext: CreateDkmInspectionContext(_formatter, DkmEvaluationFlags.None, radix: 10));
+                evalFlags: DkmEvaluationResultFlags.RawString);
         }
 
         #endregion
 
         #region ResultProvider Tests
 
-        internal DkmInspectionContext CreateDkmInspectionContext(DkmEvaluationFlags flags = DkmEvaluationFlags.None, uint radix = 10)
+        internal DkmInspectionContext CreateDkmInspectionContext(
+            DkmEvaluationFlags flags = DkmEvaluationFlags.None,
+            uint radix = 10,
+            DkmRuntimeInstance runtimeInstance = null)
         {
-            return CreateDkmInspectionContext(_formatter, flags, radix);
+            return CreateDkmInspectionContext(_formatter, flags, radix, runtimeInstance);
         }
 
-        internal static DkmInspectionContext CreateDkmInspectionContext(IDkmClrFormatter formatter, DkmEvaluationFlags flags, uint radix)
+        internal static DkmInspectionContext CreateDkmInspectionContext(
+            IDkmClrFormatter formatter,
+            DkmEvaluationFlags flags,
+            uint radix,
+            DkmRuntimeInstance runtimeInstance = null)
         {
-            return new DkmInspectionContext(formatter, flags, radix);
+            return new DkmInspectionContext(formatter, flags, radix, runtimeInstance);
         }
 
-        internal DkmEvaluationResult FormatResult(string name, DkmClrValue value, DkmClrType declaredType = null)
+        internal DkmEvaluationResult FormatResult(string name, DkmClrValue value, DkmClrType declaredType = null, DkmInspectionContext inspectionContext = null)
         {
-            return FormatResult(name, name, value, declaredType);
+            return FormatResult(name, name, value, declaredType, inspectionContext);
         }
 
-        internal DkmEvaluationResult FormatResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null)
+        internal DkmEvaluationResult FormatResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null, DkmInspectionContext inspectionContext = null)
         {
-            // TODO: IDkmClrResultProvider.GetResult should have
-            // an explicit declaredType parameter. See #1099981
-            return ((ResultProvider)_resultProvider).GetResult(value, declaredType ?? value.Type, formatSpecifiers: null, resultName: name, resultFullName: fullName);
+            DkmEvaluationResult evaluationResult = null;
+            var workList = new DkmWorkList();
+            _resultProvider.GetResult(
+                value,
+                workList,
+                declaredType: declaredType ?? value.Type,
+                inspectionContext: inspectionContext ?? DefaultInspectionContext,
+                formatSpecifiers: Formatter.NoFormatSpecifiers,
+                resultName: name,
+                resultFullName: null,
+                completionRoutine: asyncResult => evaluationResult = asyncResult.Result);
+            workList.Execute();
+            return evaluationResult;
         }
 
         internal DkmEvaluationResult[] GetChildren(DkmEvaluationResult evalResult, DkmInspectionContext inspectionContext = null)
         {
             DkmEvaluationResultEnumContext enumContext;
-            const int size = 1;
             var builder = ArrayBuilder<DkmEvaluationResult>.GetInstance();
 
-            // Request 0 children.
-            var items = GetChildren(evalResult, 0, inspectionContext, out enumContext);
-            Assert.Equal(items.Length, 0);
-            // Request >0 children.
-            items = GetChildren(evalResult, size, inspectionContext, out enumContext);
+            // Request 0-3 children.
+            int size;
+            DkmEvaluationResult[] items;
+            for (size = 0; size < 3; size++)
+            {
+                items = GetChildren(evalResult, size, inspectionContext, out enumContext);
+                var totalChildCount = enumContext.Count;
+                Assert.InRange(totalChildCount, 0, int.MaxValue);
+                var expectedSize = (size < totalChildCount) ? size : totalChildCount;
+                Assert.Equal(expectedSize, items.Length);
+            }
 
+            // Request items (increasing the size of the request with each iteration).
+            size = 1;
+            items = GetChildren(evalResult, size, inspectionContext, out enumContext);
             while (items.Length > 0)
             {
                 builder.AddRange(items);
@@ -181,6 +199,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 items = GetItems(enumContext, offset, 0);
                 Assert.Equal(items.Length, 0);
                 // Request >0 items.
+                size++;
                 items = GetItems(enumContext, offset, size);
             }
 
@@ -191,7 +210,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal DkmEvaluationResult[] GetChildren(DkmEvaluationResult evalResult, int initialRequestSize, DkmInspectionContext inspectionContext, out DkmEvaluationResultEnumContext enumContext)
         {
             DkmGetChildrenAsyncResult getChildrenResult = default(DkmGetChildrenAsyncResult);
-            _resultProvider.GetChildren(evalResult, null, initialRequestSize, inspectionContext ?? DefaultInspectionContext, r => { getChildrenResult = r; });
+            var workList = new DkmWorkList();
+            _resultProvider.GetChildren(evalResult, workList, initialRequestSize, inspectionContext ?? DefaultInspectionContext, r => { getChildrenResult = r; });
+            workList.Execute();
             var exception = getChildrenResult.Exception;
             if (exception != null)
             {
@@ -204,7 +225,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal DkmEvaluationResult[] GetItems(DkmEvaluationResultEnumContext enumContext, int startIndex, int count)
         {
             DkmEvaluationEnumAsyncResult getItemsResult = default(DkmEvaluationEnumAsyncResult);
-            _resultProvider.GetItems(enumContext, null, startIndex, count, r => { getItemsResult = r; });
+            var workList = new DkmWorkList();
+            _resultProvider.GetItems(enumContext, workList, startIndex, count, r => { getItemsResult = r; });
+            workList.Execute();
             var exception = getItemsResult.Exception;
             if (exception != null)
             {
@@ -240,6 +263,23 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 (customUIVisualizerInfo != null) ? new ReadOnlyCollection<DkmCustomUIVisualizerInfo>(customUIVisualizerInfo) : null,
                 null,
                 null);
+        }
+
+        internal static DkmIntermediateEvaluationResult EvalIntermediateResult(
+            string name,
+            string fullName,
+            string expression,
+            DkmLanguage language)
+        {
+            return DkmIntermediateEvaluationResult.Create(
+                InspectionContext: null,
+                StackFrame: null,
+                Name: name,
+                FullName: fullName,
+                Expression: expression,
+                IntermediateLanguage: language,
+                TargetRuntime: null,
+                DataItem: null);
         }
 
         internal static DkmEvaluationResult EvalFailedResult(
@@ -325,6 +365,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Assert.Equal(expected.Name, actual.Name);
             Assert.Equal(expected.FullName, actual.FullName);
             var expectedSuccess = expected as DkmSuccessEvaluationResult;
+            var expectedIntermediate = expected as DkmIntermediateEvaluationResult;
             if (expectedSuccess != null)
             {
                 var actualSuccess = (DkmSuccessEvaluationResult)actual;
@@ -338,6 +379,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     (expectedSuccess.CustomUIVisualizers == actualSuccess.CustomUIVisualizers) ||
                     (expectedSuccess.CustomUIVisualizers != null && actualSuccess.CustomUIVisualizers != null &&
                     expectedSuccess.CustomUIVisualizers.SequenceEqual(actualSuccess.CustomUIVisualizers, CustomUIVisualizerInfoComparer.Instance)));
+            }
+            else if (expectedIntermediate != null)
+            {
+                var actualIntermediate = (DkmIntermediateEvaluationResult)actual;
+                Assert.Equal(expectedIntermediate.Expression, actualIntermediate.Expression);
+                Assert.Equal(expectedIntermediate.IntermediateLanguage.Id.LanguageId, actualIntermediate.IntermediateLanguage.Id.LanguageId);
+                Assert.Equal(expectedIntermediate.IntermediateLanguage.Id.VendorId, actualIntermediate.IntermediateLanguage.Id.VendorId);
             }
             else
             {

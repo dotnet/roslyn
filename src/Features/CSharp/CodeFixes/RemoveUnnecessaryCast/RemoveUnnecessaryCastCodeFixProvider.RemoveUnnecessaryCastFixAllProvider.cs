@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
 {
@@ -15,6 +17,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
             {
                 codeActionId = null;
                 return GetCastNode(root, model, diagnostic.Location.SourceSpan, cancellationToken);
+            }
+
+            protected override bool NeedsParentFixup
+            {
+                get
+                {
+                    return true;
+                }
+            }
+
+            protected override async Task<Document> AddSimplifyAnnotationsAsync(Document document, SyntaxNode nodeToSimplify, CancellationToken cancellationToken)
+            {
+                var cast = nodeToSimplify as CastExpressionSyntax;
+                if (cast == null)
+                {
+                    return null;
+                }
+
+                return await RemoveUnnecessaryCastAsync(document, cast, cancellationToken).ConfigureAwait(false);
             }
         }
     }

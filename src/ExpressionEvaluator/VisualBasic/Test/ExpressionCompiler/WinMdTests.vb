@@ -1,4 +1,6 @@
-﻿Imports System.Collections.Immutable
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -217,7 +219,7 @@ End Class"
   // Code size       55 (0x37)
   .maxstack  2
   IL_0000:  ldstr      ""s""
-  IL_0005:  call       ""Function <>x.<>GetObjectByAlias(String) As Object""
+  IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_000a:  castclass  ""Windows.Storage.StorageFolder""
   IL_000f:  callvirt   ""Function Windows.Storage.StorageFolder.get_Attributes() As Windows.Storage.FileAttributes""
   IL_0014:  box        ""Windows.Storage.FileAttributes""
@@ -225,7 +227,7 @@ End Class"
   IL_001a:  brtrue.s   IL_0036
   IL_001c:  pop
   IL_001d:  ldstr      ""d""
-  IL_0022:  call       ""Function <>x.<>GetObjectByAlias(String) As Object""
+  IL_0022:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_0027:  unbox.any  ""Windows.Foundation.DateTime""
   IL_002c:  ldfld      ""Windows.Foundation.DateTime.UniversalTime As Long""
   IL_0031:  box        ""Long""
@@ -249,7 +251,7 @@ End Class"
             comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
             Return CreateRuntimeInstance(
                 ExpressionCompilerUtilities.GenerateUniqueName(),
-                runtimeReferences,
+                runtimeReferences.AddIntrinsicAssembly(),
                 exeBytes,
                 New SymReader(pdbBytes))
         End Function

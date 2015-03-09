@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis
             private readonly Location _location;
             private readonly IReadOnlyList<Location> _additionalLocations;
             private readonly object[] _messageArgs;
+            private readonly ImmutableDictionary<string, string> _properties;
 
             private SimpleDiagnostic(
                 DiagnosticDescriptor descriptor,
@@ -29,20 +30,27 @@ namespace Microsoft.CodeAnalysis
                 int warningLevel,
                 Location location,
                 IEnumerable<Location> additionalLocations,
-                object[] messageArgs)
+                object[] messageArgs,
+                ImmutableDictionary<string, string> properties)
             {
                 if ((warningLevel == 0 && severity != DiagnosticSeverity.Error) ||
                     (warningLevel != 0 && severity == DiagnosticSeverity.Error))
                 {
-                    throw new ArgumentException("warningLevel");
+                    throw new ArgumentException(nameof(warningLevel));
+                }
+
+                if (descriptor == null)
+                {
+                    throw new ArgumentNullException(nameof(descriptor));
                 }
 
                 _descriptor = descriptor;
                 _severity = severity;
                 _warningLevel = warningLevel;
-                _location = location;
+                _location = location ?? Location.None;
                 _additionalLocations = additionalLocations == null ? SpecializedCollections.EmptyReadOnlyList<Location>() : additionalLocations.ToImmutableArray();
                 _messageArgs = messageArgs ?? SpecializedCollections.EmptyArray<object>();
+                _properties = properties ?? ImmutableDictionary<string, string>.Empty;
             }
 
             internal static SimpleDiagnostic Create(
@@ -51,19 +59,21 @@ namespace Microsoft.CodeAnalysis
                 int warningLevel,
                 Location location,
                 IEnumerable<Location> additionalLocations,
-                object[] messageArgs)
+                object[] messageArgs,
+                ImmutableDictionary<string, string> properties)
             {
-                return new SimpleDiagnostic(descriptor, severity, warningLevel, location, additionalLocations, messageArgs);
+                return new SimpleDiagnostic(descriptor, severity, warningLevel, location, additionalLocations, messageArgs, properties);
             }
 
             internal static SimpleDiagnostic Create(string id, LocalizableString title, string category, LocalizableString message, LocalizableString description, string helpLink,
                                       DiagnosticSeverity severity, DiagnosticSeverity defaultSeverity,
                                       bool isEnabledByDefault, int warningLevel, Location location,
-                                      IEnumerable<Location> additionalLocations, IEnumerable<string> customTags)
+                                      IEnumerable<Location> additionalLocations, IEnumerable<string> customTags,
+                                      ImmutableDictionary<string, string> properties)
             {
                 var descriptor = new DiagnosticDescriptor(id, title, message,
                      category, defaultSeverity, isEnabledByDefault, description, helpLink, customTags.ToImmutableArrayOrEmpty());
-                return new SimpleDiagnostic(descriptor, severity, warningLevel, location, additionalLocations, messageArgs: null);
+                return new SimpleDiagnostic(descriptor, severity, warningLevel, location, additionalLocations, messageArgs: null, properties: properties);
             }
 
             public override DiagnosticDescriptor Descriptor
@@ -112,11 +122,16 @@ namespace Microsoft.CodeAnalysis
                 get { return _additionalLocations; }
             }
 
+            public override ImmutableDictionary<string, string> Properties
+            {
+                get { return _properties; }
+            }
+
             public override bool Equals(Diagnostic obj)
             {
                 var other = obj as SimpleDiagnostic;
                 return other != null
-                    && _descriptor == other._descriptor
+                    && _descriptor.Equals(other._descriptor)
                     && _messageArgs.SequenceEqual(other._messageArgs, (a, b) => a == b)
                     && _location == other._location
                     && _severity == other._severity
@@ -131,10 +146,9 @@ namespace Microsoft.CodeAnalysis
             public override int GetHashCode()
             {
                 return Hash.Combine(_descriptor,
-                        Hash.Combine(_messageArgs.GetHashCode(),
-                         Hash.Combine(_location.GetHashCode(),
-                          Hash.Combine(_severity.GetHashCode(), _warningLevel)
-                        )));
+                    Hash.CombineValues(_messageArgs,
+                    Hash.Combine(_warningLevel,
+                    Hash.Combine(_location, (int)_severity))));
             }
 
             internal override Diagnostic WithLocation(Location location)
@@ -146,7 +160,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (location != _location)
                 {
-                    return new SimpleDiagnostic(_descriptor, _severity, _warningLevel, location, _additionalLocations, _messageArgs);
+                    return new SimpleDiagnostic(_descriptor, _severity, _warningLevel, location, _additionalLocations, _messageArgs, _properties);
                 }
 
                 return this;
@@ -157,7 +171,7 @@ namespace Microsoft.CodeAnalysis
                 if (this.Severity != severity)
                 {
                     var warningLevel = GetDefaultWarningLevel(severity);
-                    return new SimpleDiagnostic(_descriptor, severity, warningLevel, _location, _additionalLocations, _messageArgs);
+                    return new SimpleDiagnostic(_descriptor, severity, warningLevel, _location, _additionalLocations, _messageArgs, _properties);
                 }
 
                 return this;

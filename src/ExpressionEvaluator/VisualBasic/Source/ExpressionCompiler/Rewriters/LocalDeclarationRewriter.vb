@@ -1,4 +1,6 @@
-﻿Imports System.Collections.Immutable
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -52,21 +54,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             syntax As VisualBasicSyntaxNode,
             local As LocalSymbol) As BoundStatement
 
-            Dim voidType = compilation.GetSpecialType(SpecialType.System_Void)
             Dim typeType = compilation.GetWellKnownType(WellKnownType.System_Type)
             Dim stringType = compilation.GetSpecialType(SpecialType.System_String)
 
-            ' <>CreateVariable(type As Type, name As String)
-            Dim method = container.GetOrAddSynthesizedMethod(
-                ExpressionCompilerConstants.CreateVariableMethodName,
-                Function(c, n, s) New PlaceholderMethodSymbol(
-                    c,
-                    s,
-                    n,
-                    voidType,
-                    Function(m) ImmutableArray.Create(Of ParameterSymbol)(
-                        New SynthesizedParameterSymbol(m, typeType, ordinal:=0, isByRef:=False),
-                        New SynthesizedParameterSymbol(m, stringType, ordinal:=1, isByRef:=False))))
+            ' CreateVariable(type As Type, name As String)
+            Dim method = PlaceholderLocalSymbol.GetIntrinsicMethod(compilation, ExpressionCompilerConstants.CreateVariableMethodName)
             Dim type = New BoundGetType(syntax, New BoundTypeExpression(syntax, local.Type), typeType)
             Dim name = New BoundLiteral(syntax, ConstantValue.Create(local.Name), stringType)
             Dim expr = New BoundCall(

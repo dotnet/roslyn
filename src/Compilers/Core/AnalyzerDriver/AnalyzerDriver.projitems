@@ -9,23 +9,13 @@
     <Import_RootNamespace>AnalyzerDriver</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)AnalyzerDriverHelper.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)DeclarationComputer.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)DeclarationInfo.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticAnalysisContextHelpers.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticAnalyzerAction.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticStartAnalysisScope.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)AnalyzerExecutor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AnalyzerManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DeclarationComputer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DeclarationInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticAnalysisContextHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticAnalyzerAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticStartAnalysisScope.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AnalyzerManager.AnalyzerAndOptions.cs" />
   </ItemGroup>
 </Project>

@@ -9812,7 +9812,6 @@ BC36602: 'ReadOnly' variable cannot be the target of an assignment in a lambda e
     <compilation name="CannotLiftRestrictedTypeQuery">
         <file name="a.vb">
 Imports System
-Imports System.Collections
 Imports System.Linq
 
         Module m1
@@ -9826,8 +9825,8 @@ Imports System.Linq
     </file>
     </compilation>, additionalRefs:={SystemCoreRef})
 
-            CompilationUtils.AssertTheseDiagnostics(compilation,
-    <expected>
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
 BC36598: Instance of restricted type 'ArgIterator' cannot be used in a query expression.
                 Dim q1 = From i In col Where x.GetRemainingCount > 0 Select a = 1
                                              ~

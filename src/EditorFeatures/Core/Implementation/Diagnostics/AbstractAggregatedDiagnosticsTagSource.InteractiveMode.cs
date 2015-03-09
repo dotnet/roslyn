@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 var result = new List<ITagSpan<TTag>>();
                 foreach (var tagSource in _tagSources.Values)
                 {
-                    tagSource.AppendIntersectingSpans(snapshotSpan.Start, snapshotSpan.End, introspector, result);
+                    tagSource.AppendIntersectingSpans(snapshotSpan.Start, snapshotSpan.Length, introspector, result);
                 }
 
                 return result;

@@ -7,13 +7,18 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal partial class WorkCoordinatorRegistrationService
+    internal partial class SolutionCrawlerRegistrationService
     {
         private partial class WorkCoordinator
         {
             private sealed class AsyncProjectWorkItemQueue : AsyncWorkItemQueue<ProjectId>
             {
                 private readonly Dictionary<ProjectId, WorkItem> _projectWorkQueue = new Dictionary<ProjectId, WorkItem>();
+
+                public AsyncProjectWorkItemQueue(SolutionCrawlerProgressReporter progressReporter) :
+                    base(progressReporter)
+                {
+                }
 
                 protected override int WorkItemCount_NoLock
                 {

@@ -10,17 +10,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public sealed class ProcessResult
     {
-        public int ExitCode { get; private set; }
-        public string Output { get; private set; }
-        public string Errors { get; private set; }
+        public int ExitCode { get; }
+        public string Output { get; }
+        public string Errors { get; }
 
         public ProcessResult(int exitCode, string output, string errors)
         {
             ExitCode = exitCode;
             Output = output;
             Errors = errors;
-
-
         }
 
         public override string ToString()

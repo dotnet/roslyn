@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Diagnostics;
 using Microsoft.VisualStudio.Text;
 
@@ -6,8 +8,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     internal sealed class ReplSpan
     {
         // ITrackingSpan or string
-        public object Span { get; private set; }
-        public ReplSpanKind Kind { get; private set; }
+        public object Span { get; }
+        public ReplSpanKind Kind { get; }
 
         public ReplSpan(CustomTrackingSpan span, ReplSpanKind kind)
         {

@@ -3483,10 +3483,8 @@ class A
 
         [WorkItem(1091946)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestSimpleConditionalAccess()
+        public void TestConditionalAccessWithConversion()
         {
-            // Note: The expected value here shouldnt have parentheses around args[0]. That's caused by
-            // Bug 1091936.
             Test(
             @"
 class A
@@ -3502,7 +3500,99 @@ class A
 {
     bool M(string[] args)
     {
-        return (args[0])?.Length == 0;
+        return args[0]?.Length == 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void TestSimpleConditionalAccess()
+        {
+            Test(
+            @"
+class A
+{
+    void M(string[] args)
+    {
+        var [|x|] = args.Length.ToString();
+        var y = x?.ToString();
+    }
+}
+", @"
+class A
+{
+    void M(string[] args)
+    {
+        var y = args.Length.ToString()?.ToString();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void TestConditionalAccessWithConditionalExpression()
+        {
+            Test(
+            @"
+class A
+{
+    void M(string[] args)
+    {
+        var [|x|] = args[0]?.Length ?? 10;
+        var y = x == 10 ? 10 : 4;
+    }
+}
+", @"
+class A
+{
+    void M(string[] args)
+    {
+        var y = (args[0]?.Length ?? 10) == 10 ? 10 : 4;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void TestAliasQualifiedNameIntoInterpolation()
+        {
+            Test(
+            @"
+class A
+{
+    void M()
+    {
+        var [|g|] = global::System.Guid.Empty;
+        var s = $""{g}"";
+    }
+}
+", @"
+class A
+{
+    void M()
+    {
+        var s = $""{(global::System.Guid.Empty)}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void TestConditionalExpressionIntoInterpolation()
+        {
+            Test(
+            @"
+class A
+{
+    bool M(bool b)
+    {
+        var [|x|] = b ? 19 : 23;
+        var s = $""{x}"";
+    }
+}
+", @"
+class A
+{
+    bool M(bool b)
+    {
+        var s = $""{(b ? 19 : 23)}"";
     }
 }");
         }

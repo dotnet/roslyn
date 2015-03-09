@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
             var executablebinder = new ExecutableCodeBinder(body, methodSymbol, this.RootBinder.Next); // Strip off ExecutableCodeBinder (see ctor).
-            var blockBinder = executablebinder.GetBinder(body).WithAdditionalFlags(BinderFlags.SemanticModel);
+            var blockBinder = executablebinder.GetBinder(body).WithAdditionalFlags(GetSemanticModelBinderFlags());
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, body, blockBinder, position);
             return true;
         }

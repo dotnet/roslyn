@@ -39,10 +39,11 @@ End Enum
         End Sub
 
         <Fact>
+        <WorkItem(759)>
         Public Sub AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
             Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode})
             ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptions(
-                Function(analyzer) compilation.GetAnalyzerDiagnostics({analyzer}, Nothing, DiagnosticExtensions.AlwaysCatchAnalyzerExceptions), AnalyzerDriverHelper.DiagnosticId)
+                Function(analyzer) compilation.GetAnalyzerDiagnostics({analyzer}, Nothing, logAnalyzerExceptionAsDiagnostics:=True))
         End Sub
 
         <Fact>

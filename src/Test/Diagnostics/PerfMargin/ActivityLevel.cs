@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,74 +19,74 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
     /// </summary>
     internal class ActivityLevel
     {
-        private int isActive;
-        private readonly List<ActivityLevel> children;
-        private readonly ActivityLevel parent;
+        private int _isActive;
+        private readonly List<ActivityLevel> _children;
+        private readonly ActivityLevel _parent;
 
         public ActivityLevel(string name)
         {
             this.Name = name;
-            this.children = new List<ActivityLevel>();
+            _children = new List<ActivityLevel>();
         }
 
         public ActivityLevel(string name, ActivityLevel parent, bool createChildList)
         {
             this.Name = name;
-            this.parent = parent;
-            this.parent.children.Add(this);
+            _parent = parent;
+            _parent._children.Add(this);
 
             if (createChildList)
             {
-                this.children = new List<ActivityLevel>();
+                _children = new List<ActivityLevel>();
             }
         }
 
         public event EventHandler IsActiveChanged;
 
-        public string Name { get; private set; }
+        public string Name { get; }
 
         public bool IsActive
         {
             get
             {
-                return this.isActive > 0;
+                return _isActive > 0;
             }
         }
 
         public void Start()
         {
-            var current = Interlocked.Increment(ref isActive);
+            var current = Interlocked.Increment(ref _isActive);
             if (current == 1)
             {
                 ActivityLevelChanged();
             }
 
-            if (this.parent != null)
+            if (_parent != null)
             {
-                this.parent.Start();
+                _parent.Start();
             }
         }
 
         public void Stop()
         {
-            var current = Interlocked.Decrement(ref isActive);
+            var current = Interlocked.Decrement(ref _isActive);
             if (current == 0)
             {
                 ActivityLevelChanged();
             }
 
-            if (this.parent != null)
+            if (_parent != null)
             {
-                this.parent.Stop();
+                _parent.Stop();
             }
         }
 
         internal void SortChildren()
         {
-            if (this.children != null)
+            if (_children != null)
             {
-                this.children.Sort(new Comparison<ActivityLevel>((a, b) => string.CompareOrdinal(a.Name, b.Name)));
-                foreach (var child in this.children)
+                _children.Sort(new Comparison<ActivityLevel>((a, b) => string.CompareOrdinal(a.Name, b.Name)));
+                foreach (var child in _children)
                 {
                     child.SortChildren();
                 }
@@ -102,7 +104,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
 
         public IReadOnlyCollection<ActivityLevel> Children
         {
-            get { return this.children; }
+            get { return _children; }
         }
     }
 }

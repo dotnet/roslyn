@@ -252,5 +252,129 @@ End Namespace
                     </DirectedGraph>)
             End Using
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Sub SearchForDottedName1()
+            Using testState = New ProgressionTestState(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
+                            <Document FilePath="Z:\Project.cs">
+                                class Dog { void Bark() { } }
+                         </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim outputContext = testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="D.B"), GraphContextDirection.Custom)
+
+                AssertSimplifiedGraphIs(
+                    outputContext.Graph,
+                    <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+                        <Nodes>
+                            <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
+                            <Node Id="(@3 Type=Dog Member=Bark)" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="Bark" Icon="Microsoft.VisualStudio.Method.Private" Label="Bark"/>
+                            <Node Id="(@3 Type=Dog)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Dog" Icon="Microsoft.VisualStudio.Class.Internal" Label="Dog"/>
+                        </Nodes>
+                        <Links>
+                            <Link Source="(@1 @2)" Target="(@3 Type=Dog)" Category="Contains"/>
+                            <Link Source="(@3 Type=Dog)" Target="(@3 Type=Dog Member=Bark)" Category="Contains"/>
+                        </Links>
+                        <IdentifierAliases>
+                            <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
+                            <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
+                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                        </IdentifierAliases>
+                    </DirectedGraph>)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Sub SearchForDottedName2()
+            Using testState = New ProgressionTestState(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
+                            <Document FilePath="Z:\Project.cs">
+                                class Dog { void Bark() { } }
+                         </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim outputContext = testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C.B"), GraphContextDirection.Custom)
+
+                AssertSimplifiedGraphIs(
+                    outputContext.Graph,
+                    <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+                        <Nodes/>
+                        <Links/>
+                    </DirectedGraph>)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Sub SearchForDottedName3()
+            Using testState = New ProgressionTestState(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
+                            <Document FilePath="Z:\Project.cs">
+                                namespace Animal { class Dog&lt;X&gt; { void Bark() { } } }
+                         </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim outputContext = testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="D.B"), GraphContextDirection.Custom)
+
+                AssertSimplifiedGraphIs(
+                    outputContext.Graph,
+                    <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+                        <Nodes>
+                            <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
+                            <Node Id="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1) Member=Bark)" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="Bark" Icon="Microsoft.VisualStudio.Method.Private" Label="Bark"/>
+                            <Node Id="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Dog&lt;X&gt;" Icon="Microsoft.VisualStudio.Class.Internal" Label="Dog&lt;X&gt;"/>
+                        </Nodes>
+                        <Links>
+                            <Link Source="(@1 @2)" Target="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Category="Contains"/>
+                            <Link Source="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Target="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1) Member=Bark)" Category="Contains"/>
+                        </Links>
+                        <IdentifierAliases>
+                            <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
+                            <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
+                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                        </IdentifierAliases>
+                    </DirectedGraph>)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Sub SearchForDottedName4()
+            Using testState = New ProgressionTestState(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
+                            <Document FilePath="Z:\Project.cs">
+                                namespace Animal { class Dog&lt;X&gt; { void Bark() { } } }
+                         </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim outputContext = testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="A.D.B"), GraphContextDirection.Custom)
+
+                AssertSimplifiedGraphIs(
+                    outputContext.Graph,
+                    <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+                        <Nodes>
+                            <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
+                            <Node Id="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1) Member=Bark)" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="Bark" Icon="Microsoft.VisualStudio.Method.Private" Label="Bark"/>
+                            <Node Id="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Dog&lt;X&gt;" Icon="Microsoft.VisualStudio.Class.Internal" Label="Dog&lt;X&gt;"/>
+                        </Nodes>
+                        <Links>
+                            <Link Source="(@1 @2)" Target="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Category="Contains"/>
+                            <Link Source="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Target="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1) Member=Bark)" Category="Contains"/>
+                        </Links>
+                        <IdentifierAliases>
+                            <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
+                            <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
+                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                        </IdentifierAliases>
+                    </DirectedGraph>)
+            End Using
+        End Sub
     End Class
 End Namespace

@@ -1593,13 +1593,13 @@ lNothing :
         Private Sub TestConversion_TypeMatrix_Specific(type1 As String, type2 As String, list As List(Of ExpressionTreeTest))
             Select Case type2
                 Case "Boolean"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CBool({0})", list)
 
                 Case "Byte"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CByte({0})", list)
@@ -1614,25 +1614,25 @@ lNothing :
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CDate({0})", list)
 
                 Case "Double"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CDbl({0})", list)
 
                 Case "Decimal"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CDec({0})", list)
 
                 Case "Integer"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CInt({0})", list)
 
                 Case "Long"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CLng({0})", list)
@@ -1641,13 +1641,13 @@ lNothing :
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CObj({0})", list)
 
                 Case "Short"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CShort({0})", list)
 
                 Case "Single"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CSng({0})", list)
@@ -7493,7 +7493,7 @@ BC36604: Late binding operations cannot be converted to an expression tree.
         <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_System_Type__GetTypeFromHandle()
-            Dim comp = CreateCompilationWithoutReferences(
+            Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Linq.Expressions
@@ -7544,7 +7544,7 @@ Class C
 End Class
 ]]></file>
 </compilation>)
-            comp.AssertTheseDiagnostics(
+            AssertTheseEmitDiagnostics(compilation,
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'System.Type.GetTypeFromHandle' is not defined.
     Shared E As Expression(Of D) = Function() New C()
@@ -7555,7 +7555,7 @@ BC35000: Requested operation is not available because the runtime library functi
         <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_System_Reflection_FieldInfo__GetFieldFromHandle()
-            Dim comp = CreateCompilationWithoutReferences(
+            Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Linq.Expressions
@@ -7618,7 +7618,7 @@ Class B(Of T)
 End Class
 ]]></file>
 </compilation>)
-            comp.AssertTheseDiagnostics(
+            AssertTheseEmitDiagnostics(compilation,
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'System.Reflection.FieldInfo.GetFieldFromHandle' is not defined.
     Shared G As Expression(Of D) = Function() F
@@ -7632,7 +7632,7 @@ BC35000: Requested operation is not available because the runtime library functi
         <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_System_Reflection_MethodBase__GetMethodFromHandle()
-            Dim comp = CreateCompilationWithoutReferences(
+            Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
@@ -7722,7 +7722,7 @@ Class B(Of T)
 End Class
 ]]></file>
 </compilation>)
-            comp.AssertTheseDiagnostics(
+            AssertTheseEmitDiagnostics(compilation,
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
     Shared G As Expression(Of D) = Function() M()

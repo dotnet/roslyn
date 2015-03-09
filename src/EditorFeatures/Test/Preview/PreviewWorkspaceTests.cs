@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewCreationWithExplicitHostServices()
         {
-            var assembly = typeof(IWorkCoordinatorRegistrationService).Assembly;
+            var assembly = typeof(ISolutionCrawlerRegistrationService).Assembly;
             using (var previewWorkspace = new PreviewWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies.Concat(assembly))))
             {
                 Assert.NotNull(previewWorkspace.CurrentSolution);
@@ -127,8 +127,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         {
             using (var previewWorkspace = new PreviewWorkspace(MefV1HostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic.AsExportProvider())))
             {
-                var workcoordinatorService = previewWorkspace.Services.GetService<IWorkCoordinatorRegistrationService>();
-                Assert.True(workcoordinatorService is PreviewWorkCoordinatorRegistrationService);
+                var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+                Assert.True(service is PreviewSolutionCrawlerRegistrationService);
 
                 var persistentService = previewWorkspace.Services.GetService<IPersistentStorageService>();
                 Assert.NotNull(persistentService);

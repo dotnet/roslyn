@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // CONSIDER:    Native compiler reports error CS1980 for each syntax node which binds to dynamic type, we do the same by reporting a diagnostic here.
                     //              However, this means we generate multiple duplicate diagnostics, when a single one would suffice.
-                    //              We may want to consider adding an "Unreported" flag to the DynamicTypeSymbol to supress duplicate CS1980.
+                    //              We may want to consider adding an "Unreported" flag to the DynamicTypeSymbol to suppress duplicate CS1980.
 
                     // CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type '{0}' cannot be found. Are you missing a reference?
                     var info = new CSDiagnosticInfo(ErrorCode.ERR_DynamicAttributeMissing, AttributeDescription.DynamicAttribute.FullName);
@@ -840,11 +840,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arg = typeArgument.Kind() == SyntaxKind.OmittedTypeArgument
                 ? UnboundArgumentErrorTypeSymbol.Instance
                 : binder.BindType(typeArgument, diagnostics, basesBeingResolved);
-            if (arg.IsStatic)
-            {
-                // '{0}': static types cannot be used as type arguments
-                diagnostics.Add(ErrorCode.ERR_GenericArgIsStaticClass, typeArgument.Location, arg);
-            }
 
             return arg;
         }
@@ -1855,7 +1850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private AssemblySymbol GetForwardedToAssembly(string fullName, int arity, out bool encounteredCycle)
         {
-            Debug.Assert(arity == 0 || fullName.EndsWith("`" + arity));
+            Debug.Assert(arity == 0 || fullName.EndsWith("`" + arity, StringComparison.Ordinal));
 
             encounteredCycle = false;
 

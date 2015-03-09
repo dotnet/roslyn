@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
-using MemberTypes = System.Reflection.MemberTypes;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 using Roslyn.Utilities;
 
@@ -154,7 +153,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // implements an interface member, but it does characterize the set of members we're
                 // interested in displaying differently.  For example, if the property is from VB, it will
                 // be an explicit interface implementation, but will not have a dot.
-                var dotPos = memberName.LastIndexOf(".");
+                var dotPos = memberName.LastIndexOf('.');
                 if (dotPos >= 0)
                 {
                     var property = (PropertyInfo)_member;

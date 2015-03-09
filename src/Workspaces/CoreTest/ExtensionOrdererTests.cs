@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -13,9 +15,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private class ExtensionMetadata : IOrderableMetadata
         {
-            public string Name { get; private set; }
-            public IEnumerable<string> Before { get; private set; }
-            public IEnumerable<string> After { get; private set; }
+            public string Name { get; }
+            public IEnumerable<string> Before { get; }
+            public IEnumerable<string> After { get; }
 
             public ExtensionMetadata(string name = null, IEnumerable<string> before = null, IEnumerable<string> after = null)
             {

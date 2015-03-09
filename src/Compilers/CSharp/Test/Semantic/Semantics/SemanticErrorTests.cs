@@ -6762,6 +6762,77 @@ class MyDerived : MyClass
             });
         }
 
+        [Fact, WorkItem(990, "https://github.com/dotnet/roslyn/issues/990")]
+        public void WriteOfReadonlyStaticMemberOfAnotherInstatiation01()
+        {
+            var text =
+@"public static class Foo<T>
+{
+    static Foo()
+    {
+        Foo<int>.X = 1;
+        Foo<int>.Y = 2;
+        Foo<T>.Y = 3;
+    }
+
+    public static readonly int X;
+    public static int Y { get; }
+}";
+            CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS0200: Property or indexer 'Foo<int>.Y' cannot be assigned to -- it is read only
+                //         Foo<int>.Y = 2;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Foo<int>.Y").WithArguments("Foo<int>.Y").WithLocation(6, 9)
+                );
+            CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll.WithStrictMode()).VerifyDiagnostics(
+                // (5,9): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
+                //         Foo<int>.X = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "Foo<int>.X").WithLocation(5, 9),
+                // (6,9): error CS0200: Property or indexer 'Foo<int>.Y' cannot be assigned to -- it is read only
+                //         Foo<int>.Y = 2;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Foo<int>.Y").WithArguments("Foo<int>.Y").WithLocation(6, 9)
+                );
+        }
+
+        [Fact, WorkItem(990, "https://github.com/dotnet/roslyn/issues/990")]
+        public void WriteOfReadonlyStaticMemberOfAnotherInstatiation02()
+        {
+            var text =
+@"using System;
+using System.Threading;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Foo<long>.x);
+        Console.WriteLine(Foo<int>.x);
+        Console.WriteLine(Foo<string>.x);
+        Console.WriteLine(Foo<int>.x);
+    }
+}
+
+public static class Foo<T>
+{
+    static Foo()
+    {
+        Console.WriteLine(""initializing for "" + typeof(T));
+        Foo<int>.x = typeof(T).Name;
+    }
+
+    public static readonly string x;
+}";
+            var expectedOutput =
+@"initializing for System.Int64
+initializing for System.Int32
+
+Int64
+initializing for System.String
+
+String
+";
+            // Although we accept this nasty code, it will not verify.
+            CompileAndVerify(text, expectedOutput: expectedOutput, verify: false);
+        }
+
         [Fact]
         public void CS0199ERR_RefReadonlyStatic()
         {
@@ -10053,6 +10124,32 @@ public class A : A<int>
                 // (4,18): error CS0516: Constructor 'A.A()' cannot call itself
                 //     public A() : base() { }
                 Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "base").WithArguments("A.A()"));
+        }
+
+        [WorkItem(366, "https://github.com/dotnet/roslyn/issues/366")]
+        [Fact]
+        public void IndirectConstructorCycle()
+        {
+            var text = @"
+public class A
+{
+    public A() : this(1) {}
+    public A(int x) : this(string.Empty) {}
+    public A(string s) : this(1) {}
+    public A(long l) : this(double.MaxValue) {}
+    public A(double d) : this(char.MaxValue) {}
+    public A(char c) : this(long.MaxValue) {}
+    public A(short s) : this() {}
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (6,24): error CS0768: Constructor 'A.A(string)' cannot call itself through another constructor
+                //     public A(string s) : this(1) {}
+                Diagnostic(ErrorCode.ERR_IndirectRecursiveConstructorCall, ": this(1)").WithArguments("A.A(string)").WithLocation(6, 24),
+                // (9,22): error CS0768: Constructor 'A.A(char)' cannot call itself through another constructor
+                //     public A(char c) : this(long.MaxValue) {}
+                Diagnostic(ErrorCode.ERR_IndirectRecursiveConstructorCall, ": this(long.MaxValue)").WithArguments("A.A(char)").WithLocation(9, 22)
+                );
         }
 
         [Fact]
@@ -19034,12 +19131,13 @@ class Test
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.WRN_GotoCaseShouldConvert, Line = 13, Column = 13, IsWarning = true } });
         }
 
-        [Fact]
+        [Fact, WorkItem(663, "https://github.com/dotnet/roslyn/issues/663")]
         public void CS0472WRN_NubExprIsConstBool()
         {
-            // Due to a long-standing bug, the native compiler does not produce warnings for "guid == null", but does 
-            // for "int == null". Roslyn corrects this lapse and produces warnings for both built-in and
-            // user-defined lifted equality operators.
+            // Due to a long-standing bug, the native compiler does not produce warnings for "guid == null",
+            // but does for "int == null". Roslyn corrects this lapse and produces warnings for both built-in
+            // and user-defined lifted equality operators, but the new warnings for user-defined types are
+            // only given in "strict" more.
 
             var text = @"
 using System;
@@ -19145,8 +19243,7 @@ class MyClass
 ftftftftftftftftftftftft
 tf
 ftftftft";
-            var comp = this.CompileAndVerify(source: text, expectedOutput: expected);
-            comp.VerifyDiagnostics(
+            var fullExpected = new DiagnosticDescription[] {
                 // (19,11): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
                 //         W(i == null);            // CS0472
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i == null").WithArguments("false", "int", "int?").WithLocation(19, 11),
@@ -19243,7 +19340,10 @@ ftftftft";
                 // (96,11): warning CS0472: The result of the expression is always 'true' since a value of type 'MyClass.E' is never equal to 'null' of type 'MyClass.E?'
                 //         W((E?)null != 0);
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(E?)null != 0").WithArguments("true", "MyClass.E", "MyClass.E?").WithLocation(96, 11)
-                    );
+            };
+            var compatibleExpected = fullExpected.Where(d => !d.Code.Equals((int)ErrorCode.WRN_NubExprIsConstBool2)).ToArray();
+            this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(compatibleExpected);
+            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe.WithStrictMode()).VerifyDiagnostics(fullExpected);
         }
 
         [Fact]

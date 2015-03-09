@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 if (_strict.HasValue) return _strict.Value;
-                bool value = _binder.Compilation.Feature("strict") != null;
+                bool value = _binder.Compilation.FeatureStrictEnabled;
                 _strict = value;
                 return value;
             }
@@ -747,12 +747,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // overriding methods. For the purposes of removing more stuff, we need to behave as
             // though that's what was there.
             //
-            // The presense of Giraffe.M(T2) does *not* justify the removal of Mammal.M(T3); it is
+            // The presence of Giraffe.M(T2) does *not* justify the removal of Mammal.M(T3); it is
             // not to be considered a method of Giraffe, but rather a method of Mammal for the
             // purposes of removing other methods. 
             //
-            // However, the presense of Mammal.M(T3) does justify the removal of Giraffe.M(T1). Why?
-            // Because the presense of Mammal.M(T3) justifies the removal of Animal.M(T1), and that
+            // However, the presence of Mammal.M(T3) does justify the removal of Giraffe.M(T1). Why?
+            // Because the presence of Mammal.M(T3) justifies the removal of Animal.M(T1), and that
             // is what is supposed to be in the set instead of Giraffe.M(T1).
             //
             // The resulting candidate set after the filtering according to the spec should be:

@@ -7,11 +7,11 @@ namespace Microsoft.CodeAnalysis
 {
     public class WorkspaceChangeEventArgs : EventArgs
     {
-        public WorkspaceChangeKind Kind { get; private set; }
-        public Solution OldSolution { get; private set; }
-        public Solution NewSolution { get; private set; }
-        public ProjectId ProjectId { get; private set; }
-        public DocumentId DocumentId { get; private set; }
+        public WorkspaceChangeKind Kind { get; }
+        public Solution OldSolution { get; }
+        public Solution NewSolution { get; }
+        public ProjectId ProjectId { get; }
+        public DocumentId DocumentId { get; }
 
         public WorkspaceChangeEventArgs(WorkspaceChangeKind kind, Solution oldSolution, Solution newSolution, ProjectId projectId = null, DocumentId documentId = null)
         {

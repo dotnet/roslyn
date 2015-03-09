@@ -1,4 +1,6 @@
-﻿Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
@@ -19,9 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 FormatResult("i", value, objectType),
                 EvalResult("i", "1 {$1}", "Object {Integer}", "i", DkmEvaluationResultFlags.HasObjectId))
             ' Integer (hex)
-            value = CreateDkmClrValue(value:=2, type:=GetType(Integer), alias:="2", evalFlags:=DkmEvaluationResultFlags.HasObjectId, inspectionContext:=CreateDkmInspectionContext(radix:=16))
+            value = CreateDkmClrValue(value:=2, type:=GetType(Integer), alias:="2", evalFlags:=DkmEvaluationResultFlags.HasObjectId)
             Verify(
-                FormatResult("i", value, objectType),
+                FormatResult("i", value, objectType, inspectionContext:=CreateDkmInspectionContext(radix:=16)),
                 EvalResult("i", "&H00000002 {$2}", "Object {Integer}", "i", DkmEvaluationResultFlags.HasObjectId))
             ' Char
             value = CreateDkmClrValue(value:="c"c, type:=GetType(Char), alias:="3", evalFlags:=DkmEvaluationResultFlags.HasObjectId)

@@ -65,32 +65,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateProjectFileInfo(compilerInputs, executedProject);
             }
 
-            protected override IEnumerable<ProjectFileReference> GetProjectReferences(ProjectInstance executedProject)
+            protected override ProjectFileReference CreateProjectFileReference(ProjectItemInstance reference)
             {
-                return this.GetProjectReferencesCore(executedProject);
-            }
+                var filePath = reference.EvaluatedInclude;
+                var aliases = GetAliases(reference);
 
-            private IEnumerable<ProjectFileReference> GetProjectReferencesCore(ProjectInstance executedProject)
-            {
-                foreach (var projectReference in GetProjectReferenceItems(executedProject))
-                {
-                    var filePath = projectReference.EvaluatedInclude;
-                    var aliases = GetAliases(projectReference);
-
-                    yield return new ProjectFileReference(filePath, aliases);
-                }
+                return new ProjectFileReference(filePath, aliases);
             }
 
             private ProjectFileInfo CreateProjectFileInfo(CSharpCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)
             {
                 string projectDirectory = executedProject.Directory;
-                if (!projectDirectory.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.OrdinalIgnoreCase))
+                string directorySeparator = Path.DirectorySeparatorChar.ToString();
+                if (!projectDirectory.EndsWith(directorySeparator, StringComparison.OrdinalIgnoreCase))
                 {
-                    projectDirectory += Path.DirectorySeparatorChar;
+                    projectDirectory += directorySeparator;
                 }
 
                 var docs = compilerInputs.Sources
-                       .Where(s => !Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_"))
+                       .Where(s => !Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal))
                        .Select(s => MakeDocumentFileInfo(projectDirectory, s))
                        .ToImmutableArray();
 
@@ -278,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal IEnumerable<MSB.Framework.ITaskItem> AdditionalFiles { get; private set; }
                 internal IReadOnlyList<string> LibPaths { get; private set; }
                 internal bool NoStandardLib { get; private set; }
-                internal Dictionary<string, ReportDiagnostic> Warnings { get; private set; }
+                internal Dictionary<string, ReportDiagnostic> Warnings { get; }
                 internal string OutputFileName { get; private set; }
 
                 private static readonly CSharpParseOptions s_defaultParseOptions = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, documentationMode: DocumentationMode.Parse);
