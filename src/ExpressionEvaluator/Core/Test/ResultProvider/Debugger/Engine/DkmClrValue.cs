@@ -238,7 +238,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     }
 
                     var type = ((TypeImpl)this.Type.GetLmrType()).Type;
-                    var bindingFlags = 
+                    const System.Reflection.BindingFlags bindingFlags = 
                         System.Reflection.BindingFlags.Public | 
                         System.Reflection.BindingFlags.NonPublic | 
                         System.Reflection.BindingFlags.Instance | 
