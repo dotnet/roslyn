@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Partial Class PropertySymbol
+    Friend Partial Class PropertySymbol
         Implements IPropertyDefinition
 
         Private ReadOnly Property IPropertyDefinitionAccessors As IEnumerable(Of IMethodReference) Implements IPropertyDefinition.Accessors

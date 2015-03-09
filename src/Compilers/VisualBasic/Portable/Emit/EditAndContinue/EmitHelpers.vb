@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
-    Module EmitHelpers
+    Friend Module EmitHelpers
 
         Friend Function EmitDifference(
             compilation As VisualBasicCompilation,

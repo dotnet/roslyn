@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Partial Friend Class Scanner
 
-        Private IsScanningDirective As Boolean = False
+        Private _isScanningDirective As Boolean = False
         Protected _scannerPreprocessorState As PreprocessorState
 
         Private Function TryScanDirective(tList As SyntaxListBuilder) As Boolean
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' SAVE the lookahead state and clear current token
             Dim restorePoint = CreateRestorePoint()
-            Me.IsScanningDirective = True
+            Me._isScanningDirective = True
 
             ' since we do not have lookahead tokens, this just 
             ' resets current token to _lineBufferOffset 
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' RESTORE lookahead state and current token if there were any
             restorePoint.RestoreTokens(includeLookAhead:=True)
-            Me.IsScanningDirective = False
+            Me._isScanningDirective = False
 
             Return True
         End Function
@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     SyntaxKind.EnableWarningDirectiveTrivia, 'TODO: Add support for processing #Enable and #Disable
                     SyntaxKind.DisableWarningDirectiveTrivia
 
-                    ' These directives require no processing
+                ' These directives require no processing
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(statement.Kind)

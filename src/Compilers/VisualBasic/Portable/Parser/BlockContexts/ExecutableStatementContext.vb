@@ -152,8 +152,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return LinkResult.NotUsed
                     End If
 
-                    ' these blocks cannot happen in current context so we should crumble them
-                    ' on next pass we will give error on the first statement
+                ' these blocks cannot happen in current context so we should crumble them
+                ' on next pass we will give error on the first statement
                 Case _
                     SyntaxKind.SubBlock,
                     SyntaxKind.ConstructorBlock,

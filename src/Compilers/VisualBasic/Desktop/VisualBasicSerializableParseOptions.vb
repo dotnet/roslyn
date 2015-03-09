@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _options As VisualBasicParseOptions
 
-        Sub New(options As VisualBasicParseOptions)
+        Public Sub New(options As VisualBasicParseOptions)
             If options Is Nothing Then
                 Throw New ArgumentNullException("options")
             End If

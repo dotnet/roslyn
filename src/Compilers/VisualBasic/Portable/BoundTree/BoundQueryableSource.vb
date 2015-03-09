@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundQueryableSource
+    Friend Partial Class BoundQueryableSource
 
 #If DEBUG Then
         Private Sub Validate()

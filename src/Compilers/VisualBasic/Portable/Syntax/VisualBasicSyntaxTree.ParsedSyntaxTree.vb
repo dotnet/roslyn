@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class VisualBasicSyntaxTree
+    Public Partial Class VisualBasicSyntaxTree
 
         ''' <summary>
         ''' A SyntaxTree is a tree of nodes that represents an entire file of VB

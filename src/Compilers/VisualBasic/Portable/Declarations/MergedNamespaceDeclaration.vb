@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Merge and add the namespaces
             Select Case childNamespaces.Count
                 Case 0
-                    ' Do nothing
+                ' Do nothing
                 Case 1
                     ' Add a single element
                     result.Add(MergedNamespaceDeclaration.Create(childNamespaces))
