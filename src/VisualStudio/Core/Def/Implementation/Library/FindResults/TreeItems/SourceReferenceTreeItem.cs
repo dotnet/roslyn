@@ -31,6 +31,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                 projectNameDisambiguator: string.Empty);
         }
 
+        public override bool UseGrayText
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         public void AddProjectNameDisambiguator()
         {
             SetDisplayProperties(
