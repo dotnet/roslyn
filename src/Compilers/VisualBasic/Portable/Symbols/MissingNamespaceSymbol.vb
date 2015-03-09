@@ -19,33 +19,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class MissingNamespaceSymbol
         Inherits NamespaceSymbol
 
-        Private ReadOnly m_Name As String
-        Private ReadOnly m_ContainingSymbol As Symbol
+        Private ReadOnly _name As String
+        Private ReadOnly _containingSymbol As Symbol
 
         Public Sub New(containingModule As MissingModuleSymbol)
             Debug.Assert(containingModule IsNot Nothing)
 
-            m_ContainingSymbol = containingModule
-            m_Name = String.Empty
+            _containingSymbol = containingModule
+            _name = String.Empty
         End Sub
 
         Public Sub New(containingNamespace As NamespaceSymbol, name As String)
             Debug.Assert(containingNamespace IsNot Nothing)
             Debug.Assert(name IsNot Nothing)
 
-            m_ContainingSymbol = containingNamespace
-            m_Name = name
+            _containingSymbol = containingNamespace
+            _name = name
         End Sub
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_Name
+                Return _name
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return m_ContainingSymbol
+                Return _containingSymbol
             End Get
         End Property
 
@@ -63,16 +63,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ContainingModule As ModuleSymbol
             Get
-                If m_ContainingSymbol.Kind = SymbolKind.NetModule Then
-                    Return DirectCast(m_ContainingSymbol, ModuleSymbol)
+                If _containingSymbol.Kind = SymbolKind.NetModule Then
+                    Return DirectCast(_containingSymbol, ModuleSymbol)
                 End If
 
-                Return m_ContainingSymbol.ContainingModule
+                Return _containingSymbol.ContainingModule
             End Get
         End Property
 
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(m_ContainingSymbol.GetHashCode(), m_Name.GetHashCode())
+            Return Hash.Combine(_containingSymbol.GetHashCode(), _name.GetHashCode())
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim other = TryCast(obj, MissingNamespaceSymbol)
 
-            Return other IsNot Nothing AndAlso String.Equals(m_Name, other.m_Name, StringComparison.Ordinal) AndAlso m_ContainingSymbol.Equals(other.m_ContainingSymbol)
+            Return other IsNot Nothing AndAlso String.Equals(_name, other._name, StringComparison.Ordinal) AndAlso _containingSymbol.Equals(other._containingSymbol)
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)

@@ -15,9 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class SynthesizedMethod
         Inherits SynthesizedMethodBase
 
-        Private ReadOnly m_isShared As Boolean
-        Private ReadOnly m_name As String
-        Private ReadOnly m_SyntaxNodeOpt As VisualBasicSyntaxNode
+        Private ReadOnly _isShared As Boolean
+        Private ReadOnly _name As String
+        Private ReadOnly _syntaxNodeOpt As VisualBasicSyntaxNode
 
         Friend Sub New(
                 syntaxNode As VisualBasicSyntaxNode,
@@ -26,16 +26,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 isShared As Boolean
             )
             MyBase.New(containingSymbol)
-            Me.m_SyntaxNodeOpt = syntaxNode
-            Me.m_isShared = isShared
-            Me.m_name = name
+            Me._syntaxNodeOpt = syntaxNode
+            Me._isShared = isShared
+            Me._name = name
         End Sub
 
-        Private Shared ReadOnly TypeSubstitutionFactory As Func(Of Symbol, TypeSubstitution) =
+        Private Shared ReadOnly s_typeSubstitutionFactory As Func(Of Symbol, TypeSubstitution) =
                 Function(container) DirectCast(container, SynthesizedMethod).TypeMap
 
         Friend Shared ReadOnly CreateTypeParameter As Func(Of TypeParameterSymbol, Symbol, TypeParameterSymbol) =
-                Function(typeParameter, container) New SynthesizedClonedTypeParameterSymbol(typeParameter, container, typeParameter.Name, TypeSubstitutionFactory)
+                Function(typeParameter, container) New SynthesizedClonedTypeParameterSymbol(typeParameter, container, typeParameter.Name, s_typeSubstitutionFactory)
 
         ''' <summary>
         ''' Creates a clone of the local with a new containing symbol and type.
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_name
+                Return _name
             End Get
         End Property
 
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
-                Return m_isShared
+                Return _isShared
             End Get
         End Property
 
@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
             Get
-                Return m_SyntaxNodeOpt
+                Return _syntaxNodeOpt
             End Get
         End Property
 

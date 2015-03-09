@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Shared ReadOnly DefaultXmlNamespaces As New Dictionary(Of String, String) From {
+        Private Shared ReadOnly s_defaultXmlNamespaces As New Dictionary(Of String, String) From {
             {StringConstants.DefaultXmlnsPrefix, StringConstants.DefaultXmlNamespace},
             {StringConstants.XmlPrefix, StringConstants.XmlNamespace},
             {StringConstants.XmlnsPrefix, StringConstants.XmlnsNamespace}
@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function LookupXmlNamespace(prefix As String, ignoreXmlNodes As Boolean, <Out()> ByRef [namespace] As String, <Out()> ByRef fromImports As Boolean) As Boolean
             fromImports = False
-            Return DefaultXmlNamespaces.TryGetValue(prefix, [namespace])
+            Return s_defaultXmlNamespaces.TryGetValue(prefix, [namespace])
         End Function
 
         Friend Overrides ReadOnly Property HasImportedXmlNamespaces As Boolean

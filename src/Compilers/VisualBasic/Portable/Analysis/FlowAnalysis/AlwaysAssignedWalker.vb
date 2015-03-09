@@ -29,14 +29,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Try
         End Function
 
-        Private endOfRegionState As LocalState
-        Private ReadOnly labelsInside As New HashSet(Of LabelSymbol)()
+        Private _endOfRegionState As LocalState
+        Private ReadOnly _labelsInside As New HashSet(Of LabelSymbol)()
 
         Private ReadOnly Property AlwaysAssigned As IEnumerable(Of Symbol)
             Get
                 Dim result As New List(Of Symbol)
-                If (endOfRegionState.Reachable) Then
-                    For Each i In endOfRegionState.Assigned.TrueBits
+                If (_endOfRegionState.Reachable) Then
+                    For Each i In _endOfRegionState.Assigned.TrueBits
                         If (i >= variableBySlot.Length) Then
                             Continue For
                         End If
@@ -61,17 +61,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Me.IsConditionalState Then
                 ' If the region is in a condition, then the state will be split and 
                 ' State.Assigned(will) be null. Merge to get sensible results.
-                endOfRegionState = Me.StateWhenTrue.Clone()
-                IntersectWith(endOfRegionState, Me.StateWhenFalse)
+                _endOfRegionState = Me.StateWhenTrue.Clone()
+                IntersectWith(_endOfRegionState, Me.StateWhenFalse)
             Else
-                endOfRegionState = MyBase.State.Clone()
+                _endOfRegionState = MyBase.State.Clone()
             End If
 
-            Debug.Assert(Not endOfRegionState.Assigned.IsNull)
+            Debug.Assert(Not _endOfRegionState.Assigned.IsNull)
 
             For Each branch In PendingBranches
-                If IsInsideRegion(branch.Branch.Syntax.Span) AndAlso Not labelsInside.Contains(branch.Label) Then
-                    IntersectWith(endOfRegionState, branch.State)
+                If IsInsideRegion(branch.Branch.Syntax.Span) AndAlso Not _labelsInside.Contains(branch.Label) Then
+                    IntersectWith(_endOfRegionState, branch.State)
                 End If
             Next
 
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitLabelStatement(node As BoundLabelStatement) As BoundNode
             If node.Syntax IsNot Nothing AndAlso IsInsideRegion(node.Syntax.Span) Then
-                labelsInside.Add(node.Label)
+                _labelsInside.Add(node.Label)
             End If
 
             Return MyBase.VisitLabelStatement(node)

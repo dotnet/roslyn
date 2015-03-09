@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Partial Class DeclarationTable
+    Friend Partial Class DeclarationTable
         ' The structure of the DeclarationTable provides us with a set of 'old' declarations that
         ' stay relatively unchanged and a 'new' declaration that is repeatedly added and removed.
         ' This mimics the expected usage pattern of a user repeatedly typing in a single file.

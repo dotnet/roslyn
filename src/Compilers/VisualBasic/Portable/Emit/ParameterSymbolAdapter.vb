@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Partial Class ParameterSymbol
+    Friend Partial Class ParameterSymbol
         Implements IParameterTypeInformation
         Implements IParameterDefinition
 

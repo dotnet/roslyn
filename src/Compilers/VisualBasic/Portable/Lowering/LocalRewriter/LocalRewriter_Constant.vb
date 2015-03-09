@@ -13,12 +13,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function RewriteConstant(node As BoundExpression, constantValue As ConstantValue) As BoundExpression
             Dim result As BoundNode = node
 
-            If Not inExpressionLambda AndAlso Not node.HasErrors Then
+            If Not _inExpressionLambda AndAlso Not node.HasErrors Then
                 If constantValue.Discriminator = ConstantValueTypeDiscriminator.Decimal Then
-                    Return RewriteDecimalConstant(node, constantValue, Me.topMethod, Me.diagnostics)
+                    Return RewriteDecimalConstant(node, constantValue, Me._topMethod, Me._diagnostics)
 
                 ElseIf constantValue.Discriminator = ConstantValueTypeDiscriminator.DateTime Then
-                    Return RewriteDateConstant(node, constantValue, Me.topMethod, Me.diagnostics)
+                    Return RewriteDateConstant(node, constantValue, Me._topMethod, Me._diagnostics)
                 End If
             End If
 

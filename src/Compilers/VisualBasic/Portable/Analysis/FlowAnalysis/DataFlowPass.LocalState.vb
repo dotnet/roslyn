@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Class DataFlowPass
+    Friend Partial Class DataFlowPass
         Inherits AbstractFlowPass(Of LocalState)
 
         Protected Overrides Function IntersectWith(ByRef self As LocalState, ByRef other As LocalState) As Boolean

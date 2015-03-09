@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundXmlAttribute
+    Friend Partial Class BoundXmlAttribute
 
 #If DEBUG Then
         Private Sub Validate()

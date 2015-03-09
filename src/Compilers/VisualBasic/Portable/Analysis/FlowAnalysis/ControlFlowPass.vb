@@ -86,8 +86,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End If
 
                             Case BoundKind.DimStatement
-                                ' Don't report anything, warnings will be reported when 
-                                ' declarations inside this Dim statement are processed
+                            ' Don't report anything, warnings will be reported when 
+                            ' declarations inside this Dim statement are processed
 
                             Case Else
                                 ' TODO: uncomment the following line 

@@ -14,13 +14,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 #Enable Warning RS0010
     Friend Module ObjectDisplay
 
-        Const NullChar As Char = ChrW(0)
-        Const Back As Char = ChrW(8)
-        Const Cr As Char = ChrW(13)
-        Const FormFeed As Char = ChrW(12)
-        Const Lf As Char = ChrW(10)
-        Const Tab As Char = ChrW(9)
-        Const VerticalTab As Char = ChrW(11)
+        Private Const s_nullChar As Char = ChrW(0)
+        Private Const s_back As Char = ChrW(8)
+        Private Const s_Cr As Char = ChrW(13)
+        Private Const s_formFeed As Char = ChrW(12)
+        Private Const s_Lf As Char = ChrW(10)
+        Private Const s_tab As Char = ChrW(9)
+        Private Const s_verticalTab As Char = ChrW(11)
 
         ''' <summary>
         ''' Returns a string representation of an object of primitive type.
@@ -383,7 +383,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 Dim isCrLf As Boolean
 
                 ' vbCrLf
-                If c = Cr AndAlso i < str.Length AndAlso str(i) = Lf Then
+                If c = s_Cr AndAlso i < str.Length AndAlso str(i) = s_Lf Then
                     wellKnown = "vbCrLf"
                     isNonPrintable = True
                     isCrLf = True
@@ -395,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 End If
 
                 If isNonPrintable Then
-                    If nonPrintableSubstitute <> NullChar Then
+                    If nonPrintableSubstitute <> s_nullChar Then
                         Yield Character(nonPrintableSubstitute)
 
                         If isCrLf Then
@@ -439,8 +439,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 
                         startNewConcatenand = True
                     ElseIf (isCrLf) Then
-                        Yield Character(Cr)
-                        Yield Character(Lf)
+                        Yield Character(s_Cr)
+                        Yield Character(s_Lf)
                     Else
                         Yield Character(c)
                     End If
@@ -480,19 +480,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 
         Friend Function GetWellKnownCharacterName(c As Char) As String
             Select Case c
-                Case NullChar
+                Case s_nullChar
                     Return "vbNullChar"
-                Case Back
+                Case s_back
                     Return "vbBack"
-                Case Cr
+                Case s_Cr
                     Return "vbCr"
-                Case FormFeed
+                Case s_formFeed
                     Return "vbFormFeed"
-                Case Lf
+                Case s_Lf
                     Return "vbLf"
-                Case Tab
+                Case s_tab
                     Return "vbTab"
-                Case VerticalTab
+                Case s_verticalTab
                     Return "vbVerticalTab"
             End Select
 

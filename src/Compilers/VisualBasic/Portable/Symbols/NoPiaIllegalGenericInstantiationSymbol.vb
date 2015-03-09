@@ -14,15 +14,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class NoPiaIllegalGenericInstantiationSymbol
         Inherits ErrorTypeSymbol
 
-        Private ReadOnly m_UnderlyingSymbol As NamedTypeSymbol
+        Private ReadOnly _underlyingSymbol As NamedTypeSymbol
 
         Public Sub New(underlyingSymbol As NamedTypeSymbol)
-            m_UnderlyingSymbol = underlyingSymbol
+            _underlyingSymbol = underlyingSymbol
         End Sub
 
         Public ReadOnly Property UnderlyingSymbol As NamedTypeSymbol
             Get
-                Return m_UnderlyingSymbol
+                Return _underlyingSymbol
             End Get
         End Property
 
@@ -43,15 +43,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
             Get
-                If m_UnderlyingSymbol.IsErrorType() Then
-                    Dim underlyingInfo As DiagnosticInfo = DirectCast(m_UnderlyingSymbol, ErrorTypeSymbol).ErrorInfo
+                If _underlyingSymbol.IsErrorType() Then
+                    Dim underlyingInfo As DiagnosticInfo = DirectCast(_underlyingSymbol, ErrorTypeSymbol).ErrorInfo
 
                     If underlyingInfo IsNot Nothing Then
                         Return underlyingInfo
                     End If
                 End If
 
-                Return ErrorFactory.ErrorInfo(ERRID.ERR_CannotUseGenericTypeAcrossAssemblyBoundaries, m_UnderlyingSymbol)
+                Return ErrorFactory.ErrorInfo(ERRID.ERR_CannotUseGenericTypeAcrossAssemblyBoundaries, _underlyingSymbol)
             End Get
         End Property
     End Class

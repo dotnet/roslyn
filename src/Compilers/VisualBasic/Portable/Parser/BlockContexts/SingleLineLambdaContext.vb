@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim token = Parser.CurrentToken
             Select Case token.Kind
                 Case SyntaxKind.StatementTerminatorToken, SyntaxKind.EndOfFileToken
-                    ' A single-line lambda is terminated at the end of the line.
+                ' A single-line lambda is terminated at the end of the line.
 
                 Case SyntaxKind.ColonToken
                     ' A single-line sub with multiple statements. Report ERR_SubRequiresSingleStatement

@@ -7,7 +7,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Class Parser
+    Friend Partial Class Parser
 
         '
         '============ Methods for parsing syntactic terminals ===============
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseSimpleNameExpressionAllowingKeywordAndTypeArguments() As SimpleNameSyntax
             Dim Name = ParseIdentifierAllowingKeyword()
 
-            If Not m_EvaluatingConditionCompilationExpression AndAlso
+            If Not _evaluatingConditionCompilationExpression AndAlso
                 BeginsGeneric(allowGenericsWithoutOf:=True) Then
 
                 Dim AllowEmptyGenericArguments As Boolean = False

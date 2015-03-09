@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits PEAssemblyBuilderBase
         Implements IPEDeltaAssemblyBuilder
 
-        Private ReadOnly m_PreviousGeneration As EmitBaseline
-        Private ReadOnly m_PreviousDefinitions As VisualBasicDefinitionMap
-        Private ReadOnly m_Changes As SymbolChanges
+        Private ReadOnly _previousGeneration As EmitBaseline
+        Private ReadOnly _previousDefinitions As VisualBasicDefinitionMap
+        Private ReadOnly _changes As SymbolChanges
 
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
                        emitOptions As EmitOptions,
@@ -52,14 +52,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     otherSynthesizedMembersOpt:=previousGeneration.SynthesizedMembers)
             End If
 
-            Me.m_PreviousDefinitions = New VisualBasicDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious)
-            Me.m_PreviousGeneration = previousGeneration
-            Me.m_Changes = New SymbolChanges(m_PreviousDefinitions, edits, isAddedSymbol)
+            Me._previousDefinitions = New VisualBasicDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious)
+            Me._previousGeneration = previousGeneration
+            Me._changes = New SymbolChanges(_previousDefinitions, edits, isAddedSymbol)
         End Sub
 
         Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
             Get
-                Return m_PreviousGeneration.Ordinal + 1
+                Return _previousGeneration.Ordinal + 1
             End Get
         End Property
 
@@ -151,13 +151,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend ReadOnly Property PreviousGeneration As EmitBaseline
             Get
-                Return m_PreviousGeneration
+                Return _previousGeneration
             End Get
         End Property
 
         Friend ReadOnly Property PreviousDefinitions As VisualBasicDefinitionMap
             Get
-                Return m_PreviousDefinitions
+                Return _previousDefinitions
             End Get
         End Property
 
@@ -172,35 +172,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Friend Overloads Function GetAnonymousTypeMap() As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue) Implements IPEDeltaAssemblyBuilder.GetAnonymousTypeMap
             Dim anonymousTypes = Compilation.AnonymousTypeManager.GetAnonymousTypeMap()
             ' Should contain all entries in previous generation.
-            Debug.Assert(m_PreviousGeneration.AnonymousTypeMap.All(Function(p) anonymousTypes.ContainsKey(p.Key)))
+            Debug.Assert(_previousGeneration.AnonymousTypeMap.All(Function(p) anonymousTypes.ContainsKey(p.Key)))
             Return anonymousTypes
         End Function
 
         Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol) As VariableSlotAllocator
-            Return m_PreviousDefinitions.TryCreateVariableSlotAllocator(m_PreviousGeneration, method)
+            Return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, method)
         End Function
 
         Friend Overrides Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
-            Return ImmutableArray.CreateRange(m_PreviousGeneration.AnonymousTypeMap.Keys)
+            Return ImmutableArray.CreateRange(_previousGeneration.AnonymousTypeMap.Keys)
         End Function
 
         Friend Overrides Function GetNextAnonymousTypeIndex(fromDelegates As Boolean) As Integer
-            Return m_PreviousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
+            Return _previousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
         End Function
 
         Friend Overrides Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out()> ByRef name As String, <Out()> ByRef index As Integer) As Boolean
             Debug.Assert(Compilation Is template.DeclaringCompilation)
-            Return m_PreviousDefinitions.TryGetAnonymousTypeName(template, name, index)
+            Return _previousDefinitions.TryGetAnonymousTypeName(template, name, index)
         End Function
 
         Friend ReadOnly Property Changes As SymbolChanges
             Get
-                Return m_Changes
+                Return _changes
             End Get
         End Property
 
         Friend Overrides Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
-            Return m_Changes.GetTopLevelTypes(context)
+            Return _changes.GetTopLevelTypes(context)
         End Function
 
         Friend Sub OnCreatedIndices(diagnostics As DiagnosticBag) Implements IPEDeltaAssemblyBuilder.OnCreatedIndices

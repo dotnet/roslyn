@@ -10,10 +10,10 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class LocalRewriter
+    Friend Partial Class LocalRewriter
 
         Public Overrides Function VisitUserDefinedBinaryOperator(node As BoundUserDefinedBinaryOperator) As BoundNode
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 Return node.Update(node.OperatorKind, DirectCast(Visit(node.UnderlyingExpression), BoundExpression), node.Checked, node.Type)
             End If
 
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitUserDefinedShortCircuitingOperator(node As BoundUserDefinedShortCircuitingOperator) As BoundNode
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 ' If we are inside expression lambda we need to rewrite it into just a bitwise operator call
                 Dim placeholder As BoundRValuePlaceholder = node.LeftOperandPlaceholder
                 Dim leftOperand As BoundExpression = node.LeftOperand
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The rewrite that should happen here is:
             '     If(LeftTest(temp = left), temp, BitwiseOperator)
 
-            Dim temp As New SynthesizedLocal(currentMethodOrLambda, node.LeftOperand.Type, SynthesizedLocalKind.LoweringTemp)
+            Dim temp As New SynthesizedLocal(_currentMethodOrLambda, node.LeftOperand.Type, SynthesizedLocalKind.LoweringTemp)
 
             Dim tempAccess As New BoundLocal(node.Syntax, temp, True, temp.Type)
 
@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case BoundKind.PropertyAccess
                     ' Can get here when we are inside a lambda converted to an expression tree.
-                    Debug.Assert(inExpressionLambda)
+                    Debug.Assert(_inExpressionLambda)
                     Dim propertyAccess = DirectCast(operand, BoundPropertyAccess)
 
                     If propertyAccess.AccessKind = PropertyAccessKind.Get AndAlso
@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '       despite what is said in comments in RuntimeMembers CodeGenerator::GetHelperForObjRelOp
                     ' TODO: Recheck
 
-                    If node.Type.IsObjectType() OrElse Me.inExpressionLambda AndAlso leftType.IsObjectType() Then
+                    If node.Type.IsObjectType() OrElse Me._inExpressionLambda AndAlso leftType.IsObjectType() Then
                         Return RewriteObjectComparisonOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__CompareObjectEqualObjectObjectBoolean)
                     ElseIf node.Type.IsBooleanType() Then
 
@@ -211,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim leftType = node.Left.Type
                     ' NOTE: See comment above
 
-                    If node.Type.IsObjectType() OrElse Me.inExpressionLambda AndAlso leftType.IsObjectType() Then
+                    If node.Type.IsObjectType() OrElse Me._inExpressionLambda AndAlso leftType.IsObjectType() Then
                         Return RewriteObjectComparisonOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__CompareObjectNotEqualObjectObjectBoolean)
                     ElseIf node.Type.IsBooleanType() Then
 
@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim leftType = node.Left.Type
                     ' NOTE: See comment above
 
-                    If node.Type.IsObjectType() OrElse Me.inExpressionLambda AndAlso leftType.IsObjectType() Then
+                    If node.Type.IsObjectType() OrElse Me._inExpressionLambda AndAlso leftType.IsObjectType() Then
                         Return RewriteObjectComparisonOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__CompareObjectLessEqualObjectObjectBoolean)
                     ElseIf node.Type.IsBooleanType() Then
 
@@ -249,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim leftType = node.Left.Type
                     ' NOTE: See comment above
 
-                    If node.Type.IsObjectType() OrElse Me.inExpressionLambda AndAlso leftType.IsObjectType() Then
+                    If node.Type.IsObjectType() OrElse Me._inExpressionLambda AndAlso leftType.IsObjectType() Then
                         Return RewriteObjectComparisonOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__CompareObjectGreaterEqualObjectObjectBoolean)
                     ElseIf node.Type.IsBooleanType() Then
 
@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim leftType = node.Left.Type
                     ' NOTE: See comment above
 
-                    If node.Type.IsObjectType() OrElse Me.inExpressionLambda AndAlso leftType.IsObjectType() Then
+                    If node.Type.IsObjectType() OrElse Me._inExpressionLambda AndAlso leftType.IsObjectType() Then
                         Return RewriteObjectComparisonOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__CompareObjectLessObjectObjectBoolean)
                     ElseIf node.Type.IsBooleanType() Then
 
@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim leftType = node.Left.Type
                     ' NOTE: See comment above
 
-                    If node.Type.IsObjectType() OrElse Me.inExpressionLambda AndAlso leftType.IsObjectType() Then
+                    If node.Type.IsObjectType() OrElse Me._inExpressionLambda AndAlso leftType.IsObjectType() Then
                         Return RewriteObjectComparisonOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__CompareObjectGreaterObjectObjectBoolean)
                     ElseIf node.Type.IsBooleanType() Then
 
@@ -303,79 +303,79 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                 Case BinaryOperatorKind.Add
-                    If node.Type.IsObjectType() AndAlso Not inExpressionLambda Then
+                    If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectBinaryOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__AddObjectObjectObject)
                     ElseIf node.Type.IsDecimalType() Then
                         Return RewriteDecimalBinaryOperator(node, SpecialMember.System_Decimal__AddDecimalDecimal)
                     End If
 
                 Case BinaryOperatorKind.Subtract
-                    If node.Type.IsObjectType() AndAlso Not inExpressionLambda Then
+                    If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectBinaryOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__SubtractObjectObjectObject)
                     ElseIf node.Type.IsDecimalType() Then
                         Return RewriteDecimalBinaryOperator(node, SpecialMember.System_Decimal__SubtractDecimalDecimal)
                     End If
 
                 Case BinaryOperatorKind.Multiply
-                    If node.Type.IsObjectType() AndAlso Not inExpressionLambda Then
+                    If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectBinaryOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__MultiplyObjectObjectObject)
                     ElseIf node.Type.IsDecimalType() Then
                         Return RewriteDecimalBinaryOperator(node, SpecialMember.System_Decimal__MultiplyDecimalDecimal)
                     End If
 
                 Case BinaryOperatorKind.Modulo
-                    If node.Type.IsObjectType() AndAlso Not inExpressionLambda Then
+                    If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectBinaryOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__ModObjectObjectObject)
                     ElseIf node.Type.IsDecimalType() Then
                         Return RewriteDecimalBinaryOperator(node, SpecialMember.System_Decimal__RemainderDecimalDecimal)
                     End If
 
                 Case BinaryOperatorKind.Divide
-                    If node.Type.IsObjectType() AndAlso Not inExpressionLambda Then
+                    If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectBinaryOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__DivideObjectObjectObject)
                     ElseIf node.Type.IsDecimalType() Then
                         Return RewriteDecimalBinaryOperator(node, SpecialMember.System_Decimal__DivideDecimalDecimal)
                     End If
 
                 Case BinaryOperatorKind.IntegerDivide
-                    If node.Type.IsObjectType() AndAlso Not inExpressionLambda Then
+                    If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectBinaryOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__IntDivideObjectObjectObject)
                     End If
 
                 Case BinaryOperatorKind.Power
-                    If node.Type.IsObjectType() AndAlso Not inExpressionLambda Then
+                    If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectBinaryOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__ExponentObjectObjectObject)
                     Else
                         Return RewritePowOperator(node)
                     End If
 
                 Case BinaryOperatorKind.LeftShift
-                    If node.Type.IsObjectType() AndAlso Not inExpressionLambda Then
+                    If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectBinaryOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__LeftShiftObjectObjectObject)
                     End If
 
                 Case BinaryOperatorKind.RightShift
-                    If node.Type.IsObjectType() AndAlso Not inExpressionLambda Then
+                    If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectBinaryOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__RightShiftObjectObjectObject)
                     End If
 
                 Case BinaryOperatorKind.OrElse, BinaryOperatorKind.AndAlso
-                    If node.Type.IsObjectType() AndAlso Not inExpressionLambda Then
+                    If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectShortCircuitOperator(node)
                     End If
 
                 Case BinaryOperatorKind.Xor
-                    If node.Type.IsObjectType() AndAlso Not inExpressionLambda Then
+                    If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectBinaryOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__XorObjectObjectObject)
                     End If
 
                 Case BinaryOperatorKind.Or
-                    If node.Type.IsObjectType() AndAlso Not inExpressionLambda Then
+                    If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectBinaryOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__OrObjectObjectObject)
                     End If
 
                 Case BinaryOperatorKind.And
-                    If node.Type.IsObjectType() AndAlso Not inExpressionLambda Then
+                    If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectBinaryOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__AndObjectObjectObject)
                     End If
 
@@ -385,7 +385,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function RewriteDateComparisonOperator(node As BoundBinaryOperator) As BoundExpression
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 Return node
             End If
 
@@ -424,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function RewriteDecimalComparisonOperator(node As BoundBinaryOperator) As BoundExpression
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 Return node
             End If
 
@@ -540,7 +540,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function RewritePowOperator(node As BoundBinaryOperator) As BoundExpression
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 Return node
             End If
 
@@ -568,7 +568,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function RewriteDecimalBinaryOperator(node As BoundBinaryOperator, member As SpecialMember) As BoundExpression
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 Return node
             End If
 
@@ -649,7 +649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim memberSymbol = DirectCast(Compilation.GetWellKnownTypeMember(member), MethodSymbol)
 
             If Not ReportMissingOrBadRuntimeHelper(node, member, memberSymbol) Then
-                Debug.Assert(memberSymbol.ReturnType Is node.Type OrElse Me.inExpressionLambda AndAlso memberSymbol.ReturnType.IsObjectType)
+                Debug.Assert(memberSymbol.ReturnType Is node.Type OrElse Me._inExpressionLambda AndAlso memberSymbol.ReturnType.IsObjectType)
                 Debug.Assert(memberSymbol.Parameters(2).Type.IsBooleanType())
 
                 result = New BoundCall(node.Syntax, memberSymbol, Nothing, Nothing,
@@ -660,7 +660,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         memberSymbol.ReturnType,
                                         suppressObjectClone:=True)
 
-                If Me.inExpressionLambda AndAlso memberSymbol.ReturnType.IsObjectType AndAlso node.Type.IsBooleanType Then
+                If Me._inExpressionLambda AndAlso memberSymbol.ReturnType.IsObjectType AndAlso node.Type.IsBooleanType Then
                     result = New BoundConversion(node.Syntax, DirectCast(result, BoundExpression), ConversionKind.NarrowingBoolean, node.Checked, False, node.Type)
                 End If
             End If
@@ -723,7 +723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim left As BoundExpression = VisitExpressionNode(node.Left)
             Dim right As BoundExpression = VisitExpressionNode(node.Right)
 
-            If Me.inExpressionLambda Then
+            If Me._inExpressionLambda Then
                 Return node.Update(node.OperatorKind, left, right, node.Checked, node.ConstantValueOpt, node.Type)
             End If
 
@@ -1108,7 +1108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(left.IsNothingLiteral OrElse right.IsNothingLiteral)
             Debug.Assert(node.OperatorKind = BinaryOperatorKind.Is OrElse node.OperatorKind = BinaryOperatorKind.IsNot)
 
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 Return node
             End If
 
