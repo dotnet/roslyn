@@ -373,8 +373,8 @@ while(true) {}
             Assert.False(task.Result.Success);
 
             var errorOut = ReadErrorOutputToEnd().Trim();
-            Assert.Contains("Specified file not found.", errorOut);
-            Assert.Contains("Searched in directories:", errorOut);
+            Assert.Contains("Specified file not found.", errorOut, StringComparison.Ordinal);
+            Assert.Contains("Searched in directories:", errorOut, StringComparison.Ordinal);
         }
 
         [Fact]
