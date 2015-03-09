@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(!token.IsNil);
 
-            TypeSymbol type = null;
+            TypeSymbol type;
             HandleKind tokenType = token.Kind;
 
             if (tokenType == HandleKind.TypeDefinition)
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis
                         ppSig.TryReadCompressedInteger(out _);
                     }
 
-                    typeSymbol = GetArrayTypeSymbol((int)countOfDimensions, typeSymbol);
+                    typeSymbol = GetArrayTypeSymbol(countOfDimensions, typeSymbol);
                     break;
 
                 case SignatureTypeCode.SZArray:
@@ -427,10 +427,7 @@ namespace Microsoft.CodeAnalysis
             // The resolution scope should be either a type ref, an assembly or a module.
             if (tokenType == HandleKind.TypeReference)
             {
-                TypeSymbol psymContainer = null;
-
-                psymContainer = GetTypeOfToken(tokenResolutionScope);
-
+                TypeSymbol psymContainer = GetTypeOfToken(tokenResolutionScope);
                 Debug.Assert(fullName.NamespaceName.Length == 0);
                 isNoPiaLocalType = false;
                 return LookupNestedTypeDefSymbol(psymContainer, ref fullName);
@@ -489,10 +486,6 @@ namespace Microsoft.CodeAnalysis
                     {
                         isNoPiaLocalType = true;
                     }
-                    else
-                    {
-                        isNoPiaLocalType = false;
-                    }
 
                     return result;
                 }
@@ -500,10 +493,6 @@ namespace Microsoft.CodeAnalysis
                 MetadataTypeName mdName;
                 string name = Module.GetTypeDefNameOrThrow(typeDef);
                 Debug.Assert(MetadataHelpers.IsValidMetadataIdentifier(name));
-
-                string interfaceGuid;
-                string scope;
-                string identifier;
 
                 if (Module.IsNestedTypeDefOrThrow(typeDef))
                 {
@@ -513,7 +502,6 @@ namespace Microsoft.CodeAnalysis
                     // invalid metadata?
                     if (containerTypeDef.IsNil)
                     {
-                        isNoPiaLocalType = false;
                         return GetUnsupportedMetadataTypeSymbol();
                     }
 
@@ -557,6 +545,9 @@ namespace Microsoft.CodeAnalysis
 
                     // Check if this is NoPia local type which should be substituted 
                     // with corresponding canonical type
+                    string interfaceGuid;
+                    string scope;
+                    string identifier;
                     if (Module.IsNoPiaLocalType(
                             typeDef,
                             out interfaceGuid,
@@ -588,10 +579,6 @@ namespace Microsoft.CodeAnalysis
 
                             return result;
                         }
-                    }
-                    else
-                    {
-                        isNoPiaLocalType = false;
                     }
 
                     result = LookupTopLevelTypeDefSymbol(ref mdName, out isNoPiaLocalType);
@@ -642,7 +629,7 @@ namespace Microsoft.CodeAnalysis
                 break;
             }
 
-            return (modifiers == null) ? default(ImmutableArray<ModifierInfo<TypeSymbol>>) : modifiers.ToImmutableAndFree();
+            return modifiers?.ToImmutableAndFree() ?? default(ImmutableArray<ModifierInfo<TypeSymbol>>);
         }
 
         /// <summary>
@@ -720,7 +707,6 @@ namespace Microsoft.CodeAnalysis
 
             // Include signatures with each local.
             signatureReader.Reset();
-            var builder = ArrayBuilder<byte[]>.GetInstance();
             for (int i = 0; i < localCount; i++)
             {
                 int start = offsets[i];
@@ -943,7 +929,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var signature = Module.GetPropertySignatureOrThrow(handle);
                 SignatureHeader signatureHeader;
-                BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
+                DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
                 return signatureHeader;
             }
             catch (BadImageFormatException)
@@ -1936,7 +1922,7 @@ namespace Microsoft.CodeAnalysis
             return new TypedConstant(type, kind, value);
         }
 
-        private TypedConstant CreateTypedConstant(TypeSymbol type, TypedConstantKind kind, bool value)
+        private static TypedConstant CreateTypedConstant(TypeSymbol type, TypedConstantKind kind, bool value)
         {
             return CreateTypedConstant(type, kind, Boxes.Box(value));
         }

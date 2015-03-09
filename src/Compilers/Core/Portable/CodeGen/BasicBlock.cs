@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Cci;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -73,17 +73,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //parent builder
             internal ILBuilder builder;
 
-            private Microsoft.Cci.MemoryStream _lazyRegularInstructions;
-            public Microsoft.Cci.BinaryWriter Writer
+            private MemoryStream _lazyRegularInstructions;
+            public BinaryWriter Writer
             {
                 get
                 {
                     if (_lazyRegularInstructions == null)
                     {
-                        _lazyRegularInstructions = Microsoft.Cci.MemoryStream.GetInstance();
+                        _lazyRegularInstructions = MemoryStream.GetInstance();
                     }
 
-                    return new Microsoft.Cci.BinaryWriter(_lazyRegularInstructions);
+                    return new BinaryWriter(_lazyRegularInstructions);
                 }
             }
 
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// <summary>
             /// Instructions that are not branches.
             /// </summary>
-            public Microsoft.Cci.MemoryStream RegularInstructions => _lazyRegularInstructions;
+            public MemoryStream RegularInstructions => _lazyRegularInstructions;
 
             /// <summary>
             /// The block contains only the final branch or nothing at all
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 if (this.EnclosingHandler == null)
                 {
                     // Cannot branch into a handler.
-                    Debug.Assert((BranchBlock == null) || (BranchBlock.EnclosingHandler == null));
+                    Debug.Assert(BranchBlock?.EnclosingHandler == null);
                 }
 
                 var branchBlock = BranchBlock;
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         while (intermediateNext != next)
                         {
                             Debug.Assert(intermediateNext.TotalSize == 0);
-                            intermediateNext.Reachability = ILBuilder.Reachability.NotReachable;
+                            intermediateNext.Reachability = Reachability.NotReachable;
                             intermediateNext = intermediateNext.NextBlock;
                         }
 
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     this.Reachability = Reachability.NotReachable;
                     this.Start = 0;
 
-                    BasicBlock.Pool.Free(this);
+                    Pool.Free(this);
                 }
             }
         }

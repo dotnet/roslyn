@@ -7,16 +7,14 @@ using System.Text;
 namespace Microsoft.CodeAnalysis.Text
 {
     /// <summary>
-    /// Implementation of <see cref="SourceText"/> based on a <see cref="StringBuilder"/> input
+    /// Implementation of <see cref="SourceText"/> based on a <see cref="StringBuilder"/> input.
     /// </summary>
-    internal sealed partial class StringBuilderText : SourceText
+    internal sealed class StringBuilderText : SourceText
     {
         /// <summary>
         /// Underlying string on which this SourceText instance is based
         /// </summary>
         private readonly StringBuilder _builder;
-
-        private readonly Encoding _encodingOpt;
 
         public StringBuilderText(StringBuilder builder, Encoding encodingOpt, SourceHashAlgorithm checksumAlgorithm)
              : base(checksumAlgorithm: checksumAlgorithm)
@@ -24,13 +22,10 @@ namespace Microsoft.CodeAnalysis.Text
             Debug.Assert(builder != null);
 
             _builder = builder;
-            _encodingOpt = encodingOpt;
+            Encoding = encodingOpt;
         }
 
-        public override Encoding Encoding
-        {
-            get { return _encodingOpt; }
-        }
+        public override Encoding Encoding { get; }
 
         /// <summary>
         /// Underlying string which is the source of this SourceText instance
@@ -61,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 if (position < 0 || position >= _builder.Length)
                 {
-                    throw new ArgumentOutOfRangeException("position");
+                    throw new ArgumentOutOfRangeException(nameof(position));
                 }
 
                 return _builder[position];
@@ -76,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (span.End > _builder.Length)
             {
-                throw new ArgumentOutOfRangeException("span");
+                throw new ArgumentOutOfRangeException(nameof(span));
             }
 
             return _builder.ToString(span.Start, span.Length);

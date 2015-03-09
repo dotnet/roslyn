@@ -3,9 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
-using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -78,7 +76,7 @@ namespace Microsoft.CodeAnalysis
 
         protected bool EqualsHelper(ParseOptions other)
         {
-            if (object.ReferenceEquals(other, null))
+            if (ReferenceEquals(other, null))
             {
                 return false;
             }
@@ -115,12 +113,12 @@ namespace Microsoft.CodeAnalysis
 
         public static bool operator ==(ParseOptions left, ParseOptions right)
         {
-            return object.Equals(left, right);
+            return Equals(left, right);
         }
 
         public static bool operator !=(ParseOptions left, ParseOptions right)
         {
-            return !object.Equals(left, right);
+            return !Equals(left, right);
         }
     }
 }

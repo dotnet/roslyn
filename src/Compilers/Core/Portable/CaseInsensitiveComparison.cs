@@ -166,9 +166,9 @@ namespace Microsoft.CodeAnalysis
             {
                 int hashCode = Hash.FnvOffsetBias;
 
-                for (int i = 0; i < str.Length; i++)
+                foreach (char ch in str)
                 {
-                    hashCode = Hash.CombineFNVHash(hashCode, ToLower(str[i]));
+                    hashCode = Hash.CombineFNVHash(hashCode, ToLower(ch));
                 }
 
                 return hashCode;
