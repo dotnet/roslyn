@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 GetMainDocumentAndPreviews(workspace, document, previews)
 
                 ' The changed document comes first.
-                Dim preview = previews.TakeNextPreview()
+                Dim preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is IWpfDifferenceViewer)
                 Dim diffView = DirectCast(preview, IWpfDifferenceViewer)
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 diffView.Close()
 
                 ' The added document comes next.
-                preview = previews.TakeNextPreview()
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is IWpfDifferenceViewer)
                 diffView = DirectCast(preview, IWpfDifferenceViewer)
@@ -102,23 +102,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 diffView.Close()
 
                 ' Then comes the removed metadata reference.
-                preview = previews.TakeNextPreview()
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is String)
                 text = DirectCast(preview, String)
                 Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal)
 
                 ' And finally the added project.
-                preview = previews.TakeNextPreview()
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is String)
                 text = DirectCast(preview, String)
                 Assert.Contains(s_addedProjectName, text, StringComparison.Ordinal)
 
                 ' There are no more previews.
-                preview = previews.TakeNextPreview()
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.Null(preview)
-                preview = previews.TakeNextPreview()
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.Null(preview)
             End Using
         End Sub
@@ -131,14 +131,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 GetMainDocumentAndPreviews(workspace, document, previews)
 
                 ' Should return preview that matches the preferred (added) project.
-                Dim preview = previews.TakeNextPreview(preferredProjectId:=s_addedProjectId)
+                Dim preview = previews.TakeNextPreviewAsync(preferredProjectId:=s_addedProjectId).PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is String)
                 Dim text = DirectCast(preview, String)
                 Assert.Contains(s_addedProjectName, text, StringComparison.Ordinal)
 
                 ' Should return preview that matches the preferred (changed) document.
-                preview = previews.TakeNextPreview(preferredDocumentId:=document.Id)
+                preview = previews.TakeNextPreviewAsync(preferredDocumentId:=document.Id).PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is IWpfDifferenceViewer)
                 Dim diffView = DirectCast(preview, IWpfDifferenceViewer)
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 diffView.Close()
 
                 ' There is no longer a preview for the preferred project. Should return the first remaining preview.
-                preview = previews.TakeNextPreview(preferredProjectId:=s_addedProjectId)
+                preview = previews.TakeNextPreviewAsync(preferredProjectId:=s_addedProjectId).PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is IWpfDifferenceViewer)
                 diffView = DirectCast(preview, IWpfDifferenceViewer)
@@ -157,16 +157,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 diffView.Close()
 
                 ' There is no longer a preview for the  preferred document. Should return the first remaining preview.
-                preview = previews.TakeNextPreview(preferredDocumentId:=document.Id)
+                preview = previews.TakeNextPreviewAsync(preferredDocumentId:=document.Id).PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is String)
                 text = DirectCast(preview, String)
                 Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal)
 
                 ' There are no more previews.
-                preview = previews.TakeNextPreview()
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.Null(preview)
-                preview = previews.TakeNextPreview()
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.Null(preview)
             End Using
         End Sub

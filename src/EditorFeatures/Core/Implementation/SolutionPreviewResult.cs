@@ -2,6 +2,9 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -29,11 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor
         /// This function guarantees that it will not return the same preview object twice if called twice
         /// (thereby reducing the possibility that a given preview object can end up with more than one owner).
         /// </remarks>
-        public object TakeNextPreview(DocumentId preferredDocumentId = null, ProjectId preferredProjectId = null)
+        public Task<object> TakeNextPreviewAsync(DocumentId preferredDocumentId = null, ProjectId preferredProjectId = null, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (IsEmpty)
             {
-                return null;
+                return SpecializedTasks.Default<object>();
             }
 
             SolutionPreviewItem previewItem = null;
@@ -56,12 +61,14 @@ namespace Microsoft.CodeAnalysis.Editor
                 previewItem = _previews.FirstOrDefault();
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             // We should now remove this preview object from the list so that it can not be returned again
             // if someone calls this function again (thereby reducing the possibility that a given preview
             // object can end up with more than one owner - see <remarks> above).
             _previews.Remove(previewItem);
 
-            return previewItem.Preview.Value;
+            return previewItem.LazyPreview(cancellationToken);
         }
     }
 }
