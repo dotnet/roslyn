@@ -228,6 +228,9 @@
   <data name="Deprecated" xml:space="preserve">
     <value>deprecated</value>
   </data>
+  <data name="Obsolete" xml:space="preserve">
+    <value>Obsolete</value>
+  </data>
   <data name="Extension" xml:space="preserve">
     <value>extension</value>
   </data>

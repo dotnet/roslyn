@@ -47,6 +47,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     Space());
             }
 
+            protected override void AddObsoletePrefix()
+            {
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    Punctuation("["),
+                    PlainText(CSharpFeaturesResources.Obsolete),
+                    Punctuation("]"),
+                    Space());
+            }
+
             protected override void AddExtensionPrefix()
             {
                 AddToGroup(SymbolDescriptionGroups.MainDescription,

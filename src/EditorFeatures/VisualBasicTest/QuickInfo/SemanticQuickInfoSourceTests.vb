@@ -1392,7 +1392,7 @@ Class C
     End Sub
 End Class
 ]]></Text>.NormalizedValue,
-                MainDescription($"({VBFeaturesResources.Deprecated}) Sub C.Foo()"))
+                MainDescription($"({VBFeaturesResources.Obsolete}) Sub C.Foo()"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>

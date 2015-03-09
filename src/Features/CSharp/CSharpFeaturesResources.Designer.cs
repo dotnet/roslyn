@@ -367,6 +367,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Obsolete.
+        /// </summary>
+        internal static string Obsolete {
+            get {
+                return ResourceManager.GetString("Obsolete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organize Usings.
         /// </summary>
         internal static string OrganizeUsings {

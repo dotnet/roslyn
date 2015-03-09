@@ -1884,6 +1884,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Obsolete.
+        '''</summary>
+        Friend ReadOnly Property Obsolete() As String
+            Get
+                Return ResourceManager.GetString("Obsolete", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Turns a compiler option off..
         '''</summary>
         Friend ReadOnly Property OffOptionKeywordToolTip() As String

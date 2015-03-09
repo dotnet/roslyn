@@ -38,6 +38,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                            Space())
             End Sub
 
+            Protected Overrides Sub AddObsoletePrefix()
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                           Punctuation("("),
+                           PlainText(VBFeaturesResources.Obsolete),
+                           Punctuation(")"),
+                           Space())
+            End Sub
+
             Protected Overrides Sub AddExtensionPrefix()
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     Punctuation("<"),
