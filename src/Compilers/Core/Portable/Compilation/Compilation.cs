@@ -1634,6 +1634,14 @@ namespace Microsoft.CodeAnalysis
             {
                 if (pdbOutputInfo.IsValid)
                 {
+                    // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
+                    // frequently used during PDB writing.  Ensure a name is provided here in the case we were given
+                    // only a Stream value.
+                    if (pdbOutputInfo.Stream != null && pdbOutputInfo.FileName == null)
+                    {
+                        pdbOutputInfo = new Cci.PdbOutputInfo(FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"), pdbOutputInfo.Stream);
+                    }
+
                     // Native PDB writer is able to update an existing stream.
                     // It checks for length to determine whether the given stream has existing data to be updated,
                     // or whether it should start writing PDB data from scratch. Thus if not writing to a seekable empty stream ,
@@ -1664,7 +1672,7 @@ namespace Microsoft.CodeAnalysis
                     // then stream that to the stream that this method was called with. Otherwise output to the
                     // stream that this method was called with.
                     Stream retStream;
-                    if (!metadataOnly && ShouldBeSigned)
+                    if (!metadataOnly && IsRealSigned)
                     {
                         Debug.Assert(Options.StrongNameProvider != null);
 
