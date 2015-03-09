@@ -128,6 +128,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
                         End If
                     End If
+                ElseIf node.Syntax.Parent.IsKind(SyntaxKind.ExpressionRangeVariable) AndAlso node.Syntax.Parent.Parent.IsKind(SyntaxKind.LetClause) Then
+                    ' We will apply sequence points to synthesized return statements if they are contained in LetClause
+                    createSequencePoint = node.Syntax
+                    sequencePointSpan = TextSpan.FromBounds(node.Syntax.SpanStart, node.Syntax.Span.End)
                 End If
 
                 createSequencePointsForTopLevelNonCompilerGeneratedExpressions = (createSequencePoint Is Nothing)
