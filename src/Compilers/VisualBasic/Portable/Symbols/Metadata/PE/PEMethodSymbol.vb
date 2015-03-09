@@ -550,8 +550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Try
                         Dim paramCount As Integer = 0
                         Dim typeParamCount As Integer = 0
-                        Dim decoder As New MetadataDecoder(Me.m_ContainingType.ContainingPEModule, Me)
-                        decoder.GetSignatureCountsOrThrow(Me.m_Handle, paramCount, typeParamCount)
+                        MetadataDecoder.GetSignatureCountsOrThrow(Me.m_ContainingType.ContainingPEModule.Module, Me.m_Handle, paramCount, typeParamCount)
                         Return typeParamCount
                     Catch mrEx As BadImageFormatException
                         Return TypeParameters.Length
@@ -673,8 +672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Try
                         Dim paramCount As Integer = 0
                         Dim typeParamCount As Integer = 0
-                        Dim decoder As New MetadataDecoder(Me.m_ContainingType.ContainingPEModule, Me)
-                        decoder.GetSignatureCountsOrThrow(Me.m_Handle, paramCount, typeParamCount)
+                        MetadataDecoder.GetSignatureCountsOrThrow(Me.m_ContainingType.ContainingPEModule.Module, Me.m_Handle, paramCount, typeParamCount)
                         Return paramCount
                     Catch mrEx As BadImageFormatException
                         Return Parameters.Length

@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         int parameterCount;
                         int typeParameterCount;
-                        new MetadataDecoder(_containingType.ContainingPEModule, this).GetSignatureCountsOrThrow(_handle, out parameterCount, out typeParameterCount);
+                        MetadataDecoder.GetSignatureCountsOrThrow(_containingType.ContainingPEModule.Module, _handle, out parameterCount, out typeParameterCount);
                         return typeParameterCount;
                     }
                     catch (BadImageFormatException)
@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         int parameterCount;
                         int typeParameterCount;
-                        new MetadataDecoder(_containingType.ContainingPEModule, this).GetSignatureCountsOrThrow(_handle, out parameterCount, out typeParameterCount);
+                        MetadataDecoder.GetSignatureCountsOrThrow(_containingType.ContainingPEModule.Module, _handle, out parameterCount, out typeParameterCount);
                         return parameterCount;
                     }
                     catch (BadImageFormatException)
