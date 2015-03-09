@@ -1915,7 +1915,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract TypeSymbol GetGenericTypeParamSymbol(int position);
         protected abstract TypeSymbol GetGenericMethodTypeParamSymbol(int position);
 
-        private TypedConstant CreateArrayTypedConstant(TypeSymbol type, ImmutableArray<TypedConstant> array)
+        private static TypedConstant CreateArrayTypedConstant(TypeSymbol type, ImmutableArray<TypedConstant> array)
         {
             if (type.TypeKind == TypeKind.Error)
             {
@@ -1926,7 +1926,7 @@ namespace Microsoft.CodeAnalysis
             return new TypedConstant(type, array);
         }
 
-        private TypedConstant CreateTypedConstant(TypeSymbol type, TypedConstantKind kind, object value)
+        private static TypedConstant CreateTypedConstant(TypeSymbol type, TypedConstantKind kind, object value)
         {
             if (type.TypeKind == TypeKind.Error)
             {

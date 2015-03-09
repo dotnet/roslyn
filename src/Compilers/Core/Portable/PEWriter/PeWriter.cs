@@ -1234,14 +1234,14 @@ namespace Microsoft.Cci
             startOfMetadata = peStream.Position;
             WriteMetadata(peStream, metadataStream);
 
-            this.WriteManagedResources(peStream, managedResourceStream);
+            WriteManagedResources(peStream, managedResourceStream);
             WriteSpaceForHash(peStream, (int)corHeader.StrongNameSignature.Size);
             this.WriteDebugTable(peStream, out positionOfTimestamp);
 
             if (_emitRuntimeStartupStub)
             {
                 this.WriteImportTable(peStream);
-                this.WriteNameTable(peStream);
+                WriteNameTable(peStream);
                 this.WriteRuntimeStartupStub(peStream);
             }
 
@@ -1317,7 +1317,7 @@ namespace Microsoft.Cci
             writer.BaseStream.WriteTo(peStream);
         }
 
-        private void WriteNameTable(Stream peStream)
+        private static void WriteNameTable(Stream peStream)
         {
             BinaryWriter writer = new BinaryWriter(new MemoryStream(14));
             foreach (char ch in "mscoree.dll")
@@ -1390,7 +1390,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void WriteManagedResources(Stream peStream, MemoryStream managedResourceStream)
+        private static void WriteManagedResources(Stream peStream, MemoryStream managedResourceStream)
         {
             managedResourceStream.WriteTo(peStream);
             while (peStream.Position % 4 != 0)

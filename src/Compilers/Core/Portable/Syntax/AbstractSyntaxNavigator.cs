@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract Func<SyntaxTrivia, bool> GetStepIntoFunction(bool skipped, bool directives, bool docComments);
 
-        private Func<SyntaxToken, bool> GetPredicateFunction(bool includeZeroWidth)
+        private static Func<SyntaxToken, bool> GetPredicateFunction(bool includeZeroWidth)
         {
             return includeZeroWidth ? SyntaxToken.Any : SyntaxToken.NonZeroWidth;
         }
 
-        private bool Matches(Func<SyntaxToken, bool> predicate, SyntaxToken token)
+        private static bool Matches(Func<SyntaxToken, bool> predicate, SyntaxToken token)
         {
             return predicate == null || ReferenceEquals(predicate, SyntaxToken.Any) || predicate(token);
         }

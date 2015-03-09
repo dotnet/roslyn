@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
             return ti.IsGenericType && ti.GetGenericTypeDefinition() == typeof(ImmutableArray<>) && (bool)ti.GetDeclaredMethod("get_IsDefault").Invoke(o, SpecializedCollections.EmptyObjects);
         }
 
-        private string DumperString(object o)
+        private static string DumperString(object o)
         {
             string result;
 

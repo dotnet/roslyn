@@ -1308,7 +1308,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        private bool IsValidComInterfaceType(int comInterfaceType)
+        private static bool IsValidComInterfaceType(int comInterfaceType)
         {
             switch (comInterfaceType)
             {
