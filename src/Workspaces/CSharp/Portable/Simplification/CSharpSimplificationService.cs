@@ -165,6 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return false;
         }
 
+        private static readonly string CS8019_UnusedUsingDirective = "CS8019";
+
         protected override void GetUnusedNamespaceImports(SemanticModel model, HashSet<SyntaxNode> namespaceImports, CancellationToken cancellationToken)
         {
             var root = model.SyntaxTree.GetRoot();
@@ -172,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             foreach (var diagnostic in diagnostics)
             {
-                if (diagnostic.Id == "CS8019")
+                if (diagnostic.Id == CS8019_UnusedUsingDirective)
                 {
                     var node = root.FindNode(diagnostic.Location.SourceSpan) as UsingDirectiveSyntax;
 

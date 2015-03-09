@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
 
             ' consider all imports clauses
             Dim root = DirectCast(model.SyntaxTree.GetRoot(), CompilationUnitSyntax)
-            For Each import In root.Imports
+            For Each import As ImportsStatementSyntax In root.Imports
                 For Each clause In import.ImportsClauses
                     Dim symbol = GetImportedNamespaceSymbol(clause, model)
                     If symbol IsNot Nothing Then
@@ -58,12 +58,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
         End Function
 
         Private Overloads Function GetExplicitNamespaceSymbol(fullName As ExpressionSyntax, namespacePart As ExpressionSyntax, model As SemanticModel) As INamespaceSymbol
-            ' name must refer to something that Is Not a namespace, but be qualified with a namespace.
+            ' name must refer to something that is not a namespace, but be qualified with a namespace.
             Dim Symbol = model.GetSymbolInfo(fullName).Symbol
             Dim nsSymbol = TryCast(model.GetSymbolInfo(namespacePart).Symbol, INamespaceSymbol)
 
             If Symbol IsNot Nothing AndAlso Symbol.Kind <> SymbolKind.Namespace AndAlso nsSymbol IsNot Nothing Then
-                ' use the symbols containing namespace, And Not the potentially less than fully qualified namespace in the full name expression.
+                ' use the symbols containing namespace, and not the potentially less than fully qualified namespace in the full name expression.
                 Dim ns = Symbol.ContainingNamespace
                 If ns IsNot Nothing Then
                     Return model.Compilation.GetCompilationNamespace(ns)
@@ -74,10 +74,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
         End Function
 
         Protected Overrides Function InsertNamespaceImport(root As SyntaxNode, gen As SyntaxGenerator, import As SyntaxNode, options As OptionSet) As SyntaxNode
-            Dim comparer = If(options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic), ImportsStatementComparer.SystemFirstInstance, ImportsStatementComparer.NormalInstance)
+            Dim comparer = If(options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic),
+                              ImportsStatementComparer.SystemFirstInstance,
+                              ImportsStatementComparer.NormalInstance)
 
             ' find insertion point
-            For Each existingImport In gen.GetNamespaceImports(root)
+            For Each existingImport As SyntaxNode In gen.GetNamespaceImports(root)
                 If comparer.Compare(DirectCast(import, ImportsStatementSyntax), DirectCast(existingImport, ImportsStatementSyntax)) < 0 Then
                     Return gen.InsertNodesBefore(root, existingImport, {import})
                 End If

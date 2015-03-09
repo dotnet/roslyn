@@ -1,4 +1,6 @@
-﻿Imports Microsoft.CodeAnalysis.Editing
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
@@ -21,8 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
         End Sub
 
         Private Function GetDocument(code As String, Optional globalImports As String() = Nothing) As Document
-            code = code.Replace(vbLf, vbCrLf)
-
             Dim project = _emptyProject
 
             If globalImports IsNot Nothing Then
@@ -41,14 +41,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
             Dim imported = ImportAdder.AddImportsAsync(doc, options).Result
 
             If importsAddedText IsNot Nothing Then
-                importsAddedText = importsAddedText.Replace(vbLf, vbCrLf)
                 Dim formatted = Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, options).Result
                 Dim actualText = formatted.GetTextAsync().Result.ToString()
                 Assert.Equal(importsAddedText, actualText)
             End If
 
             If simplifiedText IsNot Nothing Then
-                simplifiedText = simplifiedText.Replace(vbLf, vbCrLf)
                 Dim reduced = Simplifier.ReduceAsync(imported, options).Result
                 Dim formatted = Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, options).Result
                 Dim actualText = formatted.GetTextAsync().Result.ToString()
@@ -59,102 +57,102 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
         <Fact>
         Public Sub TestAddImport()
             Test(
-<x>Class C
+"Class C
     Public F As System.Collections.Generic.List(Of Integer)
-End Class</x>.Value,
-<x>Imports System.Collections.Generic
+End Class",
+"Imports System.Collections.Generic
 
 Class C
     Public F As System.Collections.Generic.List(Of Integer)
-End Class</x>.Value,
-<x>Imports System.Collections.Generic
+End Class",
+"Imports System.Collections.Generic
 
 Class C
     Public F As List(Of Integer)
-End Class</x>.Value)
+End Class")
         End Sub
 
         <Fact>
         Public Sub TestAddSystemImportFirst()
             Test(
-<x>Imports N
+"Imports N
 
 Class C
     Public F As System.Collections.Generic.List(Of Integer)
-End Class</x>.Value,
-<x>Imports System.Collections.Generic
+End Class",
+"Imports System.Collections.Generic
 Imports N
 
 Class C
     Public F As System.Collections.Generic.List(Of Integer)
-End Class</x>.Value,
-<x>Imports System.Collections.Generic
+End Class",
+"Imports System.Collections.Generic
 Imports N
 
 Class C
     Public F As List(Of Integer)
-End Class</x>.Value)
+End Class")
         End Sub
 
         <Fact>
         Public Sub TestDontAddSystemImportFirst()
             Test(
-<x>Imports N
+"Imports N
 
 Class C
     Public F As System.Collections.Generic.List(Of Integer)
-End Class</x>.Value,
-<x>Imports N
+End Class",
+"Imports N
 Imports System.Collections.Generic
 
 Class C
     Public F As System.Collections.Generic.List(Of Integer)
-End Class</x>.Value,
-<x>Imports N
+End Class",
+"Imports N
 Imports System.Collections.Generic
 
 Class C
     Public F As List(Of Integer)
-End Class</x>.Value,
+End Class",
 _ws.Options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, False))
         End Sub
 
         <Fact>
         Public Sub TestAddImportsInOrder()
             Test(
-<x>Imports System.Collections
+"Imports System.Collections
 Imports System.Diagnostics
 
 Class C
     Public F As System.Collections.Generic.List(Of Integer)
-End Class</x>.Value,
-<x>Imports System.Collections
+End Class",
+"Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Diagnostics
 
 Class C
     Public F As System.Collections.Generic.List(Of Integer)
-End Class</x>.Value,
-<x>Imports System.Collections
+End Class",
+"Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Diagnostics
 
 Class C
     Public F As List(Of Integer)
-End Class</x>.Value)
+End Class")
         End Sub
 
         <Fact>
         Public Sub TestAddMultipleImportsInOrder()
             Test(
-<x>Imports System.Collections
+"Imports System.Collections
 Imports System.Diagnostics
 
 Class C
     Public F As System.Collections.Generic.List(Of Integer)
     Public Handler As System.EventHandler
-End Class</x>.Value,
-<x>Imports System
+End Class",
+"Imports System
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Diagnostics
@@ -162,8 +160,8 @@ Imports System.Diagnostics
 Class C
     Public F As System.Collections.Generic.List(Of Integer)
     Public Handler As System.EventHandler
-End Class</x>.Value,
-<x>Imports System
+End Class",
+"Imports System
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Diagnostics
@@ -171,57 +169,57 @@ Imports System.Diagnostics
 Class C
     Public F As List(Of Integer)
     Public Handler As EventHandler
-End Class</x>.Value)
+End Class")
         End Sub
 
         <Fact>
         Public Sub TestImportNotAddedAgainIfAlreadyExists()
             Test(
-<x>Imports System.Collections.Generic
+"Imports System.Collections.Generic
 
 Class C
     Public F As System.Collections.Generic.List(Of Integer)
-End Class</x>.Value,
-<x>Imports System.Collections.Generic
+End Class",
+"Imports System.Collections.Generic
 
 Class C
     Public F As System.Collections.Generic.List(Of Integer)
-End Class</x>.Value,
-<x>Imports System.Collections.Generic
+End Class",
+"Imports System.Collections.Generic
 
 Class C
     Public F As List(Of Integer)
-End Class</x>.Value)
+End Class")
         End Sub
 
         <Fact>
         Public Sub TestUnusedAddedImportIsRemovedBySimplifier()
             Test(
-<x>Class C
+"Class C
     Public F As System.Int32
-End Class</x>.Value,
-<x>Imports System
+End Class",
+"Imports System
 
 Class C
     Public F As System.Int32
-End Class</x>.Value,
-<x>Class C
+End Class",
+"Class C
     Public F As Integer
-End Class</x>.Value)
+End Class")
         End Sub
 
-        <Fact>
-        Public Sub TestImportNotAddedIfGloballyImported()
-            Test(
-<x>Class C
+    <Fact>
+    Public Sub TestImportNotAddedIfGloballyImported()
+        Test(
+"Class C
     Public F As System.Collections.Generic.List(Of Integer)
-End Class</x>.Value,
-<x>Class C
+End Class",
+"Class C
     Public F As System.Collections.Generic.List(Of Integer)
-End Class</x>.Value,
-<x>Class C
+End Class",
+"Class C
     Public F As List(Of Integer)
-End Class</x>.Value,
+End Class",
 globalImports:={"System.Collections.Generic"})
 
         End Sub
@@ -229,44 +227,44 @@ globalImports:={"System.Collections.Generic"})
         <Fact>
         Public Sub TestImportNotAddedForNamespaceDeclarations()
             Test(
-<x>Namespace N
-End Namespace</x>.Value,
-<x>Namespace N
-End Namespace</x>.Value,
-<x>Namespace N
-End Namespace</x>.Value)
+"Namespace N
+End Namespace",
+"Namespace N
+End Namespace",
+"Namespace N
+End Namespace")
         End Sub
 
-        <Fact>
-        Public Sub TestImportAddedAndRemovedForReferencesInsideNamespaceDeclarations()
-            Test(
-<x>Namespace N
+<Fact>
+Public Sub TestImportAddedAndRemovedForReferencesInsideNamespaceDeclarations()
+    Test(
+"Namespace N
     Class C
         Private _c As N.C
     End Class
-End Namespace</x>.Value,
-<x>Imports N
+End Namespace",
+"Imports N
 
 Namespace N
     Class C
         Private _c As N.C
     End Class
-End Namespace</x>.Value,
-<x>Namespace N
+End Namespace",
+"Namespace N
     Class C
         Private _c As C
     End Class
-End Namespace</x>.Value)
+End Namespace")
         End Sub
 
         <Fact>
         Public Sub TestRemoveImportIfItMakesReferencesAmbiguous()
-            ' this Is not really an artifact of the AddImports feature, it is due
+            ' this is not really an artifact of the AddImports feature, it is due
             ' to Simplifier not reducing the namespace reference because it would 
             ' become ambiguous, thus leaving an unused imports statement
 
             Test(
-<x>Namespace N
+"Namespace N
     Class C
     End Class
 End Namespace
@@ -274,8 +272,8 @@ End Namespace
 Class C
     Private F As N.C
 End Class
-</x>.Value,
-<x>Imports N
+",
+"Imports N
 
 Namespace N
     Class C
@@ -285,8 +283,8 @@ End Namespace
 Class C
     Private F As N.C
 End Class
-</x>.Value,
-<x>Namespace N
+",
+"Namespace N
     Class C
     End Class
 End Namespace
@@ -294,8 +292,31 @@ End Namespace
 Class C
     Private F As N.C
 End Class
-</x>.Value)
+")
         End Sub
 
+        Private Sub TestPartialNamespacesNotUsed()
+            Test(
+"Imports System.Collections
+
+Public Class C
+    Public F1 As ArrayList
+    Public F2 As System.Collections.Generic.List(Of Integer)
+End Class",
+"Imports System.Collections
+Imports System.Collections.Generic
+
+Public Class C
+    Public F1 As ArrayList
+    Public F2 As System.Collections.Generic.List(Of Integer)
+End Class",
+"Imports System.Collections
+Imports System.Collections.Generic
+
+Public Class C
+    Public F1 As ArrayList
+    Public F2 As List(Of Integer)
+End Class")
+        End Sub
     End Class
 End Namespace

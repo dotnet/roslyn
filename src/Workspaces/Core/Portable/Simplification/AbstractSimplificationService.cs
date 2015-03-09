@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
             using (Logger.LogBlock(FunctionId.Simplifier_ReduceAsync, cancellationToken))
             {
-                var spanList = spans != null ? spans.ToList() : new List<TextSpan>();
+                var spanList = spans?.ToList() ?? new List<TextSpan>();
 
                 // we have no span
                 if (!spanList.Any())

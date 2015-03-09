@@ -17,10 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
     [ExportLanguageService(typeof(ImportAdderService), LanguageNames.CSharp), Shared]
     internal class CSharpImportAdder : ImportAdderService
     {
-        public CSharpImportAdder()
-        {
-        }
-
         protected override INamespaceSymbol GetImportedNamespaceSymbol(SyntaxNode import, SemanticModel model)
         {
             var @using = import as UsingDirectiveSyntax;

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editing
     [ExportOptionProvider, Shared]
     internal class GenerationOptionsProvider : IOptionProvider 
     {
-        private IEnumerable<IOption> _options = ImmutableArray.Create<IOption>(
+        private static readonly IEnumerable<IOption> _options = ImmutableArray.Create<IOption>(
                 GenerationOptions.PlaceSystemNamespaceFirst
                 );
 
