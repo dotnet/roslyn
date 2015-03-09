@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Default time the server will stay alive after the last request disconnects.
         /// </summary>
-        private static readonly TimeSpan s_defaultServerKeepAlive = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan s_defaultServerKeepAlive = TimeSpan.FromMinutes(10);
 
         /// <summary>
         /// Time to delay after the last connection before initiating a garbage collection
