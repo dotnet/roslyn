@@ -1,3 +1,4 @@
+
 # .NET Compiler Platform ("Roslyn") FAQ
 
 This FAQ has good learning or getting-started questions in addition to frequent questions, all inspired by the great questions and answers from previous Roslyn CTPs.  In several cases, the community was helping each other without the team chiming in, so great job everyone!  You will find many good pointers by searching for keywords or phrases on this page.
@@ -20,6 +21,9 @@ Where there is code available, the answer to the question has one or more tags s
     * [Where can I see the Roslyn EULA after installation or without committing to install Roslyn](#where-can-i-see-the-roslyn-eula-after-installation-or-without-committing-to-install-roslyn)
     * [How do the Roslyn APIs relate to the VS Code Model and CodeDom](#how-do-the-roslyn-apis-relate-to-the-vs-code-model-and-codedom)
     * [Can you just open a Connect bug for me](#can-you-just-open-a-connect-bug-for-me)
+* [GitHub Site](#github-site)
+    * [Why are there two solution files?](#why-are-there-two-solution-files)
+    * [What components can I dogfood in Visual Studio?](#what-components-can-i-dogfood-in-visual-studio)
 * [Getting Information Questions](#getting-information-questions)
     * [How do I get type info for a variable in a declaration, with inferred (â€˜varâ€™) or explicit variable type](#how-do-i-get-type-info-for-a-variable-in-a-declaration,-with-inferred-â€˜varâ€™-or-explicit-variable-type)
     * [How do I get all variables declared of a specified type that are available at a given code locations](#how-do-i-get-all-variables-declared-of-a-specified-type-that-are-available-at-a-given-code-locations)
@@ -118,6 +122,25 @@ When an employee logs the Connect issue for you, any updates cause Connect to se
 
 We do want to make it super easy for customers who have given us feedback to log that feedback though, so we tend to offer to log the issue for you.  However, if you want to get update mail and track the bug, we ask you to log the Connect bug.  There is a [url:VS Feedback|http://visualstudiogallery.msdn.microsoft.com/f8a5aac8-0418-4f88-9d34-bdbe2c4cfe72] tool that is designed to make it even easier to report Connect issues.
 
+## GitHub Site
+### Why are there two solution files?
+The Roslyn GitHub site includes code for the compilers, workspaces and Visual Studio layers.  In order to build the layers which rely on Visual Studio a compatable version of the VS SDK must be available.  The VS SDK itself depends on Visual Studio.  Hence this means both Visual Studio and the VS SDK are required to build Roslyn.
+
+The VS SDK, and Roslyn's dependency on it, are constantly moving forward.  Typically at a much faster pace than our CTPs.  This means Roslyn is very often depending on APIs which are not yet released in a public build of Visual Studio.  This makes it impossible for customers to build all of the sources on GitHub.  
+
+In order to mitigate this we placed two solutions in the repo:
+
+- RoslynLight.sln: Represents the source code buildable in the latest public release.
+- Roslyn.sln: Represents all of the source code. 
+
+We are working hard to break this dependency so all of Roslyn can be built by customers at all times.  But this work is going to take some time to complete and until then we will maintain the two solutions. 
+
+### What components can I dogfood in Visual Studio?
+Unfortanately at this time only the code up to the Workspaces layer can be deployed to the Roslyn experimental hive in Visual Studio.  We understand this is a decidedly bad place to be and it’s one that we are working hard to remedy.  The solution will hopefully come in the VS 2015 Update 1 time frame.  
+
+The underlying issue is that it’s not possible to override MEF components that ship in the Visual Studio box with a MEF component in a developer hive.  Visual Studio will always prefer the in the box component.  Virtually everything above Workspaces layer is a MEF component and can’t be dogfooded by customers.  
+
+Fixing this though is unfortunately something Roslyn does not directly control.    It involves work from a number of teams and it’s unlikely it will all be done in time for RTM.  
 
 ## Getting Information Questions
 
