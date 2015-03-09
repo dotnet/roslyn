@@ -6,7 +6,7 @@
 
 Please note that everything is still subject to change - this is a preview after all. However, we are reasonably confident about the overall feature set at this point.
 
-The [VS2015 Preview](http://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs) has the following features. For a description of each feature see:
+The [VS2015 CTP 6](http://visualstudio.com/en-us/downloads/visual-studio-2015-ctp-vs) has the following features. For a description of each feature see:
 * [C# feature descriptions](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=930852)
 * [Visual Basic feature descriptions](http://roslyn.codeplex.com/discussions/571884)
 
