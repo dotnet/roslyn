@@ -28,6 +28,5 @@
     <ResourceCompile Include="$(GeneratedVersionInfoResourceFile)" />
     <ResourceCompile Include="$(GeneratedVersionInfoResourceFile)" />
     <ResourceCompile Include="$(GeneratedVersionInfoResourceFile)" />
-    <ResourceCompile Include="$(GeneratedVersionInfoResourceFile)" />
   </ItemGroup>
 </Project>
