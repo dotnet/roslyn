@@ -3,11 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Threading;
 using Roslyn.Utilities;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -29,11 +28,6 @@ namespace Microsoft.CodeAnalysis
         private readonly ImmutableArray<PEModule> _modules;
 
         /// <summary>
-        /// Assembly identity read from Assembly table, or null if the table is empty.
-        /// </summary>
-        private readonly AssemblyIdentity _identity;
-
-        /// <summary>
         /// Using <see cref="ThreeState"/> for atomicity.
         /// </summary>
         private ThreeState _lazyContainsNoPiaLocalTypes;
@@ -53,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(!modules.IsDefault);
             Debug.Assert(modules.Length > 0);
 
-            _identity = modules[0].ReadAssemblyIdentityOrThrow();
+            Identity = modules[0].ReadAssemblyIdentityOrThrow();
 
             var refs = ArrayBuilder<AssemblyIdentity>.GetInstance();
             int[] refCounts = new int[modules.Length];
@@ -92,13 +86,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal AssemblyIdentity Identity
-        {
-            get
-            {
-                return _identity;
-            }
-        }
+        /// <summary>
+        /// Assembly identity read from Assembly table, or null if the table is empty.
+        /// </summary>
+        internal AssemblyIdentity Identity { get; }
 
         internal bool ContainsNoPiaLocalTypes()
         {

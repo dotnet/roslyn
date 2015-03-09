@@ -11,12 +11,7 @@ namespace Microsoft.Cci
     /// </summary>
     internal abstract class ExceptionHandlerRegion
     {
-        private readonly int _tryStartOffset;
-        private readonly int _tryEndOffset;
-        private readonly int _handlerStartOffset;
-        private readonly int _handlerEndOffset;
-
-        public ExceptionHandlerRegion(
+        protected ExceptionHandlerRegion(
             int tryStartOffset,
             int tryEndOffset,
             int handlerStartOffset,
@@ -30,10 +25,10 @@ namespace Microsoft.Cci
             Debug.Assert(handlerStartOffset >= 0);
             Debug.Assert(handlerEndOffset >= 0);
 
-            _tryStartOffset = tryStartOffset;
-            _tryEndOffset = tryEndOffset;
-            _handlerStartOffset = handlerStartOffset;
-            _handlerEndOffset = handlerEndOffset;
+            TryStartOffset = tryStartOffset;
+            TryEndOffset = tryEndOffset;
+            HandlerStartOffset = handlerStartOffset;
+            HandlerEndOffset = handlerEndOffset;
         }
 
         /// <summary>
@@ -64,34 +59,22 @@ namespace Microsoft.Cci
         /// <summary>
         /// Label instruction corresponding to the start of try block
         /// </summary>
-        public int TryStartOffset
-        {
-            get { return _tryStartOffset; }
-        }
+        public int TryStartOffset { get; }
 
         /// <summary>
         /// Label instruction corresponding to the end of try block
         /// </summary>
-        public int TryEndOffset
-        {
-            get { return _tryEndOffset; }
-        }
+        public int TryEndOffset { get; }
 
         /// <summary>
         /// Label instruction corresponding to the start of handler block
         /// </summary>
-        public int HandlerStartOffset
-        {
-            get { return _handlerStartOffset; }
-        }
+        public int HandlerStartOffset { get; }
 
         /// <summary>
         /// Label instruction corresponding to the end of handler block
         /// </summary>
-        public int HandlerEndOffset
-        {
-            get { return _handlerEndOffset; }
-        }
+        public int HandlerEndOffset { get; }
     }
 
     internal sealed class ExceptionHandlerRegionFinally : ExceptionHandlerRegion
@@ -130,8 +113,6 @@ namespace Microsoft.Cci
 
     internal sealed class ExceptionHandlerRegionCatch : ExceptionHandlerRegion
     {
-        private readonly ITypeReference _exceptionType;
-
         public ExceptionHandlerRegionCatch(
             int tryStartOffset,
             int tryEndOffset,
@@ -140,7 +121,7 @@ namespace Microsoft.Cci
             ITypeReference exceptionType)
             : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
         {
-            _exceptionType = exceptionType;
+            ExceptionType = exceptionType;
         }
 
         public override ExceptionRegionKind HandlerKind
@@ -148,16 +129,11 @@ namespace Microsoft.Cci
             get { return ExceptionRegionKind.Catch; }
         }
 
-        public override ITypeReference ExceptionType
-        {
-            get { return _exceptionType; }
-        }
+        public override ITypeReference ExceptionType { get; }
     }
 
     internal sealed class ExceptionHandlerRegionFilter : ExceptionHandlerRegion
     {
-        private readonly int _filterDecisionStartOffset;
-
         public ExceptionHandlerRegionFilter(
             int tryStartOffset,
             int tryEndOffset,
@@ -168,7 +144,7 @@ namespace Microsoft.Cci
         {
             Debug.Assert(filterDecisionStartOffset >= 0);
 
-            _filterDecisionStartOffset = filterDecisionStartOffset;
+            FilterDecisionStartOffset = filterDecisionStartOffset;
         }
 
         public override ExceptionRegionKind HandlerKind
@@ -176,9 +152,6 @@ namespace Microsoft.Cci
             get { return ExceptionRegionKind.Filter; }
         }
 
-        public override int FilterDecisionStartOffset
-        {
-            get { return _filterDecisionStartOffset; }
-        }
+        public override int FilterDecisionStartOffset { get; }
     }
 }

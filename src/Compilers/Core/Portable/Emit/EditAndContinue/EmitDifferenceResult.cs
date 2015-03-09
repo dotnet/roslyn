@@ -6,17 +6,12 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     public sealed class EmitDifferenceResult : EmitResult
     {
-        private readonly EmitBaseline _baseline;
-
         internal EmitDifferenceResult(bool success, ImmutableArray<Diagnostic> diagnostics, EmitBaseline baseline) :
             base(success, diagnostics)
         {
-            _baseline = baseline;
+            Baseline = baseline;
         }
 
-        public EmitBaseline Baseline
-        {
-            get { return _baseline; }
-        }
+        public EmitBaseline Baseline { get; }
     }
 }
