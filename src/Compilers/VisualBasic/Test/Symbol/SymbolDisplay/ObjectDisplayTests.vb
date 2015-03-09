@@ -146,8 +146,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             ' non-printable characters are replaced by spaces if quoting is disabled
             Assert.Equal(s, FormatPrimitiveUsingHexadecimalNumbers(s, quoteStrings:=False))
-            Assert.Equal("a....b", ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.None, nonPrintableSubstitute:="."c))
-            Assert.Equal("""a....b""", ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.UseHexadecimalNumbers, nonPrintableSubstitute:="."c))
+            Assert.Equal("a....b", ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.None))
+            Assert.Equal("""a....b""", ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.UseHexadecimalNumbers))
 
             ' "well-known" characters:
             Assert.Equal("""a"" & vbBack", FormatPrimitiveUsingHexadecimalNumbers("a" & vbBack, quoteStrings:=True))

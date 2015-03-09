@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         ''' </summary>
         ''' <param name="value">Literal value.</param>
         ''' <param name="options">Options used to customize formatting of a literal value.</param>
-        Friend Function FormatLiteral(value As String, options As ObjectDisplayOptions, Optional nonPrintableSubstitute As Char = Nothing) As String
+        Friend Function FormatLiteral(value As String, options As ObjectDisplayOptions) As String
             ValidateOptions(options)
 
             If value Is Nothing Then
@@ -131,9 +131,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 
             Dim pooledBuilder = PooledStringBuilder.GetInstance()
             Dim sb = pooledBuilder.Builder
+            Dim useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes)
+            Dim useHex = options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers)
 
-            For Each token As Integer In TokenizeString(value, options.IncludesOption(ObjectDisplayOptions.UseQuotes), nonPrintableSubstitute,
-                                                        options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
+            For Each token As Integer In TokenizeString(value, useQuotes, useHex)
                 sb.Append(ChrW(token And &HFFFF)) ' lower 16 bits of token contains the Unicode char value
             Next
 
@@ -142,6 +143,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 
         Friend Function FormatLiteral(c As Char, options As ObjectDisplayOptions) As String
             ValidateOptions(options)
+
+            If Not options.IncludesOption(ObjectDisplayOptions.UseQuotes) Then
+                Return c.ToString()
+            End If
 
             Dim wellKnown = GetWellKnownCharacterName(c)
             If wellKnown IsNot Nothing Then
@@ -153,11 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 Return If(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers), "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
             End If
 
-            If options.IncludesOption(ObjectDisplayOptions.UseQuotes) Then
-                Return """"c & EscapeQuote(c) & """"c & "c"
-            Else
-                Return c
-            End If
+            Return """"c & EscapeQuote(c) & """"c & "c"
         End Function
 
         Private Function EscapeQuote(c As Char) As String
@@ -361,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         End Function
 
         ' TODO: consider making "token" returned by this function a structure to abstract bit masking operations
-        Friend Iterator Function TokenizeString(str As String, quote As Boolean, nonPrintableSubstitute As Char, useHexadecimalNumbers As Boolean) As IEnumerable(Of Integer)
+        Friend Iterator Function TokenizeString(str As String, quote As Boolean, useHexadecimalNumbers As Boolean) As IEnumerable(Of Integer)
             If str.Length = 0 Then
                 If quote Then
                     Yield Quotes()
@@ -395,13 +396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 End If
 
                 If isNonPrintable Then
-                    If nonPrintableSubstitute <> NullChar Then
-                        Yield Character(nonPrintableSubstitute)
-
-                        If isCrLf Then
-                            Yield Character(nonPrintableSubstitute)
-                        End If
-                    ElseIf quote Then
+                    If quote Then
                         If lastConcatenandWasQuoted Then
                             Yield Quotes()
                             lastConcatenandWasQuoted = False
