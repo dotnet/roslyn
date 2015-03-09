@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,8 +11,6 @@ namespace Microsoft.CodeAnalysis
     {
         protected sealed class AssemblyDataForAssemblyBeingBuilt : AssemblyData
         {
-            private readonly AssemblyIdentity _assemblyIdentity;
-
             // assemblies referenced directly by the assembly:
             private readonly ImmutableArray<AssemblyData> _referencedAssemblyData;
 
@@ -32,7 +29,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(identity != null);
                 Debug.Assert(!referencedAssemblyData.IsDefault);
 
-                _assemblyIdentity = identity;
+                Identity = identity;
 
                 _referencedAssemblyData = referencedAssemblyData;
 
@@ -67,13 +64,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public override AssemblyIdentity Identity
-            {
-                get
-                {
-                    return _assemblyIdentity;
-                }
-            }
+            public override AssemblyIdentity Identity { get; }
 
             public override ImmutableArray<AssemblyIdentity> AssemblyReferences
             {

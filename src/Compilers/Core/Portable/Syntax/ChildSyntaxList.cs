@@ -5,7 +5,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis
                     return ItemInternal(_node, index);
                 }
 
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
         }
 
@@ -398,7 +397,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A 32-bit signed integer hash code.</returns>
         public override int GetHashCode()
         {
-            return _node == null ? 0 : _node.GetHashCode();
+            return _node?.GetHashCode() ?? 0;
         }
 
         /// <summary>Indicates whether two <see cref="ChildSyntaxList" /> structures are equal.</summary>

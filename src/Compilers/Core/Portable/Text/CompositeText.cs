@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.Text
     internal sealed class CompositeText : SourceText
     {
         private readonly ImmutableArray<SourceText> _texts;
-        private readonly int _length;
 
         public CompositeText(ImmutableArray<SourceText> texts)
             : base(checksumAlgorithm: texts[0].ChecksumAlgorithm)
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Text
                 len += text.Length;
             }
 
-            _length = len;
+            Length = len;
         }
 
         public override Encoding Encoding
@@ -37,10 +36,7 @@ namespace Microsoft.CodeAnalysis.Text
             get { return _texts[0].Encoding; }
         }
 
-        public override int Length
-        {
-            get { return _length; }
-        }
+        public override int Length { get; }
 
         public override char this[int position]
         {
@@ -80,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Text
             if (newTexts.Count == 0)
             {
                 newTexts.Free();
-                return SourceText.From(string.Empty, this.Encoding, this.ChecksumAlgorithm);
+                return From(string.Empty, this.Encoding, this.ChecksumAlgorithm);
             }
             else if (newTexts.Count == 1)
             {
@@ -113,30 +109,26 @@ namespace Microsoft.CodeAnalysis.Text
 
             index = 0;
             offset = 0;
-            throw new ArgumentException("position");
+            throw new ArgumentOutOfRangeException(nameof(position));
         }
 
         /// <summary>
         /// Validates the arguments passed to CopyTo against the published contract.
         /// </summary>
-        /// <param name="sourceIndex"></param>
-        /// <param name="destination"></param>
-        /// <param name="destinationIndex"></param>
-        /// <param name="count"></param>
         /// <returns>True if should bother to proceed with copying.</returns>
         private bool CheckCopyToArguments(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
             if (destination == null)
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
 
             if (sourceIndex < 0)
-                throw new ArgumentOutOfRangeException("sourceIndex");
+                throw new ArgumentOutOfRangeException(nameof(sourceIndex));
 
             if (destinationIndex < 0)
-                throw new ArgumentOutOfRangeException("destinationIndex");
+                throw new ArgumentOutOfRangeException(nameof(destinationIndex));
 
             if (count < 0 || count > this.Length - sourceIndex || count > destination.Length - destinationIndex)
-                throw new ArgumentOutOfRangeException("count");
+                throw new ArgumentOutOfRangeException(nameof(count));
 
             return count > 0;
         }

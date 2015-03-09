@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using System.IO;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -165,14 +165,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     return _nodeOrParent;
                 }
-                else if (_nodeOrParent != null)
-                {
-                    return _nodeOrParent.Parent;
-                }
-                else
-                {
-                    return null;
-                }
+
+                return _nodeOrParent?.Parent;
             }
         }
 
@@ -184,14 +178,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     return _token;
                 }
-                else if (_nodeOrParent != null)
-                {
-                    return _nodeOrParent.Green;
-                }
-                else
-                {
-                    return null;
-                }
+
+                return _nodeOrParent?.Green;
             }
         }
 
@@ -383,15 +371,15 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Writes the full text of this node or token to the specified TextWriter.
         /// </summary>
-        public void WriteTo(System.IO.TextWriter writer)
+        public void WriteTo(TextWriter writer)
         {
             if (_token != null)
             {
                 _token.WriteTo(writer);
             }
-            else if (_nodeOrParent != null)
+            else
             {
-                _nodeOrParent.WriteTo(writer);
+                _nodeOrParent?.WriteTo(writer);
             }
         }
 
@@ -459,7 +447,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (_token != null)
             {
-                return (SyntaxNodeOrToken)AsToken().WithLeadingTrivia(trivia);
+                return AsToken().WithLeadingTrivia(trivia);
             }
 
             if (_nodeOrParent != null)
@@ -479,7 +467,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (_token != null)
             {
-                return (SyntaxNodeOrToken)AsToken().WithTrailingTrivia(trivia);
+                return AsToken().WithTrailingTrivia(trivia);
             }
 
             if (_nodeOrParent != null)
@@ -687,7 +675,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotations == null)
             {
-                throw new ArgumentNullException("annotations");
+                throw new ArgumentNullException(nameof(annotations));
             }
 
             if (_token != null)
@@ -718,7 +706,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotations == null)
             {
-                throw new ArgumentNullException("annotations");
+                throw new ArgumentNullException(nameof(annotations));
             }
 
             if (_token != null)
@@ -741,7 +729,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotationKind == null)
             {
-                throw new ArgumentNullException("annotationKind");
+                throw new ArgumentNullException(nameof(annotationKind));
             }
 
             if (this.HasAnnotations(annotationKind))
@@ -879,12 +867,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_nodeOrParent != null)
-                {
-                    return _nodeOrParent.SyntaxTree;
-                }
-
-                return null;
+                return _nodeOrParent?.SyntaxTree;
             }
         }
 
@@ -898,12 +881,7 @@ namespace Microsoft.CodeAnalysis
                 return this.AsToken().GetLocation();
             }
 
-            if (_nodeOrParent != null)
-            {
-                return _nodeOrParent.GetLocation();
-            }
-
-            return null;
+            return _nodeOrParent?.GetLocation();
         }
 
         #region Directive Lookup
@@ -1027,7 +1005,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (!node.FullSpan.IntersectsWith(position))
             {
-                throw new ArgumentException("Must be within node's FullSpan", "position");
+                throw new ArgumentException("Must be within node's FullSpan", nameof(position));
             }
 
             return GetFirstChildIndexSpanningPosition(node.ChildNodesAndTokens(), position);
@@ -1132,7 +1110,7 @@ namespace Microsoft.CodeAnalysis
 
         private SyntaxNodeOrToken GetNextSiblingWithSearch(ChildSyntaxList siblings)
         {
-            var firstIndex = SyntaxNodeOrToken.GetFirstChildIndexSpanningPosition(siblings, _position);
+            var firstIndex = GetFirstChildIndexSpanningPosition(siblings, _position);
 
             var count = siblings.Count;
             var returnNext = false;

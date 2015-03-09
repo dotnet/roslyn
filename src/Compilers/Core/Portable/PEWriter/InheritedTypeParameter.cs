@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 using Roslyn.Utilities;
@@ -10,13 +9,12 @@ namespace Microsoft.Cci
 {
     internal class InheritedTypeParameter : IGenericTypeParameter
     {
-        private ushort _index;
-        private ITypeDefinition _inheritingType;
-        private IGenericTypeParameter _parentParameter;
+        private readonly ITypeDefinition _inheritingType;
+        private readonly IGenericTypeParameter _parentParameter;
 
         internal InheritedTypeParameter(ushort index, ITypeDefinition inheritingType, IGenericTypeParameter parentParameter)
         {
-            _index = index;
+            Index = index;
             _inheritingType = inheritingType;
             _parentParameter = parentParameter;
         }
@@ -112,7 +110,7 @@ namespace Microsoft.Cci
         {
             get
             {
-                return this as IGenericTypeParameter;
+                return this;
             }
         }
 
@@ -120,7 +118,7 @@ namespace Microsoft.Cci
         {
             get
             {
-                return this as IGenericTypeParameterReference;
+                return this;
             }
         }
 
@@ -241,10 +239,7 @@ namespace Microsoft.Cci
 
         #region IParameterListEntry Members
 
-        public ushort Index
-        {
-            get { return _index; }
-        }
+        public ushort Index { get; }
 
         #endregion
 

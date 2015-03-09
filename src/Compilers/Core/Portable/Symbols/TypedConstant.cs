@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -168,8 +164,8 @@ namespace Microsoft.CodeAnalysis
         public bool Equals(TypedConstant other)
         {
             return _kind == other._kind
-                && object.Equals(_value, other._value)
-                && object.Equals(_type, other._type);
+                && Equals(_value, other._value)
+                && Equals(_type, other._type);
         }
 
         public override int GetHashCode()

@@ -13,9 +13,7 @@ namespace Microsoft.Cci
     {
         private readonly Func<Stream> _streamProvider;
         private readonly IFileReference _fileReference;
-        private readonly uint _offset;
         private readonly string _name;
-        private readonly bool _isPublic;
 
         /// <summary>
         /// <paramref name="streamProvider"/> streamProvider callers will dispose result after use.
@@ -28,8 +26,8 @@ namespace Microsoft.Cci
             _streamProvider = streamProvider;
             _name = name;
             _fileReference = fileReference;
-            _offset = offset;
-            _isPublic = isPublic;
+            Offset = offset;
+            IsPublic = isPublic;
         }
 
         public void WriteData(BinaryWriter resourceWriter)
@@ -72,23 +70,14 @@ namespace Microsoft.Cci
             }
         }
 
-        public uint Offset
-        {
-            get
-            {
-                return _offset;
-            }
-        }
+        public uint Offset { get; }
 
         public IEnumerable<ICustomAttribute> Attributes
         {
             get { return SpecializedCollections.EmptyEnumerable<ICustomAttribute>(); }
         }
 
-        public bool IsPublic
-        {
-            get { return _isPublic; }
-        }
+        public bool IsPublic { get; }
 
         public string Name
         {

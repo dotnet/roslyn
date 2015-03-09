@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using System.IO;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public int RawKind
         {
-            get { return _triviaNode != null ? _triviaNode.RawKind : 0; }
+            get { return _triviaNode?.RawKind ?? 0; }
         }
 
         private string GetDebuggerDisplay()
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal int Width
         {
-            get { return _triviaNode != null ? _triviaNode.Width : 0; }
+            get { return _triviaNode?.Width ?? 0; }
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal int FullWidth
         {
-            get { return _triviaNode != null ? _triviaNode.FullWidth : 0; }
+            get { return _triviaNode?.FullWidth ?? 0; }
         }
 
         /// <summary>
@@ -262,12 +262,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Writes the full text of this trivia to the specified TextWriter.
         /// </summary>
-        public void WriteTo(System.IO.TextWriter writer)
+        public void WriteTo(TextWriter writer)
         {
-            if (_triviaNode != null)
-            {
-                _triviaNode.WriteTo(writer);
-            }
+            _triviaNode?.WriteTo(writer);
         }
 
         /// <summary>
@@ -328,7 +325,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotations == null)
             {
-                throw new ArgumentNullException("annotations");
+                throw new ArgumentNullException(nameof(annotations));
             }
 
             if (this.UnderlyingNode != null)
@@ -357,7 +354,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotations == null)
             {
-                throw new ArgumentNullException("annotations");
+                throw new ArgumentNullException(nameof(annotations));
             }
 
             if (this.UnderlyingNode != null)
@@ -378,7 +375,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotationKind == null)
             {
-                throw new ArgumentNullException("annotationKind");
+                throw new ArgumentNullException(nameof(annotationKind));
             }
 
             if (this.HasAnnotations(annotationKind))
