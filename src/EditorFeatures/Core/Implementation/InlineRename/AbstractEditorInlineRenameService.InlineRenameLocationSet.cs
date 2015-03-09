@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 _renameInfo = renameInfo;
                 _renameLocationSet = renameLocationSet;
-                this.Locations = renameLocationSet.Locations.Where(l => !l.IsCandidateLocation).Select(ConvertLocation).ToList();
+                this.Locations = renameLocationSet.Locations.Where(l => !l.IsCandidateLocation || l.IsMethodGroupReference).Select(ConvertLocation).ToList();
             }
 
             private InlineRenameLocation ConvertLocation(RenameLocation location)
