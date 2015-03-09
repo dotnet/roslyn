@@ -65,7 +65,16 @@ namespace Roslyn.Utilities
         {
             foreach (string assemblyName in assemblyNames)
             {
-                Type t = Type.GetType(typeName + ", " + assemblyName, throwOnError: false);
+                Type t;
+                try
+                {
+                    t = Type.GetType(typeName + ", " + assemblyName, throwOnError: false);
+                }
+                catch
+                {
+                    t = null;
+                }
+
                 if (t != null && t.GetTypeInfo().IsPublic)
                 {
                     return t;
