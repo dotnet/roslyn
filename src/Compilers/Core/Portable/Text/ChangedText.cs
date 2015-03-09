@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (oldText == null)
             {
-                throw new ArgumentNullException("oldText");
+                throw new ArgumentNullException(nameof(oldText));
             }
 
             if (ReferenceEquals(_oldText, oldText))

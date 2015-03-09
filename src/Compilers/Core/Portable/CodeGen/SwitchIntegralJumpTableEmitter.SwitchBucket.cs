@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -183,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return bucketSize >= labelsCount * 2;
             }
 
-            internal static bool MergeIsAdvantageous(SwitchBucket bucket1, SwitchBucket bucket2)
+            private static bool MergeIsAdvantageous(SwitchBucket bucket1, SwitchBucket bucket2)
             {
                 var startConstant = bucket1.StartConstant;
                 var endConstant = bucket2.EndConstant;
@@ -194,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     return false;
                 }
 
-                uint labelsCount = (uint)(bucket1.LabelsCount + bucket2.LabelsCount);
+                uint labelsCount = bucket1.LabelsCount + bucket2.LabelsCount;
                 ulong bucketSize = GetBucketSize(startConstant, endConstant);
 
                 return !IsSparse(labelsCount, bucketSize);

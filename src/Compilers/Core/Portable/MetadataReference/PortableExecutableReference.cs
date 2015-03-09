@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Roslyn.Utilities;
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
-using System.Diagnostics;
-using System.Collections.Immutable;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -15,8 +13,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class PortableExecutableReference : MetadataReference
     {
-        private readonly string _filePath;
-
         private DocumentationProvider _lazyDocumentation;
 
         protected PortableExecutableReference(
@@ -25,7 +21,7 @@ namespace Microsoft.CodeAnalysis
             DocumentationProvider initialDocumentation = null)
             : base(properties)
         {
-            _filePath = fullPath;
+            FilePath = fullPath;
             _lazyDocumentation = initialDocumentation;
         }
 
@@ -40,10 +36,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Path describing the location of the metadata, or null if the metadata have no location.
         /// </summary>
-        public string FilePath
-        {
-            get { return _filePath; }
-        }
+        public string FilePath { get; }
 
         /// <summary>
         /// XML documentation comments provider for the reference.

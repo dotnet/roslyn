@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
                 return s_invariantCultureTextInfo.ToLower(c);
             }
 
-            private int CompareLowerInvariant(char c1, char c2)
+            private static int CompareLowerInvariant(char c1, char c2)
             {
                 return (c1 == c2) ? 0 : ToLower(c1) - ToLower(c2);
             }
@@ -166,9 +166,9 @@ namespace Microsoft.CodeAnalysis
             {
                 int hashCode = Hash.FnvOffsetBias;
 
-                for (int i = 0; i < str.Length; i++)
+                foreach (char ch in str)
                 {
-                    hashCode = Hash.CombineFNVHash(hashCode, ToLower(str[i]));
+                    hashCode = Hash.CombineFNVHash(hashCode, ToLower(ch));
                 }
 
                 return hashCode;

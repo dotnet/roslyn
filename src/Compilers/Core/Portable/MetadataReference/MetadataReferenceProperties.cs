@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -38,19 +37,19 @@ namespace Microsoft.CodeAnalysis
         {
             if (!kind.IsValid())
             {
-                throw new ArgumentOutOfRangeException("kind");
+                throw new ArgumentOutOfRangeException(nameof(kind));
             }
 
             if (kind == MetadataImageKind.Module)
             {
                 if (embedInteropTypes)
                 {
-                    throw new ArgumentException(CodeAnalysisResources.CannotEmbedInteropTypesFromModule, "embedInteropTypes");
+                    throw new ArgumentException(CodeAnalysisResources.CannotEmbedInteropTypesFromModule, nameof(embedInteropTypes));
                 }
 
                 if (!aliases.IsDefaultOrEmpty)
                 {
-                    throw new ArgumentException(CodeAnalysisResources.CannotAliasModule, "aliases");
+                    throw new ArgumentException(CodeAnalysisResources.CannotAliasModule, nameof(aliases));
                 }
             }
 
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (!alias.IsValidClrTypeName())
                     {
-                        throw new ArgumentException(CodeAnalysisResources.InvalidAlias, "aliases");
+                        throw new ArgumentException(CodeAnalysisResources.InvalidAlias, nameof(aliases));
                     }
                 }
             }

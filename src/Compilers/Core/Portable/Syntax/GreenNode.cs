@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var annotation in annotations)
                 {
-                    if (annotation == null) throw new ArgumentException(paramName: "annotations", message: "" /*CSharpResources.ElementsCannotBeNull*/);
+                    if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
 
                 this.flags |= NodeFlags.ContainsAnnotations;
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var annotation in annotations)
                 {
-                    if (annotation == null) throw new ArgumentException(paramName: "annotations", message: "" /*CSharpResources.ElementsCannotBeNull*/);
+                    if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
 
                 this.flags |= NodeFlags.ContainsAnnotations;
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis
 
         internal virtual void WriteTo(ObjectWriter writer)
         {
-            var kindBits = (UInt16)_kind;
+            var kindBits = _kind;
             var hasDiagnostics = this.GetDiagnostics().Length > 0;
             var hasAnnotations = this.GetAnnotations().Length > 0;
 
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (string.IsNullOrWhiteSpace(annotationKind))
             {
-                throw new ArgumentNullException("annotationKind");
+                throw new ArgumentNullException(nameof(annotationKind));
             }
 
             var annotations = this.GetAnnotations();
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotationKinds == null)
             {
-                throw new ArgumentNullException("annotationKinds");
+                throw new ArgumentNullException(nameof(annotationKinds));
             }
 
             var annotations = this.GetAnnotations();
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis
                 SyntaxAnnotation[] annotations;
                 if (s_annotationsTable.TryGetValue(this, out annotations))
                 {
-                    System.Diagnostics.Debug.Assert(annotations.Length != 0, "we should return nonempty annotations or NoAnnotations");
+                    Debug.Assert(annotations.Length != 0, "we should return nonempty annotations or NoAnnotations");
                     return annotations;
                 }
             }
@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 return ((this.flags & NodeFlags.InheritMask) == NodeFlags.IsNotMissing) &&
-                    this.SlotCount <= GreenNode.MaxCachedChildNum;
+                    this.SlotCount <= MaxCachedChildNum;
             }
         }
 
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis
                 var child = GetSlot(i);
                 if (child != null)
                 {
-                    code = Hash.Combine(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child), code);
+                    code = Hash.Combine(RuntimeHelpers.GetHashCode(child), code);
                 }
             }
 

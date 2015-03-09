@@ -10,12 +10,11 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.Text
 {
     /// <summary>
-    /// Implementation of SourceText based on a <see cref="String"/> input
+    /// Implementation of <see cref="SourceText"/> based on a <see cref="string"/> input.
     /// </summary>
-    internal sealed partial class StringText : SourceText
+    internal sealed class StringText : SourceText
     {
         private readonly string _source;
-        private readonly Encoding _encodingOpt;
 
         internal StringText(string source, Encoding encodingOpt, ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
             : base(checksum, checksumAlgorithm)
@@ -23,13 +22,13 @@ namespace Microsoft.CodeAnalysis.Text
             Debug.Assert(source != null);
 
             _source = source;
-            _encodingOpt = encodingOpt;
+            Encoding = encodingOpt;
         }
 
-        public override Encoding Encoding => _encodingOpt;
+        public override Encoding Encoding { get; }
 
         /// <summary>
-        /// Underlying string which is the source of this <see cref="StringText"/>instance
+        /// Underlying string which is the source of this <see cref="StringText"/> instance.
         /// </summary>
         public string Source => _source;
 
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (span.End > this.Source.Length)
             {
-                throw new ArgumentOutOfRangeException("span");
+                throw new ArgumentOutOfRangeException(nameof(span));
             }
 
             if (span.Start == 0 && span.Length == this.Length)

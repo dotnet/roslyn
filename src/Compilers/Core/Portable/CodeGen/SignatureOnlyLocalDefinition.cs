@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.Cci;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -13,23 +12,20 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// <remarks>
     /// Used when emitting a new version of a method during EnC for variables that are no longer used.
     /// </remarks>
-    internal sealed class SignatureOnlyLocalDefinition : Cci.ILocalDefinition
+    internal sealed class SignatureOnlyLocalDefinition : ILocalDefinition
     {
-        private readonly byte[] _signature;
-        private readonly int _slot;
-
         internal SignatureOnlyLocalDefinition(byte[] signature, int slot)
         {
-            _signature = signature;
-            _slot = slot;
+            Signature = signature;
+            SlotIndex = slot;
         }
 
-        public Cci.IMetadataConstant CompileTimeValue
+        public IMetadataConstant CompileTimeValue
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public ImmutableArray<Cci.ICustomModifier> CustomModifiers
+        public ImmutableArray<ICustomModifier> CustomModifiers
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
@@ -43,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// This temp is not interesting to the expression compiler.  However, it 
         /// may be replaced by an interesting local in a later stage.
         /// </remarks>
-        public uint PdbAttributes => Cci.PdbWriter.HiddenLocalAttributesValue;
+        public uint PdbAttributes => PdbWriter.HiddenLocalAttributesValue;
 
         public bool IsDynamic => false;
 
@@ -66,14 +62,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public string Name => null;
 
-        public int SlotIndex => _slot;
+        public int SlotIndex { get; }
 
-        public Cci.ITypeReference Type
+        public ITypeReference Type
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public byte[] Signature => _signature;
+        public byte[] Signature { get; }
 
         public LocalSlotDebugInfo SlotInfo
             => new LocalSlotDebugInfo(SynthesizedLocalKind.EmitterTemp, LocalDebugId.None);

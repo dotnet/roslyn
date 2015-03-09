@@ -3,9 +3,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Runtime.InteropServices;
-using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -45,7 +42,7 @@ namespace Microsoft.Cci
         /// </summary>
         public static bool EnumerableIsEmpty<T>(IEnumerable<T>/*?*/ enumerable)
         {
-            return !EnumerableIsNotEmpty<T>(enumerable);
+            return !EnumerableIsNotEmpty(enumerable);
         }
 
         /// <summary>
@@ -89,24 +86,15 @@ namespace Microsoft.Cci
     /// </summary>
     internal struct SecurityAttribute
     {
-        private readonly SecurityAction _action;
-        private readonly ICustomAttribute _attribute;
-
         public SecurityAttribute(SecurityAction action, ICustomAttribute attribute)
         {
-            _attribute = attribute;
-            _action = action;
+            Attribute = attribute;
+            Action = action;
         }
 
-        public SecurityAction Action
-        {
-            get { return _action; }
-        }
+        public SecurityAction Action { get; }
 
-        public ICustomAttribute Attribute
-        {
-            get { return _attribute; }
-        }
+        public ICustomAttribute Attribute { get; }
     }
 
     /// <summary>

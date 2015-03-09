@@ -2,13 +2,13 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.Cci;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal sealed class LocalDefinition : Cci.ILocalDefinition
+    internal sealed class LocalDefinition : ILocalDefinition
     {
         //TODO: locals are really just typed slots. They do not have names.
         // name only matters for pdb generation where it is a scope-specific mapping to a slot.
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly string _nameOpt;
 
         //data type associated with the local signature slot.
-        private readonly Cci.ITypeReference _type;
+        private readonly ITypeReference _type;
 
         // specifies whether local slot has a byref constraint and whether
         // the type of the local has the "pinned modifier" (7.1.2).
@@ -31,17 +31,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         //ordinal position of the slot in the local signature.
         private readonly int _slot;
-
-        //Says if the local variable is Dynamic
-        private readonly bool _isDynamic;
-
-        private readonly LocalSlotDebugInfo _slotInfo;
-
-        /// <see cref="Cci.ILocalDefinition.PdbAttributes"/>.
-        private readonly uint _pdbAttributes;
-
-        //Gives the synthesized dynamic attributes of the local definition
-        private readonly ImmutableArray<TypedConstant> _dynamicTransformFlags;
 
         /// <summary>
         /// Creates a new LocalDefinition.
@@ -59,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public LocalDefinition(
             ILocalSymbol symbolOpt,
             string nameOpt,
-            Cci.ITypeReference type,
+            ITypeReference type,
             int slot,
             SynthesizedLocalKind synthesizedKind,
             LocalDebugId id,
@@ -72,11 +61,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _nameOpt = nameOpt;
             _type = type;
             _slot = slot;
-            _slotInfo = new LocalSlotDebugInfo(synthesizedKind, id);
-            _pdbAttributes = pdbAttributes;
-            _dynamicTransformFlags = dynamicTransformFlags;
+            SlotInfo = new LocalSlotDebugInfo(synthesizedKind, id);
+            PdbAttributes = pdbAttributes;
+            DynamicTransformFlags = dynamicTransformFlags;
             _constraints = constraints;
-            _isDynamic = isDynamic;
+            IsDynamic = isDynamic;
         }
 
         internal string GetDebuggerDisplay()
@@ -88,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                ISymbol symbol = _symbolOpt as ISymbol;
+                ISymbol symbol = _symbolOpt;
                 if (symbol != null)
                 {
                     ImmutableArray<Location> locations = symbol.Locations;
@@ -103,13 +92,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public int SlotIndex => _slot;
 
-        public Cci.IMetadataConstant CompileTimeValue
+        public IMetadataConstant CompileTimeValue
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public ImmutableArray<Cci.ICustomModifier> CustomModifiers
-            => ImmutableArray<Cci.ICustomModifier>.Empty;
+        public ImmutableArray<ICustomModifier> CustomModifiers
+            => ImmutableArray<ICustomModifier>.Empty;
 
         public bool IsConstant
         {
@@ -126,18 +115,21 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public bool IsReference
             => (_constraints & LocalSlotConstraints.ByRef) != 0;
 
-        public bool IsDynamic => _isDynamic;
+        //Says if the local variable is Dynamic
+        public bool IsDynamic { get; }
 
-        public uint PdbAttributes => _pdbAttributes;
+        /// <see cref="ILocalDefinition.PdbAttributes"/>.
+        public uint PdbAttributes { get; }
 
-        public ImmutableArray<TypedConstant> DynamicTransformFlags => _dynamicTransformFlags;
+        //Gives the synthesized dynamic attributes of the local definition
+        public ImmutableArray<TypedConstant> DynamicTransformFlags { get; }
 
-        public Cci.ITypeReference Type => _type;
+        public ITypeReference Type => _type;
 
         public string Name => _nameOpt;
 
         public byte[] Signature => null;
 
-        public LocalSlotDebugInfo SlotInfo => _slotInfo;
+        public LocalSlotDebugInfo SlotInfo { get; }
     }
 }

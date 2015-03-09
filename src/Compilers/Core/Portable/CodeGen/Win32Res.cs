@@ -1,22 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Text;
-using Cci = Microsoft.Cci;
+using Microsoft.Cci;
 using DWORD = System.UInt32;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
-    internal class Win32Resource : Cci.IWin32Resource
+    internal class Win32Resource : IWin32Resource
     {
-        private readonly byte[] _data;
-        private readonly DWORD _codePage;
-        private readonly DWORD _languageId;
-        private readonly int _id;
-        private readonly string _name;
-        private readonly int _typeId;
-        private readonly string _typeName;
-
         internal Win32Resource(
             byte[] data,
             DWORD codePage,
@@ -26,27 +17,27 @@ namespace Microsoft.CodeAnalysis.CodeGen
             int typeId,
             string typeName)
         {
-            _data = data;
-            _codePage = codePage;
-            _languageId = languageId;
-            _id = id;
-            _name = name;
-            _typeId = typeId;
-            _typeName = typeName;
+            Data = data;
+            CodePage = codePage;
+            LanguageId = languageId;
+            Id = id;
+            Name = name;
+            TypeId = typeId;
+            TypeName = typeName;
         }
 
-        public string TypeName => _typeName;
+        public string TypeName { get; }
 
-        public int TypeId => _typeId;
+        public int TypeId { get; }
 
-        public string Name => _name;
+        public string Name { get; }
 
-        public int Id => _id;
+        public int Id { get; }
 
-        public DWORD LanguageId => _languageId;
+        public DWORD LanguageId { get; }
 
-        public DWORD CodePage => _codePage;
+        public DWORD CodePage { get; }
 
-        public IEnumerable<byte> Data => _data;
+        public IEnumerable<byte> Data { get; }
     }
 }

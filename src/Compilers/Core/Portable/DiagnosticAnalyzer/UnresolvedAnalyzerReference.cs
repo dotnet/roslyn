@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -13,11 +12,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </remarks>
     public sealed class UnresolvedAnalyzerReference : AnalyzerReference
     {
-        private readonly string _unresolvedPath;
-
         public UnresolvedAnalyzerReference(string unresolvedPath)
         {
-            _unresolvedPath = unresolvedPath;
+            FullPath = unresolvedPath;
         }
 
         public override string Display
@@ -28,13 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public override string FullPath
-        {
-            get
-            {
-                return _unresolvedPath;
-            }
-        }
+        public override string FullPath { get; }
 
         public override bool IsUnresolved
         {

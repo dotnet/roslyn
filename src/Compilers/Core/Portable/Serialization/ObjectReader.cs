@@ -336,7 +336,6 @@ namespace Roslyn.Utilities
                 case DataKind.Array_3:
                     length = 3;
                     break;
-                case DataKind.Array:
                 default:
                     length = (int)this.ReadCompressedUInt();
                     break;
@@ -490,7 +489,7 @@ namespace Roslyn.Utilities
             return reader(this);
         }
 
-        private Exception NoBinderException(string typeName)
+        private static Exception NoBinderException(string typeName)
         {
 #if COMPILERCORE
             throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.CodeAnalysisResources.NoBinderException, typeName));
@@ -499,7 +498,7 @@ namespace Roslyn.Utilities
 #endif
         }
 
-        private Exception NoReaderException(string typeName)
+        private static Exception NoReaderException(string typeName)
         {
 #if COMPILERCORE
             throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.CodeAnalysisResources.NoReaderException, typeName));

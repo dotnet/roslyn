@@ -1,41 +1,33 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Text;
-using Cci = Microsoft.Cci;
+using Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
     /// <summary>
     /// An expression that results in a System.Type instance.
     /// </summary>
-    internal sealed class MetadataTypeOf : Cci.IMetadataTypeOf
+    internal sealed class MetadataTypeOf : IMetadataTypeOf
     {
-        private readonly Cci.ITypeReference _typeToGet;
-        private readonly Cci.ITypeReference _systemType;
+        private readonly ITypeReference _systemType;
 
-        public MetadataTypeOf(Cci.ITypeReference typeToGet, Cci.ITypeReference systemType)
+        public MetadataTypeOf(ITypeReference typeToGet, ITypeReference systemType)
         {
-            _typeToGet = typeToGet;
+            TypeToGet = typeToGet;
             _systemType = systemType;
         }
 
         /// <summary>
         /// The type that will be represented by the System.Type instance.
         /// </summary>
-        public Cci.ITypeReference TypeToGet
-        {
-            get
-            {
-                return _typeToGet;
-            }
-        }
+        public ITypeReference TypeToGet { get; }
 
-        void Cci.IMetadataExpression.Dispatch(Cci.MetadataVisitor visitor)
+        void IMetadataExpression.Dispatch(MetadataVisitor visitor)
         {
             visitor.Visit(this);
         }
 
-        Cci.ITypeReference Cci.IMetadataExpression.Type
+        ITypeReference IMetadataExpression.Type
         {
             get { return _systemType; }
         }

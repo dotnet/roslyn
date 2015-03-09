@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
                 // Pretend that the stream is infinite, i.e. never return 0 characters read.
                 if (initialCount == count)
                 {
-                    buffer[index++] = ' ';
+                    buffer[index] = ' ';
                     count--;
                 }
 

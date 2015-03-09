@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using Roslyn.Utilities;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis
     /// provide access to additional information about the error, such as what symbols were involved in the ambiguity.
     /// </remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal partial class DiagnosticInfo : IFormattable, IObjectWritable, IObjectReadable, IMessageSerializable
+    internal class DiagnosticInfo : IFormattable, IObjectWritable, IObjectReadable, IMessageSerializable
     {
         private readonly CommonMessageProvider _messageProvider;
         private readonly int _errorCode;
@@ -145,7 +144,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteInt32((int)_effectiveSeverity);
             writer.WriteInt32((int)_defaultSeverity);
 
-            int count = (_arguments != null) ? _arguments.Length : 0;
+            int count = _arguments?.Length ?? 0;
             writer.WriteCompressedUInt((uint)count);
 
             if (count > 0)
@@ -409,9 +408,9 @@ namespace Microsoft.CodeAnalysis
             int hashCode = _errorCode;
             if (_arguments != null)
             {
-                for (int i = 0; i < _arguments.Length; i++)
+                foreach (object arg in _arguments)
                 {
-                    hashCode = Hash.Combine(_arguments[i], hashCode);
+                    hashCode = Hash.Combine(arg, hashCode);
                 }
             }
 

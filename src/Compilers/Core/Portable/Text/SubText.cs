@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 if (position < 0 || position > this.Length)
                 {
-                    throw new ArgumentOutOfRangeException("position");
+                    throw new ArgumentOutOfRangeException(nameof(position));
                 }
 
                 return _text[_span.Start + position];

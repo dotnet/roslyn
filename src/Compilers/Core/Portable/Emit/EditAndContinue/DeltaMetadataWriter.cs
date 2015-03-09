@@ -9,16 +9,15 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.Cci;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Utilities;
+using MethodImplementation = Microsoft.Cci.MethodImplementation;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
     internal sealed class DeltaMetadataWriter : MetadataWriter
     {
         private readonly EmitBaseline _previousGeneration;
-        private readonly Guid _encId;
         private readonly DefinitionMap _definitionMap;
         private readonly SymbolChanges _changes;
 
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(encId != previousGeneration.EncId);
 
             _previousGeneration = previousGeneration;
-            _encId = encId;
+            EncId = encId;
             _definitionMap = definitionMap;
             _changes = changes;
 
@@ -221,10 +220,7 @@ namespace Microsoft.CodeAnalysis.Emit
             get { return (ushort)(_previousGeneration.Ordinal + 1); }
         }
 
-        protected override Guid EncId
-        {
-            get { return _encId; }
-        }
+        protected override Guid EncId { get; }
 
         protected override Guid EncBaseId
         {
@@ -865,7 +861,7 @@ namespace Microsoft.CodeAnalysis.Emit
 #if DEBUG
             // The following tables are either represented in the EncMap
             // or specifically ignored. The rest should be empty.
-            var handledTables = new TableIndex[]
+            var handledTables = new[]
             {
                 TableIndex.Module,
                 TableIndex.TypeRef,
@@ -972,7 +968,7 @@ namespace Microsoft.CodeAnalysis.Emit
             private readonly uint _firstRowId; // First row in this generation.
             private bool _frozen;
 
-            public DefinitionIndexBase(uint lastRowId)
+            protected DefinitionIndexBase(uint lastRowId)
             {
                 this.added = new Dictionary<T, uint>();
                 this.rows = new List<T>();
@@ -1011,12 +1007,12 @@ namespace Microsoft.CodeAnalysis.Emit
                 get { return _firstRowId; }
             }
 
-            public uint NextRowId
+            protected uint NextRowId
             {
                 get { return (uint)this.added.Count + _firstRowId; }
             }
 
-            public bool IsFrozen
+            protected bool IsFrozen
             {
                 get { return _frozen; }
             }
@@ -1389,10 +1385,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 _changes = writer._changes;
             }
 
-            private void ReportReferenceToAddedSymbolDefinedInExternalAssembly(IReference symbol)
-            {
-            }
-
             public override void Visit(IAssembly assembly)
             {
                 this.Visit((IModule)assembly);
@@ -1430,7 +1422,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 base.Visit(method);
             }
 
-            public override void Visit(Cci.MethodImplementation methodImplementation)
+            public override void Visit(MethodImplementation methodImplementation)
             {
                 // Unless the implementing method was added,
                 // the method implementation already exists.

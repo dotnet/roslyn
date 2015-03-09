@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
@@ -169,7 +168,7 @@ namespace Microsoft.Cci
         {
             fixed (byte* ptr = _blobWriter.BaseStream.Buffer)
             {
-                var reader = new BlobReader(ptr + signatureOffset, (int)_blobWriter.BaseStream.Length + (int)_blobIndexStartOffset - signatureOffset);
+                var reader = new BlobReader(ptr + signatureOffset, (int)_blobWriter.BaseStream.Length + _blobIndexStartOffset - signatureOffset);
                 int size;
                 bool isValid = reader.TryReadCompressedInteger(out size);
                 Debug.Assert(isValid);
@@ -365,7 +364,7 @@ namespace Microsoft.Cci
             WriteAligned(_blobWriter.BaseStream, stream);
         }
 
-        private void WriteAligned(MemoryStream source, MemoryStream target)
+        private static void WriteAligned(MemoryStream source, MemoryStream target)
         {
             int length = (int)source.Length;
             source.WriteTo(target);

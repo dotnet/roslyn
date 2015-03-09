@@ -5,44 +5,30 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a value type that can be assigned null.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     public struct Optional<T>
     {
-        private bool _hasValue;
-        private T _value;
-
         /// <summary>
-        /// Initializes a new instance to the specified value.
+        /// Initializes a new instance to the specified <paramref name="value"/>.
         /// </summary>
-        /// <param name="value"></param>
         public Optional(T value)
         {
-            _hasValue = true;
-            _value = value;
+            HasValue = true;
+            Value = value;
         }
 
         /// <summary>
         /// Gets a value indicating whether the current object has a value.
         /// </summary>
-        /// <returns></returns>
-        public bool HasValue
-        {
-            get { return _hasValue; }
-        }
+        public bool HasValue { get; }
 
         /// <summary>
         /// Gets the value of the current object.
         /// </summary>
-        /// <returns></returns>
-        public T Value
-        {
-            get { return _value; }
-        }
+        public T Value { get; }
 
         /// <summary>
-        /// Creates a new object initialized to a specified value. 
+        /// Creates a new object initialized to a specified <paramref name="value"/>. 
         /// </summary>
-        /// <param name="value"></param>
         public static implicit operator Optional<T>(T value)
         {
             return new Optional<T>(value);

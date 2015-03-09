@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
         }
 
@@ -303,12 +303,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (index < 0 || index > this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             if (tokens == null)
             {
-                throw new ArgumentNullException("tokens");
+                throw new ArgumentNullException(nameof(tokens));
             }
 
             var items = tokens.ToList();
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (index < 0 || index >= this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             var list = this.ToList();

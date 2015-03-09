@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public bool Equals(EmitOptions other)
         {
-            if (object.ReferenceEquals(other, null))
+            if (ReferenceEquals(other, null))
             {
                 return false;
             }
@@ -170,12 +170,12 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public static bool operator ==(EmitOptions left, EmitOptions right)
         {
-            return object.Equals(left, right);
+            return Equals(left, right);
         }
 
         public static bool operator !=(EmitOptions left, EmitOptions right)
         {
-            return !object.Equals(left, right);
+            return !Equals(left, right);
         }
 
         internal void ValidateOptions(DiagnosticBag diagnostics, CommonMessageProvider messageProvider)

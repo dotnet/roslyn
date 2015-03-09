@@ -1,13 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -33,7 +29,7 @@ namespace Microsoft.CodeAnalysis
     //
     internal sealed class SmallDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
     {
-        private AvlNode _root = null;
+        private AvlNode _root;
         private readonly IEqualityComparer<K> _comparer;
 
         public static readonly SmallDictionary<K, V> Empty = new SmallDictionary<K, V>(null);
@@ -120,7 +116,7 @@ namespace Microsoft.CodeAnalysis
             public readonly K key;
             public V Value;
 
-            public Node(K key, V value)
+            protected Node(K key, V value)
             {
                 this.key = key;
                 this.Value = value;
@@ -137,21 +133,13 @@ namespace Microsoft.CodeAnalysis
 
         private class NodeLinked : Node
         {
-            public readonly Node next;
-
             public NodeLinked(K key, V value, Node next)
                 : base(key, value)
             {
-                this.next = next;
+                this.Next = next;
             }
 
-            public override Node Next
-            {
-                get
-                {
-                    return next;
-                }
-            }
+            public override Node Next { get; }
         }
 
         private class AvlNodeHead : AvlNode
@@ -179,7 +167,7 @@ namespace Microsoft.CodeAnalysis
         {
             public readonly int HashCode;
 
-            public HashedNode(int hashCode, K key, V value)
+            protected HashedNode(int hashCode, K key, V value)
                 : base(key, value)
             {
                 this.HashCode = hashCode;
@@ -343,7 +331,7 @@ namespace Microsoft.CodeAnalysis
             while (n != currentNode);
 
             // ====== rotate unbalanced node if needed
-            AvlNode rotated = null;
+            AvlNode rotated;
             var balance = unbalanced.Balance;
             if (balance == -2)
             {
@@ -377,7 +365,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private AvlNode LeftSimple(AvlNode unbalanced)
+        private static AvlNode LeftSimple(AvlNode unbalanced)
         {
             var right = unbalanced.Right;
             unbalanced.Right = right.Left;
@@ -388,7 +376,7 @@ namespace Microsoft.CodeAnalysis
             return right;
         }
 
-        private AvlNode RightSimple(AvlNode unbalanced)
+        private static AvlNode RightSimple(AvlNode unbalanced)
         {
             var left = unbalanced.Left;
             unbalanced.Left = left.Right;
@@ -399,7 +387,7 @@ namespace Microsoft.CodeAnalysis
             return left;
         }
 
-        private AvlNode LeftComplex(AvlNode unbalanced)
+        private static AvlNode LeftComplex(AvlNode unbalanced)
         {
             var right = unbalanced.Right;
             var rightLeft = right.Left;
@@ -425,7 +413,7 @@ namespace Microsoft.CodeAnalysis
             return rightLeft;
         }
 
-        private AvlNode RightComplex(AvlNode unbalanced)
+        private static AvlNode RightComplex(AvlNode unbalanced)
         {
             var left = unbalanced.Left;
             var leftRight = left.Right;
@@ -615,17 +603,17 @@ namespace Microsoft.CodeAnalysis
                 {
                 }
 
-                object System.Collections.IEnumerator.Current
+                object IEnumerator.Current
                 {
                     get { return _e.Current; }
                 }
 
-                bool System.Collections.IEnumerator.MoveNext()
+                bool IEnumerator.MoveNext()
                 {
                     return _e.MoveNext();
                 }
 
-                void System.Collections.IEnumerator.Reset()
+                void IEnumerator.Reset()
                 {
                     throw new NotSupportedException();
                 }
@@ -636,7 +624,7 @@ namespace Microsoft.CodeAnalysis
                 return new EnumerableImpl(GetEnumerator());
             }
 
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            IEnumerator IEnumerable.GetEnumerator()
             {
                 throw new NotImplementedException();
             }
@@ -748,17 +736,17 @@ namespace Microsoft.CodeAnalysis
                 {
                 }
 
-                object System.Collections.IEnumerator.Current
+                object IEnumerator.Current
                 {
                     get { return _e.Current; }
                 }
 
-                bool System.Collections.IEnumerator.MoveNext()
+                bool IEnumerator.MoveNext()
                 {
                     return _e.MoveNext();
                 }
 
-                void System.Collections.IEnumerator.Reset()
+                void IEnumerator.Reset()
                 {
                     throw new NotImplementedException();
                 }
@@ -769,7 +757,7 @@ namespace Microsoft.CodeAnalysis
                 return new EnumerableImpl(GetEnumerator());
             }
 
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            IEnumerator IEnumerable.GetEnumerator()
             {
                 throw new NotImplementedException();
             }
@@ -865,17 +853,17 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            object System.Collections.IEnumerator.Current
+            object IEnumerator.Current
             {
                 get { return _e.Current; }
             }
 
-            bool System.Collections.IEnumerator.MoveNext()
+            bool IEnumerator.MoveNext()
             {
                 return _e.MoveNext();
             }
 
-            void System.Collections.IEnumerator.Reset()
+            void IEnumerator.Reset()
             {
                 throw new NotImplementedException();
             }
@@ -886,7 +874,7 @@ namespace Microsoft.CodeAnalysis
             return new EnumerableImpl(GetEnumerator());
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
             throw new NotImplementedException();
         }

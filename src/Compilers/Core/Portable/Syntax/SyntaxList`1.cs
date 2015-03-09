@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             return InsertRange(index, new[] { node });
@@ -184,12 +184,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (index < 0 || index > this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             if (nodes == null)
             {
-                throw new ArgumentNullException("nodes");
+                throw new ArgumentNullException(nameof(nodes));
             }
 
             var list = this.ToList();
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (index < 0 || index > this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             return this.Remove(this[index]);
@@ -247,12 +247,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (nodeInList == null)
             {
-                throw new ArgumentNullException("nodeInList");
+                throw new ArgumentNullException(nameof(nodeInList));
             }
 
             if (newNodes == null)
             {
-                throw new ArgumentNullException("newNodes");
+                throw new ArgumentNullException(nameof(newNodes));
             }
 
             var index = this.IndexOf(nodeInList);
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis
             var index = 0;
             foreach (var child in this)
             {
-                if (object.Equals(child, node))
+                if (Equals(child, node))
                 {
                     return index;
                 }
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis
         {
             for (int i = this.Count - 1; i >= 0; i--)
             {
-                if (object.Equals(this[i], node))
+                if (Equals(this[i], node))
                 {
                     return i;
                 }

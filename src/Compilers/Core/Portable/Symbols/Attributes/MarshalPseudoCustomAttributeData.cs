@@ -26,10 +26,6 @@ namespace Microsoft.CodeAnalysis
 
         #region Initialization
 
-        public MarshalPseudoCustomAttributeData()
-        {
-        }
-
         internal void SetMarshalAsCustom(object typeSymbolOrName, string cookie)
         {
             _marshalType = Cci.Constants.UnmanagedType_CustomMarshaler;

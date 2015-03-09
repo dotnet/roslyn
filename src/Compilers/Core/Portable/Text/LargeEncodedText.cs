@@ -23,13 +23,12 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly ImmutableArray<char[]> _chunks;
         private readonly int[] _chunkStartOffsets;
         private readonly int _length;
-        private readonly Encoding _encoding;
 
         private LargeEncodedText(ImmutableArray<char[]> chunks, Encoding encoding, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm)
             : base(checksum, checksumAlgorithm)
         {
             _chunks = chunks;
-            _encoding = encoding;
+            Encoding = encoding;
             _chunkStartOffsets = new int[chunks.Length];
             int offset = 0;
             for (int i = 0; i < chunks.Length; i++)
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Text
             int length = (int)stream.Length;
             if (length == 0)
             {
-                return SourceText.From(string.Empty, encoding, checksumAlgorithm);
+                return From(string.Empty, encoding, checksumAlgorithm);
             }
 
             using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: Math.Min(length, 4096), leaveOpen: true))
@@ -125,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        public override Encoding Encoding => _encoding;
+        public override Encoding Encoding { get; }
 
         public override int Length => _length;
 

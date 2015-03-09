@@ -3,10 +3,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -91,7 +89,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 _current = GetGreenNodeAt(_singleNodeOrList, _index);
-                System.Diagnostics.Debug.Assert(_current != null);
+                Debug.Assert(_current != null);
                 return true;
             }
 
