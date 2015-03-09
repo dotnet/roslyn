@@ -34,5 +34,6 @@
       <Filter>Resource Files</Filter>
     </ResourceCompile>
     <ResourceCompile Include="$(GeneratedVersionInfoResourceFile)" />
+    <ResourceCompile Include="$(GeneratedVersionInfoResourceFile)" />
   </ItemGroup>
 </Project>
