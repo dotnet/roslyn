@@ -1650,8 +1650,8 @@ public class C
             }
         }
 
-        [Fact(Skip = "Bug 399")]
-        [WorkItem(399, "GitHub")]
+        [Fact]
+        [WorkItem(399, "https://github.com/dotnet/roslyn/issues/399")]
         public void Bug399()
         {
             // The referenced assembly Signed.dll from the repro steps
