@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Partial Class VisualBasicCustomModifier
+    Friend Partial Class VisualBasicCustomModifier
         Implements Cci.ICustomModifier
 
         Private ReadOnly Property CciIsOptional As Boolean Implements Cci.ICustomModifier.IsOptional

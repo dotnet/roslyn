@@ -70,10 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ForEachStatement:
                 case SyntaxKind.UsingStatement:
 
-                // variable captured by a lambda in a let clause, 
-                // e.g. from item in array let a = new Func<int>(() => item)
-                case SyntaxKind.LetClause:
-
                 // ctor parameter captured by a lambda in a ctor initializer
                 case SyntaxKind.ConstructorDeclaration:
                     return true;

@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits SynthesizedFieldSymbol
         Implements ISynthesizedMethodBodyImplementationSymbol
 
-        Private ReadOnly m_topLevelMethod As MethodSymbol
+        Private ReadOnly _topLevelMethod As MethodSymbol
 
         Public Sub New(containingType As NamedTypeSymbol,
                       implicitlyDefinedBy As Symbol,
@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(containingType, implicitlyDefinedBy, type, name, accessibility, isReadOnly, isShared, isSpecialNameAndRuntimeSpecial)
 
             Debug.Assert(topLevelMethod IsNot Nothing)
-            m_topLevelMethod = topLevelMethod
+            _topLevelMethod = topLevelMethod
         End Sub
 
         ' When the containing top-level method body is updated we don't need to attempt to update the cache field
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public ReadOnly Property Method As IMethodSymbol Implements ISynthesizedMethodBodyImplementationSymbol.Method
             Get
-                Return m_topLevelMethod
+                Return _topLevelMethod
             End Get
         End Property
     End Class

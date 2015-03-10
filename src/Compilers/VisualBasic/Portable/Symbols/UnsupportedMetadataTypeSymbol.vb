@@ -12,10 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class UnsupportedMetadataTypeSymbol
         Inherits ErrorTypeSymbol
 
-        Private ReadOnly m_mrEx As BadImageFormatException
+        Private ReadOnly _mrEx As BadImageFormatException
 
         Public Sub New(Optional mrEx As BadImageFormatException = Nothing)
-            m_mrEx = mrEx
+            _mrEx = mrEx
         End Sub
 
         Public Sub New(explanation As String)

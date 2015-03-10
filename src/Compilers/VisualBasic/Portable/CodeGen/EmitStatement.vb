@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Partial Class CodeGenerator
+    Friend Partial Class CodeGenerator
         Private Sub EmitStatement(statement As BoundStatement)
             Select Case statement.Kind
 
@@ -565,7 +565,7 @@ ConstResKindNotAConst:
             Return nonConstOp
         End Function
 
-        Const IL_OP_CODE_ROW_LENGTH = 4
+        Private Const s_IL_OP_CODE_ROW_LENGTH = 4
 
         '    //  <            <=               >                >=
         '    ILOpCode.Blt,    ILOpCode.Ble,    ILOpCode.Bgt,    ILOpCode.Bge,     // Signed
@@ -575,7 +575,7 @@ ConstResKindNotAConst:
         '    ILOpCode.Blt,    ILOpCode.Ble,    ILOpCode.Bgt,    ILOpCode.Bge,     // Float
         '    ILOpCode.Bge_un, ILOpCode.Bgt_un, ILOpCode.Ble_un, ILOpCode.Blt_un,  // Float Invert
 
-        Private Shared ReadOnly CondJumpOpCodes As ILOpCode() = New ILOpCode() {
+        Private Shared ReadOnly s_condJumpOpCodes As ILOpCode() = New ILOpCode() {
             ILOpCode.Blt, ILOpCode.Ble, ILOpCode.Bgt, ILOpCode.Bge,
             ILOpCode.Bge, ILOpCode.Bgt, ILOpCode.Ble, ILOpCode.Blt,
             ILOpCode.Blt_un, ILOpCode.Ble_un, ILOpCode.Bgt_un, ILOpCode.Bge_un,
@@ -638,10 +638,10 @@ ConstResKindNotAConst:
 
             If operandType IsNot Nothing Then
                 If operandType.IsUnsignedIntegralType() Then
-                    opIdx += 2 * IL_OP_CODE_ROW_LENGTH 'unsigned
+                    opIdx += 2 * s_IL_OP_CODE_ROW_LENGTH 'unsigned
                 Else
                     If operandType.IsFloatingType() Then
-                        opIdx += 4 * IL_OP_CODE_ROW_LENGTH 'float
+                        opIdx += 4 * s_IL_OP_CODE_ROW_LENGTH 'float
                     End If
                 End If
             End If
@@ -649,13 +649,13 @@ ConstResKindNotAConst:
             Dim revOpIdx = opIdx
 
             If Not sense Then
-                opIdx += IL_OP_CODE_ROW_LENGTH 'invert op
+                opIdx += s_IL_OP_CODE_ROW_LENGTH 'invert op
             Else
-                revOpIdx += IL_OP_CODE_ROW_LENGTH 'invert orev
+                revOpIdx += s_IL_OP_CODE_ROW_LENGTH 'invert orev
             End If
 
-            revOpCode = CondJumpOpCodes(revOpIdx)
-            Return CondJumpOpCodes(opIdx)
+            revOpCode = s_condJumpOpCodes(revOpIdx)
+            Return s_condJumpOpCodes(opIdx)
         End Function
 
         ' generate a jump to dest if (condition == sense) is true
@@ -861,15 +861,15 @@ OtherExpressions:
         ''' tells if given node contains a label statement that defines given label symbol
         ''' </summary>
         Private Class LabelFinder : Inherits BoundTreeWalker
-            Private ReadOnly label As LabelSymbol
-            Private found As Boolean = False
+            Private ReadOnly _label As LabelSymbol
+            Private _found As Boolean = False
 
             Private Sub New(label As LabelSymbol)
-                Me.label = label
+                Me._label = label
             End Sub
 
             Public Overrides Function Visit(node As BoundNode) As BoundNode
-                If Not found Then
+                If Not _found Then
                     Return MyBase.Visit(node)
                 End If
 
@@ -877,8 +877,8 @@ OtherExpressions:
             End Function
 
             Public Overrides Function VisitLabelStatement(node As BoundLabelStatement) As BoundNode
-                If node.Label Is Me.label Then
-                    found = True
+                If node.Label Is Me._label Then
+                    _found = True
                 End If
 
                 Return MyBase.VisitLabelStatement(node)
@@ -888,7 +888,7 @@ OtherExpressions:
                 Dim finder = New LabelFinder(label)
                 finder.Visit(node)
 
-                Return finder.found
+                Return finder._found
             End Function
         End Class
 

@@ -1,15 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
@@ -80,9 +79,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         private void SetReadOnly(Document document)
         {
-            SessionReadOnlyReason sessionReason;
-            ProjectReadOnlyReason projectReason;
-            SetReadOnly(document.Id, _encService.IsProjectReadOnly(document.Project.Name, out sessionReason, out projectReason));
+            // Only set documents read-only if they're part of a project that supports Enc.
+            var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
+            var project = workspace?.ProjectTracker?.GetProject(document.Project.Id) as AbstractEncProject;
+
+            if (project != null)
+            {
+                SessionReadOnlyReason sessionReason;
+                ProjectReadOnlyReason projectReason;
+                SetReadOnly(document.Id, _encService.IsProjectReadOnly(document.Project.Name, out sessionReason, out projectReason));
+            }
         }
 
         private void SetReadOnly(DocumentId documentId, bool value)

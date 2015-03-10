@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '
         ' Stack is used so that the wait would observe the most recently added task and have 
         ' more chances to do inlined execution.
-        Private compilerTasks As ConcurrentStack(Of Task)
+        Private _compilerTasks As ConcurrentStack(Of Task)
 
         ' Tracks whether any method body has hasErrors set, and used to avoid
         ' emitting if there are errors without corresponding diagnostics.
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If compilation.Options.ConcurrentBuild Then
-                Me.compilerTasks = New ConcurrentStack(Of Task)()
+                Me._compilerTasks = New ConcurrentStack(Of Task)()
             End If
         End Sub
 
@@ -315,7 +315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub WaitForWorkers()
-            Dim tasks As ConcurrentStack(Of Task) = Me.compilerTasks
+            Dim tasks As ConcurrentStack(Of Task) = Me._compilerTasks
             If tasks Is Nothing Then
                 Return
             End If
@@ -468,7 +468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Me._compilation.Options.ConcurrentBuild Then
                 Dim worker As Task = CompileNamespaceAsTask(symbol)
-                compilerTasks.Push(worker)
+                _compilerTasks.Push(worker)
             Else
                 CompileNamespace(symbol)
             End If
@@ -500,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If PassesFilter(_filterOpt, symbol) Then
                 If Me._compilation.Options.ConcurrentBuild Then
                     Dim worker As Task = CompileNamedTypeAsTask(symbol, _filterOpt)
-                    compilerTasks.Push(worker)
+                    _compilerTasks.Push(worker)
                 Else
                     CompileNamedType(symbol, _filterOpt)
                 End If
@@ -1404,7 +1404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    lambdaDebugInfoBuilder,
                                                    closureDebugInfoBuilder,
                                                    delegateRelaxationIdDispenser,
-                                                   stateMachineTypeOpt,                                                   
+                                                   stateMachineTypeOpt,
                                                    allowOmissionOfConditionalCalls,
                                                    isBodySynthesized:=False)
 
@@ -1688,32 +1688,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class InitializeComponentCallTreeBuilder
             Inherits BoundTreeWalker
 
-            Private m_CalledMethods As HashSet(Of MethodSymbol)
-            Private ReadOnly m_ContainingType As NamedTypeSymbol
+            Private _calledMethods As HashSet(Of MethodSymbol)
+            Private ReadOnly _containingType As NamedTypeSymbol
 
             Private Sub New(containingType As NamedTypeSymbol)
-                m_ContainingType = containingType
+                _containingType = containingType
             End Sub
 
             Public Shared Sub CollectCallees(compilationState As TypeCompilationState, method As MethodSymbol, block As BoundBlock)
                 Dim visitor As New InitializeComponentCallTreeBuilder(method.ContainingType)
                 visitor.VisitBlock(block)
 
-                If visitor.m_CalledMethods IsNot Nothing Then
-                    compilationState.AddToInitializeComponentCallTree(method, visitor.m_CalledMethods.ToArray().AsImmutableOrNull())
+                If visitor._calledMethods IsNot Nothing Then
+                    compilationState.AddToInitializeComponentCallTree(method, visitor._calledMethods.ToArray().AsImmutableOrNull())
                 End If
             End Sub
 
             Public Overrides Function VisitCall(node As BoundCall) As BoundNode
                 If node.ReceiverOpt IsNot Nothing AndAlso
                    (node.ReceiverOpt.Kind = BoundKind.MeReference OrElse node.ReceiverOpt.Kind = BoundKind.MyClassReference) AndAlso
-                   Not node.Method.IsShared AndAlso node.Method.OriginalDefinition.ContainingType Is m_ContainingType Then
+                   Not node.Method.IsShared AndAlso node.Method.OriginalDefinition.ContainingType Is _containingType Then
 
-                    If m_CalledMethods Is Nothing Then
-                        m_CalledMethods = New HashSet(Of MethodSymbol)(ReferenceEqualityComparer.Instance)
+                    If _calledMethods Is Nothing Then
+                        _calledMethods = New HashSet(Of MethodSymbol)(ReferenceEqualityComparer.Instance)
                     End If
 
-                    m_CalledMethods.Add(node.Method.OriginalDefinition)
+                    _calledMethods.Add(node.Method.OriginalDefinition)
                 End If
 
                 Return MyBase.VisitCall(node)

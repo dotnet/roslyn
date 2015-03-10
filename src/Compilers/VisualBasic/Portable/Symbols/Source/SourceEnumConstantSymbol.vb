@@ -106,15 +106,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private NotInheritable Class ExplicitValuedEnumConstantSymbol
             Inherits SourceEnumConstantSymbol
 
-            Private ReadOnly equalsValueNodeRef As SyntaxReference
+            Private ReadOnly _equalsValueNodeRef As SyntaxReference
 
             Public Sub New(containingEnum As SourceNamedTypeSymbol, bodyBinder As Binder, syntax As EnumMemberDeclarationSyntax, initializer As EqualsValueSyntax, diagnostics As DiagnosticBag)
                 MyBase.New(containingEnum, bodyBinder, syntax, diagnostics)
-                Me.equalsValueNodeRef = bodyBinder.GetSyntaxReference(initializer)
+                Me._equalsValueNodeRef = bodyBinder.GetSyntaxReference(initializer)
             End Sub
 
             Protected Overrides Function MakeConstantTuple(inProgress As SymbolsInProgress(Of FieldSymbol), diagnostics As DiagnosticBag) As EvaluatedConstant
-                Return ConstantValueUtils.EvaluateFieldConstant(Me, Me.equalsValueNodeRef, inProgress, diagnostics)
+                Return ConstantValueUtils.EvaluateFieldConstant(Me, Me._equalsValueNodeRef, inProgress, diagnostics)
             End Function
         End Class
 

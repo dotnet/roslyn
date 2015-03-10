@@ -378,8 +378,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim namedArguments As ImmutableArray(Of BoundExpression)
 
             If (argumentListOpt Is Nothing) Then
-                boundArguments = NoArguments
-                namedArguments = NoArguments
+                boundArguments = s_noArguments
+                namedArguments = s_noArguments
             Else
 
                 Dim arguments As SeparatedSyntaxList(Of ArgumentSyntax) = argumentListOpt.Arguments
@@ -416,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
                 Finally
                     boundArguments = boundArgumentsBuilder.ToImmutableAndFree
-                    namedArguments = If(namedArgumentsBuilder Is Nothing, NoArguments, namedArgumentsBuilder.ToImmutableAndFree)
+                    namedArguments = If(namedArgumentsBuilder Is Nothing, s_noArguments, namedArgumentsBuilder.ToImmutableAndFree)
                 End Try
             End If
 

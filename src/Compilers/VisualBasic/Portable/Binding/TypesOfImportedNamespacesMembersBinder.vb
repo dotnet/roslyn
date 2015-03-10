@@ -20,12 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class TypesOfImportedNamespacesMembersBinder
         Inherits Binder
 
-        Private ReadOnly m_importedSymbols As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition)
+        Private ReadOnly _importedSymbols As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition)
 
         Public Sub New(containingBinder As Binder,
                        importedSymbols As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition))
             MyBase.New(containingBinder)
-            m_importedSymbols = importedSymbols
+            _importedSymbols = importedSymbols
         End Sub
 
         Friend Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(lookupResult.IsClear)
 
             ' Lookup in modules of imported namespaces. 
-            For Each importedSym In m_importedSymbols
+            For Each importedSym In _importedSymbols
                 If importedSym.NamespaceOrType.IsNamespace Then
                     Dim currentResult = LookupResult.GetInstance()
                     originalBinder.LookupMemberInModules(currentResult, DirectCast(importedSym.NamespaceOrType, NamespaceSymbol), name, arity, options, useSiteDiagnostics)
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       originalBinder As Binder)
             Debug.Assert(methods.Count = 0)
 
-            For Each importedSym In m_importedSymbols
+            For Each importedSym In _importedSymbols
                 If importedSym.NamespaceOrType.IsNamespace Then
                     Dim count = methods.Count
                     DirectCast(importedSym.NamespaceOrType, NamespaceSymbol).AppendProbableExtensionMethods(name, methods)
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Sub AddExtensionMethodLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo,
                                                                                    options As LookupOptions,
                                                                                    originalBinder As Binder)
-            For Each importedSym In m_importedSymbols
+            For Each importedSym In _importedSymbols
                 If importedSym.NamespaceOrType.IsNamespace Then
                     DirectCast(importedSym.NamespaceOrType, NamespaceSymbol).AddExtensionMethodLookupSymbolsInfo(nameSet, options, originalBinder)
                 End If
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     originalBinder As Binder)
             options = options Or LookupOptions.IgnoreExtensionMethods
 
-            For Each importedSym In m_importedSymbols
+            For Each importedSym In _importedSymbols
                 If importedSym.NamespaceOrType.IsNamespace Then
                     For Each containedModule As NamedTypeSymbol In DirectCast(importedSym.NamespaceOrType, NamespaceSymbol).GetModuleMembers()
                         originalBinder.AddMemberLookupSymbolsInfo(nameSet, containedModule, options)

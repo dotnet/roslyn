@@ -7,10 +7,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class CommandLineDiagnosticFormatter
         Inherits VisualBasicDiagnosticFormatter
 
-        Private ReadOnly m_baseDirectory As String
+        Private ReadOnly _baseDirectory As String
 
         Friend Sub New(baseDirectory As String)
-            m_baseDirectory = baseDirectory
+            _baseDirectory = baseDirectory
         End Sub
 
         ' Returns a diagnostic message in string.
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function FormatSourcePath(path As String, basePath As String, formatter As IFormatProvider) As String
-            Return If(FileUtilities.NormalizeRelativePath(path, basePath, m_baseDirectory), path)
+            Return If(FileUtilities.NormalizeRelativePath(path, basePath, _baseDirectory), path)
         End Function
     End Class
 End Namespace

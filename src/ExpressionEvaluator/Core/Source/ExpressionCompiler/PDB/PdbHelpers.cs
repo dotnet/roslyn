@@ -6,29 +6,48 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal static class PdbHelpers
     {
+        /// <remarks>
+        /// Test helper.
+        /// </remarks>
         internal static void GetAllScopes(this ISymUnmanagedMethod method, ArrayBuilder<ISymUnmanagedScope> builder)
         {
-            GetAllScopes(method, builder, offset: -1, isScopeEndInclusive: false);
+            var unused = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
+            GetAllScopes(method, builder, unused, offset: -1, isScopeEndInclusive: false);
+            unused.Free();
         }
 
-        internal static void GetAllScopes(this ISymUnmanagedMethod method, ArrayBuilder<ISymUnmanagedScope> builder, int offset, bool isScopeEndInclusive)
+        internal static void GetAllScopes(
+            this ISymUnmanagedMethod method, 
+            ArrayBuilder<ISymUnmanagedScope> allScopes, 
+            ArrayBuilder<ISymUnmanagedScope> containingScopes, 
+            int offset, 
+            bool isScopeEndInclusive)
         {
-            ISymUnmanagedScope scope = method.GetRootScope();
-            GetAllScopes(scope, builder, offset, isScopeEndInclusive);
+            GetAllScopes(method.GetRootScope(), allScopes, containingScopes, offset, isScopeEndInclusive);
         }
 
-        private static void GetAllScopes(ISymUnmanagedScope scope, ArrayBuilder<ISymUnmanagedScope> builder, int offset, bool isScopeEndInclusive)
+        private static void GetAllScopes(
+            ISymUnmanagedScope root, 
+            ArrayBuilder<ISymUnmanagedScope> allScopes, 
+            ArrayBuilder<ISymUnmanagedScope> containingScopes, 
+            int offset, 
+            bool isScopeEndInclusive)
         {
-            builder.Add(scope);
-            foreach (var nested in scope.GetScopes())
+            var stack = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
+            stack.Push(root);
+
+            while (stack.Any())
             {
-                if ((offset < 0) || nested.IsInScope(offset, isScopeEndInclusive))
+                var scope = stack.Pop();
+                allScopes.Add(scope);
+                if (offset >= 0 && scope.IsInScope(offset, isScopeEndInclusive))
                 {
-                    GetAllScopes(nested, builder, offset, isScopeEndInclusive);
-                    if (offset >= 0)
-                    {
-                        return;
-                    }
+                    containingScopes.Add(scope);
+                }
+
+                foreach (var nested in scope.GetScopes())
+                {
+                    stack.Push(nested);
                 }
             }
         }

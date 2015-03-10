@@ -10,7 +10,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class LocalRewriter
+    Friend Partial Class LocalRewriter
 
         Private Structure XmlLiteralFixupData
             Public Structure LocalWithInitialization

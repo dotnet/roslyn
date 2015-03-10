@@ -989,7 +989,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub WarnOnRecursiveAccess(node As BoundExpression, accessKind As PropertyAccessKind, diagnostics As DiagnosticBag)
             Select Case node.Kind
                 Case BoundKind.XmlMemberAccess
-                    ' Nothing to do 
+                ' Nothing to do 
 
                 Case BoundKind.PropertyAccess
                     WarnOnRecursiveAccess(DirectCast(node, BoundPropertyAccess), accessKind, diagnostics)
@@ -1266,7 +1266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        representCandidateInDiagnosticsOpt)
         End Function
 
-        Shared Function GetLocationForOverloadResolutionDiagnostic(node As VisualBasicSyntaxNode, Optional groupOpt As BoundMethodOrPropertyGroup = Nothing) As Location
+        Public Shared Function GetLocationForOverloadResolutionDiagnostic(node As VisualBasicSyntaxNode, Optional groupOpt As BoundMethodOrPropertyGroup = Nothing) As Location
             Dim result As VisualBasicSyntaxNode
 
             If groupOpt IsNot Nothing Then
@@ -2902,7 +2902,7 @@ ProduceBoundNode:
             ' With SeparatedSyntaxList, it is most efficient to iterate with foreach and not to access Count.
 
             If arguments.IsDefaultOrEmpty Then
-                boundArguments = NoArguments
+                boundArguments = s_noArguments
                 argumentNames = Nothing
                 argumentNamesLocations = Nothing
             Else

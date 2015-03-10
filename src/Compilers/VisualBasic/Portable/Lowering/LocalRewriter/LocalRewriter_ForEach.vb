@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The variable will not be initialized, because a declared control variable is also not initialized when 
             ' executing the collection expression.
             If node.DeclaredOrInferredLocalOpt IsNot Nothing Then
-                Dim tempLocal = New SynthesizedLocal(Me.currentMethodOrLambda, node.ControlVariable.Type, SynthesizedLocalKind.LoweringTemp)
+                Dim tempLocal = New SynthesizedLocal(Me._currentMethodOrLambda, node.ControlVariable.Type, SynthesizedLocalKind.LoweringTemp)
                 Dim tempForControlVariable = New BoundLocal(node.Syntax, tempLocal, node.ControlVariable.Type)
 
                 Dim replacedControlVariable As Boolean = False
@@ -108,11 +108,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If replacedControlVariable Then
                     locals.Add(tempLocal)
 
-                    If Me.symbolsCapturedWithoutCopyCtor Is Nothing Then
-                        Me.symbolsCapturedWithoutCopyCtor = New HashSet(Of Symbol)()
+                    If Me._symbolsCapturedWithoutCopyCtor Is Nothing Then
+                        Me._symbolsCapturedWithoutCopyCtor = New HashSet(Of Symbol)()
                     End If
 
-                    Me.symbolsCapturedWithoutCopyCtor.Add(tempLocal)
+                    Me._symbolsCapturedWithoutCopyCtor.Add(tempLocal)
                 End If
             End If
 
@@ -354,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Dim collectionCopy As C = c
             Dim expressionType = initExpression.Type
             Debug.Assert(kind.IsLongLived())
-            Dim collectionCopy = New SynthesizedLocal(Me.currentMethodOrLambda, expressionType, kind, syntaxNode)
+            Dim collectionCopy = New SynthesizedLocal(Me._currentMethodOrLambda, expressionType, kind, syntaxNode)
             locals.Add(collectionCopy)
             boundLocal = New BoundLocal(syntaxNode, collectionCopy, expressionType)
 
@@ -782,9 +782,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class LocalVariableSubstitutor
             Inherits BoundTreeRewriter
 
-            Private m_original As LocalSymbol
-            Private m_replacement As LocalSymbol
-            Private m_replacedNode As Boolean = False
+            Private _original As LocalSymbol
+            Private _replacement As LocalSymbol
+            Private _replacedNode As Boolean = False
 
             Public Shared Function Replace(
                 node As BoundNode,
@@ -802,21 +802,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private ReadOnly Property ReplacedNode As Boolean
                 Get
-                    Return m_replacedNode
+                    Return _replacedNode
                 End Get
             End Property
 
             Private Sub New(original As LocalSymbol, replacement As LocalSymbol)
-                m_original = original
-                m_replacement = replacement
+                _original = original
+                _replacement = replacement
             End Sub
 
             Public Overrides Function VisitLocal(node As BoundLocal) As BoundNode
 
-                If node.LocalSymbol Is m_original Then
-                    m_replacedNode = True
+                If node.LocalSymbol Is _original Then
+                    _replacedNode = True
 
-                    Return node.Update(m_replacement, node.IsLValue, node.Type)
+                    Return node.Update(_replacement, node.IsLValue, node.Type)
                 End If
 
                 Return node

@@ -186,6 +186,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return false;
         }
 
+        public static bool IsRangeVariableDeclarator(SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.FromClause:
+                case SyntaxKind.JoinClause:
+                case SyntaxKind.LetClause:
+                case SyntaxKind.JoinIntoClause:
+                case SyntaxKind.QueryContinuation:
+                    return true;
+            }
+
+            return false;
+        }
+
         public static bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2)
         {
             body1 = null;
@@ -200,15 +215,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return true;
 
                 case SyntaxKind.FromClause:
-                    var fromClause = (FromClauseSyntax)node;
-
                     // The first from clause of a query expression is not a lambda.
-                    if (fromClause.Parent.IsKind(SyntaxKind.QueryExpression))
+                    if (node.Parent.IsKind(SyntaxKind.QueryExpression))
                     {
                         return false;
                     }
 
-                    body1 = fromClause.Expression;
+                    body1 = ((FromClauseSyntax)node).Expression;
                     return true;
 
                 case SyntaxKind.JoinClause:

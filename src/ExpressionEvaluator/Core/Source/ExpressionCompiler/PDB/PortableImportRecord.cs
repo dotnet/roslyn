@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             _targetNamespaceName = targetNamespaceName;
         }
 
-        // TODO (acasey): Uncomment when ImportDefinition is available in this branch. (GH #702)
+        // TODO (https://github.com/dotnet/roslyn/issues/702): Uncomment when ImportDefinition is available in this branch.
         //public static bool TryCreateFromImportDefinition(
         //    ImportDefinition importDefinition,
         //    MetadataReader metadataReader,
