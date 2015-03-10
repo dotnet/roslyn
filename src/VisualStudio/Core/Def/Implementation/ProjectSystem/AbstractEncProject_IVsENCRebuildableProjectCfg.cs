@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     // Dev11 implementation: csharp\radmanaged\Features\EditAndContinue\EncProject.cs
 
-    internal partial class AbstractProject : EncInterop.IVsENCRebuildableProjectCfg2, EncInterop.IVsENCRebuildableProjectCfg4
+    internal partial class AbstractEncProject : EncInterop.IVsENCRebuildableProjectCfg2, EncInterop.IVsENCRebuildableProjectCfg4
     {
         public int HasCustomMetadataEmitter(out bool value)
         {
