@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Enum
 
         ' Flags about the type
-        Private ReadOnly m_flags As SourceTypeFlags
+        Private ReadOnly _flags As SourceTypeFlags
 
         ' Misc flags defining the state of this symbol (StateFlags)
         Protected m_lazyState As Integer
@@ -58,41 +58,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Enum
 
         ' Containing symbol
-        Private ReadOnly m_containingSymbol As NamespaceOrTypeSymbol
+        Private ReadOnly _containingSymbol As NamespaceOrTypeSymbol
 
         ' Containing source module
         Protected ReadOnly m_containingModule As SourceModuleSymbol
 
         ' The declaration for this type.
-        Private ReadOnly m_declaration As MergedTypeDeclaration
+        Private ReadOnly _declaration As MergedTypeDeclaration
 
         ' The name of the type, might be different than m_decl.Name depending on lexical sort order.
-        Private ReadOnly m_name As String
+        Private ReadOnly _name As String
 
         ' The name of the default property if any.
         ' GetMembersAndInitializers must be called before accessing field.
-        Private m_defaultPropertyName As String
+        Private _defaultPropertyName As String
 
         ' The different kinds of members of this type
-        Private m_lazyMembersAndInitializers As MembersAndInitializers
+        Private _lazyMembersAndInitializers As MembersAndInitializers
 
         ' Maps names to nested type symbols.
-        Private Shared ReadOnly m_emptyTypeMembers As New Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))(IdentifierComparison.Comparer)
-        Private m_lazyTypeMembers As Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))
+        Private Shared ReadOnly s_emptyTypeMembers As New Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))(IdentifierComparison.Comparer)
+        Private _lazyTypeMembers As Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))
 
         ' An array of members in declaration order.
-        Private m_lazyMembersFlattened As ImmutableArray(Of Symbol)
+        Private _lazyMembersFlattened As ImmutableArray(Of Symbol)
 
         ' Type parameters (Nothing if not created yet)
-        Private m_lazyTypeParameters As ImmutableArray(Of TypeParameterSymbol)
+        Private _lazyTypeParameters As ImmutableArray(Of TypeParameterSymbol)
 
-        Private m_lazyEmitExtensionAttribute As ThreeState = ThreeState.Unknown
-        Private m_lazyContainsExtensionMethods As ThreeState = ThreeState.Unknown
-        Private m_lazyAnyMemberHasAttributes As ThreeState = ThreeState.Unknown
+        Private _lazyEmitExtensionAttribute As ThreeState = ThreeState.Unknown
+        Private _lazyContainsExtensionMethods As ThreeState = ThreeState.Unknown
+        Private _lazyAnyMemberHasAttributes As ThreeState = ThreeState.Unknown
 
-        Private m_lazyStructureCycle As Integer = ThreeState.Unknown  ' Interlocked
+        Private _lazyStructureCycle As Integer = ThreeState.Unknown  ' Interlocked
 
-        Private m_lazyLexicalSortKey As LexicalSortKey = LexicalSortKey.NotInitialized
+        Private _lazyLexicalSortKey As LexicalSortKey = LexicalSortKey.NotInitialized
 
 #Region "Construction"
 
@@ -103,10 +103,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                           containingModule As SourceModuleSymbol)
 
             m_containingModule = containingModule
-            m_containingSymbol = containingSymbol
-            m_declaration = declaration
-            m_name = GetBestName(declaration, containingModule.ContainingSourceAssembly.DeclaringCompilation)
-            m_flags = ComputeTypeFlags(declaration, containingSymbol.IsNamespace)
+            _containingSymbol = containingSymbol
+            _declaration = declaration
+            _name = GetBestName(declaration, containingModule.ContainingSourceAssembly.DeclaringCompilation)
+            _flags = ComputeTypeFlags(declaration, containingSymbol.IsNamespace)
         End Sub
 
         ' Figure out the "right" name spelling, it should come from lexically first declaration.
@@ -361,12 +361,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Sub ReportNestingIntoVariantInterface(<[In], Out> ByRef diagnostics As DiagnosticBag)
-            If Not m_containingSymbol.IsType Then
+            If Not _containingSymbol.IsType Then
                 Return
             End If
 
             ' Check for illegal nesting into variant interface.
-            Dim container = DirectCast(m_containingSymbol, NamedTypeSymbol)
+            Dim container = DirectCast(_containingSymbol, NamedTypeSymbol)
 
             Do
                 If Not container.IsInterfaceType() Then
@@ -596,18 +596,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Structure VarianceDiagnosticsTargetTypeParameter
             Public ReadOnly ConstructedType As NamedTypeSymbol
-            Private ReadOnly m_TypeParameterIndex As Integer
+            Private ReadOnly _typeParameterIndex As Integer
 
             Public ReadOnly Property TypeParameter As TypeParameterSymbol
                 Get
-                    Return ConstructedType.TypeParameters(m_TypeParameterIndex)
+                    Return ConstructedType.TypeParameters(_typeParameterIndex)
                 End Get
             End Property
 
             Public Sub New(constructedType As NamedTypeSymbol, typeParameterIndex As Integer)
                 Debug.Assert(typeParameterIndex >= 0 AndAlso typeParameterIndex < constructedType.Arity)
                 Me.ConstructedType = constructedType
-                m_TypeParameterIndex = typeParameterIndex
+                _typeParameterIndex = typeParameterIndex
             End Sub
         End Structure
 
@@ -1165,14 +1165,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 m_containingModule.RecordPresenceOfExtensionMethods()
 
-                Debug.Assert(m_lazyContainsExtensionMethods <> ThreeState.False)
-                m_lazyContainsExtensionMethods = ThreeState.True
+                Debug.Assert(_lazyContainsExtensionMethods <> ThreeState.False)
+                _lazyContainsExtensionMethods = ThreeState.True
 
                 ' At this point we already processed all the attributes on the type.
                 ' and should know whether there is an explicit Extension attribute on it.
                 ' If there is an explicit attribute, or we passed through this code before,
                 ' m_lazyEmitExtensionAttribute should have known value.
-                If m_lazyEmitExtensionAttribute = ThreeState.Unknown Then
+                If _lazyEmitExtensionAttribute = ThreeState.Unknown Then
 
                     ' We need to emit an Extension attribute on the type. 
                     ' Can we locate it?
@@ -1182,28 +1182,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If useSiteError IsNot Nothing Then
                         ' Note, we are storing false because, even though we should emit the attribute,
                         ' we can't do that due to the use site error.
-                        m_lazyEmitExtensionAttribute = ThreeState.False
+                        _lazyEmitExtensionAttribute = ThreeState.False
 
                         ' also notify the containing assembly to not use the extension attribute
                         m_containingModule.ContainingSourceAssembly.AnErrorHasBeenReportedAboutExtensionAttribute()
                     Else
                         ' We have extension methods, we don't have explicit Extension attribute
                         ' on the type, which we were able to locate. Should emit it.
-                        Debug.Assert(m_lazyEmitExtensionAttribute <> ThreeState.False)
-                        m_lazyEmitExtensionAttribute = ThreeState.True
+                        Debug.Assert(_lazyEmitExtensionAttribute <> ThreeState.False)
+                        _lazyEmitExtensionAttribute = ThreeState.True
                     End If
                 End If
             Else
-                Debug.Assert(m_lazyContainsExtensionMethods <> ThreeState.True)
-                m_lazyContainsExtensionMethods = ThreeState.False
+                Debug.Assert(_lazyContainsExtensionMethods <> ThreeState.True)
+                _lazyContainsExtensionMethods = ThreeState.False
 
-                Debug.Assert(m_lazyEmitExtensionAttribute <> ThreeState.True)
-                m_lazyEmitExtensionAttribute = ThreeState.False
+                Debug.Assert(_lazyEmitExtensionAttribute <> ThreeState.True)
+                _lazyEmitExtensionAttribute = ThreeState.False
             End If
 
-            Debug.Assert(m_lazyEmitExtensionAttribute <> ThreeState.Unknown)
-            Debug.Assert(m_lazyContainsExtensionMethods <> ThreeState.Unknown)
-            Debug.Assert(m_lazyEmitExtensionAttribute = ThreeState.False OrElse m_lazyContainsExtensionMethods = ThreeState.True)
+            Debug.Assert(_lazyEmitExtensionAttribute <> ThreeState.Unknown)
+            Debug.Assert(_lazyContainsExtensionMethods <> ThreeState.Unknown)
+            Debug.Assert(_lazyEmitExtensionAttribute = ThreeState.False OrElse _lazyContainsExtensionMethods = ThreeState.True)
         End Sub
 #End Region
 
@@ -1211,13 +1211,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return m_containingSymbol
+                Return _containingSymbol
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol
             Get
-                Return TryCast(m_containingSymbol, NamedTypeSymbol)
+                Return TryCast(_containingSymbol, NamedTypeSymbol)
             End Get
         End Property
 
@@ -1239,31 +1239,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return CType((m_flags And SourceTypeFlags.AccessibilityMask), Accessibility)
+                Return CType((_flags And SourceTypeFlags.AccessibilityMask), Accessibility)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsMustInherit As Boolean
             Get
-                Return (m_flags And SourceTypeFlags.MustInherit) <> 0
+                Return (_flags And SourceTypeFlags.MustInherit) <> 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsNotInheritable As Boolean
             Get
-                Return (m_flags And SourceTypeFlags.NotInheritable) <> 0
+                Return (_flags And SourceTypeFlags.NotInheritable) <> 0
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ShadowsExplicitly As Boolean
             Get
-                Return (m_flags And SourceTypeFlags.Shadows) <> 0
+                Return (_flags And SourceTypeFlags.Shadows) <> 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property TypeKind As TypeKind
             Get
-                Return CType((m_flags And SourceTypeFlags.TypeKindMask) >> CUInt(SourceTypeFlags.TypeKindShift), TypeKind)
+                Return CType((_flags And SourceTypeFlags.TypeKindMask) >> CUInt(SourceTypeFlags.TypeKindShift), TypeKind)
             End Get
         End Property
 
@@ -1275,7 +1275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property IsPartial As Boolean
             Get
-                Return (m_flags And SourceTypeFlags.Partial) <> 0
+                Return (_flags And SourceTypeFlags.Partial) <> 0
             End Get
         End Property
 
@@ -1285,7 +1285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property TypeDeclaration As MergedTypeDeclaration
             Get
-                Return m_declaration
+                Return _declaration
             End Get
         End Property
 
@@ -1297,27 +1297,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property IsScriptClass As Boolean
             Get
-                Dim kind = m_declaration.Declarations(0).Kind
+                Dim kind = _declaration.Declarations(0).Kind
                 Return kind = DeclarationKind.Script OrElse kind = DeclarationKind.Submission
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property IsSubmissionClass As Boolean
             Get
-                Dim kind = m_declaration.Declarations(0).Kind
+                Dim kind = _declaration.Declarations(0).Kind
                 Return kind = DeclarationKind.Submission
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property IsImplicitClass As Boolean
             Get
-                Return m_declaration.Declarations(0).Kind = DeclarationKind.ImplicitClass
+                Return _declaration.Declarations(0).Kind = DeclarationKind.ImplicitClass
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property Arity As Integer
             Get
-                Return m_declaration.Arity
+                Return _declaration.Arity
             End Get
         End Property
 
@@ -1326,13 +1326,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' of errors.
         Friend ReadOnly Property DeclarationKind As DeclarationKind
             Get
-                Return m_declaration.Kind
+                Return _declaration.Kind
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property Name As String
             Get
-                Return m_name
+                Return _name
             End Get
         End Property
 
@@ -1363,7 +1363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' to override the namespace name.
         ''' </summary>
         Friend Overrides Function GetEmittedNamespaceName() As String
-            Dim containingSourceNamespace = TryCast(m_containingSymbol, SourceNamespaceSymbol)
+            Dim containingSourceNamespace = TryCast(_containingSymbol, SourceNamespaceSymbol)
             If containingSourceNamespace IsNot Nothing AndAlso containingSourceNamespace.HasMultipleSpellings Then
                 ' Find the namespace spelling surrounding the first declaration.
                 Debug.Assert(Locations.Length > 0)
@@ -1378,16 +1378,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend NotOverridable Overrides Function GetLexicalSortKey() As LexicalSortKey
             ' WARNING: this should not allocate memory!
-            If Not m_lazyLexicalSortKey.IsInitialized Then
-                m_lazyLexicalSortKey.SetFrom(m_declaration.GetLexicalSortKey(DeclaringCompilation))
+            If Not _lazyLexicalSortKey.IsInitialized Then
+                _lazyLexicalSortKey.SetFrom(_declaration.GetLexicalSortKey(DeclaringCompilation))
             End If
 
-            Return m_lazyLexicalSortKey
+            Return _lazyLexicalSortKey
         End Function
 
         Public NotOverridable Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return m_declaration.NameLocations
+                Return _declaration.NameLocations
             End Get
         End Property
 
@@ -1398,7 +1398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public ReadOnly Property SyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return m_declaration.SyntaxReferences
+                Return _declaration.SyntaxReferences
             End Get
         End Property
 
@@ -1609,21 +1609,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Protected Function GetTypeMembersDictionary() As Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))
-            If m_lazyTypeMembers Is Nothing Then
-                Interlocked.CompareExchange(m_lazyTypeMembers, MakeTypeMembers(), Nothing)
-                Debug.Assert(m_lazyTypeMembers IsNot Nothing)
+            If _lazyTypeMembers Is Nothing Then
+                Interlocked.CompareExchange(_lazyTypeMembers, MakeTypeMembers(), Nothing)
+                Debug.Assert(_lazyTypeMembers IsNot Nothing)
             End If
-            Return m_lazyTypeMembers
+            Return _lazyTypeMembers
         End Function
 
         ' Create symbols for all the nested types, and put them in a lookup indexed by (case-insensitive) name.
         Private Function MakeTypeMembers() As Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))
-            Dim children As ImmutableArray(Of MergedTypeDeclaration) = m_declaration.Children
+            Dim children As ImmutableArray(Of MergedTypeDeclaration) = _declaration.Children
 
-            Debug.Assert(m_emptyTypeMembers.Count = 0)
+            Debug.Assert(s_emptyTypeMembers.Count = 0)
 
             If children.IsEmpty Then
-                Return m_emptyTypeMembers
+                Return s_emptyTypeMembers
             End If
 
             Return children.Select(Function(decl) CreateNestedType(decl)).ToDictionary(
@@ -1656,10 +1656,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If TypeKind <> TypeKind.Delegate Then
                     GetMembersAndInitializers() ' Ensure m_defaultPropertyName is set.
                 Else
-                    Debug.Assert(m_defaultPropertyName Is Nothing)
+                    Debug.Assert(_defaultPropertyName Is Nothing)
                 End If
 
-                Return m_defaultPropertyName
+                Return _defaultPropertyName
             End Get
         End Property
 
@@ -1670,11 +1670,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function GetMembersAndInitializers() As MembersAndInitializers
-            If m_lazyMembersAndInitializers Is Nothing Then
+            If _lazyMembersAndInitializers Is Nothing Then
                 Dim diagBag = DiagnosticBag.GetInstance()
                 Dim membersAndInitializers = BuildMembersAndInitializers(diagBag)
-                m_containingModule.AtomicStoreReferenceAndDiagnostics(m_lazyMembersAndInitializers, membersAndInitializers, diagBag, CompilationStage.Declare)
-                Debug.Assert(m_lazyMembersAndInitializers IsNot Nothing)
+                m_containingModule.AtomicStoreReferenceAndDiagnostics(_lazyMembersAndInitializers, membersAndInitializers, diagBag, CompilationStage.Declare)
+                Debug.Assert(_lazyMembersAndInitializers IsNot Nothing)
                 diagBag.Free()
 
                 Dim unused = Me.KnownCircularStruct
@@ -1684,7 +1684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End If
             End If
 
-            Return m_lazyMembersAndInitializers
+            Return _lazyMembersAndInitializers
         End Function
 
 #If DEBUG Then
@@ -1694,7 +1694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property MembersHaveBeenCreated As Boolean
             Get
-                Return m_lazyMembersAndInitializers IsNot Nothing
+                Return _lazyMembersAndInitializers IsNot Nothing
             End Get
         End Property
 
@@ -1703,7 +1703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' is called recursively. This does not catch all recursive cases,
         ' only cases where the method is called recursively on the first
         ' thread that called ComputeMembersAndInitializers.
-        Private m_computingMembersThreadId As Integer
+        Private _computingMembersThreadId As Integer
 #End If
 
         Private Function BuildMembersAndInitializers(diagBag As DiagnosticBag) As MembersAndInitializers
@@ -1712,14 +1712,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Bug 1098580 tracks re-enabling this assert.
             'Debug.Assert(m_computingMembersThreadId <> threadId)
-            Interlocked.CompareExchange(m_computingMembersThreadId, threadId, 0)
+            Interlocked.CompareExchange(_computingMembersThreadId, threadId, 0)
 #End If
             ' Get type members
             Dim typeMembers = GetTypeMembersDictionary()
 
             ' Get non-type members
             Dim membersAndInitializers As MembersAndInitializers = BuildNonTypeMembers(diagBag)
-            m_defaultPropertyName = DetermineDefaultPropertyName(membersAndInitializers.Members, diagBag)
+            _defaultPropertyName = DetermineDefaultPropertyName(membersAndInitializers.Members, diagBag)
 
             ' Find/process partial methods
             ProcessPartialMethodsIfAny(membersAndInitializers.Members, diagBag)
@@ -1736,7 +1736,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
 #If DEBUG Then
-            Interlocked.CompareExchange(m_computingMembersThreadId, 0, threadId)
+            Interlocked.CompareExchange(_computingMembersThreadId, 0, threadId)
 #End If
             Return membersAndInitializers
         End Function
@@ -1987,15 +1987,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property KnownCircularStruct As Boolean
             Get
-                If m_lazyStructureCycle = ThreeState.Unknown Then
+                If _lazyStructureCycle = ThreeState.Unknown Then
                     If Not Me.IsStructureType Then
-                        m_lazyStructureCycle = ThreeState.False
+                        _lazyStructureCycle = ThreeState.False
                     Else
                         Dim diagnostics = DiagnosticBag.GetInstance()
                         Dim hasCycle = Me.CheckStructureCircularity(diagnostics)
 
                         ' In either case we use AtomicStoreIntegerAndDiagnostics.
-                        m_containingModule.AtomicStoreIntegerAndDiagnostics(m_lazyStructureCycle,
+                        m_containingModule.AtomicStoreIntegerAndDiagnostics(_lazyStructureCycle,
                                                                             If(hasCycle, ThreeState.True, ThreeState.False),
                                                                             ThreeState.Unknown,
                                                                             diagnostics,
@@ -2004,7 +2004,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 End If
 
-                Return m_lazyStructureCycle = ThreeState.True
+                Return _lazyStructureCycle = ThreeState.True
             End Get
         End Property
 
@@ -2020,7 +2020,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ''' performed breadth-first, so the number of data sets used by one thread is not longer than the 
             ''' length of the longest structure-in-structure nesting chain.
             ''' </summary>
-            Private Shared ReadOnly Pool As New ObjectPool(Of StructureCircularityDetectionDataSet)(
+            Private Shared ReadOnly s_pool As New ObjectPool(Of StructureCircularityDetectionDataSet)(
                                                     Function() New StructureCircularityDetectionDataSet(), 32)
 
             ''' <summary> Set of processed structure types </summary>
@@ -2048,13 +2048,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Sub
 
             Public Shared Function GetInstance() As StructureCircularityDetectionDataSet
-                Return Pool.Allocate()
+                Return s_pool.Allocate()
             End Function
 
             Public Sub Free()
                 Me.Queue.Clear()
                 Me.ProcessedTypes.Clear()
-                Pool.Free(Me)
+                s_pool.Free(Me)
             End Sub
 
         End Class
@@ -3124,21 +3124,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property MemberNames As IEnumerable(Of String)
             Get
-                Return m_declaration.MemberNames
+                Return _declaration.MemberNames
             End Get
         End Property
 
         Friend Overrides Function GetMembersUnordered() As ImmutableArray(Of Symbol)
-            If m_lazyMembersFlattened.IsDefault Then
+            If _lazyMembersFlattened.IsDefault Then
                 Dim lookup = Me.MemberAndInitializerLookup
                 Dim result = lookup.Members.Flatten(Nothing)  ' Do Not sort right now.
-                ImmutableInterlocked.InterlockedInitialize(Me.m_lazyMembersFlattened, result)
+                ImmutableInterlocked.InterlockedInitialize(Me._lazyMembersFlattened, result)
             End If
 
 #If DEBUG Then
             ' In DEBUG, swap first And last elements so that use of Unordered in a place it isn't warranted is caught
             ' more obviously.
-            Return m_lazyMembersFlattened.DeOrder()
+            Return _lazyMembersFlattened.DeOrder()
 #Else
             Return m_lazyMembersFlattened
 #End If
@@ -3146,14 +3146,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
             If (m_lazyState And StateFlags.FlattenedMembersIsSortedMask) <> 0 Then
-                Return m_lazyMembersFlattened
+                Return _lazyMembersFlattened
 
             Else
                 Dim allMembers = Me.GetMembersUnordered()
 
                 If allMembers.Length >= 2 Then
                     allMembers = allMembers.Sort(LexicalOrderSymbolComparer.Instance)
-                    ImmutableInterlocked.InterlockedExchange(m_lazyMembersFlattened, allMembers)
+                    ImmutableInterlocked.InterlockedExchange(_lazyMembersFlattened, allMembers)
                 End If
 
                 ThreadSafeFlagOperations.Set(m_lazyState, StateFlags.FlattenedMembersIsSortedMask)
@@ -3174,7 +3174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function GetSimpleNonTypeMembers(name As String) As ImmutableArray(Of Symbol)
-            If m_lazyMembersAndInitializers IsNot Nothing OrElse MemberNames.Contains(name) Then
+            If _lazyMembersAndInitializers IsNot Nothing OrElse MemberNames.Contains(name) Then
                 Return GetMembers(name)
             End If
 
@@ -3236,7 +3236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If IsScriptClass AndAlso Not isShared Then
                 Dim aggregateLength As Integer = 0
 
-                For Each declaration In Me.m_declaration.Declarations
+                For Each declaration In Me._declaration.Declarations
                     Dim syntaxRef = declaration.SyntaxReference
 
                     If tree Is syntaxRef.SyntaxTree Then
@@ -3323,13 +3323,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 ' Only Modules can declare extension methods.
 
-                If m_lazyContainsExtensionMethods = ThreeState.Unknown Then
-                    If Not (m_containingSymbol.Kind = SymbolKind.Namespace AndAlso Me.TypeKind = TypeKind.Module AndAlso Me.AnyMemberHasAttributes) Then
-                        m_lazyContainsExtensionMethods = ThreeState.False
+                If _lazyContainsExtensionMethods = ThreeState.Unknown Then
+                    If Not (_containingSymbol.Kind = SymbolKind.Namespace AndAlso Me.TypeKind = TypeKind.Module AndAlso Me.AnyMemberHasAttributes) Then
+                        _lazyContainsExtensionMethods = ThreeState.False
                     End If
                 End If
 
-                Return m_lazyContainsExtensionMethods <> ThreeState.False
+                Return _lazyContainsExtensionMethods <> ThreeState.False
             End Get
         End Property
 
@@ -3340,7 +3340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If Not appendThrough.BuildExtensionMethodsMap(map, lookup.Members) Then
                     ' Didn't find any extension methods, record the fact.
-                    m_lazyContainsExtensionMethods = ThreeState.False
+                    _lazyContainsExtensionMethods = ThreeState.False
                 End If
             End If
         End Sub
@@ -3354,7 +3354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If Not appendThrough.AddExtensionMethodLookupSymbolsInfo(nameSet, options, originalBinder, lookup.Members) Then
                     ' Didn't find any extension methods, record the fact.
-                    m_lazyContainsExtensionMethods = ThreeState.False
+                    _lazyContainsExtensionMethods = ThreeState.False
                 End If
             End If
         End Sub
@@ -3914,18 +3914,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "Attributes"
         Protected Sub SuppressExtensionAttributeSynthesis()
-            Debug.Assert(m_lazyEmitExtensionAttribute <> ThreeState.True)
-            m_lazyEmitExtensionAttribute = ThreeState.False
+            Debug.Assert(_lazyEmitExtensionAttribute <> ThreeState.True)
+            _lazyEmitExtensionAttribute = ThreeState.False
         End Sub
 
         Private ReadOnly Property EmitExtensionAttribute As Boolean
             Get
-                If m_lazyEmitExtensionAttribute = ThreeState.Unknown Then
+                If _lazyEmitExtensionAttribute = ThreeState.Unknown Then
                     BindAllMemberAttributes(cancellationToken:=Nothing)
                 End If
 
-                Debug.Assert(m_lazyEmitExtensionAttribute <> ThreeState.Unknown)
-                Return m_lazyEmitExtensionAttribute = ThreeState.True
+                Debug.Assert(_lazyEmitExtensionAttribute <> ThreeState.Unknown)
+                Return _lazyEmitExtensionAttribute = ThreeState.True
             End Get
         End Property
 
@@ -3940,11 +3940,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property AnyMemberHasAttributes As Boolean
             Get
-                If (Not Me.m_lazyAnyMemberHasAttributes.HasValue()) Then
-                    Me.m_lazyAnyMemberHasAttributes = Me.m_declaration.AnyMemberHasAttributes.ToThreeState()
+                If (Not Me._lazyAnyMemberHasAttributes.HasValue()) Then
+                    Me._lazyAnyMemberHasAttributes = Me._declaration.AnyMemberHasAttributes.ToThreeState()
                 End If
 
-                Return Me.m_lazyAnyMemberHasAttributes.Value()
+                Return Me._lazyAnyMemberHasAttributes.Value()
             End Get
         End Property
     End Class

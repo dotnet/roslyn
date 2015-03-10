@@ -149,7 +149,7 @@ lSelect:
                     If expression IsNot Nothing Then
                         Return Visit(expression)
                     End If
-                    ' Otherwise fall through and generate an error
+                ' Otherwise fall through and generate an error
 
                 Case BoundKind.ExpressionStatement
                     Return Visit((DirectCast(stmt, BoundExpressionStatement)).Expression)

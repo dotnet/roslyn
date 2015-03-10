@@ -404,15 +404,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Gets the reporting state for a warning (diagnostic) at a given source location based on warning directives.
         Friend Function GetWarningState(id As String, position As Integer) As ReportDiagnostic
-            If lazyWarningStateMap Is Nothing Then
+            If _lazyWarningStateMap Is Nothing Then
                 ' Create the warning state map on demand.
-                Interlocked.CompareExchange(lazyWarningStateMap, New VisualBasicWarningStateMap(Me), Nothing)
+                Interlocked.CompareExchange(_lazyWarningStateMap, New VisualBasicWarningStateMap(Me), Nothing)
             End If
 
-            Return lazyWarningStateMap.GetWarningState(id, position)
+            Return _lazyWarningStateMap.GetWarningState(id, position)
         End Function
 
-        Private lazyWarningStateMap As VisualBasicWarningStateMap
+        Private _lazyWarningStateMap As VisualBasicWarningStateMap
 
         Private Function GetLinePosition(position As Integer) As LinePosition
             Return Me.GetText().Lines.GetLinePosition(position)

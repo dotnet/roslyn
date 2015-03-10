@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(Not IsScanningXmlDoc)
             Debug.Assert(c = CARRIAGE_RETURN OrElse c = LINE_FEED OrElse c = " "c OrElse c = CHARACTER_TABULATION)
 
-            Dim builder = triviaListPool.Allocate
+            Dim builder = _triviaListPool.Allocate
 
             Dim len = 0
             Do
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(builder.Count > 0)
 
             Dim result = builder.ToList
-            triviaListPool.Free(builder)
+            _triviaListPool.Free(builder)
 
             Return result
         End Function
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                         Select Case (PeekAheadChar(2))
                                             Case "-"c
                                                 If CanGetCharAtOffset(3) AndAlso PeekAheadChar(3) = "-"c Then
-                                                    Return XmlMakeBeginCommentToken(leadingTrivia, _scanNoTriviaFunc)
+                                                    Return XmlMakeBeginCommentToken(leadingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "["c
                                                 If CanGetCharAtOffset(8) AndAlso
@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                                     PeekAheadChar(7) = "A"c AndAlso
                                                     PeekAheadChar(8) = "["c Then
 
-                                                    Return XmlMakeBeginCDataToken(leadingTrivia, _scanNoTriviaFunc)
+                                                    Return XmlMakeBeginCDataToken(leadingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
                                                 If CanGetCharAtOffset(8) AndAlso
@@ -154,9 +154,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                         Return XmlMakeBeginEmbeddedToken(leadingTrivia)
                                     End If
                                 Case "?"c
-                                    Return XmlMakeBeginProcessingInstructionToken(leadingTrivia, _scanNoTriviaFunc)
+                                    Return XmlMakeBeginProcessingInstructionToken(leadingTrivia, s_scanNoTriviaFunc)
                                 Case "/"c
-                                    Return XmlMakeBeginEndElementToken(leadingTrivia, _scanNoTriviaFunc)
+                                    Return XmlMakeBeginEndElementToken(leadingTrivia, s_scanNoTriviaFunc)
                             End Select
                         End If
 
@@ -369,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                         Select Case (PeekAheadChar(2))
                                             Case "-"c
                                                 If CanGetCharAtOffset(3) AndAlso PeekAheadChar(3) = "-"c Then
-                                                    Return XmlMakeBeginCommentToken(precedingTrivia, _scanNoTriviaFunc)
+                                                    Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "["c
                                                 If CanGetCharAtOffset(8) AndAlso _
@@ -380,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                                     PeekAheadChar(7) = "A"c AndAlso _
                                                     PeekAheadChar(8) = "["c Then
 
-                                                    Return XmlMakeBeginCDataToken(precedingTrivia, _scanNoTriviaFunc)
+                                                    Return XmlMakeBeginCDataToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
                                                 If CanGetCharAtOffset(8) AndAlso
@@ -401,9 +401,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                         Return XmlMakeBeginEmbeddedToken(precedingTrivia)
                                     End If
                                 Case "?"c
-                                    Return XmlMakeBeginProcessingInstructionToken(precedingTrivia, _scanNoTriviaFunc)
+                                    Return XmlMakeBeginProcessingInstructionToken(precedingTrivia, s_scanNoTriviaFunc)
                                 Case "/"c
-                                    Return XmlMakeBeginEndElementToken(precedingTrivia, _scanNoTriviaFunc)
+                                    Return XmlMakeBeginEndElementToken(precedingTrivia, s_scanNoTriviaFunc)
                             End Select
                         End If
 
@@ -684,7 +684,7 @@ ScanChars:
             Debug.Assert(state = ScannerState.StartProcessingInstruction OrElse
                          state = ScannerState.ProcessingInstruction)
 
-            Dim precedingTrivia = triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
+            Dim precedingTrivia = _triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
             Dim result As SyntaxToken
 
             If state = ScannerState.StartProcessingInstruction AndAlso CanGetChar() Then
@@ -750,7 +750,7 @@ ScanChars:
             End If
 
 CleanUp:
-            triviaListPool.Free(precedingTrivia)
+            _triviaListPool.Free(precedingTrivia)
             Return result
         End Function
 
@@ -780,7 +780,7 @@ CleanUp:
                                         PeekAheadChar(2) = "-"c AndAlso
                                         PeekAheadChar(3) = "-"c Then
 
-                                        Return XmlMakeBeginCommentToken(precedingTrivia, _scanNoTriviaFunc)
+                                        Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
                                     ElseIf CanGetCharAtOffset(8) AndAlso
                                             PeekAheadChar(2) = "D"c AndAlso
                                             PeekAheadChar(3) = "O"c AndAlso
@@ -798,37 +798,37 @@ CleanUp:
                                         Return XmlMakeBeginEmbeddedToken(precedingTrivia)
                                     End If
                                 Case "?"c
-                                    Return XmlMakeBeginProcessingInstructionToken(precedingTrivia, _scanNoTriviaFunc)
+                                    Return XmlMakeBeginProcessingInstructionToken(precedingTrivia, s_scanNoTriviaFunc)
                             End Select
                         End If
 
                         Return XmlMakeLessToken(precedingTrivia)
 
-                        ' TODO: review 
+                    ' TODO: review 
 
-                        '    If Not m_State.m_ScannedElement OrElse c = "?"c OrElse c = "!"c Then
-                        '        ' // Remove tEOL from token ring if any exists
+                    '    If Not m_State.m_ScannedElement OrElse c = "?"c OrElse c = "!"c Then
+                    '        ' // Remove tEOL from token ring if any exists
 
-                        '        If tEOL IsNot Nothing Then
-                        '            m_FirstFreeToken = tEOL
-                        '        End If
+                    '        If tEOL IsNot Nothing Then
+                    '            m_FirstFreeToken = tEOL
+                    '        End If
 
-                        '        m_State.m_LexicalState = LexicalState.XmlMarkup
-                        '        MakeToken(tokens.tkLT, 1)
-                        '        m_InputStreamPosition += 1
-                        '        Return
-                        '    End If
-                        'End If
+                    '        m_State.m_LexicalState = LexicalState.XmlMarkup
+                    '        MakeToken(tokens.tkLT, 1)
+                    '        m_InputStreamPosition += 1
+                    '        Return
+                    '    End If
+                    'End If
 
-                        'm_State.EndXmlState()
+                    'm_State.EndXmlState()
 
-                        'If tEOL IsNot Nothing Then
-                        '    tEOL.m_EOL.m_NextLineAlreadyScanned = True
-                        'Else
-                        '    MakeToken(tokens.tkLT, 1)
-                        '    m_InputStreamPosition += 1
-                        'End If
-                        'Return
+                    'If tEOL IsNot Nothing Then
+                    '    tEOL.m_EOL.m_NextLineAlreadyScanned = True
+                    'Else
+                    '    MakeToken(tokens.tkLT, 1)
+                    '    m_InputStreamPosition += 1
+                    'End If
+                    'Return
                     Case Else
                         Return SyntaxFactory.Token(precedingTrivia.Node, SyntaxKind.EndOfXmlToken, Nothing, String.Empty)
 
@@ -927,7 +927,7 @@ ScanChars:
         Friend Function ScanXmlString(terminatingChar As Char, altTerminatingChar As Char, isSingle As Boolean) As SyntaxToken
 
             ' TODO: this trivia is used only in XmlDoc. May split the function?
-            Dim precedingTrivia = triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
+            Dim precedingTrivia = _triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
             Dim result As SyntaxToken
             If IsScanningXmlDoc AndAlso IsAtNewLine() Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
@@ -1034,7 +1034,7 @@ ScanChars:
             End If
 
 CleanUp:
-            triviaListPool.Free(precedingTrivia)
+            _triviaListPool.Free(precedingTrivia)
             Return result
         End Function
 

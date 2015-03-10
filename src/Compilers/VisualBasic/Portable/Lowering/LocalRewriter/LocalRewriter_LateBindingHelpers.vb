@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not rewrittenReceiver.Type.IsObjectType Then
                     Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                     Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenReceiver.Type, objectType, useSiteDiagnostics)
-                    diagnostics.Add(node, useSiteDiagnostics)
+                    _diagnostics.Add(node, useSiteDiagnostics)
                     rewrittenReceiver = New BoundDirectCast(node, rewrittenReceiver, convKind, objectType)
                 End If
 
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bounds As BoundExpression = New BoundLiteral(node, ConstantValue.Create(rewrittenArguments.Length), intType)
 
             Dim arrayCreation = New BoundArrayCreation(node, ImmutableArray.Create(bounds), Nothing, objectArrayType)
-            Dim arrayTemp As LocalSymbol = New SynthesizedLocal(Me.currentMethodOrLambda, arrayCreation.Type, SynthesizedLocalKind.LoweringTemp)
+            Dim arrayTemp As LocalSymbol = New SynthesizedLocal(Me._currentMethodOrLambda, arrayCreation.Type, SynthesizedLocalKind.LoweringTemp)
             Dim arrayTempRef = New BoundLocal(node, arrayTemp, arrayTemp.Type)
 
             Dim arrayInit = New BoundAssignmentOperator(node, arrayTempRef, arrayCreation, suppressObjectClone:=True)
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not argument.Type.IsObjectType Then
                     Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                     Dim convKind = Conversions.ClassifyDirectCastConversion(argument.Type, objectType, useSiteDiagnostics)
-                    diagnostics.Add(node, useSiteDiagnostics)
+                    _diagnostics.Add(node, useSiteDiagnostics)
                     argument = New BoundDirectCast(node, argument, convKind, objectType)
                 End If
 
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Not rewrittenValue.Type.IsObjectType Then
                 Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenValue.Type, objectType, useSiteDiagnostics)
-                diagnostics.Add(node, useSiteDiagnostics)
+                _diagnostics.Add(node, useSiteDiagnostics)
                 rewrittenValue = New BoundDirectCast(node, rewrittenValue, convKind, objectType)
             End If
 
@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bounds As BoundExpression = New BoundLiteral(node, ConstantValue.Create(rewrittenArguments.Length + 1), intType)
 
             Dim arrayCreation = New BoundArrayCreation(node, ImmutableArray.Create(bounds), Nothing, objectArrayType)
-            Dim arrayTemp As LocalSymbol = New SynthesizedLocal(Me.currentMethodOrLambda, arrayCreation.Type, SynthesizedLocalKind.LoweringTemp)
+            Dim arrayTemp As LocalSymbol = New SynthesizedLocal(Me._currentMethodOrLambda, arrayCreation.Type, SynthesizedLocalKind.LoweringTemp)
             Dim arrayTempRef = New BoundLocal(node, arrayTemp, arrayTemp.Type)
 
             Dim arrayInit = New BoundAssignmentOperator(node, arrayTempRef, arrayCreation, suppressObjectClone:=True)
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 argument = argument.MakeRValue
                 If Not argument.Type.IsObjectType Then
                     Dim convKind = Conversions.ClassifyDirectCastConversion(argument.Type, objectType, useSiteDiagnostics)
-                    diagnostics.Add(argument, useSiteDiagnostics)
+                    _diagnostics.Add(argument, useSiteDiagnostics)
                     argument = New BoundDirectCast(node, argument, convKind, objectType)
                 End If
 
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' value goes last
             If Not rewrittenValue.Type.IsObjectType Then
                 Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenValue.Type, objectType, useSiteDiagnostics)
-                diagnostics.Add(rewrittenValue, useSiteDiagnostics)
+                _diagnostics.Add(rewrittenValue, useSiteDiagnostics)
                 rewrittenValue = New BoundDirectCast(node, rewrittenValue, convKind, objectType)
             End If
 
@@ -283,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Not argument.Type.IsObjectType Then
                         Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                         Dim convKind = Conversions.ClassifyDirectCastConversion(argument.Type, objectType, useSiteDiagnostics)
-                        diagnostics.Add(argument, useSiteDiagnostics)
+                        _diagnostics.Add(argument, useSiteDiagnostics)
                         argument = New BoundDirectCast(node, argument, convKind, objectType)
                     End If
 
@@ -722,11 +722,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If copyBackFlagArrayTemp Is Nothing Then
                         ' since we may have copybacks, we need a temp for the flags array to examine its content after the call
-                        copyBackFlagArrayTemp = New SynthesizedLocal(Me.currentMethodOrLambda, copyBackFlagArray.Type, SynthesizedLocalKind.LoweringTemp)
+                        copyBackFlagArrayTemp = New SynthesizedLocal(Me._currentMethodOrLambda, copyBackFlagArray.Type, SynthesizedLocalKind.LoweringTemp)
                         copyBackFlagArrayRef = (New BoundLocal(syntax, copyBackFlagArrayTemp, copyBackFlagArrayTemp.Type)).MakeRValue
 
                         ' since we may have copybacks, we need a temp for the arguments array to access it after the call
-                        valueArrayTemp = New SynthesizedLocal(Me.currentMethodOrLambda, argumentsArray.Type, SynthesizedLocalKind.LoweringTemp)
+                        valueArrayTemp = New SynthesizedLocal(Me._currentMethodOrLambda, argumentsArray.Type, SynthesizedLocalKind.LoweringTemp)
                         valueArrayRef = New BoundLocal(syntax, valueArrayTemp, valueArrayTemp.Type)
                         argumentsArray = (New BoundAssignmentOperator(syntax, valueArrayRef, argumentsArray, suppressObjectClone:=True)).MakeRValue
                         valueArrayRef = valueArrayRef.MakeRValue
@@ -801,7 +801,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' process copybacks
             If copyBackFlagArrayTemp IsNot Nothing Then
-                Dim valueTemp = New SynthesizedLocal(Me.currentMethodOrLambda, callerInvocation.Type, SynthesizedLocalKind.LoweringTemp)
+                Dim valueTemp = New SynthesizedLocal(Me._currentMethodOrLambda, callerInvocation.Type, SynthesizedLocalKind.LoweringTemp)
                 Dim valueRef = New BoundLocal(syntax, valueTemp, valueTemp.Type)
                 Dim store = New BoundAssignmentOperator(syntax, valueRef, callerInvocation, suppressObjectClone:=True)
 
@@ -824,7 +824,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            ByRef arguments As ImmutableArray(Of BoundExpression),
                            <Out> ByRef writeTargets As ImmutableArray(Of BoundExpression))
 
-            Dim container = Me.currentMethodOrLambda
+            Dim container = Me._currentMethodOrLambda
 
             If temps Is Nothing Then
                 temps = ArrayBuilder(Of SynthesizedLocal).GetInstance
@@ -938,7 +938,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If diagInfo IsNot Nothing Then
                 If Not isOptional Then
-                    Binder.ReportDiagnostic(diagnostics, New VBDiagnostic(diagInfo, syntax.GetLocation()))
+                    Binder.ReportDiagnostic(_diagnostics, New VBDiagnostic(diagInfo, syntax.GetLocation()))
                 End If
 
                 Return False
@@ -956,10 +956,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        syntax As VisualBasicSyntaxNode) As Boolean
 
             Dim diagInfo As DiagnosticInfo = Nothing
-            Dim memberSymbol = Binder.GetSpecialTypeMember(Me.topMethod.ContainingAssembly, memberId, diagInfo)
+            Dim memberSymbol = Binder.GetSpecialTypeMember(Me._topMethod.ContainingAssembly, memberId, diagInfo)
 
             If diagInfo IsNot Nothing Then
-                Binder.ReportDiagnostic(diagnostics, New VBDiagnostic(diagInfo, syntax.GetLocation()))
+                Binder.ReportDiagnostic(_diagnostics, New VBDiagnostic(diagInfo, syntax.GetLocation()))
                 result = Nothing
                 Return False
             End If

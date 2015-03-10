@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Force unused "ForLoopObject" local here. 
             ' It will mark the start of the For loop locals in EnC
             ' The type is irrelevant since this local will not be used and in optimized builds will be removed.
-            locals.Add(New SynthesizedLocal(Me.currentMethodOrLambda, rewrittenInitialValue.Type, SynthesizedLocalKind.ForLoopObject, syntax.ForOrForEachStatement))
+            locals.Add(New SynthesizedLocal(Me._currentMethodOrLambda, rewrittenInitialValue.Type, SynthesizedLocalKind.ForLoopObject, syntax.ForOrForEachStatement))
 
             Dim generateUnstructuredExceptionHandlingResumeCode As Boolean = ShouldGenerateUnstructuredExceptionHandlingResumeCode(node)
 
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim greaterThanOrEqual = VisitExpressionNode(node.OperatorsOpt.GreaterThanOrEqual)
 
-                positiveFlag = New SynthesizedLocal(currentMethodOrLambda, greaterThanOrEqual.Type, SynthesizedLocalKind.ForDirection, syntax.ForOrForEachStatement)
+                positiveFlag = New SynthesizedLocal(_currentMethodOrLambda, greaterThanOrEqual.Type, SynthesizedLocalKind.ForDirection, syntax.ForOrForEachStatement)
                 locals.Add(positiveFlag)
 
                 cacheAssignments.Add(New BoundAssignmentOperator(node.OperatorsOpt.Syntax,
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' Rewrite decimal literal if needed 
                     If literalUnderlyingType.IsDecimalType Then
-                        literal = RewriteDecimalConstant(literal, literal.ConstantValueOpt, Me.topMethod, Me.diagnostics)
+                        literal = RewriteDecimalConstant(literal, literal.ConstantValueOpt, Me._topMethod, Me._diagnostics)
                     End If
 
                     Dim isUp As BoundExpression = TransformRewrittenBinaryOperator(
@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             isUp)
                     End If
 
-                    positiveFlag = New SynthesizedLocal(currentMethodOrLambda, isUp.Type, SynthesizedLocalKind.ForDirection, syntax.ForOrForEachStatement)
+                    positiveFlag = New SynthesizedLocal(_currentMethodOrLambda, isUp.Type, SynthesizedLocalKind.ForDirection, syntax.ForOrForEachStatement)
                     locals.Add(positiveFlag)
 
                     cacheAssignments.Add(New BoundAssignmentOperator(isUp.Syntax,
@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Compilation.GetSpecialType(SpecialType.System_Object) Is rewrittenControlVariable.Type)
             Dim objType = rewrittenControlVariable.Type
-            Dim loopObjLocal = New SynthesizedLocal(Me.currentMethodOrLambda, objType, SynthesizedLocalKind.ForLoopObject, syntax.ForOrForEachStatement)
+            Dim loopObjLocal = New SynthesizedLocal(Me._currentMethodOrLambda, objType, SynthesizedLocalKind.ForLoopObject, syntax.ForOrForEachStatement)
             locals.Add(loopObjLocal)
 
             Dim loopObj = New BoundLocal(syntax, loopObjLocal, isLValue:=True, type:=loopObjLocal.Type)
@@ -797,7 +797,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             kind As SynthesizedLocalKind,
                             syntax As StatementSyntax) As BoundExpression
 
-            Return CacheToTempIfNotConst(Me.currentMethodOrLambda, value, locals, expressions, kind, syntax)
+            Return CacheToTempIfNotConst(Me._currentMethodOrLambda, value, locals, expressions, kind, syntax)
 
             'TODO: optimization for arrays/strings -
             '      does it make sense to store actual arrays/strings instead of their lengths when used as a limit?

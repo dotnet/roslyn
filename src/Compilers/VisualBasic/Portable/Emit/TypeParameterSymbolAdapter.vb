@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Partial Class TypeParameterSymbol
+    Friend Partial Class TypeParameterSymbol
         Implements IGenericParameterReference
         Implements IGenericMethodParameterReference
         Implements IGenericTypeParameterReference

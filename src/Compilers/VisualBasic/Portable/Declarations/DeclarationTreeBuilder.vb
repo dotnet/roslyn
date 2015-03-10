@@ -467,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                  SyntaxKind.ClassBlock,
                                  SyntaxKind.StructureBlock,
                                  SyntaxKind.InterfaceBlock
-                                ' should be processed already
+                            ' should be processed already
 
                             Case Else
                                 Dim typeDecl = TryCast(Visit(member), SingleTypeDeclaration)

@@ -11,7 +11,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Partial Class CodeGenerator
+    Friend Partial Class CodeGenerator
         Private Sub EmitExpression(expression As BoundExpression, used As Boolean)
             If expression Is Nothing Then
                 Return
@@ -1256,12 +1256,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         Return StackMergeType(conversion.Operand)
                     End If
 
-                    'Case BoundKind.Conversion
-                    '    Dim conversion = DirectCast(expr, BoundConversion)
-                    '    Dim conversionKind = conversion.ConversionKind
-                    '    If (Conversions.IsWideningConversion(conversionKind)) Then
-                    '        Return StackMergeType(conversion.Operand)
-                    '    End If
+                'Case BoundKind.Conversion
+                '    Dim conversion = DirectCast(expr, BoundConversion)
+                '    Dim conversionKind = conversion.ConversionKind
+                '    If (Conversions.IsWideningConversion(conversionKind)) Then
+                '        Return StackMergeType(conversion.Operand)
+                '    End If
 
                 Case BoundKind.AssignmentOperator
                     Dim assignment = DirectCast(expr, BoundAssignmentOperator)

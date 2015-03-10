@@ -23,11 +23,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private NotInheritable Class Rewriter
             Inherits BoundTreeRewriter
 
-            Private nodeCounter As Integer = 0
-            Private ReadOnly info As Dictionary(Of LocalSymbol, LocalDefUseInfo) = Nothing
+            Private _nodeCounter As Integer = 0
+            Private ReadOnly _info As Dictionary(Of LocalSymbol, LocalDefUseInfo) = Nothing
 
             Private Sub New(info As Dictionary(Of LocalSymbol, LocalDefUseInfo))
-                Me.info = info
+                Me._info = info
             End Sub
 
             Public Shared Function Rewrite(src As BoundStatement, info As Dictionary(Of LocalSymbol, LocalDefUseInfo)) As BoundStatement
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     result = MyBase.Visit(node)
                 End If
 
-                Me.nodeCounter += 1
+                Me._nodeCounter += 1
 
                 Return result
             End Function
@@ -59,12 +59,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Public Overrides Function VisitLocal(node As BoundLocal) As BoundNode
                 Dim locInfo As LocalDefUseInfo = Nothing
-                If Not info.TryGetValue(node.LocalSymbol, locInfo) Then
+                If Not _info.TryGetValue(node.LocalSymbol, locInfo) Then
                     Return MyBase.VisitLocal(node)
                 End If
 
                 ' not the last access, emit Dup.
-                If Not IsLastAccess(locInfo, nodeCounter) Then
+                If Not IsLastAccess(locInfo, _nodeCounter) Then
                     Return New BoundDup(node.Syntax, node.LocalSymbol.IsByRef, node.Type)
                 End If
 
@@ -85,19 +85,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim left = DirectCast(node.ByRefLocal, BoundLocal)
 
                 ' store to something that is not special. (operands still could be rewritten) 
-                If Not info.TryGetValue(left.LocalSymbol, locInfo) Then
+                If Not _info.TryGetValue(left.LocalSymbol, locInfo) Then
                     Return MyBase.VisitReferenceAssignment(node)
                 End If
 
                 ' we do not need to vist lhs, just update the counter to be in sync
-                Me.nodeCounter += 1
+                Me._nodeCounter += 1
 
                 ' Visit the expression being assigned 
                 Dim right = DirectCast(Me.Visit(node.LValue), BoundExpression)
 
                 ' this should not be the last store, why would be created such a variable after all???
-                Debug.Assert(locInfo.localDefs.Any(Function(d) nodeCounter = d.Start AndAlso nodeCounter <= d.End))
-                Debug.Assert(Not IsLastAccess(locInfo, nodeCounter))
+                Debug.Assert(locInfo.localDefs.Any(Function(d) _nodeCounter = d.Start AndAlso _nodeCounter <= d.End))
+                Debug.Assert(Not IsLastAccess(locInfo, _nodeCounter))
 
                 ' assigned local used later - keep assignment. 
                 ' codegen will keep value on stack when sees assignment "stackLocal = expr"
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim left = TryCast(node.Left, BoundLocal)
 
                 ' store to something that is not special. (operands still could be rewritten) 
-                If left Is Nothing OrElse Not info.TryGetValue(left.LocalSymbol, locInfo) Then
+                If left Is Nothing OrElse Not _info.TryGetValue(left.LocalSymbol, locInfo) Then
                     Return VisitAssignmentOperatorDefault(node)
                 End If
 
@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' otherwise record a store.
 
                 ' fake visiting of left
-                Me.nodeCounter += 1
+                Me._nodeCounter += 1
 
                 ' Left on the right should be Nothing by this time
                 Debug.Assert(node.LeftOnTheRightOpt Is Nothing)
@@ -150,8 +150,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim right = DirectCast(Me.Visit(node.Right), BoundExpression)
 
                 ' do actual assignment
-                Debug.Assert(locInfo.localDefs.Any(Function(d) nodeCounter = d.Start AndAlso nodeCounter <= d.End))
-                Dim isLast As Boolean = IsLastAccess(locInfo, nodeCounter)
+                Debug.Assert(locInfo.localDefs.Any(Function(d) _nodeCounter = d.Start AndAlso _nodeCounter <= d.End))
+                Dim isLast As Boolean = IsLastAccess(locInfo, _nodeCounter)
 
                 If isLast Then
                     ' assigned local is not used later => just emit the Right 
