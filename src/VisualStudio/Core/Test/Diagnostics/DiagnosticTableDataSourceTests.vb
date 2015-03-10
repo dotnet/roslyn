@@ -364,20 +364,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.NotNull(wpfTableEntriesSnapshot)
 
                 Dim ui As FrameworkElement = Nothing
-                Assert.True(wpfTableEntriesSnapshot.TryCreateColumnContent(0, ShimTableKeyNames.ErrorCode, False, ui))
+                Assert.False(wpfTableEntriesSnapshot.TryCreateColumnContent(0, ShimTableKeyNames.ErrorCode, False, ui))
 
-                Dim textBlock = TryCast(ui, TextBlock)
-                Assert.NotNull(textBlock)
-                Assert.Equal(1, textBlock.Inlines.Count)
-
-                Dim hyperLink = TryCast(textBlock.Inlines(0), Hyperlink)
-                Assert.NotNull(hyperLink)
-                Assert.Equal(1, hyperLink.Inlines.Count)
-                Assert.Equal(item1.HelpLink, hyperLink.NavigateUri.OriginalString)
-
-                Dim run = TryCast(hyperLink.Inlines(0), Run)
-                Assert.NotNull(run)
-                Assert.Equal(item1.Id, run.Text)
+                Assert.Null(ui)
             End Using
         End Sub
 
@@ -407,20 +396,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.NotNull(wpfTableEntriesSnapshot)
 
                 Dim ui As FrameworkElement = Nothing
-                Assert.True(wpfTableEntriesSnapshot.TryCreateColumnContent(0, ShimTableKeyNames.ErrorCode, False, ui))
+                Assert.False(wpfTableEntriesSnapshot.TryCreateColumnContent(0, ShimTableKeyNames.ErrorCode, False, ui))
 
-                Dim textBlock = TryCast(ui, TextBlock)
-                Assert.NotNull(textBlock)
-                Assert.Equal(1, textBlock.Inlines.Count)
-
-                Dim hyperLink = TryCast(textBlock.Inlines(0), Hyperlink)
-                Assert.NotNull(hyperLink)
-                Assert.Equal(1, hyperLink.Inlines.Count)
-                Assert.Equal("http://www.bing.com/search?form=VSHELP&q=test test format", hyperLink.NavigateUri.OriginalString)
-
-                Dim run = TryCast(hyperLink.Inlines(0), Run)
-                Assert.NotNull(run)
-                Assert.Equal(item1.Id, run.Text)
+                Assert.Null(ui)
             End Using
         End Sub
 

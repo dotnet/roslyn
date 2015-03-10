@@ -70,5 +70,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <returns>A mapping from analyzer name to the diagnostics produced by that analyzer</returns>
         ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(Project projectOpt);
+
+        /// <summary>
+        /// Gets a list of the diagnostics provided by the given <see cref="DiagnosticAnalyzer"/>.
+        /// </summary>
+        /// <returns>A list of the diagnostics produced by the given analyzer</returns>
+        ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer);
     }
 }
