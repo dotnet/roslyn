@@ -622,15 +622,12 @@ CleanUp:
             If TryPeek(1,ch) Then
               Select Case ch
                 Case "!"c
-                  If NextAre(2, "--") Then
-                    Return XmlMakeBeginCommentToken(precedingTrivia, _scanNoTriviaFunc)
-                  ElseIf NextAre(2, "DOCTYPE") Then
-                    Return XmlMakeBeginDTDToken(precedingTrivia)
-                  End If
-                Case "%"c
-                  If NextIs(2,"="c) Then Return XmlMakeBeginEmbeddedToken(precedingTrivia)
-                Case "?"c
-                  Return XmlMakeBeginProcessingInstructionToken(precedingTrivia, _scanNoTriviaFunc)
+                  Select Case True
+                    Case NextAre(2, "--")      : Return XmlMakeBeginCommentToken(precedingTrivia, _scanNoTriviaFunc)
+                    Case NextAre(2, "DOCTYPE") : Return XmlMakeBeginDTDToken(precedingTrivia)
+                  End Select
+                Case "%"c  :  If NextIs(2,"="c) Then Return XmlMakeBeginEmbeddedToken(precedingTrivia)
+                Case "?"c  :  Return XmlMakeBeginProcessingInstructionToken(precedingTrivia, _scanNoTriviaFunc)
               End Select
             End If
 
