@@ -6215,7 +6215,7 @@ class C
 {
     static void Main(string[] args)
     {
-        var <AS:0>s = from a in b select b.bar</AS:0>;
+        var s = <AS:0>from</AS:0> a in b select b.bar;
         <AS:1>s.ToArray();</AS:1>
     }
 }
@@ -6224,7 +6224,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select b.bar", "where clause"));
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "from", "where clause"));
         }
 
         [Fact]
@@ -6244,7 +6244,7 @@ class C
 {
     static void Main(string[] args)
     {
-        var <AS:0>s = from a in b select a.bar</AS:0>;
+        var s = <AS:0>from</AS:0> a in b select a.bar;
         <AS:1>s.ToArray();</AS:1>
     }
 }
@@ -6253,7 +6253,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select a.bar", "let clause"));
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "from", "let clause"));
         }
 
         [Fact]
@@ -6276,7 +6276,7 @@ class C
 {
     static void Main(string[] args)
     {
-        var <AS:0>s = from a in b select a.bar</AS:0>;
+        var s = <AS:0>from</AS:0> a in b select a.bar;
         <AS:1>s.ToArray();</AS:1>
     }
 }
@@ -6285,7 +6285,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select a.bar", "join clause"));
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "from", "join clause"));
         }
 
         [Fact]
@@ -6308,7 +6308,7 @@ class C
 {
     static void Main(string[] args)
     {
-        var <AS:0>s = from a in b select a.bar</AS:0>;
+        var s = <AS:0>from</AS:0> a in b select a.bar;
         <AS:1>s.ToArray();</AS:1>
     }
 }
@@ -6317,7 +6317,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select a.bar", "orderby clause"));
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "from", "orderby clause"));
         }
 
         [Fact]
@@ -6340,7 +6340,7 @@ class C
 {
     static void Main(string[] args)
     {
-        var <AS:0>s = from a in b select a.bar</AS:0>;
+        var s = <AS:0>from</AS:0> a in b select a.bar;
         <AS:1>s.ToArray();</AS:1>
     }
 }
@@ -6349,7 +6349,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select a.bar", "orderby clause"));
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "from", "orderby clause"));
         }
 
         [Fact]
@@ -6372,7 +6372,7 @@ class C
 {
     static void Main(string[] args)
     {
-        var <AS:0>s = from a in b select a.bar</AS:0>;
+        var s = <AS:0>from</AS:0> a in b select a.bar;
         <AS:1>s.ToArray();</AS:1>
     }
 }
@@ -6381,7 +6381,100 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select a.bar", "orderby clause"));
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "from", "orderby clause"));
+        }
+
+        [Fact]
+        public void Queries_Remove_JoinInto1()
+        {
+            string src1 = @"
+class C
+{
+    static void Main()
+    {
+        var q = from x in xs
+                join y in ys on F() equals G() into g
+                select <AS:0>1</AS:0>;
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void Main()
+    {
+        var q = from x in xs
+                join y in ys on F() equals G()
+                select <AS:0>1</AS:0>;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void Queries_Remove_QueryContinuation1()
+        {
+            string src1 = @"
+class C
+{
+    static void Main()
+    {
+        var q = from x in xs
+                group x by x.F() into g
+                where <AS:0>g.F()</AS:0>
+                select 1;
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void Main()
+    {
+        var q = from x in xs
+                group x by x.F() <AS:0>into</AS:0> g
+                select 1;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "into", "where clause"));
+        }
+
+        [Fact]
+        public void Queries_Remove_QueryContinuation2()
+        {
+            string src1 = @"
+class C
+{
+    static void Main()
+    {
+        var q = from x in xs
+                group x by x.F() into g
+                select <AS:0>1</AS:0>;
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void Main()
+    {
+        var q = from x in xs
+                <AS:0>join</AS:0> y in ys on F() equals G() into g
+                select 1;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "join", "select clause"));
         }
 
         #endregion

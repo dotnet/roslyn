@@ -1145,17 +1145,30 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.QueryExpression:
                     return ((QueryExpressionSyntax)node).FromClause.FromKeyword.Span;
 
+                case SyntaxKind.QueryBody:
+                    var queryBody = (QueryBodySyntax)node;
+                    return GetDiagnosticSpanImpl(queryBody.Clauses.FirstOrDefault() ?? queryBody.Parent, editKind);
+
+                case SyntaxKind.QueryContinuation:
+                    return ((QueryContinuationSyntax)node).IntoKeyword.Span;
+
                 case SyntaxKind.FromClause:
                     return ((FromClauseSyntax)node).FromKeyword.Span;
 
                 case SyntaxKind.JoinClause:
                     return ((JoinClauseSyntax)node).JoinKeyword.Span;
 
+                case SyntaxKind.JoinIntoClause:
+                    return ((JoinIntoClauseSyntax)node).IntoKeyword.Span;
+
                 case SyntaxKind.LetClause:
                     return ((LetClauseSyntax)node).LetKeyword.Span;
 
                 case SyntaxKind.WhereClause:
                     return ((WhereClauseSyntax)node).WhereKeyword.Span;
+
+                case SyntaxKind.OrderByClause:
+                    return ((OrderByClauseSyntax)node).OrderByKeyword.Span;
 
                 case SyntaxKind.AscendingOrdering:
                 case SyntaxKind.DescendingOrdering:
@@ -1168,7 +1181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return ((GroupClauseSyntax)node).GroupKeyword.Span;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
@@ -1316,73 +1329,81 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (node.Kind())
             {
                 case SyntaxKind.TryStatement:
-                    return "try block";
+                    return CSharpFeaturesResources.TryBlock;
 
                 case SyntaxKind.CatchClause:
-                    return "catch clause";
+                    return CSharpFeaturesResources.CatchClause;
 
                 case SyntaxKind.CatchFilterClause:
-                    return "filter clause";
+                    return CSharpFeaturesResources.FilterClause;
 
                 case SyntaxKind.FinallyClause:
-                    return "finally clause";
+                    return CSharpFeaturesResources.FinallyClause;
 
                 case SyntaxKind.FixedStatement:
-                    return "fixed statement";
+                    return CSharpFeaturesResources.FixedStatement;
 
                 case SyntaxKind.UsingStatement:
-                    return "using statement";
+                    return CSharpFeaturesResources.UsingStatement;
 
                 case SyntaxKind.LockStatement:
-                    return "lock statement";
+                    return CSharpFeaturesResources.LockStatement;
 
                 case SyntaxKind.ForEachStatement:
-                    return "foreach statement";
+                    return CSharpFeaturesResources.ForEachStatement;
 
                 case SyntaxKind.CheckedStatement:
-                    return "checked statement";
+                    return CSharpFeaturesResources.CheckedStatement;
 
                 case SyntaxKind.UncheckedStatement:
-                    return "unchecked statement";
+                    return CSharpFeaturesResources.UncheckedStatement;
 
                 case SyntaxKind.YieldBreakStatement:
                 case SyntaxKind.YieldReturnStatement:
-                    return "yield statement";
+                    return CSharpFeaturesResources.YieldStatement;
 
                 case SyntaxKind.AwaitExpression:
-                    return "await expression";
+                    return CSharpFeaturesResources.AwaitExpression;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
-                    return "lambda";
+                    return CSharpFeaturesResources.Lambda;
 
                 case SyntaxKind.AnonymousMethodExpression:
-                    return "anonymous method";
+                    return CSharpFeaturesResources.AnonymousMethod;
 
                 case SyntaxKind.FromClause:
-                    return "from clause";
+                    return CSharpFeaturesResources.FromClause;
 
                 case SyntaxKind.JoinClause:
-                    return "join clause";
+                case SyntaxKind.JoinIntoClause:
+                    return CSharpFeaturesResources.JoinClause;
 
                 case SyntaxKind.LetClause:
-                    return "let clause";
+                    return CSharpFeaturesResources.LetClause;
 
                 case SyntaxKind.WhereClause:
-                    return "where clause";
+                    return CSharpFeaturesResources.WhereClause;
 
+                case SyntaxKind.OrderByClause:
                 case SyntaxKind.AscendingOrdering:
                 case SyntaxKind.DescendingOrdering:
-                    return "orderby clause";
+                    return CSharpFeaturesResources.OrderByClause;
 
                 case SyntaxKind.SelectClause:
-                    return "select clause";
+                    return CSharpFeaturesResources.SelectClause;
 
                 case SyntaxKind.GroupClause:
-                    return "groupby clause";
+                    return CSharpFeaturesResources.GroupByClause;
+
+                case SyntaxKind.QueryBody:
+                    return CSharpFeaturesResources.QueryBody;
+
+                case SyntaxKind.QueryContinuation:
+                    return CSharpFeaturesResources.IntoClause;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
         }
 

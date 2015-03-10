@@ -2985,25 +2985,40 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 ISymbol oldCapture = oldCaptures[oldCaptureIndex];
 
+                // Parameter capture can't be changed to local capture and vice versa
+                // because parameters can't be introduced or deleted during EnC 
+                // (we checked above for changes in lambda signatures).
+                // Also range variables can't be mapped to other variables since htey have 
+                // different kinds of delcarator syntax nodes.
+                Debug.Assert(oldCapture.Kind == newCapture.Kind);
+
+                // Range variables don't have types. Each transparent identifier (range variable use)
+                // might have a different type. Changing these types is ok as long as the containing lambda
+                // signatures remain unchanged, which we validate for all lambdas in general.
+                // 
+                // The scope of a transparent identifier is the containing lambda body. Since we verify that
+                // each lambda body accesses the same captured variables (including range variables) 
+                // the corresponding scopes are guaranteed to be preserved as well.
+                if (oldCapture.Kind == SymbolKind.RangeVariable)
+                {
+                    continue;
+                }
+
                 // type check
-                var oldType = GetType(oldCapture);
-                var newType = GetType(newCapture);
-                if (!s_assemblyEqualityComparer.Equals(oldType, newType))
+                var oldTypeOpt = GetType(oldCapture);
+                var newTypeOpt = GetType(newCapture);
+
+                if (!s_assemblyEqualityComparer.Equals(oldTypeOpt, newTypeOpt))
                 {
                     diagnostics.Add(new RudeEditDiagnostic(
                         RudeEditKind.ChangingCapturedVariableType,
                         newSyntaxOpt.Span,
                         null,
-                        new[] { newCapture.Name, oldType.ToDisplayString(ErrorDisplayFormat) }));
+                        new[] { newCapture.Name, oldTypeOpt.ToDisplayString(ErrorDisplayFormat) }));
 
                     hasErrors = true;
                     continue;
                 }
-
-                // Parameter capture can't be changed to local capture and vice versa
-                // because parameters can't be introduced or deleted during EnC 
-                // (we checked above for changes in lambda signatures).
-                Debug.Assert(oldCapture.Kind == newCapture.Kind);
 
                 // scope check:
                 SyntaxNode oldScopeOpt = GetCapturedVariableScope(oldCapture, oldMemberBody, cancellationToken);
@@ -3108,11 +3123,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private static ITypeSymbol GetType(ISymbol localOrParameter)
         {
-            return (localOrParameter.Kind == SymbolKind.Parameter) ? ((IParameterSymbol)localOrParameter).Type : ((ILocalSymbol)localOrParameter).Type;
+            switch (localOrParameter.Kind)
+            {
+                case SymbolKind.Parameter:
+                    return ((IParameterSymbol)localOrParameter).Type;
+
+                case SymbolKind.Local:
+                    return ((ILocalSymbol)localOrParameter).Type;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(localOrParameter.Kind);
+            }
         }
 
         private SyntaxNode GetCapturedVariableScope(ISymbol localOrParameter, SyntaxNode memberBody, CancellationToken cancellationToken)
         {
+            Debug.Assert(localOrParameter.Kind != SymbolKind.RangeVariable);
+
             if (localOrParameter.Kind == SymbolKind.Parameter)
             {
                 var member = localOrParameter.ContainingSymbol;
