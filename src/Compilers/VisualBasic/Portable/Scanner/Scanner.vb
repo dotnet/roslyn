@@ -2107,7 +2107,7 @@ baddate:
     Friend Module Scanner
 
       <System.Runtime.CompilerServices.Extension>
-      Public Function IsNoneOf(c As Char, cs As String) As Boolean
+      Friend Function IsNoneOf(c As Char, cs As String) As Boolean
         Debug.Assert(Not String.IsNullOrEmpty(cs))
         Debug.Assert(cs.Length > 0)
         For i = 0 To cs.Length - 1

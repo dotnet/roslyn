@@ -95,17 +95,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return p
         End Function
 
-    Private Function NextIs(c As Char) As Boolean
+    Protected Friend Function NextIs(c As Char) As Boolean
       Dim n As Char
       Return TryPeek(n) AndAlso (n = c)
     End Function
 
-    Private Function NextIs(at As Integer,c As Char) As Boolean
+    Protected Friend Function NextIs(at As Integer,c As Char) As Boolean
       Dim n As Char
       Return TryPeek(at,n) AndAlso (n = c)
     End Function
 
-    Private Function TryPeek(at As Integer, ByRef ch As Char) As Boolean
+    Protected Friend Function TryPeek(at As Integer, ByRef ch As Char) As Boolean
             ' CanGet(at)
             Debug.Assert(_lineBufferOffset + at >= 0)
             Debug.Assert(at >= -MaxCharsLookBehind)
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
-        Private Function TryPeek(ByRef ch As Char) As Boolean
+        Protected Friend Function TryPeek(ByRef ch As Char) As Boolean
             ' CanGet()
             If _lineBufferOffset >= _bufferLen Then Return False
             ' Peek()
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' PERF CRITICAL
-        Private Function Peek(skip As Integer) As Char
+        Protected Friend Function Peek(skip As Integer) As Char
             Debug.Assert(CanGet(skip))
             Debug.Assert(skip >= -MaxCharsLookBehind)
 
@@ -157,24 +157,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return ch
         End Function
 
-        ' PERF CRITICAL
-        Friend Function Peek() As Char
-            Dim page = _curPage
-            Dim position = _lineBufferOffset
-            Dim ch = page._arr(position And PAGE_MASK)
+    ' PERF CRITICAL
+    Friend Function Peek() As Char
+      Dim page = _curPage
+      Dim position = _lineBufferOffset
+      Dim ch = page._arr(position And PAGE_MASK)
 
-            Dim start = page._pageStart
-            Dim expectedStart = position And NOT_PAGE_MASK
+      Dim start = page._pageStart
+      Dim expectedStart = position And NOT_PAGE_MASK
 
-            If start <> expectedStart Then
-                page = GetPage(position)
-                ch = page._arr(position And PAGE_MASK)
-            End If
+      If start <> expectedStart Then
+        page = GetPage(position)
+        ch = page._arr(position And PAGE_MASK)
+      End If
 
-            Return ch
-        End Function
+      Return ch
+    End Function
 
-        Friend Function GetChar() As String
+    Friend Function GetChar() As String
             Return Intern(Peek())
         End Function
 
