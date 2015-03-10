@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Action<Diagnostic> _addDiagnostic;
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
         private readonly CancellationToken _cancellationToken;
+        private readonly bool _calleeHandlesOperationCanceledException;
 
         /// <summary>
         /// Creates AnalyzerActionsExecutor to execute analyzer actions with given arguments
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             CancellationToken cancellationToken)
         {
-            return new AnalyzerExecutor(compilation, analyzerOptions, addDiagnostic, onAnalyzerException, cancellationToken);
+            return new AnalyzerExecutor(compilation, analyzerOptions, addDiagnostic, onAnalyzerException, calleeHandlesOperationCanceledException: false, cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -64,7 +65,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzerOptions: null,
                 addDiagnostic: null,
                 onAnalyzerException: onAnalyzerException,
+                calleeHandlesOperationCanceledException: false,
                 cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
+        /// Returns a cloned instance of <see cref="AnalyzerExecutor"/>, except the fact that it doesn't handle <see cref="OperationCanceledException"/> for callbacks into the executor.
+        /// Callee of the AnalyzerExecutor methods should handle <see cref="OperationCanceledException"/>.
+        /// </summary>
+        internal AnalyzerExecutor WithCalleeHandledOperationCanceledException()
+        {
+            if (_calleeHandlesOperationCanceledException)
+            {
+                return this;
+            }
+
+            return new AnalyzerExecutor(
+                _compilation, _analyzerOptions,
+                _addDiagnostic, _onAnalyzerException, 
+                calleeHandlesOperationCanceledException: true, 
+                cancellationToken: _cancellationToken);
         }
 
         private AnalyzerExecutor(
@@ -72,12 +92,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions analyzerOptions,
             Action<Diagnostic> addDiagnostic,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            bool calleeHandlesOperationCanceledException,
             CancellationToken cancellationToken)
         {
             _compilation = compilation;
             _analyzerOptions = analyzerOptions;
             _addDiagnostic = addDiagnostic;
             _onAnalyzerException = onAnalyzerException;
+            _calleeHandlesOperationCanceledException = calleeHandlesOperationCanceledException;
             _cancellationToken = cancellationToken;
         }
 
@@ -446,37 +468,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void ExecuteAndCatchIfThrows(DiagnosticAnalyzer analyzer, Action analyze)
         {
-            ExecuteAndCatchIfThrows(analyzer, analyze, _onAnalyzerException, _cancellationToken);
+            ExecuteAndCatchIfThrows(analyzer, analyze, _onAnalyzerException, _calleeHandlesOperationCanceledException, _cancellationToken);
         }
 
         private static void ExecuteAndCatchIfThrows(
             DiagnosticAnalyzer analyzer,
             Action analyze,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            bool calleeHandlesOperationCanceledException,
             CancellationToken cancellationToken)
         {
             try
             {
                 analyze();
             }
-            catch (Exception e)
+            catch (Exception e) when (!IsOperationCanceledThatShouldNotBeHandled(e, calleeHandlesOperationCanceledException, cancellationToken))
             {
                 // Diagnostic for analyzer exception.
                 var diagnostic = GetAnalyzerExceptionDiagnostic(analyzer, e);
-                if (diagnostic != null)
-                {
-                    onAnalyzerException(e, analyzer, diagnostic);
-                }
+                onAnalyzerException(e, analyzer, diagnostic);
             }
         }
 
-        internal static Diagnostic GetAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Exception e)
+        internal static bool IsOperationCanceledThatShouldNotBeHandled(Exception ex, bool calleeHandlesOperationCanceledException, CancellationToken cancellationToken)
         {
-            if (e is OperationCanceledException)
+            var operationCanceled = ex as OperationCanceledException;
+            if (operationCanceled == null)
             {
-                return null;
+                return false;
             }
 
+            // 1) Don't swallow operation canceled exceptions fired for our cancellation token.
+            // 2) Don't handle operation canceled if the callee explicitly wants to handle it in a custom way.
+            return operationCanceled.CancellationToken == cancellationToken || calleeHandlesOperationCanceledException;
+        }
+
+
+
+        internal static Diagnostic GetAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Exception e)
+        {
             var descriptor = new DiagnosticDescriptor(AnalyzerExceptionDiagnosticId,
                 AnalyzerDriverResources.AnalyzerFailure,
                 AnalyzerDriverResources.AnalyzerThrows,

@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var analyzerAndOptions = new AnalyzerAndOptions(analyzer, analyzerExecutor.AnalyzerOptions);
 
+            analyzerExecutor = analyzerExecutor.WithCalleeHandledOperationCanceledException();
+
             try
             {
                 return await GetCompilationAnalysisScopeCoreAsync(analyzerAndOptions, sessionScope, analyzerExecutor).ConfigureAwait(false);
@@ -116,6 +118,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor)
         {
+            analyzerExecutor = analyzerExecutor.WithCalleeHandledOperationCanceledException();
+
             try
             {
                 return await GetSessionAnalysisScopeCoreAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
@@ -189,10 +193,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var handler = new EventHandler<Exception>((sender, ex) =>
                     {
                         var diagnostic = AnalyzerExecutor.GetAnalyzerExceptionDiagnostic(analyzer, ex);
-                        if (diagnostic != null)
-                        {
-                            analyzerExecutor.OnAnalyzerException?.Invoke(ex, analyzer, diagnostic);
-                        }
+                        analyzerExecutor.OnAnalyzerException?.Invoke(ex, analyzer, diagnostic);
                     });
 
                 // Subscribe for exceptions from lazily evaluated localizable strings in the descriptors.
