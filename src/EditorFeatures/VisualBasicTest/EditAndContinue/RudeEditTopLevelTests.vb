@@ -2366,8 +2366,7 @@ End Class
             Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "F(2, New With { .A = 1, .B = 2 }) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "New With", "method"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -2411,7 +2410,7 @@ End Class
                 "Insert [()]@44")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ADD_HANDLES_CLAUSE, "Private Sub Foo()", "method"))
+                Diagnostic(RudeEditKind.InsertHandlesClause, "Private Sub Foo()", "method"))
         End Sub
 #End Region
 
@@ -2469,14 +2468,13 @@ End Class
                 Diagnostic(RudeEditKind.Insert, "b As Integer", "parameter"))
         End Sub
 
-        <Fact(Skip:="789577"), WorkItem(789577)>
+        <Fact, WorkItem(789577)>
         Public Sub ConstructorUpdate_AnonymousTypeInFieldInitializer()
             Dim src1 = "Class C : Dim a As Integer = F(New With { .A = 1, .B = 2 })" & vbLf & "Sub New()" & vbLf & " x = 1 : End Sub : End Class"
             Dim src2 = "Class C : Dim a As Integer = F(New With { .A = 1, .B = 2 })" & vbLf & "Sub New()" & vbLf & " x = 2 : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "constructor"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -4381,24 +4379,22 @@ End Class
                 Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "constructor"))
         End Sub
 
-        <Fact(Skip:="726990")>
+        <Fact>
         Public Sub FieldUpdate_AnonymousTypeInConstructor()
             Dim src1 = "Class C : Dim a As Integer = 1 : " & vbLf & "Sub New()" & vbLf & "F(New With { .A = 1, .B = 2 }) : End Sub : End Class"
             Dim src2 = "Class C : Dim a As Integer = 2 : " & vbLf & "Sub New()" & vbLf & "F(New With { .A = 1, .B = 2 }) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "constructor"))
+            edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact(Skip:="726990")>
+        <Fact>
         Public Sub PropertyUpdate_AnonymousTypeInConstructor()
             Dim src1 = "Class C : Property a As Integer = 1 : " & vbLf & "Sub New()" & vbLf & "F(New With { .A = 1, .B = 2 }) : End Sub : End Class"
             Dim src2 = "Class C : Property a As Integer = 2 : " & vbLf & "Sub New()" & vbLf & "F(New With { .A = 1, .B = 2 }) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "New With", "constructor"))
+            edits.VerifySemanticDiagnostics()
         End Sub
 
         <Fact>
@@ -4687,8 +4683,7 @@ End Class
             Dim src2 = "Class C : Dim a As Integer = F(2, New With { .A = 1, .B = 2 }) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "New With", "field"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -4697,8 +4692,7 @@ End Class
             Dim src2 = "Class C : Property a As Integer = F(2, New With { .A = 1, .B = 2 }) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "New With", "auto-property"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -4707,8 +4701,7 @@ End Class
             Dim src2 = "Class C : Property a As New C(2, New With { .A = 1, .B = 2 }) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "New With", "auto-property"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 #End Region
 
