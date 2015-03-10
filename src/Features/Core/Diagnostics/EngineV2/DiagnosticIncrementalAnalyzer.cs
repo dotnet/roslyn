@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
     {
+        // What is _correlationId for?
         private readonly int _correlationId;
         private readonly DiagnosticAnalyzerService _owner;
         private readonly HostAnalyzerManager _hostAnalyzerManager;
@@ -26,9 +27,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         #region IIncrementalAnalyzer
-        public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+        public async override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            VersionStamp textVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
+            VersionStamp projectVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+            VersionStamp projectDeclarationsVersion = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
+
+            var versions = new VersionArgument(textVersion, dataVersion, projectVersion);
+
+            Compilation compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
