@@ -786,10 +786,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var useTabOnlyForIndentation = this.OptionSet.GetOption(FormattingOptions.UseTabOnlyForIndentation, this.Language);
-
             // space indicates space between two noisy trivia or tokens
-            changes.Add(CreateWhitespace(GetSpacesOrTabs(delta.Spaces)));
+            changes.Add(CreateWhitespace(GetSpaces(delta.Spaces)));
         }
 
         private string GetWhitespaceString(LineColumn lineColumn, LineColumnDelta delta)
@@ -815,10 +813,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return StringBuilderPool.ReturnAndFree(sb);
             }
 
-            var useTabOnlyForIndentation = this.OptionSet.GetOption(FormattingOptions.UseTabOnlyForIndentation, this.Language);
-
             // space indicates space between two noisy trivia or tokens
-            sb.Append(GetSpacesOrTabs(delta.Spaces));
+            sb.Append(GetSpaces(delta.Spaces));
             return StringBuilderPool.ReturnAndFree(sb);
         }
 
@@ -948,7 +944,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return this.InitialLineColumn.With(delta).Column;
         }
 
-        private static string GetSpacesOrTabs(int space)
+        private static string GetSpaces(int space)
         {
             if (space >= 0 && space < 20)
             {
