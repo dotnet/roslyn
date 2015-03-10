@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             foreach (var documentId in vsWorkspace.GetRelatedDocumentIds(container))
             {
                 var hostProject = vsWorkspace.GetHostProject(documentId.ProjectId) as AbstractEncProject;
-                if (hostProject != null && hostProject.EditAndContinueImplOpt != null)
+                if (hostProject?.EditAndContinueImplOpt != null)
                 {
                     if (hostProject.EditAndContinueImplOpt.OnEdit(documentId))
                     {

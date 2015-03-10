@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             }
 
             var hostProject = _vsProject.VisualStudioWorkspace.GetHostProject(documentId.ProjectId) as AbstractEncProject;
-            if (hostProject != null && hostProject.EditAndContinueImplOpt._metadata != null)
+            if (hostProject?.EditAndContinueImplOpt?._metadata != null)
             {
                 var projectHierarchy = _vsProject.VisualStudioWorkspace.GetHierarchy(documentId.ProjectId);
                 _debugEncNotify.NotifyEncEditDisallowedByProject(projectHierarchy);
