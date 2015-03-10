@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
 
             // there was top level changes, so we can't use equivalent to see whether two members are same.
-            // so, we use some simple text based hueristic to find a member that has changed.
+            // so, we use some simple text based heuristic to find a member that has changed.
             //
             // if we have a differ that do diff on member level or a way to track member between incremental parsing, then
             // that would be preferable. but currently we don't have such thing.

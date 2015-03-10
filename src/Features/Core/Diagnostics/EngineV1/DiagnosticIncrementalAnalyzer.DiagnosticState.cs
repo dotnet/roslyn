@@ -128,15 +128,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var textVersion = VersionStamp.ReadFrom(reader);
                         var dataVersion = VersionStamp.ReadFrom(reader);
 
-                        // textversion can be default for document from project analysis.
-                        if (dataVersion == VersionStamp.Default)
+                        if (textVersion == VersionStamp.Default || dataVersion == VersionStamp.Default)
                         {
                             return null;
                         }
 
                         AppendItems(reader, project, document, list, cancellationToken);
 
-                        return new AnalysisData(textVersion, dataVersion, list.ToImmutableArray<DiagnosticData>());
+                        return new AnalysisData(textVersion, dataVersion, list.ToImmutableArray());
                     }
                 }
                 catch (Exception)
