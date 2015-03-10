@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly CancellationToken _cancellationToken;
         private readonly ISyntaxNodeAnalyzerService _syntaxNodeAnalyzerService;
-        private readonly Dictionary<SyntaxNode, ImmutableArray<SyntaxNode>> _descendantExecutableNodesMap;
-        private readonly ISyntaxFactsService _syntaxFacts;
         private readonly IGeneratedCodeRecognitionService _generatedCodeService;
         private readonly IAnalyzerDriverService _analyzerDriverService;
 
@@ -74,8 +72,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _syntaxNodeAnalyzerService = syntaxNodeAnalyzerService;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _cancellationToken = cancellationToken;
-            _descendantExecutableNodesMap = new Dictionary<SyntaxNode, ImmutableArray<SyntaxNode>>();
-            _syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             _generatedCodeService = document.Project.Solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
             _analyzerDriverService = document.Project.LanguageServices.GetService<IAnalyzerDriverService>();
             _analyzerOptions = new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution.Workspace);
@@ -97,7 +93,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _generatedCodeService = project.Solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
             _analyzerDriverService = project.LanguageServices.GetService<IAnalyzerDriverService>();
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            _descendantExecutableNodesMap = null;
             _analyzerOptions = new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution.Workspace);
             _onAnalyzerException = overriddenOnAnalyzerException ?? Default_OnAnalyzerException;
             _onAnalyzerException_NoTelemetryLogging = overriddenOnAnalyzerException ?? Default_OnAnalyzerException_NoTelemetryLogging;

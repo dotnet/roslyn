@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 {
     internal abstract class AbstractAnalyzerState<TKey, TValue, TData>
     {
-        protected readonly ConcurrentDictionary<TKey, TData> DataCache = new ConcurrentDictionary<TKey, TData>();
+        protected readonly ConcurrentDictionary<TKey, TData> DataCache = new ConcurrentDictionary<TKey, TData>(concurrencyLevel: 2, capacity: 10);
 
         protected abstract TKey GetCacheKey(TValue value);
         protected abstract Solution GetSolution(TValue value);
@@ -23,15 +23,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
         protected abstract void WriteTo(Stream stream, TData data, CancellationToken cancellationToken);
         protected abstract Task<bool> WriteStreamAsync(IPersistentStorage storage, TValue value, Stream stream, CancellationToken cancellationToken);
 
+        public int Count => this.DataCache.Count;
+
         public async Task<TData> TryGetExistingDataAsync(TValue value, CancellationToken cancellationToken)
         {
-            // we have data for the document
             TData data;
-            if (this.DataCache.TryGetValue(GetCacheKey(value), out data))
+            if (!this.DataCache.TryGetValue(GetCacheKey(value), out data))
+            {
+                // we don't have data
+                return default(TData);
+            }
+
+            // we have in memory cache for the document
+            if (!object.Equals(data, default(TData)))
             {
                 return data;
             }
 
+            // we have persisted data
             var solution = GetSolution(value);
             var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
 
@@ -55,13 +64,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
             // if data is for opened document or if persistence failed, 
             // we keep small cache so that we don't pay cost of deserialize/serializing data that keep changing
-            if (!succeeded || ShouldCache(value))
-            {
-                this.DataCache[id] = data;
-                return;
-            }
-
-            Remove(id);
+            this.DataCache[id] = (!succeeded || ShouldCache(value)) ? data : default(TData);
         }
 
         public bool Remove(TKey id)

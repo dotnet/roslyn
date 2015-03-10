@@ -519,7 +519,7 @@ enum E
 
 #Region "AddImport tests"
 
-        <ConditionalFact(GetType(x86), Skip:="1136356"), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddImport1()
             Dim code =
 <Code>
@@ -540,7 +540,7 @@ class C
             TestAddImport(code, expected, New ImportData With {.[Namespace] = "System"})
         End Sub
 
-        <ConditionalFact(GetType(x86), Skip:="1136356"), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddImport2()
             Dim code =
 <Code>
@@ -561,7 +561,7 @@ class C
             TestAddImport(code, expected, New ImportData With {.[Namespace] = "System", .Alias = "S"})
         End Sub
 
-        <ConditionalFact(GetType(x86), Skip:="1136356"), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddImport3()
             Dim code =
 <Code>
@@ -585,7 +585,7 @@ class C
             TestAddImport(code, expected, New ImportData With {.[Namespace] = "System"})
         End Sub
 
-        <ConditionalFact(GetType(x86), Skip:="1136356"), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddImport4()
             Dim code =
 <Code>
