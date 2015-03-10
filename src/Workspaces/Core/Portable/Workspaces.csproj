@@ -326,6 +326,10 @@
     <Compile Include="CodeGeneration\ICodeGenerationService.cs" />
     <Compile Include="CodeGeneration\INamedTypeSymbolExtensions.cs" />
     <Compile Include="CodeGeneration\LiteralSpecialValues.cs" />
+    <Compile Include="Editing\GenerationOptions.cs" />
+    <Compile Include="Editing\GenerationOptionsProvider.cs" />
+    <Compile Include="Editing\ImportAdder.cs" />
+    <Compile Include="Editing\ImportAdderService.cs" />
     <Compile Include="Editing\SolutionEditor.cs" />
     <Compile Include="Editing\SymbolEditor.cs" />
     <Compile Include="Editing\SymbolEditorExtensions.cs" />

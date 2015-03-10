@@ -101,6 +101,7 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeGeneration\AddImportsTests.vb" />
     <Compile Include="CodeGeneration\SyntaxGeneratorTests.vb" />
     <Compile Include="Formatting\FormattingTests.vb" />
     <Compile Include="Formatting\VisualBasicFormattingTestBase.vb" />

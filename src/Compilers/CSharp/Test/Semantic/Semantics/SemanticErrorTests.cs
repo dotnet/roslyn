@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1476,10 +1478,11 @@ namespace x
 
         [WorkItem(528539, "DevDiv")]
         [WorkItem(1119609, "DevDiv")]
-        [Fact(Skip = "1119609")]
+        [WorkItem(920, "http://github.com/dotnet/roslyn/issues/920")]
+        [Fact]
         public void CS0030ERR_NoExplicitConv02()
         {
-            var text = @"
+            const string text = @"
 public class C
 {
     public static void Main()
@@ -1487,13 +1490,28 @@ public class C
         decimal x = (decimal)double.PositiveInfinity;
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (6,21): error CS0031: Constant value 'Infinity' cannot be converted to a 'decimal'
-                //         decimal x = (decimal)double.PositiveInfinity;
-                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)double.PositiveInfinity").WithArguments("Infinity", "decimal"),
-                // (6,17): warning CS0219: The variable 'x' is assigned but its value is never used
-                //         decimal x = (decimal)double.PositiveInfinity;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x"));
+            var diagnostics = CreateCompilationWithMscorlib(text).GetDiagnostics();
+
+            var savedCurrentCulture = Thread.CurrentThread.CurrentCulture;
+            var savedCurrentUICulture = Thread.CurrentThread.CurrentUICulture;
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+
+            try
+            {
+                diagnostics.Verify(
+                    // (6,21): error CS0031: Constant value 'Infinity' cannot be converted to a 'decimal'
+                    //         decimal x = (decimal)double.PositiveInfinity;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)double.PositiveInfinity").WithArguments("Infinity", "decimal"),
+                    // (6,17): warning CS0219: The variable 'x' is assigned but its value is never used
+                    //         decimal x = (decimal)double.PositiveInfinity;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x"));
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = savedCurrentCulture;
+                Thread.CurrentThread.CurrentUICulture = savedCurrentUICulture;
+            }
         }
 
         [Fact]

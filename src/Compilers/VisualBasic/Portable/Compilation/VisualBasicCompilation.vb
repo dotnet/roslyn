@@ -1820,6 +1820,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree, ignoreAccessibility)
         End Function
 
+        Friend ReadOnly Property FeatureStrictEnabled As Boolean
+            Get
+                Return Me.Feature("strict") IsNot Nothing
+            End Get
+        End Property
+
 #End Region
 
 #Region "Diagnostics"
