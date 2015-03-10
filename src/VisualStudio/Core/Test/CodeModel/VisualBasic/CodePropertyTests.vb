@@ -737,23 +737,47 @@ End Class
             TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub ReadWrite4()
-            Dim code =
+		<ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+		Public Sub ReadWrite4()
+			Dim code =
 <Code>
 Class C
     Public Property $$P As Integer
 End Class
 </Code>
 
-            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
-        End Sub
+			TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
+		End Sub
+
+		<ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+		Public Sub ReadWrite5()
+			Dim code =
+<Code>
+Class C
+    Public ReadOnly Property $$P As Integer
+End Class
+</Code>
+
+			TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
+		End Sub
+
+		<ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+		Public Sub ReadWrite6()
+			Dim code =
+<Code>
+Class C
+    Public WriteOnly Property $$P As Integer
+End Class
+</Code>
+
+			TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly)
+		End Sub
 
 #End Region
 
 #Region "Setter tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+		<ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetterIsNothingForAutoProp()
             Dim code =
 <Code>
