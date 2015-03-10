@@ -495,7 +495,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "get"));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "get"));
         }
 
         [Fact]
@@ -545,7 +545,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "=>       M()"));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "=>       M()"));
         }
 
         #endregion
@@ -903,7 +903,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "{"));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "{"));
         }
 
         [Fact]
@@ -1002,7 +1002,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "{"));
+                                Diagnostic(RudeEditKind.DeleteActiveStatement, "{"));
         }
 
         #endregion

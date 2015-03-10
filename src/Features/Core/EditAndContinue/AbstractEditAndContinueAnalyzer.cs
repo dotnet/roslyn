@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     DocumentAnalysisResults.Log.Write("A new file added: {0}", document.Name);
                     return DocumentAnalysisResults.SyntaxErrors(ImmutableArray.Create(
-                        new RudeEditDiagnostic(RudeEditKind.RUDE_EDIT_ADD_NEW_FILE, default(TextSpan))));
+                        new RudeEditDiagnostic(RudeEditKind.InsertFile, default(TextSpan))));
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         // rude edit: internal active statement deleted
                         diagnostics.Add(
-                            new RudeEditDiagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED,
+                            new RudeEditDiagnostic(RudeEditKind.DeleteActiveStatement,
                             GetDeletedNodeDiagnosticSpan(match.Matches, oldStatementSyntax)));
                     }
                 }
@@ -1275,7 +1275,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var insertedNode = newStateMachineSuspensionPoints[rudeEdit.NewIndex];
 
                         diagnostics.Add(new RudeEditDiagnostic(
-                            creatingStateMachineAroundActiveStatement ? RudeEditKind.RUDE_EDIT_INSERT_AROUND : RudeEditKind.Insert,
+                            creatingStateMachineAroundActiveStatement ? RudeEditKind.InsertAroundActiveStatement : RudeEditKind.Insert,
                             GetDiagnosticSpan(insertedNode, EditKind.Insert),
                             insertedNode,
                             new[] { GetStatementDisplayName(insertedNode, EditKind.Insert) }));
@@ -1588,7 +1588,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected void AddRudeUpdateAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
         {
             diagnostics.Add(new RudeEditDiagnostic(
-                RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT,
+                RudeEditKind.UpdateAroundActiveStatement,
                 GetDiagnosticSpan(newNode, EditKind.Update),
                 newNode,
                 new[] { GetStatementDisplayName(newNode, EditKind.Update) }));
@@ -1597,7 +1597,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected void AddRudeInsertAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
         {
             diagnostics.Add(new RudeEditDiagnostic(
-                RudeEditKind.RUDE_EDIT_INSERT_AROUND,
+                RudeEditKind.InsertAroundActiveStatement,
                 GetDiagnosticSpan(newNode, EditKind.Insert),
                 newNode,
                 new[] { GetStatementDisplayName(newNode, EditKind.Insert) }));
@@ -1606,7 +1606,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected void AddRudeDeleteAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newActiveStatement)
         {
             diagnostics.Add(new RudeEditDiagnostic(
-                RudeEditKind.RUDE_EDIT_DELETE_AROUND,
+                RudeEditKind.DeleteAroundActiveStatement,
                 newActiveStatement.Span,
                 oldNode,
                 new[] { GetStatementDisplayName(oldNode, EditKind.Delete) }));

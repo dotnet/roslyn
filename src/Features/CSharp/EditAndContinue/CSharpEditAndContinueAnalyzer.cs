@@ -2511,11 +2511,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                                 ReportError(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, node, _newNode);
                             }
                             return;
-
-                        case SyntaxKind.AnonymousObjectCreationExpression:
-                            // TODO (tomat): allow 
-                            ReportError(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, node, _newNode);
-                            return;
                     }
                 }
             }
