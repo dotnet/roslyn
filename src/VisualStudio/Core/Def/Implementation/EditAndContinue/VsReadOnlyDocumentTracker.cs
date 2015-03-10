@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
@@ -80,9 +81,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         private void SetReadOnly(Document document)
         {
-            SessionReadOnlyReason sessionReason;
-            ProjectReadOnlyReason projectReason;
-            SetReadOnly(document.Id, _encService.IsProjectReadOnly(document.Project.Name, out sessionReason, out projectReason));
+            // Only set documents read-only if they're part of a project that supports Enc.
+            var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
+            var project = workspace?.ProjectTracker?.GetProject(document.Project.Id) as AbstractEncProject;
+
+            if (project != null)
+            {
+                SessionReadOnlyReason sessionReason;
+                ProjectReadOnlyReason projectReason;
+                SetReadOnly(document.Id, _encService.IsProjectReadOnly(document.Project.Name, out sessionReason, out projectReason));
+            }
         }
 
         private void SetReadOnly(DocumentId documentId, bool value)
