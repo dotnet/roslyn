@@ -325,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' more obviously.
             Return _lazyAllMembers.DeOrder()
 #Else
-            Return m_lazyAllMembers
+            Return _lazyAllMembers
 #End If
         End Function
 
