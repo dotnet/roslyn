@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             if (relationshipName == KnownRelationships.Contains)
             {
-                return new DiagnosticItemSource(item, _commandHandler, (DiagnosticAnalyzerService)_diagnosticAnalyzerService);
+                return new DiagnosticItemSource(item, _commandHandler, _diagnosticAnalyzerService);
             }
 
             return null;

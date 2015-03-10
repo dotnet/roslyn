@@ -20,14 +20,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private readonly AnalyzerItem _item;
         private readonly IAnalyzersCommandHandler _commandHandler;
-        private readonly DiagnosticAnalyzerService _diagnosticAnalyzerService;
+        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
         private BulkObservableCollection<DiagnosticItem> _diagnosticItems;
         private Workspace _workspace;
         private ProjectId _projectId;
         private ReportDiagnostic _generalDiagnosticOption;
         private ImmutableDictionary<string, ReportDiagnostic> _specificDiagnosticOptions;
 
-        public DiagnosticItemSource(AnalyzerItem item, IAnalyzersCommandHandler commandHandler, DiagnosticAnalyzerService diagnosticAnalyzerService)
+        public DiagnosticItemSource(AnalyzerItem item, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService diagnosticAnalyzerService)
         {
             _item = item;
             _commandHandler = commandHandler;
