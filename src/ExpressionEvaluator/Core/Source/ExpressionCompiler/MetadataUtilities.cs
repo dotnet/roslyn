@@ -246,7 +246,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// Get the set of nested scopes containing the
         /// IL offset from outermost scope to innermost.
         /// </summary>
-        internal static void GetScopes(this ISymUnmanagedReader symReader, int methodToken, int methodVersion, int ilOffset, bool isScopeEndInclusive, ArrayBuilder<ISymUnmanagedScope> scopes)
+        internal static void GetScopes(
+            this ISymUnmanagedReader symReader, 
+            int methodToken, 
+            int methodVersion, 
+            int ilOffset, 
+            bool isScopeEndInclusive,
+            ArrayBuilder<ISymUnmanagedScope> allScopes,
+            ArrayBuilder<ISymUnmanagedScope> containingScopes)
         {
             if (symReader == null)
             {
@@ -259,17 +266,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return;
             }
 
-            symMethod.GetAllScopes(scopes, ilOffset, isScopeEndInclusive);
+            symMethod.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive);
         }
 
-        internal static MethodScope GetMethodScope(this ArrayBuilder<ISymUnmanagedScope> scopes, int methodToken, int methodVersion)
+        internal static MethodContextReuseConstraints GetReuseConstraints(this ArrayBuilder<ISymUnmanagedScope> scopes, int methodToken, int methodVersion, int ilOffset, bool isEndInclusive)
         {
-            if (scopes.Count == 0)
+            var builder = new MethodContextReuseConstraints.Builder(methodToken, methodVersion, ilOffset, isEndInclusive);
+            foreach (ISymUnmanagedScope scope in scopes)
             {
-                return null;
+                builder.AddRange((uint)scope.GetStartOffset(), (uint)scope.GetEndOffset());
             }
-            var scope = scopes.Last();
-            return new MethodScope(methodToken, methodVersion, scope.GetStartOffset(), scope.GetEndOffset());
+            return builder.Build();
         }
 
         internal static ImmutableArray<string> GetLocalNames(this ArrayBuilder<ISymUnmanagedScope> scopes)

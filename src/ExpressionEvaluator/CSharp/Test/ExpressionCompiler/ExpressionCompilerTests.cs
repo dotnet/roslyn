@@ -355,14 +355,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(previous);
             previous = new CSharpMetadataContext(context);
 
-            // At end of outer scope.
+            // At end of outer scope - not reused because of the nested scope.
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken);
-            Assert.Equal(context, previous.EvaluationContext);
+            Assert.NotEqual(context, previous.EvaluationContext); // Not required, just documentary.
 
             // At type context.
             context = EvaluationContext.CreateTypeContext(previous, methodBlocks, moduleVersionId, typeToken);
             Assert.NotEqual(context, previous.EvaluationContext);
-            Assert.NotEqual(context.MethodScope, previous.EvaluationContext.MethodScope);
+            Assert.Null(context.MethodContextReuseConstraints);
             Assert.Equal(context.Compilation, previous.Compilation);
 
             // Step through entire method.
@@ -371,6 +371,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             for (int offset = startOffset; offset <= endOffset; offset++)
             {
                 var scope = scopes.GetInnermostScope(offset);
+                var constraints = previous.EvaluationContext.MethodContextReuseConstraints;
+                if (constraints.HasValue)
+                {
+                    Assert.Equal(scope == previousScope, constraints.GetValueOrDefault().AreSatisfied(methodToken, methodVersion, offset));
+                }
+
                 context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, offset, localSignatureToken);
                 if (scope == previousScope)
                 {
@@ -380,9 +386,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     // Different scope. Should reuse compilation.
                     Assert.NotEqual(context, previous.EvaluationContext);
-                    if (previous != null)
+                    if (previous.EvaluationContext != null)
                     {
-                        Assert.NotEqual(context.MethodScope, previous.EvaluationContext.MethodScope);
+                        Assert.NotEqual(context.MethodContextReuseConstraints, previous.EvaluationContext.MethodContextReuseConstraints);
                         Assert.Equal(context.Compilation, previous.Compilation);
                     }
                 }
@@ -399,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // Different references. No reuse.
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken);
             Assert.NotEqual(context, previous.EvaluationContext);
-            Assert.Equal(context.MethodScope, previous.EvaluationContext.MethodScope);
+            Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(methodToken, methodVersion, endOffset));
             Assert.NotEqual(context.Compilation, previous.Compilation);
             previous = new CSharpMetadataContext(context);
 
@@ -407,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             GetContextState(runtime, "C.G", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken);
             Assert.NotEqual(context, previous.EvaluationContext);
-            Assert.NotEqual(context.MethodScope, previous.EvaluationContext.MethodScope);
+            Assert.False(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(methodToken, methodVersion, 0));
             Assert.Equal(context.Compilation, previous.Compilation);
 
             // No EvaluationContext. Should reuse Compilation

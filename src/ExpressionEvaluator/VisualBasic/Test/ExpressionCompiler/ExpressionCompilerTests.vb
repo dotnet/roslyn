@@ -258,14 +258,14 @@ End Class"
             Assert.Null(previous)
             previous = new VisualBasicMetadataContext(context)
 
-            ' At end of outer scope.
+            ' At end of outer scope - not reused because of the nested scope.
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken)
-            Assert.Equal(context, previous.EvaluationContext)
+            Assert.NotEqual(context, previous.EvaluationContext) ' Not required, just documentary.
 
             ' At type context.
             context = EvaluationContext.CreateTypeContext(previous, methodBlocks, moduleVersionId, typeToken)
             Assert.NotEqual(context, previous.EvaluationContext)
-            Assert.NotEqual(context.MethodScope, previous.EvaluationContext.MethodScope)
+            Assert.Null(context.MethodContextReuseConstraints)
             Assert.Equal(context.Compilation, previous.Compilation)
 
             ' Step through entire method.
@@ -273,14 +273,19 @@ End Class"
             previous = new VisualBasicMetadataContext(context)
             For offset = startOffset To endOffset - 1
                 Dim scope = scopes.GetInnermostScope(offset)
+                Dim constraints = previous.EvaluationContext.MethodContextReuseConstraints
+                If constraints.HasValue Then
+                    Assert.Equal(scope Is previousScope, constraints.GetValueOrDefault().AreSatisfied(methodToken, methodVersion, offset))
+                End If
+
                 context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, offset, localSignatureToken)
                 If scope Is previousScope Then
                     Assert.Equal(context, previous.EvaluationContext)
                 Else
                     ' Different scope. Should reuse compilation.
                     Assert.NotEqual(context, previous.EvaluationContext)
-                    If previous IsNot Nothing Then
-                        Assert.NotEqual(context.MethodScope, previous.EvaluationContext.MethodScope)
+                    If previous.EvaluationContext IsNot Nothing Then
+                        Assert.NotEqual(context.MethodContextReuseConstraints, previous.EvaluationContext.MethodContextReuseConstraints)
                         Assert.Equal(context.Compilation, previous.Compilation)
                     End If
                 End If
@@ -300,9 +305,9 @@ End Class"
             GetContextState(runtime, "C.F", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
             ' Different references. No reuse.
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken)
+            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset - 1, localSignatureToken)
             Assert.NotEqual(context, previous.EvaluationContext)
-            Assert.Equal(context.MethodScope, previous.EvaluationContext.MethodScope)
+            Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(methodToken, methodVersion, endOffset - 1))
             Assert.NotEqual(context.Compilation, previous.Compilation)
             previous = new VisualBasicMetadataContext(context)
 
@@ -310,7 +315,7 @@ End Class"
             GetContextState(runtime, "C.G", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken)
             Assert.NotEqual(context, previous.EvaluationContext)
-            Assert.NotEqual(context.MethodScope, previous.EvaluationContext.MethodScope)
+            Assert.False(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(methodToken, methodVersion, 0))
             Assert.Equal(context.Compilation, previous.Compilation)
 
             ' No EvaluationContext. Should reuse Compilation
