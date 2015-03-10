@@ -590,7 +590,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var construction = MakePair(let, x.Name, xExpression, let.Identifier.ValueText, yExpression, state, d);
-                return lambdaBodyBinder.CreateBlockFromExpression(let, lambdaBodyBinder.Locals, null, construction, d);
+
+                // The bound block represents a closure scope for transparent identifiers captured in the let clause.
+                // Such closures shall be associated with the lambda body expression.
+                return lambdaBodyBinder.CreateBlockFromExpression(let.Expression, lambdaBodyBinder.Locals, null, construction, d);
             };
 
             var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x), let.Expression, bodyFactory);
