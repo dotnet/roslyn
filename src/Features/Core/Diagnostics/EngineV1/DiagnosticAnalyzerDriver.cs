@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         await documentAnalyzer.AnalyzeSyntaxAsync(_document, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
                         return diagnostics.ToImmutableArrayOrEmpty();
                     }
-                    catch (Exception e) when (!IsCanceled(e, _cancellationToken))
+                    catch (Exception e) when (!AnalyzerExecutor.IsCanceled(e, _cancellationToken))
                     {
                         OnAnalyzerException(e, analyzer, compilation);
                         return ImmutableArray<Diagnostic>.Empty;
@@ -305,11 +305,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return compilation == null
                 ? diagnostics
                 : CompilationWithAnalyzers.GetEffectiveDiagnostics(diagsFilteredByLocation, compilation);
-        }
-
-        private static bool IsCanceled(Exception ex, CancellationToken cancellationToken)
-        {
-            return (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
         }
 
         internal void OnAnalyzerException(Exception ex, DiagnosticAnalyzer analyzer, Compilation compilation)
@@ -380,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         await documentAnalyzer.AnalyzeSemanticsAsync(_document, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception e) when (!IsCanceled(e, _cancellationToken))
+                    catch (Exception e) when (!AnalyzerExecutor.IsCanceled(e, _cancellationToken))
                     {
                         OnAnalyzerException(e, analyzer, compilation);
                         return ImmutableArray<Diagnostic>.Empty;
@@ -456,7 +451,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 await projectAnalyzer.AnalyzeProjectAsync(_project, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (!IsCanceled(e, _cancellationToken))
+            catch (Exception e) when (!AnalyzerExecutor.IsCanceled(e, _cancellationToken))
             {
                 var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
                 OnAnalyzerException(e, analyzer, compilation);
