@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return _diagnosticItem.Descriptor.Category;
+                    return _diagnosticItem.Descriptor.Category.ToString(CultureInfo.CurrentUICulture);
                 }
             }
 

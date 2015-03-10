@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis
         public LocalizableString MessageFormat { get; }
 
         /// <summary>
-        /// The category of the diagnostic (like Design, Naming etc.)
+        /// The localizable category of the diagnostic (like Design, Naming etc.)
         /// </summary>
-        public string Category { get; }
+        public LocalizableString Category { get; }
 
         /// <summary>
         /// The default severity of the diagnostic.
@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Create a DiagnosticDescriptor, which provides description about a <see cref="Diagnostic"/>.
-        /// NOTE: For localizable <paramref name="title"/>, <paramref name="description"/> and/or <paramref name="messageFormat"/>,
-        /// use constructor overload <see cref="DiagnosticDescriptor(string, LocalizableString, LocalizableString, string, DiagnosticSeverity, bool, LocalizableString, string, string[])"/>.
+        /// NOTE: For localizable <paramref name="title"/>, <paramref name="category"/>, <paramref name="description"/> and/or <paramref name="messageFormat"/>,
+        /// use constructor overload <see cref="DiagnosticDescriptor(string, LocalizableString, LocalizableString, LocalizableString, DiagnosticSeverity, bool, LocalizableString, string, string[])"/>.
         /// </summary>
         /// <param name="id">A unique identifier for the diagnostic. For example, code analysis diagnostic ID "CA1001".</param>
         /// <param name="title">A short title describing the diagnostic. For example, for CA1001: "Types that own disposable fields should be disposable".</param>
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="title">A short localizable title describing the diagnostic. For example, for CA1001: "Types that own disposable fields should be disposable".</param>
         /// <param name="messageFormat">A localizable format message string, which can be passed as the first argument to <see cref="String.Format(string, object[])"/> when creating the diagnostic message with this descriptor.
         /// For example, for CA1001: "Implement IDisposable on '{0}' because it creates members of the following IDisposable types: '{1}'."</param>
-        /// <param name="category">The category of the diagnostic (like Design, Naming etc.). For example, for CA1001: "Microsoft.Design".</param>
+        /// <param name="category">The localizable category of the diagnostic (like Design, Naming etc.). For example, for CA1001: "Microsoft.Design".</param>
         /// <param name="defaultSeverity">Default severity of the diagnostic.</param>
         /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default.</param>
         /// <param name="description">An optional longer localizable description of the diagnostic.</param>
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis
             string id,
             LocalizableString title,
             LocalizableString messageFormat,
-            string category,
+            LocalizableString category,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
             LocalizableString description = null,
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis
             string id,
             LocalizableString title,
             LocalizableString messageFormat,
-            string category,
+            LocalizableString category,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
             LocalizableString description,

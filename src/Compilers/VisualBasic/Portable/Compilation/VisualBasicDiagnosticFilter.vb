@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Globalization
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
@@ -55,11 +56,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostic.IsEnabledByDefault,
                 VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1),
                 diagnostic.Location,
-                diagnostic.Category,
+                diagnostic.Category.ToString(CultureInfo.CurrentUICulture),
                 generalDiagnosticOption,
                 caseInsensitiveSpecificDiagnosticOptions)
             Else
-                report = GetDiagnosticReport(diagnostic.Severity, diagnostic.IsEnabledByDefault, diagnostic.Id, diagnostic.Location, diagnostic.Category, generalDiagnosticOption, caseInsensitiveSpecificDiagnosticOptions)
+                report = GetDiagnosticReport(diagnostic.Severity, diagnostic.IsEnabledByDefault, diagnostic.Id, diagnostic.Location, diagnostic.Category.ToString(CultureInfo.CurrentUICulture), generalDiagnosticOption, caseInsensitiveSpecificDiagnosticOptions)
             End If
 
             Return diagnostic.WithReportDiagnostic(report)

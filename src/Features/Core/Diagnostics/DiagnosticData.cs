@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return new DiagnosticData(
                 diagnostic.Id,
-                diagnostic.Descriptor.Category,
+                diagnostic.Descriptor.Category.ToString(CultureInfo.CurrentUICulture),
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
                 diagnostic.Descriptor.MessageFormat.ToString(USCultureInfo),
                 diagnostic.Severity,
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return new DiagnosticData(
                 diagnostic.Id,
-                diagnostic.Descriptor.Category,
+                diagnostic.Descriptor.Category.ToString(CultureInfo.CurrentUICulture),
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
                 diagnostic.Descriptor.MessageFormat.ToString(USCultureInfo),
                 diagnostic.Severity,
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return new DiagnosticData(
                 diagnostic.Id,
-                diagnostic.Descriptor.Category,
+                diagnostic.Descriptor.Category.ToString(CultureInfo.CurrentUICulture),
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
                 diagnostic.Descriptor.MessageFormat.ToString(USCultureInfo),
                 diagnostic.Severity,

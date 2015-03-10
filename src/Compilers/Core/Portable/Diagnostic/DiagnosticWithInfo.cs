@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
             get { return this.Info.MessageIdentifier; }
         }
 
-        internal override string Category
+        internal override LocalizableString Category
         {
             get { return this.Info.Category; }
         }

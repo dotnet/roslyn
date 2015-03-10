@@ -2114,7 +2114,7 @@ public class Test
                 return string.Empty;
             }
 
-            public override string GetCategory(int code)
+            public override LocalizableString GetCategory(int code)
             {
                 return string.Empty;
             }

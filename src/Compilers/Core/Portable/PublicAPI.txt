@@ -215,7 +215,7 @@ Microsoft.CodeAnalysis.DiagnosticDescriptor.Category.get
 Microsoft.CodeAnalysis.DiagnosticDescriptor.CustomTags.get
 Microsoft.CodeAnalysis.DiagnosticDescriptor.DefaultSeverity.get
 Microsoft.CodeAnalysis.DiagnosticDescriptor.Description.get
-Microsoft.CodeAnalysis.DiagnosticDescriptor.DiagnosticDescriptor(string id, Microsoft.CodeAnalysis.LocalizableString title, Microsoft.CodeAnalysis.LocalizableString messageFormat, string category, Microsoft.CodeAnalysis.DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, Microsoft.CodeAnalysis.LocalizableString description = null, string helpLinkUri = null, params string[] customTags)
+Microsoft.CodeAnalysis.DiagnosticDescriptor.DiagnosticDescriptor(string id, Microsoft.CodeAnalysis.LocalizableString title, Microsoft.CodeAnalysis.LocalizableString messageFormat, Microsoft.CodeAnalysis.LocalizableString category, Microsoft.CodeAnalysis.DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, Microsoft.CodeAnalysis.LocalizableString description = null, string helpLinkUri = null, params string[] customTags)
 Microsoft.CodeAnalysis.DiagnosticDescriptor.DiagnosticDescriptor(string id, string title, string messageFormat, string category, Microsoft.CodeAnalysis.DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, string description = null, string helpLinkUri = null, params string[] customTags)
 Microsoft.CodeAnalysis.DiagnosticDescriptor.Equals(Microsoft.CodeAnalysis.DiagnosticDescriptor other)
 Microsoft.CodeAnalysis.DiagnosticDescriptor.HelpLinkUri.get

@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
 
         Private Function CreateAttributeArguments(targetSymbol As ISymbol, diagnostic As Diagnostic, isAssemblyAttribute As Boolean) As ArgumentListSyntax
             ' SuppressMessage("Rule Category", "Rule Id", Justification := "Justification", MessageId := "MessageId", Scope := "Scope", Target := "Target")
-            Dim category = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(diagnostic.Descriptor.Category))
+            Dim category = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(diagnostic.Descriptor.Category.ToString(CultureInfo.CurrentUICulture)))
             Dim categoryArgument = SyntaxFactory.SimpleArgument(category)
 
             Dim title = diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture)

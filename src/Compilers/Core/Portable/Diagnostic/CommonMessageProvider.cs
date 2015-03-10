@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis
         public abstract string GetHelpLink(int code);
 
         /// <summary>
-        /// Get the diagnostic category for the given diagnostic code.
+        /// Get the localizable diagnostic category for the given diagnostic code.
         /// Default category is <see cref="Diagnostic.CompilerDiagnosticCategory"/>.
         /// </summary>
-        public abstract string GetCategory(int code);
+        public abstract LocalizableString GetCategory(int code);
 
         /// <summary>
         /// Get the text prefix (e.g., "CS" for C#) used on error messages.

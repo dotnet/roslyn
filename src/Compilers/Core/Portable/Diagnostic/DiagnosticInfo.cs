@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis
         /// Get the diagnostic category for the given diagnostic code.
         /// Default category is <see cref="Diagnostic.CompilerDiagnosticCategory"/>.
         /// </summary>
-        public string Category
+        public LocalizableString Category
         {
             get
             {
