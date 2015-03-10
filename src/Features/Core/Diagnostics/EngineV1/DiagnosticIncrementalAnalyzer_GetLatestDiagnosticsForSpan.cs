@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     }
 
                     // if we are blocked for data, then we should always have full result.
-                    Contract.Requires(_blockForData && containsFullResult);
+                    Contract.Requires(!_blockForData || containsFullResult);
                     return containsFullResult;
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))

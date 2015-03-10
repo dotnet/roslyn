@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // we don't need the info for closed file
                 _memberRangeMap.Remove(document.Id);
 
-                // we remove whatever information we used to have on document open/close and re-calcuate diagnostics
-                // we had to do this since some diagnostic analyzer change its behavior based on whether the document is opend or not.
+                // we remove whatever information we used to have on document open/close and re-calculate diagnostics
+                // we had to do this since some diagnostic analyzer changes its behavior based on whether the document is opened or not.
                 // so we can't use cached information.
                 ClearDocumentStates(document, _stateManger.GetStateSets(document.Project), cancellationToken);
                 return SpecializedTasks.EmptyTask;
@@ -339,8 +339,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private static async Task PersistProjectData(Project project, DiagnosticState state, AnalysisData data)
         {
-            // TODO: cancellation is not allowed here to prevent data inconsistency. but there is still a possibility of data inconsistency due to
-            //       things like exception. for now, I am letting it go and let v2 engine take care of it properly. if v2 doesnt come online soon enough
+            // TODO: Cancellation is not allowed here to prevent data inconsistency. But there is still a possibility of data inconsistency due to
+            //       things like exception. For now, I am letting it go and let v2 engine take care of it properly. If v2 doesnt come online soon enough
             //       more refactoring is required on project state.
 
             // clear all existing data
