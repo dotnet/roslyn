@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             value = CreateDkmClrValue("a\r\n\tb\v\b\u001ec", type: stringType);
             evalResult = FormatResult("s", value, inspectionContext: inspectionContext);
             Verify(evalResult,
-                EvalResult("s", "a\r\n\tb\v\b\u001ec", "string", "s", editableValue: "\"a\\r\\n\\tb\\v\\b\\u001ec\"", flags: DkmEvaluationResultFlags.RawString));
+                EvalResult("s", "a\r\n\tb\v\b\u001ec", "string", "s", editableValue: "\"a\\r\\n\\tb\\v\\b\u001ec\"", flags: DkmEvaluationResultFlags.RawString));
 
             // "a\0b"
             value = CreateDkmClrValue("a\0b", type: stringType);
