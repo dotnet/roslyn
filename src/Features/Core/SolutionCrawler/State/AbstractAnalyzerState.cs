@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
         protected abstract void WriteTo(Stream stream, TData data, CancellationToken cancellationToken);
         protected abstract Task<bool> WriteStreamAsync(IPersistentStorage storage, TValue value, Stream stream, CancellationToken cancellationToken);
 
-        public int Count { get { return this.DataCache.Count; } }
+        public int Count => this.DataCache.Count;
 
         public async Task<TData> TryGetExistingDataAsync(TValue value, CancellationToken cancellationToken)
         {

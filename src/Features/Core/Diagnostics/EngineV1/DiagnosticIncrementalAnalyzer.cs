@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, GetOpenLogMessage, document, cancellationToken))
             {
-                // we remove whatever information we used to have on document open/close and re-calcuate diagnostics
-                // we had to do this since some diagnostic analyzer change its behavior based on whether the document is opend or not.
+                // we remove whatever information we used to have on document open/close and re-calculate diagnostics
+                // we had to do this since some diagnostic analyzer changes its behavior based on whether the document is opened or not.
                 // so we can't use cached information.
                 ClearDocumentStates(document, _stateManger.GetStateSets(document.Project), cancellationToken);
                 return SpecializedTasks.EmptyTask;
@@ -362,11 +362,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 if (kv.Key == null)
                 {
+                    // save project scope diagnostics
                     await state.PersistAsync(project, new AnalysisData(data.TextVersion, data.DataVersion, kv.ToImmutableArrayOrEmpty()), CancellationToken.None).ConfigureAwait(false);
                     continue;
                 }
 
-                // save text version for the document
+                // save document scope diagnostics
                 var document = project.GetDocument(kv.Key);
                 if (document == null)
                 {
@@ -868,7 +869,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             var state = stateSet.GetState(type);
             var existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
-            if (existingData != null && existingData.Items.Length > 0)
+            if (existingData?.Items.Length > 0)
             {
                 ClearDocumentState(document, stateSet.Analyzer, type, state);
             }
@@ -878,7 +879,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             var state = stateSet.GetState(StateType.Project);
             var existingData = await state.TryGetExistingDataAsync(project, cancellationToken).ConfigureAwait(false);
-            if (existingData != null && existingData.Items.Length > 0)
+            if (existingData?.Items.Length > 0)
             {
                 ClearProjectState(project, stateSet.Analyzer, state);
             }

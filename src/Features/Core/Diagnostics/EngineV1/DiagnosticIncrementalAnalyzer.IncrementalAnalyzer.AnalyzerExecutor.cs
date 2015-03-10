@@ -181,6 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return null;
                 }
 
+                Contract.Requires(textVersion != VersionStamp.Default);
                 return new AnalysisData(textVersion, dataVersion, builder.ToImmutable());
             }
 

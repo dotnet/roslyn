@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             private readonly DiagnosticAnalyzerDriver _documentBasedDriver;
             private readonly DiagnosticAnalyzerDriver _projectDriver;
 
-            private readonly List<DiagnosticData> _diagnostics;
-
             public LatestDiagnosticsForSpanGetter(
                 DiagnosticIncrementalAnalyzer owner, Document document, SyntaxNode root, TextSpan range, bool blockForData, CancellationToken cancellationToken) :
                 this(owner, document, root, range, blockForData, new List<DiagnosticData>(), cancellationToken)
@@ -44,17 +42,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 _blockForData = blockForData;
                 _cancellationToken = cancellationToken;
 
-                _diagnostics = diagnostics;
+                Diagnostics = diagnostics;
 
                 // Share the diagnostic analyzer driver across all analyzers.
-                var fullSpan = root == null ? null : (TextSpan?)root.FullSpan;
+                var fullSpan = root?.FullSpan;
 
                 _spanBasedDriver = new DiagnosticAnalyzerDriver(_document, _range, root, _owner._diagnosticLogAggregator, _owner.HostDiagnosticUpdateSource, _cancellationToken);
                 _documentBasedDriver = new DiagnosticAnalyzerDriver(_document, fullSpan, root, _owner._diagnosticLogAggregator, _owner.HostDiagnosticUpdateSource, _cancellationToken);
                 _projectDriver = new DiagnosticAnalyzerDriver(_document.Project, _owner._diagnosticLogAggregator, _owner.HostDiagnosticUpdateSource, _cancellationToken);
             }
 
-            public List<DiagnosticData> Diagnostics => _diagnostics;
+            public List<DiagnosticData> Diagnostics { get; }
 
             public async Task<bool> TryGetAsync()
             {
@@ -65,13 +63,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     var projectTextVersion = await _document.Project.GetLatestDocumentVersionAsync(_cancellationToken).ConfigureAwait(false);
                     var semanticVersion = await _document.Project.GetDependentSemanticVersionAsync(_cancellationToken).ConfigureAwait(false);
 
-                    var result = true;
+                    var containsFullResult = true;
                     foreach (var stateSet in _owner._stateManger.GetOrCreateStateSets(_document.Project))
                     {
-                        result &= await TryGetDocumentDiagnosticsAsync(
+                        containsFullResult &= await TryGetDocumentDiagnosticsAsync(
                             stateSet, StateType.Syntax, (t, d) => t.Equals(textVersion) && d.Equals(syntaxVersion), GetSyntaxDiagnosticsAsync).ConfigureAwait(false);
 
-                        result &= await TryGetDocumentDiagnosticsAsync(
+                        containsFullResult &= await TryGetDocumentDiagnosticsAsync(
                             stateSet, StateType.Document, (t, d) => t.Equals(textVersion) && d.Equals(semanticVersion), GetSemanticDiagnosticsAsync).ConfigureAwait(false);
 
                         // check whether compilation end code fix is enabled
@@ -80,8 +78,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                             continue;
                         }
 
-                        // check whether hueristic is enabled
-                        if (_blockForData && _document.Project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHueristic))
+                        // check whether heuristic is enabled
+                        if (_blockForData && _document.Project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic))
                         {
                             var analysisData = await stateSet.GetState(StateType.Project).TryGetExistingDataAsync(_document, _cancellationToken).ConfigureAwait(false);
 
@@ -94,11 +92,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                             }
                         }
 
-                        result &= await TryGetDocumentDiagnosticsAsync(
+                        containsFullResult &= await TryGetDocumentDiagnosticsAsync(
                             stateSet, StateType.Project, (t, d) => t.Equals(projectTextVersion) && d.Equals(semanticVersion), GetProjectDiagnosticsWorkerAsync).ConfigureAwait(false);
                     }
 
-                    return result;
+                    // if we are blocked for data, then we should always have full result.
+                    Contract.Requires(_blockForData && containsFullResult);
+                    return containsFullResult;
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
@@ -118,11 +118,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
 
                 var analyzerDriver = GetAnalyzerDriverBasedOnStateType(stateType, supportsSemanticInSpan);
-
-                var shouldInclude = (Func<DiagnosticData, bool>)(d => d.DocumentId == _document.Id && _range.IntersectsWith(d.TextSpan));
+                Func<DiagnosticData, bool> shouldInclude = d => d.DocumentId == _document.Id && _range.IntersectsWith(d.TextSpan);
 
                 // make sure we get state even when none of our analyzer has ran yet. 
-                // but this shouldn't create analyzer that doesnt belong to this project (language)
+                // but this shouldn't create analyzer that doesn't belong to this project (language)
                 var state = stateSet.GetState(stateType);
 
                 // see whether we can use existing info
@@ -134,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         return true;
                     }
 
-                    _diagnostics.AddRange(existingData.Items.Where(shouldInclude));
+                    Diagnostics.AddRange(existingData.Items.Where(shouldInclude));
                     return true;
                 }
 
@@ -148,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 if (dx != null)
                 {
                     // no state yet
-                    _diagnostics.AddRange(dx.Where(shouldInclude));
+                    Diagnostics.AddRange(dx.Where(shouldInclude));
                 }
 
                 return true;

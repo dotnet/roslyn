@@ -598,7 +598,7 @@ class AnonymousFunctions
 
                 ' turn off heuristic
                 Dim options = workspace.Services.GetService(Of IOptionService)()
-                options.SetOptions(options.GetOptions.WithChangedOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHueristic, False))
+                options.SetOptions(options.GetOptions.WithChangedOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic, False))
 
                 Dim analyzer = New CompilationEndedAnalyzer
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -616,12 +616,15 @@ class AnonymousFunctions
                 Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
                 ' Verify compilation diagnostics are reported with correct location info when asked for project diagnostics.
                 Dim projectDiagnostics = diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)

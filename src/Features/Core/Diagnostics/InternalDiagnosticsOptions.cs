@@ -18,6 +18,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static readonly Option<bool> CompilationEndCodeFix = new Option<bool>(OptionName, "Enable Compilation End Code Fix", defaultValue: true);
 
         [ExportOption]
-        public static readonly Option<bool> UseCompilationEndCodeFixHueristic = new Option<bool>(OptionName, "Enable Compilation End Code Fix Only If There is existing one", defaultValue: true);
+        public static readonly Option<bool> UseCompilationEndCodeFixHeuristic = new Option<bool>(OptionName, "Enable Compilation End Code Fix With Heuristic", defaultValue: true);
     }
 }
