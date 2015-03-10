@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var useTabOnlyForIndentation = this.OptionSet.GetOption(FormattingOptions.UseTabOnlyForIndentation, this.Language);
 
             // space indicates space between two noisy trivia or tokens
-            changes.Add(CreateWhitespace(GetSpacesOrTabs(lineColumn.Column, delta.Spaces, useTabs && !useTabOnlyForIndentation, tabSize)));
+            changes.Add(CreateWhitespace(GetSpacesOrTabs(delta.Spaces)));
         }
 
         private string GetWhitespaceString(LineColumn lineColumn, LineColumnDelta delta)
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var useTabOnlyForIndentation = this.OptionSet.GetOption(FormattingOptions.UseTabOnlyForIndentation, this.Language);
 
             // space indicates space between two noisy trivia or tokens
-            sb.Append(GetSpacesOrTabs(lineColumn.Column, delta.Spaces, useTabs && !useTabOnlyForIndentation, tabSize));
+            sb.Append(GetSpacesOrTabs(delta.Spaces));
             return StringBuilderPool.ReturnAndFree(sb);
         }
 
@@ -948,20 +948,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             return this.InitialLineColumn.With(delta).Column;
         }
 
-        private static string GetSpacesOrTabs(int initialColumn, int space, bool useTab, int tabSize)
+        private static string GetSpacesOrTabs(int space)
         {
-            if (useTab)
-            {
-                var preceedingTabs = initialColumn / tabSize;
-                var preceedingSpace = initialColumn % tabSize;
-
-                var column = initialColumn + space;
-                var numberOfTabs = column / tabSize;
-                var numberOfSpaces = column % tabSize;
-                var numberOfTabsToIntroduce = numberOfTabs - preceedingTabs;
-                return new string('\t', numberOfTabsToIntroduce) + new string(' ', numberOfTabsToIntroduce == 0 ? numberOfSpaces - preceedingSpace : numberOfSpaces);
-            }
-
             if (space >= 0 && space < 20)
             {
                 return s_spaceCache[space];
