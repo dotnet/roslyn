@@ -462,7 +462,7 @@ End Class"
                 expr:="$ReturnValue(Of Object)",
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
-            ' TODO (acasey): don't canonicalize name (GH #878)
+            ' TODO (https://github.com/dotnet/roslyn/issues/878): don't canonicalize name
             Assert.Equal("(1) : error BC32045: '$returnvalue' has no type parameters and so cannot have type arguments.", errorMessage)
 
             Const source = "

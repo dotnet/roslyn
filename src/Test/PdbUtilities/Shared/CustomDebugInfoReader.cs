@@ -464,7 +464,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             return importStrings;
         }
 
-        // TODO (acasey): caller should depend on abstraction (GH #702)
+        // TODO (https://github.com/dotnet/roslyn/issues/702): caller should depend on abstraction
         /// <exception cref="InvalidOperationException">Bad data.</exception>
         public static void GetCSharpDynamicLocalInfo(
             byte[] customDebugInfo,

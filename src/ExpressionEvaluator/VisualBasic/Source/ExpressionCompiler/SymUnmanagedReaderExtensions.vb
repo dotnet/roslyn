@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 projectLevelImportRecords.ToImmutableAndFree(),
                 fileLevelImportRecords.ToImmutableAndFree())
 
-            ' TODO (acasey): portable format overload (GH #702)
+            ' TODO (https://github.com/dotnet/roslyn/issues/702): portable format overload
             ' Somehow construct hoistedLocalScopeRecords.
             Dim hoistedLocalScopeRecords = ImmutableArray(Of HoistedLocalScopeRecord).Empty
 
@@ -86,6 +86,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 dynamicLocalConstantMap:=ImmutableDictionary(Of String, ImmutableArray(Of Boolean)).Empty)
         End Function
 
-        ' TODO (acasey): portable format overload (GH #702)
+        ' TODO (https://github.com/dotnet/roslyn/issues/702): portable format overload
     End Module
 End Namespace

@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If IsDteeEntryPoint(currentFrame) Then
                 methodDebugInfo = SynthesizeMethodDebugInfoForDtee(lazyAssemblyReaders.Value)
             ElseIf typedSymReader IsNot Nothing Then
-                ' TODO (acasey): Switch on the type of typedSymReader and call the appropriate helper. (GH #702)
+                ' TODO (https://github.com/dotnet/roslyn/issues/702): Switch on the type of typedSymReader and call the appropriate helper.
                 methodDebugInfo = typedSymReader.GetMethodDebugInfo(methodToken, methodVersion)
             Else
                 methodDebugInfo = Nothing

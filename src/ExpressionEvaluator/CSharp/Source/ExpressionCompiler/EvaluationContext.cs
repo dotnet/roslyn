@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 try
                 {
-                    // TODO (acasey): switch on the type of typedSymReader and call the appropriate helper. (GH #702)
+                    // TODO (https://github.com/dotnet/roslyn/issues/702): switch on the type of typedSymReader and call the appropriate helper.
                     methodDebugInfo = typedSymReader.GetMethodDebugInfo(methodToken, methodVersion, localNames.FirstOrDefault());
                     inScopeHoistedLocalIndices = methodDebugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref methodContextReuseConstraints);
                 }

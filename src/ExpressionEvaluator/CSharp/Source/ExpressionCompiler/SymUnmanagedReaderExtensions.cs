@@ -107,6 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 defaultNamespaceName: ""); // Unused in C#.
         }
 
-        // TODO (acasey): overload for portable format (GH #702)
+        // TODO (https://github.com/dotnet/roslyn/issues/702): overload for portable format
     }
 }
