@@ -1679,7 +1679,7 @@ class E : System.Exception
             value = CreateDkmClrValue('\u001f');
             evalResult = FormatResult("c", value, inspectionContext: CreateDkmInspectionContext(radix: 16));
             Verify(evalResult,
-                EvalResult("c", "0x001f '\\u001f'", "char", "c", editableValue: "'\\u001f'"));
+                EvalResult("c", "0x001f '\u001f'", "char", "c", editableValue: "'\\u001f'"));
 
             // This char is not printable, but there is a specific escape character.
             value = CreateDkmClrValue('\u0007');

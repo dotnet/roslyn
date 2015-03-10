@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.UseQuotes));
             Assert.Equal(
                 expected,
-                ObjectDisplay.FormatString(s, quote: '"'));
+                ObjectDisplay.FormatString(s, quote: '"', escapeNonPrintable: true));
 
             expected =
                 "\0\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u0008\u0009\u000a\u000b\u000c\u000d\u000e\u000f\u0010" +
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.None));
             Assert.Equal(
                 expected,
-                ObjectDisplay.FormatString(s, quote: '\0'));
+                ObjectDisplay.FormatString(s, quote: '\0', escapeNonPrintable: true));
 
             var arabic = "انتخابات مبكرة، بعد يوم حافل بالاحداث السياسية، بعد";
             s = ObjectDisplay.FormatLiteral(arabic, ObjectDisplayOptions.None);
