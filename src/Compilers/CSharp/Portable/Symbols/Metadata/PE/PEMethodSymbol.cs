@@ -154,9 +154,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        private class UncommonFields
+        {
+            public ParameterSymbol _lazyThisParameter;
+            public Tuple<CultureInfo, string> _lazyDocComment;
+            public OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembersResult;
+            public ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
+            public MethodImplAttributes _implFlags;
+            // CONSIDER: Should we use a CustomAttributeBag for PE symbols?
+            public ImmutableArray<string> _lazyConditionalAttributeSymbols;
+        }
+
+        private UncommonFields AccessUncommonFields()
+        {
+            var retVal = _uncommonFields;
+            return retVal ?? Interlocked.CompareExchange(ref _uncommonFields, retVal = new UncommonFields(), null) ?? retVal;
+        }
+
         private readonly MethodDefinitionHandle _handle;
         private readonly string _name;
-        private readonly MethodImplAttributes _implFlags;
         private readonly MethodAttributes _flags;
         private readonly PENamedTypeSymbol _containingType;
 
@@ -165,19 +181,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private PackedFlags _packedFlags;
 
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
-        private ParameterSymbol _lazyThisParameter;
+        private UncommonFields _uncommonFields;
         private SignatureData _lazySignature;
 
-        // CONSIDER: Should we use a CustomAttributeBag for PE symbols?
-        private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-        private ImmutableArray<string> _lazyConditionalAttributeSymbols;
         private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
-
-        private Tuple<CultureInfo, string> _lazyDocComment;
 
         private ImmutableArray<MethodSymbol> _lazyExplicitMethodImplementations;
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
-        private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembersResult;
 
         internal PEMethodSymbol(
             PEModuleSymbol moduleSymbol,
@@ -196,7 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             try
             {
                 int rva;
-                moduleSymbol.Module.GetMethodDefPropsOrThrow(methodDef, out _name, out _implFlags, out localflags, out rva);
+                MethodImplAttributes implFlags;
+                moduleSymbol.Module.GetMethodDefPropsOrThrow(methodDef, out _name, out implFlags, out localflags, out rva);
+                if (implFlags != 0)
+                {
+                    AccessUncommonFields()._implFlags = implFlags;
+                }
             }
             catch (BadImageFormatException)
             {
@@ -213,14 +228,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal sealed override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
-            thisParameter = _lazyThisParameter;
-            if ((object)thisParameter != null || IsStatic)
+            if (IsStatic)
             {
+                thisParameter = null;
                 return true;
             }
 
-            Interlocked.CompareExchange(ref _lazyThisParameter, new ThisParameterSymbol(this), null);
-            thisParameter = _lazyThisParameter;
+            var uncommonFields = _uncommonFields;
+            if (uncommonFields != null)
+            {
+                thisParameter = uncommonFields._lazyThisParameter;
+                if ((object)thisParameter != null)
+                {
+                    return true;
+                }
+            }
+
+            uncommonFields = AccessUncommonFields();
+            Interlocked.CompareExchange(ref uncommonFields._lazyThisParameter, new ThisParameterSymbol(this), null);
+            thisParameter = uncommonFields._lazyThisParameter;
             return true;
         }
 
@@ -264,12 +290,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
+        internal override System.Reflection.MethodImplAttributes ImplementationAttributes => GetImplFlags();
+
+        private System.Reflection.MethodImplAttributes GetImplFlags()
         {
-            get
-            {
-                return (System.Reflection.MethodImplAttributes)_implFlags;
-            }
+            var uncommonFields = _uncommonFields;
+            return uncommonFields == null ? 0 : uncommonFields._implFlags;
         }
 
         // Exposed for testing purposes only
@@ -398,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return IsExtern || (_implFlags & MethodImplAttributes.Runtime) != 0;
+                return IsExtern || (GetImplFlags() & MethodImplAttributes.Runtime) != 0;
             }
         }
 
@@ -716,8 +742,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (!signatureHeader.IsGeneric &&
                 _lazyTypeParameters.IsDefault)
             {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameters,
-                    ImmutableArray<TypeParameterSymbol>.Empty, default(ImmutableArray<TypeParameterSymbol>));
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters,
+                    ImmutableArray<TypeParameterSymbol>.Empty);
             }
 
             int count = paramInfo.Length - 1;
@@ -824,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     typeParams = ImmutableArray<TypeParameterSymbol>.Empty;
                 }
 
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameters, typeParams, default(ImmutableArray<TypeParameterSymbol>));
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters, typeParams);
             }
         }
 
@@ -873,7 +899,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            if (_lazyCustomAttributes.IsDefault)
+            var uncommonFields = AccessUncommonFields();
+            if (uncommonFields._lazyCustomAttributes.IsDefault)
             {
                 var containingPEModuleSymbol = _containingType.ContainingPEModule;
 
@@ -889,13 +916,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (checkForExtension)
                 {
                     containingPEModuleSymbol.LoadCustomAttributesFilterExtensions(_handle,
-                        ref _lazyCustomAttributes,
+                        ref uncommonFields._lazyCustomAttributes,
                         out isExtensionMethod);
                 }
                 else
                 {
                     containingPEModuleSymbol.LoadCustomAttributes(_handle,
-                        ref _lazyCustomAttributes);
+                        ref uncommonFields._lazyCustomAttributes);
                 }
 
                 if (!alreadySet)
@@ -903,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _packedFlags.InitializeIsExtensionMethod(isExtensionMethod);
                 }
             }
-            return _lazyCustomAttributes;
+            return uncommonFields._lazyCustomAttributes;
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
@@ -1133,7 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         explicitInterfaceImplementations = explicitInterfaceImplementationsBuilder.ToImmutableAndFree();
                     }
 
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyExplicitMethodImplementations, explicitInterfaceImplementations, default(ImmutableArray<MethodSymbol>));
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyExplicitMethodImplementations, explicitInterfaceImplementations);
                 }
                 return _lazyExplicitMethodImplementations;
             }
@@ -1141,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref _lazyDocComment);
+            return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref AccessUncommonFields()._lazyDocComment);
         }
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()
@@ -1159,15 +1186,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
-            if (_lazyConditionalAttributeSymbols.IsDefault)
+            var uncommonFields = AccessUncommonFields();
+            if (uncommonFields._lazyConditionalAttributeSymbols.IsDefault)
             {
                 var moduleSymbol = _containingType.ContainingPEModule;
                 ImmutableArray<string> conditionalSymbols = moduleSymbol.Module.GetConditionalAttributeValues(_handle);
                 Debug.Assert(!conditionalSymbols.IsDefault);
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyConditionalAttributeSymbols, conditionalSymbols, default(ImmutableArray<string>));
+                ImmutableInterlocked.InterlockedInitialize(ref uncommonFields._lazyConditionalAttributeSymbols, conditionalSymbols);
             }
 
-            return _lazyConditionalAttributeSymbols;
+            return uncommonFields._lazyConditionalAttributeSymbols;
         }
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
@@ -1193,12 +1221,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((object)_lazyOverriddenOrHiddenMembersResult == null)
-                {
-                    Interlocked.CompareExchange(ref _lazyOverriddenOrHiddenMembersResult, base.OverriddenOrHiddenMembers, null);
-                }
-
-                return _lazyOverriddenOrHiddenMembersResult;
+                var uncommonFields = AccessUncommonFields();
+                var retVal = uncommonFields._lazyOverriddenOrHiddenMembersResult;
+                return retVal ?? Interlocked.CompareExchange(ref uncommonFields._lazyOverriddenOrHiddenMembersResult, retVal = base.OverriddenOrHiddenMembers, null) ?? retVal;
             }
         }
 

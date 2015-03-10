@@ -758,8 +758,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' If method is not generic, let's assign empty list for type parameters
                 If Not signatureHeader.IsGeneric() AndAlso
                     m_lazyTypeParameters.IsDefault Then
-                    ImmutableInterlocked.InterlockedCompareExchange(m_lazyTypeParameters,
-                                                ImmutableArray(Of TypeParameterSymbol).Empty, Nothing)
+                    ImmutableInterlocked.InterlockedInitialize(m_lazyTypeParameters,
+                                                ImmutableArray(Of TypeParameterSymbol).Empty)
                 End If
 
                 Dim count As Integer = paramInfo.Length - 1
@@ -849,7 +849,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     typeParams = ImmutableArray(Of TypeParameterSymbol).Empty
                 End Try
 
-                ImmutableInterlocked.InterlockedCompareExchange(m_lazyTypeParameters, typeParams, Nothing)
+                ImmutableInterlocked.InterlockedInitialize(m_lazyTypeParameters, typeParams)
             End If
 
         End Sub
@@ -897,7 +897,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         explicitImplementations = explicitInterfaceImplementationsBuilder.ToImmutableAndFree()
                     End If
 
-                    ImmutableInterlocked.InterlockedCompareExchange(m_lazyExplicitMethodImplementations, explicitImplementations, Nothing)
+                    ImmutableInterlocked.InterlockedInitialize(m_lazyExplicitMethodImplementations, explicitImplementations)
                 End If
 
                 Return m_lazyExplicitMethodImplementations
@@ -940,7 +940,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim moduleSymbol As PEModuleSymbol = m_ContainingType.ContainingPEModule
                 Dim conditionalSymbols As ImmutableArray(Of String) = moduleSymbol.Module.GetConditionalAttributeValues(m_Handle)
                 Debug.Assert(Not conditionalSymbols.IsDefault)
-                ImmutableInterlocked.InterlockedCompareExchange(m_lazyConditionalAttributeSymbols, conditionalSymbols, Nothing)
+                ImmutableInterlocked.InterlockedInitialize(m_lazyConditionalAttributeSymbols, conditionalSymbols)
             End If
 
             Return Me.m_lazyConditionalAttributeSymbols
