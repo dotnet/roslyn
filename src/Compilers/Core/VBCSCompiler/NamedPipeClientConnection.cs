@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         // This is a value used for logging only, do not depend on this value
         private readonly string _loggingIdentifier;
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", 
+            MessageId = "System.Runtime.InteropServices.DangerousGetHandle", 
+            Justification = "We are using DangerousGetHandle for logging only.")]
         internal NamedPipeClientConnection(NamedPipeServerStream pipeStream)
         {
             _pipeStream = pipeStream;
