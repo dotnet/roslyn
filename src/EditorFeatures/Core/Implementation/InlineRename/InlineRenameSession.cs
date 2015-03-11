@@ -108,7 +108,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _triggerView = textBufferAssociatedViewService.GetAssociatedTextViews(triggerSpan.Snapshot.TextBuffer).FirstOrDefault(v => v.HasAggregateFocus) ??
                 textBufferAssociatedViewService.GetAssociatedTextViews(triggerSpan.Snapshot.TextBuffer).First();
 
-            _optionSet = workspace.Options;
+            _optionSet = renameInfo.ForceRenameOverloads
+                ? workspace.Options.WithChangedOption(RenameOptions.RenameOverloads, true)
+                : workspace.Options;
 
             this.ReplacementText = triggerSpan.GetText();
 
@@ -208,6 +210,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public Workspace Workspace { get { return _workspace; } }
         public OptionSet OptionSet { get { return _optionSet; } }
         public bool HasRenameOverloads { get { return _renameInfo.HasOverloads; } }
+        public bool ForceRenameOverloads { get { return _renameInfo.ForceRenameOverloads; } }
+
         public IInlineRenameUndoManager UndoManager { get; private set; }
 
         public event EventHandler<IList<InlineRenameLocation>> ReferenceLocationsChanged;

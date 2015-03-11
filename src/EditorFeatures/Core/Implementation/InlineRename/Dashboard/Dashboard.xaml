@@ -181,7 +181,7 @@
                 </StackPanel>
 
                 <CheckBox Content="{Binding ElementName=dashboard, Path=RenameOverloads}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameOverloadFlag, Mode=TwoWay}" Cursor="Arrow"
-                      Name="OverloadsCheckbox" Visibility="{Binding ElementName=dashboard, Path=RenameOverloadsVisibility}"/>
+                      Name="OverloadsCheckbox" Visibility="{Binding ElementName=dashboard, Path=RenameOverloadsVisibility}" IsEnabled="{Binding ElementName=dashboard, Path=IsRenameOverloadsEditable}" />
                 <CheckBox Name="CommentsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInComments}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInCommentsFlag, Mode=TwoWay}" Cursor="Arrow" />
                 <CheckBox Name="StringsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInStrings}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInStringsFlag, Mode=TwoWay}" Cursor="Arrow" />
 
