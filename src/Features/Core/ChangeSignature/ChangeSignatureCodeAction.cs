@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             _context = context;
         }
 
-        public override string Title
+        public override LocalizableString Title
         {
             get { return FeaturesResources.ChangeSignature; }
         }

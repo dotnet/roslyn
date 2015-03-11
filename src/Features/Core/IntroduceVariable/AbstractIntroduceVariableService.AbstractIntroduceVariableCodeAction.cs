@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 _title = CreateDisplayText(expression);
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get { return _title; }
             }

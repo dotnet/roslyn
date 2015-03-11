@@ -9,16 +9,16 @@ namespace Microsoft.CodeAnalysis
 {
     internal class SolutionChangeAction : CodeAction
     {
-        private readonly string _title;
+        private readonly LocalizableString _title;
         private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
 
-        public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+        public SolutionChangeAction(LocalizableString title, Func<CancellationToken, Task<Solution>> createChangedSolution)
         {
             _title = title;
             _createChangedSolution = createChangedSolution;
         }
 
-        public override string Title
+        public override LocalizableString Title
         {
             get { return _title; }
         }

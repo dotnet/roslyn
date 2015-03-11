@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return await editor.GetEditAsync().ConfigureAwait(false);
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get
                 {

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var changedSolution = previewService.PreviewChanges(
                 string.Format(EditorFeaturesResources.PreviewChangesOf, EditorFeaturesResources.FixAllOccurrences),
                 "vs.codefix.fixall",
-                codeAction.Title,
+                codeAction.Title.ToString(CultureInfo.CurrentUICulture),
                 EditorFeaturesResources.FixAllOccurrences,
                 glyph,
                 newSolution,

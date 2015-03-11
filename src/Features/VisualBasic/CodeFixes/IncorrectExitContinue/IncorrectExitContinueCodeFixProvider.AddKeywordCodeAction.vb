@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
                 Me.updateNode = updateNode
             End Sub
 
-            Public Overrides ReadOnly Property Title As String
+            Public Overrides ReadOnly Property Title As LocalizableString
                 Get
                     Return String.Format(VBFeaturesResources.Insert, SyntaxFacts.GetText(BlockKindToKeywordKind(createBlockKind)))
                 End Get

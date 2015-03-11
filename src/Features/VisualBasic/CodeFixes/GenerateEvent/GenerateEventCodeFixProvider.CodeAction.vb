@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                 Me.codeGenerationOptions = codeGenerationOptions
             End Sub
 
-            Public Overrides ReadOnly Property Title As String
+            Public Overrides ReadOnly Property Title As LocalizableString
                 Get
                     Return String.Format(VBFeaturesResources.GeneratedeventnameTargets, generatedEvent.Name, targetSymbol.Name)
                 End Get

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 var codeIssueOrRefactoring = GetCodeRefactoring(workspace, nodeLocator: null);
 
-                var actualActionSet = codeIssueOrRefactoring.Actions.Select(a => a.Title);
+                var actualActionSet = codeIssueOrRefactoring.Actions.Select(a => a.Title.ToString(CultureInfo.CurrentUICulture));
                 Assert.True(actualActionSet.SequenceEqual(expectedActionSet),
                     "Expected: " + string.Join(", ", expectedActionSet) +
                     "\nActual: " + string.Join(", ", actualActionSet));

@@ -56,7 +56,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp.ApiDesign
                 _declaration = declaration;
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get
                 {

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 _state = state;
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get
                 {

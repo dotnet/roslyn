@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return new ImplementInterfaceWithDisposePatternCodeAction(service, document, state, explicitly: true, abstractly: false, throughMember: null);
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get
                 {

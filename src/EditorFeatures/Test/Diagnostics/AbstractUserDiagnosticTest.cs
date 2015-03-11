@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -208,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 var diagnosticAndFix = GetDiagnosticAndFix(workspace);
 
-                var actualActionSet = diagnosticAndFix.Item2.Fixes.Select(f => f.Action.Title);
+                var actualActionSet = diagnosticAndFix.Item2.Fixes.Select(f => f.Action.Title.ToString(CultureInfo.CurrentUICulture));
                 Assert.True(actualActionSet.SequenceEqual(expectedActionSet),
                     "Expected: " + string.Join(", ", expectedActionSet) +
                     "\nActual: " + string.Join(", ", actualActionSet));

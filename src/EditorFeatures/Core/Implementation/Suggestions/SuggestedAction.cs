@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     if (operations != null)
                     {
                         var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                        EditHandler.Apply(Workspace, document, operations, CodeAction.Title, cancellationToken);
+                        EditHandler.Apply(Workspace, document, operations, CodeAction.Title.ToString(CultureInfo.CurrentUICulture), cancellationToken);
                     }
                 });
             }
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // underscores so they actually get represented as an underscore in the UI.
                 var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
                 var text = extensionManager.PerformFunction(Provider, () => CodeAction.Title, string.Empty);
-                return text.Replace("_", "__");
+                return text.ToString(CultureInfo.CurrentUICulture).Replace("_", "__");
             }
         }
 

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 return result;
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get
                 {

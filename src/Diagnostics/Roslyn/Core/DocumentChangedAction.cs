@@ -9,18 +9,18 @@ namespace Microsoft.CodeAnalysis
 {
     internal class DocumentChangeAction : CodeAction
     {
-        private readonly string _title;
+        private readonly LocalizableString _title;
         private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
         private readonly string _equivalenceKey;
 
-        public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
+        public DocumentChangeAction(LocalizableString title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
         {
             _title = title;
             _createChangedDocument = createChangedDocument;
             _equivalenceKey = equivalenceKey;
         }
 
-        public override string Title
+        public override LocalizableString Title
         {
             get { return _title; }
         }

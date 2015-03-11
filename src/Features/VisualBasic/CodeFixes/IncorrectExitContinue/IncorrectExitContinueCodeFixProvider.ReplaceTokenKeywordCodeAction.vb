@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
                 Me.document = document
             End Sub
 
-            Public Overrides ReadOnly Property Title As String
+            Public Overrides ReadOnly Property Title As LocalizableString
                 Get
                     Return String.Format(VBFeaturesResources.ChangeTo, invalidToken.ValueText, SyntaxFacts.GetText(BlockKindToKeywordKind(blockKind)))
                 End Get

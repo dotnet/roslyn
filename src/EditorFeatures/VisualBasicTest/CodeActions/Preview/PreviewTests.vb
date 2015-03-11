@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                     Me.oldDocument = oldDocument
                 End Sub
 
-                Public Overrides ReadOnly Property Title As String
+                Public Overrides ReadOnly Property Title As LocalizableString
                     Get
                         Return "Title"
                     End Get

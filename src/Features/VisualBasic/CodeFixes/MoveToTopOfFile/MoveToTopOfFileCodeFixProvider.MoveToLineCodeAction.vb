@@ -12,16 +12,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
             Private _destinationLine As Integer
             Private _document As Document
             Private _token As SyntaxToken
-            Private _title As String
+            Private _title As LocalizableString
 
-            Public Sub New(document As Document, token As SyntaxToken, destinationLine As Integer, title As String)
+            Public Sub New(document As Document, token As SyntaxToken, destinationLine As Integer, title As LocalizableString)
                 _document = document
                 _token = token
                 _destinationLine = destinationLine
                 _title = title
             End Sub
 
-            Public Overrides ReadOnly Property Title As String
+            Public Overrides ReadOnly Property Title As LocalizableString
                 Get
                     Return _title
                 End Get
