@@ -114,15 +114,15 @@ namespace AsyncPackage
         private class RenameAsyncCodeAction : CodeAction
         {
             private Func<CancellationToken, Task<Solution>> _generateSolution;
-            private string _title;
+            private LocalizableString _title;
 
-            public RenameAsyncCodeAction(string title, Func<CancellationToken, Task<Solution>> generateSolution)
+            public RenameAsyncCodeAction(LocalizableString title, Func<CancellationToken, Task<Solution>> generateSolution)
             {
                 _title = title;
                 _generateSolution = generateSolution;
             }
 
-            public override string Title { get { return _title; } }
+            public override LocalizableString Title { get { return _title; } }
 
             protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {

@@ -109,15 +109,15 @@ namespace ConvertToAutoPropertyCS
         private class ConvertToAutoPropertyCodeAction : CodeAction
         {
             private Func<CancellationToken, Task<Document>> generateDocument;
-            private string title;
+            private LocalizableString title;
 
-            public ConvertToAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Document>> generateDocument)
+            public ConvertToAutoPropertyCodeAction(LocalizableString title, Func<CancellationToken, Task<Document>> generateDocument)
             {
                 this.title = title;
                 this.generateDocument = generateDocument;
             }
 
-            public override string Title { get { return title; } }
+            public override LocalizableString Title { get { return title; } }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
