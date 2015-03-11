@@ -39,6 +39,7 @@
     <Compile Include="FrameDecoder.cs" />
     <Compile Include="InstructionDecoder.cs" />
     <Compile Include="LanguageInstructionDecoder.cs" />
+    <Compile Include="PDB\HoisedLocalScopeRecord.cs" />
     <Compile Include="PDB\ExternAliasRecord.cs" />
     <Compile Include="PDB\MethodDebugInfo.cs" />
     <Compile Include="PDB\ImportRecord.cs" />
@@ -59,7 +60,7 @@
     <Compile Include="MetadataBlock.cs" />
     <Compile Include="MetadataUtilities.cs" />
     <Compile Include="AbstractTypeParameterChecker.cs" />
-    <Compile Include="MethodScope.cs" />
+    <Compile Include="MethodContextReuseConstraints.cs" />
     <Compile Include="NamedLocalConstant.cs" />
     <Compile Include="PseudoVariableUtilities.cs" />
     <Compile Include="Resources.Designer.cs">

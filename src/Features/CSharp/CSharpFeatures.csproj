@@ -372,8 +372,8 @@
   <ItemGroup>
     <EmbeddedResource Include="CSharpFeaturesResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>CSharpFeaturesResources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>CSharpFeaturesResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

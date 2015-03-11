@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
     Friend NotInheritable Class EmbeddedType
         Inherits EmbeddedTypesManager.CommonEmbeddedType
 
-        Private embeddedAllMembersOfImplementedInterface As Boolean
+        Private _embeddedAllMembersOfImplementedInterface As Boolean
 
         Public Sub New(typeManager As EmbeddedTypesManager, underlyingNamedType As NamedTypeSymbol)
             MyBase.New(typeManager, underlyingNamedType)
@@ -22,11 +22,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         Public Sub EmbedAllMembersOfImplementedInterface(syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
             Debug.Assert(UnderlyingNamedType.IsInterfaceType())
 
-            If embeddedAllMembersOfImplementedInterface Then
+            If _embeddedAllMembersOfImplementedInterface Then
                 Return
             End If
 
-            embeddedAllMembersOfImplementedInterface = True
+            _embeddedAllMembersOfImplementedInterface = True
 
             ' Embed all members
             For Each m In UnderlyingNamedType.GetMethodsToEmit()

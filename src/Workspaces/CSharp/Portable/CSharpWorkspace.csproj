@@ -121,6 +121,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpWorkspaceResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Editing\CSharpImportAdder.cs" />
     <Compile Include="Extensions\ArgumentSyntaxExtensions.cs" />
     <Compile Include="Extensions\BaseArgumentListSyntaxExtensions.cs" />
     <Compile Include="Extensions\BaseParameterListSyntaxExtensions.cs" />

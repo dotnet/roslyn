@@ -135,7 +135,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         // or if the module has not been loaded yet. The value will be null
                         // if the name was ambiguous.
                         ModuleMetadata module;
-                        if (modulesByName.TryGetValue(name, out module) && (module != null))
+                        if (!modulesByName.TryGetValue(name, out module))
+                        {
+                            // AssemblyFile names may contain file information (".dll", etc).
+                            modulesByName.TryGetValue(GetFileNameWithoutExtension(name), out module);
+                        }
+                        if (module != null)
                         {
                             builder.Add(module);
                         }
@@ -149,6 +154,25 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var assemblyMetadata = AssemblyMetadata.Create(builder.ToImmutableAndFree());
             return assemblyMetadata.GetReference(embedInteropTypes: false, display: metadata.Name);
+        }
+
+        internal static string GetFileNameWithoutExtension(string fileName)
+        {
+            var lastDotIndex = fileName.LastIndexOf('.');
+            var extensionStartIndex = lastDotIndex + 1;
+            if ((lastDotIndex > 0) && (extensionStartIndex < fileName.Length))
+            {
+                var extension = fileName.Substring(extensionStartIndex);
+                switch (extension)
+                {
+                    case "dll":
+                    case "exe":
+                    case "netmodule":
+                    case "winmd":
+                        return fileName.Substring(0, lastDotIndex);
+                }
+            }
+            return fileName;
         }
 
         private static PortableExecutableReference MakeCompileTimeWinMdAssemblyMetadata(ArrayBuilder<ModuleMetadata> runtimeModules)
@@ -246,7 +270,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// Get the set of nested scopes containing the
         /// IL offset from outermost scope to innermost.
         /// </summary>
-        internal static void GetScopes(this ISymUnmanagedReader symReader, int methodToken, int methodVersion, int ilOffset, bool isScopeEndInclusive, ArrayBuilder<ISymUnmanagedScope> scopes)
+        internal static void GetScopes(
+            this ISymUnmanagedReader symReader, 
+            int methodToken, 
+            int methodVersion, 
+            int ilOffset, 
+            bool isScopeEndInclusive,
+            ArrayBuilder<ISymUnmanagedScope> allScopes,
+            ArrayBuilder<ISymUnmanagedScope> containingScopes)
         {
             if (symReader == null)
             {
@@ -259,17 +290,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return;
             }
 
-            symMethod.GetAllScopes(scopes, ilOffset, isScopeEndInclusive);
+            symMethod.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive);
         }
 
-        internal static MethodScope GetMethodScope(this ArrayBuilder<ISymUnmanagedScope> scopes, int methodToken, int methodVersion)
+        internal static MethodContextReuseConstraints GetReuseConstraints(this ArrayBuilder<ISymUnmanagedScope> scopes, int methodToken, int methodVersion, int ilOffset, bool isEndInclusive)
         {
-            if (scopes.Count == 0)
+            var builder = new MethodContextReuseConstraints.Builder(methodToken, methodVersion, ilOffset, isEndInclusive);
+            foreach (ISymUnmanagedScope scope in scopes)
             {
-                return null;
+                builder.AddRange((uint)scope.GetStartOffset(), (uint)scope.GetEndOffset());
             }
-            var scope = scopes.Last();
-            return new MethodScope(methodToken, methodVersion, scope.GetStartOffset(), scope.GetEndOffset());
+            return builder.Build();
         }
 
         internal static ImmutableArray<string> GetLocalNames(this ArrayBuilder<ISymUnmanagedScope> scopes)

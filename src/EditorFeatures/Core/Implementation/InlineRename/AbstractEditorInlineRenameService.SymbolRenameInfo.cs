@@ -45,9 +45,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public TextSpan TriggerSpan { get; }
             public ISymbol RenameSymbol { get; }
             public bool HasOverloads { get; }
+            public bool ForceRenameOverloads { get; }
 
             public SymbolInlineRenameInfo(
-                IEnumerable<IRefactorNotifyService> refactorNotifyServices, Document document, TextSpan triggerSpan, ISymbol renameSymbol, CancellationToken cancellationToken)
+                IEnumerable<IRefactorNotifyService> refactorNotifyServices, 
+                Document document, 
+                TextSpan triggerSpan, 
+                ISymbol renameSymbol, 
+                bool forceRenameOverloads, 
+                CancellationToken cancellationToken)
             {
                 this.CanRename = true;
 
@@ -56,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 this.RenameSymbol = renameSymbol;
 
                 this.HasOverloads = RenameLocationSet.GetOverloadedSymbols(this.RenameSymbol).Any();
+                this.ForceRenameOverloads = forceRenameOverloads;
 
                 _isRenamingAttributePrefix = CanRenameAttributePrefix(document, triggerSpan, cancellationToken);
                 this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), cancellationToken);

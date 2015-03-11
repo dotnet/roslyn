@@ -7441,9 +7441,6 @@
              Compile the expression into MSIL code that can be executed by the CLR or debugger
              to evaluate the expression.
             
-             Location constraint: API must be called from an IDE component (component level
-             &gt; 100,000).
-            
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
              <param name="InstructionAddress">
@@ -17480,6 +17477,12 @@
         <member name="F:Microsoft.VisualStudio.Debugger.DefaultPort.DkmSystemInformationFlags.CoreSystem">
             <summary>
             Indicates that the target OS is a core system.  (Examples:  XBox, Phone, etc.).
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.DefaultPort.DkmSystemInformationFlags.LaunchedInChamber">
+            <summary>
+            Indicates that msvsmon has been launched inside a chamber. (Phone execution
+            model).
             </summary>
         </member>
         <member name="T:Microsoft.VisualStudio.Debugger.DefaultPort.DkmTransportConnectionFlags">
@@ -53426,6 +53429,23 @@
             load will be given an index of zero.
             </summary>
         </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Script.DkmScriptRuntimeInstance.IsEdgeHtmlDll">
+             <summary>
+             A flag indicating whether the current loaded dll is EdgeHtml.dll or not.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Script.DkmScriptRuntimeInstance.ScriptHostVersion">
+             <summary>
+             File version of the script host dll. This will be 0 if it cannot be obtained. The
+             top 16 bits are the major version, followed by 16 bits for the minor version,
+             followed by 16 bits for the build number followed by 16 bits for the build
+             revision.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Script.DkmScriptRuntimeInstance.Create(Microsoft.VisualStudio.Debugger.DkmProcess,Microsoft.VisualStudio.Debugger.DkmRuntimeInstanceId,System.Int32,Microsoft.VisualStudio.Debugger.DkmDataItem)">
              <summary>
              Creates a new runtime instance object from a debug monitor. This method must be
@@ -53490,6 +53510,58 @@
              [In] Index indicating the relative load order of this script runtime instance to
              other script runtime instances within the target process. The first runtime
              instance to load will be given an index of zero.
+             </param>
+             <param name="DataItem">
+             [In,Optional] Data object to add to the new DkmScriptRuntimeInstance instance.
+             Pass 'null' in the case that the caller doesn't need to add a data item.
+             </param>
+             <returns>
+             [Out] Result of this method call.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Script.DkmScriptRuntimeInstance.Create(Microsoft.VisualStudio.Debugger.DkmProcess,Microsoft.VisualStudio.Debugger.DkmRuntimeInstanceId,Microsoft.VisualStudio.Debugger.DkmRuntimeCapabilities,Microsoft.VisualStudio.Debugger.DkmRuntimeInstance,System.Int32,System.Boolean,System.UInt64,Microsoft.VisualStudio.Debugger.DkmDataItem)">
+             <summary>
+             Creates a new runtime instance object from a debug monitor. This method must be
+             called from the event thread when a debug monitor detects that a new runtime
+             instance has loaded (for example, when the corresponding runtime dll loads in the
+             target process).
+            
+             This method will send a RuntimeInstanceLoad event.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+             <param name="Process">
+             [In] DkmProcess represents a target process which is being debugged. The debugger
+             debugs processes, so this is the basic unit of debugging. A DkmProcess can
+             represent a system process or a virtual process such as minidumps.
+             </param>
+             <param name="Id">
+             [In] Identifies a DkmRuntimeInstance object within a process.
+             </param>
+             <param name="Capabilities">
+             [In] Enumeration of runtime capabilities.
+             </param>
+             <param name="ParentRuntime">
+             [In,Optional] For runtimes that are implemented on top of another runtime, this
+             can optionally be used to indicant the logical parent. This can then be used to
+             request services from the parent when the child runtime doesn't implement the
+             service. This is currently used only for obtaining the top stack frame to
+             evaluate a conditional breakpoint when the child runtime doesn't walk stacks
+             itself.
+             </param>
+             <param name="LoadOrderIndex">
+             [In] Index indicating the relative load order of this script runtime instance to
+             other script runtime instances within the target process. The first runtime
+             instance to load will be given an index of zero.
+             </param>
+             <param name="IsEdgeHtmlDll">
+             [In] A flag indicating whether the current loaded dll is EdgeHtml.dll or not.
+             </param>
+             <param name="ScriptHostVersion">
+             [In] File version of the script host dll. This will be 0 if it cannot be
+             obtained. The top 16 bits are the major version, followed by 16 bits for the
+             minor version, followed by 16 bits for the build number followed by 16 bits for
+             the build revision.
              </param>
              <param name="DataItem">
              [In,Optional] Data object to add to the new DkmScriptRuntimeInstance instance.

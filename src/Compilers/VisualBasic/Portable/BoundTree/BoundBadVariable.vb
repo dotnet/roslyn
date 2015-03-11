@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundBadVariable
+    Friend Partial Class BoundBadVariable
         Inherits BoundExpression
 
         Public Sub New(syntax As VisualBasicSyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)

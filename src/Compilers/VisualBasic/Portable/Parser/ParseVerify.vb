@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     ' Produces an error unless the construct is already in error.
     ' Always returns false.
 
-    Partial Class Parser
+    Friend Partial Class Parser
         ' File: Parser.cpp
         ' Lines: 16764 - 16764
         ' bool .Parser::HandleUnexpectedToken( [ tokens TokenType ] [ _Inout_ bool& ErrorInConstruct ] )

@@ -457,11 +457,97 @@ class $$Program
                    severity:=DashboardSeverity.Info)
         End Sub
 
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameWithNameof_FromDefinition_DoesNotForceRenameOverloadsOption()
+            VerifyDashboard(
+                (<Workspace>
+                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
+                         <Document>
+class C
+{
+    void M$$()
+    {
+        nameof(M).ToString();
+    }
+    void M(int x) { }
+}
+                        </Document>
+                     </Project>
+                 </Workspace>),
+                   newName:="Mo",
+                   searchResultText:=String.Format(EditorFeaturesResources.FoundReferenceInFile),
+                   hasRenameOverload:=True,
+                   isRenameOverloadsEditable:=True)
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameWithNameof_FromReference_DoesForceRenameOverloadsOption()
+            VerifyDashboard(
+                (<Workspace>
+                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
+                         <Document>
+class C
+{
+    void M()
+    {
+        nameof(M$$).ToString();
+    }
+    void M(int x) { }
+}
+                        </Document>
+                     </Project>
+                 </Workspace>),
+                   newName:="Mo",
+                   searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 3),
+                   hasRenameOverload:=True,
+                   isRenameOverloadsEditable:=False)
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameWithNameof_FromDefinition_WithRenameOverloads_Cascading()
+            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
+            changingOptions.Add(RenameOptions.RenameOverloads, True)
+            VerifyDashboard(
+                (<Workspace>
+                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
+                         <Document>
+class B
+{
+    public virtual void [|M|](int x)
+    {
+        nameof([|M|]).ToString();
+    }
+}
+
+class D : B
+{
+    public void $$[|M|]()
+    {
+        nameof([|M|]).ToString();
+    }
+
+    public override void [|M|](int x)
+    {
+    }
+}
+                        </Document>
+                     </Project>
+                 </Workspace>),
+                   newName:="Mo",
+                   searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 5),
+                   changedOptionSet:=changingOptions,
+                   hasRenameOverload:=True)
+        End Sub
+
         Friend Shared Sub VerifyDashboard(
             test As XElement,
             newName As String,
             searchResultText As String,
             Optional hasRenameOverload As Boolean = False,
+            Optional isRenameOverloadsEditable As Boolean = True,
             Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
             Optional resolvableConflictText As String = Nothing,
             Optional unresolvableConflictText As String = Nothing,
@@ -476,7 +562,6 @@ class $$Program
                 Assert.NotNull(document)
 
                 Dim token = document.GetSyntaxTreeAsync().Result.GetRoot().FindToken(cursorPosition)
-                Dim symbol = SymbolFinder.FindSymbolAtPositionAsync(document, cursorPosition).Result
 
                 Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)
 
@@ -531,6 +616,11 @@ class $$Program
                     End If
 
                     Assert.Equal(hasRenameOverload, model.Session.HasRenameOverloads)
+                    Assert.Equal(isRenameOverloadsEditable, model.IsRenameOverloadsEditable)
+                    If Not isRenameOverloadsEditable Then
+                        Assert.True(model.DefaultRenameOverloadFlag)
+                    End If
+
                     Assert.Equal(severity, model.Severity)
                 End Using
 

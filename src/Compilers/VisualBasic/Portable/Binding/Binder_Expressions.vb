@@ -618,7 +618,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim receiver = group.ReceiverOpt
             If receiver IsNot Nothing AndAlso receiver.Kind = BoundKind.TypeOrValueExpression Then
                 receiver = AdjustReceiverAmbiguousTypeOrValue(receiver, diagnostics)
- 
+
                 Select Case group.Kind
                     Case BoundKind.MethodGroup
                         Dim methodGroup = DirectCast(group, BoundMethodGroup)
@@ -641,7 +641,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
             End If
 
-           Return receiver
+            Return receiver
         End Function
 
 
@@ -701,7 +701,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         expr.Syntax,
                                                         ExtractTypeCharacter(expr.Syntax),
                                                         group,
-                                                        NoArguments,
+                                                        s_noArguments,
                                                         Nothing,
                                                         diagnostics,
                                                         callerInfoOpt:=expr.Syntax)
@@ -842,7 +842,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class DefaultInstancePropertyBinder
             Inherits Binder
 
-            Sub New(containingBinder As Binder)
+            Public Sub New(containingBinder As Binder)
                 MyBase.New(containingBinder)
             End Sub
 
@@ -1551,11 +1551,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' an LValue. In this case, containingMember will be a LambdaSymbol rather than a symbol for
             ' constructor.
 
-            If Me.ContainingMember.ContainingSymbol Is field.ContainingSymbol Then
-                Return True
-            End If
-
-            Return False
+            ' We duplicate a bug in the native compiler for compatibility in non-strict mode
+            Return If(Me.Compilation.FeatureStrictEnabled,
+                Me.ContainingMember.ContainingSymbol Is field.ContainingSymbol,
+                Me.ContainingMember.ContainingSymbol.OriginalDefinition Is field.ContainingSymbol.OriginalDefinition)
         End Function
 
         ''' <summary>
@@ -3506,7 +3505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' "Structure '{0}' cannot be indexed because it has no default property."
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_StructureNoDefault1, type)
                 Case TypeKind.Error
-                    ' We should have reported an error elsewhere.
+                ' We should have reported an error elsewhere.
                 Case Else
                     ' "'{0}' cannot be indexed because it has no default property."
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_InterfaceNoDefault1, type)
@@ -4016,7 +4015,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          Optional errorOnEmptyBound As Boolean = False) As ImmutableArray(Of BoundExpression)
 
             If arrayBoundsOpt Is Nothing Then
-                Return NoArguments
+                Return s_noArguments
             End If
 
             Dim arguments As SeparatedSyntaxList(Of ArgumentSyntax) = arrayBoundsOpt.Arguments

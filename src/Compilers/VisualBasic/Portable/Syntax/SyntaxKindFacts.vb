@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Shared reservedKeywords As SyntaxKind() = New SyntaxKind() {
+        Private Shared s_reservedKeywords As SyntaxKind() = New SyntaxKind() {
             SyntaxKind.AddressOfKeyword,
             SyntaxKind.AddHandlerKeyword,
             SyntaxKind.AliasKeyword,
@@ -236,10 +236,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Get all reserved keywords
         ''' </summary>
         Public Shared Function GetReservedKeywordKinds() As IEnumerable(Of SyntaxKind)
-            Return reservedKeywords
+            Return s_reservedKeywords
         End Function
 
-        Private Shared contextualKeywords As SyntaxKind() = New SyntaxKind() {
+        Private Shared s_contextualKeywords As SyntaxKind() = New SyntaxKind() {
             SyntaxKind.AggregateKeyword,
             SyntaxKind.AllKeyword,
             SyntaxKind.AnsiKeyword,
@@ -291,10 +291,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Get contextual keywords
         ''' </summary>
         Public Shared Function GetContextualKeywordKinds() As IEnumerable(Of SyntaxKind)
-            Return contextualKeywords
+            Return s_contextualKeywords
         End Function
 
-        Private Shared punctuationKinds As SyntaxKind() = New SyntaxKind() {
+        Private Shared s_punctuationKinds As SyntaxKind() = New SyntaxKind() {
             SyntaxKind.ExclamationToken,
             SyntaxKind.AtToken,
             SyntaxKind.CommaToken,
@@ -342,10 +342,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Get punctuations
         ''' </summary>
         Public Shared Function GetPunctuationKinds() As IEnumerable(Of SyntaxKind)
-            Return punctuationKinds
+            Return s_punctuationKinds
         End Function
 
-        Private Shared preprocessorKeywords As SyntaxKind() = New SyntaxKind() {
+        Private Shared s_preprocessorKeywords As SyntaxKind() = New SyntaxKind() {
                                                             SyntaxKind.IfKeyword,
                                                             SyntaxKind.ThenKeyword,
                                                             SyntaxKind.ElseIfKeyword,
@@ -364,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Get preprocessor keywords
         ''' </summary>
         Public Shared Function GetPreprocessorKeywordKinds() As IEnumerable(Of SyntaxKind)
-            Return preprocessorKeywords
+            Return s_preprocessorKeywords
         End Function
 
         Friend Shared Function IsSpecifier(kind As SyntaxKind) As Boolean
@@ -762,7 +762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Shared ReadOnly ContextualKeywordToSyntaxKindMap As Dictionary(Of String, SyntaxKind) =
+        Private Shared ReadOnly s_contextualKeywordToSyntaxKindMap As Dictionary(Of String, SyntaxKind) =
             New Dictionary(Of String, SyntaxKind)(IdentifierComparison.Comparer) From
             {
                    {"aggregate", SyntaxKind.AggregateKeyword},
@@ -816,10 +816,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function GetContextualKeywordKind(text As String) As SyntaxKind
             text = MakeHalfWidthIdentifier(text)
             Dim kind As SyntaxKind = SyntaxKind.None
-            Return If(ContextualKeywordToSyntaxKindMap.TryGetValue(text, kind), kind, SyntaxKind.None)
+            Return If(s_contextualKeywordToSyntaxKindMap.TryGetValue(text, kind), kind, SyntaxKind.None)
         End Function
 
-        Private Shared ReadOnly PreprocessorKeywordToSyntaxKindMap As Dictionary(Of String, SyntaxKind) =
+        Private Shared ReadOnly s_preprocessorKeywordToSyntaxKindMap As Dictionary(Of String, SyntaxKind) =
             New Dictionary(Of String, SyntaxKind)(IdentifierComparison.Comparer) From
             {
                    {"if", SyntaxKind.IfKeyword},
@@ -838,7 +838,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function GetPreprocessorKeywordKind(text As String) As SyntaxKind
             text = MakeHalfWidthIdentifier(text)
             Dim kind As SyntaxKind = SyntaxKind.None
-            Return If(PreprocessorKeywordToSyntaxKindMap.TryGetValue(text, kind), kind, SyntaxKind.None)
+            Return If(s_preprocessorKeywordToSyntaxKindMap.TryGetValue(text, kind), kind, SyntaxKind.None)
         End Function
 
         Public Shared Function GetLiteralExpression(token As SyntaxKind) As SyntaxKind

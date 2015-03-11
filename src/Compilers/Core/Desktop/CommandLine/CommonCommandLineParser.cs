@@ -317,6 +317,45 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns an error message if any of the client arguments are invalid
+        /// and null otherwise.
+        /// </summary>
+        internal static string CheckClientArgsForErrors(IEnumerable<string> args)
+        {
+            foreach (var arg in args)
+            {
+                const string keepAlive = "/keepalive";
+                var prefixLength = keepAlive.Length;
+                if (arg.StartsWith(keepAlive, StringComparison.Ordinal))
+                {
+                    if (arg.Length < prefixLength + 2 ||
+                        arg[prefixLength] != ':' &&
+                        arg[prefixLength] != '=')
+                    {
+                        return CodeAnalysisDesktopResources.MissingKeepAlive;
+                    }
+
+                    var value = arg.Substring(prefixLength + 1).Trim('"');
+                    int intValue;
+                    if (int.TryParse(value, out intValue))
+                    {
+                        if (intValue < -1)
+                        {
+                            return CodeAnalysisDesktopResources.KeepAliveIsTooSmall;
+                        }
+                    }
+                    else
+                    {
+                        return CodeAnalysisDesktopResources.KeepAliveIsNotAnInteger;
+                    }
+                }
+            }
+            return null;
+        }
+
+        internal static string MismatchedVersionErrorText => CodeAnalysisDesktopResources.MismatchedVersion;
+
+        /// <summary>
         /// Parse a response file into a set of arguments. Errors openening the response file are output into "errors".
         /// </summary>
         internal IEnumerable<string> ParseResponseFile(string fullPath, IList<Diagnostic> errors)

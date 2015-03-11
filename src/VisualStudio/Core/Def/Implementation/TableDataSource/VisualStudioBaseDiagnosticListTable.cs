@@ -7,10 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -257,7 +255,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     private readonly int _projectRank;
 
                     private FrameworkElement[] _descriptions;
-                    private FrameworkElement[] _errorCodes;
 
                     public TableEntriesSnapshot(
                         TableEntriesFactory factory, int version,
@@ -482,60 +479,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return null;
                     }
 
-                    public bool TryCreateColumnContent(int index, string columnName, bool singleColumnView, out FrameworkElement content)
-                    {
-                        content = default(FrameworkElement);
-                        if (columnName != ShimTableColumnDefinitions.ErrorCode)
-                        {
-                            return false;
-                        }
-
-                        var item = GetItem(index);
-                        if (item == null)
-                        {
-                            return false;
-                        }
-
-                        Uri unused;
-                        if (BrowserHelper.TryGetUri(item.HelpLink, out unused))
-                        {
-                            content = GetOrCreateTextBlock(ref _errorCodes, this.Count, index, item, i => GetHyperLinkTextBlock(i, new Uri(i.HelpLink, UriKind.Absolute), bingLink: false));
-                            return true;
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(item.Id))
-                        {
-                            // TODO: once we link descriptor with diagnostic, get en-us message for Uri creation
-                            content = GetOrCreateTextBlock(ref _errorCodes, this.Count, index, item, i => GetHyperLinkTextBlock(i, BrowserHelper.CreateBingQueryUri(item.Id, item.MessageFormat), bingLink: true));
-                            return true;
-                        }
-
-                        return false;
-                    }
-
-                    private FrameworkElement GetHyperLinkTextBlock(DiagnosticData item, Uri uri, bool bingLink)
-                    {
-                        // currently, we can't do pooling since there is no event saying when this got out of view.
-                        var content = new TextBlock()
-                        {
-                            Background = null,
-                            ToolTip = item.Id,
-                        };
-
-                        var hyperlink = new Hyperlink();
-
-                        hyperlink.Inlines.Add(item.Id);
-                        hyperlink.NavigateUri = uri;
-                        content.Inlines.Add(hyperlink);
-
-                        // hyperlink will go away as soon as it goes out of view or updated.
-                        hyperlink.Tag = item;
-
-                        // use small event handler singleton object so that leaking ui doesnt make snapshot to leak.
-                        UriNavigator.AttachRequestNaviateEventHandler(hyperlink, _factory._source._serviceProvider);
-                        return content;
-                    }
-
                     private static FrameworkElement GetOrCreateTextBlock(
                         ref FrameworkElement[] caches, int count, int index, DiagnosticData item, Func<DiagnosticData, FrameworkElement> elementCreator)
                     {
@@ -553,6 +496,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
 
                     // unused ones                    
+                    public bool TryCreateColumnContent(int index, string columnName, bool singleColumnView, out FrameworkElement content)
+                    {
+                        content = default(FrameworkElement);
+                        return false;
+                    }
+
                     public bool TryCreateImageContent(int index, string columnName, bool singleColumnView, out ImageMoniker content)
                     {
                         content = default(ImageMoniker);

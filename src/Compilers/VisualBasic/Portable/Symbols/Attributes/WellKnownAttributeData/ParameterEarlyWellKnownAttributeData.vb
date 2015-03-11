@@ -9,16 +9,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "MarshalAsAttribute"
         ' only used for parameters of Declare methods
-        Private m_hasMarshalAsAttribute As Boolean
+        Private _hasMarshalAsAttribute As Boolean
 
         Friend Property HasMarshalAsAttribute As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me.m_hasMarshalAsAttribute
+                Return Me._hasMarshalAsAttribute
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me.m_hasMarshalAsAttribute = value
+                Me._hasMarshalAsAttribute = value
                 SetDataStored()
             End Set
         End Property
@@ -27,16 +27,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "ParamArrayAttribute"
         ' only used for parameters 
-        Private m_hasParamArrayAttribute As Boolean
+        Private _hasParamArrayAttribute As Boolean
 
         Friend Property HasParamArrayAttribute As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me.m_hasParamArrayAttribute
+                Return Me._hasParamArrayAttribute
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me.m_hasParamArrayAttribute = value
+                Me._hasParamArrayAttribute = value
                 SetDataStored()
             End Set
         End Property

@@ -3339,8 +3339,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x1" startLine="15" startColumn="29" endLine="15" endColumn="42" document="0"/>
+                <entry offset="0x0" startLine="15" startColumn="29" endLine="15" endColumn="42" document="0"/>
             </sequencePoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xa">
@@ -3436,8 +3435,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-0" parameterNames="rangeVar1">
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x1" startLine="15" startColumn="37" endLine="15" endColumn="50" document="0"/>
+                <entry offset="0x0" startLine="15" startColumn="37" endLine="15" endColumn="50" document="0"/>
             </sequencePoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xb">
@@ -3446,8 +3444,7 @@ End Module
         </method>
         <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="$VB$It">
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0xc" startLine="15" startColumn="64" endLine="15" endColumn="85" document="0"/>
+                <entry offset="0x0" startLine="15" startColumn="64" endLine="15" endColumn="85" document="0"/>
             </sequencePoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x20">
@@ -6691,6 +6688,45 @@ End Module
             <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <WorkItem(841361, "DevDiv")>
+        <Fact()>
+        Public Sub SequencePointsInAQuery_32()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System.Collections
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Module1
+    Sub Main()
+        Dim x = From a in {1, 2, 3}
+                Let b = a * a
+                Select b
+    End Sub
+End Module
+]]></file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
+
+            compilation.AssertTheseDiagnostics(<expected></expected>)
+
+            compilation.VerifyPdb("Module1+_Closure$__._Lambda$__0-0",
+<symbols>
+    <methods>
+        <method containingType="Module1+_Closure$__" name="_Lambda$__0-0" parameterNames="a">
+            <sequencePoints>
+                <entry offset="0x0" startLine="8" startColumn="25" endLine="8" endColumn="30" document="0"/>
+            </sequencePoints>
+            <locals/>
+            <scope startOffset="0x0" endOffset="0xa">
+                <importsforward declaringType="Module1" methodName="Main"/>
             </scope>
         </method>
     </methods>

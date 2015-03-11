@@ -12,25 +12,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class SourceTypeParameterSymbol
         Inherits TypeParameterSymbol
 
-        Private ReadOnly m_ordinal As Integer ' 0 is first type parameter, etc.
-        Private ReadOnly m_name As String
-        Private m_lazyConstraints As ImmutableArray(Of TypeParameterConstraint)
-        Private m_lazyConstraintTypes As ImmutableArray(Of TypeSymbol)
+        Private ReadOnly _ordinal As Integer ' 0 is first type parameter, etc.
+        Private ReadOnly _name As String
+        Private _lazyConstraints As ImmutableArray(Of TypeParameterConstraint)
+        Private _lazyConstraintTypes As ImmutableArray(Of TypeSymbol)
 
         Protected Sub New(ordinal As Integer, name As String)
-            m_ordinal = ordinal
-            m_name = name
+            _ordinal = ordinal
+            _name = name
         End Sub
 
         Public Overrides ReadOnly Property Ordinal As Integer
             Get
-                Return m_ordinal
+                Return _ordinal
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_name
+                Return _name
             End Get
         End Property
 
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property HasConstructorConstraint As Boolean
             Get
                 EnsureAllConstraintsAreResolved()
-                For Each constraint In m_lazyConstraints
+                For Each constraint In _lazyConstraints
                     If constraint.IsConstructorConstraint Then
                         Return True
                     End If
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property HasReferenceTypeConstraint As Boolean
             Get
                 EnsureAllConstraintsAreResolved()
-                For Each constraint In m_lazyConstraints
+                For Each constraint In _lazyConstraints
                     If constraint.IsReferenceTypeConstraint Then
                         Return True
                     End If
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property HasValueTypeConstraint As Boolean
             Get
                 EnsureAllConstraintsAreResolved()
-                For Each constraint In m_lazyConstraints
+                For Each constraint In _lazyConstraints
                     If constraint.IsValueTypeConstraint Then
                         Return True
                     End If
@@ -77,20 +77,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property ConstraintTypesNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
             Get
                 EnsureAllConstraintsAreResolved()
-                Return m_lazyConstraintTypes
+                Return _lazyConstraintTypes
             End Get
         End Property
 
         Friend Overrides Function GetConstraints() As ImmutableArray(Of TypeParameterConstraint)
             EnsureAllConstraintsAreResolved()
-            Return m_lazyConstraints
+            Return _lazyConstraints
         End Function
 
         Friend Overrides Sub ResolveConstraints(inProgress As ConsList(Of TypeParameterSymbol))
             Debug.Assert(Not inProgress.Contains(Me))
             Debug.Assert(Not inProgress.Any() OrElse inProgress.Head.ContainingSymbol Is ContainingSymbol)
 
-            If m_lazyConstraintTypes.IsDefault Then
+            If _lazyConstraintTypes.IsDefault Then
                 Dim diagnostics = DiagnosticBag.GetInstance()
                 Dim constraints = GetDeclaredConstraints(diagnostics)
                 Dim reportConflicts = DirectConstraintConflictKind.DuplicateTypeConstraint Or
@@ -99,9 +99,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
                 constraints = Me.RemoveDirectConstraintConflicts(constraints, inProgress.Prepend(Me), reportConflicts, diagnosticsBuilder)
 
-                ImmutableInterlocked.InterlockedInitialize(m_lazyConstraints, constraints)
+                ImmutableInterlocked.InterlockedInitialize(_lazyConstraints, constraints)
 
-                If ImmutableInterlocked.InterlockedInitialize(m_lazyConstraintTypes, GetConstraintTypesOnly(constraints)) Then
+                If ImmutableInterlocked.InterlockedInitialize(_lazyConstraintTypes, GetConstraintTypesOnly(constraints)) Then
                     Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
                     Me.ReportIndirectConstraintConflicts(diagnosticsBuilder, useSiteDiagnosticsBuilder)
 
@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Friend Overrides Sub EnsureAllConstraintsAreResolved()
-            If m_lazyConstraintTypes.IsDefault Then
+            If _lazyConstraintTypes.IsDefault Then
                 EnsureAllConstraintsAreResolved(ContainerTypeParameters)
             End If
         End Sub
@@ -212,17 +212,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class SourceTypeParameterOnTypeSymbol
         Inherits SourceTypeParameterSymbol
 
-        Private ReadOnly m_container As SourceNamedTypeSymbol
-        Private ReadOnly m_syntaxRefs As ImmutableArray(Of SyntaxReference)
-        Private m_lazyVariance As VarianceKind
+        Private ReadOnly _container As SourceNamedTypeSymbol
+        Private ReadOnly _syntaxRefs As ImmutableArray(Of SyntaxReference)
+        Private _lazyVariance As VarianceKind
 
         Public Sub New(container As SourceNamedTypeSymbol, ordinal As Integer, name As String, syntaxRefs As ImmutableArray(Of SyntaxReference))
             MyBase.New(ordinal, name)
             Debug.Assert(Not syntaxRefs.IsEmpty)
             Debug.Assert(name IsNot Nothing)
 
-            m_container = container
-            m_syntaxRefs = syntaxRefs
+            _container = container
+            _syntaxRefs = syntaxRefs
         End Sub
 
         Public Overrides ReadOnly Property TypeParameterKind As TypeParameterKind
@@ -234,14 +234,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property Variance As VarianceKind
             Get
                 EnsureAllConstraintsAreResolved()
-                Return m_lazyVariance
+                Return _lazyVariance
             End Get
         End Property
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Dim builder = ArrayBuilder(Of Location).GetInstance()
-                For Each syntaxRef In m_syntaxRefs
+                For Each syntaxRef In _syntaxRefs
                     builder.Add(GetSymbolLocation(syntaxRef))
                 Next
                 Return builder.ToImmutableAndFree()
@@ -250,27 +250,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return GetDeclaringSyntaxReferenceHelper(m_syntaxRefs)
+                Return GetDeclaringSyntaxReferenceHelper(_syntaxRefs)
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return m_container
+                Return _container
             End Get
         End Property
 
         Protected Overrides ReadOnly Property ContainerTypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
-                Return m_container.TypeParameters
+                Return _container.TypeParameters
             End Get
         End Property
 
         Protected Overrides Function GetDeclaredConstraints(diagnostics As DiagnosticBag) As ImmutableArray(Of TypeParameterConstraint)
             Dim variance As VarianceKind
             Dim constraints As ImmutableArray(Of TypeParameterConstraint) = Nothing
-            m_container.BindTypeParameterConstraints(Me, variance, constraints, diagnostics)
-            m_lazyVariance = variance
+            _container.BindTypeParameterConstraints(Me, variance, constraints, diagnostics)
+            _lazyVariance = variance
             Return constraints
         End Function
 
@@ -286,21 +286,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class SourceTypeParameterOnMethodSymbol
         Inherits SourceTypeParameterSymbol
 
-        Private ReadOnly m_container As SourceMemberMethodSymbol
-        Private ReadOnly m_syntaxRef As SyntaxReference
+        Private ReadOnly _container As SourceMemberMethodSymbol
+        Private ReadOnly _syntaxRef As SyntaxReference
 
         Public Sub New(container As SourceMemberMethodSymbol,
                        ordinal As Integer,
                        name As String,
                        syntaxRef As SyntaxReference)
             MyBase.New(ordinal, name)
-            m_container = container
-            m_syntaxRef = syntaxRef
+            _container = container
+            _syntaxRef = syntaxRef
         End Sub
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return m_container
+                Return _container
             End Get
         End Property
 
@@ -318,37 +318,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return ImmutableArray.Create(GetSymbolLocation(m_syntaxRef))
+                Return ImmutableArray.Create(GetSymbolLocation(_syntaxRef))
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return GetDeclaringSyntaxReferenceHelper(m_syntaxRef)
+                Return GetDeclaringSyntaxReferenceHelper(_syntaxRef)
             End Get
         End Property
 
         Protected Overrides ReadOnly Property ContainerTypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
-                Return m_container.TypeParameters
+                Return _container.TypeParameters
             End Get
         End Property
 
         Protected Overrides Function GetDeclaredConstraints(diagnostics As DiagnosticBag) As ImmutableArray(Of TypeParameterConstraint)
-            Dim syntax = DirectCast(m_syntaxRef.GetSyntax(), TypeParameterSyntax)
-            Return m_container.BindTypeParameterConstraints(syntax, diagnostics)
+            Dim syntax = DirectCast(_syntaxRef.GetSyntax(), TypeParameterSyntax)
+            Return _container.BindTypeParameterConstraints(syntax, diagnostics)
         End Function
 
         Protected Overrides Function ReportRedundantConstraints() As Boolean
             ' If the container is an overridden method, allow redundant constraints.
-            If m_container.IsOverrides Then
+            If _container.IsOverrides Then
                 Return False
             End If
 
             ' If the container is a private, explicit interface
             ' implementation, allow redundant constraints.
-            If (m_container.DeclaredAccessibility = Accessibility.Private) AndAlso
-                    m_container.HasExplicitInterfaceImplementations Then
+            If (_container.DeclaredAccessibility = Accessibility.Private) AndAlso
+                    _container.HasExplicitInterfaceImplementations Then
                 Return False
             End If
 

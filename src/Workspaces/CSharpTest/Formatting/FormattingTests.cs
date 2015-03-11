@@ -5832,9 +5832,10 @@ class C
             AssertFormat(expected, code);
         }
 
-        [WorkItem(961559)]
+        [WorkItem(1041787)]
+        [WorkItem(1151, "https://github.com/dotnet/roslyn/issues/1151")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void ReconstructWhitespaceStringUsingTabs()
+        public void ReconstructWhitespaceStringUsingTabs_SingleLineComment()
         {
             var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
             AssertFormat(@"using System;
@@ -5843,7 +5844,7 @@ class Program
 {
 	static void Main(string[] args)
 	{
-		Console.WriteLine(""""); // FooBar
+		Console.WriteLine("""");        // FooBar
 	}
 }", @"using System;
 
@@ -5851,7 +5852,33 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(""""); // FooBar
+        Console.WriteLine("""");        // FooBar
+    }
+}", false, optionSet);
+        }
+
+        [WorkItem(961559)]
+        [WorkItem(1041787)]
+        [WorkItem(1151, "https://github.com/dotnet/roslyn/issues/1151")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void ReconstructWhitespaceStringUsingTabs_MultiLineComment()
+        {
+            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+            AssertFormat(@"using System;
+
+class Program
+{
+	static void Main(string[] args)
+	{
+		Console.WriteLine("""");        /* FooBar */
+	}
+}", @"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine("""");        /* FooBar */
     }
 }", false, optionSet);
         }
@@ -6009,6 +6036,14 @@ class Program
     }
 }";
             AssertFormat(expected, code);
+        }
+
+        [WorkItem(1118, "https://github.com/dotnet/roslyn/issues/1118")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DontAssumeCertainNodeAreAlwaysParented()
+        {
+            var block = SyntaxFactory.Block();
+            Formatter.Format(block, new AdhocWorkspace());
         }
     }
 }

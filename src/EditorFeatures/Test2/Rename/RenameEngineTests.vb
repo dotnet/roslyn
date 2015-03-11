@@ -6692,6 +6692,85 @@ class {|Conflict:foo|}
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment", "// foo BAR! foo!")
             End Using
         End Sub
+
 #End Region
+
+#Region "Rename In NameOf"
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_NoOverloads_CSharp()
+            Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
+                            <Document><![CDATA[
+class C
+{
+    void [|$$M|]()
+    {
+        nameof([|M|]).ToString();
+    }
+}
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Mo")
+
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_WithOverloads_CSharp()
+            Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
+                            <Document><![CDATA[
+class C
+{
+    void [|$$M|]()
+    {
+        nameof(M).ToString();
+    }
+
+    void M(int x)
+    {
+    }
+}
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Mo")
+
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_WithOverloads_WithRenameOverloadsOption_CSharp()
+            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
+            renamingOptions.Add(RenameOptions.RenameOverloads, True)
+            Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
+                            <Document><![CDATA[
+class C
+{
+    void [|$$M|]()
+    {
+        nameof([|M|]).ToString();
+    }
+
+    void [|M|](int x)
+    {
+    }
+}
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Mo", changedOptionSet:=renamingOptions)
+
+            End Using
+        End Sub
+
+#End Region
+
     End Class
 End Namespace

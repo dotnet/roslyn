@@ -22,16 +22,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._trailingTrivia = trailingTrivia
             End Sub
 
-            Private Const maximumCachedTriviaWidth As Integer = 40
-            Private Const triviaInfoCacheSize As Integer = 64
+            Private Const s_maximumCachedTriviaWidth As Integer = 40
+            Private Const s_triviaInfoCacheSize As Integer = 64
 
-            Private Shared ReadOnly triviaKeyHasher As Func(Of VisualBasicSyntaxNode, Integer) =
+            Private Shared ReadOnly s_triviaKeyHasher As Func(Of VisualBasicSyntaxNode, Integer) =
             Function(key) Hash.Combine(key.ToFullString(), CShort(key.Kind))
 
-            Private Shared ReadOnly triviaKeyEquality As Func(Of VisualBasicSyntaxNode, TriviaInfo, Boolean) =
+            Private Shared ReadOnly s_triviaKeyEquality As Func(Of VisualBasicSyntaxNode, TriviaInfo, Boolean) =
             Function(key, value) (key Is value._leadingTrivia) OrElse ((key.Kind = value._leadingTrivia.Kind) AndAlso (key.FullWidth = value._leadingTrivia.FullWidth) AndAlso (key.ToFullString() = value._leadingTrivia.ToFullString()))
 
-            Private Shared ReadOnly triviaInfoCache As CachingFactory(Of VisualBasicSyntaxNode, TriviaInfo) = New CachingFactory(Of VisualBasicSyntaxNode, TriviaInfo)(triviaInfoCacheSize, Nothing, triviaKeyHasher, triviaKeyEquality)
+            Private Shared ReadOnly s_triviaInfoCache As CachingFactory(Of VisualBasicSyntaxNode, TriviaInfo) = New CachingFactory(Of VisualBasicSyntaxNode, TriviaInfo)(s_triviaInfoCacheSize, Nothing, s_triviaKeyHasher, s_triviaKeyEquality)
 
             Private Shared Function ShouldCacheTriviaInfo(leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode) As Boolean
                 Debug.Assert(leadingTrivia IsNot Nothing)
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     ' Leading doc comment (which may include whitespace). No trailing trivia.
                     Return leadingTrivia.Kind = SyntaxKind.DocumentationCommentExteriorTrivia AndAlso leadingTrivia.Flags = NodeFlags.IsNotMissing AndAlso
-                        leadingTrivia.FullWidth <= maximumCachedTriviaWidth
+                        leadingTrivia.FullWidth <= s_maximumCachedTriviaWidth
 
                 Else
 
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return leadingTrivia.Kind = SyntaxKind.WhitespaceTrivia AndAlso leadingTrivia.Flags = NodeFlags.IsNotMissing AndAlso
                          trailingTrivia.Kind = SyntaxKind.WhitespaceTrivia AndAlso trailingTrivia.Flags = NodeFlags.IsNotMissing AndAlso
                          trailingTrivia.FullWidth = 1 AndAlso trailingTrivia.ToFullString() = " " AndAlso
-                         leadingTrivia.FullWidth <= maximumCachedTriviaWidth
+                         leadingTrivia.FullWidth <= s_maximumCachedTriviaWidth
 
                 End If
 
@@ -60,18 +60,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' PERF: Cache common kinds of TriviaInfo
                 If ShouldCacheTriviaInfo(leadingTrivia, trailingTrivia) Then
                     Dim retVal As TriviaInfo = Nothing
-                    SyncLock triviaInfoCache
+                    SyncLock s_triviaInfoCache
                         ' Note: Only the leading trivia is considered as a key into the cache. That works because
                         ' we cache only a couple of different cases. In one case, the trailing trivia is Nothing
                         ' and in the other it's a single space, and the two cases can be distinguished just by
                         ' examining the Kind on the leading trivia. If we ever decide to cache more kinds of trivia
                         ' this may have to be revisited.
-                        If triviaInfoCache.TryGetValue(leadingTrivia, retVal) Then
+                        If s_triviaInfoCache.TryGetValue(leadingTrivia, retVal) Then
                             Debug.Assert(trailingTrivia Is Nothing OrElse retVal._trailingTrivia.IsEquivalentTo(trailingTrivia))
                             Debug.Assert(retVal._leadingTrivia.IsEquivalentTo(leadingTrivia))
                         Else
                             retVal = New TriviaInfo(leadingTrivia, trailingTrivia)
-                            triviaInfoCache.Add(leadingTrivia, retVal)
+                            s_triviaInfoCache.Add(leadingTrivia, retVal)
                         End If
                     End SyncLock
 
@@ -502,7 +502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
     End Class
 
-    Partial Class XmlTextTokenSyntax
+    Friend Partial Class XmlTextTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ValueText As String
             Get
                 Return Me.Value
@@ -510,7 +510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
     End Class
 
-    Partial Class InterpolatedStringTextTokenSyntax
+    Friend Partial Class InterpolatedStringTextTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ValueText As String
             Get
                 Return Me.Value
@@ -518,7 +518,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
     End Class
 
-    Partial Class KeywordSyntax
+    Friend Partial Class KeywordSyntax
 
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get

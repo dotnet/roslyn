@@ -287,8 +287,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Sub
         End Structure
 
-        Private Shared _Keywords As New Dictionary(Of String, SyntaxKind)(IdentifierComparison.Comparer)
-        Private Shared _KeywordProperties As New Dictionary(Of UShort, KeywordDescription)
+        Private Shared s_keywords As New Dictionary(Of String, SyntaxKind)(IdentifierComparison.Comparer)
+        Private Shared s_keywordProperties As New Dictionary(Of UShort, KeywordDescription)
 
         Friend Shared Function TokenOfString(tokenName As String) As SyntaxKind
             Debug.Assert(tokenName IsNot Nothing)
@@ -296,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             tokenName = EnsureHalfWidth(tokenName)
 
             Dim kind As SyntaxKind
-            If Not _Keywords.TryGetValue(tokenName, kind) Then
+            If Not s_keywords.TryGetValue(tokenName, kind) Then
                 kind = SyntaxKind.IdentifierToken
             End If
             Return kind
@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Shared Function CanFollowExpression(kind As SyntaxKind) As Boolean
             Dim description As KeywordDescription = Nothing
-            If (_KeywordProperties.TryGetValue(kind, description)) Then
+            If (s_keywordProperties.TryGetValue(kind, description)) Then
                 Return description.kdCanFollowExpr
             End If
             Return False
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Shared Function IsQueryClause(kind As SyntaxKind) As Boolean
             Dim description As KeywordDescription = Nothing
-            If (_KeywordProperties.TryGetValue(kind, description)) Then
+            If (s_keywordProperties.TryGetValue(kind, description)) Then
                 Return description.kdIsQueryClause
             End If
             Return False
@@ -351,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Shared Function TokenOpPrec(kind As SyntaxKind) As OperatorPrecedence
             Dim description As KeywordDescription = Nothing
-            If (_KeywordProperties.TryGetValue(kind, description)) Then
+            If (s_keywordProperties.TryGetValue(kind, description)) Then
                 Return description.kdOperPrec
             End If
 
@@ -368,11 +368,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             canFollowExpr As Boolean)
 
             Dim keyword As New KeywordDescription(New7To8, Precedence, isQueryClause, canFollowExpr)
-            _KeywordProperties.Add(Token, keyword)
+            s_keywordProperties.Add(Token, keyword)
 
             Dim Name = SyntaxFacts.GetText(Token)
             Debug.Assert(Name IsNot Nothing)
-            _Keywords.Add(Name, Token)
+            s_keywords.Add(Name, Token)
         End Sub
 
 
