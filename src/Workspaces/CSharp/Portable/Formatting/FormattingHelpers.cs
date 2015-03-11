@@ -98,8 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            return node.Parent.Kind() == SyntaxKind.SimpleLambdaExpression ||
-                   node.Parent.Kind() == SyntaxKind.ParenthesizedLambdaExpression;
+            return node.IsParentKind(SyntaxKind.SimpleLambdaExpression) || node.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression);
         }
 
         public static bool IsAnonymousMethodBlock(this SyntaxNode node)
@@ -109,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            return node.Parent.Kind() == SyntaxKind.AnonymousMethodExpression;
+            return node.IsParentKind(SyntaxKind.AnonymousMethodExpression);
         }
 
         public static bool IsSemicolonInForStatement(this SyntaxToken token)
@@ -502,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             Contract.ThrowIfNull(node);
 
             var blockNode = node as BlockSyntax;
-            if (blockNode == null)
+            if (blockNode == null || blockNode.Parent == null)
             {
                 return false;
             }

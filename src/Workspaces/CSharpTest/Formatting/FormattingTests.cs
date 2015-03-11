@@ -6037,5 +6037,13 @@ class Program
 }";
             AssertFormat(expected, code);
         }
+
+        [WorkItem(1118, "https://github.com/dotnet/roslyn/issues/1118")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DontAssumeCertainNodeAreAlwaysParented()
+        {
+            var block = SyntaxFactory.Block();
+            Formatter.Format(block, new AdhocWorkspace());
+        }
     }
 }
