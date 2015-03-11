@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
-    Partial Class CharacterLiteralTokenSyntax
+    Friend Partial Class CharacterLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
                 Return Me.Value
@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
     End Class
 
-    Partial Class DateLiteralTokenSyntax
+    Friend Partial Class DateLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
                 Return Me.Value
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
     End Class
 
-    Partial Class DecimalLiteralTokenSyntax
+    Friend Partial Class DecimalLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
                 Return Me.Value
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
     End Class
 
-    Partial Class StringLiteralTokenSyntax
+    Friend Partial Class StringLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
                 Return Me.Value

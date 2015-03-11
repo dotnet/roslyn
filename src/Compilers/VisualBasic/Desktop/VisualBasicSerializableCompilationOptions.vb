@@ -11,17 +11,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private _options As VisualBasicCompilationOptions
 
-        Private Const GlobalImportsString = "GlobalImports"
-        Private Const RootNamespaceString = "RootNamespace"
-        Private Const OptionStrictString = "OptionStrict"
-        Private Const OptionInferString = "OptionInfer"
-        Private Const OptionExplicitString = "OptionExplicit"
-        Private Const OptionCompareTextString = "OptionCompareText"
-        Private Const EmbedVbCoreRuntimeString = "EmbedVbCoreRuntime"
-        Private Const SuppressEmbeddedDeclarationsString = "SuppressEmbeddedDeclarations"
-        Private Const ParseOptionsString = "ParseOptions"
+        Private Const s_globalImportsString = "GlobalImports"
+        Private Const s_rootNamespaceString = "RootNamespace"
+        Private Const s_optionStrictString = "OptionStrict"
+        Private Const s_optionInferString = "OptionInfer"
+        Private Const s_optionExplicitString = "OptionExplicit"
+        Private Const s_optionCompareTextString = "OptionCompareText"
+        Private Const s_embedVbCoreRuntimeString = "EmbedVbCoreRuntime"
+        Private Const s_suppressEmbeddedDeclarationsString = "SuppressEmbeddedDeclarations"
+        Private Const s_parseOptionsString = "ParseOptions"
 
-        Sub New(options As VisualBasicCompilationOptions)
+        Public Sub New(options As VisualBasicCompilationOptions)
             If options Is Nothing Then
                 Throw New ArgumentNullException("options")
             End If
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Sub New(info As SerializationInfo, context As StreamingContext)
-            Dim serializableOptions = DirectCast(info.GetValue(ParseOptionsString, GetType(VisualBasicSerializableParseOptions)), VisualBasicSerializableParseOptions)
+            Dim serializableOptions = DirectCast(info.GetValue(s_parseOptionsString, GetType(VisualBasicSerializableParseOptions)), VisualBasicSerializableParseOptions)
 
             _options = New VisualBasicCompilationOptions(
                 outputKind:=DirectCast(info.GetInt32(OutputKindString), OutputKind),
@@ -55,29 +55,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 strongNameProvider:=New DesktopStrongNameProvider(),
                 metadataImportOptions:=DirectCast(info.GetByte(MetadataImportOptionsString), MetadataImportOptions),
                 features:=DirectCast(info.GetValue(FeaturesString, GetType(String())), String()).AsImmutable(),
-                globalImports:=DirectCast(info.GetValue(GlobalImportsString, GetType(String())), String()).Select(AddressOf GlobalImport.Parse),
-                rootNamespace:=info.GetString(RootNamespaceString),
-                optionStrict:=CType(info.GetInt32(OptionStrictString), OptionStrict),
-                optionInfer:=info.GetBoolean(OptionInferString),
-                optionExplicit:=info.GetBoolean(OptionExplicitString),
-                optionCompareText:=info.GetBoolean(OptionCompareTextString),
-                embedVbCoreRuntime:=info.GetBoolean(EmbedVbCoreRuntimeString),
-                suppressEmbeddedDeclarations:=info.GetBoolean(SuppressEmbeddedDeclarationsString),
+                globalImports:=DirectCast(info.GetValue(s_globalImportsString, GetType(String())), String()).Select(AddressOf GlobalImport.Parse),
+                rootNamespace:=info.GetString(s_rootNamespaceString),
+                optionStrict:=CType(info.GetInt32(s_optionStrictString), OptionStrict),
+                optionInfer:=info.GetBoolean(s_optionInferString),
+                optionExplicit:=info.GetBoolean(s_optionExplicitString),
+                optionCompareText:=info.GetBoolean(s_optionCompareTextString),
+                embedVbCoreRuntime:=info.GetBoolean(s_embedVbCoreRuntimeString),
+                suppressEmbeddedDeclarations:=info.GetBoolean(s_suppressEmbeddedDeclarationsString),
                 parseOptions:=If(serializableOptions IsNot Nothing, serializableOptions.Options, Nothing))
         End Sub
 
         Public Overrides Sub GetObjectData(info As SerializationInfo, context As StreamingContext)
             CommonGetObjectData(_options, info, context)
 
-            info.AddValue(GlobalImportsString, _options.GlobalImports.Select(Function(g) g.Name).ToArray())
-            info.AddValue(RootNamespaceString, _options.RootNamespace)
-            info.AddValue(OptionStrictString, _options.OptionStrict)
-            info.AddValue(OptionInferString, _options.OptionInfer)
-            info.AddValue(OptionExplicitString, _options.OptionExplicit)
-            info.AddValue(OptionCompareTextString, _options.OptionCompareText)
-            info.AddValue(EmbedVbCoreRuntimeString, _options.EmbedVbCoreRuntime)
-            info.AddValue(SuppressEmbeddedDeclarationsString, _options.SuppressEmbeddedDeclarations)
-            info.AddValue(ParseOptionsString, If(_options.ParseOptions IsNot Nothing, New VisualBasicSerializableParseOptions(_options.ParseOptions), Nothing))
+            info.AddValue(s_globalImportsString, _options.GlobalImports.Select(Function(g) g.Name).ToArray())
+            info.AddValue(s_rootNamespaceString, _options.RootNamespace)
+            info.AddValue(s_optionStrictString, _options.OptionStrict)
+            info.AddValue(s_optionInferString, _options.OptionInfer)
+            info.AddValue(s_optionExplicitString, _options.OptionExplicit)
+            info.AddValue(s_optionCompareTextString, _options.OptionCompareText)
+            info.AddValue(s_embedVbCoreRuntimeString, _options.EmbedVbCoreRuntime)
+            info.AddValue(s_suppressEmbeddedDeclarationsString, _options.SuppressEmbeddedDeclarations)
+            info.AddValue(s_parseOptionsString, If(_options.ParseOptions IsNot Nothing, New VisualBasicSerializableParseOptions(_options.ParseOptions), Nothing))
         End Sub
 
         Public Shadows ReadOnly Property Options As VisualBasicCompilationOptions

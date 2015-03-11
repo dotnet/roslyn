@@ -14,15 +14,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Const ResponseFileName As String = "vbc.rsp"
         Friend Const VbcCommandLinePrefix = "vbc : " 'Common prefix String For VB diagnostic output with no location.
-        Private Shared p_responseFileName As String
-        Private ReadOnly m_responseFile As String
-        Private ReadOnly m_diagnosticFormatter As CommandLineDiagnosticFormatter
+        Private Shared s_responseFileName As String
+        Private ReadOnly _responseFile As String
+        Private ReadOnly _diagnosticFormatter As CommandLineDiagnosticFormatter
 
         Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), baseDirectory As String, additionalReferencePaths As String)
             MyBase.New(parser, responseFile, args, baseDirectory, additionalReferencePaths)
             Debug.Assert(responseFile Is Nothing OrElse Path.IsPathRooted(responseFile))
-            m_responseFile = responseFile
-            m_diagnosticFormatter = New CommandLineDiagnosticFormatter(baseDirectory)
+            _responseFile = responseFile
+            _diagnosticFormatter = New CommandLineDiagnosticFormatter(baseDirectory)
         End Sub
 
         Friend Overloads ReadOnly Property Arguments As VisualBasicCommandLineArguments
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property DiagnosticFormatter As DiagnosticFormatter
             Get
-                Return m_diagnosticFormatter
+                Return _diagnosticFormatter
             End Get
         End Property
 

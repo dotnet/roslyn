@@ -1884,6 +1884,55 @@ public abstract class A
             Assert.NotNull(eventF.AssociatedField); // Since it has an initializer.
         }
 
+        [Fact, WorkItem(406, "https://github.com/dotnet/roslyn/issues/406")]
+        public void AbstractBaseEvent()
+        {
+            var source =
+@"using System;
+
+namespace ConsoleApplication3
+{
+    public abstract class BaseWithAbstractEvent
+    {
+        public abstract event Action MyEvent;
+    }
+
+    public class SuperWithOverridenEvent : BaseWithAbstractEvent
+    {
+        public override event Action MyEvent
+        {
+            add { base.MyEvent += value; } // error
+            remove { base.MyEvent -= value; } // error
+        }
+
+        public void Foo()
+        {
+            base.MyEvent += Foo; // error
+        }
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            SuperWithOverridenEvent swoe = new SuperWithOverridenEvent();
+            swoe.MyEvent += Main;
+        }
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (14,19): error CS0205: Cannot call an abstract base member: 'BaseWithAbstractEvent.MyEvent'
+                //             add { base.MyEvent += value; } // error
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(14, 19),
+                // (15,22): error CS0205: Cannot call an abstract base member: 'BaseWithAbstractEvent.MyEvent'
+                //             remove { base.MyEvent -= value; } // error
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(15, 22),
+                // (20,13): error CS0205: Cannot call an abstract base member: 'BaseWithAbstractEvent.MyEvent'
+                //             base.MyEvent += Foo; // error
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(20, 13)
+                );
+        }
+
         #endregion
     }
 }

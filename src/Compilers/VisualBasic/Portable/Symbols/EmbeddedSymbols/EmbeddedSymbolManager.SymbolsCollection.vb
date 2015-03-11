@@ -134,9 +134,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If _sealed = 0 Then
 #End If
 
-                Debug.Assert(symbol.IsDefinition)
-                Debug.Assert(symbol.IsEmbedded)
-                AddReferencedSymbolWithDependents(symbol, allSymbols)
+            Debug.Assert(symbol.IsDefinition)
+            Debug.Assert(symbol.IsEmbedded)
+            AddReferencedSymbolWithDependents(symbol, allSymbols)
 
 #If Not Debug Then
             End If
@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Case MethodKind.Ordinary,
                              MethodKind.Constructor,
                              MethodKind.SharedConstructor
-                            ' OK
+                        ' OK
 
                         Case Else
                             Throw ExceptionUtilities.UnexpectedValue(methKind)
@@ -342,11 +342,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ValidateMethod(DirectCast(member, MethodSymbol))
 
                     Case SymbolKind.NamedType
-                        ' Nested types are OK
+                    ' Nested types are OK
 
                     Case SymbolKind.Property
-                        ' Properties are OK if the accessors are OK, and accessors will be
-                        ' checked separately since those will also appear in GetMembers().
+                    ' Properties are OK if the accessors are OK, and accessors will be
+                    ' checked separately since those will also appear in GetMembers().
 
                     Case Else
                         ' No other symbol kinds are allowed

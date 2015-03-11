@@ -29,11 +29,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim i As Integer = 0
                 GoTo start
 
-again :
+again:
                 hashCode = CUInt((AscW(text(i)) Xor hashCode) * 16777619)
                 i = i + 1
 
-start :
+start:
                 If (i < text.Length) Then
                     GoTo again
                 End If

@@ -191,7 +191,7 @@ class C : System.IDisposable
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "using (C x)", "using statement"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "using (C x)", "using statement"));
         }
 
         #endregion
@@ -234,7 +234,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "{"));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "{"));
         }
 
         // TODO (tomat): considering a change
@@ -359,20 +359,20 @@ class C : IDisposable
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "{"),
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "{"),
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "{"),
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "case 2:"),
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "default:"),
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "{"),
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "{"),
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "while (true)"),
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "do"),
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "for (int i = 0; i < 10;        i++        )"),
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "foreach         (var i in new[] { 1, 2 })"),
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "using (       var z = new C()        )"),
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "fixed (       char* p = \"s\"        )"),
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "label"));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "{"),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "{"),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "{"),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "case 2:"),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "default:"),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "{"),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "{"),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "while (true)"),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "do"),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "for (int i = 0; i < 10;        i++        )"),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "foreach         (var i in new[] { 1, 2 })"),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "using (       var z = new C()        )"),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "fixed (       char* p = \"s\"        )"),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "label"));
         }
 
         [Fact]
@@ -582,7 +582,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "{"));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "{"));
         }
 
         [WorkItem(755959)]
@@ -2284,7 +2284,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "lock (lockThis)", "lock statement"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "lock (lockThis)", "lock statement"));
         }
 
         [WorkItem(755749)]
@@ -2318,7 +2318,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "lock (lockThis)", "lock statement"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "lock (lockThis)", "lock statement"));
         }
 
         [Fact]
@@ -2411,8 +2411,8 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "lock (d)", "lock statement"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "lock (e)", "lock statement"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "lock (d)", "lock statement"),
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "lock (e)", "lock statement"));
         }
 
         [Fact]
@@ -2472,7 +2472,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "lock (d)", "lock statement"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "lock (d)", "lock statement"));
         }
 
         [WorkItem(755752)]
@@ -2507,7 +2507,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "lock (\"test\")", "lock statement"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "lock (\"test\")", "lock statement"));
         }
 
         [Fact]
@@ -2659,7 +2659,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "fixed (int* pj = &value)", "fixed statement"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "fixed (int* pj = &value)", "fixed statement"));
         }
 
         [Fact]
@@ -2741,7 +2741,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "fixed (int* pj = &value)", "fixed statement"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "fixed (int* pj = &value)", "fixed statement"));
         }
 
         [WorkItem(755742)]
@@ -2832,7 +2832,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "fixed (int* p = &value)", "fixed statement"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "fixed (int* p = &value)", "fixed statement"));
         }
 
         [WorkItem(755746)]
@@ -2892,9 +2892,9 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "fixed (int* a = &value2)", "fixed statement"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "fixed (int* d = &value1)", "fixed statement"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "fixed (int* e = &value1)", "fixed statement"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "fixed (int* a = &value2)", "fixed statement"),
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "fixed (int* d = &value1)", "fixed statement"),
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "fixed (int* e = &value1)", "fixed statement"));
         }
 
         [Fact]
@@ -3114,7 +3114,7 @@ class Test
             // not ideal, but good enough:
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "object c"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "foreach (      object c        in F())", "foreach statement"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (      object c        in F())", "foreach statement"));
         }
 
         [Fact]
@@ -3253,9 +3253,9 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "foreach (var b in e1)", "foreach statement"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "foreach (var c in e1)", "foreach statement"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "foreach (var a in e1)", "foreach statement"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "foreach (var b in e1)", "foreach statement"),
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "foreach (var c in e1)", "foreach statement"),
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "foreach (var a in e1)", "foreach statement"));
         }
 
         [Fact]
@@ -3444,8 +3444,8 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "foreach (var a in e1)", "foreach statement"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "foreach (var b in e1)", "foreach statement"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "foreach (var a in e1)", "foreach statement"),
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "foreach (var b in e1)", "foreach statement"));
         }
 
         #endregion
@@ -3562,7 +3562,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "for (;       i < 10       ; i++)"));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "for (;       i < 10       ; i++)"));
         }
 
         [Fact]
@@ -3740,7 +3740,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED, "for (int i = 1; ;       i++       )"));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "for (int i = 1; ;       i++       )"));
         }
 
         [Fact]
@@ -3934,7 +3934,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "using (c)", "using statement"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "using (c)", "using statement"));
         }
 
         [Fact]
@@ -3995,7 +3995,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "using (c)", "using statement"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "using (c)", "using statement"));
         }
 
         #endregion
@@ -4300,7 +4300,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "try", "try block"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "try", "try block"));
         }
 
         [Fact]
@@ -4385,7 +4385,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_DELETE_AROUND, "Foo();", "try block"));
+                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Foo();", "try block"));
         }
 
         [Fact]
@@ -4476,7 +4476,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "try", "try block"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "try", "try block"));
         }
 
         [Fact]
@@ -4667,7 +4667,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "catch", "catch clause"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "catch", "catch clause"));
         }
 
         [Fact]
@@ -4710,7 +4710,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "catch", "catch clause"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "catch", "catch clause"));
         }
 
         [Fact]
@@ -4753,7 +4753,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_DELETE_AROUND, "Foo();", "catch clause"));
+                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Foo();", "catch clause"));
         }
 
         [Fact]
@@ -4796,7 +4796,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_DELETE_AROUND, "Console.WriteLine(1);", "catch clause"));
+                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Console.WriteLine(1);", "catch clause"));
         }
 
         [Fact]
@@ -4845,7 +4845,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "catch", "catch clause"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "catch", "catch clause"));
         }
 
         [Fact]
@@ -4891,7 +4891,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "catch", "catch clause"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "catch", "catch clause"));
         }
 
         [Fact]
@@ -4940,7 +4940,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "catch", "catch clause"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "catch", "catch clause"));
         }
 
         [Fact]
@@ -4987,7 +4987,7 @@ class C
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "when (Foo(2))"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "catch", "catch clause"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "catch", "catch clause"));
         }
 
         [Fact]
@@ -5023,7 +5023,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "catch", "catch clause"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "catch", "catch clause"));
         }
 
         [Fact]
@@ -5059,7 +5059,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "catch", "catch clause"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "catch", "catch clause"));
         }
 
         #endregion
@@ -5106,7 +5106,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "finally", "finally clause"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "finally", "finally clause"));
         }
 
         [Fact]
@@ -5149,7 +5149,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "finally", "finally clause"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "finally", "finally clause"));
         }
 
         [Fact]
@@ -5192,7 +5192,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_DELETE_AROUND, "Foo();", "finally clause"));
+                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Foo();", "finally clause"));
         }
 
         [Fact]
@@ -5235,7 +5235,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_DELETE_AROUND, "Console.WriteLine(1);", "finally clause"));
+                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Console.WriteLine(1);", "finally clause"));
         }
 
         #endregion
@@ -5324,10 +5324,10 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "catch", "catch clause"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "try", "try block"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_DELETE_AROUND, "Foo();", "try block"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "finally", "finally clause"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "catch", "catch clause"),
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "try", "try block"),
+                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Foo();", "try block"),
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "finally", "finally clause"));
         }
 
         [Fact]
@@ -5593,7 +5593,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_DELETE_AROUND, "return 1 + Foo(x);", "try block"));
+                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "return 1 + Foo(x);", "try block"));
         }
 
         [Fact]
@@ -5716,7 +5716,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "checked", "checked statement"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "checked", "checked statement"));
         }
 
         [Fact]
@@ -5755,7 +5755,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_DELETE_AROUND, "System.Console.WriteLine(5 * M(1, 2));", "checked statement"));
+                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "System.Console.WriteLine(5 * M(1, 2));", "checked statement"));
         }
 
         [Fact]
@@ -5797,7 +5797,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "checked", "checked statement"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "checked", "checked statement"));
         }
 
         [Fact]
@@ -5843,7 +5843,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "checked", "checked statement"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "checked", "checked statement"));
         }
 
         [Fact]
@@ -5897,7 +5897,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "checked", "checked statement"));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "checked", "checked statement"));
         }
 
         #endregion
@@ -6508,7 +6508,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "yield return 1;", "yield statement"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "yield return 1;", "yield statement"));
         }
 
         [Fact]
@@ -6598,7 +6598,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "await", "await expression"));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await", "await expression"));
         }
 
         [Fact]

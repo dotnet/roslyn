@@ -134,27 +134,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' PERF: These shared variables avoid repeated allocation of Func(Of Binder, MemberSemanticModel) in GetMemberSemanticModel
-        Private Shared ReadOnly _methodBodySemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) MethodBodySemanticModel.Create(DirectCast(key.Item1, MethodBodyBinder), key.Item2)
-        Private Shared ReadOnly _initializerSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) InitializerSemanticModel.Create(DirectCast(key.Item1, DeclarationInitializerBinder), key.Item2)
-        Private Shared ReadOnly _attributeSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) AttributeSemanticModel.Create(DirectCast(key.Item1, AttributeBinder), key.Item2)
-        Private Shared ReadOnly _topLevelCodeSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) New TopLevelCodeSemanticModel(DirectCast(key.Item1, TopLevelCodeBinder), key.Item2)
+        Private Shared ReadOnly s_methodBodySemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) MethodBodySemanticModel.Create(DirectCast(key.Item1, MethodBodyBinder), key.Item2)
+        Private Shared ReadOnly s_initializerSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) InitializerSemanticModel.Create(DirectCast(key.Item1, DeclarationInitializerBinder), key.Item2)
+        Private Shared ReadOnly s_attributeSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) AttributeSemanticModel.Create(DirectCast(key.Item1, AttributeBinder), key.Item2)
+        Private Shared ReadOnly s_topLevelCodeSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) New TopLevelCodeSemanticModel(DirectCast(key.Item1, TopLevelCodeBinder), key.Item2)
 
         Public Function GetMemberSemanticModel(binder As Binder) As MemberSemanticModel
 
             If TypeOf binder Is MethodBodyBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _methodBodySemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_methodBodySemanticModelCreator)
             End If
 
             If TypeOf binder Is DeclarationInitializerBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _initializerSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_initializerSemanticModelCreator)
             End If
 
             If TypeOf binder Is AttributeBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _attributeSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_attributeSemanticModelCreator)
             End If
 
             If TypeOf binder Is TopLevelCodeBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _topLevelCodeSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_topLevelCodeSemanticModelCreator)
             End If
 
             Return Nothing

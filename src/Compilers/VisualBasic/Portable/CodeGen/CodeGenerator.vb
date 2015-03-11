@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private _uniqueNameId As Integer
 
         ' label used when when return is emitted in a form of store/goto
-        Private Shared ReadOnly ReturnLabel As New Object
+        Private Shared ReadOnly s_returnLabel As New Object
 
         Private _unhandledReturn As Boolean
 
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub HandleReturn()
-            _builder.MarkLabel(ReturnLabel)
+            _builder.MarkLabel(s_returnLabel)
             _builder.EmitRet(True)
             _unhandledReturn = False
         End Sub

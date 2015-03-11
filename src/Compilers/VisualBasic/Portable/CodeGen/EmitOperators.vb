@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Partial Class CodeGenerator
+    Friend Partial Class CodeGenerator
 
         Private Sub EmitUnaryOperatorExpression(expression As BoundUnaryOperator, used As Boolean)
             Debug.Assert((expression.OperatorKind And Not UnaryOperatorKind.IntrinsicOpMask) = 0 AndAlso expression.OperatorKind <> 0)
@@ -331,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         'NOTE: odd positions assume inverted sense
-        Private Shared ReadOnly CompOpCodes As ILOpCode() = New ILOpCode() {ILOpCode.Clt, ILOpCode.Cgt, ILOpCode.Cgt, ILOpCode.Clt, ILOpCode.Clt_un, ILOpCode.Cgt_un, ILOpCode.Cgt_un, ILOpCode.Clt_un, ILOpCode.Clt, ILOpCode.Cgt_un, ILOpCode.Cgt, ILOpCode.Clt_un}
+        Private Shared ReadOnly s_compOpCodes As ILOpCode() = New ILOpCode() {ILOpCode.Clt, ILOpCode.Cgt, ILOpCode.Cgt, ILOpCode.Clt, ILOpCode.Clt_un, ILOpCode.Cgt_un, ILOpCode.Cgt_un, ILOpCode.Clt_un, ILOpCode.Clt, ILOpCode.Cgt_un, ILOpCode.Cgt, ILOpCode.Clt_un}
 
         'NOTE: The result of this should be a boolean on the stack.
         Private Sub EmitBinaryCondOperator(binOp As BoundBinaryOperator, sense As Boolean)
@@ -476,7 +476,7 @@ BinaryOperatorKindEqual:
                 End If
             End If
 
-            EmitBinaryCondOperatorHelper(CompOpCodes(opIdx), binOp.Left, binOp.Right, sense)
+            EmitBinaryCondOperatorHelper(s_compOpCodes(opIdx), binOp.Left, binOp.Right, sense)
 
             Return
         End Sub

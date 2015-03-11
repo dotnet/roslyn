@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundOrdering
+    Friend Partial Class BoundOrdering
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get

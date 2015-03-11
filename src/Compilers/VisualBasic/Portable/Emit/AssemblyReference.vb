@@ -15,12 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ' For example, multiple assembly symbols might be emitted into a single dynamic assembly whose identity is stored here.
         Public ReadOnly MetadataIdentity As AssemblyIdentity
 
-        Private ReadOnly m_targetAssembly As AssemblySymbol
+        Private ReadOnly _targetAssembly As AssemblySymbol
 
         Public Sub New(assemblySymbol As AssemblySymbol, symbolMapper As Func(Of AssemblySymbol, AssemblyIdentity))
             Debug.Assert(assemblySymbol IsNot Nothing)
             MetadataIdentity = If(symbolMapper IsNot Nothing, symbolMapper(assemblySymbol), assemblySymbol.Identity)
-            m_targetAssembly = assemblySymbol
+            _targetAssembly = assemblySymbol
         End Sub
 
         Private Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) Implements Cci.IReference.Dispatch
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public Overrides Function ToString() As String
-            Return m_targetAssembly.ToString()
+            Return _targetAssembly.ToString()
         End Function
 
         Private Function IReferenceAttributes(context As EmitContext) As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IReference.GetAttributes
