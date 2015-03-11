@@ -760,16 +760,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return ImmutableArray<CSharpAttributeData>.Empty;
             }
 
-            var attributeData = default(ImmutableArray<CSharpAttributeData>);
             var uncommonFields = _uncommonFields;
-            if (uncommonFields != null)
+            var attributeData = uncommonFields?._lazyCustomAttributes ?? default(ImmutableArray<CSharpAttributeData>);
+            if (!attributeData.IsDefault)
             {
-                attributeData = uncommonFields._lazyCustomAttributes;
-                if (!attributeData.IsDefault)
-                {
-                    // Return previously calculated attributes.
-                    return attributeData;
-                }
+                // Return previously calculated attributes.
+                return attributeData;
             }
 
             var containingPEModuleSymbol = _containingType.ContainingPEModule;
@@ -801,23 +797,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             Debug.Assert(!attributeData.IsDefault);
-            if (attributeData.IsEmpty)
-            {
-                _packedFlags.InitializeHasCustomAttributes(false);
-            }
-            else
-            {
-                _packedFlags.InitializeHasCustomAttributes(true);
 
-                // Need to create uncommon fields to hold the attributes
+            if (uncommonFields != null || !attributeData.IsEmpty)
+            {
                 uncommonFields = AccessUncommonFields();
+                if (!ImmutableInterlocked.InterlockedInitialize(ref uncommonFields._lazyCustomAttributes, attributeData))
+                {
+                    attributeData = uncommonFields._lazyCustomAttributes;
+                }
             }
 
-            if (uncommonFields != null)
-            {
-                uncommonFields._lazyCustomAttributes = attributeData;
-            }
-
+            _packedFlags.InitializeHasCustomAttributes(!attributeData.IsEmpty);
             return attributeData;
         }
 
@@ -1057,17 +1047,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             var uncommonFields = _uncommonFields;
             var result = uncommonFields?._lazyUseSiteDiagnostic;
-            if (!_packedFlags.IsUseSiteDiagnosticPopulated)
+            if (!_packedFlags.IsUseSiteDiagnosticPopulated || CSDiagnosticInfo.IsEmpty(result))
             {
-                if (uncommonFields == null || CSDiagnosticInfo.IsEmpty(result))
+                result = null;
+                CalculateUseSiteDiagnostic(ref result);
+                EnsureTypeParametersAreLoaded(ref result);
+                if (uncommonFields != null || result != null)
                 {
-                    result = null;
-                    CalculateUseSiteDiagnostic(ref result);
-                    EnsureTypeParametersAreLoaded(ref result);
-                    if (uncommonFields != null || result != null)
-                    {
-                        result = InterlockedInitialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, result, CSDiagnosticInfo.EmptyErrorInfo);
-                    }
+                    result = InterlockedInitialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, result, CSDiagnosticInfo.EmptyErrorInfo);
                 }
 
                 _packedFlags.InitializeIsUseSiteDiagnosticPopulated();
@@ -1107,16 +1094,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var uncommonFields = _uncommonFields;
                 var result = uncommonFields?._lazyObsoleteAttributeData;
-                if (!_packedFlags.IsObsoleteAttributePopulated)
+                if (!_packedFlags.IsObsoleteAttributePopulated || ReferenceEquals(result, ObsoleteAttributeData.Uninitialized))
                 {
-                    if (uncommonFields == null || ReferenceEquals(result, ObsoleteAttributeData.Uninitialized))
+                    result = ObsoleteAttributeHelpers.GetObsoleteDataFromMetadata(_handle, (PEModuleSymbol)ContainingModule);
+                    if (uncommonFields != null || result != null)
                     {
-                        ((PEModuleSymbol)ContainingModule).Module.HasDeprecatedOrObsoleteAttribute(_handle, out result);
-                        Debug.Assert(!ReferenceEquals(result, ObsoleteAttributeData.Uninitialized));
-                        if (uncommonFields != null || result != null)
-                        {
-                            result = InterlockedInitialize(ref AccessUncommonFields()._lazyObsoleteAttributeData, result, ObsoleteAttributeData.Uninitialized);
-                        }
+                        result = InterlockedInitialize(ref AccessUncommonFields()._lazyObsoleteAttributeData, result, ObsoleteAttributeData.Uninitialized);
                     }
 
                     _packedFlags.InitializeIsObsoleteAttributePopulated();
