@@ -245,15 +245,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly string _name;
         private readonly MethodAttributes _flags;
         private readonly PENamedTypeSymbol _containingType;
-
         private Symbol _associatedPropertyOrEventOpt;
-
         private PackedFlags _packedFlags;
-
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
         private UncommonFields _uncommonFields;
         private SignatureData _lazySignature;
-
         private ImmutableArray<MethodSymbol> _lazyExplicitMethodImplementations;
 
         internal PEMethodSymbol(
@@ -300,70 +296,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return true;
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _containingType;
-            }
-        }
+        public override Symbol ContainingSymbol => _containingType;
 
-        public override NamedTypeSymbol ContainingType
-        {
-            get
-            {
-                return _containingType;
-            }
-        }
+        public override NamedTypeSymbol ContainingType => _containingType;
 
-        public override string Name
-        {
-            get
-            {
-                return _name;
-            }
-        }
+        public override string Name => _name;
 
-        internal override bool HasSpecialName
-        {
-            get
-            {
-                return (_flags & MethodAttributes.SpecialName) != 0;
-            }
-        }
+        internal override bool HasSpecialName => (_flags & MethodAttributes.SpecialName) != 0;
 
-        internal override bool HasRuntimeSpecialName
-        {
-            get
-            {
-                return (_flags & MethodAttributes.RTSpecialName) != 0;
-            }
-        }
+        internal override bool HasRuntimeSpecialName => (_flags & MethodAttributes.RTSpecialName) != 0;
 
-        internal override System.Reflection.MethodImplAttributes ImplementationAttributes => GetImplFlags();
-
-        private System.Reflection.MethodImplAttributes GetImplFlags()
-        {
-            var uncommonFields = _uncommonFields;
-            return uncommonFields == null ? 0 : uncommonFields._implFlags;
-        }
+        internal override System.Reflection.MethodImplAttributes ImplementationAttributes => _uncommonFields?._implFlags ?? 0;
 
         // Exposed for testing purposes only
-        internal MethodAttributes Flags
-        {
-            get
-            {
-                return _flags;
-            }
-        }
+        internal MethodAttributes Flags => _flags;
 
-        internal override bool RequiresSecurityObject
-        {
-            get
-            {
-                return (_flags & MethodAttributes.RequireSecObject) != 0;
-            }
-        }
+        internal override bool RequiresSecurityObject => (_flags & MethodAttributes.RequireSecObject) != 0;
 
         public override DllImportData GetDllImportData()
         {
@@ -376,45 +324,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _containingType.ContainingPEModule.Module.GetDllImportData(_handle);
         }
 
-        internal override bool ReturnValueIsMarshalledExplicitly
-        {
-            get
-            {
-                return ReturnTypeParameter.IsMarshalledExplicitly;
-            }
-        }
+        internal override bool ReturnValueIsMarshalledExplicitly => ReturnTypeParameter.IsMarshalledExplicitly;
 
-        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
-        {
-            get
-            {
-                return ReturnTypeParameter.MarshallingInformation;
-            }
-        }
+        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation => ReturnTypeParameter.MarshallingInformation;
 
-        internal override ImmutableArray<byte> ReturnValueMarshallingDescriptor
-        {
-            get
-            {
-                return ReturnTypeParameter.MarshallingDescriptor;
-            }
-        }
+        internal override ImmutableArray<byte> ReturnValueMarshallingDescriptor => ReturnTypeParameter.MarshallingDescriptor;
 
-        internal override bool IsAccessCheckedOnOverride
-        {
-            get
-            {
-                return (_flags & MethodAttributes.CheckAccessOnOverride) != 0;
-            }
-        }
+        internal override bool IsAccessCheckedOnOverride => (_flags & MethodAttributes.CheckAccessOnOverride) != 0;
 
-        internal override bool HasDeclarativeSecurity
-        {
-            get
-            {
-                return (_flags & MethodAttributes.HasSecurity) != 0;
-            }
-        }
+        internal override bool HasDeclarativeSecurity => (_flags & MethodAttributes.HasSecurity) != 0;
 
         internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
         {
@@ -462,21 +380,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool IsExtern
-        {
-            get
-            {
-                return (_flags & MethodAttributes.PinvokeImpl) != 0;
-            }
-        }
+        public override bool IsExtern => (_flags & MethodAttributes.PinvokeImpl) != 0;
 
-        internal override bool IsExternal
-        {
-            get
-            {
-                return IsExtern || (GetImplFlags() & MethodImplAttributes.Runtime) != 0;
-            }
-        }
+        internal override bool IsExternal => IsExtern || (ImplementationAttributes & MethodImplAttributes.Runtime) != 0;
 
         public override bool IsVararg
         {
@@ -487,21 +393,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool IsGenericMethod
-        {
-            get
-            {
-                return Arity > 0;
-            }
-        }
+        public override bool IsGenericMethod => Arity > 0;
 
-        public override bool IsAsync
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsAsync => false;
 
         public override int Arity
         {
@@ -528,104 +422,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal MethodDefinitionHandle Handle
-        {
-            get
-            {
-                return _handle;
-            }
-        }
+        internal MethodDefinitionHandle Handle => _handle;
 
-        public override bool IsAbstract
-        {
-            get
-            {
-                // Has to have the abstract flag.
-                // NOTE: dev10 treats the method as abstract (i.e. requiring an impl in subtypes) event if it is not metadata virtual.
-                return (_flags & MethodAttributes.Abstract) != 0;
-            }
-        }
+        // Has to have the abstract flag.
+        // NOTE: dev10 treats the method as abstract (i.e. requiring an impl in subtypes) event if it is not metadata virtual.
+        public override bool IsAbstract => (_flags & MethodAttributes.Abstract) != 0;
 
-        public override bool IsSealed
-        {
-            get
-            {
-                // NOTE: abstract final methods are a bit strange.  First, they don't
-                // PEVerify - there's a specific error message for that combination of modifiers.
-                // Second, if dev10 sees an abstract final method in a base class, it will report
-                // an error (CS0534) if it is not overridden.  Third, dev10 does not report an
-                // error if it is overridden - it emits a virtual method without the newslot
-                // modifier as for a normal override.  It is not clear how the runtime rules
-                // interpret this overriding method since the overridden method is invalid.
-                return this.IsMetadataFinal && !this.IsAbstract && this.IsOverride; //slowest check last
-            }
-        }
+        // NOTE: abstract final methods are a bit strange.  First, they don't
+        // PEVerify - there's a specific error message for that combination of modifiers.
+        // Second, if dev10 sees an abstract final method in a base class, it will report
+        // an error (CS0534) if it is not overridden.  Third, dev10 does not report an
+        // error if it is overridden - it emits a virtual method without the newslot
+        // modifier as for a normal override.  It is not clear how the runtime rules
+        // interpret this overriding method since the overridden method is invalid.
+        public override bool IsSealed => this.IsMetadataFinal && !this.IsAbstract && this.IsOverride; //slowest check last
 
-        public override bool HidesBaseMethodsByName
-        {
-            get
-            {
-                return (_flags & MethodAttributes.HideBySig) == 0;
-            }
-        }
+        public override bool HidesBaseMethodsByName => (_flags & MethodAttributes.HideBySig) == 0;
 
-        public override bool IsVirtual
-        {
-            get
-            {
-                // Has to be metadata virtual and cannot be a destructor.  Cannot be either abstract or override.
-                // Final is a little special - if a method has the virtual, newslot, and final attr
-                // (and is not an explicit override) then we treat it as non-virtual for C# purposes.
-                return this.IsMetadataVirtual() && !this.IsDestructor && !this.IsMetadataFinal && !this.IsAbstract && !this.IsOverride;
-            }
-        }
+        // Has to be metadata virtual and cannot be a destructor.  Cannot be either abstract or override.
+        // Final is a little special - if a method has the virtual, newslot, and final attr
+        // (and is not an explicit override) then we treat it as non-virtual for C# purposes.
+        public override bool IsVirtual => this.IsMetadataVirtual() && !this.IsDestructor && !this.IsMetadataFinal && !this.IsAbstract && !this.IsOverride;
 
-        public override bool IsOverride
-        {
-            get
-            {
-                // Has to be metadata virtual and cannot be a destructor.  
-                // Must either lack the newslot flag or be an explicit override (i.e. via the MethodImpl table).
-                // The IsExplicitClassOverride case is based on LangImporter::DefineMethodImplementations in the native compiler.
 
-                // ECMA-335 
-                // 10.3.1 Introducing a virtual method
-                // If the definition is not marked newslot, the definition creates a new virtual method only 
-                // if there is not virtual method of the same name and signature inherited from a base class.
-                //
-                // This means that a virtual method without NewSlot flag in a type that doesn't have a base
-                // is a new virtual method and doesn't override anything.
+        // Has to be metadata virtual and cannot be a destructor.  
+        // Must either lack the newslot flag or be an explicit override (i.e. via the MethodImpl table).
+        //
+        // The IsExplicitClassOverride case is based on LangImporter::DefineMethodImplementations in the native compiler.
+        // ECMA-335 
+        // 10.3.1 Introducing a virtual method
+        // If the definition is not marked newslot, the definition creates a new virtual method only 
+        // if there is not virtual method of the same name and signature inherited from a base class.
+        //
+        // This means that a virtual method without NewSlot flag in a type that doesn't have a base
+        // is a new virtual method and doesn't override anything.
+        public override bool IsOverride =>
+            this.IsMetadataVirtual() && !this.IsDestructor &&
+            ((!this.IsMetadataNewSlot() && (object)_containingType.BaseTypeNoUseSiteDiagnostics != null) || this.IsExplicitClassOverride);
 
-                return this.IsMetadataVirtual() && !this.IsDestructor &&
-                       ((!this.IsMetadataNewSlot() && (object)_containingType.BaseTypeNoUseSiteDiagnostics != null) || this.IsExplicitClassOverride);
-            }
-        }
+        public override bool IsStatic => (_flags & MethodAttributes.Static) != 0;
 
-        public override bool IsStatic
-        {
-            get
-            {
-                return (_flags & MethodAttributes.Static) != 0;
-            }
-        }
+        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => (_flags & MethodAttributes.Virtual) != 0;
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
-        {
-            return (_flags & MethodAttributes.Virtual) != 0;
-        }
+        internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => (_flags & MethodAttributes.NewSlot) != 0;
 
-        internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
-        {
-            return (_flags & MethodAttributes.NewSlot) != 0;
-        }
-
-        internal override bool IsMetadataFinal
-        {
-            get
-            {
-                return (_flags & MethodAttributes.Final) != 0;
-            }
-        }
+        internal override bool IsMetadataFinal => (_flags & MethodAttributes.Final) != 0;
 
         private bool IsExplicitFinalizerOverride
         {
@@ -653,18 +494,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private bool IsDestructor
-        {
-            get { return this.MethodKind == MethodKind.Destructor; }
-        }
+        private bool IsDestructor => this.MethodKind == MethodKind.Destructor;
 
-        public override bool ReturnsVoid
-        {
-            get
-            {
-                return this.ReturnType.SpecialType == SpecialType.System_Void;
-            }
-        }
+        public override bool ReturnsVoid => this.ReturnType.SpecialType == SpecialType.System_Void;
 
         internal override int ParameterCount
         {
@@ -850,20 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
-        {
-            get
-            {
-                if (IsGenericMethod)
-                {
-                    return this.TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
-                }
-                else
-                {
-                    return ImmutableArray<TypeSymbol>.Empty;
-                }
-            }
-        }
+        public override ImmutableArray<TypeSymbol> TypeArguments => IsGenericMethod ? TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>() : ImmutableArray<TypeSymbol>.Empty;
 
         private void EnsureTypeParametersAreLoaded(ref DiagnosticInfo diagnosticInfo)
         {
@@ -906,10 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override Symbol AssociatedSymbol
-        {
-            get { return _associatedPropertyOrEventOpt; }
-        }
+        public override Symbol AssociatedSymbol => _associatedPropertyOrEventOpt;
 
         public override bool IsExtensionMethod
         {
@@ -933,21 +749,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return _containingType.ContainingPEModule.MetadataLocation.Cast<MetadataLocation, Location>();
-            }
-        }
+        public override ImmutableArray<Location> Locations => _containingType.ContainingPEModule.MetadataLocation.Cast<MetadataLocation, Location>();
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return ImmutableArray<SyntaxReference>.Empty;
-            }
-        }
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
@@ -1017,10 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return attributeData;
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
-        {
-            return GetAttributes();
-        }
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState) => GetAttributes();
 
         public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
         {
@@ -1057,16 +858,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return (parameter.RefKind == RefKind.None) && !parameter.IsParams;
         }
 
-        private bool IsValidUserDefinedOperatorSignature(int parameterCount)
-        {
-            return
+        private bool IsValidUserDefinedOperatorSignature(int parameterCount) =>
                 !this.ReturnsVoid &&
                 !this.IsGenericMethod &&
                 !this.IsVararg &&
                 this.ParameterCount == parameterCount &&
                 this.ParameterRefKinds.IsDefault && // No 'ref' or 'out'
                 !this.IsParams();
-        }
 
         private MethodKind ComputeMethodKind()
         {
@@ -1329,10 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool GenerateDebugInfo
-        {
-            get { return false; }
-        }
+        internal override bool GenerateDebugInfo => false;
 
         internal sealed override OverriddenOrHiddenMembersResult OverriddenOrHiddenMembers
         {
@@ -1343,27 +1138,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
-        {
-            get { return null; }
-        }
+        // perf, not correctness
+        internal sealed override CSharpCompilation DeclaringCompilation => null;
 
         // Internal for unit test
-        internal bool TestIsExtensionBitSet
-        {
-            get
-            {
-                return _packedFlags.IsExtensionMethodIsPopulated;
-            }
-        }
+        internal bool TestIsExtensionBitSet => _packedFlags.IsExtensionMethodIsPopulated;
 
         // Internal for unit test
-        internal bool TestIsExtensionBitTrue
-        {
-            get
-            {
-                return _packedFlags.IsExtensionMethod;
-            }
-        }
+        internal bool TestIsExtensionBitTrue => _packedFlags.IsExtensionMethod;
     }
 }

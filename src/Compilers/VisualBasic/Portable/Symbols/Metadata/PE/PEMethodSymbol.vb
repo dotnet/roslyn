@@ -757,7 +757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                 ' If method is not generic, let's assign empty list for type parameters
                 If Not signatureHeader.IsGeneric() AndAlso
-                    m_lazyTypeParameters.IsDefault Then
+                    _lazyTypeParameters.IsDefault Then
                     ImmutableInterlocked.InterlockedInitialize(_lazyTypeParameters,
                                                 ImmutableArray(Of TypeParameterSymbol).Empty)
                 End If
@@ -907,7 +907,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            ' Note: m_lazyDocComment is passed ByRef
+            ' Note: _lazyDocComment is passed ByRef
             Return PEDocumentationCommentUtils.GetDocumentationComment(
                 Me, _containingType.ContainingPEModule, preferredCulture, cancellationToken, _lazyDocComment)
         End Function
