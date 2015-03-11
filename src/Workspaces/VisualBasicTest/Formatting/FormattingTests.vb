@@ -1677,8 +1677,7 @@ End Class</Code>
             {
                 {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
                 {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.UseTabOnlyForIndentation, LanguageNames.VisualBasic), True}
+                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
             }
 
             AssertFormat(code, expected, changedOptionSet:=optionSet)
@@ -1697,7 +1696,7 @@ End Class</Code>
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                vbTab + "Sub Foo()			' Comment" + vbCrLf +
+                vbTab + "Sub Foo()           ' Comment" + vbCrLf +
                 vbTab + vbTab + "Foo()" + vbCrLf +
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
@@ -1933,7 +1932,7 @@ End Class</Code>
 End Class</Code>
 
             Dim expected = <Code>Class Foo
-	Sub Foo()			' Comment
+	Sub Foo()           ' Comment
 		Foo()
 	End Sub
 End Class</Code>
