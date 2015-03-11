@@ -3923,7 +3923,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree lambda may not contain an extension collection element initializer..
+        ///   Looks up a localized string similar to An extension Add method is not supported for a collection initializer in an expression lambda..
         /// </summary>
         internal static string ERR_ExtensionCollectionElementInitializerInExpressionTree {
             get {
