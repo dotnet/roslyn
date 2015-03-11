@@ -700,8 +700,8 @@ class Program
                     </Project>
                 </Workspace>, renameTo:="BarAttribute")
 
-                result.AssertLabeledSpansAre("short", "BarAttribute", RelatedLocationType.ResolvedReferenceConflict)
-                result.AssertLabeledSpansAre("long", "BarAttribute", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("short", "BarAttribute()", RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("long", "BarAttributeAttribute()", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
