@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             VersionStamp projectVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
             VersionStamp projectDeclarationsVersion = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
-            var versions = new VersionArgument(textVersion, dataVersion, projectVersion);
+            // var versions = new VersionArgument(textVersion, dataVersion, projectVersion);
 
             Compilation compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
         }
