@@ -7,7 +7,7 @@ The Roslyn project is a member of the [.NET Foundation](https://github.com/orgs/
 For now, the team has set the following limits on pull requests:
 
 - Contributions beyond the level of a bug fix must be discussed with the team first, or they will likely be declined. As our process matures and our experience grows, the team expects to take larger contributions.
-- Only contributions against the master branch or the branch that corresponds to the latest Preview release of VS 2015 will be accepted. Authors submitting pull requests that target experimental feature branches or release branches will be asked target their pull request at master or the branch corresponding to the latest preview release of VS 2015 instead.
+- Only contributions against the master branch will be accepted. Authors submitting pull requests that target experimental feature branches or release branches will be asked target their pull request at master or the branch corresponding to the latest preview release of VS 2015 instead.
 - Pull requests that do not merge easily with the tip of the master branch will be declined. The author will be asked to merge with tip and submit a new pull request.
 - Submissions must meet functional and performance expectations, including scenarios for which the team doesn’t yet have open source tests. This means you may be asked to fix and resubmit your pull request against a new open test case if it fails one of these tests.
 - Submissions must follow the [.Net Foundation Coding Guidelines](https://github.com/dotnet/corefx/wiki/Contributing#c-coding-style)
