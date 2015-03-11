@@ -39,13 +39,13 @@
   .ver 1:0:0:0
 }
 .module Microsoft.VisualStudio.Debugger.Engine.dll
-// MVID: {E5EB713A-B085-49FD-8538-D25576DF6C73}
+// MVID: {5A071D03-8694-461C-8C59-4EAC840F5256}
 .imagebase 0x00400000
 .file alignment 0x00000200
 .stackreserve 0x00100000
 .subsystem 0x0003       // WINDOWS_CUI
 .corflags 0x00000001    //  ILONLY
-// Image base: 0x021F0000
+// Image base: 0x01170000
 
 
 // =============== CLASS MEMBERS DECLARATION ===================
@@ -21044,6 +21044,22 @@
     IL_0000:  ret
   } // end of method DkmScriptRuntimeInstance::get_LoadOrderIndex
 
+  .method public hidebysig specialname instance bool 
+          get_IsEdgeHtmlDll() cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method DkmScriptRuntimeInstance::get_IsEdgeHtmlDll
+
+  .method public hidebysig specialname instance uint64 
+          get_ScriptHostVersion() cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method DkmScriptRuntimeInstance::get_ScriptHostVersion
+
   .method public hidebysig static class Microsoft.VisualStudio.Debugger.Script.DkmScriptRuntimeInstance 
           Create(class Microsoft.VisualStudio.Debugger.DkmProcess Process,
                  valuetype Microsoft.VisualStudio.Debugger.DkmRuntimeInstanceId Id,
@@ -21061,6 +21077,21 @@
                  valuetype Microsoft.VisualStudio.Debugger.DkmRuntimeCapabilities Capabilities,
                  class Microsoft.VisualStudio.Debugger.DkmRuntimeInstance ParentRuntime,
                  int32 LoadOrderIndex,
+                 class Microsoft.VisualStudio.Debugger.DkmDataItem DataItem) cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method DkmScriptRuntimeInstance::Create
+
+  .method public hidebysig static class Microsoft.VisualStudio.Debugger.Script.DkmScriptRuntimeInstance 
+          Create(class Microsoft.VisualStudio.Debugger.DkmProcess Process,
+                 valuetype Microsoft.VisualStudio.Debugger.DkmRuntimeInstanceId Id,
+                 valuetype Microsoft.VisualStudio.Debugger.DkmRuntimeCapabilities Capabilities,
+                 class Microsoft.VisualStudio.Debugger.DkmRuntimeInstance ParentRuntime,
+                 int32 LoadOrderIndex,
+                 bool IsEdgeHtmlDll,
+                 uint64 ScriptHostVersion,
                  class Microsoft.VisualStudio.Debugger.DkmDataItem DataItem) cil managed
   {
     // Code size       1 (0x1)
@@ -21106,10 +21137,18 @@
     IL_0000:  ret
   } // end of method DkmScriptRuntimeInstance::OnScriptSymbolsUpdated
 
+  .property instance bool IsEdgeHtmlDll()
+  {
+    .get instance bool Microsoft.VisualStudio.Debugger.Script.DkmScriptRuntimeInstance::get_IsEdgeHtmlDll()
+  } // end of property DkmScriptRuntimeInstance::IsEdgeHtmlDll
   .property instance int32 LoadOrderIndex()
   {
     .get instance int32 Microsoft.VisualStudio.Debugger.Script.DkmScriptRuntimeInstance::get_LoadOrderIndex()
   } // end of property DkmScriptRuntimeInstance::LoadOrderIndex
+  .property instance uint64 ScriptHostVersion()
+  {
+    .get instance uint64 Microsoft.VisualStudio.Debugger.Script.DkmScriptRuntimeInstance::get_ScriptHostVersion()
+  } // end of property DkmScriptRuntimeInstance::ScriptHostVersion
 } // end of class Microsoft.VisualStudio.Debugger.Script.DkmScriptRuntimeInstance
 
 .class interface public abstract auto ansi Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmAfterSetNextStatementNotification
@@ -33062,6 +33101,7 @@
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.DefaultPort.DkmSystemInformationFlags Default = int32(0x00000000)
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.DefaultPort.DkmSystemInformationFlags DumpFile = int32(0x00000002)
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.DefaultPort.DkmSystemInformationFlags Is64Bit = int32(0x00000001)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.DefaultPort.DkmSystemInformationFlags LaunchedInChamber = int32(0x00000010)
 } // end of class Microsoft.VisualStudio.Debugger.DefaultPort.DkmSystemInformationFlags
 
 .class public auto ansi sealed Microsoft.VisualStudio.Debugger.DefaultPort.DkmTransportConnectionFlags
