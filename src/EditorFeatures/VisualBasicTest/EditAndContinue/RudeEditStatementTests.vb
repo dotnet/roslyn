@@ -68,7 +68,7 @@ End If
             Dim m2 = MakeMethodBody(src2)
 
             Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1, m2)}
-            Dim match = StatementSyntaxComparer.SingleBody.Default.ComputeMatch(m1, m2, knownMatches)
+            Dim match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -488,6 +488,8 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
                 {"e = From q In a.Where(Function(l) l > 10) Select q + 1", "e = From q In a.Where(Function(l) l < 0) Select q + 1"},
                 {"e", "e"},
                 {"q In a.Where(Function(l) l > 10)", "q In a.Where(Function(l) l < 0)"},
+                {"q", "q"},
+                {"Function(l) l > 10", "Function(l) l < 0"},
                 {"q + 1", "q + 1"},
                 {"Next", "Next"},
                 {"End Sub", "End Sub"}
@@ -627,8 +629,11 @@ Dim q = From c In cars
                 {"q = From c In cars         From ud In users_details         From bd In bids         Select 1", "q = From c In cars         From ud In users_details         From bd In bids         Select 2"},
                 {"q", "q"},
                 {"c In cars", "c In cars"},
+                {"c", "c"},
                 {"ud In users_details", "ud In users_details"},
+                {"ud", "ud"},
                 {"bd In bids", "bd In bids"},
+                {"bd", "bd"},
                 {"1", "2"},
                 {"End Sub", "End Sub"}
             }
@@ -684,18 +689,25 @@ Dim q = From c In cars
                  "q = From c In cars         From ud In users_details         From bd In bids         Order By c.listingOption Descending         Where a.userID = ud.userid         Let images = From ai In auction_images                         Where ai.belongs_to = c.id2                         Select ai + 1         Let bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()         Select bid"},
                 {"q", "q"},
                 {"c In cars", "c In cars"},
+                {"c", "c"},
                 {"ud In users_details", "ud In users_details"},
+                {"ud", "ud"},
                 {"bd In bids", "bd In bids"},
+                {"bd", "bd"},
+                {"Order By c.listingOption", "Order By c.listingOption Descending"},
                 {"c.listingOption", "c.listingOption Descending"},
                 {"Where a.userID = ud.userid", "Where a.userID = ud.userid"},
                 {"images = From ai In auction_images                         Where ai.belongs_to = c.id                         Select ai         Let bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()         Select bid",
                  "images = From ai In auction_images                         Where ai.belongs_to = c.id2                         Select ai + 1         Let bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()         Select bid"},
                 {"ai In auction_images", "ai In auction_images"},
+                {"ai", "ai"},
                 {"Where ai.belongs_to = c.id", "Where ai.belongs_to = c.id2"},
                 {"ai", "ai + 1"},
                 {"bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()",
                  "bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()"},
                 {"b In bids", "b In bids"},
+                {"b", "b"},
+                {"Order By b.id", "Order By b.id Ascending"},
                 {"b.id", "b.id Ascending"},
                 {"Where b.carID = c.id", "Where b.carID = c.id2"},
                 {"b.bidamount", "b.bidamount"},
@@ -708,19 +720,19 @@ Dim q = From c In cars
 
         <Fact>
         Public Sub MatchQueries3()
-            Dim src1 = <text>
+            Dim src1 = "
 Dim q = From a In seq1
         Join c In seq2 On F(Function(u) u) Equals G(Function(s) s)
         Join l In seq3 On F(Function(v) v) Equals G(Function(t) t)
         Select a
-</text>.Value
+"
 
-            Dim src2 = <text>
+            Dim src2 = "
 Dim q = From a In seq1
         Join c In seq2 On F(Function(u) u + 1) Equals G(Function(s) s + 3)
         Join l In seq3 On F(Function(vv) vv + 2) Equals G(Function(tt) tt + 4)
         Select a + 1
-</text>.Value
+"
 
             Dim match = GetMethodMatches(src1, src2)
             Dim actual = ToMatchingPairs(match)
@@ -734,13 +746,16 @@ Dim q = From a In seq1
                  "q = From a In seq1         Join c In seq2 On F(Function(u) u + 1) Equals G(Function(s) s + 3)         Join l In seq3 On F(Function(vv) vv + 2) Equals G(Function(tt) tt + 4)         Select a + 1"},
                 {"q", "q"},
                 {"a In seq1", "a In seq1"},
+                {"a", "a"},
                 {"c In seq2", "c In seq2"},
+                {"c", "c"},
                 {"F(Function(u) u) Equals G(Function(s) s)", "F(Function(u) u + 1) Equals G(Function(s) s + 3)"},
                 {"Function(u) u", "Function(u) u + 1"},
                 {"Function(u)", "Function(u)"},
                 {"Function(s) s", "Function(s) s + 3"},
                 {"Function(s)", "Function(s)"},
                 {"l In seq3", "l In seq3"},
+                {"l", "l"},
                 {"F(Function(v) v) Equals G(Function(t) t)", "F(Function(vv) vv + 2) Equals G(Function(tt) tt + 4)"},
                 {"Function(v) v", "Function(vv) vv + 2"},
                 {"Function(v)", "Function(vv)"},
@@ -765,7 +780,9 @@ Dim q = From a In seq1
                 {"Sub F()", "Sub F()"},
                 {"F(From a In b Group Join c In (Function() d)() On Function(e1) Function(e2) (e1 - e2) Equals Function(f1) Function(f2) (f1 - f2) Into g = Group, h = Sum(Function(f) f + 1) Select g)", "F(From a In b Group Join c In (Function() d + 1)() On Function(e1) Function(e2) (e1 + e2) Equals Function(f1) Function(f2) (f1 + f2) Into g = Group, h = Sum(Function(f) f + 2) Select g)"},
                 {"a In b", "a In b"},
+                {"a", "a"},
                 {"c In (Function() d)()", "c In (Function() d + 1)()"},
+                {"c", "c"},
                 {"Function() d", "Function() d + 1"},
                 {"Function()", "Function()"},
                 {"Function(e1) Function(e2) (e1 - e2) Equals Function(f1) Function(f2) (f1 - f2)", "Function(e1) Function(e2) (e1 + e2) Equals Function(f1) Function(f2) (f1 + f2)"},
@@ -834,7 +851,7 @@ Next
             Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1.Statements(1), m2.Statements(0))}
 
             ' pre-matched:
-            Dim match = StatementSyntaxComparer.SingleBody.Default.ComputeMatch(m1, m2, knownMatches)
+            Dim match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -848,7 +865,7 @@ Next
             expected.AssertEqual(actual)
 
             ' not pre-matched:
-            match = StatementSyntaxComparer.SingleBody.Default.ComputeMatch(m1, m2)
+            match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2)
             actual = ToMatchingPairs(match)
 
             expected = New MatchingPairs From
@@ -1816,7 +1833,8 @@ Next
             edits.VerifyEdits(
                 "Update [F(From a In b From c In d Select a + c)]@8 -> [F(From a In b Select c + 1)]@8",
                 "Update [a + c]@41 -> [c + 1]@29",
-                "Delete [c In d]@27")
+                "Delete [c In d]@27",
+                "Delete [c]@27")
         End Sub
 
         <Fact>
@@ -1855,7 +1873,9 @@ Next
                 {"F(From a1 In b1 Group Join c1 In d1 On e1 Equals f1 Into g1 = Group, h1 = Sum(f1) Select g1)",
                  "F(From a2 In b2 Group Join c2 In d2 On e2 Equals f2 Into g2 = Group, h2 = Sum(f2) Select g2)"},
                 {"a1 In b1", "a2 In b2"},
+                {"a1", "a2"},
                 {"c1 In d1", "c2 In d2"},
+                {"c1", "c2"},
                 {"e1 Equals f1", "e2 Equals f2"},
                 {"g1", "g2"},
                 {"h1", "h2"},
@@ -1870,8 +1890,12 @@ Next
                 "Update [a1 In b1]@15 -> [a2 In b2]@15",
                 "Update [c1 In d1]@35 -> [c2 In d2]@35",
                 "Update [e1 Equals f1]@47 -> [e2 Equals f2]@47",
+                "Update [g1]@65 -> [g2]@65",
+                "Update [h1]@77 -> [h2]@77",
                 "Update [Sum(f1)]@82 -> [Sum(f2)]@82",
-                "Update [g1]@97 -> [g2]@97")
+                "Update [g1]@97 -> [g2]@97",
+                "Update [a1]@15 -> [a2]@15",
+                "Update [c1]@35 -> [c2]@35")
         End Sub
 #End Region
 

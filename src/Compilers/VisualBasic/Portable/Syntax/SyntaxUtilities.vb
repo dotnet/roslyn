@@ -15,10 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case oldLambda.Kind
                 Case SyntaxKind.MultiLineFunctionLambdaExpression,
                      SyntaxKind.MultiLineSubLambdaExpression,
-                     SyntaxKind.SingleLineFunctionLambdaExpression,
-                     SyntaxKind.SingleLineSubLambdaExpression
-                    ' Any statement or header can be used to represent the lambda body.
-                    ' Let's pick the header since the lambda may have no other statements.
+                    SyntaxKind.SingleLineFunctionLambdaExpression,
+                    SyntaxKind.SingleLineSubLambdaExpression
+                    ' The header represents the lambda body
                     Return DirectCast(newLambda, LambdaExpressionSyntax).SubOrFunctionHeader
 
                 Case SyntaxKind.WhereClause

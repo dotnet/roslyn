@@ -418,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Debug.Assert(node IsNot Nothing)
 
             While node IsNot declarationBody AndAlso
-                  Not StatementSyntaxComparer.HasLabel(node.Kind) AndAlso
+                  Not StatementSyntaxComparer.HasLabel(node) AndAlso
                   Not SyntaxUtilities.IsLambdaBodyStatementOrExpression(node)
 
                 node = node.Parent
@@ -477,8 +477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             If TypeOf oldBody.Parent Is LambdaExpressionSyntax Then
                 ' The root is a single/multi line sub/function lambda.
-                ' Its label is "Ignore" label, so we need to let the comparer know to Not ignore it.
-                Return New StatementSyntaxComparer.SingleBody(oldBody.Parent, newBody.Parent).ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
+                Return New StatementSyntaxComparer(oldBody.Parent, oldBody.Parent.ChildNodes(), newBody.Parent, newBody.Parent.ChildNodes()).ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
             End If
 
             If TypeOf oldBody Is ExpressionSyntax Then
@@ -486,12 +485,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ' Dim a As <NewExpression>
                 ' Dim a, b, c As <NewExpression>
                 ' Queries: The root is a query clause, the body is the expression.
-                Return New StatementSyntaxComparer.MultiBody(oldBody, newBody).ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
+                Return New StatementSyntaxComparer(oldBody.Parent, {oldBody}, newBody.Parent, {newBody}).
+                       ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
             End If
 
             ' Method, accessor, operator, etc. bodies are represented by the declaring block, which is also the root.
             ' The body of an array initialized fields is an ArgumentListSyntax, which is the match root.
-            Return StatementSyntaxComparer.SingleBody.Default.ComputeMatch(oldBody, newBody, knownMatches)
+            Return StatementSyntaxComparer.Default.ComputeMatch(oldBody, newBody, knownMatches)
         End Function
 
         Protected Overrides Function TryMatchActiveStatement(oldStatement As SyntaxNode,

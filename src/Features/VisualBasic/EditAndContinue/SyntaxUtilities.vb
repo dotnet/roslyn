@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -52,15 +53,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Debug.Assert(False)
         End Sub
 
+        ''' <summary>
+        ''' Returns true if the node represents a lambda body.
+        ''' The body may comprise of a single expression or a sequence of statements.
+        ''' </summary>
         Public Shared Function IsLambdaBody(node As SyntaxNode) As Boolean
             Dim body As SyntaxNode = Nothing
             Return IsLambdaBodyStatementOrExpression(node, body) AndAlso node Is body
+        End Function
+
+        Public Shared Function GetBody(node As LambdaExpressionSyntax) As SyntaxList(Of SyntaxNode)
+            Select Case node.Kind
+                Case SyntaxKind.MultiLineFunctionLambdaExpression, SyntaxKind.MultiLineSubLambdaExpression
+                    Return DirectCast(node, MultiLineLambdaExpressionSyntax).Statements
+                Case SyntaxKind.SingleLineFunctionLambdaExpression, SyntaxKind.SingleLineSubLambdaExpression
+                    Return SyntaxFactory.SingletonList(DirectCast(node, SingleLineLambdaExpressionSyntax).Body)
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
+            End Select
         End Function
 
         ''' <summary>
         ''' Returns true if the specified <paramref name="node"/> is a statement whose parent is a <see cref="LambdaExpressionSyntax"/>,
         ''' or and expression of a query lambda. Returns the node that represents the body of the lambda in <paramref name="body"/>.
         ''' </summary>
+        ''' <remarks>
+        ''' VB lambda bodies may be sequences of statements with the first statement representing the body.
+        ''' Whenever we need to check whether a node is a lambda body node we should use this method.
+        ''' </remarks>
         Public Shared Function IsLambdaBodyStatementOrExpression(node As SyntaxNode, <Out> Optional ByRef body As SyntaxNode = Nothing) As Boolean
             Dim parent = node?.Parent
             If parent Is Nothing Then
@@ -135,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         ' TODO(tomat): similar check is needed in breakpoint spans
-        Private Shared Function IsFirstInQuery(collectionRangeVariable As CollectionRangeVariableSyntax) As Boolean
+        Friend Shared Function IsFirstInQuery(collectionRangeVariable As CollectionRangeVariableSyntax) As Boolean
             Dim parent = collectionRangeVariable.Parent
 
             Dim query = DirectCast(parent.Parent, QueryExpressionSyntax)

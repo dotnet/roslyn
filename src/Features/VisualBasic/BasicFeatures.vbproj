@@ -342,8 +342,6 @@
     <Compile Include="Diagnostics\VisualBasicSyntaxNodeAnalyzerService.vb" />
     <Compile Include="DocumentationCommentFormatting\DocumentationCommentUtilities.vb" />
     <Compile Include="DocumentationCommentFormatting\VisualBasicDocumentationCommentFormattingService.vb" />
-    <Compile Include="EditAndContinue\StatementSyntaxComparer.MultiBody.vb" />
-    <Compile Include="EditAndContinue\StatementSyntaxComparer.SingleBody.vb" />
     <Compile Include="EditAndContinue\StatementSyntaxComparer.vb" />
     <Compile Include="EditAndContinue\SyntaxComparer.vb" />
     <Compile Include="EditAndContinue\SyntaxUtilities.vb" />

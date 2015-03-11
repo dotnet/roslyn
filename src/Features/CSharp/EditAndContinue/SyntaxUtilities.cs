@@ -186,6 +186,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return false;
         }
 
+        /// <remarks>
+        /// In C# lambda bodies are expressions or block statements. In both cases it's a single node.
+        /// In VB a lambda body might be a sequence of nodes (statements). 
+        /// We define this function to minimize differences between C# and VB implementation.
+        /// </remarks>
+        public static bool IsLambdaBodyStatementOrExpression(SyntaxNode node)
+        {
+            return SyntaxFacts.IsLambdaBody(node);
+        }
+
+        public static bool IsLambdaBodyStatementOrExpression(SyntaxNode node, out SyntaxNode lambdaBody)
+        {
+            lambdaBody = node;
+            return SyntaxFacts.IsLambdaBody(node);
+        }
+
         public static bool IsRangeVariableDeclarator(SyntaxNode node)
         {
             switch (node.Kind())

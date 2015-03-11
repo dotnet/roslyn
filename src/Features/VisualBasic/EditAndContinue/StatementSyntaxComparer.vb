@@ -5,34 +5,116 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
-    Partial Friend MustInherit Class StatementSyntaxComparer
+    Friend NotInheritable Class StatementSyntaxComparer
         Inherits SyntaxComparer
 
+        Friend Shared ReadOnly [Default] As StatementSyntaxComparer = New StatementSyntaxComparer()
+
+        Private ReadOnly _oldRoot As SyntaxNode
+        Private ReadOnly _newRoot As SyntaxNode
+        Private ReadOnly _oldRootChildren As IEnumerable(Of SyntaxNode)
+        Private ReadOnly _newRootChildren As IEnumerable(Of SyntaxNode)
+
+        Private Sub New()
+        End Sub
+
+        Friend Sub New(oldRoot As SyntaxNode, oldRootChildren As IEnumerable(Of SyntaxNode), newRoot As SyntaxNode, newRootChildren As IEnumerable(Of SyntaxNode))
+            _oldRoot = oldRoot
+            _newRoot = newRoot
+            _oldRootChildren = oldRootChildren
+            _newRootChildren = newRootChildren
+        End Sub
+
 #Region "Tree Traversal"
-        Protected NotOverridable Overrides Function TryGetParent(node As SyntaxNode, ByRef parent As SyntaxNode) As Boolean
+
+        Protected Overrides Function GetChildren(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
+            Debug.Assert(HasLabel(node))
+
+            If node Is _oldRoot OrElse node Is _newRoot Then
+                Return EnumerateRootChildren(node)
+            End If
+
+            Return If(IsLeaf(node), Nothing, EnumerateNonRootChildren(node))
+        End Function
+
+        Private Iterator Function EnumerateRootChildren(root As SyntaxNode) As IEnumerable(Of SyntaxNode)
+            Debug.Assert(_oldRoot IsNot Nothing AndAlso _newRoot IsNot Nothing)
+
+            Dim rootChildren = If(root Is _oldRoot, _oldRootChildren, _newRootChildren)
+
+            For Each rootChild In rootChildren
+                If HasLabel(rootChild) Then
+                    Yield rootChild
+                Else
+                    For Each descendant In rootChild.DescendantNodes(AddressOf DescendIntoChildren)
+                        If HasLabel(descendant) Then
+                            Yield descendant
+                        End If
+                    Next
+                End If
+            Next
+        End Function
+
+        Private Iterator Function EnumerateNonRootChildren(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
+            Debug.Assert(HasLabel(node))
+
+            For Each child In node.ChildNodes()
+
+                If SyntaxUtilities.IsLambdaBodyStatementOrExpression(child) Then
+                    Continue For
+                End If
+
+                If HasLabel(child) Then
+                    Yield child
+                Else
+                    For Each descendant In child.DescendantNodes(AddressOf DescendIntoChildren)
+                        If HasLabel(descendant) Then
+                            Yield descendant
+                        End If
+                    Next
+                End If
+            Next
+        End Function
+
+        Protected Overrides Iterator Function GetDescendants(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
+            If node Is _oldRoot OrElse node Is _newRoot Then
+                Debug.Assert(_oldRoot IsNot Nothing AndAlso _newRoot IsNot Nothing)
+
+                Dim rootChildren = If(node Is _oldRoot, _oldRootChildren, _newRootChildren)
+
+                For Each rootChild In rootChildren
+                    If HasLabel(rootChild) Then
+                        Yield rootChild
+                    End If
+
+                    ' TODO: avoid allocation of closure
+                    For Each descendant In rootChild.DescendantNodes(descendIntoChildren:=Function(c) Not IsLeaf(c) AndAlso (c Is rootChild OrElse Not SyntaxUtilities.IsLambdaBodyStatementOrExpression(c)))
+                        If Not SyntaxUtilities.IsLambdaBodyStatementOrExpression(descendant) AndAlso HasLabel(descendant) Then
+                            Yield descendant
+                        End If
+                    Next
+                Next
+            Else
+                ' TODO: avoid allocation of closure
+                For Each descendant In node.DescendantNodes(descendIntoChildren:=Function(c) Not IsLeaf(c) AndAlso (c Is node OrElse Not SyntaxUtilities.IsLambdaBodyStatementOrExpression(c)))
+                    If Not SyntaxUtilities.IsLambdaBodyStatementOrExpression(descendant) AndAlso HasLabel(descendant) Then
+                        Yield descendant
+                    End If
+                Next
+            End If
+        End Function
+
+        Protected Overrides Function TryGetParent(node As SyntaxNode, ByRef parent As SyntaxNode) As Boolean
             parent = node.Parent
-            While parent IsNot Nothing AndAlso Not HasLabel(parent.Kind)
+            While parent IsNot Nothing AndAlso Not HasLabel(parent)
                 parent = parent.Parent
             End While
 
             Return parent IsNot Nothing
         End Function
 
-        Protected Shared Iterator Function EnumerateChildren(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
-            For Each child In node.ChildNodesAndTokens()
-                Dim childNode = child.AsNode()
-                If childNode IsNot Nothing Then
-                    If GetLabelImpl(childNode) <> Label.Ignored Then
-                        Yield childNode
-                    Else
-                        For Each descendant In childNode.DescendantNodesAndTokens(AddressOf SyntaxUtilities.IsNotLambda)
-                            If SyntaxUtilities.IsLambda(descendant.Kind) Then
-                                Yield descendant.AsNode()
-                            End If
-                        Next
-                    End If
-                End If
-            Next
+        Private Function DescendIntoChildren(node As SyntaxNode) As Boolean
+            Return Not SyntaxUtilities.IsLambdaBodyStatementOrExpression(node) AndAlso Not HasLabel(node)
         End Function
 #End Region
 
@@ -127,19 +209,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             YieldStatement
 
+            WhereClauseLambda
+            CollectionRangeVariable
+            CollectionRangeVariableLambda
+            FunctionAggregationLambda
+            ExpressionRangeVariableLambda
+            PartitionWhileLambda
+            OrderByClause
+            OrderingLambda
+            JoinConditionLambda
+
             LocalDeclarationStatement        ' tied to parent 
             LocalVariableDeclarator          ' tied to parent 
             LocalVariableName                ' tied to parent 
 
             Lambda
             LambdaBodyBegin                  ' tied to parent
-            WhereClauseLambda
-            CollectionVariableLambda
-            FunctionAggregationLambda
-            RangeVariableLambda
-            PartitionWhileLambda
-            OrderingLambda
-            JoinConditionLambda
 
             BodyEnd                          ' tied to parent
 
@@ -195,15 +280,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Protected Shared Function NonRootHasChildren(node As SyntaxNode) As Boolean
-            ' Leaves are labeled statements that don't have a labeled child.
-            ' A non-labeled statement may not be leave since it may contain a lambda.
-            Dim isLeaf As Boolean
-            Classify(node.Kind, isLeaf)
-            Return Not isLeaf
+        Protected Shared Function IsLeaf(node As SyntaxNode) As Boolean
+            Classify(node.Kind, node, IsLeaf)
         End Function
 
-        Friend Shared Function Classify(kind As SyntaxKind, ByRef isLeaf As Boolean) As Label
+        Friend Shared Function Classify(kind As SyntaxKind, nodeOpt As SyntaxNode, <Out> ByRef isLeaf As Boolean) As Label
             isLeaf = False
 
             Select Case kind
@@ -232,6 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.SubLambdaHeader,
                      SyntaxKind.FunctionLambdaHeader
+                    ' Header is a leaf so that we don't descent into lambda parameters.
                     isLeaf = True
                     Return Label.LambdaBodyBegin
 
@@ -511,7 +593,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.SingleLineSubLambdaExpression,
                      SyntaxKind.MultiLineFunctionLambdaExpression,
                      SyntaxKind.MultiLineSubLambdaExpression
-                    isLeaf = True
                     Return Label.Lambda
 
                 Case SyntaxKind.FunctionLambdaHeader,
@@ -520,33 +601,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return Label.Ignored
 
                 Case SyntaxKind.WhereClause
-                    isLeaf = True
                     Return Label.WhereClauseLambda
 
                 Case SyntaxKind.CollectionRangeVariable
-                    isLeaf = True
-                    Return Label.CollectionVariableLambda
+                    ' The first CRV of a query is not a lambda.
+                    ' We have to assign it a label different from "CollectionVariableLambda"
+                    ' so that we won't match lambda-from to non-lambda-from.
+                    '
+                    ' All CRVs need to be included it in the map,
+                    ' so that we are able to map range variable declarations.
+                    ' Therefore we assign a dedicated label to those that don't translate to lambdas.
+                    '
+                    ' The parent is not available only when comparing nodes for value equality.
+                    ' In that case it doesn't matter what label the node has as long as it has some.
+
+                    If nodeOpt IsNot Nothing AndAlso SyntaxUtilities.IsFirstInQuery(DirectCast(nodeOpt, CollectionRangeVariableSyntax)) Then
+                        Return Label.CollectionRangeVariable
+                    End If
+
+                    Return Label.CollectionRangeVariableLambda
 
                 Case SyntaxKind.FunctionAggregation
-                    isLeaf = True
                     Return Label.FunctionAggregationLambda
 
                 Case SyntaxKind.ExpressionRangeVariable
-                    isLeaf = True
-                    Return Label.RangeVariableLambda
+                    Return Label.ExpressionRangeVariableLambda
 
                 Case SyntaxKind.TakeWhileClause,
                      SyntaxKind.SkipWhileClause
-                    isLeaf = True
                     Return Label.PartitionWhileLambda
+
+                Case SyntaxKind.OrderByClause
+                    Return Label.OrderByClause
 
                 Case SyntaxKind.AscendingOrdering,
                      SyntaxKind.DescendingOrdering
-                    isLeaf = True
                     Return Label.OrderingLambda
 
                 Case SyntaxKind.JoinCondition
-                    isLeaf = True
                     Return Label.JoinConditionLambda
 
                 Case Else
@@ -554,27 +646,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Protected NotOverridable Overrides Function GetLabel(node As SyntaxNode) As Integer
+        Protected Overrides Function GetLabel(node As SyntaxNode) As Integer
             Return GetLabelImpl(node)
         End Function
 
         Friend Shared Function GetLabelImpl(node As SyntaxNode) As Label
             Dim isLeaf As Boolean
-            Return Classify(node.Kind, isLeaf)
+            Return Classify(node.Kind, node, isLeaf)
         End Function
 
-        Friend Shared Function HasLabel(kind As SyntaxKind) As Boolean
-            Dim isLeaf As Boolean
-            Return Classify(kind, isLeaf) <> Label.Ignored
+        Friend Shared Function HasLabel(node As SyntaxNode) As Boolean
+            Return GetLabelImpl(node) <> Label.Ignored
         End Function
 
-        Protected NotOverridable Overrides ReadOnly Property LabelCount As Integer
+        Protected Overrides ReadOnly Property LabelCount As Integer
             Get
                 Return Label.Count
             End Get
         End Property
 
-        Protected NotOverridable Overrides Function TiedToAncestor(label As Integer) As Integer
+        Protected Overrides Function TiedToAncestor(label As Integer) As Integer
             Return TiedToAncestor(CType(label, Label))
         End Function
 
@@ -582,21 +673,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #Region "Comparisons"
 
-        Public NotOverridable Overrides Function ValuesEqual(left As SyntaxNode, right As SyntaxNode) As Boolean
+        Friend Shared Function IgnoreLabeledChild(kind As SyntaxKind) As Boolean
+            Dim isLeaf = False
+            Return Classify(kind, Nothing, isLeaf) <> Label.Ignored
+        End Function
+
+        Public Overrides Function ValuesEqual(left As SyntaxNode, right As SyntaxNode) As Boolean
             Dim ignoreChildFunction As Func(Of SyntaxKind, Boolean)
-            Select Case left.Kind
-                Case Else
-                    If NonRootHasChildren(left) Then
-                        ignoreChildFunction = AddressOf HasLabel
-                    Else
-                        ignoreChildFunction = Nothing
-                    End If
-            End Select
+
+            ' When comparing the value of a node with its partner we are deciding whether to add an Update edit for the pair.
+            ' If the actual change is under a descendant labeled node we don't want to attribute it to the node being compared,
+            ' so we skip all labeled children when recursively checking for equivalence.
+            If IsLeaf(left) Then
+                ignoreChildFunction = Nothing
+            Else
+                ignoreChildFunction = AddressOf IgnoreLabeledChild
+            End If
 
             Return SyntaxFactory.AreEquivalent(left, right, ignoreChildFunction)
         End Function
 
-        Protected NotOverridable Overrides Function TryComputeWeightedDistance(leftNode As SyntaxNode, rightNode As SyntaxNode, ByRef distance As Double) As Boolean
+        Protected Overrides Function TryComputeWeightedDistance(leftNode As SyntaxNode, rightNode As SyntaxNode, ByRef distance As Double) As Boolean
             Select Case leftNode.Kind
                 Case SyntaxKind.SimpleDoLoopBlock,
                      SyntaxKind.DoWhileLoopBlock,
