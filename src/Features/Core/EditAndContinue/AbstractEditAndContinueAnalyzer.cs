@@ -235,6 +235,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract bool IsClosureScope(SyntaxNode node);
         internal abstract bool ContainsLambda(SyntaxNode declaration);
 
+        private SyntaxNode GetLambda(SyntaxNode lambdaBody)
+        {
+            var lambda = lambdaBody.Parent;
+            Debug.Assert(IsLambda(lambda));
+            return lambda;
+        }
+
         /// <summary>
         /// Returns true if the parameters of the symbol are lifted into a scope that is different from the symbol's body.
         /// </summary>
@@ -1062,8 +1069,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newSpan = GetDeletedNodeDiagnosticSpan(oldEnclosingLambdaBody, bodyMatch, lazyActiveOrMatchedLambdas);
 
                     // Lambda containing the active statement can't be found in the new source.
-                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ActiveStatementLambdaRemoved, newSpan, oldEnclosingLambdaBody.Parent,
-                        new[] { GetLambdaDisplayName(oldEnclosingLambdaBody.Parent) }));
+                    var oldLambda = GetLambda(oldEnclosingLambdaBody);
+                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ActiveStatementLambdaRemoved, newSpan, oldLambda,
+                        new[] { GetLambdaDisplayName(oldLambda) }));
                 }
                 else
                 {
@@ -1407,7 +1415,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SyntaxNode oldLambdaBody = deletedLambdaBody;
             while (true)
             {
-                var oldParentLambdaBody = FindEnclosingLambdaBody(match.OldRoot, oldLambdaBody.Parent);
+                var oldParentLambdaBody = FindEnclosingLambdaBody(match.OldRoot, GetLambda(oldLambdaBody));
                 if (oldParentLambdaBody == null)
                 {
                     return GetDeletedNodeDiagnosticSpan(match.Matches, oldLambdaBody);
@@ -2662,12 +2670,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             var newCapture = newCaptures[newCaptureIndex];
 
                             var rudeEdit = newAccessed ? RudeEditKind.AccessingCapturedVariableInLambda : RudeEditKind.NotAccessingCapturedVariableInLambda;
-                            var arguments = new[] { newCapture.Name, GetLambdaDisplayName(newLambdaBody.Parent) };
+                            var arguments = new[] { newCapture.Name, GetLambdaDisplayName(GetLambda(newLambdaBody)) };
 
                             if (newCapture.IsThisParameter() || oldAccessed)
                             {
                                 // changed accessed to "this", or captured variable accessed in old lambda is not accessed in the new lambda
-                                diagnostics.Add(new RudeEditDiagnostic(rudeEdit, GetDiagnosticSpan(newLambdaBody.Parent, EditKind.Update), null, arguments));
+                                diagnostics.Add(new RudeEditDiagnostic(rudeEdit, GetDiagnosticSpan(GetLambda(newLambdaBody), EditKind.Update), null, arguments));
                             }
                             else if (newAccessed)
                             {
@@ -2794,7 +2802,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         {
                             if (captures[i].IsThisParameter())
                             {
-                                errorSpan = GetDiagnosticSpan(lambdaBody.Parent, EditKind.Insert);
+                                errorSpan = GetDiagnosticSpan(GetLambda(lambdaBody), EditKind.Insert);
                             }
                             else
                             {
@@ -2813,7 +2821,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             rudeEdit,
                             errorSpan,
                             null,
-                            new[] { GetLambdaDisplayName(lambdaBody.Parent), captures[firstAccessedCaptureIndex].Name, captures[i].Name }));
+                            new[] { GetLambdaDisplayName(GetLambda(lambdaBody)), captures[firstAccessedCaptureIndex].Name, captures[i].Name }));
 
                         break;
                     }
@@ -3110,13 +3118,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            Debug.Assert(IsLambda(newLambdaBody.Parent));
+            var newLambda = GetLambda(newLambdaBody);
 
             diagnostics.Add(new RudeEditDiagnostic(
                 rudeEdit,
-                GetDiagnosticSpan(newLambdaBody.Parent, EditKind.Update),
-                newLambdaBody.Parent,
-                new[] { GetLambdaDisplayName(newLambdaBody.Parent) }));
+                GetDiagnosticSpan(newLambda, EditKind.Update),
+                newLambda,
+                new[] { GetLambdaDisplayName(newLambda) }));
 
             hasErrors = true;
         }
