@@ -135,7 +135,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         // or if the module has not been loaded yet. The value will be null
                         // if the name was ambiguous.
                         ModuleMetadata module;
-                        if (modulesByName.TryGetValue(name, out module) && (module != null))
+                        if (!modulesByName.TryGetValue(name, out module))
+                        {
+                            // AssemblyFile names may contain file information (".dll", etc).
+                            modulesByName.TryGetValue(GetFileNameWithoutExtension(name), out module);
+                        }
+                        if (module != null)
                         {
                             builder.Add(module);
                         }
@@ -149,6 +154,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var assemblyMetadata = AssemblyMetadata.Create(builder.ToImmutableAndFree());
             return assemblyMetadata.GetReference(embedInteropTypes: false, display: metadata.Name);
+        }
+
+        internal static string GetFileNameWithoutExtension(string fileName)
+        {
+            var lastDotIndex = fileName.LastIndexOf('.');
+            if ((lastDotIndex > 0) && (lastDotIndex + 1 < fileName.Length))
+            {
+                var extension = fileName.Substring(lastDotIndex + 1);
+                switch (extension)
+                {
+                    case "dll":
+                    case "exe":
+                    case "netmodule":
+                    case "winmd":
+                        return fileName.Substring(0, lastDotIndex);
+                }
+            }
+            return fileName;
         }
 
         private static PortableExecutableReference MakeCompileTimeWinMdAssemblyMetadata(ArrayBuilder<ModuleMetadata> runtimeModules)
