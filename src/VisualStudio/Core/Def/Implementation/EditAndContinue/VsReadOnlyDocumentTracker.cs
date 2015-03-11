@@ -19,8 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private readonly Workspace _workspace;
 
         private bool _isDisposed;
+        private Func<DocumentId, bool> _allowsReadOnly;
 
-        public VsReadOnlyDocumentTracker(IEditAndContinueWorkspaceService encService, IVsEditorAdaptersFactoryService adapters)
+        public VsReadOnlyDocumentTracker(IEditAndContinueWorkspaceService encService, IVsEditorAdaptersFactoryService adapters, Func<DocumentId, bool> allowsReadOnly)
             : base(assertIsForeground: true)
         {
             Debug.Assert(encService.DebuggingSession != null);
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             _encService = encService;
             _adapters = adapters;
             _workspace = encService.DebuggingSession.InitialSolution.Workspace;
+            _allowsReadOnly = allowsReadOnly;
 
             _workspace.DocumentOpened += OnDocumentOpened;
             UpdateWorkspaceDocuments();
@@ -87,11 +89,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 SessionReadOnlyReason sessionReason;
                 ProjectReadOnlyReason projectReason;
-                SetReadOnly(document.Id, _encService.IsProjectReadOnly(document.Project.Name, out sessionReason, out projectReason));
+                SetReadOnly(document.Id, _encService.IsProjectReadOnly(document.Project.Id, out sessionReason, out projectReason));
             }
         }
 
-        private void SetReadOnly(DocumentId documentId, bool value)
+        internal void SetReadOnly(DocumentId documentId, bool value)
         {
             AssertIsForeground();
             Debug.Assert(!_isDisposed);
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             var textBuffer = GetTextBuffer(_workspace, documentId);
             if (textBuffer != null)
             {
-                SetReadOnlyFlag(textBuffer, value);
+                SetReadOnlyFlag(textBuffer, value && _allowsReadOnly(documentId));
             }
         }
 
