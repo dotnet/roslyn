@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override string FormatString(string str, ObjectDisplayOptions options)
         {
-            return ObjectDisplay.FormatString(str, quote: options.IncludesOption(ObjectDisplayOptions.UseQuotes) ? '"' : '\0', escapeNonPrintable: false);
+            return ObjectDisplay.FormatString(str, useQuotes: options.IncludesOption(ObjectDisplayOptions.UseQuotes));
         }
     }
 }

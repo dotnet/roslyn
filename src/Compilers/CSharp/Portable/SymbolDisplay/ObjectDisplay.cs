@@ -133,27 +133,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return value ? "true" : "false";
         }
 
-        internal static string FormatString(string str, char quote, bool escapeNonPrintable)
-        {
-            PooledStringBuilder pooledBuilder = null;
-            StringBuilder builder = null;
-            if (quote != 0)
-            {
-                builder = GetBuilder(ref pooledBuilder, null, 0);
-                builder.Append(quote);
-            }
-            for (int i = 0; i < str.Length; i++)
-            {
-                FormatChar(ref pooledBuilder, str, i, str[i], quote, escapeNonPrintable);
-            }
-            if (quote != 0)
-            {
-                builder.Append(quote);
-            }
-            return (pooledBuilder == null) ? str : pooledBuilder.ToStringAndFree();
-        }
-
-        private static void FormatChar(ref PooledStringBuilder pooledBuilder, string str, int index, char c, char quote, bool escapeNonPrintable)
+        private static void FormatChar(
+            ref PooledStringBuilder pooledBuilder,
+            string str,
+            int index,
+            char c,
+            char quote,
+            bool useLanguageSpecificEscapes,
+            bool useUnicodeEscapes)
         {
             Debug.Assert(quote == 0 || quote == '"' || quote == '\'');
 
@@ -162,79 +149,93 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (CharUnicodeInfo.GetUnicodeCategory(c))
             {
                 case UnicodeCategory.OtherPunctuation:
-                    switch (c)
+                    if (useLanguageSpecificEscapes)
                     {
-                        case '\\':
-                            replaceWith = "\\\\";
-                            break;
-                        case '"':
-                            if (quote == c)
-                            {
-                                replaceWith = "\\\"";
-                            }
-                            break;
-                        case '\'':
-                            if (quote == c)
-                            {
-                                replaceWith = "\\'";
-                            }
-                            break;
+                        switch (c)
+                        {
+                            case '\\':
+                                replaceWith = "\\\\";
+                                break;
+                            case '"':
+                                if (quote == c)
+                                {
+                                    replaceWith = "\\\"";
+                                }
+                                break;
+                            case '\'':
+                                if (quote == c)
+                                {
+                                    replaceWith = "\\'";
+                                }
+                                break;
+                        }
                     }
                     break;
                 case UnicodeCategory.OtherNotAssigned:
                 case UnicodeCategory.ParagraphSeparator:
-                    if (escapeNonPrintable)
+                    if (useUnicodeEscapes)
                     {
                         unicodeEscape = true;
                     }
                     break;
                 case UnicodeCategory.Control:
-                    switch (c)
+                    if (useLanguageSpecificEscapes)
                     {
-                        case '\0':
-                            replaceWith = "\\0";
-                            break;
-                        case '\a':
-                            replaceWith = "\\a";
-                            break;
-                        case '\b':
-                            replaceWith = "\\b";
-                            break;
-                        case '\f':
-                            replaceWith = "\\f";
-                            break;
-                        case '\n':
-                            replaceWith = "\\n";
-                            break;
-                        case '\r':
-                            replaceWith = "\\r";
-                            break;
-                        case '\t':
-                            replaceWith = "\\t";
-                            break;
-                        case '\v':
-                            replaceWith = "\\v";
-                            break;
-                        default:
-                            if (escapeNonPrintable)
-                            {
-                                unicodeEscape = true;
-                            }
-                            break;
+                        switch (c)
+                        {
+                            case '\0':
+                                replaceWith = "\\0";
+                                break;
+                            case '\a':
+                                replaceWith = "\\a";
+                                break;
+                            case '\b':
+                                replaceWith = "\\b";
+                                break;
+                            case '\f':
+                                replaceWith = "\\f";
+                                break;
+                            case '\n':
+                                replaceWith = "\\n";
+                                break;
+                            case '\r':
+                                replaceWith = "\\r";
+                                break;
+                            case '\t':
+                                replaceWith = "\\t";
+                                break;
+                            case '\v':
+                                replaceWith = "\\v";
+                                break;
+                        }
+                    }
+                    if ((replaceWith == null) && useUnicodeEscapes)
+                    {
+                        unicodeEscape = true;
                     }
                     break;
             }
 
-            if ((quote != 0) && (replaceWith != null))
+            if ((replaceWith != null) || unicodeEscape)
             {
-                var builder = GetBuilder(ref pooledBuilder, str, index);
-                builder.Append(replaceWith);
-            }
-            else if (unicodeEscape)
-            {
-                var builder = GetBuilder(ref pooledBuilder, str, index);
-                builder.Append("\\u");
-                builder.Append(((int)c).ToString("x4"));
+                if (pooledBuilder == null)
+                {
+                    pooledBuilder = PooledStringBuilder.GetInstance();
+                    if (index > 0)
+                    {
+                        pooledBuilder.Builder.Append(str, 0, index);
+                    }
+                }
+                var builder = pooledBuilder.Builder;
+                if (replaceWith != null)
+                {
+                    builder.Append(replaceWith);
+                }
+                else
+                {
+                    builder.Append("\\u");
+                    builder.Append(((int)c).ToString("x4"));
+                }
             }
             else if (pooledBuilder != null)
             {
@@ -266,18 +267,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             StringBuilder builder = null;
             if (quote != 0)
             {
-                builder = GetBuilder(ref pooledBuilder, null, 0);
+                pooledBuilder = PooledStringBuilder.GetInstance();
+                builder = pooledBuilder.Builder;
                 builder.Append(quote);
             }
             for (int i = 0; i < value.Length; i++)
             {
-                FormatChar(ref pooledBuilder, value, i, value[i], quote, escapeNonPrintable: true);
+                FormatChar(ref pooledBuilder, value, i, value[i], quote, useLanguageSpecificEscapes: true, useUnicodeEscapes: true);
             }
             if (quote != 0)
             {
                 builder.Append(quote);
             }
             return (pooledBuilder == null) ? value : pooledBuilder.ToStringAndFree();
+        }
+
+        internal static string FormatString(string str, bool useQuotes)
+        {
+            if (!useQuotes)
+            {
+                return str;
+            }
+
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+            const char quote = '"';
+            builder.Append(quote);
+            for (int i = 0; i < str.Length; i++)
+            {
+                FormatChar(ref pooledBuilder, str, i, str[i], quote, useLanguageSpecificEscapes: useQuotes, useUnicodeEscapes: false);
+            }
+            builder.Append(quote);
+            return pooledBuilder.ToStringAndFree();
         }
 
         /// <summary>
@@ -288,7 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A character literal with the given value.</returns>
         internal static string FormatLiteral(char c, ObjectDisplayOptions options)
         {
-            var quote = options.IncludesOption(ObjectDisplayOptions.UseQuotes) ? '\'' : '\0';
+            var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);
+            var quote = useQuotes ? '\'' : '\0';
             var includeCodePoints = options.IncludesOption(ObjectDisplayOptions.IncludeCodePoints);
 
             var pooledBuilder = PooledStringBuilder.GetInstance();
@@ -302,7 +324,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Append(quote);
             }
-            FormatChar(ref pooledBuilder, null, 0, c, quote, escapeNonPrintable: !includeCodePoints);
+            var escapeNonPrintable = !includeCodePoints;
+            FormatChar(ref pooledBuilder, null, 0, c, quote, useLanguageSpecificEscapes: useQuotes, useUnicodeEscapes: !includeCodePoints);
             if (quote != 0)
             {
                 builder.Append(quote);
@@ -484,19 +507,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = value.ToString(CultureInfo.InvariantCulture);
 
             return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "M" : result;
-        }
-
-        private static StringBuilder GetBuilder(ref PooledStringBuilder pooledBuilder, string str, int index)
-        {
-            if (pooledBuilder == null)
-            {
-                pooledBuilder = PooledStringBuilder.GetInstance();
-                if (index > 0)
-                {
-                    pooledBuilder.Builder.Append(str, 0, index);
-                }
-            }
-            return pooledBuilder.Builder;
         }
 
         [Conditional("DEBUG")]

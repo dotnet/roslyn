@@ -127,23 +127,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Strings()
         {
-            Assert.Equal("", ObjectDisplay.FormatLiteral("", ObjectDisplayOptions.None));
-            Assert.Equal(@"a", ObjectDisplay.FormatLiteral(@"a", ObjectDisplayOptions.None));
-            Assert.Equal(@"ab", ObjectDisplay.FormatLiteral(@"ab", ObjectDisplayOptions.None));
-            Assert.Equal(@"\", ObjectDisplay.FormatLiteral(@"\", ObjectDisplayOptions.None));
-            Assert.Equal(@"\a", ObjectDisplay.FormatLiteral(@"\a", ObjectDisplayOptions.None));
-            Assert.Equal(@"a\b", ObjectDisplay.FormatLiteral(@"a\b", ObjectDisplayOptions.None));
-            Assert.Equal(@"ab\c", ObjectDisplay.FormatLiteral(@"ab\c", ObjectDisplayOptions.None));
-            Assert.Equal(@"ab\cd", ObjectDisplay.FormatLiteral(@"ab\cd", ObjectDisplayOptions.None));
-            Assert.Equal(@"ab\cd\", ObjectDisplay.FormatLiteral(@"ab\cd\", ObjectDisplayOptions.None));
-            Assert.Equal(@"ab\cd\e", ObjectDisplay.FormatLiteral(@"ab\cd\e", ObjectDisplayOptions.None));
-            Assert.Equal(@"\\\\", ObjectDisplay.FormatLiteral(@"\\\\", ObjectDisplayOptions.None));
+            Assert.Equal("", ObjectDisplay.FormatString("", useQuotes: false));
+            Assert.Equal(@"a", ObjectDisplay.FormatString(@"a", useQuotes: false));
+            Assert.Equal(@"ab", ObjectDisplay.FormatString(@"ab", useQuotes: false));
+            Assert.Equal(@"\", ObjectDisplay.FormatString(@"\", useQuotes: false));
+            Assert.Equal(@"\a", ObjectDisplay.FormatString(@"\a", useQuotes: false));
+            Assert.Equal(@"a\b", ObjectDisplay.FormatString(@"a\b", useQuotes: false));
+            Assert.Equal(@"ab\c", ObjectDisplay.FormatString(@"ab\c", useQuotes: false));
+            Assert.Equal(@"ab\cd", ObjectDisplay.FormatString(@"ab\cd", useQuotes: false));
+            Assert.Equal(@"ab\cd\", ObjectDisplay.FormatString(@"ab\cd\", useQuotes: false));
+            Assert.Equal(@"ab\cd\e", ObjectDisplay.FormatString(@"ab\cd\e", useQuotes: false));
+            Assert.Equal(@"\\\\", ObjectDisplay.FormatString(@"\\\\", useQuotes: false));
 
-            Assert.Equal(@"""""", ObjectDisplay.FormatLiteral("", ObjectDisplayOptions.UseQuotes));
-            Assert.Equal(@"""\""\""""", ObjectDisplay.FormatLiteral(@"""""", ObjectDisplayOptions.UseQuotes));
-            Assert.Equal(@"""'""", ObjectDisplay.FormatLiteral(@"'", ObjectDisplayOptions.UseQuotes));
-            Assert.Equal(@"""ab""", ObjectDisplay.FormatLiteral(@"ab", ObjectDisplayOptions.UseQuotes));
-            Assert.Equal(@"""\\""", ObjectDisplay.FormatLiteral(@"\", ObjectDisplayOptions.UseQuotes));
+            Assert.Equal(@"""""", ObjectDisplay.FormatString("", useQuotes: true));
+            Assert.Equal(@"""\""\""""", ObjectDisplay.FormatString(@"""""", useQuotes: true));
+            Assert.Equal(@"""'""", ObjectDisplay.FormatString(@"'", useQuotes: true));
+            Assert.Equal(@"""ab""", ObjectDisplay.FormatString(@"ab", useQuotes: true));
+            Assert.Equal(@"""\\""", ObjectDisplay.FormatString(@"\", useQuotes: true));
 
             Assert.Equal("\"x\"", ObjectDisplay.FormatLiteral("x", ObjectDisplayOptions.UseQuotes));
             Assert.Equal("x", ObjectDisplay.FormatLiteral("x", ObjectDisplayOptions.None));
@@ -166,10 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 @"êëìíîïðñòóôõö÷øùúûüýþ""";
             Assert.Equal(
                 expected,
-                ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.UseQuotes));
-            Assert.Equal(
-                expected,
-                ObjectDisplay.FormatString(s, quote: '"', escapeNonPrintable: true));
+                ObjectDisplay.FormatString(s, useQuotes: true));
 
             expected =
                 "\0\u0001\u0002\u0003\u0004\u0005\u0006\a\u0008\u0009\u000a\u000b\f\u000d\u000e\u000f\u0010" +
@@ -182,17 +179,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "êëìíîïðñòóôõö÷øùúûüýþ";
             Assert.Equal(
                 expected,
-                ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.None));
-            Assert.Equal(
-                expected,
-                ObjectDisplay.FormatString(s, quote: '\0', escapeNonPrintable: true));
+                ObjectDisplay.FormatString(s, useQuotes: false));
 
             var arabic = "انتخابات مبكرة، بعد يوم حافل بالاحداث السياسية، بعد";
-            s = ObjectDisplay.FormatLiteral(arabic, ObjectDisplayOptions.None);
+            s = ObjectDisplay.FormatString(arabic, useQuotes: false);
             Assert.Equal(arabic, s);
 
             var hebrew = "והמנהלים רפואיים של ארבעת קופות החולים. בסיום הפגישה הבהיר";
-            s = ObjectDisplay.FormatLiteral(hebrew, ObjectDisplayOptions.None);
+            s = ObjectDisplay.FormatString(hebrew, useQuotes: false);
             Assert.Equal(hebrew, s);
         }
 
