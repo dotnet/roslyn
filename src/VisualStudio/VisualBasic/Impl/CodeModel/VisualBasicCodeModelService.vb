@@ -2823,26 +2823,26 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Debug.Assert(TypeOf memberNode Is PropertyBlockSyntax OrElse
                          TypeOf memberNode Is PropertyStatementSyntax)
 
-            Dim propertyStatement = TryCast(memberNode, PropertyStatementSyntax)
-            If propertyStatement IsNot Nothing Then
-                Debug.Assert(Not propertyStatement.IsParentKind(SyntaxKind.PropertyBlock))
+			Dim propertyStatement = TryCast(memberNode, PropertyStatementSyntax)
 
-                ' Auto property
-                Return EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite
-            End If
+			If propertyStatement Is Nothing Then
+				Dim propertyBlock = TryCast(memberNode, PropertyBlockSyntax)
+				If propertyBlock IsNot Nothing Then
+					propertyStatement = propertyBlock.PropertyStatement
+				End If
+			End If
 
-            Dim propertyBlock = TryCast(memberNode, PropertyBlockSyntax)
-            If propertyBlock IsNot Nothing Then
-                If propertyBlock.PropertyStatement.Modifiers.Any(SyntaxKind.WriteOnlyKeyword) Then
-                    Return EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly
-                ElseIf propertyBlock.PropertyStatement.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) Then
-                    Return EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly
-                Else
-                    Return EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite
-                End If
-            End If
+			If propertyStatement IsNot Nothing Then
+				If propertyStatement.Modifiers.Any(SyntaxKind.WriteOnlyKeyword) Then
+					Return EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly
+				ElseIf propertyStatement.Modifiers.Any(SyntaxKind.ReadOnlyKeyword)
+					Return EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly
+				Else
+					Return EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite
+				End If
+			End If
 
-            Throw Exceptions.ThrowEUnexpected()
+			Throw Exceptions.ThrowEUnexpected()
         End Function
 
         Private Function SetDelegateType(delegateStatement As DelegateStatementSyntax, typeSymbol As ITypeSymbol) As DelegateStatementSyntax
