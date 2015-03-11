@@ -405,8 +405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Not suppressCallDiagnostics AndAlso firstSelectExpression.HasErrors Then
                     Dim query = TryCast(firstSelectExpression, BoundQueryClause)
-
-                    suppressCallDiagnostics = (query.UnderlyingExpression.Kind = BoundKind.BadExpression)
+                    suppressCallDiagnostics = If(query?.UnderlyingExpression, firstSelectExpression).Kind = BoundKind.BadExpression
                 End If
 
                 Dim letOperator = New BoundQueryClause(aggregate,
