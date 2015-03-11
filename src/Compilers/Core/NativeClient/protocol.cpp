@@ -102,9 +102,30 @@ void AddArgument(vector<BYTE> &buffer, int argumentId, int argumentIndex, LPCWST
     AddString(buffer, value);
 }
 
+namespace {
+    // Returns size of serialized arguments in bytes
+    inline size_t ArgumentsSize(const vector<Argument>& args) {
+        size_t res = 0;
+        for (const auto& arg : args)
+        {
+            res += sizeof(int) * 3 // argumentId + argumentIndex + string_size
+                + arg.value.size() // string data size with terminating `\0` character
+            ;
+        }
+        
+        return res;
+    }
+} // anonymous namespace
+
 bool Request::WriteToPipe(IPipe& pipe)
 {
     vector<BYTE> buffer;
+    
+    // Reserving buffer to avoid reallocations and data copying
+    buffer.reserve(
+        sizeof(int) * 3 // ProtocolVersion + Language + arguments.size()
+        + ArgumentsSize(this->arguments)
+    );
 
     AddInt32(buffer, this->ProtocolVersion);
     AddInt32(buffer, this->Language);
