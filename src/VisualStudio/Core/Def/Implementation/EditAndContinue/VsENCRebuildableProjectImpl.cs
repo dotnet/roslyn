@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Roslyn.Utilities;
 using Microsoft.VisualStudio.SymReaderInterop;
@@ -225,7 +224,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     _encService.StartDebuggingSession(_vsProject.VisualStudioWorkspace.CurrentSolution);
                     s_encDebuggingSessionInfo = new EncDebuggingSessionInfo();
 
-                    s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService, AllowsReadOnly);
+                    s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService, _vsProject);
                 }
 
                 string outputPath = _vsProject.TryGetObjOutputPath();
@@ -286,17 +285,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             {
                 throw ExceptionUtilities.Unreachable;
             }
-        }
-
-        private bool AllowsReadOnly(DocumentId documentId)
-        {
-            // All documents of regular running projects are read-only until the debugger breaks the app.
-            // However, ASP.NET doesn’t want its views (aspx, cshtml, or vbhtml) to be read-only, so they can be editable
-            // while the code is running and get refreshed next time the web page is hit.
-            
-            // Note that Razor-like views are modelled as a ContainedDocument but normal code including code-behind are modelled as a StandradTextDocument.
-            var containedDocument = _vsProject.VisualStudioWorkspace.GetHostDocument(documentId) as ContainedDocument;
-            return containedDocument == null;
         }
 
         public int StopDebuggingPE()

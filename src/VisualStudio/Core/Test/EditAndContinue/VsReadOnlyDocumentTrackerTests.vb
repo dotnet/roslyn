@@ -6,11 +6,14 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 Imports Microsoft.VisualStudio.Editor
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.OLE.Interop
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Microsoft.VisualStudio.Utilities
+Imports Moq
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
@@ -32,11 +35,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Dim sessionReason As SessionReadOnlyReason
             Dim projectReason As ProjectReadOnlyReason
             Dim isReadOnly As Boolean
+            Dim allowsReadOnly As Boolean = True 'It is a StandardTextDocument
 
             ' start debugging
             encService.StartDebuggingSession(workspace.CurrentSolution)
-            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService, allowsReadOnly:=Function(documentId) True)
-            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason)
+            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService, Nothing)
+            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason) AndAlso allowsReadOnly
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), isReadOnly)
             Assert.Equal(Of UInteger)(1, mockVsBuffer._oldFlags) ' Read-Only
 
@@ -45,23 +49,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Dim projectStates = ImmutableArray.Create(Of KeyValuePair(Of ProjectId, ProjectReadOnlyReason))(New KeyValuePair(Of ProjectId, ProjectReadOnlyReason)(project.Id, ProjectReadOnlyReason.None))
 
             encService.StartEditSession(currentSolution, activeStatement, projectStates.ToImmutableDictionary(), stoppedAtException:=False)
-            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason)
+            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason) AndAlso allowsReadOnly
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), isReadOnly)
             Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags) ' Editable
 
             ' end edit session
             encService.EndEditSession()
-            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason)
+            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason) AndAlso allowsReadOnly
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), isReadOnly)
             Assert.Equal(Of UInteger)(1, mockVsBuffer._oldFlags) ' Read-Only
 
             ' break mode and stop at exception
             encService.StartEditSession(currentSolution, activeStatement, projectStates.ToImmutableDictionary(), stoppedAtException:=True)
-            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason)
+            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason) AndAlso allowsReadOnly
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), isReadOnly)
             Assert.Equal(Of UInteger)(1, mockVsBuffer._oldFlags) ' Read-Only
         End Sub
 
+        <WorkItem(1089964, "DevDiv")>
         <Fact>
         Public Sub ContainedDocumentTest()
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
@@ -79,11 +84,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Dim sessionReason As SessionReadOnlyReason
             Dim projectReason As ProjectReadOnlyReason
             Dim isReadOnly As Boolean
+            Dim allowsReadOnly As Boolean = False 'It is a ContainedDocument
 
             ' start debugging
             encService.StartDebuggingSession(workspace.CurrentSolution)
-            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService, allowsReadOnly:=Function(documentId) False)
-            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason)
+            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService, Nothing)
+            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason) AndAlso allowsReadOnly
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), isReadOnly)
             Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags) ' Editable
 
@@ -92,19 +98,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Dim projectStates = ImmutableArray.Create(Of KeyValuePair(Of ProjectId, ProjectReadOnlyReason))(New KeyValuePair(Of ProjectId, ProjectReadOnlyReason)(project.Id, ProjectReadOnlyReason.None))
 
             encService.StartEditSession(currentSolution, activeStatement, projectStates.ToImmutableDictionary(), stoppedAtException:=False)
-            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason)
+            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason) AndAlso allowsReadOnly
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), isReadOnly)
             Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags) ' Editable
 
             ' end edit session
             encService.EndEditSession()
-            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason)
+            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason) AndAlso allowsReadOnly
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), isReadOnly)
             Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags) ' Editable
 
             ' break mode and stop at exception
             encService.StartEditSession(currentSolution, activeStatement, projectStates.ToImmutableDictionary(), stoppedAtException:=True)
-            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason)
+            isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason) AndAlso allowsReadOnly
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), isReadOnly)
             Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags) ' Editable
         End Sub
