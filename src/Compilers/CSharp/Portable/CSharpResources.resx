@@ -4544,6 +4544,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DictionaryInitializerInExpressionTree" xml:space="preserve">
     <value>An expression tree lambda may not contain a dictionary initializer.</value>
   </data>
+  <data name="ERR_ExtensionCollectionElementInitializerInExpressionTree" xml:space="preserve">
+    <value>An expression tree lambda may not contain an extension collection element initializer.</value>
+  </data>
   <data name="IDS_FeatureNameof" xml:space="preserve">
     <value>nameof operator</value>
   </data>

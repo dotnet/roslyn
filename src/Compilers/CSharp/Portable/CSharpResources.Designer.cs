@@ -3923,6 +3923,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An expression tree lambda may not contain an extension collection element initializer..
+        /// </summary>
+        internal static string ERR_ExtensionCollectionElementInitializerInExpressionTree {
+            get {
+                return ResourceManager.GetString("ERR_ExtensionCollectionElementInitializerInExpressionTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extension methods must be defined in a top level static class; {0} is a nested class.
         /// </summary>
         internal static string ERR_ExtensionMethodsDecl {

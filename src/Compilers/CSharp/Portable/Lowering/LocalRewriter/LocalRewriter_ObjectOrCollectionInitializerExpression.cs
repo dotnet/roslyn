@@ -163,10 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the add method was found as an extension method.  Replace the implicit receiver (first argument) with the rewritten receiver.
                 Debug.Assert(addMethod.IsStatic && addMethod.IsExtensionMethod);
                 Debug.Assert(rewrittenArguments[0].Kind == BoundKind.ImplicitReceiver);
-                var newArgs = ArrayBuilder<BoundExpression>.GetInstance();
-                newArgs.AddRange(rewrittenArguments);
-                newArgs[0] = rewrittenReceiver;
-                rewrittenArguments = newArgs.ToImmutableAndFree();
+                Debug.Assert(!_inExpressionLambda, "Expression trees do not support extension Add");
+                rewrittenArguments = rewrittenArguments.SetItem(0, rewrittenReceiver);
                 rewrittenReceiver = null;
             }
 
