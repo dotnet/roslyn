@@ -3774,7 +3774,7 @@ class C
                 }
             }
 
-            var references = ImmutableArray.Create<MetadataReference>(
+            var references = ImmutableArray.Create(
                     MscorlibRef,
                     referenceD0,
                     referenceN0, // From D0
@@ -3790,11 +3790,11 @@ class C
             // Expression references ambiguous modules.
             string error;
             context.CompileExpression("x.F0 + y.F0", out error);
-            Assert.Equal(error, "error CS7079: The type 'A0' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.");
+            Assert.Equal("error CS7079: The type 'A0' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.", error);
             context.CompileExpression("y.F0", out error);
-            Assert.Equal(error, "error CS7079: The type 'A0' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.");
+            Assert.Equal("error CS7079: The type 'A0' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.", error);
             context.CompileExpression("z.F1", out error);
-            Assert.Equal(error, "error CS7079: The type 'A1' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.");
+            Assert.Equal("error CS7079: The type 'A1' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.", error);
 
             // Expression does not reference ambiguous modules.
             var testData = new CompilationTestData();

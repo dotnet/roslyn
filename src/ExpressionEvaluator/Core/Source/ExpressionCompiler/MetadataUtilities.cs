@@ -159,9 +159,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static string GetFileNameWithoutExtension(string fileName)
         {
             var lastDotIndex = fileName.LastIndexOf('.');
-            if ((lastDotIndex > 0) && (lastDotIndex + 1 < fileName.Length))
+            var extensionStartIndex = lastDotIndex + 1;
+            if ((lastDotIndex > 0) && (extensionStartIndex < fileName.Length))
             {
-                var extension = fileName.Substring(lastDotIndex + 1);
+                var extension = fileName.Substring(extensionStartIndex);
                 switch (extension)
                 {
                     case "dll":
