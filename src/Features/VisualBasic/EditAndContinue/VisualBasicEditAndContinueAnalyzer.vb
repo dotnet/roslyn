@@ -1860,7 +1860,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
 
                 If method.HandlesClause IsNot Nothing Then
-                    ReportError(RudeEditKind.RUDE_EDIT_ADD_HANDLES_CLAUSE)
+                    ReportError(RudeEditKind.InsertHandlesClause)
                 End If
 
                 ClassifyModifiedMemberInsert(method.Modifiers)
@@ -2568,10 +2568,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                         Case SyntaxKind.QueryExpression
                             ReportError(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, node, Me.newNode)
-                            Return
-
-                        Case SyntaxKind.AnonymousObjectCreationExpression
-                            ReportError(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, node, Me.newNode)
                             Return
                     End Select
                 Next

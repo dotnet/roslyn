@@ -35,9 +35,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(VisualBasic.MessageProvider.Instance, isInteractive)
         End Sub
 
-        Private Const c_Win32Manifest As String = "win32manifest"
-        Private Const c_Win32Icon As String = "win32icon"
-        Private Const c_Win32Res As String = "win32resource"
+        Private Const s_win32Manifest As String = "win32manifest"
+        Private Const s_win32Icon As String = "win32icon"
+        Private Const s_win32Res As String = "win32resource"
 
         ''' <summary>
         ''' Gets the standard Visual Basic source file extension
@@ -515,15 +515,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
 
                         Case "win32resource"
-                            win32ResourceFile = GetWin32Setting(c_Win32Res, value, diagnostics)
+                            win32ResourceFile = GetWin32Setting(s_win32Res, value, diagnostics)
                             Continue For
 
                         Case "win32icon"
-                            win32IconFile = GetWin32Setting(c_Win32Icon, value, diagnostics)
+                            win32IconFile = GetWin32Setting(s_win32Icon, value, diagnostics)
                             Continue For
 
                         Case "win32manifest"
-                            win32ManifestFile = GetWin32Setting(c_Win32Manifest, value, diagnostics)
+                            win32ManifestFile = GetWin32Setting(s_win32Manifest, value, diagnostics)
                             Continue For
 
                         Case "nowin32manifest"

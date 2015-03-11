@@ -88,8 +88,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly EventHandler<bool> s_additionalDocumentClosingEventHandler = OnAdditionalDocumentClosing;
         private static readonly EventHandler s_additionalDocumentUpdatedOnDiskEventHandler = OnAdditionalDocumentUpdatedOnDisk;
 
-        internal readonly VsENCRebuildableProjectImpl EditAndContinueImplOpt;
-
         public AbstractProject(
             VisualStudioProjectTracker projectTracker,
             Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
@@ -134,11 +132,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (reportExternalErrorCreatorOpt != null)
             {
                 _externalErrorReporter = reportExternalErrorCreatorOpt(_id);
-            }
-
-            if (visualStudioWorkspaceOpt != null)
-            {
-                this.EditAndContinueImplOpt = new VsENCRebuildableProjectImpl(this);
             }
 
             ConnectHierarchyEvents();

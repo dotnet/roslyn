@@ -1547,5 +1547,123 @@ class A
 }";
             TestSelection(code, expectedFail: true);
         }
+
+        [WorkItem(751, "https://github.com/dotnet/roslyn/issues/751")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public void SimpleConditionalAccessExpressionSelectFirstExpression()
+        {
+            var code = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        A a = new A();
+        var l = {|r:{|b:a|}?.Length |}?? 0;
+    }
+}
+class A
+{
+    public int Length { get; internal set; }
+}";
+            TestSelection(code);
+        }
+
+        [WorkItem(751, "https://github.com/dotnet/roslyn/issues/751")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public void SimpleConditionalAccessExpressionSelectSecondExpression()
+        {
+            var code = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        A a = new A();
+        var l = {|r:a?.{|b:Length|}|} ?? 0;
+    }
+}
+class A
+{
+    public int Length { get; internal set; }
+}";
+            TestSelection(code);
+        }
+
+        [WorkItem(751, "https://github.com/dotnet/roslyn/issues/751")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public void NestedConditionalAccessExpressionWithMemberBindingExpression()
+        {
+            var code = @"using System;
+ 
+class Program
+{
+    static void Main(string[] args)
+    {
+        A a = new A();
+        var l = {|r:a?.{|b:Prop|}?.Length |}?? 0;
+    }
+}
+class A
+{
+    public B Prop { get; set; }
+}
+class B
+{
+    public int Length { get; set; }
+}";
+            TestSelection(code);
+        }
+
+        [WorkItem(751, "https://github.com/dotnet/roslyn/issues/751")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public void NestedConditionalAccessExpressionWithMemberBindingExpressionSelectSecondExpression()
+        {
+            var code = @"using System;
+ 
+class Program
+{
+    static void Main(string[] args)
+    {
+        A a = new A();
+        var l = {|r:a?.Prop?.{|b:Length|}|} ?? 0;
+    }
+}
+class A
+{
+    public B Prop { get; set; }
+}
+class B
+{
+    public int Length { get; set; }
+}";
+            TestSelection(code);
+        }
+
+        [WorkItem(751, "https://github.com/dotnet/roslyn/issues/751")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public void NestedConditionalAccessExpressionWithInvocationExpression()
+        {
+            var code = @"using System;
+ 
+class Program
+{
+    static void Main(string[] args)
+    {
+        A a = new A();
+        var l = {|r:a?.{|b:Method()|}?.Length |}?? 0;
+    }
+}
+class A
+{
+    public B Method()
+    {
+        return new B();
+    }
+}
+class B
+{
+    public int Length { get; set; }
+}";
+            TestSelection(code);
+        }
     }
 }

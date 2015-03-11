@@ -9,7 +9,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Class Parser
+    Friend Partial Class Parser
 
         '
         '============ Methods for parsing specific executable statements
@@ -790,7 +790,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         Case SyntaxKind.OpenParenToken
                             Dim lookAhead As SyntaxToken = Nothing
-                            Dim i = PeekAheadFor(IsTokenOrKeywordFunc, {SyntaxKind.AsKeyword, SyntaxKind.InKeyword, SyntaxKind.EqualsToken}, lookAhead)
+                            Dim i = PeekAheadFor(s_isTokenOrKeywordFunc, {SyntaxKind.AsKeyword, SyntaxKind.InKeyword, SyntaxKind.EqualsToken}, lookAhead)
                             If lookAhead IsNot Nothing AndAlso
                                 lookAhead.Kind = SyntaxKind.AsKeyword AndAlso
                                 PeekToken(i - 1).Kind = SyntaxKind.CloseParenToken Then

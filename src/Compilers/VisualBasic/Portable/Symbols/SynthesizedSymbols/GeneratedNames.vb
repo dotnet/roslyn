@@ -12,9 +12,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend NotInheritable Class GeneratedNames
         Friend Const DotReplacementInTypeNames As Char = "-"c
-        Private Const MethodNameSeparator As Char = "_"c
-        Private Const IdSeparator As Char = "-"c
-        Private Const GenerationSeparator As Char = "#"c
+        Private Const s_methodNameSeparator As Char = "_"c
+        Private Const s_idSeparator As Char = "-"c
+        Private Const s_generationSeparator As Char = "#"c
 
         ''' <summary>
         ''' Generates the name of a state machine's type.
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 builder.Append(methodOrdinal)
 
                 If generation > 0 Then
-                    builder.Append(GenerationSeparator)
+                    builder.Append(s_generationSeparator)
                     builder.Append(generation)
                 End If
             End If
@@ -119,14 +119,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If uniqueId >= 0 Then
                 If methodOrdinal >= 0 Then
                     ' Can't use underscore since name parser uses it to find the method name.
-                    builder.Append(IdSeparator)
+                    builder.Append(s_idSeparator)
                 End If
 
                 builder.Append(uniqueId)
             End If
 
             If methodNameOpt IsNot Nothing Then
-                builder.Append(MethodNameSeparator)
+                builder.Append(s_methodNameSeparator)
                 builder.Append(methodNameOpt)
 
                 ' CLR generally allows names with dots, however some APIs like IMetaDataImport
@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim prefixLength As Integer = StringConstants.StateMachineTypeNamePrefix.Length
-            Dim separatorPos = stateMachineTypeName.IndexOf(MethodNameSeparator, prefixLength)
+            Dim separatorPos = stateMachineTypeName.IndexOf(s_methodNameSeparator, prefixLength)
             If separatorPos < 0 OrElse separatorPos = stateMachineTypeName.Length - 1 Then
                 Return False
             End If

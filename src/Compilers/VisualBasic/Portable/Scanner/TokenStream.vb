@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
-    Module ScannerStateExtensions
+    Friend Module ScannerStateExtensions
         <Extension()>
         Friend Function IsVBState(state As ScannerState) As Boolean
             Return state <= ScannerState.VBAllowLeadingMultilineTrivia
@@ -287,13 +287,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             prevToken = tk
             _currentToken = New ScannerToken(_scannerPreprocessorState, _lineBufferOffset, _endOfTerminatorTrivia, Nothing, state)
 
-            Dim tList = triviaListPool.Allocate()
+            Dim tList = _triviaListPool.Allocate()
             ScanSingleLineTrivia(tList)
             Debug.Assert(tList.Count > 0)
             Dim lastTrivia = DirectCast(tList(tList.Count - 1), SyntaxTrivia)
             tList.RemoveLast()
             Dim precedingTrivia = MakeTriviaArray(tList)
-            triviaListPool.Free(tList)
+            _triviaListPool.Free(tList)
 
             Debug.Assert(lastTrivia.Kind = SyntaxKind.ColonTrivia)
             Debug.Assert(lastTrivia.Width = 1)
@@ -580,7 +580,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     token = Me.GetNextToken(allowLeadingMultilineTrivia:=False)
 
                 Case ScannerState.VBAllowLeadingMultilineTrivia
-                    token = Me.GetNextToken(allowLeadingMultilineTrivia:=Not IsScanningDirective)
+                    token = Me.GetNextToken(allowLeadingMultilineTrivia:=Not _isScanningDirective)
 
                 Case ScannerState.Misc
                     token = Me.ScanXmlMisc()

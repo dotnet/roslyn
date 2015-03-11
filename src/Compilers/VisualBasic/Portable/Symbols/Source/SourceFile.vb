@@ -12,25 +12,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class SourceFile
         Implements Cci.IImportScope
 
-        Private ReadOnly m_sourceModule As SourceModuleSymbol
-        Private ReadOnly m_syntaxTree As SyntaxTree
+        Private ReadOnly _sourceModule As SourceModuleSymbol
+        Private ReadOnly _syntaxTree As SyntaxTree
 
         ' holds diagnostics related to source code in this particular source file, for 
         ' each stage.
-        Private ReadOnly m_diagnosticBagDeclare As New DiagnosticBag()
-        Private ReadOnly m_diagnosticBagCompile As New DiagnosticBag()
-        Private ReadOnly m_diagnosticBagEmit As New DiagnosticBag()
+        Private ReadOnly _diagnosticBagDeclare As New DiagnosticBag()
+        Private ReadOnly _diagnosticBagCompile As New DiagnosticBag()
+        Private ReadOnly _diagnosticBagEmit As New DiagnosticBag()
 
         ' Lazily filled in.
-        Private m_lazyBoundInformation As BoundFileInformation
+        Private _lazyBoundInformation As BoundFileInformation
 
         ' Set to nonzero when import validated errors have been reported.
-        Private m_importsValidated As Integer
+        Private _importsValidated As Integer
 
         ' lazily populate with quick attribute checker that is initialized with the imports.
-        Private m_lazyQuickAttributeChecker As QuickAttributeChecker
+        Private _lazyQuickAttributeChecker As QuickAttributeChecker
 
-        Private m_lazyTranslatedImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
+        Private _lazyTranslatedImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
 
         ''' <summary>
         ''' The bound information from a file.
@@ -69,14 +69,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Class
 
         Public Sub New(sourceModule As SourceModuleSymbol, tree As SyntaxTree)
-            m_sourceModule = sourceModule
-            m_syntaxTree = tree
+            _sourceModule = sourceModule
+            _syntaxTree = tree
         End Sub
 
         ' Get the declaration errors.
         Public ReadOnly Property DeclarationErrors As DiagnosticBag
             Get
-                Return m_diagnosticBagDeclare
+                Return _diagnosticBagDeclare
             End Get
         End Property
 
@@ -84,13 +84,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub AddDiagnostic(d As Diagnostic, stage As CompilationStage)
             Select Case stage
                 Case CompilationStage.Declare
-                    m_diagnosticBagDeclare.Add(d)
+                    _diagnosticBagDeclare.Add(d)
 
                 Case CompilationStage.Compile
-                    m_diagnosticBagCompile.Add(d)
+                    _diagnosticBagCompile.Add(d)
 
                 Case CompilationStage.Emit
-                    m_diagnosticBagEmit.Add(d)
+                    _diagnosticBagEmit.Add(d)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(stage)
@@ -101,20 +101,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' aliases.
         Public ReadOnly Property QuickAttributeChecker As QuickAttributeChecker
             Get
-                If m_lazyQuickAttributeChecker Is Nothing Then
-                    Interlocked.CompareExchange(m_lazyQuickAttributeChecker, CreateQuickAttributeChecker(), Nothing)
+                If _lazyQuickAttributeChecker Is Nothing Then
+                    Interlocked.CompareExchange(_lazyQuickAttributeChecker, CreateQuickAttributeChecker(), Nothing)
                 End If
 
-                Return m_lazyQuickAttributeChecker
+                Return _lazyQuickAttributeChecker
             End Get
         End Property
 
         Private Function CreateQuickAttributeChecker() As QuickAttributeChecker
             ' First, initialize from the source module to get aliases from the options.
-            Dim checker As New QuickAttributeChecker(m_sourceModule.QuickAttributeChecker)
+            Dim checker As New QuickAttributeChecker(_sourceModule.QuickAttributeChecker)
 
             ' Now process alias imports
-            Dim compilationUnitSyntax = m_syntaxTree.GetCompilationUnitRoot()
+            Dim compilationUnitSyntax = _syntaxTree.GetCompilationUnitRoot()
             For Each statement In compilationUnitSyntax.Imports
                 For Each clause In statement.ImportsClauses
                     If clause.Kind = SyntaxKind.SimpleImportsClause Then
@@ -142,30 +142,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function GetBoundInformation(cancellationToken As CancellationToken) As BoundFileInformation
-            If m_lazyBoundInformation Is Nothing Then
+            If _lazyBoundInformation Is Nothing Then
                 Dim diagBag As New DiagnosticBag()
                 Dim lazyBoundInformation = BindFileInformation(diagBag, cancellationToken)
-                m_sourceModule.AtomicStoreReferenceAndDiagnostics(m_lazyBoundInformation, lazyBoundInformation, diagBag, CompilationStage.Declare)
+                _sourceModule.AtomicStoreReferenceAndDiagnostics(_lazyBoundInformation, lazyBoundInformation, diagBag, CompilationStage.Declare)
             End If
 
-            Return m_lazyBoundInformation
+            Return _lazyBoundInformation
         End Function
 
         Private Sub EnsureImportsValidated()
-            If m_importsValidated = 0 Then
+            If _importsValidated = 0 Then
                 Dim boundFileInformation = BoundInformation
                 Dim diagBag As New DiagnosticBag()
                 ValidateImports(boundFileInformation.MemberImports, boundFileInformation.MemberImportsSyntax, boundFileInformation.AliasImports, diagBag)
-                m_sourceModule.AtomicStoreIntegerAndDiagnostics(m_importsValidated, 1, 0, diagBag, CompilationStage.Declare)
+                _sourceModule.AtomicStoreIntegerAndDiagnostics(_importsValidated, 1, 0, diagBag, CompilationStage.Declare)
             End If
-            Debug.Assert(m_importsValidated = 1)
+            Debug.Assert(_importsValidated = 1)
         End Sub
 
         Private Function BindFileInformation(diagBag As DiagnosticBag, cancellationToken As CancellationToken, Optional filterSpan As TextSpan? = Nothing) As BoundFileInformation
             ' The binder must be set up to only bind things in the global namespace, in order to bind imports 
             ' correctly. Note that a different binder would be needed for binding the file-level attributes.
-            Dim binder = BinderBuilder.CreateBinderForSourceFileImports(m_sourceModule, m_syntaxTree)
-            Dim compilationUnitSyntax = m_syntaxTree.GetCompilationUnitRoot()
+            Dim binder = BinderBuilder.CreateBinderForSourceFileImports(_sourceModule, _syntaxTree)
+            Dim compilationUnitSyntax = _syntaxTree.GetCompilationUnitRoot()
 
             Dim optionStrict As Boolean?
             Dim optionInfer As Boolean?
@@ -431,11 +431,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Function GetUsedNamespaces(context As EmitContext) As ImmutableArray(Of Cci.UsedNamespaceOrType) Implements Cci.IImportScope.GetUsedNamespaces
-            If m_lazyTranslatedImports.IsDefault Then
-                ImmutableInterlocked.InterlockedInitialize(m_lazyTranslatedImports, TranslateImports(context))
+            If _lazyTranslatedImports.IsDefault Then
+                ImmutableInterlocked.InterlockedInitialize(_lazyTranslatedImports, TranslateImports(context))
             End If
 
-            Return m_lazyTranslatedImports
+            Return _lazyTranslatedImports
         End Function
 
         Private Function TranslateImports(context As EmitContext) As ImmutableArray(Of Cci.UsedNamespaceOrType)
