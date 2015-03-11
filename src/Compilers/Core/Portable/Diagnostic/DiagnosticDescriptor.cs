@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis
         {
             return
                 other != null &&
-                this.Category == other.Category &&
+                this.Category.Equals(other.Category) &&
                 this.DefaultSeverity == other.DefaultSeverity &&
                 this.Description.Equals(other.Description) &&
                 this.HelpLinkUri == other.HelpLinkUri &&
