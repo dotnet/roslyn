@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
         }
 
@@ -120,14 +120,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_node == null)
-                {
-                    return default(TextSpan);
-                }
-                else
-                {
-                    return _node.FullSpan;
-                }
+                return _node?.FullSpan ?? default(TextSpan);
             }
         }
 
@@ -138,14 +131,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_node == null)
-                {
-                    return default(TextSpan);
-                }
-                else
-                {
-                    return _node.Span;
-                }
+                return _node?.Span ?? default(TextSpan);
             }
         }
 
@@ -159,7 +145,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public override string ToString()
         {
-            return _node != null ? _node.ToString() : string.Empty;
+            return _node?.ToString() ?? string.Empty;
         }
 
         /// <summary>
@@ -172,7 +158,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public string ToFullString()
         {
-            return _node != null ? _node.ToFullString() : string.Empty;
+            return _node?.ToFullString() ?? string.Empty;
         }
 
         /// <summary>
@@ -293,7 +279,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (nodeOrToken == default(SyntaxNodeOrToken))
             {
-                throw new ArgumentException("nodeOrToken");
+                throw new ArgumentOutOfRangeException(nameof(nodeOrToken));
             }
 
             return InsertRange(index, SpecializedCollections.SingletonEnumerable(nodeOrToken));
@@ -308,12 +294,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (index < 0 || index > this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             if (nodesAndTokens == null)
             {
-                throw new ArgumentNullException("nodesAndTokens");
+                throw new ArgumentNullException(nameof(nodesAndTokens));
             }
 
             if (nodesAndTokens.IsEmpty())
@@ -350,7 +336,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (index < 0 || index >= this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             var node = this[index];
@@ -385,7 +371,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (newNodeOrToken == default(SyntaxNodeOrToken))
             {
-                throw new ArgumentException("newNodeOrToken");
+                throw new ArgumentOutOfRangeException(nameof(newNodeOrToken));
             }
 
             return ReplaceRange(nodeOrTokenInList, new[] { newNodeOrToken });
@@ -408,7 +394,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                throw new ArgumentException("nodeOrTokenInList");
+                throw new ArgumentOutOfRangeException(nameof(nodeOrTokenInList));
             }
         }
 

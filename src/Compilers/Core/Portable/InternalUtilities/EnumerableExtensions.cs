@@ -150,7 +150,7 @@ namespace Roslyn.Utilities
         {
             if (source == null)
             {
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             }
 
             return source.Cast<T?>().LastOrDefault();
@@ -246,7 +246,7 @@ namespace Roslyn.Utilities
         {
             if (source == null)
             {
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             }
 
             foreach (var b in source)
@@ -264,7 +264,7 @@ namespace Roslyn.Utilities
         {
             if (sequence == null)
             {
-                throw new ArgumentNullException("sequence");
+                throw new ArgumentNullException(nameof(sequence));
             }
 
             return sequence.SelectMany(s => s);

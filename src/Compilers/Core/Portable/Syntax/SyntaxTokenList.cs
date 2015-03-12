@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public override string ToString()
         {
-            return _node != null ? _node.ToString() : string.Empty;
+            return _node?.ToString() ?? string.Empty;
         }
 
         /// <summary>
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public string ToFullString()
         {
-            return _node != null ? _node.ToFullString() : string.Empty;
+            return _node?.ToFullString() ?? string.Empty;
         }
 
         /// <summary>
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (token == default(SyntaxToken))
             {
-                throw new ArgumentException("token");
+                throw new ArgumentOutOfRangeException(nameof(token));
             }
 
             return InsertRange(index, new[] { token });
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (index < 0 || index > this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             if (tokens == null)

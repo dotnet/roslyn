@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
                     return ItemInternal(_node, index);
                 }
 
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
         }
 

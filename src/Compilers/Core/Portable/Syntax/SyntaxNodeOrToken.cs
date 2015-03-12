@@ -369,9 +369,9 @@ namespace Microsoft.CodeAnalysis
             {
                 _token.WriteTo(writer);
             }
-            else if (_nodeOrParent != null)
+            else
             {
-                _nodeOrParent.WriteTo(writer);
+                _nodeOrParent?.WriteTo(writer);
             }
         }
 
@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotations == null)
             {
-                throw new ArgumentNullException("annotations");
+                throw new ArgumentNullException(nameof(annotations));
             }
 
             if (_token != null)
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotations == null)
             {
-                throw new ArgumentNullException("annotations");
+                throw new ArgumentNullException(nameof(annotations));
             }
 
             if (_token != null)
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotationKind == null)
             {
-                throw new ArgumentNullException("annotationKind");
+                throw new ArgumentNullException(nameof(annotationKind));
             }
 
             if (this.HasAnnotations(annotationKind))
@@ -859,12 +859,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_nodeOrParent != null)
-                {
-                    return _nodeOrParent.SyntaxTree;
-                }
-
-                return null;
+                return _nodeOrParent?.SyntaxTree;
             }
         }
 
@@ -999,7 +994,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (!node.FullSpan.IntersectsWith(position))
             {
-                throw new ArgumentException("Must be within node's FullSpan", "position");
+                throw new ArgumentException("Must be within node's FullSpan", nameof(position));
             }
 
             return GetFirstChildIndexSpanningPosition(node.ChildNodesAndTokens(), position);

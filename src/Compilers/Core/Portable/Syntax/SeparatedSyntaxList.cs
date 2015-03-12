@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
         }
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            throw new ArgumentOutOfRangeException("index");
+            throw new ArgumentOutOfRangeException(nameof(index));
         }
 
         /// <summary>
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             return InsertRange(index, new[] { node });
@@ -358,12 +358,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (nodes == null)
             {
-                throw new ArgumentNullException("nodes");
+                throw new ArgumentNullException(nameof(nodes));
             }
 
             if (index < 0 || index > this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             var nodesWithSeps = this.GetWithSeparators();
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (index < 0 || index > this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             return this.Remove(this[index]);
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (newNode == null)
             {
-                throw new ArgumentNullException("newNode");
+                throw new ArgumentNullException(nameof(newNode));
             }
 
             var index = this.IndexOf(nodeInList);
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                throw new ArgumentException("nodeInList");
+                throw new ArgumentOutOfRangeException(nameof(nodeInList));
             }
         }
 
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (newNodes == null)
             {
-                throw new ArgumentNullException("newNodes");
+                throw new ArgumentNullException(nameof(newNodes));
             }
 
             var index = this.IndexOf(nodeInList);

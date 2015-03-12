@@ -4840,13 +4840,10 @@ namespace Microsoft.Cci
                 if (!isAssemblyQualified)
                 {
                     INamespaceTypeReference namespaceType = customAttribute.GetType(context).AsNamespaceTypeReference;
-                    if (namespaceType != null)
+                    var referencedAssembly = namespaceType?.GetUnit(context) as IAssemblyReference;
+                    if (referencedAssembly != null)
                     {
-                        var referencedAssembly = namespaceType.GetUnit(context) as IAssemblyReference;
-                        if (referencedAssembly != null)
-                        {
-                            typeName = typeName + ", " + StrongName(referencedAssembly);
-                        }
+                        typeName = typeName + ", " + StrongName(referencedAssembly);
                     }
                 }
 

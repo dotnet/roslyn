@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return _token != null ? _token.Language : string.Empty;
+                return _token?.Language ?? string.Empty;
             }
         }
 
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>The length of the returned string is always the same as Span.Length</remarks>
         public override string ToString()
         {
-            return _token != null ? _token.ToString() : string.Empty;
+            return _token?.ToString() ?? string.Empty;
         }
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
         public string ToFullString()
         {
-            return _token != null ? _token.ToFullString() : string.Empty;
+            return _token?.ToFullString() ?? string.Empty;
         }
 
         /// <summary>
@@ -334,9 +334,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<SyntaxAnnotation> GetAnnotations(string annotationKind)
         {
-            return _token != null
-                ? _token.GetAnnotations(annotationKind)
-                : SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
+            return _token?.GetAnnotations(annotationKind) ?? SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
         }
 
         /// <summary>
@@ -352,9 +350,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<SyntaxAnnotation> GetAnnotations(IEnumerable<string> annotationKinds)
         {
-            return _token != null
-                ? _token.GetAnnotations(annotationKinds)
-                : SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
+            return _token?.GetAnnotations(annotationKinds) ?? SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
         }
 
         /// <summary>
@@ -374,7 +370,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotations == null)
             {
-                throw new ArgumentNullException("annotations");
+                throw new ArgumentNullException(nameof(annotations));
             }
 
             if (this.Node != null)
@@ -403,7 +399,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotations == null)
             {
-                throw new ArgumentNullException("annotations");
+                throw new ArgumentNullException(nameof(annotations));
             }
 
             if (this.Node != null)
@@ -425,7 +421,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotationKind == null)
             {
-                throw new ArgumentNullException("annotationKind");
+                throw new ArgumentNullException(nameof(annotationKind));
             }
 
             if (this.HasAnnotations(annotationKind))
@@ -678,7 +674,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxToken);
             }
 
-            return (SyntaxToken)_token.Navigator.GetNextToken(this, predicate, stepInto);
+            return _token.Navigator.GetNextToken(this, predicate, stepInto);
         }
 
         /// <summary>
@@ -704,7 +700,7 @@ namespace Microsoft.CodeAnalysis
         /// included in the search.</param>
         internal SyntaxToken GetPreviousToken(Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto = null)
         {
-            return (SyntaxToken)_token.Navigator.GetPreviousToken(this, predicate, stepInto);
+            return _token.Navigator.GetPreviousToken(this, predicate, stepInto);
         }
 
         /// <summary>

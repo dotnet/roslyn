@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
             }
             else if (after == null)
             {
-                throw new ArgumentNullException("after");
+                throw new ArgumentNullException(nameof(after));
             }
             else
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
             }
             else if (after == null)
             {
-                throw new ArgumentNullException("after");
+                throw new ArgumentNullException(nameof(after));
             }
             else
             {

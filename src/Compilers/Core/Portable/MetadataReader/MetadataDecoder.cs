@@ -1941,7 +1941,7 @@ namespace Microsoft.CodeAnalysis
             return new TypedConstant(type, kind, value);
         }
 
-        private TypedConstant CreateTypedConstant(TypeSymbol type, TypedConstantKind kind, bool value)
+        private static TypedConstant CreateTypedConstant(TypeSymbol type, TypedConstantKind kind, bool value)
         {
             return CreateTypedConstant(type, kind, Boxes.Box(value));
         }
