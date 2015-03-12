@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // TODO: EE expression
-                    if (node is ExpressionSyntax && node.Parent.Parent == null)
+                    if (node is ExpressionSyntax && node.Parent != null && node.Parent.Parent == null)
                     {
                         return true;
                     }
