@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal partial class SuppressMessageAttributeState
     {
-        private static string s_suppressionPrefix = "~";
+        private const string s_suppressionPrefix = "~";
 
         private struct TargetSymbolResolver
         {
@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private static readonly ParameterInfo[] s_noParameters = new ParameterInfo[0];
 
-            private Compilation _compilation;
-            private TargetScope _scope;
-            private string _name;
+            private readonly Compilation _compilation;
+            private readonly TargetScope _scope;
+            private readonly string _name;
             private int _index;
 
             public TargetSymbolResolver(Compilation compilation, TargetScope scope, string fullyQualifiedName)
@@ -870,11 +870,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private struct TypeInfo
             {
                 // The type, may be null if unbound.
-                public ITypeSymbol Type;
+                public readonly ITypeSymbol Type;
 
                 // The start index into this.name for parsing this type if the type is not known
                 // This index is used when rebinding later when the method context is known
-                public int StartIndex;
+                public readonly int StartIndex;
 
                 public bool IsBound { get { return this.Type != null; } }
 
@@ -899,8 +899,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private struct ParameterInfo
             {
-                public TypeInfo Type;
-                public bool IsRefOrOut;
+                public readonly TypeInfo Type;
+                public readonly bool IsRefOrOut;
 
                 public ParameterInfo(TypeInfo type, bool isRefOrOut)
                 {

@@ -1170,7 +1170,7 @@ namespace Microsoft.CodeAnalysis
 
             // Dev10 always uses the default value for 32bit for sizeOfHeapReserve.
             // check with link -dump -headers <filename>
-            ulong sizeOfHeapReserve = ModulePropertiesForSerialization.DefaultSizeOfHeapReserve32Bit;
+            const ulong sizeOfHeapReserve = ModulePropertiesForSerialization.DefaultSizeOfHeapReserve32Bit;
 
             ulong sizeOfStackReserve = requires64bits
                 ? ModulePropertiesForSerialization.DefaultSizeOfStackReserve64Bit

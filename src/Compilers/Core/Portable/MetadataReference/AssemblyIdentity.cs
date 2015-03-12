@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static bool IsFullName(AssemblyIdentityParts parts)
         {
-            var nvc = AssemblyIdentityParts.Name | AssemblyIdentityParts.Version | AssemblyIdentityParts.Culture;
+            const AssemblyIdentityParts nvc = AssemblyIdentityParts.Name | AssemblyIdentityParts.Version | AssemblyIdentityParts.Culture;
             return (parts & nvc) == nvc && (parts & AssemblyIdentityParts.PublicKeyOrToken) != 0;
         }
 

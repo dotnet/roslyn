@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static ListPool<ISymbol> s_symbolListPool = new ListPool<ISymbol>();
-        private static ListPool<INamespaceOrTypeSymbol> s_namespaceOrTypeListPool = new ListPool<INamespaceOrTypeSymbol>();
+        private static readonly ListPool<ISymbol> s_symbolListPool = new ListPool<ISymbol>();
+        private static readonly ListPool<INamespaceOrTypeSymbol> s_namespaceOrTypeListPool = new ListPool<INamespaceOrTypeSymbol>();
 
         /// <summary>
         /// Creates an id string used by external documenation comment files to identify declarations
@@ -185,8 +185,8 @@ namespace Microsoft.CodeAnalysis
 
         private class DeclarationGenerator : SymbolVisitor
         {
-            private StringBuilder _builder;
-            private Generator _generator;
+            private readonly StringBuilder _builder;
+            private readonly Generator _generator;
 
             public DeclarationGenerator(StringBuilder builder)
             {
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis
 
             private class Generator : SymbolVisitor<bool>
             {
-                private StringBuilder _builder;
+                private readonly StringBuilder _builder;
                 private ReferenceGenerator _referenceGenerator;
 
                 public Generator(StringBuilder builder)
@@ -1300,7 +1300,7 @@ namespace Microsoft.CodeAnalysis
             private struct ParameterInfo
             {
                 internal readonly ITypeSymbol Type;
-                internal bool IsRefOrOut;
+                internal readonly bool IsRefOrOut;
 
                 public ParameterInfo(ITypeSymbol type, bool isRefOrOut)
                 {
@@ -1309,7 +1309,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private static ListPool<ParameterInfo> s_parameterListPool = new ListPool<ParameterInfo>();
+            private static readonly ListPool<ParameterInfo> s_parameterListPool = new ListPool<ParameterInfo>();
 
             private static bool ParseParameterList(string id, ref int index, Compilation compilation, ISymbol typeParameterContext, List<ParameterInfo> parameters)
             {

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly Compilation _compilation;
         private GlobalSuppressions _lazyGlobalSuppressions;
-        private ConcurrentDictionary<ISymbol, ImmutableArray<string>> _localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableArray<string>>();
+        private readonly ConcurrentDictionary<ISymbol, ImmutableArray<string>> _localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableArray<string>>();
         private ISymbol _lazySuppressMessageAttribute;
 
         private class GlobalSuppressions
