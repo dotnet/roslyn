@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return value ? "true" : "false";
         }
 
-        private static void FormatChar(
+        private static void FormatStringChar(
             ref PooledStringBuilder pooledBuilder,
             string str,
             int index,
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             for (int i = 0; i < value.Length; i++)
             {
-                FormatChar(ref pooledBuilder, value, i, value[i], quote, useLanguageSpecificEscapes: true, useUnicodeEscapes: true);
+                FormatStringChar(ref pooledBuilder, value, i, value[i], quote, useLanguageSpecificEscapes: true, useUnicodeEscapes: true);
             }
             if (quote != 0)
             {
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Append(quote);
             for (int i = 0; i < str.Length; i++)
             {
-                FormatChar(ref pooledBuilder, str, i, str[i], quote, useLanguageSpecificEscapes: useQuotes, useUnicodeEscapes: false);
+                FormatStringChar(ref pooledBuilder, str, i, str[i], quote, useLanguageSpecificEscapes: useQuotes, useUnicodeEscapes: false);
             }
             builder.Append(quote);
             return pooledBuilder.ToStringAndFree();
@@ -320,13 +320,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Append(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) ? "0x" + ((int)c).ToString("x4") : ((int)c).ToString());
                 builder.Append(" ");
             }
-            if (quote != 0)
+            if (useQuotes)
             {
                 builder.Append(quote);
             }
             var escapeNonPrintable = !includeCodePoints;
-            FormatChar(ref pooledBuilder, null, 0, c, quote, useLanguageSpecificEscapes: useQuotes, useUnicodeEscapes: !includeCodePoints);
-            if (quote != 0)
+            FormatStringChar(ref pooledBuilder, null, 0, c, quote, useLanguageSpecificEscapes: useQuotes, useUnicodeEscapes: !includeCodePoints);
+            if (useQuotes)
             {
                 builder.Append(quote);
             }
