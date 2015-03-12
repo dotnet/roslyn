@@ -142,78 +142,66 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useLanguageSpecificEscapes,
             bool useUnicodeEscapes)
         {
-            Debug.Assert(quote == 0 || quote == '"' || quote == '\'');
+            Debug.Assert(quote == '\0' || quote == '"' || quote == '\'');
 
             string replaceWith = null;
-            bool unicodeEscape = false;
-            switch (CharUnicodeInfo.GetUnicodeCategory(c))
+            if (useLanguageSpecificEscapes)
             {
-                case UnicodeCategory.OtherPunctuation:
-                    if (useLanguageSpecificEscapes)
-                    {
-                        switch (c)
+                switch (c)
+                {
+                    case '\\':
+                        replaceWith = "\\\\";
+                        break;
+                    case '"':
+                        if (quote == c)
                         {
-                            case '\\':
-                                replaceWith = "\\\\";
-                                break;
-                            case '"':
-                                if (quote == c)
-                                {
-                                    replaceWith = "\\\"";
-                                }
-                                break;
-                            case '\'':
-                                if (quote == c)
-                                {
-                                    replaceWith = "\\'";
-                                }
-                                break;
+                            replaceWith = "\\\"";
                         }
-                    }
-                    break;
-                case UnicodeCategory.OtherNotAssigned:
-                case UnicodeCategory.ParagraphSeparator:
-                    if (useUnicodeEscapes)
-                    {
-                        unicodeEscape = true;
-                    }
-                    break;
-                case UnicodeCategory.Control:
-                    if (useLanguageSpecificEscapes)
-                    {
-                        switch (c)
+                        break;
+                    case '\'':
+                        if (quote == c)
                         {
-                            case '\0':
-                                replaceWith = "\\0";
-                                break;
-                            case '\a':
-                                replaceWith = "\\a";
-                                break;
-                            case '\b':
-                                replaceWith = "\\b";
-                                break;
-                            case '\f':
-                                replaceWith = "\\f";
-                                break;
-                            case '\n':
-                                replaceWith = "\\n";
-                                break;
-                            case '\r':
-                                replaceWith = "\\r";
-                                break;
-                            case '\t':
-                                replaceWith = "\\t";
-                                break;
-                            case '\v':
-                                replaceWith = "\\v";
-                                break;
+                            replaceWith = "\\'";
                         }
-                    }
-                    if ((replaceWith == null) && useUnicodeEscapes)
-                    {
+                        break;
+                    case '\0':
+                        replaceWith = "\\0";
+                        break;
+                    case '\a':
+                        replaceWith = "\\a";
+                        break;
+                    case '\b':
+                        replaceWith = "\\b";
+                        break;
+                    case '\f':
+                        replaceWith = "\\f";
+                        break;
+                    case '\n':
+                        replaceWith = "\\n";
+                        break;
+                    case '\r':
+                        replaceWith = "\\r";
+                        break;
+                    case '\t':
+                        replaceWith = "\\t";
+                        break;
+                    case '\v':
+                        replaceWith = "\\v";
+                        break;
+                }
+            }
+
+            bool unicodeEscape = false;
+            if ((replaceWith == null) && useUnicodeEscapes)
+            {
+                switch (CharUnicodeInfo.GetUnicodeCategory(c))
+                {
+                    case UnicodeCategory.Control:
+                    case UnicodeCategory.OtherNotAssigned:
+                    case UnicodeCategory.ParagraphSeparator:
                         unicodeEscape = true;
-                    }
-                    break;
+                        break;
+                }
             }
 
             if ((replaceWith != null) || unicodeEscape)
@@ -262,10 +250,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException("value");
             }
 
-            var quote = options.IncludesOption(ObjectDisplayOptions.UseQuotes) ? '"' : '\0';
+            var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);
+            var quote = useQuotes ? '"' : '\0';
             PooledStringBuilder pooledBuilder = null;
             StringBuilder builder = null;
-            if (quote != 0)
+            if (useQuotes)
             {
                 pooledBuilder = PooledStringBuilder.GetInstance();
                 builder = pooledBuilder.Builder;
@@ -275,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 FormatStringChar(ref pooledBuilder, value, i, value[i], quote, useLanguageSpecificEscapes: true, useUnicodeEscapes: true);
             }
-            if (quote != 0)
+            if (useQuotes)
             {
                 builder.Append(quote);
             }
@@ -312,7 +301,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);
             var quote = useQuotes ? '\'' : '\0';
             var includeCodePoints = options.IncludesOption(ObjectDisplayOptions.IncludeCodePoints);
-
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var builder = pooledBuilder.Builder;
             if (includeCodePoints)
@@ -324,8 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Append(quote);
             }
-            var escapeNonPrintable = !includeCodePoints;
-            FormatStringChar(ref pooledBuilder, null, 0, c, quote, useLanguageSpecificEscapes: useQuotes, useUnicodeEscapes: !includeCodePoints);
+            FormatStringChar(ref pooledBuilder, str: null, index: 0, c: c, quote: quote, useLanguageSpecificEscapes: useQuotes, useUnicodeEscapes: !includeCodePoints);
             if (useQuotes)
             {
                 builder.Append(quote);
