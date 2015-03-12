@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -17,13 +18,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
         }
 
-        public override object GetPreview(CancellationToken cancellationToken)
+        public override bool HasPreview
+        {
+            get
+            {
+                // Since PreviewChangesSuggestedAction will always be presented as a
+                // 'flavored' action, it will never havve a preview.
+                return false;
+            }
+        }
+
+        public override Task<object> GetPreviewAsync(CancellationToken cancellationToken)
         {
             // Since PreviewChangesSuggestedAction will always be presented as a
             // 'flavored' action, code in the VS editor / lightbulb layer should
             // never call GetPreview() on it. We override and return null here
             // regardless so that nothing blows up if this ends up getting called.
-            return null;
+            return Task.FromResult<object>(null); ;
         }
     }
 }

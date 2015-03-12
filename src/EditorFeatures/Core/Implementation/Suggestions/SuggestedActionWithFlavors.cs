@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -23,37 +24,48 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
         }
 
-        private ImmutableArray<SuggestedActionSet> _actionSets;
-        public override IEnumerable<SuggestedActionSet> ActionSets
+        public override bool HasActionSets
         {
             get
             {
-                if (_actionSets == null)
-                {
-                    var builder = ImmutableArray.CreateBuilder<SuggestedActionSet>();
+                // Light bulb will always invoke this property on the UI thread.
+                AssertIsForeground();
 
-                    var previewChangesSuggestedActionSet = GetPreviewChangesSuggestedActionSet();
-                    if (previewChangesSuggestedActionSet != null)
-                    {
-                        builder.Add(previewChangesSuggestedActionSet);
-                    }
-
-                    var fixAllSuggestedActionSet = GetFixAllSuggestedActionSet();
-                    if (fixAllSuggestedActionSet != null)
-                    {
-                        builder.Add(fixAllSuggestedActionSet);
-                    }
-
-                    _actionSets = builder.ToImmutable();
-                }
-
-                return _actionSets;
+                return true;
             }
         }
 
-        private SuggestedActionSet GetPreviewChangesSuggestedActionSet()
+        private ImmutableArray<SuggestedActionSet> _actionSets;
+        public async override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {
-            var previewResult = GetPreviewResult(CancellationToken.None);
+            // Light bulb will invoke this property on the UI thread.
+            AssertIsForeground();
+
+            if (_actionSets == null)
+            {
+                var builder = ImmutableArray.CreateBuilder<SuggestedActionSet>();
+
+                var previewChangesSuggestedActionSet = await GetPreviewChangesSuggestedActionSetAsync(cancellationToken).ConfigureAwait(true);
+                if (previewChangesSuggestedActionSet != null)
+                {
+                    builder.Add(previewChangesSuggestedActionSet);
+                }
+
+                var fixAllSuggestedActionSet = GetFixAllSuggestedActionSet();
+                if (fixAllSuggestedActionSet != null)
+                {
+                    builder.Add(fixAllSuggestedActionSet);
+                }
+
+                _actionSets = builder.ToImmutable();
+            }
+
+            return _actionSets;
+        }
+
+        private async Task<SuggestedActionSet> GetPreviewChangesSuggestedActionSetAsync(CancellationToken cancellationToken)
+        {
+            var previewResult = await GetPreviewResultAsync(cancellationToken).ConfigureAwait(true);
             if (previewResult == null)
             {
                 return null;

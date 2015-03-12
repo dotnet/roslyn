@@ -4,24 +4,22 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     /// <summary>
     /// Base class for all Roslyn light bulb menu items.
     /// </summary>
-    internal partial class SuggestedAction : ISuggestedAction, IEquatable<ISuggestedAction>
+    internal partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction, IEquatable<ISuggestedAction>
     {
         protected readonly Workspace Workspace;
         protected readonly ITextBuffer SubjectBuffer;
@@ -112,23 +110,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         private IEnumerable<CodeActionOperation> _operations;
-        protected SolutionPreviewResult GetPreviewResult(CancellationToken cancellationToken)
+        protected async Task<SolutionPreviewResult> GetPreviewResultAsync(CancellationToken cancellationToken)
         {
+            AssertIsForeground();
+
             if (_operations == null)
             {
-                _operations = Task.Run(
-                    async () => await this.CodeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false), cancellationToken).WaitAndGetResult(cancellationToken);
+                // We use ConfigureAwait(true) to stay on the UI thread.
+                _operations = await this.CodeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(true);
             }
 
             return EditHandler.GetPreviews(Workspace, _operations, cancellationToken);
         }
 
-        public virtual object GetPreview(CancellationToken cancellationToken)
+        public virtual bool HasPreview
         {
-            var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
-            var previewContent = extensionManager.PerformFunction(Provider, () =>
+            get
             {
-                var previewResult = GetPreviewResult(cancellationToken);
+                // Light bulb will always invoke this property on the UI thread.
+                AssertIsForeground();
+
+                return true;
+            }
+        }
+
+        public virtual async Task<object> GetPreviewAsync(CancellationToken cancellationToken)
+        {
+            // Light bulb will always invoke this function on the UI thread.
+            AssertIsForeground();
+
+            var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
+            var previewContent = await extensionManager.PerformFunctionAsync(Provider, async () =>
+            {
+                // We need to stay on UI thread after GetPreviewResultAsync() so that TakeNextPreviewAsync()
+                // below can execute on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
+                var previewResult = await GetPreviewResultAsync(cancellationToken).ConfigureAwait(true);
                 if (previewResult == null)
                 {
                     return null;
@@ -138,22 +154,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var preferredDocumentId = Workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
                     var preferredProjectid = preferredDocumentId == null ? null : preferredDocumentId.ProjectId;
 
-                    return previewResult.TakeNextPreview(preferredDocumentId, preferredProjectid);
+                    // TakeNextPreviewAsync() needs to run on UI thread.
+                    AssertIsForeground();
+                    return await previewResult.TakeNextPreviewAsync(preferredDocumentId, preferredProjectid, cancellationToken).ConfigureAwait(true);
                 }
-            });
 
-            var optionService = Workspace.Services.GetService<IOptionService>();
-            if (optionService == null || !optionService.GetOption(InternalFeatureOnOffOptions.EnhancedPreviewPane))
-            {
-                return previewContent;
-            }
+                // GetPreviewPane() below needs to run on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
+            }).ConfigureAwait(true);
 
             var previewPaneService = Workspace.Services.GetService<IPreviewPaneService>();
             if (previewPaneService == null)
             {
-                return previewContent;
+                return null;
             }
 
+            // GetPreviewPane() needs to run on the UI thread.
+            AssertIsForeground();
             return previewPaneService.GetPreviewPane(GetDiagnostic(), previewContent);
         }
 
@@ -168,12 +184,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // do nothing
         }
 
-        public virtual IEnumerable<SuggestedActionSet> ActionSets
+        public virtual bool HasActionSets
         {
             get
             {
-                return null;
+                return false;
             }
+        }
+
+        public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IEnumerable<SuggestedActionSet>>(null);
         }
 
         string ISuggestedAction.IconAutomationText
@@ -185,12 +206,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        ImageSource ISuggestedAction.IconSource
+        ImageMoniker ISuggestedAction.IconMoniker
         {
             get
             {
                 // no icon support
-                return null;
+                return default(ImageMoniker);
             }
         }
 
