@@ -1083,10 +1083,7 @@ namespace Microsoft.CodeAnalysis
                             var methodSymbol = symbol as IMethodSymbol;
                             if (methodSymbol != null && methodSymbol.Arity == arity)
                             {
-                                if (parameters != null)
-                                {
-                                    parameters.Clear();
-                                }
+                                parameters?.Clear();
 
                                 if (PeekNextChar(id, index) == '(')
                                 {

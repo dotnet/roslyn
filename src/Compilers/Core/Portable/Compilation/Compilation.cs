@@ -90,12 +90,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (hostObjectType != null && !IsValidHostObjectType(hostObjectType))
             {
-                throw new ArgumentException(CodeAnalysisResources.ReturnTypeCannotBeValuePointerbyRefOrOpen, "hostObjectType");
+                throw new ArgumentException(CodeAnalysisResources.ReturnTypeCannotBeValuePointerbyRefOrOpen, nameof(hostObjectType));
             }
 
             if (returnType != null && !IsValidSubmissionReturnType(returnType))
             {
-                throw new ArgumentException(CodeAnalysisResources.ReturnTypeCannotBeVoidByRefOrOpen, "returnType");
+                throw new ArgumentException(CodeAnalysisResources.ReturnTypeCannotBeVoidByRefOrOpen, nameof(returnType));
             }
 
             if (previousSubmission != null)
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (hostObjectType != previousSubmission.HostObjectType)
                 {
-                    throw new ArgumentException(CodeAnalysisResources.TypeMustBeSameAsHostObjectTypeOfPreviousSubmission, "hostObjectType");
+                    throw new ArgumentException(CodeAnalysisResources.TypeMustBeSameAsHostObjectTypeOfPreviousSubmission, nameof(hostObjectType));
                 }
 
                 // Force the previous submission to be analyzed. This is required for anonymous types unification.
@@ -130,12 +130,12 @@ namespace Microsoft.CodeAnalysis
 
             if (options.OutputKind.IsValid() && options.OutputKind != OutputKind.DynamicallyLinkedLibrary)
             {
-                throw new ArgumentException(CodeAnalysisResources.InvalidOutputKindForSubmission, "options");
+                throw new ArgumentException(CodeAnalysisResources.InvalidOutputKindForSubmission, nameof(options));
             }
 
             if (options.CryptoKeyContainer != null || options.CryptoKeyFile != null || options.DelaySign != null || !options.CryptoPublicKey.IsEmpty)
             {
-                throw new ArgumentException(CodeAnalysisResources.InvalidCompilationOptions, "options");
+                throw new ArgumentException(CodeAnalysisResources.InvalidCompilationOptions, nameof(options));
             }
         }
 
@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (references == null)
             {
-                throw new ArgumentNullException("references");
+                throw new ArgumentNullException(nameof(references));
             }
 
             if (references.IsEmpty())
@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (references == null)
             {
-                throw new ArgumentNullException("references");
+                throw new ArgumentNullException(nameof(references));
             }
 
             if (references.IsEmpty())
@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!refSet.Remove(r))
                 {
-                    throw new ArgumentException(String.Format("MetadataReference '{0}' not found to remove", r), "references");
+                    throw new ArgumentException($"MetadataReference '{r}' not found to remove", nameof(references));
                 }
             }
 
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (oldReference == null)
             {
-                throw new ArgumentNullException("oldReference");
+                throw new ArgumentNullException(nameof(oldReference));
             }
 
             if (newReference == null)
@@ -1312,9 +1312,9 @@ namespace Microsoft.CodeAnalysis
 
                 Debug.Assert(this.CommonAnonymousTypeManager.AreTemplatesSealed);
             }
-            else if (this.PreviousSubmission != null)
+            else
             {
-                this.PreviousSubmission.EnsureAnonymousTypeTemplates(cancellationToken);
+                this.PreviousSubmission?.EnsureAnonymousTypeTemplates(cancellationToken);
             }
         }
 

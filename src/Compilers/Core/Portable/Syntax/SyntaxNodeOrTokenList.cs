@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return _node == null ? 0 : _node.Position;
+                return _node?.Position ?? 0;
             }
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return _node == null ? null : _node.Parent;
+                return _node?.Parent;
             }
         }
 
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public override int GetHashCode()
         {
-            return _node != null ? _node.GetHashCode() : 0;
+            return _node?.GetHashCode() ?? 0;
         }
 
         /// <summary>

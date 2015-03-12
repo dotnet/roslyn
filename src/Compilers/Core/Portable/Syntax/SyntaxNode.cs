@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis
                 .Parent
                 .FirstAncestorOrSelf<SyntaxNode>(a => a.FullSpan.Contains(span));
 
-            var cuRoot = node.SyntaxTree != null ? node.SyntaxTree.GetRoot() : null;
+            var cuRoot = node.SyntaxTree?.GetRoot();
 
             // Tie-breaking.
             if (!getInnermostNodeForTie)

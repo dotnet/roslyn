@@ -34,10 +34,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 _dictionary = null;
             }
 
-            if (_pool != null)
-            {
-                _pool.Free(this);
-            }
+            _pool?.Free(this);
         }
 
         // global pool

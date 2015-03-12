@@ -68,10 +68,7 @@ namespace Microsoft.Cci
 
             var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
 
-            if (nativePdbWriterOpt != null)
-            {
-                nativePdbWriterOpt.SetMetadataEmitter(mdWriter);
-            }
+            nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
 
             uint entryPointToken;
             if (!peWriter.WritePeToStream(mdWriter, getPeStream, nativePdbWriterOpt, out entryPointToken))

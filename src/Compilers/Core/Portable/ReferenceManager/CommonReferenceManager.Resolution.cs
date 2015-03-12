@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 references = referencesBuilder.ToImmutable();
-                referenceDirectiveLocations = referenceDirectiveLocationsBuilder == null ? ImmutableArray<Location>.Empty : referenceDirectiveLocationsBuilder.ToImmutableAndFree();
+                referenceDirectiveLocations = referenceDirectiveLocationsBuilder?.ToImmutableAndFree() ?? ImmutableArray<Location>.Empty;
             }
             finally
             {

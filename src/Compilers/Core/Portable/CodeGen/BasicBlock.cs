@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 if (this.EnclosingHandler == null)
                 {
                     // Cannot branch into a handler.
-                    Debug.Assert((BranchBlock == null) || (BranchBlock.EnclosingHandler == null));
+                    Debug.Assert(BranchBlock?.EnclosingHandler == null);
                 }
 
                 var branchBlock = BranchBlock;

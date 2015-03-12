@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (firstLanguage == null)
             {
-                throw new ArgumentNullException("firstLanguage");
+                throw new ArgumentNullException(nameof(firstLanguage));
             }
 
             if (additionalLanguages == null)
             {
-                throw new ArgumentNullException("additionalLanguages");
+                throw new ArgumentNullException(nameof(additionalLanguages));
             }
 
             string[] languages = new string[additionalLanguages.Length + 1];

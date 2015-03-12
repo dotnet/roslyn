@@ -2027,10 +2027,7 @@ namespace Microsoft.Cci
 
         public void WriteMetadataAndIL(PdbWriter pdbWriterOpt, Stream metadataStream, Stream ilStream, out MetadataSizes metadataSizes)
         {
-            if (pdbWriterOpt != null)
-            {
-                pdbWriterOpt.SetMetadataEmitter(this);
-            }
+            pdbWriterOpt?.SetMetadataEmitter(this);
 
             // TODO: we can precalculate the exact size of IL stream
             var ilBuffer = new MemoryStream(1024);
@@ -4121,10 +4118,7 @@ namespace Microsoft.Cci
                         // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
                         rva = this.SerializeMethodBody(body, writer, localSignatureToken);
 
-                        if (pdbWriterOpt != null)
-                        {
-                            pdbWriterOpt.SerializeDebugInfo(body, localSignatureToken, customDebugInfoWriter);
-                        }
+                        pdbWriterOpt?.SerializeDebugInfo(body, localSignatureToken, customDebugInfoWriter);
                     }
                     else
                     {

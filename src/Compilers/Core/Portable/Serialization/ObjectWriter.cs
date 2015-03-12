@@ -506,10 +506,7 @@ namespace Roslyn.Utilities
             {
                 _dataMap.Add(type);
 
-                if (_binder != null)
-                {
-                    _binder.Record(type);
-                }
+                _binder?.Record(type);
 
                 _writer.Write((byte)DataKind.Type);
 
@@ -572,10 +569,7 @@ namespace Roslyn.Utilities
             Type type = instance.GetType();
             this.WriteType(type);
 
-            if (_binder != null)
-            {
-                _binder.Record(instance);
-            }
+            _binder?.Record(instance);
 
             instance.WriteTo(this);
         }

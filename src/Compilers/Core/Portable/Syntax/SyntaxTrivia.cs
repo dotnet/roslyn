@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public int RawKind
         {
-            get { return _triviaNode != null ? _triviaNode.RawKind : 0; }
+            get { return _triviaNode?.RawKind ?? 0; }
         }
 
         private string GetDebuggerDisplay()
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal int Width
         {
-            get { return _triviaNode != null ? _triviaNode.Width : 0; }
+            get { return _triviaNode?.Width ?? 0; }
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal int FullWidth
         {
-            get { return _triviaNode != null ? _triviaNode.FullWidth : 0; }
+            get { return _triviaNode?.FullWidth ?? 0; }
         }
 
         /// <summary>
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>The length of the returned string is always the same as Span.Length</remarks>
         public override string ToString()
         {
-            return _triviaNode != null ? _triviaNode.ToString() : string.Empty;
+            return _triviaNode?.ToString() ?? string.Empty;
         }
 
         /// <summary> 
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
         public string ToFullString()
         {
-            return _triviaNode != null ? _triviaNode.ToFullString() : string.Empty;
+            return _triviaNode?.ToFullString() ?? string.Empty;
         }
 
         /// <summary>
@@ -264,10 +264,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public void WriteTo(System.IO.TextWriter writer)
         {
-            if (_triviaNode != null)
-            {
-                _triviaNode.WriteTo(writer);
-            }
+            _triviaNode?.WriteTo(writer);
         }
 
         /// <summary>

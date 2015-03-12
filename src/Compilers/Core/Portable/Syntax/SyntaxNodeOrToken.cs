@@ -161,18 +161,9 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_token != null)
-                {
-                    return _nodeOrParent;
-                }
-                else if (_nodeOrParent != null)
-                {
-                    return _nodeOrParent.Parent;
-                }
-                else
-                {
-                    return null;
-                }
+                return _token != null 
+                    ? _nodeOrParent 
+                    : _nodeOrParent?.Parent;
             }
         }
 
@@ -180,18 +171,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_token != null)
-                {
-                    return _token;
-                }
-                else if (_nodeOrParent != null)
-                {
-                    return _nodeOrParent.Green;
-                }
-                else
-                {
-                    return null;
-                }
+                return _token ?? _nodeOrParent?.Green;
             }
         }
 
@@ -893,17 +873,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Location GetLocation()
         {
-            if (_token != null)
-            {
-                return this.AsToken().GetLocation();
-            }
-
-            if (_nodeOrParent != null)
-            {
-                return _nodeOrParent.GetLocation();
-            }
-
-            return null;
+            return _token != null 
+                ? this.AsToken().GetLocation() 
+                : _nodeOrParent?.GetLocation();
         }
 
         #region Directive Lookup

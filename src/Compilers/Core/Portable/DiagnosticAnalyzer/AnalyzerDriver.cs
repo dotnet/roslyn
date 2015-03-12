@@ -177,10 +177,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, analyzer, diagnostic) =>
             {
-                if (addExceptionDiagnostic != null)
-                {
-                    addExceptionDiagnostic(diagnostic);
-        }
+                addExceptionDiagnostic?.Invoke(diagnostic);
             };
             return Create(compilation, analyzers, options, analyzerManager, onAnalyzerException, out newCompilation, cancellationToken: cancellationToken);
         }

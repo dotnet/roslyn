@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                 position = change.Span.End;
 
-                changeRanges.Add(new TextChangeRange(change.Span, change.NewText != null ? change.NewText.Length : 0));
+                changeRanges.Add(new TextChangeRange(change.Span, change.NewText?.Length ?? 0));
             }
 
             if (position < this.Length)

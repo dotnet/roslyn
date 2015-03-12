@@ -103,7 +103,7 @@ namespace Microsoft.Cci
         {
             get
             {
-                return (_checksumAndAlgorithm == null) ? default(ValueTuple<ImmutableArray<byte>, Guid>) : _checksumAndAlgorithm.Result;
+                return _checksumAndAlgorithm?.Result ?? default(ValueTuple<ImmutableArray<byte>, Guid>);
             }
         }
 
