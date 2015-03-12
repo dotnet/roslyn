@@ -516,9 +516,9 @@ namespace Microsoft.CodeAnalysis
         {
             using (var stack = new ChildSyntaxListEnumeratorStack(this, descendIntoChildren))
             {
-                SyntaxNodeOrToken value;
                 while (stack.IsNotEmpty)
                 {
+                    SyntaxNodeOrToken value;
                     if (stack.TryGetNextInSpan(ref span, out value))
                     {
                         if (value.IsNode)

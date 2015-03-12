@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitToken(string value)
         {
-            uint token = module == null ? 0xFFFF : module.GetFakeStringTokenForIL(value);
+            uint token = module?.GetFakeStringTokenForIL(value) ?? 0xFFFF;
             this.GetCurrentStream().WriteUint(token);
         }
 
         internal void EmitToken(Microsoft.Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            uint token = module == null ? 0xFFFF : module.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics);
+            uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
             this.GetCurrentStream().WriteUint(token);
         }
 

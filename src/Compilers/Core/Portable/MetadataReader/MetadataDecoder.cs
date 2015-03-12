@@ -501,10 +501,6 @@ namespace Microsoft.CodeAnalysis
                 string name = Module.GetTypeDefNameOrThrow(typeDef);
                 Debug.Assert(MetadataHelpers.IsValidMetadataIdentifier(name));
 
-                string interfaceGuid;
-                string scope;
-                string identifier;
-
                 if (Module.IsNestedTypeDefOrThrow(typeDef))
                 {
                     // first resolve nesting type 
@@ -557,6 +553,9 @@ namespace Microsoft.CodeAnalysis
 
                     // Check if this is NoPia local type which should be substituted 
                     // with corresponding canonical type
+                    string interfaceGuid;
+                    string identifier;
+                    string scope;
                     if (Module.IsNoPiaLocalType(
                             typeDef,
                             out interfaceGuid,
@@ -642,7 +641,7 @@ namespace Microsoft.CodeAnalysis
                 break;
             }
 
-            return (modifiers == null) ? default(ImmutableArray<ModifierInfo<TypeSymbol>>) : modifiers.ToImmutableAndFree();
+            return modifiers?.ToImmutableAndFree() ?? default(ImmutableArray<ModifierInfo<TypeSymbol>>);
         }
 
         /// <summary>
@@ -1921,7 +1920,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract TypeSymbol GetGenericTypeParamSymbol(int position);
         protected abstract TypeSymbol GetGenericMethodTypeParamSymbol(int position);
 
-        private TypedConstant CreateArrayTypedConstant(TypeSymbol type, ImmutableArray<TypedConstant> array)
+        private static TypedConstant CreateArrayTypedConstant(TypeSymbol type, ImmutableArray<TypedConstant> array)
         {
             if (type.TypeKind == TypeKind.Error)
             {
@@ -1932,7 +1931,7 @@ namespace Microsoft.CodeAnalysis
             return new TypedConstant(type, array);
         }
 
-        private TypedConstant CreateTypedConstant(TypeSymbol type, TypedConstantKind kind, object value)
+        private static TypedConstant CreateTypedConstant(TypeSymbol type, TypedConstantKind kind, object value)
         {
             if (type.TypeKind == TypeKind.Error)
             {

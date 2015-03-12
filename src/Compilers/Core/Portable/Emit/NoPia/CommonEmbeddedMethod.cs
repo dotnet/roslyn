@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             private sealed class EmptyBody : Cci.IMethodBody
             {
-                public readonly CommonEmbeddedMethod Method;
+                private readonly CommonEmbeddedMethod Method;
 
                 public EmptyBody(CommonEmbeddedMethod method)
                 {

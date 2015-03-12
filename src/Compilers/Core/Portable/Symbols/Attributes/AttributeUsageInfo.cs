@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
             Inherited = AllowMultiple << 1
         }
 
-        private PackedAttributeUsage _flags;
+        private readonly PackedAttributeUsage _flags;
 
         /// <summary>
         /// Default attribute usage for attribute types:

@@ -365,7 +365,7 @@ namespace Microsoft.Cci
             WriteAligned(_blobWriter.BaseStream, stream);
         }
 
-        private void WriteAligned(MemoryStream source, MemoryStream target)
+        private static void WriteAligned(MemoryStream source, MemoryStream target)
         {
             int length = (int)source.Length;
             source.WriteTo(target);

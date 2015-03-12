@@ -580,7 +580,7 @@ namespace Roslyn.Utilities
             instance.WriteTo(this);
         }
 
-        private Exception NotWritableException(string typeName)
+        private static Exception NotWritableException(string typeName)
         {
 #if COMPILERCORE
             throw new InvalidOperationException(string.Format(CodeAnalysisResources.NotWritableException, typeName));

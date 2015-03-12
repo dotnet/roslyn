@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis
         private void DoDumpXML(TreeDumperNode node, string indent, string relativeIndent)
         {
             Debug.Assert(node != null);
-            if (!node.Children.Any(child => child != null))
+            if (node.Children.All(child => child == null))
             {
                 _sb.Append(indent);
                 if (node.Value != null)
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
             return ti.IsGenericType && ti.GetGenericTypeDefinition() == typeof(ImmutableArray<>) && (bool)ti.GetDeclaredMethod("get_IsDefault").Invoke(o, SpecializedCollections.EmptyObjects);
         }
 
-        private string DumperString(object o)
+        private static string DumperString(object o)
         {
             string result;
 
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return Children.Where(c => c.Text == child).FirstOrDefault();
+                return Children.FirstOrDefault(c => c.Text == child);
             }
         }
 

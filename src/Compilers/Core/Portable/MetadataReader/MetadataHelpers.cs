@@ -244,9 +244,9 @@ namespace Microsoft.CodeAnalysis
 
                 return new AssemblyQualifiedTypeName(
                     topLevelType,
-                    nestedTypesbuilder != null ? nestedTypesbuilder.ToArrayAndFree() : null,
+                    nestedTypesbuilder?.ToArrayAndFree(),
                     typeArguments,
-                    arrayRanksBuilder != null ? arrayRanksBuilder.ToArrayAndFree() : null,
+                    arrayRanksBuilder?.ToArrayAndFree(),
                     assemblyName);
             }
 
@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(name != null);
 
-            if (qualifier != null && qualifier.Length > 0)
+            if (!string.IsNullOrEmpty(qualifier))
             {
                 return String.Concat(qualifier, DotDelimiterString, name);
             }

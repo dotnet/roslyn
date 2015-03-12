@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal Cci.IFieldReference CreateDataField(ImmutableArray<byte> data)
         {
             Debug.Assert(!IsFrozen);
-            Cci.ITypeReference type = _proxyTypes.GetOrAdd((uint)data.Length, size => GetStorageStruct(size));
+            Cci.ITypeReference type = _proxyTypes.GetOrAdd((uint)data.Length, GetStorageStruct);
             return _mappedFields.GetOrAdd(data, data0 =>
             {
                 var name = GenerateDataFieldName(data0);

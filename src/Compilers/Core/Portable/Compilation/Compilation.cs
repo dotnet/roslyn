@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis
             if (_lazySubmissionSlotIndex == SubmissionSlotIndexToBeAllocated)
             {
                 // TODO (tomat): remove recursion
-                int lastSlotIndex = (PreviousSubmission != null) ? PreviousSubmission.GetSubmissionSlotIndex() : 0;
+                int lastSlotIndex = PreviousSubmission?.GetSubmissionSlotIndex() ?? 0;
                 _lazySubmissionSlotIndex = HasCodeToEmit() ? lastSlotIndex + 1 : lastSlotIndex;
             }
 
@@ -1582,9 +1582,7 @@ namespace Microsoft.CodeAnalysis
                 return ToEmitResultAndFree(diagnostics, success: false);
             }
 
-            var hostDiagnostics = getHostDiagnostics != null
-                ? getHostDiagnostics()
-                : ImmutableArray<Diagnostic>.Empty;
+            var hostDiagnostics = getHostDiagnostics?.Invoke() ?? ImmutableArray<Diagnostic>.Empty;
             diagnostics.AddRange(hostDiagnostics);
             if (hostDiagnostics.Any(x => x.Severity == DiagnosticSeverity.Error))
             {
@@ -1595,7 +1593,7 @@ namespace Microsoft.CodeAnalysis
                 moduleBeingBuilt,
                 peStreamProvider,
                 pdbOutputInfo,
-                (testData != null) ? testData.SymWriterFactory : null,
+                testData?.SymWriterFactory,
                 diagnostics,
                 metadataOnly: options.EmitMetadataOnly,
                 cancellationToken: cancellationToken);
@@ -1603,7 +1601,7 @@ namespace Microsoft.CodeAnalysis
             return ToEmitResultAndFree(diagnostics, success);
         }
 
-        private EmitResult ToEmitResultAndFree(DiagnosticBag diagnostics, bool success)
+        private static EmitResult ToEmitResultAndFree(DiagnosticBag diagnostics, bool success)
         {
             return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
         }

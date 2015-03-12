@@ -580,7 +580,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private TypeInfo? ParseNamedType(ISymbol bindingContext)
             {
                 INamespaceOrTypeSymbol containingSymbol = _compilation.GlobalNamespace;
-                INamedTypeSymbol typeSymbol = null;
 
                 int startIndex = _index;
 
@@ -646,7 +645,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
 
-                    typeSymbol = GetFirstMatchingNamedType(candidateMembers, arity);
+                    INamedTypeSymbol typeSymbol = GetFirstMatchingNamedType(candidateMembers, arity);
                     if (typeSymbol != null)
                     {
                         if (typeArguments != null)

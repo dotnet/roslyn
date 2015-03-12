@@ -93,8 +93,7 @@ namespace Roslyn.Utilities
                     }
                     else
                     {
-                        var set = _value as ImmutableHashSet<V>;
-                        return set == null ? 1 : set.Count;
+                        return (_value as ImmutableHashSet<V>)?.Count ?? 1;
                     }
                 }
             }

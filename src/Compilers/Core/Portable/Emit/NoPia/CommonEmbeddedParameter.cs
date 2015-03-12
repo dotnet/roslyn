@@ -79,7 +79,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 // Note, when porting attributes, we are not using constructors from original symbol.
                 // The constructors might be missing (for example, in metadata case) and doing lookup
                 // will ensure that we report appropriate errors.
-                int signatureIndex;
 
                 foreach (var attrData in GetCustomAttributesToEmit(compilationState))
                 {
@@ -97,23 +96,27 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                             builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
                         }
                     }
-                    else if ((signatureIndex = TypeManager.GetTargetAttributeSignatureIndex(UnderlyingParameter, attrData, AttributeDescription.DecimalConstantAttribute)) != -1)
+                    else
                     {
-                        Debug.Assert(signatureIndex == 0 || signatureIndex == 1);
+                        int signatureIndex;
+                        if ((signatureIndex = TypeManager.GetTargetAttributeSignatureIndex(UnderlyingParameter, attrData, AttributeDescription.DecimalConstantAttribute)) != -1)
+                        {
+                            Debug.Assert(signatureIndex == 0 || signatureIndex == 1);
 
-                        if (attrData.CommonConstructorArguments.Length == 5)
-                        {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(
-                                            signatureIndex == 0 ? WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor :
-                                                                WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
-                                            attrData, syntaxNodeOpt, diagnostics));
+                            if (attrData.CommonConstructorArguments.Length == 5)
+                            {
+                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(
+                                    signatureIndex == 0 ? WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor :
+                                        WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
+                                    attrData, syntaxNodeOpt, diagnostics));
+                            }
                         }
-                    }
-                    else if (IsTargetAttribute(attrData, AttributeDescription.DefaultParameterValueAttribute))
-                    {
-                        if (attrData.CommonConstructorArguments.Length == 1)
+                        else if (IsTargetAttribute(attrData, AttributeDescription.DefaultParameterValueAttribute))
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_DefaultParameterValueAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
+                            if (attrData.CommonConstructorArguments.Length == 1)
+                            {
+                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_DefaultParameterValueAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
+                            }
                         }
                     }
                 }

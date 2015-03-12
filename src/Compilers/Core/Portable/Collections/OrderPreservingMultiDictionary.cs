@@ -165,9 +165,9 @@ namespace Microsoft.CodeAnalysis.Collections
             object item;
             if (!this.IsEmpty && _dictionary.TryGetValue(k, out item))
             {
-                var arrayBuilder = item as ArrayBuilder<V>;
-                return arrayBuilder != null ? arrayBuilder.Count : 1;
+                return (item as ArrayBuilder<V>)?.Count ?? 1;
             }
+
             return 0;
         }
 

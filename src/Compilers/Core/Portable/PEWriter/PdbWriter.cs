@@ -313,7 +313,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private IImportScope GetLastScope(IImportScope scope)
+        private static IImportScope GetLastScope(IImportScope scope)
         {
             while (true)
             {
@@ -453,7 +453,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    result = TypeNameSerializer.GetSerializedTypeName(typeReference, Context);
+                    result = typeReference.GetSerializedTypeName(Context);
                 }
 
                 _qualifiedNameCache.Add(typeReference, result);

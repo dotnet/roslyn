@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
             string result = Kind.ToString();
             if (IsInSource)
             {
-                result += "(" + (this.SourceTree != null ? this.SourceTree.FilePath : null) + this.SourceSpan + ")";
+                result += "(" + this.SourceTree?.FilePath + this.SourceSpan + ")";
             }
             else if (IsInMetadata)
             {

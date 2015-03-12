@@ -992,7 +992,7 @@ namespace Microsoft.Cci
             return 0;
         }
 
-        private uint GetManagedResourceOffset(ManagedResource resource, BinaryWriter resourceWriter)
+        private static uint GetManagedResourceOffset(ManagedResource resource, BinaryWriter resourceWriter)
         {
             if (resource.ExternalFile != null)
             {
@@ -2179,7 +2179,7 @@ namespace Microsoft.Cci
             this.SerializeTablesHeader(writer, metadataSizes);
 
             Debug.Assert(!metadataSizes.IsEmpty(TableIndex.Module));
-            this.SerializeModuleTable(writer, metadataSizes, heaps, ref _moduleRow);
+            SerializeModuleTable(writer, metadataSizes, heaps, ref _moduleRow);
 
             if (!metadataSizes.IsEmpty(TableIndex.TypeRef))
             {
@@ -3233,7 +3233,7 @@ namespace Microsoft.Cci
             foreach (var resource in this.module.GetResources(Context))
             {
                 ManifestResourceRow r = new ManifestResourceRow();
-                r.Offset = this.GetManagedResourceOffset(resource, resourceDataWriter);
+                r.Offset = GetManagedResourceOffset(resource, resourceDataWriter);
                 r.Flags = resource.IsPublic ? 1u : 2u;
                 r.Name = this.GetStringIndexForNameAndCheckLength(resource.Name);
 
@@ -3709,7 +3709,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeModuleTable(BinaryWriter writer, MetadataSizes metadataSizes, MetadataHeapsBuilder heaps, ref ModuleRow moduleRow)
+        private static void SerializeModuleTable(BinaryWriter writer, MetadataSizes metadataSizes, MetadataHeapsBuilder heaps, ref ModuleRow moduleRow)
         {
             writer.WriteUshort(moduleRow.Generation);
             writer.WriteReference(heaps.ResolveStringIndex(moduleRow.Name), metadataSizes.StringIndexSize);
@@ -4806,7 +4806,7 @@ namespace Microsoft.Cci
             StringBuilder sb = pooled.Builder;
             sb.Append(assemblyReference.Name);
             sb.AppendFormat(CultureInfo.InvariantCulture, ", Version={0}.{1}.{2}.{3}", assemblyReference.Version.Major, assemblyReference.Version.Minor, assemblyReference.Version.Build, assemblyReference.Version.Revision);
-            if (assemblyReference.Culture != null && assemblyReference.Culture.Length > 0)
+            if (!string.IsNullOrEmpty(assemblyReference.Culture))
             {
                 sb.AppendFormat(CultureInfo.InvariantCulture, ", Culture={0}", assemblyReference.Culture);
             }
@@ -4845,11 +4845,10 @@ namespace Microsoft.Cci
                 string typeName = customAttribute.GetType(context).GetSerializedTypeName(context, ref isAssemblyQualified);
                 if (!isAssemblyQualified)
                 {
-                    IAssemblyReference referencedAssembly = null;
                     INamespaceTypeReference namespaceType = customAttribute.GetType(context).AsNamespaceTypeReference;
                     if (namespaceType != null)
                     {
-                        referencedAssembly = namespaceType.GetUnit(context) as IAssemblyReference;
+                        var referencedAssembly = namespaceType.GetUnit(context) as IAssemblyReference;
                         if (referencedAssembly != null)
                         {
                             typeName = typeName + ", " + StrongName(referencedAssembly);

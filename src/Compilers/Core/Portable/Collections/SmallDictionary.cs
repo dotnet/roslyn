@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
 
         private class NodeLinked : Node
         {
-            public readonly Node next;
+            private readonly Node next;
 
             public NodeLinked(K key, V value, Node next)
                 : base(key, value)
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private AvlNode LeftSimple(AvlNode unbalanced)
+        private static AvlNode LeftSimple(AvlNode unbalanced)
         {
             var right = unbalanced.Right;
             unbalanced.Right = right.Left;
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis
             return right;
         }
 
-        private AvlNode RightSimple(AvlNode unbalanced)
+        private static AvlNode RightSimple(AvlNode unbalanced)
         {
             var left = unbalanced.Left;
             unbalanced.Left = left.Right;
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis
             return left;
         }
 
-        private AvlNode LeftComplex(AvlNode unbalanced)
+        private static AvlNode LeftComplex(AvlNode unbalanced)
         {
             var right = unbalanced.Right;
             var rightLeft = right.Left;
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis
             return rightLeft;
         }
 
-        private AvlNode RightComplex(AvlNode unbalanced)
+        private static AvlNode RightComplex(AvlNode unbalanced)
         {
             var left = unbalanced.Left;
             var leftRight = left.Right;

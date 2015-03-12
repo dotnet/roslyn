@@ -12,7 +12,7 @@ namespace Roslyn.Utilities
         {
             internal sealed class Collection<T> : ICollection<T>, IReadOnlyCollection<T>
             {
-                private T _loneValue;
+                private readonly T _loneValue;
 
                 public Collection(T value)
                 {

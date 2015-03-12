@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Check for suppression on parent symbol
             var parent = symbol.ContainingSymbol;
-            return parent != null ? IsDiagnosticSuppressed(id, parent) : false;
+            return parent != null && IsDiagnosticSuppressed(id, parent);
         }
 
         private bool IsDiagnosticSuppressed(string id, Location location)

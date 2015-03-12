@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private int FindExactMatch(Stack<SyntaxNodeOrToken> stack, SyntaxNodeOrToken node, int startIndex)
+        private static int FindExactMatch(Stack<SyntaxNodeOrToken> stack, SyntaxNodeOrToken node, int startIndex)
         {
             int i = 0;
             foreach (var stackNode in stack)

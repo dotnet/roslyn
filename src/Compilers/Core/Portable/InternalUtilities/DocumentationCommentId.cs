@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     // get count of all type parameter preceding the declaration of the type parameters containing symbol.
-                    var container = symbol.ContainingSymbol != null ? symbol.ContainingSymbol.ContainingSymbol : null;
+                    var container = symbol.ContainingSymbol?.ContainingSymbol;
                     var b = GetTotalTypeParameterCount(container as INamedTypeSymbol);
                     _builder.Append("`");
                     _builder.Append(b + symbol.Ordinal);
@@ -1111,11 +1111,10 @@ namespace Microsoft.CodeAnalysis
                                     continue;
                                 }
 
-                                ITypeSymbol returnType = null;
                                 if (PeekNextChar(id, index) == '~')
                                 {
                                     index++;
-                                    returnType = ParseTypeSymbol(id, ref index, compilation, methodSymbol);
+                                    ITypeSymbol returnType = ParseTypeSymbol(id, ref index, compilation, methodSymbol);
 
                                     // if return type is specified, then it must match
                                     if (returnType != null && methodSymbol.ReturnType.Equals(returnType))
