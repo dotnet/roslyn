@@ -91,5 +91,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         RUDE_EDIT_ANON_METHOD = 0x100,
         RUDE_EDIT_LAMBDA_EXPRESSION,
         RUDE_EDIT_QUERY_EXPRESSION,
+        RUDE_EDIT_COMPLEX_QUERY_EXPRESSION
     }
 }

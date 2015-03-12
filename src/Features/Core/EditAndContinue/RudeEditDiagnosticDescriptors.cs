@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_ANON_METHOD,                     FeaturesResources.ModifyingAWhichContainsAnonymousMethod) },
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION,               FeaturesResources.ModifyingAWhichContainsLambda) },
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION,                FeaturesResources.ModifyingAWhichContainsQuery) },
+            { GetDescriptorPair(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION,        FeaturesResources.ModifyingAWhichContainsComplexQuery) },
 
             // VB specific,
             { GetDescriptorPair(RudeEditKind.HandlesClauseUpdate,                       FeaturesResources.UpdatingTheHandlesClause) },

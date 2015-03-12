@@ -2258,7 +2258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 ' Otherwise only the size of the array changed, which is a legal initializer update
                 ' unless it contains lambdas, queries etc.
-                ClassifyDeclarationBodyRudeUpdates(newNode)
+                ClassifyDeclarationBodyRudeUpdates(newNode, allowLambdas:=False)
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As VariableDeclaratorSyntax, newNode As VariableDeclaratorSyntax)
@@ -2328,7 +2328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Dim newInitializer = GetInitializerExpression(newEqualsValue, newClause)
 
                 If newInitializer IsNot Nothing AndAlso Not SyntaxFactory.AreEquivalent(oldInitializer, newInitializer) Then
-                    ClassifyDeclarationBodyRudeUpdates(newInitializer)
+                    ClassifyDeclarationBodyRudeUpdates(newInitializer, allowLambdas:=False)
                     Return True
                 End If
 
@@ -2364,7 +2364,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ClassifyMethodBodyRudeUpdate(oldNode,
                                              newNode,
                                              containingMethod:=newNode,
-                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax))
+                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax),
+                                             allowLambdas:=True)
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As MethodStatementSyntax, newNode As MethodStatementSyntax)
@@ -2424,7 +2425,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ClassifyMethodBodyRudeUpdate(oldNode,
                                              newNode,
                                              containingMethod:=Nothing,
-                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax))
+                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax),
+                                             allowLambdas:=True)
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As OperatorStatementSyntax, newNode As OperatorStatementSyntax)
@@ -2444,7 +2446,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ClassifyMethodBodyRudeUpdate(oldNode,
                                              newNode,
                                              containingMethod:=Nothing,
-                                             containingType:=DirectCast(newNode.Parent.Parent, TypeBlockSyntax))
+                                             containingType:=DirectCast(newNode.Parent.Parent, TypeBlockSyntax),
+                                             allowLambdas:=True)
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As AccessorStatementSyntax, newNode As AccessorStatementSyntax)
@@ -2473,7 +2476,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ClassifyMethodBodyRudeUpdate(oldNode,
                                              newNode,
                                              containingMethod:=Nothing,
-                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax))
+                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax),
+                                             allowLambdas:=False)
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As SubNewStatementSyntax, newNode As SubNewStatementSyntax)
@@ -2524,7 +2528,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Private Sub ClassifyMethodBodyRudeUpdate(oldBody As MethodBlockBaseSyntax,
                                                      newBody As MethodBlockBaseSyntax,
                                                      containingMethod As MethodBlockSyntax,
-                                                     containingType As TypeBlockSyntax)
+                                                     containingType As TypeBlockSyntax,
+                                                     allowLambdas As Boolean)
 
                 If (oldBody.EndBlockStatement Is Nothing) <> (newBody.EndBlockStatement Is Nothing) Then
                     If oldBody.EndBlockStatement Is Nothing Then
@@ -2541,7 +2546,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Debug.Assert(newBody.EndBlockStatement IsNot Nothing)
 
                 ClassifyMemberBodyRudeUpdate(containingMethod, containingType, isTriviaUpdate:=False)
-                ClassifyDeclarationBodyRudeUpdates(newBody)
+                ClassifyDeclarationBodyRudeUpdates(newBody, allowLambdas)
             End Sub
 
             Public Sub ClassifyMemberBodyRudeUpdate(containingMethodOpt As MethodBlockSyntax, containingTypeOpt As TypeBlockSyntax, isTriviaUpdate As Boolean)
@@ -2556,18 +2561,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
             End Sub
 
-            Public Sub ClassifyDeclarationBodyRudeUpdates(newDeclarationOrBody As SyntaxNode)
-                For Each node In newDeclarationOrBody.DescendantNodesAndSelf(AddressOf ChildrenCompiledInBody)
+            Public Sub ClassifyDeclarationBodyRudeUpdates(newDeclarationOrBody As SyntaxNode, allowLambdas As Boolean)
+                For Each node In newDeclarationOrBody.DescendantNodesAndSelf()
                     Select Case node.Kind
                         Case SyntaxKind.MultiLineFunctionLambdaExpression,
                              SyntaxKind.SingleLineFunctionLambdaExpression,
                              SyntaxKind.MultiLineSubLambdaExpression,
                              SyntaxKind.SingleLineSubLambdaExpression
-                            ReportError(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, node, Me.newNode)
-                            Return
+                            ' TODO:
+                            If Not allowLambdas Then
+                                ReportError(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, node, Me.newNode)
+                                Return
+                            End If
 
                         Case SyntaxKind.QueryExpression
-                            ReportError(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, node, Me.newNode)
+                            ' TODO:
+                            If Not allowLambdas Then
+                                ReportError(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, node, Me.newNode)
+                                Return
+                            End If
+
+                        Case SyntaxKind.AggregateClause,
+                             SyntaxKind.GroupByClause,
+                             SyntaxKind.SimpleJoinClause,
+                             SyntaxKind.GroupJoinClause
+                            ReportError(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, node, Me.newNode)
                             Return
                     End Select
                 Next
@@ -2617,7 +2635,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 newMember.FirstAncestorOrSelf(Of TypeBlockSyntax)(),
                 isTriviaUpdate:=True)
 
-            classifier.ClassifyDeclarationBodyRudeUpdates(newMember)
+            classifier.ClassifyDeclarationBodyRudeUpdates(newMember,
+                                                          allowLambdas:=Not newMember.IsKind(SyntaxKind.ConstructorBlock) AndAlso
+                                                                        Not newMember.IsKind(SyntaxKind.ModifiedIdentifier) AndAlso
+                                                                        Not newMember.IsKind(SyntaxKind.VariableDeclarator) AndAlso
+                                                                        Not newMember.IsKind(SyntaxKind.PropertyStatement))
         End Sub
 
 #End Region

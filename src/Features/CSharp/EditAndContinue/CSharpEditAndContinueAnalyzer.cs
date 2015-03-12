@@ -2494,24 +2494,30 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             {
                                 // TODO (tomat): allow 
                                 ReportError(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, node, _newNode);
+                                return;
                             }
-                            return;
+
+                            break;
 
                         case SyntaxKind.AnonymousMethodExpression:
                             if (!allowLambdas)
                             {
                                 // TODO (tomat): allow 
                                 ReportError(RudeEditKind.RUDE_EDIT_ANON_METHOD, node, _newNode);
+                                return;
                             }
-                            return;
+
+                            break;
 
                         case SyntaxKind.QueryExpression:
                             if (!allowLambdas)
                             {
                                 // TODO (tomat): allow 
                                 ReportError(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, node, _newNode);
+                                return;
                             }
-                            return;
+
+                            break;
                     }
                 }
             }

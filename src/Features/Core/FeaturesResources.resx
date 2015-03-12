@@ -558,6 +558,9 @@
   <data name="ModifyingAWhichContainsQuery" xml:space="preserve">
     <value>Modifying '{0}' which contains a query expression will prevent the debug session from continuing.</value>
   </data>
+  <data name="ModifyingAWhichContainsComplexQuery" xml:space="preserve">
+    <value>Modifying '{0}' which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing.</value>
+  </data>
   <data name="ModifyingAFileWithExperimentalFeaturesEnabled" xml:space="preserve">
     <value>Modifying source with experimental language features enabled will prevent the debug session from continuing.</value>
   </data>

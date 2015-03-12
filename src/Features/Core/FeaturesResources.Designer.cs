@@ -1240,6 +1240,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ModifyingAWhichContainsComplexQuery {
+            get {
+                return ResourceManager.GetString("ModifyingAWhichContainsComplexQuery", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a lambda expression will prevent the debug session from continuing..
         /// </summary>
         internal static string ModifyingAWhichContainsLambda {
