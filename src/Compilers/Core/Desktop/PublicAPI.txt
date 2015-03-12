@@ -21,6 +21,7 @@ Microsoft.CodeAnalysis.CommandLineArguments.DocumentationPath.get
 Microsoft.CodeAnalysis.CommandLineArguments.EmitOptions.get
 Microsoft.CodeAnalysis.CommandLineArguments.EmitPdb.get
 Microsoft.CodeAnalysis.CommandLineArguments.Encoding.get
+Microsoft.CodeAnalysis.CommandLineArguments.ErrorLogPath.get
 Microsoft.CodeAnalysis.CommandLineArguments.Errors.get
 Microsoft.CodeAnalysis.CommandLineArguments.KeyFileSearchPaths.get
 Microsoft.CodeAnalysis.CommandLineArguments.ManifestResources.get
