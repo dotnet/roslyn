@@ -2,6 +2,7 @@
 
 using System;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 
@@ -15,11 +16,15 @@ namespace Microsoft.DiaSymReader.PortablePdb
     public sealed class SymReader : ISymUnmanagedReader3, ISymUnmanagedDispose
     {
         private readonly MetadataReader _reader;
+        private int _version;
 
         internal SymReader(MetadataReader reader)
         {
             _reader = reader;
+            _version = 1;
         }
+
+        internal MetadataReader MetadataReader => _reader;
 
         public int Destroy()
         {
@@ -41,7 +46,25 @@ namespace Microsoft.DiaSymReader.PortablePdb
             out int count, 
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedDocument[] documents)
         {
-            throw new NotImplementedException();
+            count = _reader.Documents.Count;
+
+            if (bufferLength == 0)
+            {
+                return HResult.S_OK;
+            }
+
+            int i = 0;
+            foreach (var documentHandle in _reader.Documents)
+            {
+                if (i >= bufferLength)
+                {
+                    break;
+                }
+
+                documents[i++] = new SymDocument(this, documentHandle);
+            }
+
+            return HResult.S_OK;
         }
 
         public int GetDocumentVersion(ISymUnmanagedDocument document, out int version, out bool isCurrent)
@@ -59,14 +82,32 @@ namespace Microsoft.DiaSymReader.PortablePdb
             throw new NotImplementedException();
         }
 
-        public int GetMethodByVersion(int methodToken, int version, [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedMethod method)
+        public int GetMethodByVersion(
+            int methodToken, 
+            int version,
+            [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedMethod method)
         {
-            throw new NotImplementedException();
+            if (version != _version)
+            {
+                method = null;
+                return HResult.E_INVALIDARG;
+            }
+
+            var handle = MetadataTokens.Handle(methodToken);
+            if (handle.Kind != HandleKind.MethodDefinition)
+            {
+                method = null;
+                return HResult.E_INVALIDARG;
+            }
+
+            method = new SymMethod(this, (MethodDefinitionHandle)handle);
+            return HResult.S_OK;
         }
 
         public int GetMethodByVersionPreRemap(int methodToken, int version, [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedMethod method)
         {
-            throw new NotImplementedException();
+            // TODO
+            return GetMethodByVersion(methodToken, version, out method);
         }
 
         public int GetMethodFromDocumentPosition(ISymUnmanagedDocument document, int line, int column, [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedMethod method)

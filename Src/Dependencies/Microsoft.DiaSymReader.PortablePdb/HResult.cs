@@ -5,5 +5,12 @@ namespace Microsoft.DiaSymReader.PortablePdb
     internal static class HResult
     {
         internal const int E_NOTIMPL = unchecked((int)0x80004001);
+        internal const int S_OK = 0;
+
+        // TODO:
+        internal const int E_INVALIDARG = 1;
+
+        // TODO: HRESULT_FROM_WIN32(ERROR_NOT_ENOUGH_MEMORY)
+        internal const int E_OUTOFMEMORY = 2;
     }
 }

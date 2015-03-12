@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.DiaSymReader.PortablePdb
@@ -8,6 +9,15 @@ namespace Microsoft.DiaSymReader.PortablePdb
     [ComVisible(true)]
     public sealed class SymScope : ISymUnmanagedScope2
     {
+        private readonly LocalScopeHandle _handle;
+        private readonly SymMethod _symMethod;
+
+        public SymScope(SymMethod symMethod, LocalScopeHandle scopeHandle)
+        {
+            _symMethod = symMethod;
+            _handle = scopeHandle;
+        }
+
         public int GetChildren(int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedScope[] children)
         {
             throw new NotImplementedException();
