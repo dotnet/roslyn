@@ -6045,5 +6045,42 @@ class Program
             var block = SyntaxFactory.Block();
             Formatter.Format(block, new AdhocWorkspace());
         }
+
+        [WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpacingRulesAroundMethodCallAndParenthesisAppliedInAttributeNonDefault()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpaceAfterMethodCallName, true);
+            changingOptions.Add(CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, true);
+            changingOptions.Add(CSharpFormattingOptions.SpaceWithinMethodCallParentheses, true);
+            AssertFormat(@"[Obsolete ( ""Test"" ), Obsolete ( )]
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}", @"[Obsolete(""Test""), Obsolete()]
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}", false, changingOptions);
+        }
+
+        [WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpacingRulesAroundMethodCallAndParenthesisAppliedInAttribute()
+        {
+            var code = @"[Obsolete(""Test""), Obsolete()]
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}";
+            AssertFormat(code, code);
+        }
     }
 }
