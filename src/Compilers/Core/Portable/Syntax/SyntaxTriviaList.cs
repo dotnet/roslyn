@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
         }
 
@@ -117,10 +117,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     return default(TextSpan);
                 }
-                else
-                {
-                    return new TextSpan(this.Position, _node.FullWidth);
-                }
+
+                return new TextSpan(this.Position, _node.FullWidth);
             }
         }
 
@@ -135,11 +133,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     return default(TextSpan);
                 }
-                else
-                {
-                    return TextSpan.FromBounds(_position + _node.GetLeadingTriviaWidth(),
-                                               _position + _node.FullWidth - _node.GetTrailingTriviaWidth());
-                }
+
+                return TextSpan.FromBounds(_position + _node.GetLeadingTriviaWidth(),
+                    _position + _node.FullWidth - _node.GetTrailingTriviaWidth());
             }
         }
 
@@ -265,7 +261,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (index < 0 || index > this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             var items = trivia.ToList();
@@ -281,10 +277,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return this;
             }
-            else
-            {
-                return new SyntaxTriviaList(default(SyntaxToken), list[0].UnderlyingNode.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
-            }
+
+            return new SyntaxTriviaList(default(SyntaxToken), list[0].UnderlyingNode.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
         }
 
         /// <summary>
@@ -295,7 +289,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (index < 0 || index >= this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             var list = this.ToList();
@@ -314,10 +308,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return this.RemoveAt(index);
             }
-            else
-            {
-                return this;
-            }
+
+            return this;
         }
 
         /// <summary>
@@ -329,7 +321,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (newTrivia == default(SyntaxTrivia))
             {
-                throw new ArgumentException("newTrivia");
+                throw new ArgumentOutOfRangeException(nameof(newTrivia));
             }
 
             return ReplaceRange(triviaInList, new[] { newTrivia });
@@ -350,10 +342,8 @@ namespace Microsoft.CodeAnalysis
                 list.InsertRange(index, newTrivia);
                 return new SyntaxTriviaList(default(SyntaxToken), _node.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
             }
-            else
-            {
-                throw new ArgumentException("triviaInList");
-            }
+
+            throw new ArgumentOutOfRangeException(nameof(triviaInList));
         }
 
         // for debugging
@@ -422,12 +412,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Copy count number of items starting at offset from this list into array starting at arrayOffset.
+        /// Copy <paramref name="count"/> number of items starting at <paramref name="offset"/> from this list into <paramref name="array"/> starting at <paramref name="arrayOffset"/>.
         /// </summary>
-        /// <param name="offset"></param>
-        /// <param name="array"></param>
-        /// <param name="arrayOffset"></param>
-        /// <param name="count"></param>
         internal void CopyTo(int offset, SyntaxTrivia[] array, int arrayOffset, int count)
         {
             if (offset < 0 || count < 0 || this.Count < offset + count)
@@ -459,12 +445,12 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString()
         {
-            return _node != null ? _node.ToString() : String.Empty;
+            return _node?.ToString() ?? string.Empty;
         }
 
         public string ToFullString()
         {
-            return _node != null ? _node.ToFullString() : String.Empty;
+            return _node?.ToFullString() ?? string.Empty;
         }
 
         public static SyntaxTriviaList Create(SyntaxTrivia trivia)

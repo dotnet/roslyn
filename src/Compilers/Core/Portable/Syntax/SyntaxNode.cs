@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (!this.FullSpan.Contains(span))
             {
-                throw new ArgumentOutOfRangeException("span");
+                throw new ArgumentOutOfRangeException(nameof(span));
             }
 
             var node = FindToken(span.Start, findInsideTrivia)

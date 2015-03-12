@@ -107,10 +107,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     return default(TextSpan);
                 }
-                else
-                {
-                    return new TextSpan(this.Position, _node.FullWidth);
-                }
+
+                return new TextSpan(this.Position, _node.FullWidth);
             }
         }
 
@@ -125,11 +123,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     return default(TextSpan);
                 }
-                else
-                {
-                    return TextSpan.FromBounds(_position + _node.GetLeadingTriviaWidth(),
-                                               _position + _node.FullWidth - _node.GetTrailingTriviaWidth());
-                }
+
+                return TextSpan.FromBounds(_position + _node.GetLeadingTriviaWidth(),
+                    _position + _node.FullWidth - _node.GetTrailingTriviaWidth());
             }
         }
 
@@ -308,7 +304,7 @@ namespace Microsoft.CodeAnalysis
 
             if (tokens == null)
             {
-                throw new ArgumentNullException("tokens");
+                throw new ArgumentNullException(nameof(tokens));
             }
 
             var items = tokens.ToList();
@@ -324,10 +320,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return this;
             }
-            else
-            {
-                return new SyntaxTokenList(null, list[0].Node.CreateList(list.Select(n => n.Node)), 0, 0);
-            }
+
+            return new SyntaxTokenList(null, list[0].Node.CreateList(list.Select(n => n.Node)), 0, 0);
         }
 
         /// <summary>
@@ -338,7 +332,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (index < 0 || index >= this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             var list = this.ToList();
@@ -372,7 +366,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (newToken == default(SyntaxToken))
             {
-                throw new ArgumentException("newToken");
+                throw new ArgumentOutOfRangeException(nameof(newToken));
             }
 
             return ReplaceRange(tokenInList, new[] { newToken });
@@ -393,10 +387,8 @@ namespace Microsoft.CodeAnalysis
                 list.InsertRange(index, newTokens);
                 return new SyntaxTokenList(null, _node.CreateList(list.Select(n => n.Node)), 0, 0);
             }
-            else
-            {
-                throw new ArgumentException("tokenInList");
-            }
+
+            throw new ArgumentOutOfRangeException(nameof(tokenInList));
         }
 
         // for debugging

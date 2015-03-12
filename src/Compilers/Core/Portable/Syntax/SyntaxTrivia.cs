@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
 
         private string GetDebuggerDisplay()
         {
-            return GetType().Name + " " + (_triviaNode != null ? _triviaNode.KindText : "None") + " " + ToString();
+            return GetType().Name + " " + (_triviaNode?.KindText ?? "None") + " " + ToString();
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return _triviaNode != null ? _triviaNode.Language : string.Empty;
+                return _triviaNode?.Language ?? string.Empty;
             }
         }
 
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotations == null)
             {
-                throw new ArgumentNullException("annotations");
+                throw new ArgumentNullException(nameof(annotations));
             }
 
             if (this.UnderlyingNode != null)
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotations == null)
             {
-                throw new ArgumentNullException("annotations");
+                throw new ArgumentNullException(nameof(annotations));
             }
 
             if (this.UnderlyingNode != null)
@@ -375,17 +375,15 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotationKind == null)
             {
-                throw new ArgumentNullException("annotationKind");
+                throw new ArgumentNullException(nameof(annotationKind));
             }
 
             if (this.HasAnnotations(annotationKind))
             {
                 return this.WithoutAnnotations(this.GetAnnotations(annotationKind));
             }
-            else
-            {
-                return this;
-            }
+
+            return this;
         }
 
         /// <summary>
