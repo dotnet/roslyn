@@ -242,7 +242,7 @@ namespace Microsoft.DiaSymReader
         internal static string GetName(this ISymUnmanagedDocument document)
         {
             return ToString(GetItems(document,
-                (ISymUnmanagedDocument a, int b, out int c, char[] d) => a.GetURL(b, out c, d)));
+                (ISymUnmanagedDocument a, int b, out int c, char[] d) => a.GetUrl(b, out c, d)));
         }
 
         public static ImmutableArray<byte> GetChecksum(this ISymUnmanagedDocument document)
@@ -278,7 +278,7 @@ namespace Microsoft.DiaSymReader
         public static Guid GetHashAlgorithm(this ISymUnmanagedDocument document)
         {
             Guid result = default(Guid);
-            int hr = document.GetCheckSumAlgorithmId(ref result);
+            int hr = document.GetChecksumAlgorithmId(ref result);
             ThrowExceptionForHR(hr);
             return result;
         }
