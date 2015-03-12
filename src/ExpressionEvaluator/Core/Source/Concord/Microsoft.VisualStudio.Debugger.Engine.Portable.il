@@ -39,13 +39,13 @@
   .ver 1:0:0:0
 }
 .module Microsoft.VisualStudio.Debugger.Engine.dll
-// MVID: {5A071D03-8694-461C-8C59-4EAC840F5256}
+// MVID: {C3EB0BC8-79EF-4F72-A7B2-8BBA58E83A61}
 .imagebase 0x00400000
 .file alignment 0x00000200
 .stackreserve 0x00100000
 .subsystem 0x0003       // WINDOWS_CUI
 .corflags 0x00000001    //  ILONLY
-// Image base: 0x01170000
+// Image base: 0x008A0000
 
 
 // =============== CLASS MEMBERS DECLARATION ===================
@@ -336,10 +336,10 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugFunction2
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 45 46 30 43 34 39 30 42 2D 39 34 43 33   // ..$EF0C490B-94C3
                                                                                                   2D 34 45 34 44 2D 42 36 32 39 2D 44 44 43 31 33   // -4E4D-B629-DDC13
                                                                                                   34 43 35 33 32 44 38 00 00 )                      // 4C532D8..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  SetJMCStatus([in] int32 bIsJustMyCode) cil managed
   {
@@ -719,10 +719,10 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugController
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 33 44 36 46 35 46 36 32 2D 37 35 33 38   // ..$3D6F5F62-7538
                                                                                                   2D 31 31 44 33 2D 38 44 35 42 2D 30 30 31 30 34   // -11D3-8D5B-00104
                                                                                                   42 33 35 45 37 45 46 00 00 )                      // B35E7EF..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Stop([in] uint32 dwTimeout) cil managed
   {
@@ -872,11 +872,11 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugThreadEnum
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugEnum
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 42 30 36 2D 38 41 36 38   // ..$CC7BCB06-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Skip([in] uint32 celt) cil managed
   {
@@ -900,7 +900,7 @@
   .method public hidebysig newslot abstract virtual 
           instance int32  Next([in] uint32 celt,
                                [out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugThread[]  marshal([ + 0]) threads,
-                               [out] uint32& pceltFetched) runtime managed preservesig internalcall
+                               [out] uint32& pceltFetched) cil managed preservesig
   {
   } // end of method ICorDebugThreadEnum::Next
 
@@ -908,10 +908,10 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugEditAndContinueSnapshot
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 36 44 43 33 46 41 30 31 2D 44 37 43 42   // ..$6DC3FA01-D7CB
                                                                                                   2D 31 31 44 32 2D 38 41 39 35 2D 30 30 38 30 43   // -11D2-8A95-0080C
                                                                                                   37 39 32 45 35 44 38 00 00 )                      // 792E5D8..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  CopyMetaData([in] class [mscorlib]System.Runtime.InteropServices.ComTypes.IStream  marshal( interface ) pIStream,
                                       [out] valuetype [mscorlib]System.Guid& pMvid) cil managed
@@ -955,10 +955,10 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugErrorInfoEnum
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugEnum
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 46 30 45 31 38 38 30 39 2D 37 32 42 35   // ..$F0E18809-72B5
                                                                                                   2D 31 31 44 32 2D 39 37 36 46 2D 30 30 41 30 43   // -11D2-976F-00A0C
                                                                                                   39 42 34 44 35 30 43 00 00 )                      // 9B4D50C..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Skip([in] uint32 celt) cil managed
@@ -983,7 +983,7 @@
   .method public hidebysig newslot abstract virtual 
           instance int32  Next([in] uint32 celt,
                                [out] native int errors,
-                               [out] uint32& pceltFetched) runtime managed preservesig internalcall
+                               [out] uint32& pceltFetched) cil managed preservesig
   {
     .param [2]
     .custom instance void [mscorlib]System.Runtime.InteropServices.ComAliasNameAttribute::.ctor(string) = ( 01 00 23 49 43 6F 72 44 65 62 75 67 45 64 69 74   // ..#ICorDebugEdit
@@ -996,11 +996,11 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugAssemblyEnum
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugEnum
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 34 41 32 41 31 45 43 39 2D 38 35 45 43   // ..$4A2A1EC9-85EC
                                                                                                   2D 34 42 46 42 2D 39 46 31 35 2D 41 38 39 46 44   // -4BFB-9F15-A89FD
                                                                                                   46 45 30 46 45 38 33 00 00 )                      // FE0FE83..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Skip([in] uint32 celt) cil managed
   {
@@ -1024,7 +1024,7 @@
   .method public hidebysig newslot abstract virtual 
           instance int32  Next([in] uint32 celt,
                                [out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugAssembly[]  marshal([ + 0]) values,
-                               [out] uint32& pceltFetched) runtime managed preservesig internalcall
+                               [out] uint32& pceltFetched) cil managed preservesig
   {
   } // end of method ICorDebugAssemblyEnum::Next
 
@@ -1033,11 +1033,11 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugBreakpointEnum
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugEnum
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 42 30 33 2D 38 41 36 38   // ..$CC7BCB03-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Skip([in] uint32 celt) cil managed
   {
@@ -1061,7 +1061,7 @@
   .method public hidebysig newslot abstract virtual 
           instance int32  Next([in] uint32 celt,
                                [out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugBreakpoint[]  marshal([]) breakpoints,
-                               [out] uint32& pceltFetched) runtime managed preservesig internalcall
+                               [out] uint32& pceltFetched) cil managed preservesig
   {
   } // end of method ICorDebugBreakpointEnum::Next
 
@@ -1070,11 +1070,11 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugStepperEnum
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugEnum
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 42 30 34 2D 38 41 36 38   // ..$CC7BCB04-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
   .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Skip([in] uint32 celt) cil managed
   {
@@ -1098,7 +1098,7 @@
   .method public hidebysig newslot abstract virtual 
           instance int32  Next([in] uint32 celt,
                                [out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugStepper[]  marshal([]) steppers,
-                               [out] uint32& pceltFetched) runtime managed preservesig internalcall
+                               [out] uint32& pceltFetched) cil managed preservesig
   {
   } // end of method ICorDebugStepperEnum::Next
 
@@ -1134,10 +1134,10 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugAppDomain2
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 30 39 36 45 38 31 44 35 2D 45 43 44 41   // ..$096E81D5-ECDA
                                                                                                   2D 34 32 30 32 2D 38 33 46 35 2D 43 36 35 39 38   // -4202-83F5-C6598
                                                                                                   30 41 39 45 46 37 35 00 00 )                      // 0A9EF75..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  GetArrayOrPointerType([in] valuetype Microsoft.VisualStudio.CorDebugInterop.CorElementType elementType,
                                                [in] uint32 nRank,
@@ -1206,8 +1206,8 @@
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 36 33 43 41 31 42 32 34 2D 34 33 35 39   // ..$63CA1B24-4359
                                                                                                   2D 34 38 38 33 2D 42 44 35 37 2D 31 33 46 38 31   // -4883-BD57-13F81
                                                                                                   35 46 35 38 37 34 34 00 00 )                      // 5F58744..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Skip([in] uint32 celt) cil managed
   {
@@ -1231,7 +1231,7 @@
   .method public hidebysig newslot abstract virtual 
           instance int32  Next([in] uint32 celt,
                                [out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugAppDomain[]  marshal([ + 0]) values,
-                               [out] uint32& pceltFetched) runtime managed preservesig internalcall
+                               [out] uint32& pceltFetched) cil managed preservesig
   {
   } // end of method ICorDebugAppDomainEnum::Next
 
@@ -1239,10 +1239,10 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugEnum
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 42 30 31 2D 38 41 36 38   // ..$CC7BCB01-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Skip([in] uint32 celt) cil managed
   {
@@ -1269,10 +1269,10 @@
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugHeapValue,
                   Microsoft.VisualStudio.CorDebugInterop.ICorDebugValue
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 30 34 30 35 42 30 44 46 2D 41 36 36 30   // ..$0405B0DF-A660
                                                                                                   2D 31 31 44 32 2D 42 44 30 32 2D 30 30 30 30 46   // -11D2-BD02-0000F
                                                                                                   38 30 38 34 39 42 44 00 00 )                      // 80849BD..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  GetType([out] valuetype Microsoft.VisualStudio.CorDebugInterop.CorElementType& pType) cil managed
@@ -1393,10 +1393,10 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugValueBreakpoint
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugBreakpoint
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 41 45 42 2D 38 41 36 38   // ..$CC7BCAEB-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Activate([in] int32 bActive) cil managed
   {
@@ -1419,8 +1419,8 @@
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 44 46 35 39 35 30 37 43 2D 44 34 37 41   // ..$DF59507C-D47A
                                                                                                   2D 34 35 39 45 2D 42 43 45 32 2D 36 34 32 37 45   // -459E-BCE2-6427E
                                                                                                   41 43 38 46 44 30 36 00 00 )                      // AC8FD06..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  GetProcess([out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugProcess&  marshal( interface ) ppProcess) cil managed
   {
@@ -1455,11 +1455,11 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugProcess
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugController
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 33 44 36 46 35 46 36 34 2D 37 35 33 38   // ..$3D6F5F64-7538
                                                                                                   2D 31 31 44 33 2D 38 44 35 42 2D 30 30 31 30 34   // -11D3-8D5B-00104
                                                                                                   42 33 35 45 37 45 46 00 00 )                      // B35E7EF..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Stop([in] uint32 dwTimeout) cil managed
   {
@@ -1631,11 +1631,11 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugModuleEnum
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugEnum
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 42 30 39 2D 38 41 36 38   // ..$CC7BCB09-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
   .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Skip([in] uint32 celt) cil managed
   {
@@ -1726,10 +1726,10 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugObjectValue
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugValue
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 31 38 41 44 33 44 36 45 2D 42 37 44 32   // ..$18AD3D6E-B7D2
                                                                                                   2D 31 31 44 32 2D 42 44 30 34 2D 30 30 30 30 46   // -11D2-BD04-0000F
                                                                                                   38 30 38 34 39 42 44 00 00 )                      // 80849BD..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  GetType([out] valuetype Microsoft.VisualStudio.CorDebugInterop.CorElementType& pType) cil managed
   {
@@ -1881,10 +1881,10 @@
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugObjectValue,
                   Microsoft.VisualStudio.CorDebugInterop.ICorDebugValue
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 42 30 30 2D 38 41 36 38   // ..$CC7BCB00-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  GetType([out] valuetype Microsoft.VisualStudio.CorDebugInterop.CorElementType& pType) cil managed
   {
@@ -1949,10 +1949,10 @@
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugEnum
 {
   .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 42 30 37 2D 38 41 36 38   // ..$CC7BCB07-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Skip([in] uint32 celt) cil managed
   {
@@ -1976,7 +1976,7 @@
   .method public hidebysig newslot abstract virtual 
           instance int32  Next([in] uint32 celt,
                                [out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugFrame[]  marshal([]) frames,
-                               [out] uint32& pceltFetched) runtime managed preservesig internalcall
+                               [out] uint32& pceltFetched) cil managed preservesig
   {
   } // end of method ICorDebugFrameEnum::Next
 
@@ -1984,10 +1984,10 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugFrame
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 41 45 46 2D 38 41 36 38   // ..$CC7BCAEF-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance int32  GetChain([out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugChain&  marshal( interface ) ppChain) cil managed preservesig
   {
@@ -2034,11 +2034,11 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugChainEnum
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugEnum
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 42 30 38 2D 38 41 36 38   // ..$CC7BCB08-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Skip([in] uint32 celt) cil managed
   {
@@ -2062,7 +2062,7 @@
   .method public hidebysig newslot abstract virtual 
           instance int32  Next([in] uint32 celt,
                                [out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugChain[]  marshal([]) chains,
-                               [out] uint32& pceltFetched) runtime managed preservesig internalcall
+                               [out] uint32& pceltFetched) cil managed preservesig
   {
   } // end of method ICorDebugChainEnum::Next
 
@@ -2070,10 +2070,10 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugClass
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 41 46 35 2D 38 41 36 38   // ..$CC7BCAF5-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  GetModule([out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugModule&  marshal( interface ) pModule) cil managed
   {
@@ -2095,10 +2095,10 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugClass2
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 42 30 30 38 45 41 38 44 2D 37 41 42 31   // ..$B008EA8D-7AB1
                                                                                                   2D 34 33 46 37 2D 42 42 32 30 2D 46 42 42 35 41   // -43F7-BB20-FBB5A
                                                                                                   30 34 30 33 38 41 45 00 00 )                      // 04038AE..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  GetParameterizedType([in] valuetype Microsoft.VisualStudio.CorDebugInterop.CorElementType elementType,
                                               [in] uint32 nTypeArgs,
@@ -2117,10 +2117,10 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugCode
 {
   .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 41 46 34 2D 38 41 36 38   // ..$CC7BCAF4-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  IsIL([out] int32& pbIL) cil managed
   {
@@ -2256,11 +2256,11 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugCode2
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 35 46 36 39 36 35 30 39 2D 34 35 32 46   // ..$5F696509-452F
                                                                                                   2D 34 34 33 36 2D 41 33 46 45 2D 34 44 31 31 46   // -4436-A3FE-4D11F
                                                                                                   45 37 45 32 33 34 37 00 00 )                      // E7E2347..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  GetCodeChunks([in] uint32 cbufSize,
                                        [out] uint32& pcnumChunks,
@@ -2278,10 +2278,10 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugCodeEnum
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugEnum
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 35 35 45 39 36 34 36 31 2D 39 36 34 35   // ..$55E96461-9645
                                                                                                   2D 34 35 45 34 2D 41 32 46 46 2D 30 33 36 37 38   // -45E4-A2FF-03678
                                                                                                   37 37 41 42 43 44 45 00 00 )                      // 77ABCDE..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Skip([in] uint32 celt) cil managed
@@ -2306,7 +2306,7 @@
   .method public hidebysig newslot abstract virtual 
           instance int32  Next([in] uint32 celt,
                                [out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugCode[]  marshal([]) values,
-                               [out] uint32& pceltFetched) runtime managed preservesig internalcall
+                               [out] uint32& pceltFetched) cil managed preservesig
   {
   } // end of method ICorDebugCodeEnum::Next
 
@@ -2314,10 +2314,10 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugEval
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 41 46 36 2D 38 41 36 38   // ..$CC7BCAF6-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  CallFunction([in] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugFunction  marshal( interface ) pFunction,
                                       [in] uint32 nArgs,
@@ -2491,10 +2491,10 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugGenericValue
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugValue
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 41 46 38 2D 38 41 36 38   // ..$CC7BCAF8-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  GetType([out] valuetype Microsoft.VisualStudio.CorDebugInterop.CorElementType& pType) cil managed
   {
@@ -2531,10 +2531,10 @@
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugReferenceValue,
                   Microsoft.VisualStudio.CorDebugInterop.ICorDebugValue
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 30 32 39 35 39 36 45 38 2D 32 37 36 42   // ..$029596E8-276B
                                                                                                   2D 34 36 41 31 2D 39 38 32 31 2D 37 33 32 45 39   // -46A1-9821-732E9
                                                                                                   36 42 42 42 30 30 42 00 00 )                      // 6BBB00B..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  GetType([out] valuetype Microsoft.VisualStudio.CorDebugInterop.CorElementType& pType) cil managed
   {
@@ -2648,10 +2648,10 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugHeapValue2
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 45 33 41 43 34 44 36 43 2D 39 43 42 37   // ..$E3AC4D6C-9CB7
                                                                                                   2D 34 33 45 36 2D 39 36 43 43 2D 42 32 31 35 34   // -43E6-96CC-B2154
                                                                                                   30 45 35 30 38 33 43 00 00 )                      // 0E5083C..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance int32  CreateHandle([in] valuetype Microsoft.VisualStudio.CorDebugInterop.CorDebugHandleType 'type',
                                        [out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugHandleValue&  marshal( interface ) ppHandle) cil managed preservesig
@@ -2753,7 +2753,7 @@
   } // end of method ICorDebugILFrame::GetStackValue
 
   .method public hidebysig newslot abstract virtual 
-          instance int32  CanSetIP([in] uint32 nOffset) runtime managed preservesig internalcall
+          instance int32  CanSetIP([in] uint32 nOffset) cil managed preservesig
   {
   } // end of method ICorDebugILFrame::CanSetIP
 
@@ -2762,11 +2762,11 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugValueEnum
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugEnum
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 42 30 41 2D 38 41 36 38   // ..$CC7BCB0A-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
   .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Skip([in] uint32 celt) cil managed
   {
@@ -2790,7 +2790,7 @@
   .method public hidebysig newslot abstract virtual 
           instance int32  Next([in] uint32 celt,
                                [out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugValue[]  marshal([]) values,
-                               [out] uint32& pceltFetched) runtime managed preservesig internalcall
+                               [out] uint32& pceltFetched) cil managed preservesig
   {
   } // end of method ICorDebugValueEnum::Next
 
@@ -2820,8 +2820,8 @@
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 31 30 46 32 37 34 39 39 2D 39 44 46 32   // ..$10F27499-9DF2
                                                                                                   2D 34 33 43 45 2D 38 33 33 33 2D 41 33 32 31 44   // -43CE-8333-A321D
                                                                                                   37 43 39 39 43 42 34 00 00 )                      // 7C99CB4..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Skip([in] uint32 celt) cil managed
   {
@@ -2845,7 +2845,7 @@
   .method public hidebysig newslot abstract virtual 
           instance int32  Next([in] uint32 celt,
                                [out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugType[]  marshal([ + 0]) values,
-                               [out] uint32& pceltFetched) runtime managed preservesig internalcall
+                               [out] uint32& pceltFetched) cil managed preservesig
   {
   } // end of method ICorDebugTypeEnum::Next
 
@@ -2909,10 +2909,10 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugModuleBreakpoint
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugBreakpoint
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 41 45 41 2D 38 41 36 38   // ..$CC7BCAEA-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Activate([in] int32 bActive) cil managed
   {
@@ -2932,10 +2932,10 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugModule2
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 37 46 43 43 35 46 42 35 2D 34 39 43 30   // ..$7FCC5FB5-49C0
                                                                                                   2D 34 31 44 45 2D 39 39 33 38 2D 33 42 38 38 42   // -41DE-9938-3B88B
                                                                                                   35 42 39 41 44 44 37 00 00 )                      // 5B9ADD7..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  SetJMCStatus([in] int32 bIsJustMyCode,
                                       [in] uint32 cTokens,
@@ -2952,7 +2952,7 @@
   } // end of method ICorDebugModule2::ApplyChanges
 
   .method public hidebysig newslot abstract virtual 
-          instance int32  SetJITCompilerFlags([in] uint32 dwFlags) runtime managed preservesig internalcall
+          instance int32  SetJITCompilerFlags([in] uint32 dwFlags) cil managed preservesig
   {
   } // end of method ICorDebugModule2::SetJITCompilerFlags
 
@@ -2972,10 +2972,10 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugNativeFrame
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugFrame
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 30 33 45 32 36 33 31 34 2D 34 46 37 36   // ..$03E26314-4F76
                                                                                                   2D 31 31 44 33 2D 38 38 43 36 2D 30 30 36 30 39   // -11D3-88C6-00609
                                                                                                   37 39 34 35 34 31 38 00 00 )                      // 7945418..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  GetChain([out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugChain&  marshal( interface ) ppChain) cil managed
   {
@@ -3076,7 +3076,7 @@
   } // end of method ICorDebugNativeFrame::GetLocalMemoryRegisterValue
 
   .method public hidebysig newslot abstract virtual 
-          instance int32  CanSetIP([in] uint32 nOffset) runtime managed preservesig internalcall
+          instance int32  CanSetIP([in] uint32 nOffset) cil managed preservesig
   {
   } // end of method ICorDebugNativeFrame::CanSetIP
 
@@ -3113,7 +3113,7 @@
   .method public hidebysig newslot abstract virtual 
           instance int32  Next([in] uint32 celt,
                                [out] uint64[]  marshal([]) objects,
-                               [out] uint32& pceltFetched) runtime managed preservesig internalcall
+                               [out] uint32& pceltFetched) cil managed preservesig
   {
   } // end of method ICorDebugObjectEnum::Next
 
@@ -3121,10 +3121,10 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugObjectValue2
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 34 39 45 34 41 33 32 30 2D 34 41 39 42   // ..$49E4A320-4A9B
                                                                                                   2D 34 45 43 41 2D 42 31 30 35 2D 32 32 39 46 42   // -4ECA-B105-229FB
                                                                                                   37 44 35 30 30 39 46 00 00 )                      // 7D5009F..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  GetVirtualMethodAndType([in] uint32 memberRef,
                                                  [out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugFunction&  marshal( interface ) ppFunction,
@@ -3136,11 +3136,11 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugProcess2
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 41 44 31 42 33 35 38 38 2D 30 45 46 30   // ..$AD1B3588-0EF0
                                                                                                   2D 34 37 34 34 2D 41 34 39 36 2D 41 41 30 39 41   // -4744-A496-AA09A
                                                                                                   39 46 38 30 33 37 31 00 00 )                      // 9F80371..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  GetThreadForTaskID([in] uint64 taskid,
                                             [out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugThread2&  marshal( interface ) ppThread) cil managed
@@ -3185,11 +3185,11 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugThread2
 {
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 32 42 44 39 35 36 44 39 2D 37 42 30 37   // ..$2BD956D9-7B07
                                                                                                   2D 34 42 45 46 2D 38 41 39 38 2D 31 32 41 41 38   // -4BEF-8A98-12AA8
                                                                                                   36 32 34 31 37 43 35 00 00 )                      // 62417C5..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  GetActiveFunctions([in] uint32 cFunctions,
                                             [out] uint32& pcFunctions,
@@ -3222,11 +3222,11 @@
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugProcessEnum
        implements Microsoft.VisualStudio.CorDebugInterop.ICorDebugEnum
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 43 43 37 42 43 42 30 35 2D 38 41 36 38   // ..$CC7BCB05-8A68
                                                                                                   2D 31 31 44 32 2D 39 38 33 43 2D 30 30 30 30 46   // -11D2-983C-0000F
                                                                                                   38 30 38 33 34 32 44 00 00 )                      // 808342D..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComConversionLossAttribute::.ctor() = ( 01 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  Skip([in] uint32 celt) cil managed
   {
@@ -3250,7 +3250,7 @@
   .method public hidebysig newslot abstract virtual 
           instance int32  Next([in] uint32 celt,
                                [out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugProcess[]  marshal([]) processes,
-                               [out] uint32& pceltFetched) runtime managed preservesig internalcall
+                               [out] uint32& pceltFetched) cil managed preservesig
   {
   } // end of method ICorDebugProcessEnum::Next
 
@@ -3324,10 +3324,10 @@
 
 .class interface public abstract auto ansi import Microsoft.VisualStudio.CorDebugInterop.ICorDebugValue2
 {
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 35 45 30 42 35 34 45 37 2D 44 38 38 41   // ..$5E0B54E7-D88A
                                                                                                   2D 34 36 32 36 2D 39 34 32 30 2D 41 36 39 31 45   // -4626-9420-A691E
                                                                                                   30 41 37 38 42 34 39 00 00 )                      // 0A78B49..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 01 00 00 00 ) 
   .method public hidebysig newslot abstract virtual 
           instance void  GetExactType([out] class Microsoft.VisualStudio.CorDebugInterop.ICorDebugType&  marshal( interface ) ppType) cil managed
   {
@@ -23012,6 +23012,14 @@
   } // end of method DkmClrValue::InstantiateResultsViewProxy
 
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue 
+          InstantiateDynamicViewProxy(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext) cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method DkmClrValue::InstantiateDynamicViewProxy
+
+  .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue 
           GetMemberValue(string MemberName,
                          int32 MemberType,
                          string ParentTypeName,
@@ -24321,6 +24329,13 @@
                                       class Microsoft.VisualStudio.Debugger.Clr.DkmClrType enumerableType) cil managed
   {
   } // end of method IDkmClrValueInspectionCallback::InstantiateResultsViewProxy
+
+  .method public hidebysig newslot abstract virtual 
+          instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue 
+          InstantiateDynamicViewProxy(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue,
+                                      class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext) cil managed
+  {
+  } // end of method IDkmClrValueInspectionCallback::InstantiateDynamicViewProxy
 
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue 
@@ -40266,698 +40281,6 @@
     .get instance class [mscorlib]System.Collections.ObjectModel.ReadOnlyCollection`1<class Microsoft.VisualStudio.Debugger.Telemetry.DkmNameValuePair> Microsoft.VisualStudio.Debugger.Telemetry.DkmTelemetryEvent::get_Properties()
   } // end of property DkmTelemetryEvent::Properties
 } // end of class Microsoft.VisualStudio.Debugger.Telemetry.DkmTelemetryEvent
-
-.class interface public abstract auto ansi import Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedConstant
-{
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComVisibleAttribute::.ctor(bool) = ( 01 00 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.ComInterfaceType) = ( 01 00 01 00 00 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 34 38 42 32 35 45 44 38 2D 35 42 41 44   // ..$48B25ED8-5BAD
-                                                                                                  2D 34 31 62 63 2D 39 43 45 45 2D 43 44 36 32 46   // -41bc-9CEE-CD62F
-                                                                                                  41 42 43 37 34 45 39 00 00 )                      // ABC74E9..
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetName(int32 cchName,
-                                  [out] int32& pcchName,
-                                  [in][out] char[]  marshal([ + 0]) name) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedConstant::GetName
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetValue([out] object& pValue) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedConstant::GetValue
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetSignature(int32 cSig,
-                                       [out] int32& pcSig,
-                                       [in][out] uint8[]  marshal([ + 0]) sig) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedConstant::GetSignature
-
-} // end of class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedConstant
-
-.class interface public abstract auto ansi import Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDispose
-{
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.ComInterfaceType) = ( 01 00 01 00 00 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 39 36 39 37 30 38 44 32 2D 30 35 45 35   // ..$969708D2-05E5
-                                                                                                  2D 34 38 36 31 2D 41 33 42 30 2D 39 36 45 34 37   // -4861-A3B0-96E47
-                                                                                                  33 43 44 46 36 33 46 00 00 )                      // 3CDF63F..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComVisibleAttribute::.ctor(bool) = ( 01 00 00 00 00 ) 
-  .method public hidebysig newslot abstract virtual 
-          instance int32  Destroy() cil managed preservesig
-  {
-  } // end of method ISymUnmanagedDispose::Destroy
-
-} // end of class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDispose
-
-.class interface public abstract auto ansi import Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument
-{
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.ComInterfaceType) = ( 01 00 01 00 00 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 34 30 44 45 34 30 33 37 2D 37 43 38 31   // ..$40DE4037-7C81
-                                                                                                  2D 33 45 31 45 2D 42 30 32 32 2D 41 45 31 41 42   // -3E1E-B022-AE1AB
-                                                                                                  46 46 32 43 41 30 38 00 00 )                      // FF2CA08..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComVisibleAttribute::.ctor(bool) = ( 01 00 00 00 00 ) 
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetURL(int32 cchUrl,
-                                 [out] int32& pcchUrl,
-                                 [in][out] char[]  marshal([ + 0]) szUrl) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedDocument::GetURL
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetDocumentType(valuetype [mscorlib]System.Guid& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedDocument::GetDocumentType
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetLanguage(valuetype [mscorlib]System.Guid& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedDocument::GetLanguage
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetLanguageVendor(valuetype [mscorlib]System.Guid& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedDocument::GetLanguageVendor
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetCheckSumAlgorithmId(valuetype [mscorlib]System.Guid& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedDocument::GetCheckSumAlgorithmId
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetCheckSum(int32 cData,
-                                      [out] int32& pcData,
-                                      [in][out] uint8[]  marshal([ + 0]) data) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedDocument::GetCheckSum
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  FindClosestLine(int32 line,
-                                          [out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedDocument::FindClosestLine
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  HasEmbeddedSource([out] bool& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedDocument::HasEmbeddedSource
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetSourceLength([out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedDocument::GetSourceLength
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetSourceRange(int32 startLine,
-                                         int32 startColumn,
-                                         int32 endLine,
-                                         int32 endColumn,
-                                         int32 cSourceBytes,
-                                         [out] int32& pcSourceBytes,
-                                         [in][out] uint8[]  marshal([ + 4]) source) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedDocument::GetSourceRange
-
-} // end of class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument
-
-.class interface public abstract auto ansi import Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod
-{
-  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 42 36 32 42 39 32 33 43 2D 42 35 30 30   // ..$B62B923C-B500
-                                                                                                  2D 33 31 35 38 2D 41 35 34 33 2D 32 34 46 33 30   // -3158-A543-24F30
-                                                                                                  37 41 38 42 37 45 31 00 00 )                      // 7A8B7E1..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.ComInterfaceType) = ( 01 00 01 00 00 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComVisibleAttribute::.ctor(bool) = ( 01 00 00 00 00 ) 
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetToken([out] valuetype [mscorlib]System.Diagnostics.SymbolStore.SymbolToken& pToken) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedMethod::GetToken
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetSequencePointCount([out] int32& retVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedMethod::GetSequencePointCount
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetRootScope([out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedScope&  marshal( interface ) retVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedMethod::GetRootScope
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetScopeFromOffset(int32 offset,
-                                             [out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedScope&  marshal( interface ) retVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedMethod::GetScopeFromOffset
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetOffset(class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument document,
-                                    int32 line,
-                                    int32 column,
-                                    [out] int32& retVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedMethod::GetOffset
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetRanges(class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument document,
-                                    int32 line,
-                                    int32 column,
-                                    int32 cRanges,
-                                    [out] int32& pcRanges,
-                                    [in][out] int32[]  marshal([ + 3]) ranges) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedMethod::GetRanges
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetParameters(int32 cParams,
-                                        [out] int32& pcParams,
-                                        [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedVariable[]  marshal([ + 0]) parms) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedMethod::GetParameters
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetNamespace([out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedNamespace&  marshal( interface ) retVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedMethod::GetNamespace
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetSourceStartEnd(class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument[] docs,
-                                            [in][out] int32[]  marshal([]) lines,
-                                            [in][out] int32[]  marshal([]) columns,
-                                            [out] bool& retVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedMethod::GetSourceStartEnd
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetSequencePoints(int32 cPoints,
-                                            [out] int32& pcPoints,
-                                            [in][out] int32[]  marshal([ + 0]) offsets,
-                                            [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument[]  marshal([ + 0]) documents,
-                                            [in][out] int32[]  marshal([ + 0]) lines,
-                                            [in][out] int32[]  marshal([ + 0]) columns,
-                                            [in][out] int32[]  marshal([ + 0]) endLines,
-                                            [in][out] int32[]  marshal([ + 0]) endColumns) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedMethod::GetSequencePoints
-
-} // end of class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod
-
-.class interface public abstract auto ansi import Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedScope
-{
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.ComInterfaceType) = ( 01 00 01 00 00 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 36 38 30 30 35 44 30 46 2D 42 38 45 30   // ..$68005D0F-B8E0
-                                                                                                  2D 33 42 30 31 2D 38 34 44 35 2D 41 31 31 41 39   // -3B01-84D5-A11A9
-                                                                                                  34 31 35 34 39 34 32 00 00 )                      // 4154942..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComVisibleAttribute::.ctor(bool) = ( 01 00 00 00 00 ) 
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetMethod([out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod&  marshal( interface ) pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope::GetMethod
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetParent([out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedScope&  marshal( interface ) pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope::GetParent
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetChildren(int32 cChildren,
-                                      [out] int32& pcChildren,
-                                      [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedScope[]  marshal([ + 0]) children) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope::GetChildren
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetStartOffset([out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope::GetStartOffset
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetEndOffset([out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope::GetEndOffset
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetLocalCount([out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope::GetLocalCount
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetLocals(int32 cLocals,
-                                    [out] int32& pcLocals,
-                                    [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedVariable[]  marshal([ + 0]) locals) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope::GetLocals
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetNamespaces(int32 cNameSpaces,
-                                        [out] int32& pcNameSpaces,
-                                        [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedNamespace[]  marshal([ + 0]) namespaces) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope::GetNamespaces
-
-} // end of class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedScope
-
-.class interface public abstract auto ansi import Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedVariable
-{
-  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 39 46 36 30 45 45 42 45 2D 32 44 39 41   // ..$9F60EEBE-2D9A
-                                                                                                  2D 33 46 37 43 2D 42 46 35 38 2D 38 30 42 43 39   // -3F7C-BF58-80BC9
-                                                                                                  39 31 43 36 30 42 42 00 00 )                      // 91C60BB..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComVisibleAttribute::.ctor(bool) = ( 01 00 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.ComInterfaceType) = ( 01 00 01 00 00 00 00 00 ) 
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetName(int32 cchName,
-                                  [out] int32& pcchName,
-                                  [in][out] char[]  marshal([ + 0]) szName) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedVariable::GetName
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetAttributes([out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedVariable::GetAttributes
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetSignature(int32 cSig,
-                                       [out] int32& pcSig,
-                                       [in][out] uint8[]  marshal([ + 0]) sig) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedVariable::GetSignature
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetAddressKind([out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedVariable::GetAddressKind
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetAddressField1([out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedVariable::GetAddressField1
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetAddressField2([out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedVariable::GetAddressField2
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetAddressField3([out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedVariable::GetAddressField3
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetStartOffset([out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedVariable::GetStartOffset
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetEndOffset([out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedVariable::GetEndOffset
-
-} // end of class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedVariable
-
-.class interface public abstract auto ansi import Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedNamespace
-{
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.ComInterfaceType) = ( 01 00 01 00 00 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComVisibleAttribute::.ctor(bool) = ( 01 00 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 30 44 46 46 37 32 38 39 2D 35 34 46 38   // ..$0DFF7289-54F8
-                                                                                                  2D 31 31 64 33 2D 42 44 32 38 2D 30 30 30 30 46   // -11d3-BD28-0000F
-                                                                                                  38 30 38 34 39 42 44 00 00 )                      // 80849BD..
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetName(int32 cchName,
-                                  [out] int32& pcchName,
-                                  [in][out] char[]  marshal([ + 0]) szName) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedNamespace::GetName
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetNamespaces(int32 cNameSpaces,
-                                        [out] int32& pcNameSpaces,
-                                        [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedNamespace[]  marshal([ + 0]) namespaces) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedNamespace::GetNamespaces
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetVariables(int32 cVars,
-                                       [out] int32& pcVars,
-                                       [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedVariable[]  marshal([ + 0]) pVars) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedNamespace::GetVariables
-
-} // end of class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedNamespace
-
-.class interface public abstract auto ansi import Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedReader
-{
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.ComInterfaceType) = ( 01 00 01 00 00 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 42 34 43 45 36 32 38 36 2D 32 41 36 42   // ..$B4CE6286-2A6B
-                                                                                                  2D 33 37 31 32 2D 41 33 42 37 2D 31 45 45 31 44   // -3712-A3B7-1EE1D
-                                                                                                  41 44 34 36 37 42 35 00 00 )                      // AD467B5..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComVisibleAttribute::.ctor(bool) = ( 01 00 00 00 00 ) 
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetDocument(string  marshal( lpwstr) url,
-                                      valuetype [mscorlib]System.Guid language,
-                                      valuetype [mscorlib]System.Guid languageVendor,
-                                      valuetype [mscorlib]System.Guid documentType,
-                                      [out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument&  marshal( interface ) retVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::GetDocument
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetDocuments(int32 cDocs,
-                                       [out] int32& pcDocs,
-                                       [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument[]  marshal([ + 0]) pDocs) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::GetDocuments
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetUserEntryPoint([out] valuetype [mscorlib]System.Diagnostics.SymbolStore.SymbolToken& EntryPoint) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::GetUserEntryPoint
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetMethod(valuetype [mscorlib]System.Diagnostics.SymbolStore.SymbolToken methodToken,
-                                    [out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod&  marshal( interface ) retVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::GetMethod
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetMethodByVersion(valuetype [mscorlib]System.Diagnostics.SymbolStore.SymbolToken methodToken,
-                                             int32 version,
-                                             [out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod&  marshal( interface ) retVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::GetMethodByVersion
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetVariables(valuetype [mscorlib]System.Diagnostics.SymbolStore.SymbolToken parent,
-                                       int32 cVars,
-                                       [out] int32& pcVars,
-                                       [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedVariable[]  marshal([ + 1]) vars) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::GetVariables
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetGlobalVariables(int32 cVars,
-                                             [out] int32& pcVars,
-                                             [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedVariable[]  marshal([ + 0]) vars) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::GetGlobalVariables
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetMethodFromDocumentPosition(class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument document,
-                                                        int32 line,
-                                                        int32 column,
-                                                        [out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod&  marshal( interface ) retVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::GetMethodFromDocumentPosition
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetSymAttribute(valuetype [mscorlib]System.Diagnostics.SymbolStore.SymbolToken parent,
-                                          string  marshal( lpwstr) name,
-                                          int32 sizeBuffer,
-                                          [out] int32& lengthBuffer,
-                                          [in][out] uint8[]  marshal([ + 2]) buffer) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::GetSymAttribute
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetNamespaces(int32 cNameSpaces,
-                                        [out] int32& pcNameSpaces,
-                                        [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedNamespace[]  marshal([ + 0]) namespaces) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::GetNamespaces
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  Initialize(object  marshal( interface ) importer,
-                                     string  marshal( lpwstr) filename,
-                                     string  marshal( lpwstr) searchPath,
-                                     class [mscorlib]System.Runtime.InteropServices.ComTypes.IStream 'stream') cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::Initialize
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  UpdateSymbolStore(string  marshal( lpwstr) filename,
-                                            class [mscorlib]System.Runtime.InteropServices.ComTypes.IStream 'stream') cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::UpdateSymbolStore
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  ReplaceSymbolStore(string  marshal( lpwstr) filename,
-                                             class [mscorlib]System.Runtime.InteropServices.ComTypes.IStream 'stream') cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::ReplaceSymbolStore
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetSymbolStoreFileName(int32 cchName,
-                                                 [out] int32& pcchName,
-                                                 [in][out] char[]  marshal([ + 0]) szName) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::GetSymbolStoreFileName
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetMethodsFromDocumentPosition(class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument document,
-                                                         int32 line,
-                                                         int32 column,
-                                                         int32 cMethod,
-                                                         [out] int32& pcMethod,
-                                                         [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod[]  marshal([ + 3]) pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::GetMethodsFromDocumentPosition
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetDocumentVersion(class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument pDoc,
-                                             [out] int32& version,
-                                             [out] bool& pbCurrent) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::GetDocumentVersion
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetMethodVersion(class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod pMethod,
-                                           [out] int32& version) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader::GetMethodVersion
-
-} // end of class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedReader
-
-.class interface public abstract auto ansi import Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedReader2
-       implements Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedReader
-{
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.ComInterfaceType) = ( 01 00 01 00 00 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComVisibleAttribute::.ctor(bool) = ( 01 00 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 41 30 39 45 35 33 42 32 2D 32 41 35 37   // ..$A09E53B2-2A57
-                                                                                                  2D 34 63 63 61 2D 38 46 36 33 2D 42 38 34 46 37   // -4cca-8F63-B84F7
-                                                                                                  43 33 35 44 34 41 41 00 00 )                      // C35D4AA..
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetDocument(string  marshal( lpwstr) url,
-                                      valuetype [mscorlib]System.Guid language,
-                                      valuetype [mscorlib]System.Guid languageVendor,
-                                      valuetype [mscorlib]System.Guid documentType,
-                                      [out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument&  marshal( interface ) retVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetDocument
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetDocuments(int32 cDocs,
-                                       [out] int32& pcDocs,
-                                       [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument[]  marshal([ + 0]) pDocs) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetDocuments
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetUserEntryPoint([out] valuetype [mscorlib]System.Diagnostics.SymbolStore.SymbolToken& EntryPoint) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetUserEntryPoint
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetMethod(valuetype [mscorlib]System.Diagnostics.SymbolStore.SymbolToken methodToken,
-                                    [out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod&  marshal( interface ) retVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetMethod
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetMethodByVersion(valuetype [mscorlib]System.Diagnostics.SymbolStore.SymbolToken methodToken,
-                                             int32 version,
-                                             [out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod&  marshal( interface ) retVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetMethodByVersion
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetVariables(valuetype [mscorlib]System.Diagnostics.SymbolStore.SymbolToken parent,
-                                       int32 cVars,
-                                       [out] int32& pcVars,
-                                       [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedVariable[]  marshal([ + 1]) vars) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetVariables
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetGlobalVariables(int32 cVars,
-                                             [out] int32& pcVars,
-                                             [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedVariable[]  marshal([ + 0]) vars) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetGlobalVariables
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetMethodFromDocumentPosition(class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument document,
-                                                        int32 line,
-                                                        int32 column,
-                                                        [out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod&  marshal( interface ) retVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetMethodFromDocumentPosition
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetSymAttribute(valuetype [mscorlib]System.Diagnostics.SymbolStore.SymbolToken parent,
-                                          string  marshal( lpwstr) name,
-                                          int32 sizeBuffer,
-                                          [out] int32& lengthBuffer,
-                                          [in][out] uint8[]  marshal([ + 2]) buffer) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetSymAttribute
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetNamespaces(int32 cNameSpaces,
-                                        [out] int32& pcNameSpaces,
-                                        [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedNamespace[]  marshal([ + 0]) namespaces) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetNamespaces
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  Initialize(object  marshal( interface ) importer,
-                                     string  marshal( lpwstr) filename,
-                                     string  marshal( lpwstr) searchPath,
-                                     class [mscorlib]System.Runtime.InteropServices.ComTypes.IStream 'stream') cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::Initialize
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  UpdateSymbolStore(string  marshal( lpwstr) filename,
-                                            class [mscorlib]System.Runtime.InteropServices.ComTypes.IStream 'stream') cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::UpdateSymbolStore
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  ReplaceSymbolStore(string  marshal( lpwstr) filename,
-                                             class [mscorlib]System.Runtime.InteropServices.ComTypes.IStream 'stream') cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::ReplaceSymbolStore
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetSymbolStoreFileName(int32 cchName,
-                                                 [out] int32& pcchName,
-                                                 [in][out] char[]  marshal([ + 0]) szName) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetSymbolStoreFileName
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetMethodsFromDocumentPosition(class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument document,
-                                                         int32 line,
-                                                         int32 column,
-                                                         int32 cMethod,
-                                                         [out] int32& pcMethod,
-                                                         [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod[]  marshal([ + 3]) pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetMethodsFromDocumentPosition
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetDocumentVersion(class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument pDoc,
-                                             [out] int32& version,
-                                             [out] bool& pbCurrent) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetDocumentVersion
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetMethodVersion(class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod pMethod,
-                                           [out] int32& version) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetMethodVersion
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetMethodByVersionPreRemap(valuetype [mscorlib]System.Diagnostics.SymbolStore.SymbolToken methodToken,
-                                                     int32 version,
-                                                     [out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod&  marshal( interface ) retVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetMethodByVersionPreRemap
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetSymAttributePreRemap(valuetype [mscorlib]System.Diagnostics.SymbolStore.SymbolToken parent,
-                                                  string  marshal( lpwstr) name,
-                                                  int32 sizeBuffer,
-                                                  [out] int32& lengthBuffer,
-                                                  [in][out] uint8[]  marshal([ + 2]) buffer) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetSymAttributePreRemap
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetMethodsInDocument(class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedDocument document,
-                                               uint32 cMethod,
-                                               [out] uint32& pcMethod,
-                                               [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod[]  marshal([ + 1]) methods) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedReader2::GetMethodsInDocument
-
-} // end of class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedReader2
-
-.class interface public abstract auto ansi import Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedScope2
-       implements Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedScope
-{
-  .custom instance void [mscorlib]System.Runtime.InteropServices.ComVisibleAttribute::.ctor(bool) = ( 01 00 00 00 00 ) 
-  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 41 45 39 33 32 46 42 41 2D 33 46 44 38   // ..$AE932FBA-3FD8
-                                                                                                  2D 34 64 62 61 2D 38 32 33 32 2D 33 30 41 32 33   // -4dba-8232-30A23
-                                                                                                  30 39 42 30 32 44 42 00 00 )                      // 09B02DB..
-  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.ComInterfaceType) = ( 01 00 01 00 00 00 00 00 ) 
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetMethod([out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedMethod&  marshal( interface ) pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope2::GetMethod
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetParent([out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedScope&  marshal( interface ) pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope2::GetParent
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetChildren(int32 cChildren,
-                                      [out] int32& pcChildren,
-                                      [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedScope[]  marshal([ + 0]) children) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope2::GetChildren
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetStartOffset([out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope2::GetStartOffset
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetEndOffset([out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope2::GetEndOffset
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetLocalCount([out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope2::GetLocalCount
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetLocals(int32 cLocals,
-                                    [out] int32& pcLocals,
-                                    [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedVariable[]  marshal([ + 0]) locals) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope2::GetLocals
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetNamespaces(int32 cNameSpaces,
-                                        [out] int32& pcNameSpaces,
-                                        [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedNamespace[]  marshal([ + 0]) namespaces) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope2::GetNamespaces
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetConstantCount([out] int32& pRetVal) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope2::GetConstantCount
-
-  .method public hidebysig newslot abstract virtual 
-          instance int32  GetConstants(int32 cConstants,
-                                       [out] int32& pcConstants,
-                                       [in][out] class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedConstant[]  marshal([ + 0]) constants) cil managed preservesig
-  {
-  } // end of method ISymUnmanagedScope2::GetConstants
-
-} // end of class Microsoft.VisualStudio.SymReaderInterop.ISymUnmanagedScope2
 
 
 // =============================================================
