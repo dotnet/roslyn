@@ -968,7 +968,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
                 catch (InvalidRuleSetException e)
                 {
-                    Assert.Contains(string.Format(CodeAnalysisResources.InvalidRuleSetInclude, newFile.Path, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "")), e.Message);
+                    Assert.Contains(string.Format(CodeAnalysisResources.InvalidRuleSetInclude, newFile.Path, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "")), e.Message, StringComparison.Ordinal);
                 }
             }
         }

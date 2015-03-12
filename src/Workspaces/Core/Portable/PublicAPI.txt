@@ -231,6 +231,7 @@ Microsoft.CodeAnalysis.Editing.DocumentEditor
 Microsoft.CodeAnalysis.Editing.DocumentEditor.GetChangedDocument()
 Microsoft.CodeAnalysis.Editing.DocumentEditor.OriginalDocument.get
 Microsoft.CodeAnalysis.Editing.DocumentEditor.SemanticModel.get
+Microsoft.CodeAnalysis.Editing.ImportAdder
 Microsoft.CodeAnalysis.Editing.SolutionEditor
 Microsoft.CodeAnalysis.Editing.SolutionEditor.GetChangedSolution()
 Microsoft.CodeAnalysis.Editing.SolutionEditor.GetDocumentEditorAsync(Microsoft.CodeAnalysis.DocumentId id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -1089,6 +1090,10 @@ static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.operator -(Microsoft.
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.operator ==(Microsoft.CodeAnalysis.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Editing.DeclarationModifiers right)
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.operator |(Microsoft.CodeAnalysis.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Editing.DeclarationModifiers right)
 static Microsoft.CodeAnalysis.Editing.DocumentEditor.CreateAsync(Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+static Microsoft.CodeAnalysis.Editing.ImportAdder.AddImportsAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+static Microsoft.CodeAnalysis.Editing.ImportAdder.AddImportsAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.SyntaxAnnotation annotation, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+static Microsoft.CodeAnalysis.Editing.ImportAdder.AddImportsAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan span, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+static Microsoft.CodeAnalysis.Editing.ImportAdder.AddImportsAsync(Microsoft.CodeAnalysis.Document document, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextSpan> spans, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 static Microsoft.CodeAnalysis.Editing.SymbolEditor.Create(Microsoft.CodeAnalysis.Document document)
 static Microsoft.CodeAnalysis.Editing.SymbolEditor.Create(Microsoft.CodeAnalysis.Solution solution)
 static Microsoft.CodeAnalysis.Editing.SymbolEditorExtensions.GetBaseOrInterfaceDeclarationReferenceAsync(this Microsoft.CodeAnalysis.Editing.SymbolEditor editor, Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.ITypeSymbol baseOrInterfaceType, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -1210,7 +1215,6 @@ static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentationS
 static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.NewLine
 static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.SmartIndent
 static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.TabSize
-static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.UseTabOnlyForIndentation
 static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.UseTabs
 static readonly Microsoft.CodeAnalysis.Recommendations.RecommendationOptions.FilterOutOfScopeLocals
 static readonly Microsoft.CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers

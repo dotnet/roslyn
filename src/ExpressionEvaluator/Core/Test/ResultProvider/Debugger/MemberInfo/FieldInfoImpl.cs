@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             get { return (TypeImpl)this.Field.FieldType; }
         }
 
-        public override System.Reflection.MemberTypes MemberType
+        public override MemberTypes MemberType
         {
-            get { return this.Field.MemberType; }
+            get { return (MemberTypes)this.Field.MemberType; }
         }
 
         public override int MetadataToken
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             throw new NotImplementedException();
         }
 
-        public override void SetValue(object obj, object value, System.Reflection.BindingFlags invokeAttr, Binder binder, CultureInfo culture)
+        public override void SetValue(object obj, object value, BindingFlags invokeAttr, Binder binder, CultureInfo culture)
         {
             throw new NotImplementedException();
         }

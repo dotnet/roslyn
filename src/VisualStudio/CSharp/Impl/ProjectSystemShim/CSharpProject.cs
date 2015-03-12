@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     /// are in a separate files. Methods that are shared across multiple interfaces (which are
     /// effectively methods that just QI from one interface to another), are implemented here.
     /// </remarks>
-    internal partial class CSharpProject : AbstractProject
+    internal partial class CSharpProject : AbstractEncProject
     {
         private static readonly CSharpCompilationOptions s_defaultCompilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         private static readonly CSharpParseOptions s_defaultParseOptions = new CSharpParseOptions();

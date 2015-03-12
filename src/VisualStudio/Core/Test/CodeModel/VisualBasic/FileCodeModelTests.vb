@@ -895,7 +895,7 @@ End Class
 
                 fileCodeModel.EndBatch()
 
-                Assert.Contains("Class C", buffer.CurrentSnapshot.GetText())
+                Assert.Contains("Class C", buffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
             End Using
 
         End Sub

@@ -44,20 +44,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class SynthesizedOverridingWithEventsProperty
         Inherits PropertySymbol
 
-        Private ReadOnly baseProperty As PropertySymbol
-        Private ReadOnly m_containingType As SourceNamedTypeSymbol
-        Private ReadOnly getter As SynthesizedWithEventsAccessorSymbol
-        Private ReadOnly setter As SynthesizedWithEventsAccessorSymbol
+        Private ReadOnly _baseProperty As PropertySymbol
+        Private ReadOnly _containingType As SourceNamedTypeSymbol
+        Private ReadOnly _getter As SynthesizedWithEventsAccessorSymbol
+        Private ReadOnly _setter As SynthesizedWithEventsAccessorSymbol
 
         Friend Sub New(baseProperty As PropertySymbol, container As SourceNamedTypeSymbol)
-            Me.baseProperty = baseProperty
-            Me.m_containingType = container
+            Me._baseProperty = baseProperty
+            Me._containingType = container
 
-            getter = New SynthesizedWithEventsGetAccessorSymbol(
+            _getter = New SynthesizedWithEventsGetAccessorSymbol(
                 container,
                 Me)
 
-            setter = New SynthesizedWithEventsSetAccessorSymbol(
+            _setter = New SynthesizedWithEventsSetAccessorSymbol(
                 container,
                 Me,
                 baseProperty.SetMethod.ReturnType,
@@ -79,25 +79,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
             Get
-                Return baseProperty.CallingConvention
+                Return _baseProperty.CallingConvention
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return m_containingType
+                Return _containingType
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol
             Get
-                Return m_containingType
+                Return _containingType
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return baseProperty.DeclaredAccessibility
+                Return _baseProperty.DeclaredAccessibility
             End Get
         End Property
 
@@ -109,13 +109,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property GetMethod As MethodSymbol
             Get
-                Return getter
+                Return _getter
             End Get
         End Property
 
         Public Overrides ReadOnly Property SetMethod As MethodSymbol
             Get
-                Return setter
+                Return _setter
             End Get
         End Property
 
@@ -171,38 +171,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
-            Return m_containingType.GetLexicalSortKey()
+            Return _containingType.GetLexicalSortKey()
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return m_containingType.Locations
+                Return _containingType.Locations
             End Get
         End Property
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                Debug.Assert(baseProperty.Parameters.IsEmpty)
+                Debug.Assert(_baseProperty.Parameters.IsEmpty)
                 Return ImmutableArray(Of ParameterSymbol).Empty
             End Get
         End Property
 
         Public Overrides ReadOnly Property ParameterCount As Integer
             Get
-                Debug.Assert(baseProperty.ParameterCount = 0)
+                Debug.Assert(_baseProperty.ParameterCount = 0)
                 Return 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
-                Return baseProperty.Type
+                Return _baseProperty.Type
             End Get
         End Property
 
         Public Overrides ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return baseProperty.TypeCustomModifiers
+                Return _baseProperty.TypeCustomModifiers
             End Get
         End Property
 
@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return baseProperty.Name
+                Return _baseProperty.Name
             End Get
         End Property
 

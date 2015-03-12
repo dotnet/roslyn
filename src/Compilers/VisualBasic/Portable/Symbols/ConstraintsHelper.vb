@@ -208,8 +208,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     TypeKind.Error
 
                                 Case TypeKind.Module
-                                    ' No error reported for Module. If the type reference was in source, BC30371
-                                    ' ERR_ModuleAsType1 will have been reported binding the type reference.
+                                ' No error reported for Module. If the type reference was in source, BC30371
+                                ' ERR_ModuleAsType1 will have been reported binding the type reference.
 
                                 Case TypeKind.TypeParameter
                                     Dim constraintTypeParameter = DirectCast(constraintType, TypeParameterSymbol)
@@ -406,7 +406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             diagnostics.diagnosticsBuilder = diagnosticsBuilder
             diagnostics.useSiteDiagnosticsBuilder = useSiteDiagnosticsBuilder
 
-            type.VisitType(CheckConstraintsSingleTypeFunc, diagnostics)
+            type.VisitType(s_checkConstraintsSingleTypeFunc, diagnostics)
 
             useSiteDiagnosticsBuilder = diagnostics.useSiteDiagnosticsBuilder
         End Sub
@@ -416,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)
         End Class
 
-        Private ReadOnly CheckConstraintsSingleTypeFunc As Func(Of TypeSymbol, CheckConstraintsDiagnosticsBuilders, Boolean) = AddressOf CheckConstraintsSingleType
+        Private ReadOnly s_checkConstraintsSingleTypeFunc As Func(Of TypeSymbol, CheckConstraintsDiagnosticsBuilders, Boolean) = AddressOf CheckConstraintsSingleType
 
         Private Function CheckConstraintsSingleType(type As TypeSymbol, diagnostics As CheckConstraintsDiagnosticsBuilders) As Boolean
             If type.Kind = SymbolKind.NamedType Then

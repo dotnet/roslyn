@@ -23,34 +23,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' <summary>
         ''' Owning RetargetingModuleSymbol.
         ''' </summary>
-        Private ReadOnly m_RetargetingModule As RetargetingModuleSymbol
+        Private ReadOnly _retargetingModule As RetargetingModuleSymbol
 
         ''' <summary>
         ''' The underlying MethodSymbol, cannot be another RetargetingMethodSymbol.
         ''' </summary>
-        Private ReadOnly m_UnderlyingMethod As MethodSymbol
+        Private ReadOnly _underlyingMethod As MethodSymbol
 
-        Private m_LazyTypeParameters As ImmutableArray(Of TypeParameterSymbol)
+        Private _lazyTypeParameters As ImmutableArray(Of TypeParameterSymbol)
 
-        Private m_LazyParameters As ImmutableArray(Of ParameterSymbol)
+        Private _lazyParameters As ImmutableArray(Of ParameterSymbol)
 
-        Private m_LazyCustomModifiers As ImmutableArray(Of CustomModifier)
+        Private _lazyCustomModifiers As ImmutableArray(Of CustomModifier)
 
         ''' <summary>
         ''' Retargeted custom attributes
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_LazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
+        Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
         ''' <summary>
         ''' Retargeted return type attributes
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_LazyReturnTypeCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
+        Private _lazyReturnTypeCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
-        Private m_LazyExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
+        Private _lazyExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
 
-        Private m_lazyUseSiteErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+        Private _lazyUseSiteErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
 
         Public Sub New(retargetingModule As RetargetingModuleSymbol, underlyingMethod As MethodSymbol)
             Debug.Assert(retargetingModule IsNot Nothing)
@@ -60,58 +60,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 Throw New ArgumentException()
             End If
 
-            m_RetargetingModule = retargetingModule
-            m_UnderlyingMethod = underlyingMethod
+            _retargetingModule = retargetingModule
+            _underlyingMethod = underlyingMethod
         End Sub
 
         Private ReadOnly Property RetargetingTranslator As RetargetingModuleSymbol.RetargetingSymbolTranslator
             Get
-                Return m_RetargetingModule.RetargetingTranslator
+                Return _retargetingModule.RetargetingTranslator
             End Get
         End Property
 
         Public ReadOnly Property UnderlyingMethod As MethodSymbol
             Get
-                Return m_UnderlyingMethod
+                Return _underlyingMethod
             End Get
         End Property
 
         Public ReadOnly Property RetargetingModule As RetargetingModuleSymbol
             Get
-                Return m_RetargetingModule
+                Return _retargetingModule
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsVararg As Boolean
             Get
-                Return m_UnderlyingMethod.IsVararg
+                Return _underlyingMethod.IsVararg
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsGenericMethod As Boolean
             Get
-                Return m_UnderlyingMethod.IsGenericMethod
+                Return _underlyingMethod.IsGenericMethod
             End Get
         End Property
 
         Public Overrides ReadOnly Property Arity As Integer
             Get
-                Return m_UnderlyingMethod.Arity
+                Return _underlyingMethod.Arity
             End Get
         End Property
 
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
-                If (m_LazyTypeParameters.IsDefault) Then
+                If (_lazyTypeParameters.IsDefault) Then
                     If Not IsGenericMethod Then
-                        m_LazyTypeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
+                        _lazyTypeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
                     Else
-                        ImmutableInterlocked.InterlockedCompareExchange(m_LazyTypeParameters,
-                            RetargetingTranslator.Retarget(m_UnderlyingMethod.TypeParameters), Nothing)
+                        ImmutableInterlocked.InterlockedCompareExchange(_lazyTypeParameters,
+                            RetargetingTranslator.Retarget(_underlyingMethod.TypeParameters), Nothing)
                     End If
                 End If
 
-                Return m_LazyTypeParameters
+                Return _lazyTypeParameters
             End Get
         End Property
 
@@ -127,52 +127,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Public Overrides ReadOnly Property IsSub As Boolean
             Get
-                Return m_UnderlyingMethod.IsSub
+                Return _underlyingMethod.IsSub
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsAsync As Boolean
             Get
-                Return m_UnderlyingMethod.IsAsync
+                Return _underlyingMethod.IsAsync
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsIterator As Boolean
             Get
-                Return m_UnderlyingMethod.IsIterator
+                Return _underlyingMethod.IsIterator
             End Get
         End Property
 
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
-                Return RetargetingTranslator.Retarget(m_UnderlyingMethod.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode)
+                Return RetargetingTranslator.Retarget(_underlyingMethod.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode)
             End Get
         End Property
 
         Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return RetargetingTranslator.RetargetModifiers(m_UnderlyingMethod.ReturnTypeCustomModifiers, m_LazyCustomModifiers)
+                Return RetargetingTranslator.RetargetModifiers(_underlyingMethod.ReturnTypeCustomModifiers, _lazyCustomModifiers)
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ParameterCount As Integer
             Get
-                Return m_UnderlyingMethod.ParameterCount
+                Return _underlyingMethod.ParameterCount
             End Get
         End Property
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                If m_LazyParameters.IsDefault Then
-                    ImmutableInterlocked.InterlockedCompareExchange(m_LazyParameters, RetargetParameters(), Nothing)
+                If _lazyParameters.IsDefault Then
+                    ImmutableInterlocked.InterlockedCompareExchange(_lazyParameters, RetargetParameters(), Nothing)
                 End If
 
-                Return m_LazyParameters
+                Return _lazyParameters
             End Get
         End Property
 
         Private Function RetargetParameters() As ImmutableArray(Of ParameterSymbol)
-            Dim list = m_UnderlyingMethod.Parameters
+            Dim list = _underlyingMethod.Parameters
             Dim count = list.Length
 
             If count = 0 Then
@@ -190,247 +190,247 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
-                Dim propertyOrEvent = m_UnderlyingMethod.AssociatedSymbol
+                Dim propertyOrEvent = _underlyingMethod.AssociatedSymbol
                 Return If(propertyOrEvent Is Nothing, Nothing, RetargetingTranslator.Retarget(propertyOrEvent))
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsExtensionMethod As Boolean
             Get
-                Return m_UnderlyingMethod.IsExtensionMethod
+                Return _underlyingMethod.IsExtensionMethod
             End Get
         End Property
 
         Friend Overrides ReadOnly Property MayBeReducibleExtensionMethod As Boolean
             Get
-                Return m_UnderlyingMethod.MayBeReducibleExtensionMethod
+                Return _underlyingMethod.MayBeReducibleExtensionMethod
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverloads As Boolean
             Get
-                Return m_UnderlyingMethod.IsOverloads
+                Return _underlyingMethod.IsOverloads
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsHiddenBySignature As Boolean
             Get
-                Return m_UnderlyingMethod.IsHiddenBySignature
+                Return _underlyingMethod.IsHiddenBySignature
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return RetargetingTranslator.Retarget(m_UnderlyingMethod.ContainingSymbol)
+                Return RetargetingTranslator.Retarget(_underlyingMethod.ContainingSymbol)
             End Get
         End Property
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return m_UnderlyingMethod.Locations
+                Return _underlyingMethod.Locations
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return m_UnderlyingMethod.DeclaringSyntaxReferences
+                Return _underlyingMethod.DeclaringSyntaxReferences
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return m_UnderlyingMethod.DeclaredAccessibility
+                Return _underlyingMethod.DeclaredAccessibility
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
-                Return m_UnderlyingMethod.IsShared
+                Return _underlyingMethod.IsShared
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
-                Return m_UnderlyingMethod.IsOverridable
+                Return _underlyingMethod.IsOverridable
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverrides As Boolean
             Get
-                Return m_UnderlyingMethod.IsOverrides
+                Return _underlyingMethod.IsOverrides
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsMustOverride As Boolean
             Get
-                Return m_UnderlyingMethod.IsMustOverride
+                Return _underlyingMethod.IsMustOverride
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsNotOverridable As Boolean
             Get
-                Return m_UnderlyingMethod.IsNotOverridable
+                Return _underlyingMethod.IsNotOverridable
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsExternalMethod As Boolean
             Get
-                Return m_UnderlyingMethod.IsExternalMethod
+                Return _underlyingMethod.IsExternalMethod
             End Get
         End Property
 
         Public Overrides Function GetDllImportData() As DllImportData
-            Return m_UnderlyingMethod.GetDllImportData()
+            Return _underlyingMethod.GetDllImportData()
         End Function
 
         Friend Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
-            Return m_UnderlyingMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges)
+            Return _underlyingMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges)
         End Function
 
         Friend Overrides ReadOnly Property ReturnValueIsMarshalledExplicitly As Boolean
             Get
-                Return m_UnderlyingMethod.ReturnValueIsMarshalledExplicitly
+                Return _underlyingMethod.ReturnValueIsMarshalledExplicitly
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ReturnTypeMarshallingInformation As MarshalPseudoCustomAttributeData
             Get
-                Return Me.RetargetingTranslator.Retarget(m_UnderlyingMethod.ReturnTypeMarshallingInformation)
+                Return Me.RetargetingTranslator.Retarget(_underlyingMethod.ReturnTypeMarshallingInformation)
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ReturnValueMarshallingDescriptor As ImmutableArray(Of Byte)
             Get
-                Return m_UnderlyingMethod.ReturnValueMarshallingDescriptor
+                Return _underlyingMethod.ReturnValueMarshallingDescriptor
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsAccessCheckedOnOverride As Boolean
             Get
-                Return m_UnderlyingMethod.IsAccessCheckedOnOverride
+                Return _underlyingMethod.IsAccessCheckedOnOverride
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsExternal As Boolean
             Get
-                Return m_UnderlyingMethod.IsExternal
+                Return _underlyingMethod.IsExternal
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ImplementationAttributes As Reflection.MethodImplAttributes
             Get
-                Return m_UnderlyingMethod.ImplementationAttributes
+                Return _underlyingMethod.ImplementationAttributes
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasDeclarativeSecurity As Boolean
             Get
-                Return m_UnderlyingMethod.HasDeclarativeSecurity
+                Return _underlyingMethod.HasDeclarativeSecurity
             End Get
         End Property
 
         Friend Overrides Function GetSecurityInformation() As IEnumerable(Of Microsoft.Cci.SecurityAttribute)
-            Return m_UnderlyingMethod.GetSecurityInformation()
+            Return _underlyingMethod.GetSecurityInformation()
         End Function
 
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return m_UnderlyingMethod.IsImplicitlyDeclared
+                Return _underlyingMethod.IsImplicitlyDeclared
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                Return m_UnderlyingMethod.ObsoleteAttributeData
+                Return _underlyingMethod.ObsoleteAttributeData
             End Get
         End Property
 
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return RetargetingTranslator.GetRetargetedAttributes(m_UnderlyingMethod, m_LazyCustomAttributes)
+            Return RetargetingTranslator.GetRetargetedAttributes(_underlyingMethod, _lazyCustomAttributes)
         End Function
 
         Public Overrides Function GetReturnTypeAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return RetargetingTranslator.GetRetargetedAttributes(m_UnderlyingMethod, m_LazyReturnTypeCustomAttributes, True)
+            Return RetargetingTranslator.GetRetargetedAttributes(_underlyingMethod, _lazyReturnTypeCustomAttributes, True)
         End Function
 
         Friend Overrides Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
-            Return RetargetingTranslator.RetargetAttributes(m_UnderlyingMethod.GetCustomAttributesToEmit(compilationState))
+            Return RetargetingTranslator.RetargetAttributes(_underlyingMethod.GetCustomAttributesToEmit(compilationState))
         End Function
 
         Public Overrides ReadOnly Property ContainingAssembly As AssemblySymbol
             Get
-                Return m_RetargetingModule.ContainingAssembly
+                Return _retargetingModule.ContainingAssembly
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingModule As ModuleSymbol
             Get
-                Return m_RetargetingModule
+                Return _retargetingModule
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_UnderlyingMethod.Name
+                Return _underlyingMethod.Name
             End Get
         End Property
 
         Public Overrides ReadOnly Property MetadataName As String
             Get
-                Return m_UnderlyingMethod.MetadataName
+                Return _underlyingMethod.MetadataName
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
-                Return m_UnderlyingMethod.HasSpecialName
+                Return _underlyingMethod.HasSpecialName
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasRuntimeSpecialName As Boolean
             Get
-                Return m_UnderlyingMethod.HasRuntimeSpecialName
+                Return _underlyingMethod.HasRuntimeSpecialName
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsMetadataFinal As Boolean
             Get
-                Return m_UnderlyingMethod.IsMetadataFinal
+                Return _underlyingMethod.IsMetadataFinal
             End Get
         End Property
 
         Friend Overrides Function GetAppliedConditionalSymbols() As ImmutableArray(Of String)
-            Return m_UnderlyingMethod.GetAppliedConditionalSymbols()
+            Return _underlyingMethod.GetAppliedConditionalSymbols()
         End Function
 
         Public Overrides ReadOnly Property MethodKind As MethodKind
             Get
-                Return m_UnderlyingMethod.MethodKind
+                Return _underlyingMethod.MethodKind
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsMethodKindBasedOnSyntax As Boolean
             Get
-                Return m_UnderlyingMethod.IsMethodKindBasedOnSyntax
+                Return _underlyingMethod.IsMethodKindBasedOnSyntax
             End Get
         End Property
 
         Friend Overrides ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
             Get
-                Return m_UnderlyingMethod.CallingConvention
+                Return _underlyingMethod.CallingConvention
             End Get
         End Property
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
             Get
-                If m_LazyExplicitInterfaceImplementations.IsDefault Then
+                If _lazyExplicitInterfaceImplementations.IsDefault Then
                     ImmutableInterlocked.InterlockedCompareExchange(
-                        m_LazyExplicitInterfaceImplementations,
+                        _lazyExplicitInterfaceImplementations,
                         Me.RetargetExplicitInterfaceImplementations(),
                         Nothing)
                 End If
 
-                Return m_LazyExplicitInterfaceImplementations
+                Return _lazyExplicitInterfaceImplementations
             End Get
         End Property
 
@@ -458,11 +458,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         End Property
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If m_lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
-                m_lazyUseSiteErrorInfo = CalculateUseSiteErrorInfo()
+            If _lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
+                _lazyUseSiteErrorInfo = CalculateUseSiteErrorInfo()
             End If
 
-            Return m_lazyUseSiteErrorInfo
+            Return _lazyUseSiteErrorInfo
         End Function
 
         ''' <remarks>
@@ -475,7 +475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         End Property
 
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            Return m_UnderlyingMethod.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
+            Return _underlyingMethod.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
 
         Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean

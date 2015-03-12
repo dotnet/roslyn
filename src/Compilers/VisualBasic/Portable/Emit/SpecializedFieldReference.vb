@@ -22,16 +22,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Implements Cci.ISpecializedFieldReference
         Implements Cci.IContextualNamedEntity
 
-        Private ReadOnly m_UnderlyingField As FieldSymbol
+        Private ReadOnly _underlyingField As FieldSymbol
 
         Public Sub New(underlyingField As FieldSymbol)
             Debug.Assert(underlyingField IsNot Nothing)
-            Me.m_UnderlyingField = underlyingField
+            Me._underlyingField = underlyingField
         End Sub
 
         Protected Overrides ReadOnly Property UnderlyingSymbol As Symbol
             Get
-                Return m_UnderlyingField
+                Return _underlyingField
             End Get
         End Property
 
@@ -41,8 +41,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Private ReadOnly Property ISpecializedFieldReferenceUnspecializedVersion As Cci.IFieldReference Implements Cci.ISpecializedFieldReference.UnspecializedVersion
             Get
-                Debug.Assert(m_UnderlyingField.OriginalDefinition Is m_UnderlyingField.OriginalDefinition.OriginalDefinition)
-                Return m_UnderlyingField.OriginalDefinition
+                Debug.Assert(_underlyingField.OriginalDefinition Is _underlyingField.OriginalDefinition.OriginalDefinition)
+                Return _underlyingField.OriginalDefinition
             End Get
         End Property
 
@@ -53,8 +53,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Property
 
         Private Function IFieldReferenceGetType(context As EmitContext) As Cci.ITypeReference Implements Cci.IFieldReference.GetType
-            Dim customModifiers = m_UnderlyingField.CustomModifiers
-            Dim type = DirectCast(context.Module, PEModuleBuilder).Translate(m_UnderlyingField.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Dim customModifiers = _underlyingField.CustomModifiers
+            Dim type = DirectCast(context.Module, PEModuleBuilder).Translate(_underlyingField.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
 
             If customModifiers.Length = 0 Then
                 Return type
@@ -68,12 +68,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Private Sub AssociateWithMetadataWriter(metadataWriter As Cci.MetadataWriter) Implements Cci.IContextualNamedEntity.AssociateWithMetadataWriter
-            DirectCast(m_UnderlyingField, Cci.IContextualNamedEntity).AssociateWithMetadataWriter(metadataWriter)
+            DirectCast(_underlyingField, Cci.IContextualNamedEntity).AssociateWithMetadataWriter(metadataWriter)
         End Sub
 
         Private ReadOnly Property IsContextualNamedEntity As Boolean Implements Cci.IFieldReference.IsContextualNamedEntity
             Get
-                Return m_UnderlyingField.IFieldReferenceIsContextualNamedEntity
+                Return _underlyingField.IFieldReferenceIsContextualNamedEntity
             End Get
         End Property
     End Class

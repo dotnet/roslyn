@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _debuggingSession = null;
         }
 
-        public bool IsProjectReadOnly(string projectName, out SessionReadOnlyReason sessionReason, out ProjectReadOnlyReason projectReason)
+        public bool IsProjectReadOnly(ProjectId id, out SessionReadOnlyReason sessionReason, out ProjectReadOnlyReason projectReason)
         {
             if (_debuggingSession == null)
             {
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // normal break mode - if the document belongs to a project that hasn't entered the edit session it shall be read-only:
-            if (editSession.TryGetProjectState(projectName, out projectReason))
+            if (editSession.Projects.TryGetValue(id, out projectReason))
             {
                 sessionReason = SessionReadOnlyReason.None;
                 return projectReason != ProjectReadOnlyReason.None;

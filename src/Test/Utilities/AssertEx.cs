@@ -401,7 +401,7 @@ namespace Roslyn.Test.Utilities
         {
             expectedSubString = NormalizeWhitespace(expectedSubString);
             actualString = NormalizeWhitespace(actualString);
-            Assert.Contains(expectedSubString, actualString);
+            Assert.Contains(expectedSubString, actualString, StringComparison.Ordinal);
         }
 
         internal static string NormalizeWhitespace(string input)

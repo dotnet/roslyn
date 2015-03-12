@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class VisualBasicAttributeData
         Inherits AttributeData
 
-        Private m_lazyIsSecurityAttribute As ThreeState = ThreeState.Unknown
+        Private _lazyIsSecurityAttribute As ThreeState = ThreeState.Unknown
 
         ''' <summary>
         ''' Gets the attribute class being applied.
@@ -177,11 +177,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' SPEC:    If the attribute’s type is derived (directly or indirectly) from System.Security.Permissions.SecurityAttribute then
             ' SPEC:    it is a security custom attribute and requires special treatment.
 
-            If m_lazyIsSecurityAttribute = ThreeState.Unknown Then
-                m_lazyIsSecurityAttribute = Me.AttributeClass.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAttribute, comp, useSiteDiagnostics:=Nothing).ToThreeState()
+            If _lazyIsSecurityAttribute = ThreeState.Unknown Then
+                _lazyIsSecurityAttribute = Me.AttributeClass.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAttribute, comp, useSiteDiagnostics:=Nothing).ToThreeState()
             End If
 
-            Return m_lazyIsSecurityAttribute.Value
+            Return _lazyIsSecurityAttribute.Value
         End Function
 
         Friend Sub DecodeSecurityAttribute(Of T As {WellKnownAttributeData, ISecurityAttributeTarget, New})(targetSymbol As Symbol, compilation As VisualBasicCompilation, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
@@ -278,9 +278,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     isPermissionRequestAction = False
 
                 Case Cci.SecurityAction.Undocumented
-                    ' Native compiler allows security action value 1 even though there is no corresponding field in 
-                    ' System.Security.Permissions.SecurityAction enum.
-                    ' We will maintain compatibility.
+                ' Native compiler allows security action value 1 even though there is no corresponding field in 
+                ' System.Security.Permissions.SecurityAction enum.
+                ' We will maintain compatibility.
 
                 Case Cci.SecurityAction.Assert,
                      Cci.SecurityAction.Demand,

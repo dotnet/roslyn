@@ -408,7 +408,7 @@ Friend Module CompilationUtils
 
         Assert.NotNull(node)  ' If this trips, then node  wasn't found
         Assert.IsAssignableFrom(GetType(TNode), node)
-        Assert.Contains(bindText, node.ToString())
+        Assert.Contains(bindText, node.ToString(), StringComparison.Ordinal)
 
         Return DirectCast(node, TNode)
     End Function

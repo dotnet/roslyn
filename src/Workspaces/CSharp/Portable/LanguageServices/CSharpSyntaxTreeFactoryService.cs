@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CSharpParseOptions.Default;
             }
 
-            public override SyntaxTree CreateSyntaxTree(string fileName, ParseOptions options, SyntaxNode node, Encoding encoding)
+            public override SyntaxTree CreateSyntaxTree(string fileName, ParseOptions options, Encoding encoding, SyntaxNode root)
             {
                 options = options ?? GetDefaultParseOptions();
-                return SyntaxFactory.SyntaxTree(node, options, fileName, encoding);
+                return SyntaxFactory.SyntaxTree(root, options, fileName, encoding);
             }
 
             public override SyntaxTree ParseSyntaxTree(string fileName, ParseOptions options, SourceText text, CancellationToken cancellationToken)

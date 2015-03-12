@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private struct TextChunk
         {
             public readonly string Text;
-            public readonly List<TextSpan> CharacterSpans;
+            public readonly StringBreaks CharacterSpans;
 
             public TextChunk(string text)
             {
@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private readonly Segment _fullPatternSegment;
         private readonly Segment[] _dotSeparatedSegments;
 
-        private readonly Dictionary<string, List<TextSpan>> _stringToWordSpans = new Dictionary<string, List<TextSpan>>();
-        private readonly Func<string, List<TextSpan>> _breakIntoWordSpans = StringBreaker.BreakIntoWordParts;
+        private readonly Dictionary<string, StringBreaks> _stringToWordSpans = new Dictionary<string, StringBreaks>();
+        private readonly Func<string, StringBreaks> _breakIntoWordSpans = StringBreaker.BreakIntoWordParts;
 
         // PERF: Cache the culture's compareInfo to avoid the overhead of asking for them repeatedly in inner loops
         private readonly CompareInfo _compareInfo;
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return MatchSegment(candidate, _fullPatternSegment, wantAllMatches: false, allMatches: out ignored);
         }
 
-        private List<TextSpan> GetWordSpans(string word)
+        private StringBreaks GetWordSpans(string word)
         {
             lock (_gate)
             {
@@ -351,8 +351,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     //    word part. That way we don't match something like 'Class' when the user types 'a'.
                     //    But we would match 'FooAttribute' (since 'Attribute' starts with 'a').
                     var wordSpans = GetWordSpans(candidate);
-                    foreach (var span in wordSpans)
+                    for(int i = 0; i < wordSpans.Count; i++)
                     {
+                        var span = wordSpans[i];
                         if (PartStartsWith(candidate, span, chunk.Text, CompareOptions.IgnoreCase))
                         {
                             return new PatternMatch(PatternMatchKind.Substring, punctuationStripped,
@@ -577,7 +578,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return PartStartsWith(candidate, candidatePart, pattern, new TextSpan(0, pattern.Length), compareOptions);
         }
 
-        private int? TryCamelCaseMatch(string candidate, List<TextSpan> candidateParts, TextChunk chunk, CompareOptions compareOption)
+        private int? TryCamelCaseMatch(string candidate, StringBreaks candidateParts, TextChunk chunk, CompareOptions compareOption)
         {
             var chunkCharacterSpans = chunk.CharacterSpans;
 

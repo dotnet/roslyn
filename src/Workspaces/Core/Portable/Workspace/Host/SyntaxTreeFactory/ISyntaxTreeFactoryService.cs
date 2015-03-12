@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Host
         ParseOptions GetDefaultParseOptions();
 
         // new tree from root node
-        SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, SyntaxNode node, Encoding encoding);
+        SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SyntaxNode root);
 
         // new tree from text
         SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);

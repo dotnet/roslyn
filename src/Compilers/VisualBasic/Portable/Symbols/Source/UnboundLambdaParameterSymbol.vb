@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class UnboundLambdaParameterSymbol
         Inherits LambdaParameterSymbol
 
-        Private ReadOnly m_IdentifierSyntax As ModifiedIdentifierSyntax
-        Private ReadOnly m_TypeSyntax As SyntaxNodeOrToken
+        Private ReadOnly _identifierSyntax As ModifiedIdentifierSyntax
+        Private ReadOnly _typeSyntax As SyntaxNodeOrToken
 
         Private Sub New(
             name As String,
@@ -29,25 +29,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         )
             MyBase.New(name, ordinal, type, ((flags And SourceParameterFlags.ByRef) <> 0), location)
 
-            m_IdentifierSyntax = identifierSyntax
-            m_TypeSyntax = typeSyntax
+            _identifierSyntax = identifierSyntax
+            _typeSyntax = typeSyntax
         End Sub
 
         Public ReadOnly Property IdentifierSyntax As SyntaxToken
             Get
-                Return m_IdentifierSyntax.Identifier
+                Return _identifierSyntax.Identifier
             End Get
         End Property
 
         Public ReadOnly Property Syntax As ModifiedIdentifierSyntax
             Get
-                Return m_IdentifierSyntax
+                Return _identifierSyntax
             End Get
         End Property
 
         Public ReadOnly Property TypeSyntax As SyntaxNodeOrToken
             Get
-                Return m_TypeSyntax
+                Return _typeSyntax
             End Get
         End Property
 

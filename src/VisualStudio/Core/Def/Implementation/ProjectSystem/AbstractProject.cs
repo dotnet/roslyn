@@ -88,8 +88,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly EventHandler<bool> s_additionalDocumentClosingEventHandler = OnAdditionalDocumentClosing;
         private static readonly EventHandler s_additionalDocumentUpdatedOnDiskEventHandler = OnAdditionalDocumentUpdatedOnDisk;
 
-        internal readonly VsENCRebuildableProjectImpl EditAndContinueImplOpt;
-
         public AbstractProject(
             VisualStudioProjectTracker projectTracker,
             Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
@@ -134,11 +132,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (reportExternalErrorCreatorOpt != null)
             {
                 _externalErrorReporter = reportExternalErrorCreatorOpt(_id);
-            }
-
-            if (visualStudioWorkspaceOpt != null)
-            {
-                this.EditAndContinueImplOpt = new VsENCRebuildableProjectImpl(this);
             }
 
             ConnectHierarchyEvents();
@@ -1282,7 +1275,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            var delta = vsproject.References.Count - noReferenceOutputAssemblies.Count - (_projectReferences.Count + _metadataReferences.Count);
+            var set = new HashSet<string>(vsproject.References.OfType<Reference>().Select(r => PathUtilities.IsAbsolute(r.Name) ? Path.GetFileNameWithoutExtension(r.Name) : r.Name), StringComparer.OrdinalIgnoreCase);
+            var delta = set.Count - noReferenceOutputAssemblies.Count - (_projectReferences.Count + _metadataReferences.Count);
             if (delta == 0)
             {
                 return;
@@ -1294,8 +1288,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 //// Contract.Requires(false, "different set of references!!!");
                 return;
             }
-
-            var set = new HashSet<string>(vsproject.References.OfType<Reference>().Select(r => PathUtilities.IsAbsolute(r.Name) ? Path.GetFileNameWithoutExtension(r.Name) : r.Name), StringComparer.OrdinalIgnoreCase);
 
             set.ExceptWith(noReferenceOutputAssemblies);
             set.ExceptWith(_projectReferences.Select(r => ProjectTracker.GetProject(r.ProjectId).DisplayName));

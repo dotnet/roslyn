@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' the returned bound node.  For example, the caller will typically perform iterator method and
     ''' asynchronous method transformations, and emit IL instructions into an assembly.
     ''' </summary>
-    Partial Class LambdaRewriter
+    Friend Partial Class LambdaRewriter
         Inherits MethodToClassRewriter(Of FieldSymbol)
 
         Private ReadOnly _analysis As Analysis

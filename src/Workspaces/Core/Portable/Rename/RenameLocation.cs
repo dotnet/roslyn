@@ -17,10 +17,13 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public bool IsRenameInStringOrComment { get { return ContainingLocationForStringOrComment != default(TextSpan); } }
 
+        public bool IsMethodGroupReference { get; private set; }
+
         public RenameLocation(
             Location location,
             DocumentId documentId,
             bool isCandidateLocation = false,
+            bool isMethodGroupReference = false,
             bool isRenamableAliasUsage = false,
             bool isRenamableAccessor = false,
             TextSpan containingLocationForStringOrComment = default(TextSpan))
@@ -28,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Rename
             this.Location = location;
             this.DocumentId = documentId;
             this.IsCandidateLocation = isCandidateLocation;
+            this.IsMethodGroupReference = isMethodGroupReference;
             this.IsRenamableAliasUsage = isRenamableAliasUsage;
             this.IsRenamableAccessor = isRenamableAccessor;
             this.ContainingLocationForStringOrComment = containingLocationForStringOrComment;
@@ -37,7 +41,8 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             this.Location = referenceLocation.Location;
             this.DocumentId = documentId;
-            this.IsCandidateLocation = referenceLocation.IsCandidateLocation && !(referenceLocation.CandidateReason == CandidateReason.LateBound);
+            this.IsCandidateLocation = referenceLocation.IsCandidateLocation && referenceLocation.CandidateReason != CandidateReason.LateBound;
+            this.IsMethodGroupReference = referenceLocation.IsCandidateLocation && referenceLocation.CandidateReason == CandidateReason.MemberGroup;
             this.IsRenamableAliasUsage = false;
             this.IsRenamableAccessor = false;
             this.ContainingLocationForStringOrComment = default(TextSpan);

@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -43,6 +41,15 @@ namespace Microsoft.CodeAnalysis.Rename
             if (symbols.Count() > 1)
             {
                 symbols = symbols.Where(s => s.Kind != SymbolKind.Alias);
+            }
+
+            if (!symbols.Any())
+            {
+                var info = semanticModel.GetSymbolInfo(bindableToken, cancellationToken);
+                if (info.CandidateReason == CandidateReason.MemberGroup)
+                {
+                    return info.CandidateSymbols;
+                }
             }
 
             return symbols;
@@ -88,6 +95,33 @@ namespace Microsoft.CodeAnalysis.Rename
                     return relevantProjects.SelectMany(p => solution.GetProject(p).Documents);
                 }
             }
+        }
+
+        internal static TokenRenameInfo GetTokenRenameInfo(
+            ISemanticFactsService semanticFacts, 
+            SemanticModel semanticModel, 
+            SyntaxToken token, 
+            CancellationToken cancellationToken)
+        {
+            var symbol = semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken);
+            if (symbol != null)
+            {
+                return TokenRenameInfo.CreateSingleSymbolTokenInfo(symbol);
+            }
+
+            var symbolInfo = semanticModel.GetSymbolInfo(token, cancellationToken);
+            if (symbolInfo.Symbol != null)
+            {
+                return TokenRenameInfo.CreateSingleSymbolTokenInfo(symbolInfo.Symbol);
+            }
+
+            if (symbolInfo.CandidateReason == CandidateReason.MemberGroup && symbolInfo.CandidateSymbols.Any())
+            {
+                // This is a reference from a nameof expression. Allow the rename but set the RenameOverloads option
+                return TokenRenameInfo.CreateMemberGroupTokenInfo(symbolInfo.CandidateSymbols);
+            }
+
+            return TokenRenameInfo.NoSymbolsTokenInfo;
         }
     }
 }

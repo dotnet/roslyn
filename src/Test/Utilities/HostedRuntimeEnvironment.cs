@@ -222,6 +222,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         manifestResources: manifestResources,
                         options: EmitOptions.Default,
                         testData: testData,
+                        getHostDiagnostics: null,
                         cancellationToken: default(CancellationToken));
                 }
                 finally

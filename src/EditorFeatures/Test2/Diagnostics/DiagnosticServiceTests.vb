@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.EngineV1
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
@@ -435,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Assert.Equal(1, diagnostics.Count())
                 Dim diagnostic = diagnostics.First()
                 Assert.True(AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(diagnostic.ToDiagnostic(document.GetSyntaxTreeAsync().Result)))
-                Assert.Contains("CodeBlockStartedAnalyzer", diagnostic.Message)
+                Assert.Contains("CodeBlockStartedAnalyzer", diagnostic.Message, StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -594,6 +595,11 @@ class AnonymousFunctions
 
             Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' turn off heuristic
+                Dim options = workspace.Services.GetService(Of IOptionService)()
+                options.SetOptions(options.GetOptions.WithChangedOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic, False))
+
                 Dim analyzer = New CompilationEndedAnalyzer
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
                 project = project.AddAnalyzerReference(analyzerReference)
@@ -604,17 +610,21 @@ class AnonymousFunctions
                 Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
-                ' Ask for document diagnostics multiple times, and verify compilation diagnostics are not reported.
+                ' Ask for document diagnostics multiple times, and verify compilation diagnostics are reported.
                 Dim document = project.Documents.Single()
+
                 Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(0, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(0, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(0, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
                 ' Verify compilation diagnostics are reported with correct location info when asked for project diagnostics.
                 Dim projectDiagnostics = diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)

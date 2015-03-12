@@ -83,7 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // (generated when compiling method bodies) may be required.
                 baseline = MapToCompilation(compilation, moduleBeingBuilt);
 
-                using (var pdbWriter = new Cci.PdbWriter(pdbName, pdbStream, (testData != null) ? testData.SymWriterFactory : null))
+                var pdbOutputInfo = new Cci.PdbOutputInfo(pdbName, pdbStream);
+                using (var pdbWriter = new Cci.PdbWriter(pdbOutputInfo, (testData != null) ? testData.SymWriterFactory : null))
                 {
                     var context = new EmitContext(moduleBeingBuilt, null, diagnostics);
                     var encId = Guid.NewGuid();

@@ -403,10 +403,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim suppressCallDiagnostics As Boolean = (firstSelectExpression.Kind = BoundKind.BadExpression)
 
-                If Not suppressCallDiagnostics AndAlso firstSelectExpression.HasErrors Then
-                    Dim query = TryCast(firstSelectExpression, BoundQueryClause)
-
-                    suppressCallDiagnostics = (query.UnderlyingExpression.Kind = BoundKind.BadExpression)
+                If Not suppressCallDiagnostics AndAlso firstSelectExpression.HasErrors AndAlso firstSelectExpression.Kind = BoundKind.QueryClause Then
+                    Dim query = DirectCast(firstSelectExpression, BoundQueryClause)
+                    suppressCallDiagnostics = query.UnderlyingExpression.Kind = BoundKind.BadExpression
                 End If
 
                 Dim letOperator = New BoundQueryClause(aggregate,
@@ -2626,36 +2625,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private NotInheritable Class QueryLambdaBinder
             Inherits BlockBaseBinder(Of RangeVariableSymbol) ' BlockBaseBinder implements various lookup methods as we need.
 
-            Private ReadOnly m_LambdaSymbol As LambdaSymbol
-            Private ReadOnly m_RangeVariables As ImmutableArray(Of RangeVariableSymbol)
+            Private ReadOnly _lambdaSymbol As LambdaSymbol
+            Private ReadOnly _rangeVariables As ImmutableArray(Of RangeVariableSymbol)
 
-            Sub New(lambdaSymbol As LambdaSymbol, rangeVariables As ImmutableArray(Of RangeVariableSymbol))
+            Public Sub New(lambdaSymbol As LambdaSymbol, rangeVariables As ImmutableArray(Of RangeVariableSymbol))
                 MyBase.New(lambdaSymbol.ContainingBinder)
-                m_LambdaSymbol = lambdaSymbol
-                m_RangeVariables = rangeVariables
+                _lambdaSymbol = lambdaSymbol
+                _rangeVariables = rangeVariables
             End Sub
 
             Friend Overrides ReadOnly Property Locals As ImmutableArray(Of RangeVariableSymbol)
                 Get
-                    Return m_RangeVariables
+                    Return _rangeVariables
                 End Get
             End Property
 
             Public ReadOnly Property RangeVariables As ImmutableArray(Of RangeVariableSymbol)
                 Get
-                    Return m_RangeVariables
+                    Return _rangeVariables
                 End Get
             End Property
 
             Public Overrides ReadOnly Property ContainingMember As Symbol
                 Get
-                    Return m_LambdaSymbol
+                    Return _lambdaSymbol
                 End Get
             End Property
 
             Public ReadOnly Property LambdaSymbol As LambdaSymbol
                 Get
-                    Return m_LambdaSymbol
+                    Return _lambdaSymbol
                 End Get
             End Property
 
@@ -2930,7 +2929,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 declaredRangeVariables = ImmutableArray.Create(rangeVar)
 
-                If m_RangeVariables.Length > 0 Then
+                If _rangeVariables.Length > 0 Then
                     ' Need to build an Anonymous Type.
 
                     ' If it is not the last variable in the list, we simply combine source's
@@ -2950,7 +2949,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Else
                     ' Easy case, no need to build an Anonymous Type.
-                    Debug.Assert(m_RangeVariables.Length = 0)
+                    Debug.Assert(_rangeVariables.Length = 0)
                 End If
 
                 Debug.Assert(Not declaredRangeVariables.IsDefault)
@@ -2973,10 +2972,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ) As BoundExpression
                 Debug.Assert(operatorsEnumerator.Current Is aggregate)
                 Debug.Assert(declaredRangeVariables.IsDefault)
-                Debug.Assert((rangeVariablesPart1.Length = 0) = (rangeVariablesPart2 = m_RangeVariables))
-                Debug.Assert((rangeVariablesPart2.Length = 0) = (rangeVariablesPart1 = m_RangeVariables))
-                Debug.Assert(m_LambdaSymbol.ParameterCount = If(rangeVariablesPart2.Length = 0, 1, 2))
-                Debug.Assert(m_RangeVariables.Length = rangeVariablesPart1.Length + rangeVariablesPart2.Length)
+                Debug.Assert((rangeVariablesPart1.Length = 0) = (rangeVariablesPart2 = _rangeVariables))
+                Debug.Assert((rangeVariablesPart2.Length = 0) = (rangeVariablesPart1 = _rangeVariables))
+                Debug.Assert(_lambdaSymbol.ParameterCount = If(rangeVariablesPart2.Length = 0, 1, 2))
+                Debug.Assert(_rangeVariables.Length = rangeVariablesPart1.Length + rangeVariablesPart2.Length)
 
                 ' Let's interpret our group.
                 Dim groupAdditionalOperators As SyntaxList(Of QueryClauseSyntax).Enumerator = aggregate.AdditionalQueryOperators.GetEnumerator()
@@ -3001,10 +3000,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         letSelector = BadExpression(aggregate, group, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
 
-                        intoBinder = New IntoClauseDisallowGroupReferenceBinder(New QueryLambdaBinder(m_LambdaSymbol,
+                        intoBinder = New IntoClauseDisallowGroupReferenceBinder(New QueryLambdaBinder(_lambdaSymbol,
                                                                                                       ImmutableArray(Of RangeVariableSymbol).Empty),
                                                                                 group, group.RangeVariables, group.CompoundVariableType,
-                                                                                m_RangeVariables.Concat(group.RangeVariables))
+                                                                                _rangeVariables.Concat(group.RangeVariables))
 
                     Case 1
                         ' Simple case - one aggregate function.
@@ -3013,10 +3012,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' AGGREGATE b in a.BB  =>   LET count = (FROM b IN a.BB).Count()
                         ' INTO Count()
                         '
-                        intoBinder = New IntoClauseDisallowGroupReferenceBinder(New QueryLambdaBinder(m_LambdaSymbol,
+                        intoBinder = New IntoClauseDisallowGroupReferenceBinder(New QueryLambdaBinder(_lambdaSymbol,
                                                                                                       ImmutableArray(Of RangeVariableSymbol).Empty),
                                                                                 group, group.RangeVariables, group.CompoundVariableType,
-                                                                                m_RangeVariables.Concat(group.RangeVariables))
+                                                                                _rangeVariables.Concat(group.RangeVariables))
 
                         Dim compoundKeyReferencePart1 As BoundExpression
                         Dim keysRangeVariablesPart1 As ImmutableArray(Of RangeVariableSymbol)
@@ -3025,12 +3024,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim letSelectorParam As BoundLambdaParameterSymbol
 
                         If rangeVariablesPart1.Length > 0 Then
-                            letSelectorParam = DirectCast(m_LambdaSymbol.Parameters(0), BoundLambdaParameterSymbol)
+                            letSelectorParam = DirectCast(_lambdaSymbol.Parameters(0), BoundLambdaParameterSymbol)
                             compoundKeyReferencePart1 = New BoundParameter(letSelectorParam.Syntax, letSelectorParam, False, letSelectorParam.Type).MakeCompilerGenerated()
                             keysRangeVariablesPart1 = rangeVariablesPart1
 
                             If rangeVariablesPart2.Length > 0 Then
-                                letSelectorParam = DirectCast(m_LambdaSymbol.Parameters(1), BoundLambdaParameterSymbol)
+                                letSelectorParam = DirectCast(_lambdaSymbol.Parameters(1), BoundLambdaParameterSymbol)
                                 compoundKeyReferencePart2 = New BoundParameter(letSelectorParam.Syntax, letSelectorParam, False, letSelectorParam.Type).MakeCompilerGenerated()
                                 keysRangeVariablesPart2 = rangeVariablesPart2
                             Else
@@ -3038,7 +3037,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 keysRangeVariablesPart2 = ImmutableArray(Of RangeVariableSymbol).Empty
                             End If
                         ElseIf rangeVariablesPart2.Length > 0 Then
-                            letSelectorParam = DirectCast(m_LambdaSymbol.Parameters(1), BoundLambdaParameterSymbol)
+                            letSelectorParam = DirectCast(_lambdaSymbol.Parameters(1), BoundLambdaParameterSymbol)
                             compoundKeyReferencePart1 = New BoundParameter(letSelectorParam.Syntax, letSelectorParam, False, letSelectorParam.Type).MakeCompilerGenerated()
                             keysRangeVariablesPart1 = rangeVariablesPart2
                             compoundKeyReferencePart2 = Nothing
@@ -3051,7 +3050,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         letSelector = intoBinder.BindIntoSelector(aggregate,
-                                                                  m_RangeVariables,
+                                                                  _rangeVariables,
                                                                   compoundKeyReferencePart1,
                                                                   keysRangeVariablesPart1,
                                                                   compoundKeyReferencePart2,
@@ -3075,7 +3074,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' Handle selector for the [Let].
                         groupRangeVar = RangeVariableSymbol.CreateCompilerGenerated(Me, aggregate, StringConstants.Group, group.Type)
 
-                        If m_RangeVariables.Length = 0 Then
+                        If _rangeVariables.Length = 0 Then
                             letSelector = group
                         Else
                             letSelector = BuildJoinSelector(aggregate,
@@ -3167,9 +3166,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Optional rangeVarOpt As RangeVariableSymbol = Nothing,
                 Optional rangeVarValueOpt As BoundExpression = Nothing
             ) As BoundExpression
-                Debug.Assert(m_RangeVariables.Length > 0)
+                Debug.Assert(_rangeVariables.Length > 0)
                 Debug.Assert((rangeVarOpt Is Nothing) = (rangeVarValueOpt Is Nothing))
-                Debug.Assert(rangeVarOpt IsNot Nothing OrElse m_LambdaSymbol.ParameterCount > 1)
+                Debug.Assert(rangeVarOpt IsNot Nothing OrElse _lambdaSymbol.ParameterCount > 1)
 
                 Dim selectors As BoundExpression()
                 Dim fields As AnonymousTypeField()
@@ -3182,7 +3181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim lastIndex As Integer
                 Dim sizeIncrease As Integer = If(rangeVarOpt Is Nothing, 0, 1)
 
-                Debug.Assert(sizeIncrease + m_RangeVariables.Length > 1)
+                Debug.Assert(sizeIncrease + _rangeVariables.Length > 1)
 
                 ' Note, the special case for [sourceRangeVariables.Count = 1] helps in the
                 ' following scenario:
@@ -3192,22 +3191,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' The lambda has two parameters, but we have only one range variable that should be carried over.
                 ' If we were simply copying lambda's parameters to the Anonymous Type instance, we would 
                 ' copy data that aren't needed (value of the first parameter should be dropped).
-                If m_RangeVariables.Length = 1 OrElse mustProduceFlatCompoundVariable Then
+                If _rangeVariables.Length = 1 OrElse mustProduceFlatCompoundVariable Then
                     ' Need to flatten
-                    lastIndex = m_RangeVariables.Length + sizeIncrease - 1
+                    lastIndex = _rangeVariables.Length + sizeIncrease - 1
                     selectors = New BoundExpression(lastIndex) {}
                     fields = New AnonymousTypeField(lastIndex) {}
 
-                    For j As Integer = 0 To m_RangeVariables.Length - 1
-                        Dim leftVar As RangeVariableSymbol = m_RangeVariables(j)
+                    For j As Integer = 0 To _rangeVariables.Length - 1
+                        Dim leftVar As RangeVariableSymbol = _rangeVariables(j)
                         selectors(j) = New BoundRangeVariable(leftVar.Syntax, leftVar, leftVar.Type).MakeCompilerGenerated()
                         fields(j) = New AnonymousTypeField(leftVar.Name, leftVar.Type, leftVar.Syntax.GetLocation(), isKeyOrByRef:=True)
                     Next
                 Else
                     ' Nesting ...
-                    Debug.Assert(m_RangeVariables.Length > 1)
+                    Debug.Assert(_rangeVariables.Length > 1)
 
-                    Dim parameters As ImmutableArray(Of BoundLambdaParameterSymbol) = m_LambdaSymbol.Parameters.As(Of BoundLambdaParameterSymbol)
+                    Dim parameters As ImmutableArray(Of BoundLambdaParameterSymbol) = _lambdaSymbol.Parameters.As(Of BoundLambdaParameterSymbol)
 
                     lastIndex = parameters.Length + sizeIncrease - 1
                     selectors = New BoundExpression(lastIndex) {}
@@ -3633,31 +3632,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Both = Outer Or Inner
                 End Enum
 
-                Private ReadOnly m_OuterRangeVariables As ImmutableArray(Of Object) 'ImmutableArray(Of RangeVariableSymbol)
-                Private ReadOnly m_InnerRangeVariables As ImmutableArray(Of Object) 'ImmutableArray(Of RangeVariableSymbol)
-                Private m_Side As Result
+                Private ReadOnly _outerRangeVariables As ImmutableArray(Of Object) 'ImmutableArray(Of RangeVariableSymbol)
+                Private ReadOnly _innerRangeVariables As ImmutableArray(Of Object) 'ImmutableArray(Of RangeVariableSymbol)
+                Private _side As Result
 
                 Public Sub New(
                     outerRangeVariables As ImmutableArray(Of RangeVariableSymbol),
                     innerRangeVariables As ImmutableArray(Of RangeVariableSymbol)
                 )
-                    m_OuterRangeVariables = StaticCast(Of Object).From(outerRangeVariables)
-                    m_InnerRangeVariables = StaticCast(Of Object).From(innerRangeVariables)
+                    _outerRangeVariables = StaticCast(Of Object).From(outerRangeVariables)
+                    _innerRangeVariables = StaticCast(Of Object).From(innerRangeVariables)
                 End Sub
 
                 Public Function DetermineTheSide(node As BoundExpression) As Result
-                    m_Side = Result.None
+                    _side = Result.None
                     Visit(node)
-                    Return m_Side
+                    Return _side
                 End Function
 
                 Public Overrides Function VisitRangeVariable(node As BoundRangeVariable) As BoundNode
                     Dim rangeVariable As RangeVariableSymbol = node.RangeVariable
 
-                    If m_OuterRangeVariables.IndexOf(rangeVariable, ReferenceEqualityComparer.Instance) >= 0 Then
-                        m_Side = m_Side Or Result.Outer
-                    ElseIf m_InnerRangeVariables.IndexOf(rangeVariable, ReferenceEqualityComparer.Instance) >= 0 Then
-                        m_Side = m_Side Or Result.Inner
+                    If _outerRangeVariables.IndexOf(rangeVariable, ReferenceEqualityComparer.Instance) >= 0 Then
+                        _side = _side Or Result.Outer
+                    ElseIf _innerRangeVariables.IndexOf(rangeVariable, ReferenceEqualityComparer.Instance) >= 0 Then
+                        _side = _side Or Result.Inner
                     End If
 
                     Return node
@@ -3671,10 +3670,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Class EqualsOperandIsBadErrorVisitor
                 Inherits BoundTreeWalker
 
-                Private ReadOnly m_Binder As Binder
-                Private ReadOnly m_ErrorInfo As DiagnosticInfo
-                Private ReadOnly m_Diagnostics As DiagnosticBag
-                Private ReadOnly m_BadRangeVariables As ImmutableArray(Of Object) 'ImmutableArray(Of RangeVariableSymbol)
+                Private ReadOnly _binder As Binder
+                Private ReadOnly _errorInfo As DiagnosticInfo
+                Private ReadOnly _diagnostics As DiagnosticBag
+                Private ReadOnly _badRangeVariables As ImmutableArray(Of Object) 'ImmutableArray(Of RangeVariableSymbol)
 
                 Private Sub New(
                     binder As Binder,
@@ -3682,10 +3681,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     badRangeVariables As ImmutableArray(Of RangeVariableSymbol),
                     diagnostics As DiagnosticBag
                 )
-                    m_BadRangeVariables = StaticCast(Of Object).From(badRangeVariables)
-                    m_Binder = binder
-                    m_Diagnostics = diagnostics
-                    m_ErrorInfo = errorInfo
+                    _badRangeVariables = StaticCast(Of Object).From(badRangeVariables)
+                    _binder = binder
+                    _diagnostics = diagnostics
+                    _errorInfo = errorInfo
                 End Sub
 
                 Public Shared Sub Report(
@@ -3702,8 +3701,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Public Overrides Function VisitRangeVariable(node As BoundRangeVariable) As BoundNode
                     Dim rangeVariable As RangeVariableSymbol = node.RangeVariable
 
-                    If m_BadRangeVariables.IndexOf(rangeVariable, ReferenceEqualityComparer.Instance) >= 0 Then
-                        ReportDiagnostic(m_Diagnostics, node.Syntax, m_ErrorInfo)
+                    If _badRangeVariables.IndexOf(rangeVariable, ReferenceEqualityComparer.Instance) >= 0 Then
+                        ReportDiagnostic(_diagnostics, node.Syntax, _errorInfo)
                     End If
 
                     Return node
@@ -3724,11 +3723,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits Binder
 
             Protected ReadOnly m_GroupReference As BoundExpression
-            Private ReadOnly m_GroupRangeVariables As ImmutableArray(Of RangeVariableSymbol)
-            Private ReadOnly m_GroupCompoundVariableType As TypeSymbol
-            Private ReadOnly m_AggregationArgumentRangeVariables As ImmutableArray(Of RangeVariableSymbol)
+            Private ReadOnly _groupRangeVariables As ImmutableArray(Of RangeVariableSymbol)
+            Private ReadOnly _groupCompoundVariableType As TypeSymbol
+            Private ReadOnly _aggregationArgumentRangeVariables As ImmutableArray(Of RangeVariableSymbol)
 
-            Sub New(
+            Public Sub New(
                 parent As Binder,
                 groupReference As BoundExpression,
                 groupRangeVariables As ImmutableArray(Of RangeVariableSymbol),
@@ -3737,9 +3736,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             )
                 MyBase.New(parent)
                 m_GroupReference = groupReference
-                m_GroupRangeVariables = groupRangeVariables
-                m_GroupCompoundVariableType = groupCompoundVariableType
-                m_AggregationArgumentRangeVariables = aggregationArgumentRangeVariables
+                _groupRangeVariables = groupRangeVariables
+                _groupCompoundVariableType = groupCompoundVariableType
+                _aggregationArgumentRangeVariables = aggregationArgumentRangeVariables
             End Sub
 
             Friend Overrides Function BindGroupAggregationExpression(
@@ -3902,10 +3901,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagnostics, functionAggregationSyntax.FunctionName, ERRID.ERR_TypeCharOnAggregation)
                 End If
 
-                Dim aggregationParam As BoundLambdaParameterSymbol = CreateQueryLambdaParameterSymbol(GetQueryLambdaParameterName(m_GroupRangeVariables), 0,
-                                                                                                      m_GroupCompoundVariableType,
+                Dim aggregationParam As BoundLambdaParameterSymbol = CreateQueryLambdaParameterSymbol(GetQueryLambdaParameterName(_groupRangeVariables), 0,
+                                                                                                      _groupCompoundVariableType,
                                                                                                       If(functionAggregationSyntax.Argument, functionAggregationSyntax),
-                                                                                                      m_GroupRangeVariables)
+                                                                                                      _groupRangeVariables)
 
                 ' Note [Binder:=Me.ContainingBinder] below. We are excluding this binder from the chain of
                 ' binders for an argument of the function. Do not want it to interfere in any way given
@@ -3915,7 +3914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ImmutableArray.Create(aggregationParam))
 
                 ' Create binder for the aggregation.
-                Dim aggregationBinder As New QueryLambdaBinder(aggregationLambdaSymbol, m_AggregationArgumentRangeVariables)
+                Dim aggregationBinder As New QueryLambdaBinder(aggregationLambdaSymbol, _aggregationArgumentRangeVariables)
 
                 Dim arguments As ImmutableArray(Of BoundExpression)
                 Dim aggregationLambda As BoundQueryLambda = Nothing
@@ -3928,7 +3927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     aggregationLambda = New BoundQueryLambda(functionAggregationSyntax.Argument,
                                                              aggregationLambdaSymbol,
-                                                             m_GroupRangeVariables,
+                                                             _groupRangeVariables,
                                                              aggregationSelector,
                                                              exprIsOperandOfConditionalBranch:=False)
 
@@ -4095,7 +4094,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class IntoClauseDisallowGroupReferenceBinder
             Inherits IntoClauseBinder
 
-            Sub New(
+            Public Sub New(
                 parent As Binder,
                 groupReference As BoundExpression,
                 groupRangeVariables As ImmutableArray(Of RangeVariableSymbol),

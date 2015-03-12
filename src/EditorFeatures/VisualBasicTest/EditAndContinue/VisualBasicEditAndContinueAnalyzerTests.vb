@@ -640,7 +640,7 @@ End Class
 
                 Assert.True(result.IsSingle())
                 Assert.Equal(1, result.Single().RudeEditErrors.Count())
-                Assert.Equal(RudeEditKind.RUDE_EDIT_ADD_NEW_FILE, result.Single().RudeEditErrors.Single().Kind)
+                Assert.Equal(RudeEditKind.InsertFile, result.Single().RudeEditErrors.Single().Kind)
             End Using
         End Sub
     End Class

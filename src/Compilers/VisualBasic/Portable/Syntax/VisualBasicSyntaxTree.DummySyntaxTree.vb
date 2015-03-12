@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Class VisualBasicSyntaxTree
+    Public Partial Class VisualBasicSyntaxTree
         Friend Class DummySyntaxTree
             Inherits VisualBasicSyntaxTree
 

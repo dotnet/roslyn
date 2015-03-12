@@ -204,49 +204,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.XmlEntityLiteralToken(GetText(TokenWidth), Value, precedingTrivia.Node, Nothing)
         End Function
 
-        Private Shared ReadOnly _xmlAmpToken As XmlTextTokenSyntax = SyntaxFactory.XmlEntityLiteralToken("&amp;", "&", Nothing, Nothing)
+        Private Shared ReadOnly s_xmlAmpToken As XmlTextTokenSyntax = SyntaxFactory.XmlEntityLiteralToken("&amp;", "&", Nothing, Nothing)
         Private Function XmlMakeAmpLiteralToken(
                 precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)
           ) As XmlTextTokenSyntax
 
             AdvanceChar(5) ' "&amp;".Length
-            Return If(precedingTrivia.Node Is Nothing, _xmlAmpToken, SyntaxFactory.XmlEntityLiteralToken("&amp;", "&", precedingTrivia.Node, Nothing))
+            Return If(precedingTrivia.Node Is Nothing, s_xmlAmpToken, SyntaxFactory.XmlEntityLiteralToken("&amp;", "&", precedingTrivia.Node, Nothing))
         End Function
 
-        Private Shared ReadOnly _xmlAposToken As XmlTextTokenSyntax = SyntaxFactory.XmlEntityLiteralToken("&apos;", "'", Nothing, Nothing)
+        Private Shared ReadOnly s_xmlAposToken As XmlTextTokenSyntax = SyntaxFactory.XmlEntityLiteralToken("&apos;", "'", Nothing, Nothing)
         Private Function XmlMakeAposLiteralToken(
                 precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)
           ) As XmlTextTokenSyntax
 
             AdvanceChar(6) ' "&apos;".Length
-            Return If(precedingTrivia.Node Is Nothing, _xmlAposToken, SyntaxFactory.XmlEntityLiteralToken("&apos;", "'", precedingTrivia.Node, Nothing))
+            Return If(precedingTrivia.Node Is Nothing, s_xmlAposToken, SyntaxFactory.XmlEntityLiteralToken("&apos;", "'", precedingTrivia.Node, Nothing))
         End Function
 
-        Private Shared ReadOnly _xmlGtToken As XmlTextTokenSyntax = SyntaxFactory.XmlEntityLiteralToken("&gt;", ">", Nothing, Nothing)
+        Private Shared ReadOnly s_xmlGtToken As XmlTextTokenSyntax = SyntaxFactory.XmlEntityLiteralToken("&gt;", ">", Nothing, Nothing)
         Private Function XmlMakeGtLiteralToken(
                 precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)
           ) As XmlTextTokenSyntax
 
             AdvanceChar(4) ' "&gt;".Length
-            Return If(precedingTrivia.Node Is Nothing, _xmlGtToken, SyntaxFactory.XmlEntityLiteralToken("&gt;", "&", precedingTrivia.Node, Nothing))
+            Return If(precedingTrivia.Node Is Nothing, s_xmlGtToken, SyntaxFactory.XmlEntityLiteralToken("&gt;", "&", precedingTrivia.Node, Nothing))
         End Function
 
-        Private Shared ReadOnly _xmlLtToken As XmlTextTokenSyntax = SyntaxFactory.XmlEntityLiteralToken("&lt;", "<", Nothing, Nothing)
+        Private Shared ReadOnly s_xmlLtToken As XmlTextTokenSyntax = SyntaxFactory.XmlEntityLiteralToken("&lt;", "<", Nothing, Nothing)
         Private Function XmlMakeLtLiteralToken(
                 precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)
           ) As XmlTextTokenSyntax
 
             AdvanceChar(4) ' "&lt;".Length
-            Return If(precedingTrivia.Node Is Nothing, _xmlLtToken, SyntaxFactory.XmlEntityLiteralToken("&lt;", "<", precedingTrivia.Node, Nothing))
+            Return If(precedingTrivia.Node Is Nothing, s_xmlLtToken, SyntaxFactory.XmlEntityLiteralToken("&lt;", "<", precedingTrivia.Node, Nothing))
         End Function
 
-        Private Shared ReadOnly _xmlQuotToken As XmlTextTokenSyntax = SyntaxFactory.XmlEntityLiteralToken("&quot;", """", Nothing, Nothing)
+        Private Shared ReadOnly s_xmlQuotToken As XmlTextTokenSyntax = SyntaxFactory.XmlEntityLiteralToken("&quot;", """", Nothing, Nothing)
         Private Function XmlMakeQuotLiteralToken(
                 precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)
           ) As XmlTextTokenSyntax
 
             AdvanceChar(6) ' "&quot;".Length
-            Return If(precedingTrivia.Node Is Nothing, _xmlQuotToken, SyntaxFactory.XmlEntityLiteralToken("&quot;", """", precedingTrivia.Node, Nothing))
+            Return If(precedingTrivia.Node Is Nothing, s_xmlQuotToken, SyntaxFactory.XmlEntityLiteralToken("&quot;", """", precedingTrivia.Node, Nothing))
         End Function
 
         Private Function XmlMakeTextLiteralToken(
@@ -266,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Function
 
-        Private Shared _docCommentCrLfToken As XmlTextTokenSyntax = SyntaxFactory.DocumentationCommentLineBreakToken(vbCrLf, vbLf, Nothing, Nothing)
+        Private Shared s_docCommentCrLfToken As XmlTextTokenSyntax = SyntaxFactory.DocumentationCommentLineBreakToken(vbCrLf, vbLf, Nothing, Nothing)
 
         Private Function MakeDocCommentLineBreakToken(
                 precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode),
@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(text = vbCr OrElse text = vbLf OrElse text = vbCrLf)
 
             If precedingTrivia.Node Is Nothing AndAlso text = vbCrLf Then
-                Return _docCommentCrLfToken
+                Return s_docCommentCrLfToken
             End If
 
             Return SyntaxFactory.DocumentationCommentLineBreakToken(text, vbLf, precedingTrivia.Node, Nothing)

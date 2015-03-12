@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 Assert.Equal(expectedItem.IsCaseSensitive, actualItem.IsCaseSensitive);
                 if (!string.IsNullOrEmpty(expectedItem.SecondarySort))
                 {
-                    Assert.Contains(expectedItem.SecondarySort, actualItem.SecondarySort);
+                    Assert.Contains(expectedItem.SecondarySort, actualItem.SecondarySort, StringComparison.Ordinal);
                 }
             }
         }

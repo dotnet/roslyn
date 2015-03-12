@@ -8,7 +8,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class Binder
+    Friend Partial Class Binder
 
         ''' <summary>
         ''' Makes it look like Option Strict is Off, all other operations

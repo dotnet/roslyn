@@ -125,10 +125,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Shared ReadOnly IdentityFunc As Func(Of SingleTypeDeclaration, SingleTypeDeclaration) =
+        Private Shared ReadOnly s_identityFunc As Func(Of SingleTypeDeclaration, SingleTypeDeclaration) =
             Function(t) t
 
-        Private Shared ReadOnly MergeFunc As Func(Of IEnumerable(Of SingleTypeDeclaration), MergedTypeDeclaration) =
+        Private Shared ReadOnly s_mergeFunc As Func(Of IEnumerable(Of SingleTypeDeclaration), MergedTypeDeclaration) =
             Function(g) New MergedTypeDeclaration(ImmutableArray.CreateRange(Of SingleTypeDeclaration)(g))
 
         Private Function MakeChildren() As MergedTypeDeclaration()
@@ -145,8 +145,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Shared Function MakeMergedTypes(types As IEnumerable(Of SingleTypeDeclaration)) As IEnumerable(Of MergedTypeDeclaration)
             Return types.
-                GroupBy(IdentityFunc, SingleTypeDeclaration.EqualityComparer).
-                Select(MergeFunc)
+                GroupBy(s_identityFunc, SingleTypeDeclaration.EqualityComparer).
+                Select(s_mergeFunc)
         End Function
 
         Public Overloads ReadOnly Property Children As ImmutableArray(Of MergedTypeDeclaration)

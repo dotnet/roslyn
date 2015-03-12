@@ -99,7 +99,7 @@ End Module
                 state.SendTypeChars("Fog(")
                 state.AssertCompletionSession()
 
-                Assert.Contains("    FogBar(", state.GetLineTextFromCaretPosition())
+                Assert.Contains("    FogBar(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -151,7 +151,7 @@ End Module
                 state.SendTypeChars("Fog(")
                 state.AssertCompletionSession()
 
-                Assert.Contains("    FogBar(", state.GetLineTextFromCaretPosition())
+                Assert.Contains("    FogBar(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -191,7 +191,7 @@ End Module
                 Dim caretPos = state.GetCaretPoint().BufferPosition.Position
                 state.SendReturn()
                 state.Workspace.Documents.First().GetTextView().Caret.MoveTo(New SnapshotPoint(state.Workspace.Documents.First().TextBuffer.CurrentSnapshot, caretPos))
-                Assert.Contains("Program." + vbCrLf, state.GetLineFromCurrentCaretPosition().GetTextIncludingLineBreak())
+                Assert.Contains("Program." + vbCrLf, state.GetLineFromCurrentCaretPosition().GetTextIncludingLineBreak(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -212,7 +212,7 @@ End Module
                 state.SendTab()
                 state.AssertNoCompletionSession()
 
-                Assert.Contains("    FogBar", state.GetLineTextFromCaretPosition())
+                Assert.Contains("    FogBar", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -229,7 +229,7 @@ End Module
                 state.SendTypeChars("Progra.")
                 state.AssertCompletionSession()
                 state.AssertSelectedCompletionItem(displayText:="Equals", isSoftSelected:=True)
-                Assert.Contains("Program.", state.GetLineTextFromCaretPosition())
+                Assert.Contains("Program.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -250,7 +250,7 @@ End Class
     Sub Main(args As String())
         Program
 
-    End Sub</text>.NormalizedValue, state.GetDocumentText())
+    End Sub</text>.NormalizedValue, state.GetDocumentText(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -467,9 +467,9 @@ End Class
                 state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma(")
                 state.AssertCompletionSession()
-                Assert.Contains(".Main(", state.GetLineTextFromCaretPosition())
+                Assert.Contains(".Main(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 state.SendUndo()
-                Assert.Contains(".Ma(", state.GetLineTextFromCaretPosition())
+                Assert.Contains(".Ma(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -497,7 +497,7 @@ End Class
                 state.SendDownKey()
                 state.AssertSelectedCompletionItem(displayText:="B", isHardSelected:=True)
                 state.SendTab()
-                Assert.Contains(".B", state.GetLineTextFromCaretPosition())
+                Assert.Contains(".B", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -525,7 +525,7 @@ End Class
                 state.SendSelectCompletionItemThroughPresenterSession(state.CurrentCompletionPresenterSession.CompletionItems.First(
                                                            Function(i) i.DisplayText = "B"))
                 state.SendTab()
-                Assert.Contains(".B", state.GetLineTextFromCaretPosition())
+                Assert.Contains(".B", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -609,7 +609,7 @@ End Module]]></Document>)
                 state.SendBackspace()
                 state.AssertSelectedCompletionItem(displayText:="List(Of Integer)", isHardSelected:=True)
                 state.SendTab()
-                Assert.Contains("New List(Of Integer)", state.GetLineTextFromCaretPosition())
+                Assert.Contains("New List(Of Integer)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -790,7 +790,7 @@ end class
                 state.SendTypeChars("Fo(")
                 state.AssertCompletionSession()
                 Assert.Equal("        Foo(", state.GetLineTextFromCaretPosition())
-                Assert.DoesNotContain("Foo(Of", state.GetLineTextFromCaretPosition())
+                Assert.DoesNotContain("Foo(Of", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -822,7 +822,7 @@ end class
                 state.AssertSelectedCompletionItem(displayText:="System", isHardSelected:=True)
                 state.SendTypeChars("(")
                 state.AssertNoCompletionSession()
-                Assert.Contains("Imports Sys(", state.GetLineTextFromCaretPosition())
+                Assert.Contains("Imports Sys(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -837,7 +837,7 @@ end class
                 state.AssertSelectedCompletionItem(displayText:="System", isHardSelected:=True)
                 state.SendTypeChars(".")
                 state.AssertCompletionSession()
-                Assert.Contains("Imports System.", state.GetLineTextFromCaretPosition())
+                Assert.Contains("Imports System.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -852,7 +852,7 @@ end class
                 state.AssertSelectedCompletionItem(displayText:="System", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 state.AssertNoCompletionSession()
-                Assert.Contains("Imports Sys ", state.GetLineTextFromCaretPosition())
+                Assert.Contains("Imports Sys ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -873,7 +873,7 @@ end class
 
                 state.SendTypeChars("x:")
                 state.AssertNoCompletionSession()
-                Assert.DoesNotContain(":=", state.GetLineTextFromCaretPosition())
+                Assert.DoesNotContain(":=", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -895,7 +895,7 @@ end class
                 state.SendTypeChars("x")
                 state.SendTab()
                 state.AssertNoCompletionSession()
-                Assert.Contains(":=", state.GetLineTextFromCaretPosition())
+                Assert.Contains(":=", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -1227,7 +1227,7 @@ Module Program
         Dim bbb = 234
         Console.WriteLine(bbb
     End Sub
-End Module          </text>.NormalizedValue, state.GetDocumentText())
+End Module          </text>.NormalizedValue, state.GetDocumentText(), StringComparison.Ordinal)
 
             End Using
         End Sub

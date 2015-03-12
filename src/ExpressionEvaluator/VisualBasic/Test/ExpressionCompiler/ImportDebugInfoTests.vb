@@ -512,9 +512,9 @@ End Namespace
             xmlNamespaces = Nothing
 
             Const bindingFlags As BindingFlags = bindingFlags.NonPublic Or bindingFlags.Instance
-            Dim typesAndNamespacesField = GetType(ImportedTypesAndNamespacesMembersBinder).GetField("m_importedSymbols", bindingFlags)
+            Dim typesAndNamespacesField = GetType(ImportedTypesAndNamespacesMembersBinder).GetField("_importedSymbols", bindingFlags)
             Assert.NotNull(typesAndNamespacesField)
-            Dim aliasesField = GetType(ImportAliasesBinder).GetField("m_importedAliases", bindingFlags)
+            Dim aliasesField = GetType(ImportAliasesBinder).GetField("_importedAliases", bindingFlags)
             Assert.NotNull(aliasesField)
             Dim xmlNamespacesField = GetType(XmlNamespaceImportsBinder).GetField("_namespaces", bindingFlags)
             Assert.NotNull(xmlNamespacesField)

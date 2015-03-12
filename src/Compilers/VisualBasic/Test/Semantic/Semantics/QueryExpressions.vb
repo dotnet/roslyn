@@ -10836,6 +10836,44 @@ End Module
             CompileAndVerify(compilationDef, options:=TestOptions.DebugExe)
         End Sub
 
+        <Fact, WorkItem(1099, "https://github.com/dotnet/roslyn/issues/1099")>
+        Public Sub LambdaWithErrorCrash()
+            Dim compilationDef =
+<compilation name="QueryExpressions">
+    <file name="a.vb">
+Imports System.Linq
+
+Class C
+    Shared Function Id(Of T)(a As T, i As Integer) As T
+        Return a
+    End Function
+
+    Sub F2()
+        Dim result = From a In Id({1}, 1), b In Id({1, 2}, 2)
+                     From c In Id({1, 2, 3}, 3)
+                     Let d = Id(1, 4), e = Id(2, 5)
+                     Distinct
+                         Take Whi
+                     Aggregate f In Id({1}, 6), g In Id({2}, 7)
+                         From j In Id({1}, 9)
+                         Let h = Id(1, 4), i = Id(2, 5)
+                         Where Id(g &lt; 2, 8)
+                     Into Count(), Distinct()
+
+    End Sub
+    End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseDll)
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30451: 'Whi' is not declared. It may be inaccessible due to its protection level.
+                         Take Whi
+                              ~~~
+</expected>)
+        End Sub
+
     End Class
 
 End Namespace

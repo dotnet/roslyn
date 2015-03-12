@@ -14,7 +14,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Partial Class CodeGenerator
+    Friend Partial Class CodeGenerator
 
         Private Enum ArrayInitializerStyle
             ' Initialize every element
