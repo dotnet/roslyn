@@ -73,12 +73,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsOpenParenInArgumentList(this SyntaxToken token)
         {
-            return token.Kind() == SyntaxKind.OpenParenToken && token.Parent.Kind() == SyntaxKind.ArgumentList;
+            return token.Kind() == SyntaxKind.OpenParenToken &&
+                (token.Parent.IsKind(SyntaxKind.ArgumentList) || token.Parent.IsKind(SyntaxKind.AttributeArgumentList));
         }
 
         public static bool IsCloseParenInArgumentList(this SyntaxToken token)
         {
-            return token.Kind() == SyntaxKind.CloseParenToken && token.Parent.Kind() == SyntaxKind.ArgumentList;
+            return token.Kind() == SyntaxKind.CloseParenToken &&
+                (token.Parent.IsKind(SyntaxKind.ArgumentList) || token.Parent.IsKind(SyntaxKind.AttributeArgumentList));
         }
 
         public static bool IsColonInTypeBaseList(this SyntaxToken token)

@@ -280,7 +280,7 @@ End Class
 
             ' This Char is not printable, so we expect the EditableValue to be the "ChrW" representation.
             quotedChar = "ChrW(&H7)"
-            value = CreateDkmClrValue(ChrW(&H0007), GetType(Char))
+            value = CreateDkmClrValue(ChrW(&H0007))
             result = FormatResult("c", value, inspectionContext:=CreateDkmInspectionContext(radix:=16))
             Verify(result,
                 EvalResult("c", quotedChar, "Char", "c", editableValue:=quotedChar))

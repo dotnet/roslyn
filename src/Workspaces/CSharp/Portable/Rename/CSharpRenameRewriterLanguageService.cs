@@ -1096,6 +1096,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 return enclosingInitializer.Value;
             }
 
+            var attributeSyntax = token.GetAncestor<AttributeSyntax>();
+            if (attributeSyntax != null)
+            {
+                return attributeSyntax;
+            }
+
             // there seems to be no statement above this one. Let's see if we can at least get an SimpleNameSyntax
             return enclosingStatement ?? enclosingNameMemberCrefOrnull ?? token.GetAncestors(n => n is SimpleNameSyntax).FirstOrDefault();
         }

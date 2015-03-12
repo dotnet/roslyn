@@ -517,7 +517,6 @@ namespace Microsoft.CodeAnalysis
               string name)
         {
             Debug.Assert(name != null);
-            Debug.Assert(name.IndexOf(MangledNameRegionStartChar) < 0);
 
             if (name.Length == 0)
             {
