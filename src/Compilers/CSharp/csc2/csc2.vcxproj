@@ -30,6 +30,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>RosCompiler</RootNamespace>
     <ProjectName>csc2</ProjectName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)'=='x64'">
     <OutDir>$(OutDir)\amd64\</OutDir>

@@ -25,6 +25,7 @@
     <SccProvider>SAK</SccProvider>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>NativeClientTests</RootNamespace>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NativeClient\NativeClient.vcxproj">
