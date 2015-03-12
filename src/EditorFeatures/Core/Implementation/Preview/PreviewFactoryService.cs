@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -81,93 +82,93 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
                     foreach (var documentId in projectChanges.GetChangedDocuments())
                     {
-                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, new Lazy<object>(() =>
-                            CreateChangedDocumentPreviewView(oldSolution.GetDocument(documentId), newSolution.GetDocument(documentId), zoomLevel, cancellationToken))));
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, (c) =>
+                            CreateChangedDocumentPreviewViewAsync(oldSolution.GetDocument(documentId), newSolution.GetDocument(documentId), zoomLevel, c)));
                     }
 
                     foreach (var documentId in projectChanges.GetAddedDocuments())
                     {
-                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, new Lazy<object>(() =>
-                            CreateAddedDocumentPreviewView(newSolution.GetDocument(documentId), zoomLevel, cancellationToken))));
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, (c) =>
+                            CreateAddedDocumentPreviewViewAsync(newSolution.GetDocument(documentId), zoomLevel, c)));
                     }
 
                     foreach (var documentId in projectChanges.GetRemovedDocuments())
                     {
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId, new Lazy<object>(() =>
-                            CreateRemovedDocumentPreviewView(oldSolution.GetDocument(documentId), zoomLevel, cancellationToken))));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId, (c) =>
+                            CreateRemovedDocumentPreviewViewAsync(oldSolution.GetDocument(documentId), zoomLevel, c)));
                     }
 
                     foreach (var documentId in projectChanges.GetChangedAdditionalDocuments())
                     {
-                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, new Lazy<object>(() =>
-                            CreateChangedAdditionalDocumentPreviewView(oldSolution.GetAdditionalDocument(documentId), newSolution.GetAdditionalDocument(documentId), zoomLevel, cancellationToken))));
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, (c) =>
+                            CreateChangedAdditionalDocumentPreviewViewAsync(oldSolution.GetAdditionalDocument(documentId), newSolution.GetAdditionalDocument(documentId), zoomLevel, c)));
                     }
 
                     foreach (var documentId in projectChanges.GetAddedAdditionalDocuments())
                     {
-                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, new Lazy<object>(() =>
-                            CreateAddedAdditionalDocumentPreviewView(newSolution.GetAdditionalDocument(documentId), zoomLevel, cancellationToken))));
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, (c) =>
+                            CreateAddedAdditionalDocumentPreviewViewAsync(newSolution.GetAdditionalDocument(documentId), zoomLevel, c)));
                     }
 
                     foreach (var documentId in projectChanges.GetRemovedAdditionalDocuments())
                     {
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId, new Lazy<object>(() =>
-                            CreateRemovedAdditionalDocumentPreviewView(oldSolution.GetAdditionalDocument(documentId), zoomLevel, cancellationToken))));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId, (c) =>
+                            CreateRemovedAdditionalDocumentPreviewViewAsync(oldSolution.GetAdditionalDocument(documentId), zoomLevel, c)));
                     }
 
                     foreach (var metadataReference in projectChanges.GetAddedMetadataReferences())
                     {
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, new Lazy<object>(() =>
-                            string.Format(EditorFeaturesResources.AddingReferenceTo, metadataReference.Display, oldProject.Name))));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, (c) =>
+                            Task.FromResult<object>(string.Format(EditorFeaturesResources.AddingReferenceTo, metadataReference.Display, oldProject.Name))));
                     }
 
                     foreach (var metadataReference in projectChanges.GetRemovedMetadataReferences())
                     {
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, new Lazy<object>(() =>
-                            string.Format(EditorFeaturesResources.RemovingReferenceFrom, metadataReference.Display, oldProject.Name))));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, (c) =>
+                            Task.FromResult<object>(string.Format(EditorFeaturesResources.RemovingReferenceFrom, metadataReference.Display, oldProject.Name))));
                     }
 
                     foreach (var projectReference in projectChanges.GetAddedProjectReferences())
                     {
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, new Lazy<object>(() =>
-                            string.Format(EditorFeaturesResources.AddingReferenceTo, newSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name))));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, (c) =>
+                            Task.FromResult<object>(string.Format(EditorFeaturesResources.AddingReferenceTo, newSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name))));
                     }
 
                     foreach (var projectReference in projectChanges.GetRemovedProjectReferences())
                     {
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, new Lazy<object>(() =>
-                            string.Format(EditorFeaturesResources.RemovingReferenceFrom, oldSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name))));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, (c) =>
+                            Task.FromResult<object>(string.Format(EditorFeaturesResources.RemovingReferenceFrom, oldSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name))));
                     }
 
                     foreach (var analyzer in projectChanges.GetAddedAnalyzerReferences())
                     {
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, new Lazy<object>(() =>
-                            string.Format(EditorFeaturesResources.AddingAnalyzerReferenceTo, analyzer.Display, oldProject.Name))));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, (c) =>
+                            Task.FromResult<object>(string.Format(EditorFeaturesResources.AddingAnalyzerReferenceTo, analyzer.Display, oldProject.Name))));
                     }
 
                     foreach (var analyzer in projectChanges.GetRemovedAnalyzerReferences())
                     {
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, new Lazy<object>(() =>
-                            string.Format(EditorFeaturesResources.RemovingAnalyzerReferenceFrom, analyzer.Display, oldProject.Name))));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, (c) =>
+                            Task.FromResult<object>(string.Format(EditorFeaturesResources.RemovingAnalyzerReferenceFrom, analyzer.Display, oldProject.Name))));
                     }
                 }
 
                 foreach (var project in solutionChanges.GetAddedProjects())
                 {
-                    previewItems.Add(new SolutionPreviewItem(project.Id, null, new Lazy<object>(() =>
-                        string.Format(EditorFeaturesResources.AddingProject, project.Name))));
+                    previewItems.Add(new SolutionPreviewItem(project.Id, null, (c) =>
+                        Task.FromResult<object>(string.Format(EditorFeaturesResources.AddingProject, project.Name))));
                 }
 
                 foreach (var project in solutionChanges.GetRemovedProjects())
                 {
-                    previewItems.Add(new SolutionPreviewItem(project.Id, null, new Lazy<object>(() =>
-                        string.Format(EditorFeaturesResources.RemovingProject, project.Name))));
+                    previewItems.Add(new SolutionPreviewItem(project.Id, null, (c) =>
+                        Task.FromResult<object>(string.Format(EditorFeaturesResources.RemovingProject, project.Name))));
                 }
 
                 foreach (var projectChanges in solutionChanges.GetProjectChanges().Where(pc => pc.OldProject.AllProjectReferences != pc.NewProject.AllProjectReferences))
                 {
-                    previewItems.Add(new SolutionPreviewItem(projectChanges.OldProject.Id, null, new Lazy<object>(() =>
-                        string.Format(EditorFeaturesResources.ChangingProjectReferencesFor, projectChanges.OldProject.Name))));
+                    previewItems.Add(new SolutionPreviewItem(projectChanges.OldProject.Id, null, (c) =>
+                        Task.FromResult<object>(string.Format(EditorFeaturesResources.ChangingProjectReferencesFor, projectChanges.OldProject.Name))));
                 }
 
                 changeSummary = new SolutionChangeSummary(oldSolution, newSolution, solutionChanges);
@@ -176,12 +177,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return new SolutionPreviewResult(previewItems, changeSummary);
         }
 
-        public IWpfDifferenceViewer CreateAddedDocumentPreviewView(Document document, CancellationToken cancellationToken)
+        public Task<object> CreateAddedDocumentPreviewViewAsync(Document document, CancellationToken cancellationToken)
         {
-            return CreateAddedDocumentPreviewView(document, DefaultZoomLevel, cancellationToken);
+            return CreateAddedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
         }
 
-        private IWpfDifferenceViewer CreateAddedDocumentPreviewViewCore(ITextBuffer newBuffer, PreviewWorkspace workspace, TextDocument document, double zoomLevel, CancellationToken cancellationToken)
+        private Task<object> CreateAddedDocumentPreviewViewCoreAsync(ITextBuffer newBuffer, PreviewWorkspace workspace, TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
             var firstLine = string.Format(EditorFeaturesResources.AddingToWithContent,
                 document.Name, document.Project.Name);
@@ -194,10 +195,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var changedBuffer = _projectionBufferFactoryService.CreatePreviewProjectionBuffer(
                 sourceSpans: new List<object> { firstLine, "\r\n", span }, registryService: _contentTypeRegistryService);
 
-            return CreateNewDifferenceViewer(null, workspace, originalBuffer, changedBuffer, zoomLevel);
+            return CreateNewDifferenceViewerAsync(null, workspace, originalBuffer, changedBuffer, zoomLevel);
         }
 
-        public IWpfDifferenceViewer CreateAddedDocumentPreviewView(Document document, double zoomLevel, CancellationToken cancellationToken)
+        public Task<object> CreateAddedDocumentPreviewViewAsync(Document document, double zoomLevel, CancellationToken cancellationToken)
         {
             var newBuffer = CreateNewBuffer(document, cancellationToken);
 
@@ -207,10 +208,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 document.WithText(newBuffer.AsTextContainer().CurrentText).Project.Solution);
             rightWorkspace.OpenDocument(document.Id);
 
-            return CreateAddedDocumentPreviewViewCore(newBuffer, rightWorkspace, document, zoomLevel, cancellationToken);
+            return CreateAddedDocumentPreviewViewCoreAsync(newBuffer, rightWorkspace, document, zoomLevel, cancellationToken);
         }
 
-        public IWpfDifferenceViewer CreateAddedAdditionalDocumentPreviewView(TextDocument document, double zoomLevel, CancellationToken cancellationToken)
+        public Task<object> CreateAddedAdditionalDocumentPreviewViewAsync(TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
             var newBuffer = CreateNewPlainTextBuffer(document, cancellationToken);
 
@@ -220,15 +221,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 document.Project.Solution.WithAdditionalDocumentText(document.Id, newBuffer.AsTextContainer().CurrentText));
             rightWorkspace.OpenAdditionalDocument(document.Id);
 
-            return CreateAddedDocumentPreviewViewCore(newBuffer, rightWorkspace, document, zoomLevel, cancellationToken);
+            return CreateAddedDocumentPreviewViewCoreAsync(newBuffer, rightWorkspace, document, zoomLevel, cancellationToken);
         }
 
-        public IWpfDifferenceViewer CreateRemovedDocumentPreviewView(Document document, CancellationToken cancellationToken)
+        public Task<object> CreateRemovedDocumentPreviewViewAsync(Document document, CancellationToken cancellationToken)
         {
-            return CreateRemovedDocumentPreviewView(document, DefaultZoomLevel, cancellationToken);
+            return CreateRemovedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
         }
 
-        private IWpfDifferenceViewer CreateRemovedDocumentPreviewViewCore(ITextBuffer oldBuffer, PreviewWorkspace workspace, TextDocument document, double zoomLevel, CancellationToken cancellationToken)
+        private Task<object> CreateRemovedDocumentPreviewViewCoreAsync(ITextBuffer oldBuffer, PreviewWorkspace workspace, TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
             var firstLine = string.Format(EditorFeaturesResources.RemovingFromWithContent,
                 document.Name, document.Project.Name);
@@ -241,10 +242,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var changedBuffer = _projectionBufferFactoryService.CreatePreviewProjectionBuffer(
                 sourceSpans: new List<object> { firstLine, "\r\n" }, registryService: _contentTypeRegistryService);
 
-            return CreateNewDifferenceViewer(workspace, null, originalBuffer, changedBuffer, zoomLevel);
+            return CreateNewDifferenceViewerAsync(workspace, null, originalBuffer, changedBuffer, zoomLevel);
         }
 
-        public IWpfDifferenceViewer CreateRemovedDocumentPreviewView(Document document, double zoomLevel, CancellationToken cancellationToken)
+        public Task<object> CreateRemovedDocumentPreviewViewAsync(Document document, double zoomLevel, CancellationToken cancellationToken)
         {
             // Note: We don't use the original buffer that is associated with oldDocument
             // (and possibly open in the editor) for oldBuffer below. This is because oldBuffer
@@ -266,10 +267,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var leftWorkspace = new PreviewWorkspace(leftDocument.Project.Solution);
             leftWorkspace.OpenDocument(leftDocument.Id);
 
-            return CreateRemovedDocumentPreviewViewCore(oldBuffer, leftWorkspace, leftDocument, zoomLevel, cancellationToken);
+            return CreateRemovedDocumentPreviewViewCoreAsync(oldBuffer, leftWorkspace, leftDocument, zoomLevel, cancellationToken);
         }
 
-        public IWpfDifferenceViewer CreateRemovedAdditionalDocumentPreviewView(TextDocument document, double zoomLevel, CancellationToken cancellationToken)
+        public Task<object> CreateRemovedAdditionalDocumentPreviewViewAsync(TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
             // Note: We don't use the original buffer that is associated with oldDocument
             // (and possibly open in the editor) for oldBuffer below. This is because oldBuffer
@@ -293,15 +294,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var leftWorkspace = new PreviewWorkspace(leftSolution);
             leftWorkspace.OpenAdditionalDocument(leftDocumentId);
 
-            return CreateRemovedDocumentPreviewViewCore(oldBuffer, leftWorkspace, leftDocument, zoomLevel, cancellationToken);
+            return CreateRemovedDocumentPreviewViewCoreAsync(oldBuffer, leftWorkspace, leftDocument, zoomLevel, cancellationToken);
         }
 
-        public IWpfDifferenceViewer CreateChangedDocumentPreviewView(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        public Task<object> CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
-            return CreateChangedDocumentPreviewView(oldDocument, newDocument, DefaultZoomLevel, cancellationToken);
+            return CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, DefaultZoomLevel, cancellationToken);
         }
 
-        public IWpfDifferenceViewer CreateChangedDocumentPreviewView(Document oldDocument, Document newDocument, double zoomLevel, CancellationToken cancellationToken)
+        public Task<object> CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, double zoomLevel, CancellationToken cancellationToken)
         {
             // Note: We don't use the original buffer that is associated with oldDocument
             // (and currently open in the editor) for oldBuffer below. This is because oldBuffer
@@ -367,10 +368,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 oldDocument.WithText(newBuffer.AsTextContainer().CurrentText).Project.Solution);
             rightWorkspace.OpenDocument(newDocument.Id);
 
-            return CreateChangedDocumentView(oldBuffer, newBuffer, description, originalLineSpans, changedLineSpans, leftWorkspace, rightWorkspace, zoomLevel);
+            return CreateChangedDocumentViewAsync(oldBuffer, newBuffer, description, originalLineSpans, changedLineSpans, leftWorkspace, rightWorkspace, zoomLevel);
         }
 
-        public IWpfDifferenceViewer CreateChangedAdditionalDocumentPreviewView(TextDocument oldDocument, TextDocument newDocument, double zoomLevel, CancellationToken cancellationToken)
+        public Task<object> CreateChangedAdditionalDocumentPreviewViewAsync(TextDocument oldDocument, TextDocument newDocument, double zoomLevel, CancellationToken cancellationToken)
         {
             // Note: We don't use the original buffer that is associated with oldDocument
             // (and currently open in the editor) for oldBuffer below. This is because oldBuffer
@@ -412,10 +413,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 oldDocument.Project.Solution.WithAdditionalDocumentText(oldDocument.Id, newBuffer.AsTextContainer().CurrentText));
             rightWorkSpace.OpenAdditionalDocument(newDocument.Id);
 
-            return CreateChangedDocumentView(oldBuffer, newBuffer, description, originalLineSpans, changedLineSpans, leftWorkspace, rightWorkSpace, zoomLevel);
+            return CreateChangedDocumentViewAsync(oldBuffer, newBuffer, description, originalLineSpans, changedLineSpans, leftWorkspace, rightWorkSpace, zoomLevel);
         }
 
-        private IWpfDifferenceViewer CreateChangedDocumentView(ITextBuffer oldBuffer, ITextBuffer newBuffer, string description,
+        private Task<object> CreateChangedDocumentViewAsync(ITextBuffer oldBuffer, ITextBuffer newBuffer, string description,
             List<LineSpan> originalSpans, List<LineSpan> changedSpans, PreviewWorkspace leftWorkspace, PreviewWorkspace rightWorkspace, double zoomLevel)
         {
             if (!(originalSpans.Any() && changedSpans.Any()))
@@ -444,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 description,
                 changedSpans.ToArray());
 
-            return CreateNewDifferenceViewer(leftWorkspace, rightWorkspace, originalBuffer, changedBuffer, zoomLevel);
+            return CreateNewDifferenceViewerAsync(leftWorkspace, rightWorkspace, originalBuffer, changedBuffer, zoomLevel);
         }
 
         private static void AttachConflictAndWarningAnnotationToBuffer(ITextBuffer newBuffer, IEnumerable<Span> conflictSpans, IEnumerable<Span> warningSpans)
@@ -469,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return _textBufferFactoryService.CreateTextBuffer(document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
         }
 
-        private IWpfDifferenceViewer CreateNewDifferenceViewer(PreviewWorkspace leftWorkspace, PreviewWorkspace rightWorkspace,
+        private async Task<object> CreateNewDifferenceViewerAsync(PreviewWorkspace leftWorkspace, PreviewWorkspace rightWorkspace,
             IProjectionBuffer originalBuffer, IProjectionBuffer changedBuffer, double zoomLevel)
         {
             // leftWorkspace can be null if the change is adding a document.
@@ -523,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             diffViewer.LeftView.VisualElement.Focusable = false;
             diffViewer.InlineView.VisualElement.Focusable = false;
 
-            diffViewer.SizeToFit();
+            await diffViewer.SizeToFitAsync().ConfigureAwait(true);
 
             if (leftWorkspace != null)
             {

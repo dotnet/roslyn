@@ -2,8 +2,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -28,21 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             get
             {
-                // var source = new CancellationTokenSource();
-                // var task = Task.Run(async () => await GetActionSetsAsync(source.Token).ConfigureAwait(false), source.Token);
-                // var completed = task.Wait(TimeOutMilliseconds, source.Token);
-                // if (completed)
-                // {
-                //     // If the operation completed, then we know whether or not we have actions.
-                //     return task.Result != null;
-                // }
-                // else
-                // {
-                //     // If the operation did not complete, then we don't know whether or not we have actions.
-                //     // Return true since we want light bulb to call GetActionSets() in this cases.
-                //     source.Cancel();
-                //     return true;
-                // }
+                // Light bulb will always invoke this property on the UI thread.
+                AssertIsForeground();
 
                 return true;
             }
@@ -51,11 +38,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private ImmutableArray<SuggestedActionSet> _actionSets;
         public async override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {
+            // Light bulb will invoke this property on the UI thread.
+            AssertIsForeground();
+
             if (_actionSets == null)
             {
                 var builder = ImmutableArray.CreateBuilder<SuggestedActionSet>();
 
-                var previewChangesSuggestedActionSet = await GetPreviewChangesSuggestedActionSetAsync().ConfigureAwait(false);
+                var previewChangesSuggestedActionSet = await GetPreviewChangesSuggestedActionSetAsync(cancellationToken).ConfigureAwait(true);
                 if (previewChangesSuggestedActionSet != null)
                 {
                     builder.Add(previewChangesSuggestedActionSet);
@@ -73,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return _actionSets;
         }
 
-        private async Task<SuggestedActionSet> GetPreviewChangesSuggestedActionSetAsync()
+        private async Task<SuggestedActionSet> GetPreviewChangesSuggestedActionSetAsync(CancellationToken cancellationToken)
         {
-            var previewResult = await GetPreviewResultAsync(CancellationToken.None).ConfigureAwait(false);
+            var previewResult = await GetPreviewResultAsync(cancellationToken).ConfigureAwait(true);
             if (previewResult == null)
             {
                 return null;

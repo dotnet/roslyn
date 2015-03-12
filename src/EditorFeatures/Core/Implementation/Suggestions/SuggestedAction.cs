@@ -6,9 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Base class for all Roslyn light bulb menu items.
     /// </summary>
-    internal partial class SuggestedAction : ISuggestedAction, IEquatable<ISuggestedAction>
+    internal partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction, IEquatable<ISuggestedAction>
     {
         protected readonly Workspace Workspace;
         protected readonly ITextBuffer SubjectBuffer;
@@ -28,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         protected readonly object Provider;
         protected readonly CodeAction CodeAction;
-        // protected const int TimeOutMilliseconds = 100;
 
         protected SuggestedAction(
             Workspace workspace,
@@ -114,9 +112,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private IEnumerable<CodeActionOperation> _operations;
         protected async Task<SolutionPreviewResult> GetPreviewResultAsync(CancellationToken cancellationToken)
         {
+            AssertIsForeground();
+
             if (_operations == null)
             {
-                _operations = await this.CodeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false);
+                // We use ConfigureAwait(true) to stay on the UI thread.
+                _operations = await this.CodeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(true);
             }
 
             return EditHandler.GetPreviews(Workspace, _operations, cancellationToken);
@@ -126,21 +127,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             get
             {
-                // var source = new CancellationTokenSource();
-                // var task = Task.Run(async () => await GetPreviewAsync(source.Token).ConfigureAwait(false), source.Token);
-                // var completed = task.Wait(TimeOutMilliseconds, source.Token);
-                // if (completed)
-                // {
-                //     // If the operation completed, then we know whether or not we have a preview.
-                //     return task.Result != null;
-                // }
-                // else
-                // {
-                //     // If the operation did not complete, then we don't know whether or not we have a preview.
-                //     // Return true since we want light bulb to call GetPreviewAsync() in this cases.
-                //     source.Cancel();
-                //     return true;
-                // }
+                // Light bulb will always invoke this property on the UI thread.
+                AssertIsForeground();
 
                 return true;
             }
@@ -148,10 +136,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public virtual async Task<object> GetPreviewAsync(CancellationToken cancellationToken)
         {
+            // Light bulb will always invoke this function on the UI thread.
+            AssertIsForeground();
+
             var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
             var previewContent = await extensionManager.PerformFunctionAsync(Provider, async () =>
             {
-                var previewResult = await GetPreviewResultAsync(cancellationToken).ConfigureAwait(false);
+                // We need to stay on UI thread after GetPreviewResultAsync() so that TakeNextPreviewAsync()
+                // below can execute on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
+                var previewResult = await GetPreviewResultAsync(cancellationToken).ConfigureAwait(true);
                 if (previewResult == null)
                 {
                     return null;
@@ -161,22 +154,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var preferredDocumentId = Workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
                     var preferredProjectid = preferredDocumentId == null ? null : preferredDocumentId.ProjectId;
 
-                    return previewResult.TakeNextPreview(preferredDocumentId, preferredProjectid);
+                    // TakeNextPreviewAsync() needs to run on UI thread.
+                    AssertIsForeground();
+                    return await previewResult.TakeNextPreviewAsync(preferredDocumentId, preferredProjectid, cancellationToken).ConfigureAwait(true);
                 }
-            }).ConfigureAwait(false);
 
-            var optionService = Workspace.Services.GetService<IOptionService>();
-            if (optionService == null || !optionService.GetOption(InternalFeatureOnOffOptions.EnhancedPreviewPane))
-            {
-                return previewContent;
-            }
+                // GetPreviewPane() below needs to run on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
+            }).ConfigureAwait(true);
 
             var previewPaneService = Workspace.Services.GetService<IPreviewPaneService>();
             if (previewPaneService == null)
             {
-                return previewContent;
+                return null;
             }
 
+            // GetPreviewPane() needs to run on the UI thread.
+            AssertIsForeground();
             return previewPaneService.GetPreviewPane(GetDiagnostic(), previewContent);
         }
 
