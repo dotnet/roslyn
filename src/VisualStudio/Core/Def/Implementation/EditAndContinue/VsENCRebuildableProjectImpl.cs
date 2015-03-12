@@ -783,8 +783,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     }
                     else if (_encService.EditSession != null)
                     {
-                        _projectBeingEmitted = _vsProject.VisualStudioWorkspace.CurrentSolution.GetProject(_vsProject.Id);
-                        _lastEditSessionSummary = GetProjectAnalysisSummary(_projectBeingEmitted);
+                        // Fetch the latest snapshot of the project and get an analysis summary for any changes 
+                        // made since the break mode was entered.
+                        var currentProject = _vsProject.VisualStudioWorkspace.CurrentSolution.GetProject(_vsProject.Id);
+                        if (currentProject == null)
+                        {
+                            // If the project has yet to be loaded into the solution (which may be the case,
+                            // since they are loaded on-demand), then it stands to reason that it has not yet
+                            // been modified.
+                            // TODO (https://github.com/dotnet/roslyn/issues/1204): this check should be unnecessary.
+                            _lastEditSessionSummary = ProjectAnalysisSummary.NoChanges;
+                            log.Write($"Project '{_vsProject.DisplayName}' has not yet been loaded into the solution");
+                        }
+                        else
+                        {
+                            _projectBeingEmitted = currentProject;
+                            _lastEditSessionSummary = GetProjectAnalysisSummary(_projectBeingEmitted);
+                        }
                         _encService.EditSession.LogBuildState(_lastEditSessionSummary);
                     }
 
