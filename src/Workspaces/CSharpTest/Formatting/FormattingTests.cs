@@ -6127,19 +6127,26 @@ class Program
     {
         var a = typeof(A);
         var b = M(a);
+        M();
     }
 }";
             const string expected = @"
-[Bar( A = 1, B = 2 )]
+[Bar ( A = 1, B = 2 )]
 class Program
 {
     public void foo()
     {
-        var a = typeof( A );
-        var b = M( a );
+        var a = typeof ( A );
+        var b = M ( a );
+        M ( );
     }
 }";
-            var optionSet = new Dictionary<OptionKey, object> { { CSharpFormattingOptions.SpaceWithinMethodCallParentheses, true } };
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.SpaceWithinMethodCallParentheses, true },
+                { CSharpFormattingOptions.SpaceAfterMethodCallName, true },
+                { CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, true },
+            };
             AssertFormat(expected, code, changedOptionSet: optionSet);
         }
     }

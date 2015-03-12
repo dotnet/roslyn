@@ -69,6 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For spacing in the parenthesis of typeof, treat like a Method Call
+            if (currentKind == SyntaxKind.OpenParenToken && currentParentKind == SyntaxKind.TypeOfExpression)
+            {
+                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceAfterMethodCallName);
+            }
+
             if (previousKind == SyntaxKind.OpenParenToken && previousParentKind == SyntaxKind.TypeOfExpression)
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
