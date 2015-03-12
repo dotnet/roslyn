@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var entireProjectWorkerBackOffTimeSpanInMS = _optionService.GetOption(SolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS);
 
                 _documentAndProjectWorkerProcessor = new IncrementalAnalyzerProcessor(
-                    listener, analyzerProviders, _registration, activeFileBackOffTimeSpanInMS, allFilesWorkerBackOffTimeSpanInMS, entireProjectWorkerBackOffTimeSpanInMS, _shutdownToken);
+                    listener, analyzerProviders, _registration,
+                    activeFileBackOffTimeSpanInMS, allFilesWorkerBackOffTimeSpanInMS, entireProjectWorkerBackOffTimeSpanInMS, _shutdownToken);
 
                 var semanticBackOffTimeSpanInMS = _optionService.GetOption(SolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS);
                 var projectBackOffTimeSpanInMS = _optionService.GetOption(SolutionCrawlerOptions.ProjectPropagationBackOffTimeSpanInMS);
@@ -244,12 +245,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void OnDocumentOpened(object sender, DocumentEventArgs e)
             {
-                EnqueueWorkItem(e.Document, InvocationReasons.DocumentOpened);
+                var asyncToken = _listener.BeginAsyncOperation("OnDocumentOpened");
+                _eventProcessingQueue.ScheduleTask(
+                    () => EnqueueWorkItem(e.Document, InvocationReasons.DocumentOpened), _shutdownToken).CompletesAsyncOperation(asyncToken);
             }
 
             private void OnDocumentClosed(object sender, DocumentEventArgs e)
             {
-                EnqueueWorkItem(e.Document, InvocationReasons.DocumentClosed);
+                var asyncToken = _listener.BeginAsyncOperation("OnDocumentClosed");
+                _eventProcessingQueue.ScheduleTask(
+                    () => EnqueueWorkItem(e.Document, InvocationReasons.DocumentClosed), _shutdownToken).CompletesAsyncOperation(asyncToken);
             }
 
             private void ProcessDocumentEvent(WorkspaceChangeEventArgs e, IAsyncToken asyncToken)
