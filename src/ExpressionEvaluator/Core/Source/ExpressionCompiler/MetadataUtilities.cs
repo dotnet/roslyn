@@ -129,20 +129,23 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     foreach (var handle in reader.AssemblyFiles)
                     {
                         var assemblyFile = reader.GetAssemblyFile(handle);
-                        var name = reader.GetString(assemblyFile.Name);
-                        // Find the assembly file in the set of netmodules with that name.
-                        // The file may be missing if the file is not a module (say a resource)
-                        // or if the module has not been loaded yet. The value will be null
-                        // if the name was ambiguous.
-                        ModuleMetadata module;
-                        if (!modulesByName.TryGetValue(name, out module))
+                        if (assemblyFile.ContainsMetadata)
                         {
-                            // AssemblyFile names may contain file information (".dll", etc).
-                            modulesByName.TryGetValue(GetFileNameWithoutExtension(name), out module);
-                        }
-                        if (module != null)
-                        {
-                            builder.Add(module);
+                            var name = reader.GetString(assemblyFile.Name);
+                            // Find the assembly file in the set of netmodules with that name.
+                            // The file may be missing if the file is not a module (say a resource)
+                            // or if the module has not been loaded yet. The value will be null
+                            // if the name was ambiguous.
+                            ModuleMetadata module;
+                            if (!modulesByName.TryGetValue(name, out module))
+                            {
+                                // AssemblyFile names may contain file information (".dll", etc).
+                                modulesByName.TryGetValue(GetFileNameWithoutExtension(name), out module);
+                            }
+                            if (module != null)
+                            {
+                                builder.Add(module);
+                            }
                         }
                     }
                 }
