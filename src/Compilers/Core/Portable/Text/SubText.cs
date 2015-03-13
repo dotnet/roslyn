@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Text
                 || span.End < 0
                 || span.End > text.Length)
             {
-                throw new ArgumentException(nameof(span));
+                throw new ArgumentException("Value does not fall within the expected range.", nameof(span));
             }
 
             _text = text;

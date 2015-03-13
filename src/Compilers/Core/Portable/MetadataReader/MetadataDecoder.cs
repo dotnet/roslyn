@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(!token.IsNil);
 
-            TypeSymbol type = null;
+            TypeSymbol type;
             HandleKind tokenType = token.Kind;
 
             if (tokenType == HandleKind.TypeDefinition)
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis
             // The resolution scope should be either a type ref, an assembly or a module.
             if (tokenType == HandleKind.TypeReference)
             {
-                TypeSymbol psymContainer = null;
+                TypeSymbol psymContainer;
 
                 psymContainer = GetTypeOfToken(tokenResolutionScope);
 
@@ -489,10 +489,6 @@ namespace Microsoft.CodeAnalysis
                     {
                         isNoPiaLocalType = true;
                     }
-                    else
-                    {
-                        isNoPiaLocalType = false;
-                    }
 
                     return result;
                 }
@@ -509,7 +505,6 @@ namespace Microsoft.CodeAnalysis
                     // invalid metadata?
                     if (containerTypeDef.IsNil)
                     {
-                        isNoPiaLocalType = false;
                         return GetUnsupportedMetadataTypeSymbol();
                     }
 
@@ -525,78 +520,68 @@ namespace Microsoft.CodeAnalysis
 
                         return GetUnsupportedMetadataTypeSymbol();
                     }
-                    else
-                    {
-                        mdName = MetadataTypeName.FromTypeName(name);
-                        return LookupNestedTypeDefSymbol(container, ref mdName);
-                    }
+
+                    mdName = MetadataTypeName.FromTypeName(name);
+                    return LookupNestedTypeDefSymbol(container, ref mdName);
+                }
+
+                string namespaceName = Module.GetTypeDefNamespaceOrThrow(typeDef);
+
+                if (namespaceName.Length > 0)
+                {
+                    mdName = MetadataTypeName.FromNamespaceAndTypeName(namespaceName, name);
                 }
                 else
                 {
-                    string namespaceName = Module.GetTypeDefNamespaceOrThrow(typeDef);
+                    // It is extremely difficult to hit this block because it is executed 
+                    // only for types in the Global namespace and they are getting loaded 
+                    // as soon as we start traversing Symbol Table, therefore, their TypeDef
+                    // handle is getting cached and lookup in the cache succeeds. 
+                    // Probably we can hit it if the first thing we do is to interrogate 
+                    // Module/Assembly level attributes, which refer to a TypeDef in the 
+                    // Global namespace.
+                    mdName = MetadataTypeName.FromTypeName(name);
+                }
 
-                    if (namespaceName.Length > 0)
+                // Check if this is NoPia local type which should be substituted 
+                // with corresponding canonical type
+                string interfaceGuid;
+                string identifier;
+                string scope;
+                if (Module.IsNoPiaLocalType(
+                    typeDef,
+                    out interfaceGuid,
+                    out scope,
+                    out identifier))
+                {
+                    isNoPiaLocalType = true;
+
+                    if (!Module.HasGenericParametersOrThrow(typeDef))
                     {
-                        mdName = MetadataTypeName.FromNamespaceAndTypeName(namespaceName, name);
+                        MetadataTypeName localTypeName = MetadataTypeName.FromNamespaceAndTypeName(mdName.NamespaceName, mdName.TypeName, forcedArity: 0);
+                        result = SubstituteNoPiaLocalType(typeDef,
+                            ref localTypeName,
+                            interfaceGuid,
+                            scope,
+                            identifier);
+                        Debug.Assert((object)result != null);
+                        return result;
                     }
-                    else
+                    
+                    // Unification of generic local types is not supported 
+                    result = GetUnsupportedMetadataTypeSymbol();
+
+                    if (cache != null)
                     {
-                        // It is extremely difficult to hit this block because it is executed 
-                        // only for types in the Global namespace and they are getting loaded 
-                        // as soon as we start traversing Symbol Table, therefore, their TypeDef
-                        // handle is getting cached and lookup in the cache succeeds. 
-                        // Probably we can hit it if the first thing we do is to interrogate 
-                        // Module/Assembly level attributes, which refer to a TypeDef in the 
-                        // Global namespace.
-                        mdName = MetadataTypeName.FromTypeName(name);
-                    }
-
-                    // Check if this is NoPia local type which should be substituted 
-                    // with corresponding canonical type
-                    string interfaceGuid;
-                    string identifier;
-                    string scope;
-                    if (Module.IsNoPiaLocalType(
-                            typeDef,
-                            out interfaceGuid,
-                            out scope,
-                            out identifier))
-                    {
-                        isNoPiaLocalType = true;
-
-                        if (!Module.HasGenericParametersOrThrow(typeDef))
-                        {
-                            MetadataTypeName localTypeName = MetadataTypeName.FromNamespaceAndTypeName(mdName.NamespaceName, mdName.TypeName, forcedArity: 0);
-                            result = SubstituteNoPiaLocalType(typeDef,
-                                                ref localTypeName,
-                                                interfaceGuid,
-                                                scope,
-                                                identifier);
-                            Debug.Assert((object)result != null);
-                            return result;
-                        }
-                        else
-                        {
-                            // Unification of generic local types is not supported 
-                            result = GetUnsupportedMetadataTypeSymbol();
-
-                            if (cache != null)
-                            {
-                                result = cache.GetOrAdd(typeDef, result);
-                            }
-
-                            return result;
-                        }
-                    }
-                    else
-                    {
-                        isNoPiaLocalType = false;
+                        result = cache.GetOrAdd(typeDef, result);
                     }
 
-                    result = LookupTopLevelTypeDefSymbol(ref mdName, out isNoPiaLocalType);
-                    Debug.Assert(!isNoPiaLocalType);
                     return result;
                 }
+
+                result = LookupTopLevelTypeDefSymbol(ref mdName, out isNoPiaLocalType);
+                Debug.Assert(!isNoPiaLocalType);
+                return result;
             }
             catch (BadImageFormatException mrEx)
             {
@@ -719,7 +704,6 @@ namespace Microsoft.CodeAnalysis
 
             // Include signatures with each local.
             signatureReader.Reset();
-            var builder = ArrayBuilder<byte[]>.GetInstance();
             for (int i = 0; i < localCount; i++)
             {
                 int start = offsets[i];

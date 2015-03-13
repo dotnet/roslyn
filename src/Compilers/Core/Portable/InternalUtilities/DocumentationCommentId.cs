@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis
             private static void ParseDeclaredId(string id, ref int index, Compilation compilation, List<ISymbol> results)
             {
                 var kindChar = PeekNextChar(id, index);
-                SymbolKind kind = default(SymbolKind);
+                SymbolKind kind;
 
                 switch (kindChar)
                 {
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis
                     containers.Add(compilation.GlobalNamespace);
 
                     string name;
-                    int arity = 0;
+                    int arity;
 
                     // process dotted names
                     while (true)
@@ -922,12 +922,9 @@ namespace Microsoft.CodeAnalysis
 
                 while (true)
                 {
-                    int lowerBound = 0;
-                    int size = -1;
-
                     if (char.IsDigit(PeekNextChar(id, index)))
                     {
-                        lowerBound = ReadNextInteger(id, ref index);
+                        ReadNextInteger(id, ref index);
                     }
 
                     if (PeekNextChar(id, index) == ':')
@@ -936,7 +933,7 @@ namespace Microsoft.CodeAnalysis
 
                         if (char.IsDigit(PeekNextChar(id, index)))
                         {
-                            size = ReadNextInteger(id, ref index);
+                            ReadNextInteger(id, ref index);
                         }
                     }
 
@@ -947,10 +944,8 @@ namespace Microsoft.CodeAnalysis
                         index++;
                         continue;
                     }
-                    else
-                    {
-                        break;
-                    }
+
+                    break;
                 }
 
                 if (PeekNextChar(id, index) == ']')

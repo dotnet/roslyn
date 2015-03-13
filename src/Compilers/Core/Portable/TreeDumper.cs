@@ -163,35 +163,35 @@ namespace Microsoft.CodeAnalysis
 
         private static string DumperString(object o)
         {
-            string result;
-
             if (o == null)
             {
-                result = "(null)";
-            }
-            else if (o is string)
-            {
-                result = (string)o;
-            }
-            else if (IsDefaultImmutableArray(o))
-            {
-                result = "(null)";
-            }
-            else if (o is IEnumerable)
-            {
-                IEnumerable seq = (IEnumerable)o;
-                result = string.Format("{{{0}}}", string.Join(", ", seq.Cast<object>().Select(DumperString).ToArray()));
-            }
-            else if (o is ISymbol)
-            {
-                result = ((ISymbol)o).ToDisplayString(SymbolDisplayFormat.TestFormat);
-            }
-            else
-            {
-                result = o.ToString();
+                return "(null)";
             }
 
-            return result;
+            var str = o as string;
+            if (str != null)
+            {
+                return str;
+            }
+
+            if (IsDefaultImmutableArray(o))
+            {
+                return "(null)";
+            }
+
+            var seq = o as IEnumerable;
+            if (seq != null)
+            {
+                return string.Format("{{{0}}}", string.Join(", ", seq.Cast<object>().Select(DumperString).ToArray()));
+            }
+
+            var symbol = o as ISymbol;
+            if (symbol != null)
+            {
+                return symbol.ToDisplayString(SymbolDisplayFormat.TestFormat);
+            }
+
+            return o.ToString();
         }
     }
 

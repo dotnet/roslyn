@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (start < 0)
             {
-                throw new ArgumentOutOfRangeException("start");
+                throw new ArgumentOutOfRangeException(nameof(start));
             }
 
             if (start + length < start)
             {
-                throw new ArgumentOutOfRangeException("length");
+                throw new ArgumentOutOfRangeException(nameof(length));
             }
 
             _start = start;
@@ -204,12 +204,12 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (start < 0)
             {
-                throw new ArgumentOutOfRangeException("start", CodeAnalysisResources.StartMustNotBeNegative);
+                throw new ArgumentOutOfRangeException(nameof(start), CodeAnalysisResources.StartMustNotBeNegative);
             }
 
             if (end < start)
             {
-                throw new ArgumentException("end", CodeAnalysisResources.EndMustNotBeLessThanStart);
+                throw new ArgumentException(CodeAnalysisResources.EndMustNotBeLessThanStart, nameof(end));
             }
 
             return new TextSpan(start, end - start);

@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis
                     return null;
                 }
 
-                int i = -1;
+                int i;
                 if (isTypeArgumentWithAssemblyName)
                 {
                     i = _input.IndexOf(']', _offset);

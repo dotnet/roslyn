@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis
             while (n != currentNode);
 
             // ====== rotate unbalanced node if needed
-            AvlNode rotated = null;
+            AvlNode rotated;
             var balance = unbalanced.Balance;
             if (balance == -2)
             {

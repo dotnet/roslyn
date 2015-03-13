@@ -345,7 +345,7 @@ namespace Microsoft.Cci
             // case where usingCounts was empty, but I'm not sure why.
             if (usingCounts.Count > 0)
             {
-                uint streamLength = 0;
+                uint streamLength;
                 cmw.WriteByte(CDI.CdiVersion);
                 cmw.WriteByte(CDI.CdiKindUsingInfo);
                 cmw.Align(4);

@@ -746,7 +746,7 @@ namespace Microsoft.Cci
 
         private uint GetCustomAttributeSignatureIndex(ICustomAttribute customAttribute)
         {
-            uint result = 0;
+            uint result;
             if (_customAtributeSignatureIndex.TryGetValue(customAttribute, out result))
             {
                 return result;
@@ -862,7 +862,7 @@ namespace Microsoft.Cci
 
         internal uint GetFieldSignatureIndex(IFieldReference fieldReference)
         {
-            uint result = 0;
+            uint result;
             ISpecializedFieldReference specializedFieldReference = fieldReference.AsSpecializedFieldReference;
             if (specializedFieldReference != null)
             {
@@ -920,7 +920,7 @@ namespace Microsoft.Cci
         private uint GetFileRefIndex(IModuleReference mref)
         {
             string key = mref.Name;
-            uint result = 0;
+            uint result;
             if (_fileRefIndex.TryGetValue(key, out result))
             {
                 return result;
@@ -1023,7 +1023,7 @@ namespace Microsoft.Cci
             ITypeDefinition parentTypeDef = memberRef.GetContainingType(Context).AsTypeDefinition(Context);
             if (parentTypeDef != null)
             {
-                uint parentTypeDefIndex = 0;
+                uint parentTypeDefIndex;
                 this.TryGetTypeDefIndex(parentTypeDef, out parentTypeDefIndex);
                 if (parentTypeDefIndex > 0)
                 {
@@ -1038,7 +1038,7 @@ namespace Microsoft.Cci
                     {
                         if (methodRef.AcceptsExtraArguments)
                         {
-                            uint methodIndex = 0;
+                            uint methodIndex;
                             if (this.TryGetMethodDefIndex(methodRef.GetResolvedMethod(Context), out methodIndex))
                             {
                                 return (methodIndex << 3) | 3;
@@ -1149,7 +1149,7 @@ namespace Microsoft.Cci
 
         internal uint GetMethodInstanceSignatureIndex(IGenericMethodInstanceReference methodInstanceReference)
         {
-            uint result = 0;
+            uint result;
             if (_methodInstanceSignatureIndex.TryGetValue(methodInstanceReference, out result))
             {
                 return result;
@@ -1172,7 +1172,7 @@ namespace Microsoft.Cci
 
         private uint GetMarshallingDescriptorIndex(IMarshallingInformation marshallingInformation)
         {
-            uint result = 0;
+            uint result;
             if (_marshallingDescriptorIndex.TryGetValue(marshallingInformation, out result))
             {
                 return result;
@@ -1211,7 +1211,7 @@ namespace Microsoft.Cci
 
         internal uint GetMethodSignatureIndex(IMethodReference methodReference)
         {
-            uint result = 0;
+            uint result;
             ISpecializedMethodReference specializedMethodReference = methodReference.AsSpecializedMethodReference;
             if (specializedMethodReference != null)
             {
@@ -1254,7 +1254,7 @@ namespace Microsoft.Cci
 
         internal virtual uint GetMethodToken(IMethodReference methodReference)
         {
-            uint methodDefIndex = 0;
+            uint methodDefIndex;
             IMethodDefinition methodDef = null;
             IUnitReference definingUnit = GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
             if (definingUnit != null && ReferenceEquals(definingUnit, this.module))
@@ -1319,7 +1319,7 @@ namespace Microsoft.Cci
         private uint GetPermissionSetIndex(ImmutableArray<ICustomAttribute> permissionSet)
         {
             MemoryStream sig = MemoryStream.GetInstance();
-            uint result = 0;
+            uint result;
             try
             {
                 BinaryWriter writer = new BinaryWriter(sig);
@@ -1359,7 +1359,7 @@ namespace Microsoft.Cci
 
         private uint GetPropertySignatureIndex(IPropertyDefinition propertyDef)
         {
-            uint result = 0;
+            uint result;
             if (_signatureIndex.TryGetValue(propertyDef, out result))
             {
                 return result;
@@ -1741,7 +1741,7 @@ namespace Microsoft.Cci
 
         private uint GetTypeDefOrRefCodedIndex(ITypeReference typeReference, bool treatRefAsPotentialTypeSpec)
         {
-            uint typeDefIndex = 0;
+            uint typeDefIndex;
             var typeDefinition = typeReference.AsTypeDefinition(this.Context);
             if ((typeDefinition != null) && this.TryGetTypeDefIndex(typeDefinition, out typeDefIndex))
             {
@@ -1860,7 +1860,7 @@ namespace Microsoft.Cci
 
         internal uint GetTypeSpecSignatureIndex(ITypeReference typeReference)
         {
-            uint result = 0;
+            uint result;
             if (_typeSpecSignatureIndex.TryGetValue(typeReference, out result))
             {
                 return result;
@@ -1896,7 +1896,7 @@ namespace Microsoft.Cci
 
         internal virtual uint GetTypeToken(ITypeReference typeReference)
         {
-            uint typeDefIndex = 0;
+            uint typeDefIndex;
             var typeDefinition = typeReference.AsTypeDefinition(this.Context);
             if ((typeDefinition != null) && this.TryGetTypeDefIndex(typeDefinition, out typeDefIndex))
             {

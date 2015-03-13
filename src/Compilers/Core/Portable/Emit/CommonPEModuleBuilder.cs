@@ -450,16 +450,14 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 return _synthesizedDefs.GetOrAdd(container, _ => new SynthesizedDefinitions());
             }
-            else
-            {
-                SynthesizedDefinitions defs;
-                if (!_synthesizedDefs.TryGetValue(container, out defs))
-                {
-                    defs = null;
-                }
 
-                return defs;
+            SynthesizedDefinitions defs;
+            if (!_synthesizedDefs.TryGetValue(container, out defs))
+            {
+                defs = null;
             }
+
+            return defs;
         }
 
         public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IMethodDefinition method)

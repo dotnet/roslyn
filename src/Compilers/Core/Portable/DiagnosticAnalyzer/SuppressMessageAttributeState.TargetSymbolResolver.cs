@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return;
                     }
 
-                    ISymbol singleResult = null;
+                    ISymbol singleResult;
 
                     switch (_scope)
                     {

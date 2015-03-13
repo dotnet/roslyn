@@ -188,10 +188,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return this[0];
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
         public TNode Last()
@@ -205,10 +203,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return this[this.Count - 1];
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
         public bool Contains(TNode node)
@@ -459,10 +455,8 @@ namespace Microsoft.CodeAnalysis
 
                 return new SeparatedSyntaxList<TNode>(nodesWithSeps);
             }
-            else
-            {
-                return this;
-            }
+
+            return this;
         }
 
         /// <summary>
@@ -482,10 +476,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return new SeparatedSyntaxList<TNode>(this.GetWithSeparators().Replace(nodeInList, newNode));
             }
-            else
-            {
-                throw new ArgumentOutOfRangeException(nameof(nodeInList));
-            }
+
+            throw new ArgumentOutOfRangeException(nameof(nodeInList));
         }
 
         /// <summary>
@@ -516,15 +508,11 @@ namespace Microsoft.CodeAnalysis
                     newNodeList.RemoveAt(0);
                     return listWithFirstReplaced.InsertRange(index + 1, newNodeList);
                 }
-                else
-                {
-                    return listWithFirstReplaced;
-                }
+
+                return listWithFirstReplaced;
             }
-            else
-            {
-                throw new ArgumentException("nodeInList");
-            }
+
+            throw new ArgumentOutOfRangeException(nameof(nodeInList));
         }
 
         /// <summary>

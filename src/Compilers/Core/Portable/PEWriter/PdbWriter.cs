@@ -464,9 +464,9 @@ namespace Microsoft.Cci
 
         private string SerializeVisualBasicImportTypeReference(ITypeReference typeReference)
         {
-            Debug.Assert(typeReference as IArrayTypeReference == null);
-            Debug.Assert(typeReference as IPointerTypeReference == null);
-            Debug.Assert(typeReference as IManagedPointerTypeReference == null);
+            Debug.Assert(!(typeReference is IArrayTypeReference));
+            Debug.Assert(!(typeReference is IPointerTypeReference));
+            Debug.Assert(!(typeReference is IManagedPointerTypeReference));
             Debug.Assert(!typeReference.IsTypeSpecification());
 
             var result = PooledStringBuilder.GetInstance();

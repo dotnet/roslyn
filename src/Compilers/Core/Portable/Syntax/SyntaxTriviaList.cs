@@ -172,7 +172,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Does this list have any items.
         /// </summary>
-        /// <returns></returns>
         public bool Any()
         {
             return _node != null;
@@ -246,7 +245,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (trivia == default(SyntaxTrivia))
             {
-                throw new ArgumentException("trivia");
+                throw new ArgumentOutOfRangeException(nameof(trivia));
             }
 
             return InsertRange(index, new[] { trivia });
