@@ -203,12 +203,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         string directoryPath = Path.GetDirectoryName(loadedAssemblyFullPath);
 
-                        if (!string.IsNullOrEmpty(requestedAssemblyIdentity.CultureName))
-                        {
-                            directoryPath = Path.Combine(directoryPath, requestedAssemblyIdentity.CultureName);
-                        }
-
-                        string candidateAssemblyFullPath = Path.Combine(directoryPath, requestedAssemblyIdentity.Name + ".dll");
+                        string candidateAssemblyFullPath = AssemblyPathHelper.GetCandidatePath(directoryPath, requestedAssemblyIdentity);
 
                         AssemblyIdentity candidateAssemblyIdentity = TryGetAssemblyIdentity(candidateAssemblyFullPath);
 
@@ -264,13 +259,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     string directoryPath = Path.GetDirectoryName(requestingAssemblyFullPath);
-
-                    if (!string.IsNullOrEmpty(assemblyIdentity.CultureName))
-                    {
-                        directoryPath = Path.Combine(directoryPath, assemblyIdentity.CultureName);
-                    }
-
-                    string assemblyFullPath = Path.Combine(directoryPath, assemblyIdentity.Name + ".dll");
+                    string assemblyFullPath = AssemblyPathHelper.GetCandidatePath(directoryPath, assemblyIdentity);
                     if (!File.Exists(assemblyFullPath))
                     {
                         return null;
