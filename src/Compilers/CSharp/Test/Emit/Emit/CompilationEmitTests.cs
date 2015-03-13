@@ -2681,5 +2681,51 @@ class Viewable
             Assert.Equal(1, err.Arguments.Count);
             Assert.True(((string)err.Arguments[0]).EndsWith(" HRESULT: 0x806D0004", StringComparison.Ordinal));
         }
+
+        [Fact]
+        public void MultipleNetmodulesWithPrivateImplementationDetails()
+        {
+            var s1 = @"
+public class A
+{
+    private static char[] contents = { 'H', 'e', 'l', 'l', 'o', ',', ' ' };
+    public static string M1()
+    {
+        return new string(contents);
+    }
+}";
+            var s2 = @"
+public class B : A
+{
+    private static char[] contents = { 'w', 'o', 'r', 'l', 'd', '!' };
+    public static string M2()
+    {
+        return new string(contents);
+    }
+}";
+            var s3 = @"
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        System.Console.Write(A.M1());
+        System.Console.WriteLine(B.M2());
+    }
+}";
+            var comp1 = CreateCompilationWithMscorlib(s1, options: TestOptions.ReleaseModule);
+            comp1.VerifyDiagnostics();
+            var ref1 = ModuleMetadata.CreateFromStream(comp1.EmitToStream()).GetReference();
+
+            var comp2 = CreateCompilationWithMscorlib(s2, options: TestOptions.ReleaseModule, references: new[] { ref1 });
+            comp2.VerifyDiagnostics();
+            var ref2 = ModuleMetadata.CreateFromStream(comp2.EmitToStream()).GetReference();
+
+            var comp3 = CreateCompilationWithMscorlib(s3, options: TestOptions.ReleaseExe, references: new[] { ref1, ref2 });
+            comp3.VerifyDiagnostics(
+                ////// error CS0101: The namespace '<global namespace>' already contains a definition for '<PrivateImplementationDetails>'
+                ////Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("<PrivateImplementationDetails>", "<global namespace>").WithLocation(1, 1)
+                );
+            CompileAndVerify(comp3, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "Hello, world!");
+        }
     }
 }

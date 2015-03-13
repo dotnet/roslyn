@@ -5241,7 +5241,7 @@ class AllMembers
   IL_005b:  ldc.i4.5
   IL_005c:  newarr     ""int""
   IL_0061:  dup
-  IL_0062:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-864782BF337E3DBC1A27023D5C0C065C80F17087""
+  IL_0062:  ldtoken    ""<PrivateImplementationDetails><MODULE>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails><MODULE>.864782BF337E3DBC1A27023D5C0C065C80F17087""
   IL_0067:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_006c:  ldloc.0
   IL_006d:  ldftn      ""bool AllMembers.<>c__DisplayClass3_0.<TestLINQ>b__0(int)""
