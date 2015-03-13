@@ -120,10 +120,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return SyntaxUtilities.TryGetMethodDeclarationBody(node);
         }
 
-        protected override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model, SyntaxNode body)
+        protected override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model, SyntaxNode memberBody)
         {
-            Debug.Assert(body.IsKind(SyntaxKind.Block) || body is ExpressionSyntax);
-            return model.AnalyzeDataFlow(body).Captured;
+            Debug.Assert(memberBody.IsKind(SyntaxKind.Block) || memberBody is ExpressionSyntax);
+            return model.AnalyzeDataFlow(memberBody).Captured;
         }
 
         internal override bool HasParameterClosureScope(ISymbol member)
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             while (node != root)
             {
                 SyntaxNode body;
-                if (SyntaxUtilities.IsLambdaBodyStatementOrExpression(node, out body))
+                if (CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(node, out body))
                 {
                     return body;
                 }
@@ -880,17 +880,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override bool ContainsLambda(SyntaxNode declaration)
         {
-            return declaration.DescendantNodes().Any(SyntaxUtilities.IsLambda);
+            return declaration.DescendantNodes().Any(CompilerSyntaxUtilities.IsLambda);
         }
 
         internal override bool IsLambda(SyntaxNode node)
         {
-            return SyntaxUtilities.IsLambda(node);
+            return CompilerSyntaxUtilities.IsLambda(node);
         }
 
         internal override bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2)
         {
-            return SyntaxUtilities.TryGetLambdaBodies(node, out body1, out body2);
+            return CompilerSyntaxUtilities.TryGetLambdaBodies(node, out body1, out body2);
+        }
+
+        internal override SyntaxNode GetLambda(SyntaxNode lambdaBody)
+        {
+            return CompilerSyntaxUtilities.GetLambda(lambdaBody);
         }
 
         #endregion

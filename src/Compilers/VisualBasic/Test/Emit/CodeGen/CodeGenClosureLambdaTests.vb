@@ -3824,7 +3824,7 @@ Class C
                      Join c4 In {4} On G(Function() c4) Equals G(Function() c1) And G(Function() c4) Equals G(Function() c2)
                      Group Join c5 In {5} On G(Function() c5) Equals G(Function() c4) Into a1 = Count(G(Function() c1)), Group
                      Let e3 = G(Function() a1), e4 = G(Function() Group.First())
-                     Group e4 = G(Function() e3), e5 = G(Function() e4 + 1) By e6 = G(Function() e3), e7 = G(Function() e4 + 2) Into a2 = Count(G(Function() e4 + 3)), a3 = LongCount(G(Function() e4 + 4))
+                     Group e4 = G(Function() e3), e5 = G(Function() e4 + 1) By e6 = G(Function() e3), e7 = G(Function() e4 + 2) Into a2 = Count(G(Function() e4 + 3)), a3 = LongCount(G(Function() e4 + 4)), Group
                      Aggregate c6 In {6}, c7 In {7} From c8 In {8} Select G(Function() c6 + c7 + c8) Into a4 = Sum(G(Function() e6 + 9))
                      Where G(Function() e6) > 0
                      Take While G(Function() e6) > 0

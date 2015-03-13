@@ -160,26 +160,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Protected Overrides Function GetCapturedVariables(model As SemanticModel, body As SyntaxNode) As ImmutableArray(Of ISymbol)
-            Dim methodBlock = TryCast(body, MethodBlockBaseSyntax)
+        Protected Overrides Function GetCapturedVariables(model As SemanticModel, memberBody As SyntaxNode) As ImmutableArray(Of ISymbol)
+            Dim methodBlock = TryCast(memberBody, MethodBlockBaseSyntax)
             If methodBlock IsNot Nothing Then
                 Return model.AnalyzeDataFlow(methodBlock.BlockStatement, methodBlock.EndBlockStatement).Captured
             End If
 
-            Dim expression = TryCast(body, ExpressionSyntax)
+            Dim expression = TryCast(memberBody, ExpressionSyntax)
             If expression IsNot Nothing Then
                 Return model.AnalyzeDataFlow(expression).Captured
             End If
 
             ' Edge case, no need to be efficient, currently there can either be no captured variables or just "Me".
             ' Dim a((Function(n) n + 1).Invoke(1), (Function(n) n + 2).Invoke(2)) As Integer
-            Dim arrayBounds = TryCast(body, ArgumentListSyntax)
+            Dim arrayBounds = TryCast(memberBody, ArgumentListSyntax)
             If arrayBounds IsNot Nothing Then
                 Return ImmutableArray.CreateRange(
                     arrayBounds.Arguments.SelectMany(Function(argument) model.AnalyzeDataFlow(argument).Captured).Distinct())
             End If
 
-            Throw ExceptionUtilities.UnexpectedValue(body)
+            Throw ExceptionUtilities.UnexpectedValue(memberBody)
         End Function
 
         Friend Overrides Function HasParameterClosureScope(member As ISymbol) As Boolean
@@ -419,7 +419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             While node IsNot declarationBody AndAlso
                   Not StatementSyntaxComparer.HasLabel(node) AndAlso
-                  Not SyntaxUtilities.IsLambdaBodyStatementOrExpression(node)
+                  Not CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(node)
 
                 node = node.Parent
                 If partnerOpt IsNot Nothing Then
@@ -444,12 +444,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return Function(newNode) SyntaxUtilities.FindPartner(newRoot, oldRoot, newNode)
         End Function
 
+        Friend Overrides Function IsClosureScope(node As SyntaxNode) As Boolean
+            Return CompilerSyntaxUtilities.IsClosureScope(node)
+        End Function
+
         Protected Overrides Function FindEnclosingLambdaBody(containerOpt As SyntaxNode, node As SyntaxNode) As SyntaxNode
             Dim root As SyntaxNode = GetEncompassingAncestor(containerOpt)
 
             While node IsNot root
                 Dim body As SyntaxNode = Nothing
-                If SyntaxUtilities.IsLambdaBodyStatementOrExpression(node, body) Then
+                If CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(node, body) Then
                     Return body
                 End If
 
@@ -922,15 +926,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Friend Overrides Function ContainsLambda(declaration As SyntaxNode) As Boolean
-            Return declaration.DescendantNodes().Any(AddressOf SyntaxUtilities.IsLambda)
+            Return declaration.DescendantNodes().Any(AddressOf CompilerSyntaxUtilities.IsLambda)
         End Function
 
         Friend Overrides Function IsLambda(node As SyntaxNode) As Boolean
-            Return SyntaxUtilities.IsLambda(node)
+            Return CompilerSyntaxUtilities.IsLambda(node)
         End Function
 
         Friend Overrides Function TryGetLambdaBodies(node As SyntaxNode, ByRef body1 As SyntaxNode, ByRef body2 As SyntaxNode) As Boolean
-            Return SyntaxUtilities.TryGetLambdaBodies(node, body1, body2)
+            Return CompilerSyntaxUtilities.TryGetLambdaBodies(node, body1, body2)
+        End Function
+
+        Friend Overrides Function GetLambda(lambdaBody As SyntaxNode) As SyntaxNode
+            Return CompilerSyntaxUtilities.GetLambda(lambdaBody)
         End Function
 
         Protected Overrides Function GetLambdaBodyNodes(lambdaBody As SyntaxNode) As SyntaxList(Of SyntaxNode)
@@ -2696,7 +2704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End Select
 
                 ' stop at lambda
-                If SyntaxUtilities.IsLambda(kind) Then
+                If CompilerSyntaxUtilities.IsLambda(node) Then
                     Exit While
                 End If
 
@@ -2815,7 +2823,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return node
                 End Select
 
-                If SyntaxUtilities.IsLambdaBodyStatementOrExpression(node) Then
+                If CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(node) Then
                     Return node
                 End If
 
@@ -2959,11 +2967,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 areSimilar:=Function(n1, n2) SyntaxFactory.AreEquivalent(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                                          DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
         End Sub
-
-        Friend Overrides Function IsClosureScope(node As SyntaxNode) As Boolean
-            ' TODO
-            Return False
-        End Function
 #End Region
     End Class
 End Namespace

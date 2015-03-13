@@ -4,13 +4,14 @@ Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports CompilerSyntaxUtilities = Microsoft.CodeAnalysis.VisualBasic.SyntaxUtilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
     Friend NotInheritable Class SyntaxUtilities
         <Conditional("DEBUG")>
         Public Shared Sub AssertIsBody(syntax As SyntaxNode, allowLambda As Boolean)
             ' lambda/query
-            If IsLambdaBody(syntax) Then
+            If CompilerSyntaxUtilities.IsLambdaBody(syntax) Then
                 Debug.Assert(allowLambda)
                 Debug.Assert(TypeOf syntax Is ExpressionSyntax OrElse TypeOf syntax Is LambdaHeaderSyntax)
                 Return
@@ -53,15 +54,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Debug.Assert(False)
         End Sub
 
-        ''' <summary>
-        ''' Returns true if the node represents a lambda body.
-        ''' The body may comprise of a single expression or a sequence of statements.
-        ''' </summary>
-        Public Shared Function IsLambdaBody(node As SyntaxNode) As Boolean
-            Dim body As SyntaxNode = Nothing
-            Return IsLambdaBodyStatementOrExpression(node, body) AndAlso node Is body
-        End Function
-
         Public Shared Function GetBody(node As LambdaExpressionSyntax) As SyntaxList(Of SyntaxNode)
             Select Case node.Kind
                 Case SyntaxKind.MultiLineFunctionLambdaExpression, SyntaxKind.MultiLineSubLambdaExpression
@@ -71,115 +63,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(node.Kind)
             End Select
-        End Function
-
-        ''' <summary>
-        ''' Returns true if the specified <paramref name="node"/> is a statement whose parent is a <see cref="LambdaExpressionSyntax"/>,
-        ''' or and expression of a query lambda. Returns the node that represents the body of the lambda in <paramref name="body"/>.
-        ''' </summary>
-        ''' <remarks>
-        ''' VB lambda bodies may be sequences of statements with the first statement representing the body.
-        ''' Whenever we need to check whether a node is a lambda body node we should use this method.
-        ''' </remarks>
-        Public Shared Function IsLambdaBodyStatementOrExpression(node As SyntaxNode, <Out> Optional ByRef body As SyntaxNode = Nothing) As Boolean
-            Dim parent = node?.Parent
-            If parent Is Nothing Then
-                body = Nothing
-                Return False
-            End If
-
-            Dim body1 As SyntaxNode = Nothing
-            Dim body2 As SyntaxNode = Nothing
-
-            Dim result = TryGetLambdaBodies(parent, body1, body2)
-            body = If(node Is body2, body2, body1)
-            Return result
-        End Function
-
-        Public Shared Function TryGetLambdaBodies(node As SyntaxNode, <Out> ByRef body1 As SyntaxNode, <Out> ByRef body2 As SyntaxNode) As Boolean
-            body1 = Nothing
-            body2 = Nothing
-
-            Select Case node.Kind
-                Case SyntaxKind.MultiLineFunctionLambdaExpression,
-                     SyntaxKind.SingleLineFunctionLambdaExpression,
-                     SyntaxKind.MultiLineSubLambdaExpression,
-                     SyntaxKind.SingleLineSubLambdaExpression
-                    ' The header of the lambda represents its body.
-                    body1 = DirectCast(node, LambdaExpressionSyntax).SubOrFunctionHeader
-                    Return True
-
-                Case SyntaxKind.WhereClause
-                    body1 = DirectCast(node, WhereClauseSyntax).Condition
-                    Return True
-
-                ' source sequence in From and Aggregate (other than the first in the query)
-                Case SyntaxKind.CollectionRangeVariable
-                    Dim collectionRange = DirectCast(node, CollectionRangeVariableSyntax)
-                    If IsFirstInQuery(collectionRange) Then
-                        Return False
-                    End If
-
-                    body1 = collectionRange.Expression
-                    Return True
-
-                ' function call in Group By, Group Join, Aggregate: the argument 
-                Case SyntaxKind.FunctionAggregation
-                    body1 = DirectCast(node, FunctionAggregationSyntax).Argument
-                    Return True
-
-                ' variable in Let, Select, Group By: the RHS
-                Case SyntaxKind.ExpressionRangeVariable
-                    body1 = DirectCast(node, ExpressionRangeVariableSyntax).Expression
-                    Return True
-
-                Case SyntaxKind.TakeWhileClause,
-                     SyntaxKind.SkipWhileClause
-                    body1 = DirectCast(node, PartitionWhileClauseSyntax).Condition
-                    Return True
-
-                Case SyntaxKind.AscendingOrdering,
-                     SyntaxKind.DescendingOrdering
-                    body1 = DirectCast(node, OrderingSyntax).Expression
-                    Return True
-
-                Case SyntaxKind.JoinCondition
-                    Dim joinCondition = DirectCast(node, JoinConditionSyntax)
-                    body1 = joinCondition.Left
-                    body2 = joinCondition.Right
-                    Return True
-            End Select
-
-            Debug.Assert(Not IsLambda(node))
-            Return False
-        End Function
-
-        ' TODO(tomat): similar check is needed in breakpoint spans
-        Friend Shared Function IsFirstInQuery(collectionRangeVariable As CollectionRangeVariableSyntax) As Boolean
-            Dim parent = collectionRangeVariable.Parent
-
-            Dim query = DirectCast(parent.Parent, QueryExpressionSyntax)
-            If query.Clauses.First() Is parent Then
-                Return True
-            End If
-
-            Dim variables As SeparatedSyntaxList(Of CollectionRangeVariableSyntax)
-
-            Select Case parent.Kind
-                Case SyntaxKind.FromClause
-                    variables = DirectCast(parent, FromClauseSyntax).Variables
-
-                Case SyntaxKind.AggregateClause
-                    variables = DirectCast(parent, AggregateClauseSyntax).Variables
-
-                Case SyntaxKind.GroupJoinClause, SyntaxKind.SimpleJoinClause
-                    variables = DirectCast(parent, JoinClauseSyntax).JoinedVariables
-
-                Case Else
-                    Throw ExceptionUtilities.Unreachable
-            End Select
-
-            Return variables.IndexOf(collectionRangeVariable) = 0
         End Function
 
         Public Shared Sub FindLeafNodeAndPartner(leftRoot As SyntaxNode,
@@ -227,35 +110,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return rightNode
         End Function
 
-        Public Shared Function IsNotLambda(node As SyntaxNode) As Boolean
-            Return Not IsLambda(node.Kind())
-        End Function
-
-        Public Shared Function IsLambda(node As SyntaxNode) As Boolean
-            Return IsLambda(node.Kind())
-        End Function
-
-        Public Shared Function IsLambda(kind As SyntaxKind) As Boolean
-            Select Case kind
-                Case SyntaxKind.MultiLineFunctionLambdaExpression,
-                     SyntaxKind.SingleLineFunctionLambdaExpression,
-                     SyntaxKind.MultiLineSubLambdaExpression,
-                     SyntaxKind.SingleLineSubLambdaExpression,
-                     SyntaxKind.WhereClause,
-                     SyntaxKind.CollectionRangeVariable,
-                     SyntaxKind.FunctionAggregation,
-                     SyntaxKind.ExpressionRangeVariable,
-                     SyntaxKind.TakeWhileClause,
-                     SyntaxKind.SkipWhileClause,
-                     SyntaxKind.AscendingOrdering,
-                     SyntaxKind.DescendingOrdering,
-                     SyntaxKind.JoinCondition
-                    Return True
-            End Select
-
-            Return False
-        End Function
-
         Public Shared Function IsMethod(declaration As SyntaxNode) As Boolean
             Select Case declaration.Kind
                 Case SyntaxKind.SubBlock,
@@ -298,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Public Shared Function GetAwaitExpressions(body As SyntaxNode) As ImmutableArray(Of SyntaxNode)
             ' skip lambda bodies
-            Return ImmutableArray.CreateRange(body.DescendantNodes(Function(n) IsNotLambda(n)).
+            Return ImmutableArray.CreateRange(body.DescendantNodes(AddressOf CompilerSyntaxUtilities.IsNotLambda).
                 Where(Function(n) n.IsKind(SyntaxKind.AwaitExpression)))
         End Function
 

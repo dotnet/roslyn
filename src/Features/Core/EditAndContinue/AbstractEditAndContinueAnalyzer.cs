@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Analyzes data flow in the member body represented by the specified node and returns all captured variables and parameters (including "this").
         /// If the body is a field/property initializer analyzes the initializer expression only.
         /// </summary>
-        protected abstract ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model, SyntaxNode body);
+        protected abstract ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model, SyntaxNode memberBody);
 
         /// <summary>
         /// Enumerates all use sites of a specified variable within the specified syntax subtrees.
@@ -234,13 +234,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract bool IsLambda(SyntaxNode node);
         internal abstract bool IsClosureScope(SyntaxNode node);
         internal abstract bool ContainsLambda(SyntaxNode declaration);
-
-        private SyntaxNode GetLambda(SyntaxNode lambdaBody)
-        {
-            var lambda = lambdaBody.Parent;
-            Debug.Assert(IsLambda(lambda));
-            return lambda;
-        }
+        internal abstract SyntaxNode GetLambda(SyntaxNode lambdaBody);
 
         /// <summary>
         /// Returns true if the parameters of the symbol are lifted into a scope that is different from the symbol's body.
