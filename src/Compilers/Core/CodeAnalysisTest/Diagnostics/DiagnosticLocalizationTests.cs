@@ -356,17 +356,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private class ThrowingLocalizableString : LocalizableString
         {
-            public override bool Equals(LocalizableString other)
+            protected override bool AreEqual(object other)
             {
                 throw new NotImplementedException();
             }
 
-            public override int GetHashCode()
+            protected override int GetHash()
             {
                 throw new NotImplementedException();
             }
 
-            public override string ToString(IFormatProvider formatProvider)
+            protected override string GetText(IFormatProvider formatProvider)
             {
                 throw new NotImplementedException();
             }
