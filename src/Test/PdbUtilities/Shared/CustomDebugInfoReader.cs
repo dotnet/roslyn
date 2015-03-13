@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.DiaSymReader;
 using CDI = Microsoft.Cci.CustomDebugInfoConstants;
 
 #pragma warning disable RS0010 // Avoid using cref tags with a prefix
 
-namespace Microsoft.VisualStudio.SymReaderInterop
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// A collection of utility method for consuming custom debug info from a PDB.
