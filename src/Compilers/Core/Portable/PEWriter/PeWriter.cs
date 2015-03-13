@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -875,8 +874,8 @@ namespace Microsoft.Cci
             uint k = offset + 16 + n * 8;
             for (int i = 0; i < n; i++)
             {
-                int id = int.MinValue;
-                string name = null;
+                int id;
+                string name;
                 uint nameOffset = dataWriter.BaseStream.Position + sizeOfDirectoryTree;
                 uint directoryOffset = k;
                 Directory subDir = directory.Entries[i] as Directory;
@@ -985,7 +984,7 @@ namespace Microsoft.Cci
             var savedPosition = _win32ResourceWriter.BaseStream.Position;
 
             var readStream = new System.IO.MemoryStream(resourceSections.SectionBytes);
-            var reader = new System.IO.BinaryReader(readStream);
+            var reader = new BinaryReader(readStream);
 
             foreach (int addressToFixup in resourceSections.Relocations)
             {
@@ -1047,7 +1046,7 @@ namespace Microsoft.Cci
 
             // COFF Header 20 bytes
             writer.WriteUshort((ushort)module.Machine);
-            writer.WriteUshort((ushort)ntHeader.NumberOfSections);
+            writer.WriteUshort(ntHeader.NumberOfSections);
             timestampOffset = (uint)(writer.BaseStream.Position + peStream.Position);
             writer.WriteUint(ntHeader.TimeDateStamp);
             writer.WriteUint(ntHeader.PointerToSymbolTable);

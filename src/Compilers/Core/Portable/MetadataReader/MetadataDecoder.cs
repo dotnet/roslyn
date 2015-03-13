@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis
                         ppSig.TryReadCompressedInteger(out _);
                     }
 
-                    typeSymbol = GetArrayTypeSymbol((int)countOfDimensions, typeSymbol);
+                    typeSymbol = GetArrayTypeSymbol(countOfDimensions, typeSymbol);
                     break;
 
                 case SignatureTypeCode.SZArray:
@@ -427,38 +427,37 @@ namespace Microsoft.CodeAnalysis
             // The resolution scope should be either a type ref, an assembly or a module.
             if (tokenType == HandleKind.TypeReference)
             {
-                TypeSymbol psymContainer;
-
-                psymContainer = GetTypeOfToken(tokenResolutionScope);
+                TypeSymbol psymContainer = GetTypeOfToken(tokenResolutionScope);
 
                 Debug.Assert(fullName.NamespaceName.Length == 0);
                 isNoPiaLocalType = false;
                 return LookupNestedTypeDefSymbol(psymContainer, ref fullName);
             }
-            else if (tokenType == HandleKind.AssemblyReference)
+
+            if (tokenType == HandleKind.AssemblyReference)
             {
                 // TODO: Can refer to the containing assembly?
                 isNoPiaLocalType = false;
                 return LookupTopLevelTypeDefSymbol(Module.GetAssemblyReferenceIndexOrThrow((AssemblyReferenceHandle)tokenResolutionScope), ref fullName);
             }
-            else if (tokenType == HandleKind.ModuleReference)
+
+            if (tokenType == HandleKind.ModuleReference)
             {
                 return LookupTopLevelTypeDefSymbol(Module.GetModuleRefNameOrThrow((ModuleReferenceHandle)tokenResolutionScope),
-                                                   ref fullName,
-                                                   out isNoPiaLocalType);
+                    ref fullName,
+                    out isNoPiaLocalType);
             }
-            else if (tokenResolutionScope == Handle.ModuleDefinition)
+
+            if (tokenResolutionScope == Handle.ModuleDefinition)
             {
                 // The last case is a little bit strange.  Here, the TypeRef's TypeDef
                 // lives in the same module as the TypeRef itself.  This is represented
                 // as a resolution scope of 0x00000001.
                 return LookupTopLevelTypeDefSymbol(ref fullName, out isNoPiaLocalType);
             }
-            else
-            {
-                isNoPiaLocalType = false;
-                return GetUnsupportedMetadataTypeSymbol();
-            }
+
+            isNoPiaLocalType = false;
+            return GetUnsupportedMetadataTypeSymbol();
         }
 
         private TypeSymbol GetTypeOfTypeDef(TypeDefinitionHandle typeDef)
@@ -926,7 +925,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var signature = Module.GetPropertySignatureOrThrow(handle);
                 SignatureHeader signatureHeader;
-                BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
+                DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
                 return signatureHeader;
             }
             catch (BadImageFormatException)

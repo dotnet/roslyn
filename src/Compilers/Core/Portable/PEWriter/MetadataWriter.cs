@@ -11,7 +11,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -440,8 +439,8 @@ namespace Microsoft.Cci
         // There is no guarantee the types actually exist in a cor library
         internal static readonly string dummyAssemblyAttributeParentNamespace = "System.Runtime.CompilerServices";
         internal static readonly string dummyAssemblyAttributeParentName = "AssemblyAttributesGoHere";
-        internal static readonly string[,] dummyAssemblyAttributeParentQualifier = new string[2, 2] { { "", "M" }, { "S", "SM" } };
-        private readonly uint[,] _dummyAssemblyAttributeParent = new uint[2, 2] { { 0, 0 }, { 0, 0 } };
+        internal static readonly string[,] dummyAssemblyAttributeParentQualifier = { { "", "M" }, { "S", "SM" } };
+        private readonly uint[,] _dummyAssemblyAttributeParent = { { 0, 0 }, { 0, 0 } };
 
         internal const int MappedFieldDataAlignment = 8;
 
@@ -1266,17 +1265,15 @@ namespace Microsoft.Cci
             {
                 return 0x06000000 | methodDefIndex;
             }
+
+            IGenericMethodInstanceReference methodSpec = methodReference.AsGenericMethodInstanceReference;
+            if (methodSpec != null)
+            {
+                return 0x2B000000 | this.GetMethodSpecIndex(methodSpec);
+            }
             else
             {
-                IGenericMethodInstanceReference methodSpec = methodReference.AsGenericMethodInstanceReference;
-                if (methodSpec != null)
-                {
-                    return 0x2B000000 | this.GetMethodSpecIndex(methodSpec);
-                }
-                else
-                {
-                    return 0x0A000000 | this.GetMemberRefIndex(methodReference);
-                }
+                return 0x0A000000 | this.GetMemberRefIndex(methodReference);
             }
         }
 
@@ -2641,7 +2638,7 @@ namespace Microsoft.Cci
                 // at multi-module assembly build time.
                 AddAssemblyAttributesToTable(
                     this.module.AssemblySecurityAttributes.Select(sa => sa.Attribute),
-                    writingNetModule,   // needsDummyParent
+                    true,               // needsDummyParent
                     true);              // isSecurity
             }
 
@@ -2882,8 +2879,8 @@ namespace Microsoft.Cci
                 foreach (ITypeExport typeExport in this.module.GetExportedTypes(Context))
                 {
                     ITypeReference exportedType = typeExport.ExportedType;
-                    INestedTypeReference nestedRef = null;
-                    INamespaceTypeReference namespaceTypeRef = null;
+                    INestedTypeReference nestedRef;
+                    INamespaceTypeReference namespaceTypeRef;
                     ExportedTypeRow r = new ExportedTypeRow();
                     r.TypeDefId = (uint)MetadataTokens.GetToken(exportedType.TypeDef);
                     if ((namespaceTypeRef = exportedType.AsNamespaceTypeReference) != null)
@@ -3660,8 +3657,8 @@ namespace Microsoft.Cci
                 heapSizes |= (HeapSizeFlag.EnCDeltas | HeapSizeFlag.DeletedMarks);
             }
 
-            ulong validTables = 0;
-            ulong sortedTables = 0;
+            ulong validTables;
+            ulong sortedTables;
             ComputeValidAndSortedMasks(metadataSizes, out validTables, out sortedTables);
 
             writer.WriteUint(0); // reserved
@@ -4969,14 +4966,11 @@ namespace Microsoft.Cci
                                 this.SerializeTypeName(pointerTypeReference, writer);
                                 return;
                             }
-                            else
-                            {
-                                writer.WriteByte(0x0f);
-                                typeReference = pointerTypeReference.GetTargetType(Context);
-                                noTokens = false;
-                                treatRefAsPotentialTypeSpec = true;
-                                continue;
-                            }
+
+                            writer.WriteByte(0x0f);
+                            typeReference = pointerTypeReference.GetTargetType(Context);
+                            treatRefAsPotentialTypeSpec = true;
+                            continue;
                         }
 
                         break;
@@ -4989,14 +4983,11 @@ namespace Microsoft.Cci
                                 this.SerializeTypeName(managedPointerTypeReference, writer);
                                 return;
                             }
-                            else
-                            {
-                                writer.WriteByte(0x10);
-                                typeReference = managedPointerTypeReference.GetTargetType(Context);
-                                noTokens = false;
-                                treatRefAsPotentialTypeSpec = true;
-                                continue;
-                            }
+
+                            writer.WriteByte(0x10);
+                            typeReference = managedPointerTypeReference.GetTargetType(Context);
+                            treatRefAsPotentialTypeSpec = true;
+                            continue;
                         }
 
                         break;
@@ -5019,7 +5010,8 @@ namespace Microsoft.Cci
                     writer.WriteCompressedUInt(numberOfInheritedParameters + genericTypeParameterReference.Index);
                     return;
                 }
-                else if ((arrayTypeReference = typeReference as IArrayTypeReference) != null && !arrayTypeReference.IsVector)
+
+                if ((arrayTypeReference = typeReference as IArrayTypeReference) != null && !arrayTypeReference.IsVector)
                 {
                     Debug.Assert(noTokens == false, "Custom attributes cannot have multi-dimensional arrays");
 
@@ -5040,12 +5032,14 @@ namespace Microsoft.Cci
 
                     return;
                 }
-                else if (module.IsPlatformType(typeReference, PlatformType.SystemTypedReference))
+
+                if (module.IsPlatformType(typeReference, PlatformType.SystemTypedReference))
                 {
                     writer.WriteByte(0x16);
                     return;
                 }
-                else if (module.IsPlatformType(typeReference, PlatformType.SystemObject))
+
+                if (module.IsPlatformType(typeReference, PlatformType.SystemObject))
                 {
                     if (noTokens)
                     {
@@ -5058,20 +5052,23 @@ namespace Microsoft.Cci
 
                     return;
                 }
-                else if (arrayTypeReference != null && arrayTypeReference.IsVector)
+
+                if (arrayTypeReference != null && arrayTypeReference.IsVector)
                 {
                     writer.WriteByte(0x1d);
                     typeReference = arrayTypeReference.GetElementType(Context);
                     treatRefAsPotentialTypeSpec = true;
                     continue;
                 }
-                else if ((genericMethodParameterReference = typeReference.AsGenericMethodParameterReference) != null)
+
+                if ((genericMethodParameterReference = typeReference.AsGenericMethodParameterReference) != null)
                 {
                     writer.WriteByte(0x1e);
                     writer.WriteCompressedUInt(genericMethodParameterReference.Index);
                     return;
                 }
-                else if (!noTokens && typeReference.IsTypeSpecification() && treatRefAsPotentialTypeSpec)
+
+                if (!noTokens && typeReference.IsTypeSpecification() && treatRefAsPotentialTypeSpec)
                 {
                     ITypeReference uninstantiatedTypeReference = typeReference.GetUninstantiatedGenericType();
 

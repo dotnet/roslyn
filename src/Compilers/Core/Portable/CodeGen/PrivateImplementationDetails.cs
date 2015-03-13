@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override IEnumerable<Cci.INestedTypeDefinition> GetNestedTypes(EmitContext context)
         {
             Debug.Assert(IsFrozen);
-            return System.Linq.Enumerable.OfType<ExplicitSizeStruct>(_orderedProxyTypes);
+            return Enumerable.OfType<ExplicitSizeStruct>(_orderedProxyTypes);
         }
 
         public override string ToString() => this.Name;
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override void Dispatch(Cci.MetadataVisitor visitor)
         {
-            visitor.Visit((Cci.INamespaceTypeDefinition)this);
+            visitor.Visit(this);
         }
 
         public override Cci.INamespaceTypeDefinition AsNamespaceTypeDefinition(EmitContext context) => this;
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         override public void Dispatch(Cci.MetadataVisitor visitor)
         {
-            visitor.Visit((Cci.INestedTypeDefinition)this);
+            visitor.Visit(this);
         }
 
         public string Name => "__StaticArrayInitTypeSize=" + _size;
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public void Dispatch(Cci.MetadataVisitor visitor)
         {
-            visitor.Visit((Cci.IFieldDefinition)this);
+            visitor.Visit(this);
         }
 
         public Cci.IDefinition AsDefinition(EmitContext context)

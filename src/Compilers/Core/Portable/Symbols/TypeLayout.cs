@@ -3,7 +3,6 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis
 
         public TypeLayout(LayoutKind kind, int size, byte alignment)
         {
-            Debug.Assert(size >= 0 && alignment >= 0 && (int)kind >= 0 && (int)kind <= 3);
+            Debug.Assert(size >= 0 && (int)kind >= 0 && (int)kind <= 3);
 
             // we want LayoutKind.Auto to be the default layout for default(TypeLayout):
             Debug.Assert(LayoutKind.Sequential == 0);

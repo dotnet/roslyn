@@ -146,7 +146,6 @@ namespace Microsoft.CodeAnalysis
             // References originating from #r directives precede references supplied as arguments of the compilation.
             int referenceCount = references.Length;
             int referenceDirectiveCount = (referenceDirectiveLocations != null ? referenceDirectiveLocations.Length : 0);
-            int externalReferenceCount = referenceCount - referenceDirectiveCount;
 
             var referenceMap = new ResolvedReference[referenceCount];
 
@@ -389,7 +388,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            Metadata newMetadata = null;
+            Metadata newMetadata;
             Diagnostic newDiagnostic = null;
             try
             {

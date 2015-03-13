@@ -163,12 +163,14 @@ namespace Roslyn.Utilities
             {
                 return byte0;
             }
-            else if (marker == Byte2Marker)
+
+            if (marker == Byte2Marker)
             {
                 var byte1 = _reader.ReadByte();
                 return (((uint)byte0) << 8) | byte1;
             }
-            else if (marker == Byte4Marker)
+
+            if (marker == Byte4Marker)
             {
                 var byte1 = _reader.ReadByte();
                 var byte2 = _reader.ReadByte();
@@ -176,10 +178,8 @@ namespace Roslyn.Utilities
 
                 return (((uint)byte0) << 24) | (((uint)byte1) << 16) | (((uint)byte2) << 8) | byte3;
             }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(marker);
-            }
+
+            throw ExceptionUtilities.UnexpectedValue(marker);
         }
 
         /// <summary>
@@ -262,15 +262,13 @@ namespace Roslyn.Utilities
         /// </summary>
         public string ReadString()
         {
-            DataKind kind = (DataKind)_reader.ReadByte();
+            var kind = (DataKind)_reader.ReadByte();
             if (kind == DataKind.Null)
             {
                 return null;
             }
-            else
-            {
-                return ReadString(kind);
-            }
+
+            return ReadString(kind);
         }
 
         private string ReadString(DataKind kind)
@@ -336,7 +334,6 @@ namespace Roslyn.Utilities
                 case DataKind.Array_3:
                     length = 3;
                     break;
-                case DataKind.Array:
                 default:
                     length = (int)this.ReadCompressedUInt();
                     break;

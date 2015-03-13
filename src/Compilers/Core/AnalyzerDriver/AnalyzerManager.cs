@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             new ConditionalWeakTable<Compilation, ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>>();
 
         private readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>>.CreateValueCallback _compilationScopeMapCallback =
-            new ConditionalWeakTable<Compilation, ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>>.CreateValueCallback(
-                comp => new ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>(concurrencyLevel: 2, capacity: 5));
+            comp => new ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>(concurrencyLevel: 2, capacity: 5);
 
         /// <summary>
         /// Cache descriptors for each diagnostic analyzer. We do this since <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> is
@@ -258,11 +257,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     isSuppressed = diagnosticOptions[diag.Id] == ReportDiagnostic.Suppress;
                 }
 
-                if (isSuppressed)
-                {
-                    continue;
-                }
-                else
+                if (!isSuppressed)
                 {
                     return false;
                 }

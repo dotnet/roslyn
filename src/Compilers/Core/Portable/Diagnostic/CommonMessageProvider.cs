@@ -126,7 +126,6 @@ namespace Microsoft.CodeAnalysis
                     return diagnosticInfo.GetInstanceWithSeverity(DiagnosticSeverity.Hidden);
                 case ReportDiagnostic.Suppress:
                     return null;
-                case ReportDiagnostic.Default:
                 default:
                     return diagnosticInfo;
             }
