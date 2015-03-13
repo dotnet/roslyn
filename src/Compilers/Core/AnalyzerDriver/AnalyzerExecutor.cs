@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             executableNodeActions.Free();
 
             ExecuteCodeBlockActions(blockActions, declaredNode, declaredSymbol, semanticModel);
-            ExecuteCodeBlockActions(blockEndActions, declaredNode, declaredSymbol, semanticModel);           
+            ExecuteCodeBlockActions(blockEndActions, declaredNode, declaredSymbol, semanticModel);
         }
 
         private void ExecuteCodeBlockActions(PooledHashSet<CodeBlockAnalyzerAction> blockActions, SyntaxNode declaredNode, ISymbol declaredSymbol, SemanticModel semanticModel)
@@ -459,24 +459,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 analyze();
             }
-            catch (Exception e)
+            catch (Exception e) when (!IsCanceled(e, cancellationToken))
             {
                 // Diagnostic for analyzer exception.
                 var diagnostic = GetAnalyzerExceptionDiagnostic(analyzer, e);
-                if (diagnostic != null)
-                {
-                    onAnalyzerException(e, analyzer, diagnostic);
-                }
+                onAnalyzerException(e, analyzer, diagnostic);
             }
+        }
+
+        internal static bool IsCanceled(Exception ex, CancellationToken cancellationToken)
+        {
+            return (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
         }
 
         internal static Diagnostic GetAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Exception e)
         {
-            if (e is OperationCanceledException)
-            {
-                return null;
-            }
-
             var descriptor = new DiagnosticDescriptor(AnalyzerExceptionDiagnosticId,
                 AnalyzerDriverResources.AnalyzerFailure,
                 AnalyzerDriverResources.AnalyzerThrows,

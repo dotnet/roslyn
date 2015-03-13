@@ -4,13 +4,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
@@ -160,6 +163,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         protected override bool CanNodeBeSimplifiedWithoutSpeculation(SyntaxNode node)
         {
             return false;
+        }
+
+        private static readonly string CS8019_UnusedUsingDirective = "CS8019";
+
+        protected override void GetUnusedNamespaceImports(SemanticModel model, HashSet<SyntaxNode> namespaceImports, CancellationToken cancellationToken)
+        {
+            var root = model.SyntaxTree.GetRoot();
+            var diagnostics = model.GetDiagnostics(cancellationToken: cancellationToken);
+
+            foreach (var diagnostic in diagnostics)
+            {
+                if (diagnostic.Id == CS8019_UnusedUsingDirective)
+                {
+                    var node = root.FindNode(diagnostic.Location.SourceSpan) as UsingDirectiveSyntax;
+
+                    if (node != null)
+                    {
+                        namespaceImports.Add(node);
+                    }
+                }
+            }
         }
     }
 }

@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundTryCast
+    Friend Partial Class BoundTryCast
 
         Public Sub New(
             syntax As VisualBasicSyntaxNode,

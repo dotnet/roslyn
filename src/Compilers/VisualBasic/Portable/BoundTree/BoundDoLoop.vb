@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Class BoundDoLoopStatement
+    Friend Partial Class BoundDoLoopStatement
 
         ''' <summary>
         ''' Gets a value indicating whether this do loop is a DoTopLoop or not. In syntax error cases

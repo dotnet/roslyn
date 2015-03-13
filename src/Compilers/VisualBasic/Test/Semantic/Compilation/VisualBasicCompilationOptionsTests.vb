@@ -558,5 +558,16 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
                          deserializedCompilationOptions.ExtendedCustomDebugInformation)
         End Sub
 
+        <Fact>
+        Public Sub WithCryptoPublicKey()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
+
+            Assert.Equal(ImmutableArray(Of Byte).Empty, options.CryptoPublicKey)
+            Assert.Equal(ImmutableArray(Of Byte).Empty, options.WithCryptoPublicKey(Nothing).CryptoPublicKey)
+
+            Assert.Same(options, options.WithCryptoPublicKey(Nothing))
+            Assert.Same(options, options.WithCryptoPublicKey(ImmutableArray(Of Byte).Empty))
+        End Sub
+
     End Class
 End Namespace

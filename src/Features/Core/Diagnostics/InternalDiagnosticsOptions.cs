@@ -13,5 +13,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [ExportOption]
         public static readonly Option<bool> UseDiagnosticEngineV2 = new Option<bool>(OptionName, "Use Diagnostic Engine V2", defaultValue: false);
+
+        [ExportOption]
+        public static readonly Option<bool> CompilationEndCodeFix = new Option<bool>(OptionName, "Enable Compilation End Code Fix", defaultValue: true);
+
+        [ExportOption]
+        public static readonly Option<bool> UseCompilationEndCodeFixHeuristic = new Option<bool>(OptionName, "Enable Compilation End Code Fix With Heuristic", defaultValue: true);
     }
 }

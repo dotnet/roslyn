@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundBinaryConditionalExpression
+    Friend Partial Class BoundBinaryConditionalExpression
 
 #If DEBUG Then
         Private Sub Validate()

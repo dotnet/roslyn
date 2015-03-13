@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Const IsLocalScopeEndInclusive = True
 
         Friend ReadOnly MetadataBlocks As ImmutableArray(Of MetadataBlock)
-        Friend ReadOnly MethodScope As MethodScope
+        Friend ReadOnly MethodContextReuseConstraints As MethodContextReuseConstraints?
         Friend ReadOnly Compilation As VisualBasicCompilation
 
         Private ReadOnly _metadataDecoder As MetadataDecoder
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Sub New(
             metadataBlocks As ImmutableArray(Of MetadataBlock),
-            methodScope As MethodScope,
+            methodContextReuseConstraints As MethodContextReuseConstraints?,
             compilation As VisualBasicCompilation,
             metadataDecoder As MetadataDecoder,
             currentFrame As MethodSymbol,
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             methodDebugInfo As MethodDebugInfo)
 
             Me.MetadataBlocks = metadataBlocks
-            Me.MethodScope = methodScope
+            Me.MethodContextReuseConstraints = methodContextReuseConstraints
             Me.Compilation = compilation
             _metadataDecoder = metadataDecoder
             _currentFrame = currentFrame
@@ -123,17 +123,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Debug.Assert(MetadataTokens.Handle(methodToken).Kind = HandleKind.MethodDefinition)
 
-            Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader)
-            Dim scopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
-            typedSymReader.GetScopes(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, scopes)
-            Dim scope = scopes.GetMethodScope(methodToken, methodVersion)
-
             ' Re-use the previous compilation if possible.
             Dim compilation As VisualBasicCompilation
             If metadataBlocks.HaveNotChanged(previous) Then
                 ' Re-use entire context if method scope has not changed.
                 Dim previousContext = previous.EvaluationContext
-                If (scope IsNot Nothing) AndAlso (previousContext IsNot Nothing) AndAlso scope.Equals(previousContext.MethodScope) Then
+                If previousContext IsNot Nothing AndAlso
+                    previousContext.MethodContextReuseConstraints.HasValue AndAlso
+                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(methodToken, methodVersion, ilOffset) Then
                     Return previousContext
                 End If
                 compilation = previous.Compilation
@@ -141,25 +138,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 compilation = metadataBlocks.ToCompilation()
             End If
 
+            Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader)
+            Dim allScopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
+            Dim containingScopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
+            typedSymReader.GetScopes(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes)
+            Dim reuseConstraints = allScopes.GetReuseConstraints(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive)
+            allScopes.Free()
+
             Dim methodHandle = CType(MetadataTokens.Handle(methodToken), MethodDefinitionHandle)
             Dim currentFrame = compilation.GetMethod(moduleVersionId, methodHandle)
             Debug.Assert(currentFrame IsNot Nothing)
             Dim metadataDecoder = New MetadataDecoder(DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
             Dim hoistedLocalFieldNames As ImmutableHashSet(Of String) = Nothing
-            Dim localNames = GetLocalNames(scopes, hoistedLocalFieldNames)
+            Dim localNames = GetLocalNames(containingScopes, hoistedLocalFieldNames)
             Dim localInfo = metadataDecoder.GetLocalInfo(localSignatureToken)
             Dim localBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
             GetLocals(localBuilder, currentFrame, localNames, localInfo)
             GetStaticLocals(localBuilder, currentFrame, methodHandle, metadataDecoder)
-            GetConstants(localBuilder, currentFrame, scopes.GetConstantSignatures(), metadataDecoder)
-            scopes.Free()
+            GetConstants(localBuilder, currentFrame, containingScopes.GetConstantSignatures(), metadataDecoder)
+            containingScopes.Free()
             Dim locals = localBuilder.ToImmutableAndFree()
 
             Dim methodDebugInfo As MethodDebugInfo
             If IsDteeEntryPoint(currentFrame) Then
                 methodDebugInfo = SynthesizeMethodDebugInfoForDtee(lazyAssemblyReaders.Value)
             ElseIf typedSymReader IsNot Nothing Then
-                ' TODO (acasey): Switch on the type of typedSymReader and call the appropriate helper. (GH #702)
+                ' TODO (https://github.com/dotnet/roslyn/issues/702): Switch on the type of typedSymReader and call the appropriate helper.
                 methodDebugInfo = typedSymReader.GetMethodDebugInfo(methodToken, methodVersion)
             Else
                 methodDebugInfo = Nothing
@@ -167,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Return New EvaluationContext(
                 metadataBlocks,
-                scope,
+                reuseConstraints,
                 compilation,
                 metadataDecoder,
                 currentFrame,
@@ -283,7 +287,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim importRecordGroups = ImmutableArray.Create(projectLevelImportRecords, fileLevelImportRecords)
 
-            Return New MethodDebugInfo(importRecordGroups, ImmutableArray(Of ExternAliasRecord).Empty, defaultNamespaceName:="")
+            Return New MethodDebugInfo(
+                hoistedLocalScopeRecords:=ImmutableArray(Of HoistedLocalScopeRecord).Empty,
+                importRecordGroups:=importRecordGroups,
+                defaultNamespaceName:="",
+                externAliasRecords:=ImmutableArray(Of ExternAliasRecord).Empty,
+                dynamicLocalMap:=ImmutableDictionary(Of Integer, ImmutableArray(Of Boolean)).Empty,
+                dynamicLocalConstantMap:=ImmutableDictionary(Of String, ImmutableArray(Of Boolean)).Empty)
         End Function
 
         Friend Function CreateCompilationContext(syntax As ExecutableStatementSyntax) As CompilationContext
@@ -338,7 +348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Cci.PeWriter.WritePeToStream(
                         New EmitContext(DirectCast(moduleBuilder, Cci.IModule), Nothing, diagnostics),
                         context.MessageProvider,
-                        stream,
+                        Function() stream,
                         nativePdbWriterOpt:=Nothing,
                         allowMissingMethodBodies:=False,
                         deterministic:=False,
@@ -395,7 +405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Cci.PeWriter.WritePeToStream(
                         New EmitContext(DirectCast(modulebuilder, Cci.IModule), Nothing, diagnostics),
                         context.MessageProvider,
-                        stream,
+                        Function() stream,
                         nativePdbWriterOpt:=Nothing,
                         allowMissingMethodBodies:=False,
                         deterministic:=False,
@@ -443,7 +453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Cci.PeWriter.WritePeToStream(
                         New EmitContext(DirectCast(modulebuilder, Cci.IModule), Nothing, diagnostics),
                         context.MessageProvider,
-                        stream,
+                        Function() stream,
                         nativePdbWriterOpt:=Nothing,
                         allowMissingMethodBodies:=False,
                         deterministic:=False,

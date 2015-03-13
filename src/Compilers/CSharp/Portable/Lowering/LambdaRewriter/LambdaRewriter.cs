@@ -995,14 +995,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, node);
                 closureKind = ClosureKind.Static;
-                closureOrdinal = -1;
+                closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
             }
             else
             {
                 containerAsFrame = null;
                 translatedLambdaContainer = _topLevelMethod.ContainingType;
                 closureKind = ClosureKind.ThisOnly;
-                closureOrdinal = -1;
+                closureOrdinal = LambdaDebugInfo.ThisOnlyClosureOrdinal;
             }
 
             // Move the body of the lambda to a freshly generated synthetic method on its frame.

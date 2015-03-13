@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' An array consisting of just the Friend keyword.
-        Private Shared FriendKeyword As SyntaxKind() = {SyntaxKind.FriendKeyword}
+        Private Shared s_friendKeyword As SyntaxKind() = {SyntaxKind.FriendKeyword}
 
         ' Report an error on the first keyword to match one of the given kinds.
         Public Sub ReportModifierError(modifiers As SyntaxTokenList,
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Special case: Report "Protected Friend" as error combination if 
             ' Protected is bad and both Protected and Friend found inside modifiers.
             If badKeyword.Kind = SyntaxKind.ProtectedKeyword Then
-                Dim friendToken = FindFirstKeyword(modifiers, FriendKeyword)
+                Dim friendToken = FindFirstKeyword(modifiers, s_friendKeyword)
                 If friendToken.Kind <> SyntaxKind.None Then
                     Dim startLoc As Integer = Math.Min(badKeyword.SpanStart, friendToken.SpanStart)
                     Dim endLoc As Integer = Math.Max(badKeyword.Span.End, friendToken.Span.End)
@@ -391,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Flags to specify where the decoding of the modified identifier's type happens.
         ''' </summary>
         <Flags()>
-        Enum ModifiedIdentifierTypeDecoderContext
+        Public Enum ModifiedIdentifierTypeDecoderContext
             ''' <summary>
             ''' No context given (default).
             ''' </summary>
@@ -798,7 +798,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SourceMemberFlags.None,
                     parametersSyntax,
                     params,
-                    CheckDelegateParameterModifierCallback,
+                    s_checkDelegateParameterModifierCallback,
                     diagBag)
 
             ' no checks for the parameters:
@@ -836,7 +836,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim modifierValidator As CheckParameterModifierDelegate = Nothing
 
             If methodSymbol IsNot Nothing AndAlso methodSymbol.IsUserDefinedOperator() Then
-                modifierValidator = CheckOperatorParameterModifierCallback
+                modifierValidator = s_checkOperatorParameterModifierCallback
             End If
 
             DecodeParameterList(
@@ -885,7 +885,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Shared ReadOnly CheckOperatorParameterModifierCallback As CheckParameterModifierDelegate = AddressOf CheckOperatorParameterModifier
+        Private Shared ReadOnly s_checkOperatorParameterModifierCallback As CheckParameterModifierDelegate = AddressOf CheckOperatorParameterModifier
 
         Private Shared Function CheckOperatorParameterModifier(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As DiagnosticBag) As SourceParameterFlags
             If (flag And SourceParameterFlags.ByRef) <> 0 Then
@@ -926,7 +926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SourceMemberFlags.None,
                     syntaxOpt.Parameters,
                     params,
-                    CheckPropertyParameterModifierCallback,
+                    s_checkPropertyParameterModifierCallback,
                     diagBag)
 
             For i = 0 To params.Count - 1
@@ -948,7 +948,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Shared ReadOnly CheckPropertyParameterModifierCallback As CheckParameterModifierDelegate = AddressOf CheckPropertyParameterModifier
+        Private Shared ReadOnly s_checkPropertyParameterModifierCallback As CheckParameterModifierDelegate = AddressOf CheckPropertyParameterModifier
 
         Private Shared Function CheckPropertyParameterModifier(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As DiagnosticBag) As SourceParameterFlags
             If flag = SourceParameterFlags.ByRef Then
@@ -1104,7 +1104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' An array consisting of just the NotInheritable keyword.
-        Private Shared NotInheritableKeyword As SyntaxKind() = {SyntaxKind.NotInheritableKeyword}
+        Private Shared s_notInheritableKeyword As SyntaxKind() = {SyntaxKind.NotInheritableKeyword}
 
         ''' <summary>
         ''' Modifier validation code shared between properties and methods.
@@ -1176,7 +1176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' does not have NotInheritable, then only MustOverride has an error reported for it, and the error has a different code.
 
                     Dim containingTypeBLock = GetContainingTypeBlock(modifierList.First())
-                    If containingTypeBLock IsNot Nothing AndAlso FindFirstKeyword(containingTypeBLock.BlockStatement.Modifiers, NotInheritableKeyword).Kind = SyntaxKind.None Then
+                    If containingTypeBLock IsNot Nothing AndAlso FindFirstKeyword(containingTypeBLock.BlockStatement.Modifiers, s_notInheritableKeyword).Kind = SyntaxKind.None Then
                         ' Containing type block doesn't have a NotInheritable modifier on it. Must be from other partial declaration.
 
                         If (flags And SourceMemberFlags.InvalidInNotInheritableOtherPartialClass) <> 0 Then

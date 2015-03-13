@@ -91,8 +91,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return comp
         End Function
 
-        Protected Shared Function GetSymbolNamesSortedAndJoined(Of T As ISymbol)(symbols As IEnumerable(Of T)) As String
-            Return If(Not symbols.IsEmpty(), String.Join(", ", symbols.Select(Function(symbol) symbol.Name).OrderBy(Function(name) name)), Nothing)
+        Protected Shared Function GetSymbolNamesJoined(Of T As ISymbol)(symbols As IEnumerable(Of T)) As String
+            Return If(Not symbols.IsEmpty(), String.Join(", ", symbols.Select(Function(symbol) symbol.Name)), Nothing)
         End Function
 
         Protected Function AnalyseControlFlow(model As SemanticModel,

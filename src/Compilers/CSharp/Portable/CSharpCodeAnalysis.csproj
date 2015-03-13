@@ -348,7 +348,7 @@
     <Compile Include="FlowAnalysis\AlwaysAssignedWalker.cs" />
     <Compile Include="FlowAnalysis\ControlFlowAnalysis.cs" />
     <Compile Include="FlowAnalysis\ControlFlowPass.cs" />
-    <Compile Include="FlowAnalysis\DataFlowAnalysis.cs" />
+    <Compile Include="FlowAnalysis\CSharpDataFlowAnalysis.cs" />
     <Compile Include="FlowAnalysis\DataFlowPass.cs" />
     <Compile Include="FlowAnalysis\DataFlowPass.VariableIdentifier.cs" />
     <Compile Include="FlowAnalysis\DataFlowsInWalker.cs" />

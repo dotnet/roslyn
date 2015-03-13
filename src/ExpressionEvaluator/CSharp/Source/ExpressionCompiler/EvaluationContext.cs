@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal const bool IsLocalScopeEndInclusive = false;
 
         internal readonly ImmutableArray<MetadataBlock> MetadataBlocks;
-        internal readonly MethodScope MethodScope;
+        internal readonly MethodContextReuseConstraints? MethodContextReuseConstraints;
         internal readonly CSharpCompilation Compilation;
 
         private readonly MetadataDecoder _metadataDecoder;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private EvaluationContext(
             ImmutableArray<MetadataBlock> metadataBlocks,
-            MethodScope methodScope,
+            MethodContextReuseConstraints? methodContextReuseConstraints,
             CSharpCompilation compilation,
             MetadataDecoder metadataDecoder,
             MethodSymbol currentFrame,
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(inScopeHoistedLocalIndices != null);
 
             this.MetadataBlocks = metadataBlocks;
-            this.MethodScope = methodScope;
+            this.MethodContextReuseConstraints = methodContextReuseConstraints;
             this.Compilation = compilation;
             _metadataDecoder = metadataDecoder;
             _currentFrame = currentFrame;
@@ -121,18 +121,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             Debug.Assert(MetadataTokens.Handle(methodToken).Kind == HandleKind.MethodDefinition);
 
-            var typedSymReader = (ISymUnmanagedReader)symReader;
-            var scopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
-            typedSymReader.GetScopes(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, scopes);
-            var scope = scopes.GetMethodScope(methodToken, methodVersion);
-
             // Re-use the previous compilation if possible.
             CSharpCompilation compilation;
             if (metadataBlocks.HaveNotChanged(previous))
             {
                 // Re-use entire context if method scope has not changed.
                 var previousContext = previous.EvaluationContext;
-                if ((scope != null) && (previousContext != null) && scope.Equals(previousContext.MethodScope))
+                if (previousContext != null &&
+                    previousContext.MethodContextReuseConstraints.HasValue &&
+                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(methodToken, methodVersion, ilOffset))
                 {
                     return previousContext;
                 }
@@ -143,10 +140,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 compilation = metadataBlocks.ToCompilation();
             }
 
-            var localNames = scopes.GetLocalNames();
+            var typedSymReader = (ISymUnmanagedReader)symReader;
+            var allScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
+            var containingScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
+            typedSymReader.GetScopes(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes);
+            var methodContextReuseConstraints = allScopes.GetReuseConstraints(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive);
+            allScopes.Free();
 
-            var dynamicLocalMap = ImmutableDictionary<int, ImmutableArray<bool>>.Empty;
-            var dynamicLocalConstantMap = ImmutableDictionary<string, ImmutableArray<bool>>.Empty;
+            var localNames = containingScopes.GetLocalNames();
+
             var inScopeHoistedLocalIndices = ImmutableSortedSet<int>.Empty;
             var methodDebugInfo = default(MethodDebugInfo);
 
@@ -154,26 +156,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 try
                 {
-                    var cdi = typedSymReader.GetCustomDebugInfoBytes(methodToken, methodVersion);
-                    if (cdi != null)
-                    {
-                        CustomDebugInfoReader.GetCSharpDynamicLocalInfo(
-                            cdi,
-                            methodToken,
-                            methodVersion,
-                            localNames.FirstOrDefault(),
-                            out dynamicLocalMap,
-                            out dynamicLocalConstantMap);
-
-                        inScopeHoistedLocalIndices = CustomDebugInfoReader.GetCSharpInScopeHoistedLocalIndices(
-                            cdi,
-                            methodToken,
-                            methodVersion,
-                            ilOffset);
-                    }
-
-                    // TODO (acasey): switch on the type of typedSymReader and call the appropriate helper. (GH #702)
-                    methodDebugInfo = typedSymReader.GetMethodDebugInfo(methodToken, methodVersion);
+                    // TODO (https://github.com/dotnet/roslyn/issues/702): switch on the type of typedSymReader and call the appropriate helper.
+                    methodDebugInfo = typedSymReader.GetMethodDebugInfo(methodToken, methodVersion, localNames.FirstOrDefault());
+                    inScopeHoistedLocalIndices = methodDebugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref methodContextReuseConstraints);
                 }
                 catch (InvalidOperationException)
                 {
@@ -188,15 +173,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var localInfo = metadataDecoder.GetLocalInfo(localSignatureToken);
             var localBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             var sourceAssembly = compilation.SourceAssembly;
-            GetLocals(localBuilder, currentFrame, localNames, localInfo, dynamicLocalMap, sourceAssembly);
-            GetConstants(localBuilder, currentFrame, scopes.GetConstantSignatures(), metadataDecoder, dynamicLocalConstantMap, sourceAssembly);
-            scopes.Free();
+            GetLocals(localBuilder, currentFrame, localNames, localInfo, methodDebugInfo.DynamicLocalMap, sourceAssembly);
+            GetConstants(localBuilder, currentFrame, containingScopes.GetConstantSignatures(), metadataDecoder, methodDebugInfo.DynamicLocalConstantMap, sourceAssembly);
+            containingScopes.Free();
 
             var locals = localBuilder.ToImmutableAndFree();
 
             return new EvaluationContext(
                 metadataBlocks,
-                scope,
+                methodContextReuseConstraints,
                 compilation,
                 metadataDecoder,
                 currentFrame,
@@ -254,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     Cci.PeWriter.WritePeToStream(
                         new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
                         context.MessageProvider,
-                        stream,
+                        () => stream,
                         nativePdbWriterOpt: null,
                         allowMissingMethodBodies: false,
                         deterministic: false,
@@ -354,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     Cci.PeWriter.WritePeToStream(
                         new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
                         context.MessageProvider,
-                        stream,
+                        () => stream,
                         nativePdbWriterOpt: null,
                         allowMissingMethodBodies: false,
                         deterministic: false,
@@ -403,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     Cci.PeWriter.WritePeToStream(
                         new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
                         context.MessageProvider,
-                        stream,
+                        () => stream,
                         nativePdbWriterOpt: null,
                         allowMissingMethodBodies: false,
                         deterministic: false,
@@ -478,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
 
                 ImmutableArray<bool> dynamicFlags;
-                if (dynamicLocalMap.TryGetValue(i, out dynamicFlags))
+                if (dynamicLocalMap != null && dynamicLocalMap.TryGetValue(i, out dynamicFlags))
                 {
                     type = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(
                         type,
@@ -510,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var type = info.Type;
 
                 ImmutableArray<bool> dynamicFlags;
-                if (dynamicLocalConstantMap.TryGetValue(constant.Name, out dynamicFlags))
+                if (dynamicLocalConstantMap != null && dynamicLocalConstantMap.TryGetValue(constant.Name, out dynamicFlags))
                 {
                     type = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(
                         type,

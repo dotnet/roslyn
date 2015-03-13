@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' PERF: Using Byte instead of SpecialType because we want the compiler to use array literal initialization.
         '       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-        Private ReadOnly Table(,,) As Byte
+        Private ReadOnly s_table(,,) As Byte
 
         Sub New()
             ' */
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Const NUM_OPERATORS As Integer = 10
 
             '// RHS->    bad     bool    i1      ui1     i2      ui2     i4      ui4     i8      ui8     dec     r4      r8      date    char    str     ref
-            Table = New Byte(NUM_OPERATORS - 1, TYPE_NUM - 1, TYPE_NUM - 1) _
+            s_table = New Byte(NUM_OPERATORS - 1, TYPE_NUM - 1, TYPE_NUM - 1) _
             {
                 {  ' Addition
                    {t_bad, t_bad, t_bad, t_bad, t_bad, t_bad, t_bad, t_bad, t_bad, t_bad, t_bad, t_bad, t_bad, t_bad, t_bad, t_bad, t_bad},
@@ -344,7 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Throw ExceptionUtilities.UnexpectedValue(opcode)
             End Select
 
-            Return CType(Table(whichTable, TypeCodeToIndex(left), TypeCodeToIndex(right)), SpecialType)
+            Return CType(s_table(whichTable, TypeCodeToIndex(left), TypeCodeToIndex(right)), SpecialType)
         End Function
     End Module
 

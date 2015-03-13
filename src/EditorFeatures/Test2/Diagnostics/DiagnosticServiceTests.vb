@@ -8,6 +8,8 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.EngineV1
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 Imports Xunit.Sdk
@@ -434,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Assert.Equal(1, diagnostics.Count())
                 Dim diagnostic = diagnostics.First()
                 Assert.True(AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(diagnostic.ToDiagnostic(document.GetSyntaxTreeAsync().Result)))
-                Assert.Contains("CodeBlockStartedAnalyzer", diagnostic.Message)
+                Assert.Contains("CodeBlockStartedAnalyzer", diagnostic.Message, StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -593,6 +595,11 @@ class AnonymousFunctions
 
             Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' turn off heuristic
+                Dim options = workspace.Services.GetService(Of IOptionService)()
+                options.SetOptions(options.GetOptions.WithChangedOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic, False))
+
                 Dim analyzer = New CompilationEndedAnalyzer
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
                 project = project.AddAnalyzerReference(analyzerReference)
@@ -603,17 +610,21 @@ class AnonymousFunctions
                 Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
-                ' Ask for document diagnostics multiple times, and verify compilation diagnostics are not reported.
+                ' Ask for document diagnostics multiple times, and verify compilation diagnostics are reported.
                 Dim document = project.Documents.Single()
+
                 Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(0, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(0, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(0, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
                 ' Verify compilation diagnostics are reported with correct location info when asked for project diagnostics.
                 Dim projectDiagnostics = diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
@@ -1124,7 +1135,7 @@ public class B
                 Me.indexOfDeclToReportDiagnostic = indexOfDeclToReportDiagnostic
             End Sub
 
-            Public Shared ReadOnly DiagDescriptor As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("DummyDiagnostic")
+            Public Shared ReadOnly DiagDescriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic")
 
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
@@ -1168,7 +1179,7 @@ public class B
         Private Class CodeBlockStartedAnalyzer(Of TLanguageKindEnum As Structure)
             Inherits DiagnosticAnalyzer
 
-            Public Shared Descriptor As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("DummyDiagnostic")
+            Public Shared Descriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic")
 
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
@@ -1196,7 +1207,7 @@ public class B
         Private Class CodeBlockEndedAnalyzer
             Inherits DiagnosticAnalyzer
 
-            Public Shared Descriptor As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("DummyDiagnostic")
+            Public Shared Descriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic")
 
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
@@ -1222,7 +1233,7 @@ public class B
         Private Class CodeBlockStartedAndEndedAnalyzer(Of TLanguageKindEnum As Structure)
             Inherits DiagnosticAnalyzer
 
-            Public Shared Descriptor As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("DummyDiagnostic")
+            Public Shared Descriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic")
 
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
@@ -1248,7 +1259,7 @@ public class B
         Private Class CompilationEndedAnalyzer
             Inherits DiagnosticAnalyzer
 
-            Public Shared Descriptor As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("CompilationEndedAnalyzerDiagnostic")
+            Public Shared Descriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("CompilationEndedAnalyzerDiagnostic")
 
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
@@ -1312,12 +1323,12 @@ public class B
 
             Private ReadOnly _isCodeBlockAnalyzer As Boolean
 
-            Public Shared Desciptor1 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("CodeBlockDiagnostic")
-            Public Shared Desciptor2 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("EqualsValueDiagnostic")
-            Public Shared Desciptor3 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("ConstructorInitializerDiagnostic")
-            Public Shared Desciptor4 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("PropertyExpressionBodyDiagnostic")
-            Public Shared Desciptor5 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("IndexerExpressionBodyDiagnostic")
-            Public Shared Desciptor6 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("MethodExpressionBodyDiagnostic")
+            Public Shared Desciptor1 As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("CodeBlockDiagnostic")
+            Public Shared Desciptor2 As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("EqualsValueDiagnostic")
+            Public Shared Desciptor3 As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("ConstructorInitializerDiagnostic")
+            Public Shared Desciptor4 As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("PropertyExpressionBodyDiagnostic")
+            Public Shared Desciptor5 As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("IndexerExpressionBodyDiagnostic")
+            Public Shared Desciptor6 As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("MethodExpressionBodyDiagnostic")
 
             Public Sub New(isCodeBlockAnalyzer As Boolean)
                 _isCodeBlockAnalyzer = isCodeBlockAnalyzer

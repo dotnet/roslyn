@@ -227,13 +227,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // string
             CheckLiteralToString("A", @"""A""");
             CheckLiteralToString("\r", @"""\r""");
-            CheckLiteralToString("\u0007", @"""\u0007""");
+            CheckLiteralToString("\u0007", @"""\a""");
+            CheckLiteralToString("\u000c", @"""\f""");
+            CheckLiteralToString("\u001f", @"""\u001f""");
 
             // char
             CheckLiteralToString('A', @"'A'");
             CheckLiteralToString('\r', @"'\r'");
-            CheckLiteralToString('\u0007', @"'\u0007'");
-
+            CheckLiteralToString('\u0007', @"'\a'");
+            CheckLiteralToString('\u000c', @"'\f'");
+            CheckLiteralToString('\u001f', @"'\u001f'");
 
             // byte
             CheckLiteralToString(byte.MinValue, @"0");

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.IO;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Navigation;
@@ -23,6 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         protected readonly int _mappedLineNumber;
         protected readonly int _mappedOffset;
 
+        private static readonly ObjectPool<StringBuilder> s_filePathBuilderPool = new ObjectPool<StringBuilder>(() => new StringBuilder());
+
         public AbstractSourceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex)
             : base(glyphIndex)
         {
@@ -33,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             _workspace = document.Project.Solution.Workspace;
             _documentId = document.Id;
             _projectName = document.Project.Name;
-            _filePath = document.FilePath;
+            _filePath = GetFilePath(document);
             _sourceSpan = sourceSpan;
 
             var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
@@ -58,6 +62,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             navigationService.TryNavigateToLineAndOffset(_workspace, _documentId, _lineNumber, _offset);
 
             return VSConstants.S_OK;
+        }
+
+        private static string GetFilePath(Document document)
+        {
+            var builder = s_filePathBuilderPool.Allocate();
+            try
+            {
+                builder.Append(document.Project.Name);
+                builder.Append('\\');
+
+                foreach (var folder in document.Folders)
+                {
+                    builder.Append(folder);
+                    builder.Append('\\');
+                }
+
+                builder.Append(Path.GetFileName(document.FilePath));
+
+                return builder.ToString();
+            }
+            finally
+            {
+                s_filePathBuilderPool.ClearAndFree(builder);
+            }
         }
     }
 }

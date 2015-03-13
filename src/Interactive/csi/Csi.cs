@@ -17,7 +17,7 @@ namespace CSharpInteractive
         private const string InteractiveResponseFileName = "csi.rsp";
 
         internal Csi(string responseFile, string baseDirectory, string[] args)
-            : base(CSharpCommandLineParser.Interactive, responseFile, args, baseDirectory, null /* TODO: what to pass as additionalReferencePaths? */, Path.GetTempPath())
+            : base(CSharpCommandLineParser.Interactive, responseFile, args, baseDirectory, null /* TODO: what to pass as additionalReferencePaths? */)
         {
         }
 

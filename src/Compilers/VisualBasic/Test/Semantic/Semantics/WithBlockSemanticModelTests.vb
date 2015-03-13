@@ -141,9 +141,9 @@ End Module
             Assert.Empty(dataFlowResults.DataFlowsIn)
             Assert.Empty(dataFlowResults.DataFlowsOut)
             Assert.Empty(dataFlowResults.ReadInside)
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowResults.ReadOutside))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.ReadOutside))
             Assert.Empty(dataFlowResults.WrittenInside)
-            Assert.Equal("f, x", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
+            Assert.Equal("x, f", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
 
             Assert.Empty(controlFlowResults.EntryPoints)
             Assert.False(controlFlowResults.EndPointIsReachable)
@@ -202,9 +202,9 @@ End Module
 
             Assert.Empty(dataFlowResults.VariablesDeclared)
             Assert.Empty(dataFlowResults.AlwaysAssigned)
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowResults.DataFlowsIn))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Empty(dataFlowResults.DataFlowsOut)
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowResults.ReadInside))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Empty(dataFlowResults.ReadOutside)
             Assert.Empty(dataFlowResults.WrittenInside)
             Assert.Empty(dataFlowResults.WrittenOutside)

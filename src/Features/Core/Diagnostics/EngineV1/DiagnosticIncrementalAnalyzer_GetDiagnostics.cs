@@ -396,9 +396,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     case StateType.Project:
                         {
                             var project = (Project)documentOrProject;
+                            var projectTextVersion = await project.GetLatestDocumentVersionAsync(cancellationToken).ConfigureAwait(false);
                             var semanticVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
                             var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-                            return new VersionArgument(VersionStamp.Default, semanticVersion, projectVersion);
+                            return new VersionArgument(projectTextVersion, semanticVersion, projectVersion);
                         }
 
                     default:

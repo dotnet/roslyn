@@ -14,9 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits SourceFieldSymbol
 
         ' The type of the field. Set to Nothing if not computed yet.
-        Private m_lazyType As TypeSymbol
+        Private _lazyType As TypeSymbol
 
-        Private m_lazyMeParameter As ParameterSymbol
+        Private _lazyMeParameter As ParameterSymbol
 
         Protected Sub New(container As SourceMemberContainerTypeSymbol,
                           syntaxRef As SyntaxReference,
@@ -47,27 +47,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If IsShared Then
                     Return Nothing
                 Else
-                    If m_lazyMeParameter Is Nothing Then
-                        Interlocked.CompareExchange(Of ParameterSymbol)(m_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
+                    If _lazyMeParameter Is Nothing Then
+                        Interlocked.CompareExchange(Of ParameterSymbol)(_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
                     End If
 
-                    Return m_lazyMeParameter
+                    Return _lazyMeParameter
                 End If
             End Get
         End Property
 
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
-                If m_lazyType Is Nothing Then
+                If _lazyType Is Nothing Then
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
                     Dim diagnostics = DiagnosticBag.GetInstance()
                     Dim varType = ComputeType(diagnostics)
                     Debug.Assert(varType IsNot Nothing)
-                    sourceModule.AtomicStoreReferenceAndDiagnostics(m_lazyType, varType, diagnostics, CompilationStage.Declare)
+                    sourceModule.AtomicStoreReferenceAndDiagnostics(_lazyType, varType, diagnostics, CompilationStage.Declare)
                     diagnostics.Free()
                 End If
 
-                Return m_lazyType
+                Return _lazyType
             End Get
         End Property
 
@@ -283,10 +283,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' reference to the initialization syntax of this field,
             ' can be an EqualsValue or AsNew syntax node
-            Private ReadOnly m_equalsValueOrAsNewInitOpt As SyntaxReference
+            Private ReadOnly _equalsValueOrAsNewInitOpt As SyntaxReference
 
             ' a tuple consisting of the evaluated constant value and type
-            Private m_constantTuple As EvaluatedConstant
+            Private _constantTuple As EvaluatedConstant
 
             Public Sub New(container As SourceMemberContainerTypeSymbol,
                            syntaxRef As SyntaxReference,
@@ -294,35 +294,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                            memberFlags As SourceMemberFlags,
                            equalsValueOrAsNewInitOpt As SyntaxReference)
                 MyBase.New(container, syntaxRef, name, memberFlags)
-                m_equalsValueOrAsNewInitOpt = equalsValueOrAsNewInitOpt
+                _equalsValueOrAsNewInitOpt = equalsValueOrAsNewInitOpt
             End Sub
 
             Friend Overrides ReadOnly Property EqualsValueOrAsNewInitOpt As VisualBasicSyntaxNode
                 Get
-                    Return If(m_equalsValueOrAsNewInitOpt IsNot Nothing, m_equalsValueOrAsNewInitOpt.GetVisualBasicSyntax(), Nothing)
+                    Return If(_equalsValueOrAsNewInitOpt IsNot Nothing, _equalsValueOrAsNewInitOpt.GetVisualBasicSyntax(), Nothing)
                 End Get
             End Property
 
             Friend Overrides Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
-                If m_constantTuple Is Nothing Then
+                If _constantTuple Is Nothing Then
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-                    Dim initializer = If(Me.IsConst, m_equalsValueOrAsNewInitOpt, Nothing)
+                    Dim initializer = If(Me.IsConst, _equalsValueOrAsNewInitOpt, Nothing)
 
                     If initializer IsNot Nothing Then
                         Dim diagnostics = DiagnosticBag.GetInstance()
                         Dim constantTuple = ConstantValueUtils.EvaluateFieldConstant(Me, initializer, inProgress, diagnostics)
-                        sourceModule.AtomicStoreReferenceAndDiagnostics(m_constantTuple, constantTuple, diagnostics, CompilationStage.Declare)
+                        sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics, CompilationStage.Declare)
                         diagnostics.Free()
                     Else
-                        sourceModule.AtomicStoreReferenceAndDiagnostics(m_constantTuple, EvaluatedConstant.None, Nothing, CompilationStage.Declare)
+                        sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, EvaluatedConstant.None, Nothing, CompilationStage.Declare)
                     End If
                 End If
 
-                Return m_constantTuple.Value
+                Return _constantTuple.Value
             End Function
 
             Protected Overrides Function GetInferredConstantType() As TypeSymbol
-                Return m_constantTuple.Type
+                Return _constantTuple.Type
             End Function
         End Class
 
@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Sibling field symbol with common initializer (used to
             ' avoid binding constant initializer multiple times).
-            Private ReadOnly m_sibling As SourceMemberFieldSymbol
+            Private ReadOnly _sibling As SourceMemberFieldSymbol
 
             Public Sub New(container As SourceMemberContainerTypeSymbol,
                            syntaxRef As SyntaxReference,
@@ -347,21 +347,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                            sibling As SourceMemberFieldSymbol)
 
                 MyBase.New(container, syntaxRef, name, memberFlags)
-                m_sibling = sibling
+                _sibling = sibling
             End Sub
 
             Friend Overrides ReadOnly Property EqualsValueOrAsNewInitOpt As VisualBasicSyntaxNode
                 Get
-                    Return m_sibling.EqualsValueOrAsNewInitOpt
+                    Return _sibling.EqualsValueOrAsNewInitOpt
                 End Get
             End Property
 
             Friend Overrides Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
-                Return m_sibling.GetConstantValue(inProgress)
+                Return _sibling.GetConstantValue(inProgress)
             End Function
 
             Protected Overrides Function GetInferredConstantType() As TypeSymbol
-                Return m_sibling.GetInferredConstantType()
+                Return _sibling.GetInferredConstantType()
             End Function
         End Class
 
@@ -577,11 +577,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Else
                                 If initializerOpt Is Nothing Then
                                     ' Array declaration with implicit initializer.
-                                    Dim initializer = New FieldOrPropertyInitializer(fieldSymbol, modifiedIdentifierRef)
+                                    Dim initializer = Function(precedingInitializersLength As Integer)
+                                                          Return New FieldOrPropertyInitializer(fieldSymbol, modifiedIdentifierRef, precedingInitializersLength)
+                                                      End Function
                                     If fieldSymbol.IsShared Then
-                                        SourceNamedTypeSymbol.AddInitializer(staticInitializers, initializer)
+                                        SourceNamedTypeSymbol.AddInitializer(staticInitializers, initializer, members.StaticSyntaxLength)
                                     Else
-                                        SourceNamedTypeSymbol.AddInitializer(instanceInitializers, initializer)
+                                        SourceNamedTypeSymbol.AddInitializer(instanceInitializers, initializer, members.InstanceSyntaxLength)
                                     End If
                                 Else
                                     ' Array declaration with implicit and explicit initializers.
@@ -611,16 +613,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
 
                 If initializerOptRef IsNot Nothing Then
-                    Dim initializer = New FieldOrPropertyInitializer(fieldOrWithEventSymbols.AsImmutableOrNull, initializerOptRef)
+                    Dim initializer = Function(precedingInitializersLength As Integer)
+                                          Return New FieldOrPropertyInitializer(fieldOrWithEventSymbols.AsImmutableOrNull, initializerOptRef, precedingInitializersLength)
+                                      End Function
 
                     ' all symbols are the same regarding the sharedness
                     Dim symbolsAreShared = nameCount > 0 AndAlso fieldOrWithEventSymbols(0).IsShared
 
                     If symbolsAreShared Then
                         ' const fields are implicitly shared and get into this list.
-                        SourceNamedTypeSymbol.AddInitializer(staticInitializers, initializer)
+                        SourceNamedTypeSymbol.AddInitializer(staticInitializers, initializer, members.StaticSyntaxLength)
                     Else
-                        SourceNamedTypeSymbol.AddInitializer(instanceInitializers, initializer)
+                        SourceNamedTypeSymbol.AddInitializer(instanceInitializers, initializer, members.InstanceSyntaxLength)
                     End If
                 End If
             Next

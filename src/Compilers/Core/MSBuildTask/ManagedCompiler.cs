@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 Debug.Assert(response is MismatchedVersionBuildResponse);
 
-                LogErrorOutput("Roslyn compiler server reports different protocol version than build task.");
+                LogErrorOutput(CommandLineParser.MismatchedVersionErrorText);
                 ExitCode = -1;
             }
             return ExitCode;

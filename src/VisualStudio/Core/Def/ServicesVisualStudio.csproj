@@ -31,7 +31,9 @@
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.cs" />
+    <Compile Include="Implementation\ProjectSystem\AbstractEncProject.cs" />
     <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkingFolder.cs" />
+    <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionWorkingFoldersEvents.cs" />
     <Compile Include="Implementation\Diagnostics\MiscellaneousDiagnosticAnalyzerService.cs" />
     <Compile Include="Implementation\Extensions\VisualStudioWorkspaceImplExtensions.cs" />
@@ -498,7 +500,7 @@
     <Compile Include="Implementation\ProjectSystem\AbstractEntryPointFinder.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject_IAnalyzerHost.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractProject_IVsENCRebuildableProjectCfg.cs" />
+    <Compile Include="Implementation\ProjectSystem\AbstractEncProject_IVsENCRebuildableProjectCfg.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject_IVsReportExternalErrors.cs" />
     <Compile Include="Implementation\ProjectSystem\ComEventSink.cs" />
     <Compile Include="Implementation\ProjectSystem\DocumentKey.cs" />

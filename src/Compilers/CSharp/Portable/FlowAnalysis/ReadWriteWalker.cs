@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,12 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal static void Analyze(
             CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion, HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes,
-            out ImmutableArray<ISymbol> readInside,
-            out ImmutableArray<ISymbol> writtenInside,
-            out ImmutableArray<ISymbol> readOutside,
-            out ImmutableArray<ISymbol> writtenOutside,
-            out ImmutableArray<ISymbol> captured,
-            out ImmutableArray<ISymbol> unsafeAddressTaken)
+            out IEnumerable<Symbol> readInside,
+            out IEnumerable<Symbol> writtenInside,
+            out IEnumerable<Symbol> readOutside,
+            out IEnumerable<Symbol> writtenOutside,
+            out IEnumerable<Symbol> captured,
+            out IEnumerable<Symbol> unsafeAddressTaken)
         {
             var walker = new ReadWriteWalker(compilation, member, node, firstInRegion, lastInRegion, unassignedVariableAddressOfSyntaxes);
             try
@@ -28,17 +29,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.Analyze(ref badRegion);
                 if (badRegion)
                 {
-                    readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = ImmutableArray<ISymbol>.Empty;
+                    readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = Enumerable.Empty<Symbol>();
                 }
                 else
                 {
-                    readInside = ((IEnumerable<ISymbol>)walker._readInside).ToImmutableArray();
-                    writtenInside = ((IEnumerable<ISymbol>)walker._writtenInside).ToImmutableArray();
-                    readOutside = ((IEnumerable<ISymbol>)walker._readOutside).ToImmutableArray();
-                    writtenOutside = ((IEnumerable<ISymbol>)walker._writtenOutside).ToImmutableArray();
+                    readInside = walker._readInside;
+                    writtenInside = walker._writtenInside;
+                    readOutside = walker._readOutside;
+                    writtenOutside = walker._writtenOutside;
 
-                    captured = ((IEnumerable<ISymbol>)walker.GetCaptured()).ToImmutableArray();
-                    unsafeAddressTaken = ((IEnumerable<ISymbol>)walker.GetUnsafeAddressTaken()).ToImmutableArray();
+                    captured = walker.GetCaptured();
+                    unsafeAddressTaken = walker.GetUnsafeAddressTaken();
                 }
             }
             finally

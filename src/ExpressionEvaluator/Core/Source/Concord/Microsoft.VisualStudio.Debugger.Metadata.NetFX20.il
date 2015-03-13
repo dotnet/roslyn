@@ -38,13 +38,13 @@
   .ver 14:0:0:0
 }
 .module Microsoft.VisualStudio.Debugger.Metadata.dll
-// MVID: {D8961372-DCE8-4BED-B908-075413EE4DC7}
+// MVID: {B8BC98E7-85E4-411C-B5FE-076AE11026F2}
 .imagebase 0x00400000
 .file alignment 0x00000200
 .stackreserve 0x00100000
 .subsystem 0x0003       // WINDOWS_CUI
 .corflags 0x00000001    //  ILONLY
-// Image base: 0x00BF0000
+// Image base: 0x02550000
 
 
 // =============== CLASS MEMBERS DECLARATION ===================
@@ -283,7 +283,7 @@
 
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.MethodInfo[] 
-          GetMethods(valuetype [mscorlib]System.Reflection.BindingFlags 'flags') cil managed
+          GetMethods(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags 'flags') cil managed
   {
   } // end of method Type::GetMethods
 
@@ -303,11 +303,11 @@
 
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Metadata.MethodInfo 
           GetMethod(string name,
-                    valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr,
+                    valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr,
                     class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                     valuetype [mscorlib]System.Reflection.CallingConventions callConvention,
                     class Microsoft.VisualStudio.Debugger.Metadata.Type[] types,
-                    valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers) cil managed
+                    valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -316,10 +316,10 @@
 
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Metadata.MethodInfo 
           GetMethod(string name,
-                    valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr,
+                    valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr,
                     class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                     class Microsoft.VisualStudio.Debugger.Metadata.Type[] types,
-                    valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers) cil managed
+                    valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -329,7 +329,7 @@
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Metadata.MethodInfo 
           GetMethod(string name,
                     class Microsoft.VisualStudio.Debugger.Metadata.Type[] types,
-                    valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers) cil managed
+                    valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -347,7 +347,7 @@
 
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Metadata.MethodInfo 
           GetMethod(string name,
-                    valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr) cil managed
+                    valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -365,17 +365,17 @@
   .method family hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.MethodInfo 
           GetMethodImpl(string name,
-                        valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr,
+                        valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr,
                         class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                         valuetype [mscorlib]System.Reflection.CallingConventions callConvention,
                         class Microsoft.VisualStudio.Debugger.Metadata.Type[] types,
-                        valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers) cil managed
+                        valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers) cil managed
   {
   } // end of method Type::GetMethodImpl
 
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.FieldInfo[] 
-          GetFields(valuetype [mscorlib]System.Reflection.BindingFlags 'flags') cil managed
+          GetFields(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags 'flags') cil managed
   {
   } // end of method Type::GetFields
 
@@ -390,7 +390,7 @@
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.FieldInfo 
           GetField(string name,
-                   valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr) cil managed
+                   valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr) cil managed
   {
   } // end of method Type::GetField
 
@@ -404,7 +404,7 @@
 
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.PropertyInfo[] 
-          GetProperties(valuetype [mscorlib]System.Reflection.BindingFlags 'flags') cil managed
+          GetProperties(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags 'flags') cil managed
   {
   } // end of method Type::GetProperties
 
@@ -418,11 +418,11 @@
 
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Metadata.PropertyInfo 
           GetProperty(string name,
-                      valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr,
+                      valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr,
                       class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                       class Microsoft.VisualStudio.Debugger.Metadata.Type returnType,
                       class Microsoft.VisualStudio.Debugger.Metadata.Type[] types,
-                      valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers) cil managed
+                      valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -433,7 +433,7 @@
           GetProperty(string name,
                       class Microsoft.VisualStudio.Debugger.Metadata.Type returnType,
                       class Microsoft.VisualStudio.Debugger.Metadata.Type[] types,
-                      valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers) cil managed
+                      valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -442,7 +442,7 @@
 
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Metadata.PropertyInfo 
           GetProperty(string name,
-                      valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr) cil managed
+                      valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -488,17 +488,17 @@
   .method family hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.PropertyInfo 
           GetPropertyImpl(string name,
-                          valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr,
+                          valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr,
                           class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                           class Microsoft.VisualStudio.Debugger.Metadata.Type returnType,
                           class Microsoft.VisualStudio.Debugger.Metadata.Type[] types,
-                          valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers) cil managed
+                          valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers) cil managed
   {
   } // end of method Type::GetPropertyImpl
 
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.EventInfo[] 
-          GetEvents(valuetype [mscorlib]System.Reflection.BindingFlags 'flags') cil managed
+          GetEvents(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags 'flags') cil managed
   {
   } // end of method Type::GetEvents
 
@@ -513,7 +513,7 @@
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.EventInfo 
           GetEvent(string name,
-                   valuetype [mscorlib]System.Reflection.BindingFlags 'flags') cil managed
+                   valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags 'flags') cil managed
   {
   } // end of method Type::GetEvent
 
@@ -557,14 +557,14 @@
 
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.Type[] 
-          GetNestedTypes(valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr) cil managed
+          GetNestedTypes(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr) cil managed
   {
   } // end of method Type::GetNestedTypes
 
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.Type 
           GetNestedType(string name,
-                        valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr) cil managed
+                        valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr) cil managed
   {
   } // end of method Type::GetNestedType
 
@@ -578,7 +578,7 @@
 
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.ConstructorInfo[] 
-          GetConstructors(valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr) cil managed
+          GetConstructors(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr) cil managed
   {
   } // end of method Type::GetConstructors
 
@@ -640,11 +640,11 @@
   } // end of method Type::FindInterfaces
 
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Metadata.ConstructorInfo 
-          GetConstructor(valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr,
+          GetConstructor(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr,
                          class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                          valuetype [mscorlib]System.Reflection.CallingConventions callConvention,
                          class Microsoft.VisualStudio.Debugger.Metadata.Type[] types,
-                         valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers) cil managed
+                         valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -652,10 +652,10 @@
   } // end of method Type::GetConstructor
 
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Metadata.ConstructorInfo 
-          GetConstructor(valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr,
+          GetConstructor(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr,
                          class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                          class Microsoft.VisualStudio.Debugger.Metadata.Type[] types,
-                         valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers) cil managed
+                         valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -672,11 +672,11 @@
 
   .method family hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.ConstructorInfo 
-          GetConstructorImpl(valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr,
+          GetConstructorImpl(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr,
                              class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                              valuetype [mscorlib]System.Reflection.CallingConventions callConvention,
                              class Microsoft.VisualStudio.Debugger.Metadata.Type[] types,
-                             valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers) cil managed
+                             valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers) cil managed
   {
   } // end of method Type::GetConstructorImpl
 
@@ -690,7 +690,7 @@
 
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.MemberInfo[] 
-          GetMembers(valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr) cil managed
+          GetMembers(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr) cil managed
   {
   } // end of method Type::GetMembers
 
@@ -705,7 +705,7 @@
   .method public hidebysig newslot virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.MemberInfo[] 
           GetMember(string name,
-                    valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr) cil managed
+                    valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -715,8 +715,8 @@
   .method public hidebysig newslot virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.MemberInfo[] 
           GetMember(string name,
-                    valuetype [mscorlib]System.Reflection.MemberTypes 'type',
-                    valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr) cil managed
+                    valuetype Microsoft.VisualStudio.Debugger.Metadata.MemberTypes 'type',
+                    valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -973,11 +973,11 @@
 
   .method public hidebysig newslot abstract virtual 
           instance object  InvokeMember(string name,
-                                        valuetype [mscorlib]System.Reflection.BindingFlags invokeAttr,
+                                        valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags invokeAttr,
                                         class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                                         object target,
                                         object[] args,
-                                        valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers,
+                                        valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers,
                                         class [mscorlib]System.Globalization.CultureInfo culture,
                                         string[] namedParameters) cil managed
   {
@@ -992,7 +992,7 @@
     IL_0000:  ret
   } // end of method Type::get_StructLayoutAttribute
 
-  .method public hidebysig static valuetype [mscorlib]System.TypeCode 
+  .method public hidebysig static valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode 
           GetTypeCode(class Microsoft.VisualStudio.Debugger.Metadata.Type 'type') cil managed
   {
     // Code size       1 (0x1)
@@ -1001,7 +1001,7 @@
   } // end of method Type::GetTypeCode
 
   .method family hidebysig newslot abstract virtual 
-          instance valuetype [mscorlib]System.TypeCode 
+          instance valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode 
           GetTypeCodeImpl() cil managed
   {
   } // end of method Type::GetTypeCodeImpl
@@ -1017,8 +1017,8 @@
 
   .method public hidebysig newslot virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.MemberInfo[] 
-          FindMembers(valuetype [mscorlib]System.Reflection.MemberTypes memberType,
-                      valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr,
+          FindMembers(valuetype Microsoft.VisualStudio.Debugger.Metadata.MemberTypes memberType,
+                      valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr,
                       class Microsoft.VisualStudio.Debugger.Metadata.MemberFilter 'filter',
                       object filterCriteria) cil managed
   {
@@ -1468,7 +1468,7 @@
        extends [mscorlib]System.Object
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance valuetype [mscorlib]System.Reflection.MemberTypes 
+          instance valuetype Microsoft.VisualStudio.Debugger.Metadata.MemberTypes 
           get_MemberType() cil managed
   {
   } // end of method MemberInfo::get_MemberType
@@ -1542,10 +1542,10 @@
   {
     .get instance class Microsoft.VisualStudio.Debugger.Metadata.Type Microsoft.VisualStudio.Debugger.Metadata.MemberInfo::get_DeclaringType()
   } // end of property MemberInfo::DeclaringType
-  .property instance valuetype [mscorlib]System.Reflection.MemberTypes
+  .property instance valuetype Microsoft.VisualStudio.Debugger.Metadata.MemberTypes
           MemberType()
   {
-    .get instance valuetype [mscorlib]System.Reflection.MemberTypes Microsoft.VisualStudio.Debugger.Metadata.MemberInfo::get_MemberType()
+    .get instance valuetype Microsoft.VisualStudio.Debugger.Metadata.MemberTypes Microsoft.VisualStudio.Debugger.Metadata.MemberInfo::get_MemberType()
   } // end of property MemberInfo::MemberType
   .property instance int32 MetadataToken()
   {
@@ -1591,12 +1591,6 @@
     IL_0000:  ret
   } // end of method MethodInfo::GetGenericMethodDefinition
 
-  .method public hidebysig newslot specialname abstract virtual 
-          instance class [mscorlib]System.Reflection.ICustomAttributeProvider 
-          get_ReturnTypeCustomAttributes() cil managed
-  {
-  } // end of method MethodInfo::get_ReturnTypeCustomAttributes
-
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.MethodInfo 
           GetBaseDefinition() cil managed
@@ -1635,11 +1629,6 @@
   {
     .get instance class Microsoft.VisualStudio.Debugger.Metadata.Type Microsoft.VisualStudio.Debugger.Metadata.MethodInfo::get_ReturnType()
   } // end of property MethodInfo::ReturnType
-  .property instance class [mscorlib]System.Reflection.ICustomAttributeProvider
-          ReturnTypeCustomAttributes()
-  {
-    .get instance class [mscorlib]System.Reflection.ICustomAttributeProvider Microsoft.VisualStudio.Debugger.Metadata.MethodInfo::get_ReturnTypeCustomAttributes()
-  } // end of property MethodInfo::ReturnTypeCustomAttributes
 } // end of class Microsoft.VisualStudio.Debugger.Metadata.MethodInfo
 
 .class public abstract auto ansi Microsoft.VisualStudio.Debugger.Metadata.MethodBody
@@ -1727,15 +1716,36 @@
   } // end of property MethodBody::MaxStackSize
 } // end of class Microsoft.VisualStudio.Debugger.Metadata.MethodBody
 
+.class public auto ansi serializable sealed Microsoft.VisualStudio.Debugger.Metadata.BindingFlags
+       extends [mscorlib]System.Enum
+{
+  .field public specialname rtspecialname int32 value__
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags CreateInstance = int32(0x00000200)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags DeclaredOnly = int32(0x00000002)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags Default = int32(0x00000000)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags ExactBinding = int32(0x00010000)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags FlattenHierarchy = int32(0x00000040)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags GetField = int32(0x00000400)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags GetProperty = int32(0x00001000)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags IgnoreCase = int32(0x00000001)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags Instance = int32(0x00000004)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags InvokeMethod = int32(0x00000100)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags NonPublic = int32(0x00000020)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags Public = int32(0x00000010)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags SetField = int32(0x00000800)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags SetProperty = int32(0x00002000)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags Static = int32(0x00000008)
+} // end of class Microsoft.VisualStudio.Debugger.Metadata.BindingFlags
+
 .class public abstract auto ansi Microsoft.VisualStudio.Debugger.Metadata.Binder
        extends [mscorlib]System.Object
 {
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.MethodBase 
-          BindToMethod(valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr,
+          BindToMethod(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr,
                        class Microsoft.VisualStudio.Debugger.Metadata.MethodBase[] match,
                        object[]& args,
-                       valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers,
+                       valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers,
                        class [mscorlib]System.Globalization.CultureInfo culture,
                        string[] names,
                        [out] object& state) cil managed
@@ -1744,7 +1754,7 @@
 
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.FieldInfo 
-          BindToField(valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr,
+          BindToField(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr,
                       class Microsoft.VisualStudio.Debugger.Metadata.FieldInfo[] match,
                       object 'value',
                       class [mscorlib]System.Globalization.CultureInfo culture) cil managed
@@ -1753,20 +1763,20 @@
 
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.MethodBase 
-          SelectMethod(valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr,
+          SelectMethod(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr,
                        class Microsoft.VisualStudio.Debugger.Metadata.MethodBase[] match,
                        class Microsoft.VisualStudio.Debugger.Metadata.Type[] types,
-                       valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers) cil managed
+                       valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers) cil managed
   {
   } // end of method Binder::SelectMethod
 
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.PropertyInfo 
-          SelectProperty(valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr,
+          SelectProperty(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr,
                          class Microsoft.VisualStudio.Debugger.Metadata.PropertyInfo[] match,
                          class Microsoft.VisualStudio.Debugger.Metadata.Type returnType,
                          class Microsoft.VisualStudio.Debugger.Metadata.Type[] indexes,
-                         valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers) cil managed
+                         valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers) cil managed
   {
   } // end of method Binder::SelectProperty
 
@@ -1803,6 +1813,21 @@
 
 } // end of class Microsoft.VisualStudio.Debugger.Metadata.Binder
 
+.class public auto ansi serializable sealed Microsoft.VisualStudio.Debugger.Metadata.MemberTypes
+       extends [mscorlib]System.Enum
+{
+  .field public specialname rtspecialname int32 value__
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.MemberTypes All = int32(0x000000BF)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.MemberTypes Constructor = int32(0x00000001)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.MemberTypes Custom = int32(0x00000040)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.MemberTypes Event = int32(0x00000002)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.MemberTypes Field = int32(0x00000004)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.MemberTypes Method = int32(0x00000008)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.MemberTypes NestedType = int32(0x00000080)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.MemberTypes Property = int32(0x00000010)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.MemberTypes TypeInfo = int32(0x00000020)
+} // end of class Microsoft.VisualStudio.Debugger.Metadata.MemberTypes
+
 .class public abstract auto ansi Microsoft.VisualStudio.Debugger.Metadata.Module
        extends [mscorlib]System.Object
 {
@@ -1823,7 +1848,7 @@
   } // end of method Module::get_Name
 
   .method public hidebysig newslot virtual 
-          instance void  GetPEKind([out] valuetype [mscorlib]System.Reflection.PortableExecutableKinds& peKind,
+          instance void  GetPEKind([out] valuetype Microsoft.VisualStudio.Debugger.Metadata.PortableExecutableKinds& peKind,
                                    [out] valuetype Microsoft.VisualStudio.Debugger.Metadata.ImageFileMachine& machine) cil managed
   {
     // Code size       1 (0x1)
@@ -1930,7 +1955,7 @@
   .method public hidebysig newslot virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.FieldInfo 
           GetField(string name,
-                   valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr) cil managed
+                   valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -1947,7 +1972,7 @@
 
   .method public hidebysig newslot virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.FieldInfo[] 
-          GetFields(valuetype [mscorlib]System.Reflection.BindingFlags bindingFlags) cil managed
+          GetFields(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingFlags) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -1973,11 +1998,11 @@
 
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Metadata.MethodInfo 
           GetMethod(string name,
-                    valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr,
+                    valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr,
                     class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                     valuetype [mscorlib]System.Reflection.CallingConventions callConvention,
                     class Microsoft.VisualStudio.Debugger.Metadata.Type[] types,
-                    valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers) cil managed
+                    valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -1987,11 +2012,11 @@
   .method family hidebysig newslot virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.MethodInfo 
           GetMethodImpl(string name,
-                        valuetype [mscorlib]System.Reflection.BindingFlags bindingAttr,
+                        valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingAttr,
                         class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                         valuetype [mscorlib]System.Reflection.CallingConventions callConvention,
                         class Microsoft.VisualStudio.Debugger.Metadata.Type[] types,
-                        valuetype [mscorlib]System.Reflection.ParameterModifier[] modifiers) cil managed
+                        valuetype Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier[] modifiers) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -2008,7 +2033,7 @@
 
   .method public hidebysig newslot virtual 
           instance class Microsoft.VisualStudio.Debugger.Metadata.MethodInfo[] 
-          GetMethods(valuetype [mscorlib]System.Reflection.BindingFlags bindingFlags) cil managed
+          GetMethods(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags bindingFlags) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -2460,33 +2485,6 @@
     IL_0000:  ret
   } // end of method Assembly::GetManifestResourceInfo
 
-  .method public hidebysig newslot virtual 
-          instance class [mscorlib]System.IO.FileStream[] 
-          GetFiles(bool getResourceModules) cil managed
-  {
-    // Code size       1 (0x1)
-    .maxstack  8
-    IL_0000:  ret
-  } // end of method Assembly::GetFiles
-
-  .method public hidebysig newslot virtual 
-          instance class [mscorlib]System.IO.FileStream[] 
-          GetFiles() cil managed
-  {
-    // Code size       1 (0x1)
-    .maxstack  8
-    IL_0000:  ret
-  } // end of method Assembly::GetFiles
-
-  .method public hidebysig newslot virtual 
-          instance class [mscorlib]System.IO.FileStream 
-          GetFile(string name) cil managed
-  {
-    // Code size       1 (0x1)
-    .maxstack  8
-    IL_0000:  ret
-  } // end of method Assembly::GetFile
-
   .method public hidebysig virtual instance string 
           ToString() cil managed
   {
@@ -2644,7 +2642,7 @@
   .field public uint16 minorVersion
   .field public uint16 buildNumber
   .field public uint16 revisionNumber
-  .field public class Microsoft.MetadataReader.UnmanagedStringMemoryHandle szLocale
+  .field public native int szLocale
   .field public uint32 cbLocale
   .field public valuetype Microsoft.MetadataReader.UnusedIntPtr rdwProcessor
   .field public uint32 ulProcessor
@@ -2705,29 +2703,6 @@
     .get instance class [mscorlib]System.Version Microsoft.MetadataReader.AssemblyMetaData::get_Version()
   } // end of property AssemblyMetaData::Version
 } // end of class Microsoft.MetadataReader.AssemblyMetaData
-
-.class public auto ansi sealed Microsoft.MetadataReader.UnmanagedStringMemoryHandle
-       extends [mscorlib]Microsoft.Win32.SafeHandles.SafeHandleZeroOrMinusOneIsInvalid
-{
-  .permissionset demand
-             = {class 'System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' = {property bool 'UnmanagedCode' = bool(true)}}
-  .method family hidebysig virtual instance bool 
-          ReleaseHandle() cil managed
-  {
-    // Code size       1 (0x1)
-    .maxstack  8
-    IL_0000:  ret
-  } // end of method UnmanagedStringMemoryHandle::ReleaseHandle
-
-  .method public hidebysig instance string 
-          GetAsString(int32 countCharsNoNull) cil managed
-  {
-    // Code size       1 (0x1)
-    .maxstack  8
-    IL_0000:  ret
-  } // end of method UnmanagedStringMemoryHandle::GetAsString
-
-} // end of class Microsoft.MetadataReader.UnmanagedStringMemoryHandle
 
 .class public sequential ansi sealed Microsoft.MetadataReader.UnusedIntPtr
        extends [mscorlib]System.ValueType
@@ -2943,22 +2918,6 @@
     IL_0000:  ret
   } // end of method AssemblyName::set_HashAlgorithm
 
-  .method public hidebysig specialname instance valuetype [mscorlib]System.Configuration.Assemblies.AssemblyVersionCompatibility 
-          get_VersionCompatibility() cil managed
-  {
-    // Code size       1 (0x1)
-    .maxstack  8
-    IL_0000:  ret
-  } // end of method AssemblyName::get_VersionCompatibility
-
-  .method public hidebysig specialname instance void 
-          set_VersionCompatibility(valuetype [mscorlib]System.Configuration.Assemblies.AssemblyVersionCompatibility 'value') cil managed
-  {
-    // Code size       1 (0x1)
-    .maxstack  8
-    IL_0000:  ret
-  } // end of method AssemblyName::set_VersionCompatibility
-
   .method public hidebysig specialname instance string 
           get_FullName() cil managed
   {
@@ -3001,20 +2960,20 @@
 
   .property instance string CodeBase()
   {
-    .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_CodeBase(string)
     .get instance string Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_CodeBase()
+    .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_CodeBase(string)
   } // end of property AssemblyName::CodeBase
   .property instance valuetype Microsoft.VisualStudio.Debugger.Metadata.AssemblyContentType
           ContentType()
   {
-    .get instance valuetype Microsoft.VisualStudio.Debugger.Metadata.AssemblyContentType Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_ContentType()
     .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_ContentType(valuetype Microsoft.VisualStudio.Debugger.Metadata.AssemblyContentType)
+    .get instance valuetype Microsoft.VisualStudio.Debugger.Metadata.AssemblyContentType Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_ContentType()
   } // end of property AssemblyName::ContentType
   .property instance class [mscorlib]System.Globalization.CultureInfo
           CultureInfo()
   {
-    .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_CultureInfo(class [mscorlib]System.Globalization.CultureInfo)
     .get instance class [mscorlib]System.Globalization.CultureInfo Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_CultureInfo()
+    .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_CultureInfo(class [mscorlib]System.Globalization.CultureInfo)
   } // end of property AssemblyName::CultureInfo
   .property instance string CultureName()
   {
@@ -3023,8 +2982,8 @@
   .property instance valuetype [mscorlib]System.Reflection.AssemblyNameFlags
           Flags()
   {
-    .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_Flags(valuetype [mscorlib]System.Reflection.AssemblyNameFlags)
     .get instance valuetype [mscorlib]System.Reflection.AssemblyNameFlags Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_Flags()
+    .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_Flags(valuetype [mscorlib]System.Reflection.AssemblyNameFlags)
   } // end of property AssemblyName::Flags
   .property instance string FullName()
   {
@@ -3033,8 +2992,8 @@
   .property instance valuetype [mscorlib]System.Configuration.Assemblies.AssemblyHashAlgorithm
           HashAlgorithm()
   {
-    .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_HashAlgorithm(valuetype [mscorlib]System.Configuration.Assemblies.AssemblyHashAlgorithm)
     .get instance valuetype [mscorlib]System.Configuration.Assemblies.AssemblyHashAlgorithm Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_HashAlgorithm()
+    .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_HashAlgorithm(valuetype [mscorlib]System.Configuration.Assemblies.AssemblyHashAlgorithm)
   } // end of property AssemblyName::HashAlgorithm
   .property instance class [mscorlib]System.Reflection.StrongNameKeyPair
           KeyPair()
@@ -3043,8 +3002,8 @@
   } // end of property AssemblyName::KeyPair
   .property instance string Name()
   {
-    .get instance string Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_Name()
     .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_Name(string)
+    .get instance string Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_Name()
   } // end of property AssemblyName::Name
   .property instance valuetype Microsoft.VisualStudio.Debugger.Metadata.ProcessorArchitecture
           ProcessorArchitecture()
@@ -3055,15 +3014,9 @@
   .property instance class [mscorlib]System.Version
           Version()
   {
-    .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_Version(class [mscorlib]System.Version)
     .get instance class [mscorlib]System.Version Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_Version()
+    .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_Version(class [mscorlib]System.Version)
   } // end of property AssemblyName::Version
-  .property instance valuetype [mscorlib]System.Configuration.Assemblies.AssemblyVersionCompatibility
-          VersionCompatibility()
-  {
-    .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_VersionCompatibility(valuetype [mscorlib]System.Configuration.Assemblies.AssemblyVersionCompatibility)
-    .get instance valuetype [mscorlib]System.Configuration.Assemblies.AssemblyVersionCompatibility Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_VersionCompatibility()
-  } // end of property AssemblyName::VersionCompatibility
 } // end of class Microsoft.VisualStudio.Debugger.Metadata.AssemblyName
 
 .class interface public abstract auto ansi Microsoft.MetadataReader.IMetadataImport
@@ -4403,7 +4356,7 @@
   } // end of method IMetadataImport2::GetGenericParamConstraintProps
 
   .method public hidebysig newslot abstract virtual 
-          instance int32  GetPEKind([out] valuetype [mscorlib]System.Reflection.PortableExecutableKinds& dwPEKind,
+          instance int32  GetPEKind([out] valuetype Microsoft.VisualStudio.Debugger.Metadata.PortableExecutableKinds& dwPEKind,
                                     [out] valuetype Microsoft.VisualStudio.Debugger.Metadata.ImageFileMachine& pdwMachine) cil managed preservesig
   {
   } // end of method IMetadataImport2::GetPEKind
@@ -4557,6 +4510,18 @@
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.ProcessorArchitecture X86 = int32(0x00000002)
 } // end of class Microsoft.VisualStudio.Debugger.Metadata.ProcessorArchitecture
 
+.class public auto ansi sealed Microsoft.VisualStudio.Debugger.Metadata.PortableExecutableKinds
+       extends [mscorlib]System.Enum
+{
+  .field public specialname rtspecialname int32 value__
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.PortableExecutableKinds ILOnly = int32(0x00000001)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.PortableExecutableKinds NotAPortableExecutableImage = int32(0x00000000)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.PortableExecutableKinds PE32Plus = int32(0x00000004)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.PortableExecutableKinds Preferred32Bit = int32(0x00000010)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.PortableExecutableKinds Required32Bit = int32(0x00000002)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.PortableExecutableKinds Unmanaged32Bit = int32(0x00000008)
+} // end of class Microsoft.VisualStudio.Debugger.Metadata.PortableExecutableKinds
+
 .class public auto ansi sealed Microsoft.VisualStudio.Debugger.Metadata.ImageFileMachine
        extends [mscorlib]System.Enum
 {
@@ -4605,7 +4570,7 @@
        extends Microsoft.VisualStudio.Debugger.Metadata.MethodBase
 {
   .method public hidebysig newslot abstract virtual 
-          instance object  Invoke(valuetype [mscorlib]System.Reflection.BindingFlags invokeAttr,
+          instance object  Invoke(valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags invokeAttr,
                                   class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                                   object[] parameters,
                                   class [mscorlib]System.Globalization.CultureInfo culture) cil managed
@@ -4864,7 +4829,7 @@
 
   .method public hidebysig newslot abstract virtual 
           instance object  Invoke(object obj,
-                                  valuetype [mscorlib]System.Reflection.BindingFlags invokeAttr,
+                                  valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags invokeAttr,
                                   class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                                   object[] parameters,
                                   class [mscorlib]System.Globalization.CultureInfo culture) cil managed
@@ -5298,7 +5263,7 @@
   .method public hidebysig newslot abstract virtual 
           instance void  SetValue(object obj,
                                   object 'value',
-                                  valuetype [mscorlib]System.Reflection.BindingFlags invokeAttr,
+                                  valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags invokeAttr,
                                   class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                                   class [mscorlib]System.Globalization.CultureInfo culture) cil managed
   {
@@ -5554,6 +5519,35 @@
   } // end of property EventInfo::IsSpecialName
 } // end of class Microsoft.VisualStudio.Debugger.Metadata.EventInfo
 
+.class public sequential ansi sealed Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier
+       extends [mscorlib]System.ValueType
+{
+} // end of class Microsoft.VisualStudio.Debugger.Metadata.ParameterModifier
+
+.class public auto ansi serializable sealed Microsoft.VisualStudio.Debugger.Metadata.TypeCode
+       extends [mscorlib]System.Enum
+{
+  .field public specialname rtspecialname int32 value__
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode Boolean = int32(0x00000003)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode Byte = int32(0x00000006)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode Char = int32(0x00000004)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode DBNull = int32(0x00000002)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode DateTime = int32(0x00000010)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode Decimal = int32(0x0000000F)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode Double = int32(0x0000000E)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode Empty = int32(0x00000000)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode Int16 = int32(0x00000007)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode Int32 = int32(0x00000009)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode Int64 = int32(0x0000000B)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode Object = int32(0x00000001)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode SByte = int32(0x00000005)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode Single = int32(0x0000000D)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode String = int32(0x00000012)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode UInt16 = int32(0x00000008)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode UInt32 = int32(0x0000000A)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode UInt64 = int32(0x0000000C)
+} // end of class Microsoft.VisualStudio.Debugger.Metadata.TypeCode
+
 .class public abstract auto ansi Microsoft.VisualStudio.Debugger.Metadata.PropertyInfo
        extends Microsoft.VisualStudio.Debugger.Metadata.MemberInfo
 {
@@ -5642,7 +5636,7 @@
 
   .method public hidebysig newslot abstract virtual 
           instance object  GetValue(object obj,
-                                    valuetype [mscorlib]System.Reflection.BindingFlags invokeAttr,
+                                    valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags invokeAttr,
                                     class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                                     object[] index,
                                     class [mscorlib]System.Globalization.CultureInfo culture) cil managed
@@ -5652,7 +5646,7 @@
   .method public hidebysig newslot abstract virtual 
           instance void  SetValue(object obj,
                                   object 'value',
-                                  valuetype [mscorlib]System.Reflection.BindingFlags invokeAttr,
+                                  valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags invokeAttr,
                                   class Microsoft.VisualStudio.Debugger.Metadata.Binder binder,
                                   object[] index,
                                   class [mscorlib]System.Globalization.CultureInfo culture) cil managed
@@ -5849,7 +5843,7 @@
   } // end of method ExceptionHandlingClause::get_FilterOffset
 
   .method public hidebysig newslot specialname virtual 
-          instance valuetype [mscorlib]System.Reflection.ExceptionHandlingClauseOptions 
+          instance valuetype Microsoft.VisualStudio.Debugger.Metadata.ExceptionHandlingClauseOptions 
           get_Flags() cil managed
   {
     // Code size       1 (0x1)
@@ -5906,10 +5900,10 @@
   {
     .get instance int32 Microsoft.VisualStudio.Debugger.Metadata.ExceptionHandlingClause::get_FilterOffset()
   } // end of property ExceptionHandlingClause::FilterOffset
-  .property instance valuetype [mscorlib]System.Reflection.ExceptionHandlingClauseOptions
+  .property instance valuetype Microsoft.VisualStudio.Debugger.Metadata.ExceptionHandlingClauseOptions
           Flags()
   {
-    .get instance valuetype [mscorlib]System.Reflection.ExceptionHandlingClauseOptions Microsoft.VisualStudio.Debugger.Metadata.ExceptionHandlingClause::get_Flags()
+    .get instance valuetype Microsoft.VisualStudio.Debugger.Metadata.ExceptionHandlingClauseOptions Microsoft.VisualStudio.Debugger.Metadata.ExceptionHandlingClause::get_Flags()
   } // end of property ExceptionHandlingClause::Flags
   .property instance int32 HandlerLength()
   {
@@ -6093,6 +6087,16 @@
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.AssemblyContentType Default = int32(0x00000000)
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.AssemblyContentType WindowsRuntime = int32(0x00000001)
 } // end of class Microsoft.VisualStudio.Debugger.Metadata.AssemblyContentType
+
+.class public auto ansi sealed Microsoft.VisualStudio.Debugger.Metadata.ExceptionHandlingClauseOptions
+       extends [mscorlib]System.Enum
+{
+  .field public specialname rtspecialname int32 value__
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.ExceptionHandlingClauseOptions Clause = int32(0x00000000)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.ExceptionHandlingClauseOptions Fault = int32(0x00000004)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.ExceptionHandlingClauseOptions Filter = int32(0x00000001)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.Metadata.ExceptionHandlingClauseOptions Finally = int32(0x00000002)
+} // end of class Microsoft.VisualStudio.Debugger.Metadata.ExceptionHandlingClauseOptions
 
 .class public auto ansi sealed System.Reflection.Adds.TokenType
        extends [mscorlib]System.Enum

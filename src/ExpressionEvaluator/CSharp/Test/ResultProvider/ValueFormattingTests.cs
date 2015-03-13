@@ -94,11 +94,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     case '\t':
                         expected = "\\t";
                         break;
+                    case '\f':
+                        expected = "\\f";
+                        break;
                     case '\r':
                         expected = "\\r";
                         break;
                     case '\n':
                         expected = "\\n";
+                        break;
+                    case '\a':
+                        expected = "\\a";
                         break;
                     case '\b':
                         expected = "\\b";
@@ -150,11 +156,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     case '\t':
                         expected = "\\t";
                         break;
+                    case '\f':
+                        expected = "\\f";
+                        break;
                     case '\r':
                         expected = "\\r";
                         break;
                     case '\n':
                         expected = "\\n";
+                        break;
+                    case '\a':
+                        expected = "\\a";
                         break;
                     case '\b':
                         expected = "\\b";

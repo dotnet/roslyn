@@ -165,12 +165,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Serialization"
 
-        Private Shared _binder As RecordingObjectBinder = New ConcurrentRecordingObjectBinder()
+        Private Shared s_binder As RecordingObjectBinder = New ConcurrentRecordingObjectBinder()
         ''' <summary>
         ''' Serialize this node to a byte stream.
         ''' </summary>
         Public Overrides Sub SerializeTo(stream As IO.Stream, Optional cancellationToken As CancellationToken = Nothing)
-            Using writer = New ObjectWriter(stream, GetDefaultObjectWriterData(), binder:=_binder, cancellationToken:=cancellationToken)
+            Using writer = New ObjectWriter(stream, GetDefaultObjectWriterData(), binder:=s_binder, cancellationToken:=cancellationToken)
                 writer.WriteValue(Me.Green)
             End Using
         End Sub
@@ -179,30 +179,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Deserialize a syntax node from a byte stream.
         ''' </summary>
         Public Shared Function DeserializeFrom(stream As IO.Stream, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode
-            Using reader = New ObjectReader(stream, defaultData:=GetDefaultObjectReaderData(), binder:=_binder)
+            Using reader = New ObjectReader(stream, defaultData:=GetDefaultObjectReaderData(), binder:=s_binder)
                 Return DirectCast(reader.ReadValue(), InternalSyntax.VisualBasicSyntaxNode).CreateRed(Nothing, 0)
             End Using
         End Function
 
-        Private Shared _defaultObjectReaderData As ObjectReaderData
+        Private Shared s_defaultObjectReaderData As ObjectReaderData
         Private Shared Function GetDefaultObjectReaderData() As ObjectReaderData
-            If _defaultObjectReaderData Is Nothing Then
-                Interlocked.CompareExchange(_defaultObjectReaderData, New ObjectReaderData(GetSerializationData()), Nothing)
+            If s_defaultObjectReaderData Is Nothing Then
+                Interlocked.CompareExchange(s_defaultObjectReaderData, New ObjectReaderData(GetSerializationData()), Nothing)
             End If
-            Return _defaultObjectReaderData
+            Return s_defaultObjectReaderData
         End Function
 
-        Private Shared _defaultObjectWriterData As ObjectWriterData
+        Private Shared s_defaultObjectWriterData As ObjectWriterData
         Private Shared Function GetDefaultObjectWriterData() As ObjectWriterData
-            If _defaultObjectWriterData Is Nothing Then
-                Interlocked.CompareExchange(_defaultObjectWriterData, New ObjectWriterData(GetSerializationData()), Nothing)
+            If s_defaultObjectWriterData Is Nothing Then
+                Interlocked.CompareExchange(s_defaultObjectWriterData, New ObjectWriterData(GetSerializationData()), Nothing)
             End If
-            Return _defaultObjectWriterData
+            Return s_defaultObjectWriterData
         End Function
 
-        Private Shared ReadOnly _serializationData As IEnumerable(Of Object)
+        Private Shared ReadOnly s_serializationData As IEnumerable(Of Object)
         Private Shared Function GetSerializationData() As IEnumerable(Of Object)
-            If _serializationData Is Nothing Then
+            If s_serializationData Is Nothing Then
                 Dim data = New Object() {
                     GetType(Object).GetTypeInfo().Assembly.FullName,
                     GetType(Microsoft.CodeAnalysis.DiagnosticInfo).GetTypeInfo().Assembly.FullName,
@@ -232,10 +232,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 .Concat(InternalSyntax.SyntaxFactory.GetWellKnownTrivia()) _
                 .ToImmutableArray()
 
-                Interlocked.CompareExchange(_serializationData, data, Nothing)
+                Interlocked.CompareExchange(s_serializationData, data, Nothing)
             End If
 
-            Return _serializationData
+            Return s_serializationData
         End Function
 #End Region
 

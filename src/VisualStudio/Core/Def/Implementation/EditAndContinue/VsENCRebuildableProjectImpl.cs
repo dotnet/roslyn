@@ -125,12 +125,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         // called from an edit filter if an edit of a read-only buffer is attempted:
         internal bool OnEdit(DocumentId documentId)
         {
-            var document = _vsProject.Workspace.CurrentSolution.GetDocument(documentId);
-            Debug.Assert(document != null);
-
             SessionReadOnlyReason sessionReason;
             ProjectReadOnlyReason projectReason;
-            if (_encService.IsProjectReadOnly(document.Project.Name, out sessionReason, out projectReason))
+            if (_encService.IsProjectReadOnly(documentId.ProjectId, out sessionReason, out projectReason))
             {
                 OnReadOnlyDocumentEditAttempt(documentId, sessionReason, projectReason);
                 return true;
@@ -150,9 +147,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 return;
             }
 
-            var hostProject = (AbstractProject)_vsProject.VisualStudioWorkspace.GetHostProject(documentId.ProjectId);
-
-            if (hostProject.EditAndContinueImplOpt._metadata != null)
+            var hostProject = _vsProject.VisualStudioWorkspace.GetHostProject(documentId.ProjectId) as AbstractEncProject;
+            if (hostProject?.EditAndContinueImplOpt?._metadata != null)
             {
                 var projectHierarchy = _vsProject.VisualStudioWorkspace.GetHierarchy(documentId.ProjectId);
                 _debugEncNotify.NotifyEncEditDisallowedByProject(projectHierarchy);
@@ -228,7 +224,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     _encService.StartDebuggingSession(_vsProject.VisualStudioWorkspace.CurrentSolution);
                     s_encDebuggingSessionInfo = new EncDebuggingSessionInfo();
 
-                    s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService);
+                    s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService, _vsProject);
                 }
 
                 string outputPath = _vsProject.TryGetObjOutputPath();
@@ -784,8 +780,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     }
                     else if (_encService.EditSession != null)
                     {
-                        _projectBeingEmitted = _vsProject.VisualStudioWorkspace.CurrentSolution.GetProject(_vsProject.Id);
-                        _lastEditSessionSummary = GetProjectAnalysisSummary(_projectBeingEmitted);
+                        // Fetch the latest snapshot of the project and get an analysis summary for any changes 
+                        // made since the break mode was entered.
+                        var currentProject = _vsProject.VisualStudioWorkspace.CurrentSolution.GetProject(_vsProject.Id);
+                        if (currentProject == null)
+                        {
+                            // If the project has yet to be loaded into the solution (which may be the case,
+                            // since they are loaded on-demand), then it stands to reason that it has not yet
+                            // been modified.
+                            // TODO (https://github.com/dotnet/roslyn/issues/1204): this check should be unnecessary.
+                            _lastEditSessionSummary = ProjectAnalysisSummary.NoChanges;
+                            log.Write($"Project '{_vsProject.DisplayName}' has not yet been loaded into the solution");
+                        }
+                        else
+                        {
+                            _projectBeingEmitted = currentProject;
+                            _lastEditSessionSummary = GetProjectAnalysisSummary(_projectBeingEmitted);
+                        }
                         _encService.EditSession.LogBuildState(_lastEditSessionSummary);
                     }
 

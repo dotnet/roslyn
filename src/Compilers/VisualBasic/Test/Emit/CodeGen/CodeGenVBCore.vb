@@ -3027,8 +3027,10 @@ End Namespace
               options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(False))
 
             compilation.VerifyDiagnostics(
-                                    Diagnostic(ERRID.ERR_StructCantInherit, "Inherits System.Exception"),
-                                    Diagnostic(ERRID.ERR_UseOfKeywordFromStructure1, "MyBase").WithArguments("MyBase"))
+    Diagnostic(ERRID.ERR_NewInStruct, "New").WithLocation(20, 24),
+    Diagnostic(ERRID.ERR_StructCantInherit, "Inherits System.Exception").WithLocation(19, 13),
+    Diagnostic(ERRID.ERR_UseOfKeywordFromStructure1, "MyBase").WithArguments("MyBase").WithLocation(21, 17)
+                                    )
         End Sub
 
         Private Sub AssertTypeAndItsMembersAreImplicitlyDeclared(type As NamedTypeSymbol)

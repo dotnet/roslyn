@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis
 
             lazyTree = TreeAndVersion.Create(
                 (mode == PreservationMode.PreserveIdentity) || !solutionServices.SupportsCachingRecoverableObjects
-                    ? factory.CreateSyntaxTree(GetSyntaxTreeFilePath(info), options, newRoot, encoding)
+                    ? factory.CreateSyntaxTree(GetSyntaxTreeFilePath(info), options, encoding, newRoot)
                     : factory.CreateRecoverableTree(info.Id.ProjectId, GetSyntaxTreeFilePath(info), options, lazyText, encoding, newRoot),
                 treeVersion);
 

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
             info.AddValue(ScriptClassNameString, options.ScriptClassName);
             info.AddValue(CryptoKeyContainerString, options.CryptoKeyContainer);
             info.AddValue(CryptoKeyFileString, options.CryptoKeyFile);
-            info.AddValue(CryptoPublicKeyString, options.CryptoPublicKey.IsDefault ? null : options.CryptoPublicKey.ToArray());
+            info.AddValue(CryptoPublicKeyString, options.CryptoPublicKey.ToArray());
             info.AddValue(DelaySignString, options.DelaySign);
             info.AddValue(CheckOverflowString, options.CheckOverflow);
             info.AddValue(PlatformString, (int)options.Platform);

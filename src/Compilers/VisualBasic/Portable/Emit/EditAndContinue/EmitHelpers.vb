@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
-    Module EmitHelpers
+    Friend Module EmitHelpers
 
         Friend Function EmitDifference(
             compilation As VisualBasicCompilation,
@@ -73,7 +73,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' (generated when compiling method bodies) may be required.
                 baseline = MapToCompilation(compilation, moduleBeingBuilt)
 
-                Using pdbWriter = New Cci.PdbWriter(pdbName, pdbStream, If(testData IsNot Nothing, testData.SymWriterFactory, Nothing))
+                Dim pdbOutputInfo = New Cci.PdbOutputInfo(pdbName, pdbStream)
+                Using pdbWriter = New Cci.PdbWriter(pdbOutputInfo, If(testData IsNot Nothing, testData.SymWriterFactory, Nothing))
                     Dim context = New EmitContext(moduleBeingBuilt, Nothing, diagnostics)
                     Dim encId = Guid.NewGuid()
 

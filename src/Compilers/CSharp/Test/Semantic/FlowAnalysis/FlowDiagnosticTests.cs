@@ -1315,7 +1315,7 @@ struct Program
     S1 x2 { get; }
 
 
-    public Program()
+    public Program(int dummy)
     {
         x.i = 1;
         System.Console.WriteLine(x2.ii);
@@ -1364,7 +1364,7 @@ struct Program
     S1 x2 { get; set;}
 
 
-    public Program()
+    public Program(int dummy)
     {
         x.i = 1;
         System.Console.WriteLine(x2.ii);
@@ -1413,7 +1413,7 @@ struct Program
     S1 x2 { get;}
 
 
-    public Program()
+    public Program(int dummy)
     {
         x = new S1();
         x.i += 1;
@@ -1459,7 +1459,7 @@ struct Program
     S1 x2 { get;}
 
 
-    public Program()
+    public Program(int dummy)
     {
         this = default(Program);
 

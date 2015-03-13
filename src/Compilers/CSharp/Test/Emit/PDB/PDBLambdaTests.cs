@@ -569,7 +569,7 @@ class C : B
           <closure offset=""0"" />
           <lambda offset=""-2"" closure=""0"" />
           <lambda offset=""41"" closure=""0"" />
-          <lambda offset=""63"" />
+          <lambda offset=""63"" closure=""this"" />
           <lambda offset=""87"" closure=""1"" />
         </encLambdaMap>
       </customDebugInfo>

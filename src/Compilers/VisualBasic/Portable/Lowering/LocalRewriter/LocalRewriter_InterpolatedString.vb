@@ -9,12 +9,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class LocalRewriter
+    Friend Partial Class LocalRewriter
 
         Public Overrides Function VisitInterpolatedStringExpression(node As BoundInterpolatedStringExpression) As BoundNode
 
             Debug.Assert(node.Type.SpecialType = SpecialType.System_String)
-            Dim factory = New SyntheticBoundNodeFactory(topMethod, currentMethodOrLambda, node.Syntax, compilationState, diagnostics)
+            Dim factory = New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, node.Syntax, _compilationState, _diagnostics)
 
             ' We lower an interpolated string into an invocation of String.Format or System.Runtime.CompilerServices.FormattableStringFactory.Create.
             ' For example, we translate the expression:
@@ -76,10 +76,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' (2) For the built-in types, we can use .ToString(string format) for some format strings.
             '     Detect those cases that can be handled that way and take advantage of them.
             Return InvokeInterpolatedStringFactory(node,
-                                                   binder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory, conversion.Syntax, diagnostics),
+                                                   binder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory, conversion.Syntax, _diagnostics),
                                                    "Create",
                                                    conversion.Type,
-                                                   New SyntheticBoundNodeFactory(topMethod, currentMethodOrLambda, node.Syntax, compilationState, diagnostics))
+                                                   New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, node.Syntax, _compilationState, _diagnostics))
 
         End Function
 
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             binder.LookupMember(lookup, factoryType, factoryMethodName, 0, LookupOptions.MustNotBeInstance Or LookupOptions.MethodsOnly Or LookupOptions.AllMethodsOfAnyArity, useSiteDiagnostics)
 
-            diagnostics.Add(node, useSiteDiagnostics)
+            _diagnostics.Add(node, useSiteDiagnostics)
 
             If lookup.Kind = LookupResultKind.Inaccessible Then
                 hasErrors = True
@@ -166,12 +166,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                               methodGroup,
                                                                                               arguments.ToImmutableAndFree(),
                                                                                               Nothing,
-                                                                                              diagnostics,
+                                                                                              _diagnostics,
                                                                                               callerInfoOpt:=Nothing,
-                                                                                              forceExpandedForm:=True), diagnostics).MakeCompilerGenerated()
+                                                                                              forceExpandedForm:=True), _diagnostics).MakeCompilerGenerated()
 
             If Not result.Type.Equals(targetType) Then
-                result = binder.ApplyImplicitConversion(node.Syntax, targetType, result, diagnostics).MakeCompilerGenerated()
+                result = binder.ApplyImplicitConversion(node.Syntax, targetType, result, _diagnostics).MakeCompilerGenerated()
             End If
 
             If hasErrors OrElse result.HasErrors Then
@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
 
 ReturnBadExpression:
-            ReportDiagnostic(node, ErrorFactory.ErrorInfo(ERRID.ERR_InterpolatedStringFactoryError, factoryType.Name, factoryMethodName), diagnostics)
+            ReportDiagnostic(node, ErrorFactory.ErrorInfo(ERRID.ERR_InterpolatedStringFactoryError, factoryType.Name, factoryMethodName), _diagnostics)
             Return factory.Convert(targetType, factory.BadExpression(MyBase.VisitInterpolatedStringExpression(node)))
 
         End Function

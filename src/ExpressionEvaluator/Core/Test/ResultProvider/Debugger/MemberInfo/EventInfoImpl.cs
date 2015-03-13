@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             throw new NotImplementedException();
         }
 
-        public override System.Reflection.MemberTypes MemberType
+        public override MemberTypes MemberType
         {
             get
             {
-                return this.Event.MemberType;
+                return (MemberTypes)this.Event.MemberType;
             }
         }
 

@@ -1069,5 +1069,161 @@ class C
                 VerifyTagsAreCorrect(workspace, "xyzq")
             End Using
         End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_FromDefinition_NoOverloads()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    void [|M$$|]()
+    {
+        nameof([|M|]).ToString();
+    }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.First().TextBuffer
+
+                textBuffer.Insert(caretPosition, "a")
+                WaitForRename(workspace)
+                VerifyTagsAreCorrect(workspace, "Ma")
+
+                session.Commit()
+                VerifyTagsAreCorrect(workspace, "Ma")
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_FromReference_NoOverloads()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    void [|M|]()
+    {
+        nameof([|M$$|]).ToString();
+    }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.First().TextBuffer
+
+                textBuffer.Insert(caretPosition, "a")
+                WaitForRename(workspace)
+                VerifyTagsAreCorrect(workspace, "Ma")
+
+                session.Commit()
+                VerifyTagsAreCorrect(workspace, "Ma")
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_FromDefinition_WithOverloads()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    void [|M$$|]()
+    {
+        nameof(M).ToString();
+    }
+
+    void M(int x) { }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.First().TextBuffer
+
+                textBuffer.Insert(caretPosition, "a")
+                WaitForRename(workspace)
+                VerifyTagsAreCorrect(workspace, "Ma")
+
+                session.Commit()
+                VerifyTagsAreCorrect(workspace, "Ma")
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_FromReference_WithOverloads()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    void [|M|]()
+    {
+        nameof([|M$$|]).ToString();
+    }
+
+    void [|M|](int x) { }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.First().TextBuffer
+
+                textBuffer.Insert(caretPosition, "a")
+                WaitForRename(workspace)
+                VerifyTagsAreCorrect(workspace, "Ma")
+
+                session.Commit()
+                VerifyTagsAreCorrect(workspace, "Ma")
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_FromDefinition_WithOverloads_WithRenameOverloadsOption()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    void [|$$M|]()
+    {
+        nameof([|M|]).ToString();
+    }
+
+    void [|M|](int x) { }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                VerifyRenameOptionChangedSessionCommit(workspace, "M", "Sa", renameOverloads:=True)
+            End Using
+        End Sub
     End Class
 End Namespace

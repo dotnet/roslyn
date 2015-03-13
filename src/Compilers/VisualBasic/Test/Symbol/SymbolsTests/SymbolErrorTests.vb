@@ -6551,7 +6551,7 @@ BC30628: Structures cannot have 'Inherits' statements.
         ]]></file>
     </compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic12))
             Dim expectedErrors1 = <errors><![CDATA[
-BC30629: The feature 'Parameterless Instance Constructors in Structures' requires language version 14 or above.
+BC30629: Structures cannot declare a non-shared 'Sub New' with no parameters.
                     Public Sub New()
                                ~~~
                  ]]></errors>
@@ -6576,7 +6576,7 @@ BC30629: The feature 'Parameterless Instance Constructors in Structures' require
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC37242: Parameterless instance constructors in structures must be public.
+BC30629: Structures cannot declare a non-shared 'Sub New' with no parameters.
                     Private Sub New()
                                 ~~~
                  ]]></errors>

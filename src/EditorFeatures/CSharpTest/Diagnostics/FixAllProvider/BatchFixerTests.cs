@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         private class QualifyWithThisAnalyzer : DiagnosticAnalyzer
         {
-            public static readonly DiagnosticDescriptor Descriptor = new TriggerDiagnosticDescriptor("QualifyWithThis");
+            public static readonly DiagnosticDescriptor Descriptor = DescriptorFactory.CreateSimpleDescriptor("QualifyWithThis");
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {

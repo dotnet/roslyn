@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBAsyncTests : CSharpTestBase
     {
-        [Fact]
+        [Fact(Skip = "1137300")]
         [WorkItem(631350, "DevDiv")]
         [WorkItem(643501, "DevDiv")]
         [WorkItem(689616, "DevDiv")]
@@ -515,7 +515,7 @@ namespace ConsoleApplication1
 </symbols>");
         }
 
-        [Fact]
+        [Fact(Skip = "1137300")]
         [WorkItem(690180, "DevDiv")]
         public void TestAsyncDebug3()
         {
@@ -1470,6 +1470,7 @@ class C
         <forward declaringType=""C"" methodName=""F"" />
         <hoistedLocalScopes>
           <slot startOffset=""0xe"" endOffset=""0xed"" />
+          <slot startOffset=""0x29"" endOffset=""0x32"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />

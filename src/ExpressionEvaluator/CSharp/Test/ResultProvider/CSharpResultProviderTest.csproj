@@ -103,6 +103,7 @@
     <Compile Include="FormatSpecifierTests.cs" />
     <Compile Include="FullNameTests.cs" />
     <Compile Include="Helpers\TestTypeExtensions.cs" />
+    <Compile Include="NativeViewTests.cs" />
     <Compile Include="ObjectIdTests.cs" />
     <Compile Include="ResultsViewTests.cs" />
     <Compile Include="TypeNameFormatterTests.cs" />

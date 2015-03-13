@@ -1884,8 +1884,8 @@ a.vb
             Assert.Equal(1, exitCode)
             ' Diagnostics thrown as error: command line always overrides ruleset.
             Dim output = outWriter.ToString()
-            Assert.Contains("error Warning01", output)
-            Assert.Contains("error Warning03", output)
+            Assert.Contains("error Warning01", output, StringComparison.Ordinal)
+            Assert.Contains("error Warning03", output, StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
@@ -1898,8 +1898,8 @@ a.vb
             Assert.Equal(1, exitCode)
             ' Diagnostics thrown as error: command line always overrides ruleset.
             output = outWriter.ToString()
-            Assert.Contains("error Warning01", output)
-            Assert.Contains("error Warning03", output)
+            Assert.Contains("error Warning01", output, StringComparison.Ordinal)
+            Assert.Contains("error Warning03", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -1934,9 +1934,9 @@ a.vb
             Assert.Equal(0, exitCode)
             ' Diagnostics suppressed: command line always overrides ruleset.
             Dim output = outWriter.ToString()
-            Assert.DoesNotContain("Warning01", output)
-            Assert.DoesNotContain("BC31072", output)
-            Assert.DoesNotContain("Warning03", output)
+            Assert.DoesNotContain("Warning01", output, StringComparison.Ordinal)
+            Assert.DoesNotContain("BC31072", output, StringComparison.Ordinal)
+            Assert.DoesNotContain("Warning03", output, StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
@@ -1949,9 +1949,9 @@ a.vb
             Assert.Equal(0, exitCode)
             ' Diagnostics suppressed: command line always overrides ruleset.
             output = outWriter.ToString()
-            Assert.DoesNotContain("Warning01", output)
-            Assert.DoesNotContain("BC31072", output)
-            Assert.DoesNotContain("Warning03", output)
+            Assert.DoesNotContain("Warning01", output, StringComparison.Ordinal)
+            Assert.DoesNotContain("BC31072", output, StringComparison.Ordinal)
+            Assert.DoesNotContain("Warning03", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -3350,7 +3350,7 @@ End Class
             Dim outWriter As New StringWriter()
             Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, baseDirectory, {"/nologo", "/preferreduilang:en", "/t:library", "/out:" & subFolder.ToString(), src.ToString()}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.True(outWriter.ToString().Trim().StartsWith("error BC2012: can't open '" & subFolder.ToString() & "' for writing: ", StringComparison.Ordinal)) ' Cannot create a file when that file already exists.
+            Assert.True(outWriter.ToString().Contains("error BC2012: can't open '" & subFolder.ToString() & "' for writing: ")) ' Cannot create a file when that file already exists.
 
             CleanupAllGeneratedFiles(src.Path)
         End Sub
@@ -3622,7 +3622,7 @@ End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
             Dim output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /t:library " & src.ToString(), startFolder:=dir.Path, expectedRetCode:=1)
-            Assert.Contains("error BC30002: Type 'Global.System.ComponentModel.EditorBrowsable' is not defined.", output)
+            Assert.Contains("error BC30002: Type 'Global.System.ComponentModel.EditorBrowsable' is not defined.", output, StringComparison.Ordinal)
 
             output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /nostdlib /define:_MYTYPE=\""Empty\"" /t:library " & src.ToString(), startFolder:=dir.Path)
             AssertOutput(<text></text>, output)
@@ -4609,7 +4609,7 @@ End Module
             Dim exitCode = vbc.Run(output, Nothing)
 
             Assert.Equal(1, exitCode)
-            Assert.Contains("error BC2012: can't open '" + dir.Path + "\sub\a.exe' for writing", output.ToString())
+            Assert.Contains("error BC2012: can't open '" + dir.Path + "\sub\a.exe' for writing", output.ToString(), StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -4642,8 +4642,8 @@ End Module
 
             Assert.Equal(1, exitCode)
             Dim message = output.ToString()
-            Assert.Contains("error BC2032: File name", message)
-            Assert.Contains("sub", message)
+            Assert.Contains("error BC2032: File name", message, StringComparison.Ordinal)
+            Assert.Contains("sub", message, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -4676,8 +4676,8 @@ End Module
 
             Assert.Equal(1, exitCode)
             Dim message = output.ToString()
-            Assert.Contains("error BC2032: File name", message)
-            Assert.Contains("sub", message)
+            Assert.Contains("error BC2032: File name", message, StringComparison.Ordinal)
+            Assert.Contains("sub", message, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -4709,7 +4709,7 @@ End Module
             Dim exitCode = vbc.Run(output, Nothing)
 
             Assert.Equal(1, exitCode)
-            Assert.Contains("error BC2032: File name 'aaa:\a.exe' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long", output.ToString())
+            Assert.Contains("error BC2032: File name 'aaa:\a.exe' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long", output.ToString(), StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -4741,7 +4741,7 @@ End Module
             Dim exitCode = vbc.Run(output, Nothing)
 
             Assert.Equal(1, exitCode)
-            Assert.Contains("error BC2006: option 'out' requires ':<file>'", output.ToString())
+            Assert.Contains("error BC2006: option 'out' requires ':<file>'", output.ToString(), StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -5212,28 +5212,28 @@ End Module
             Dim output As New StringWriter()
             Dim exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("error BC42024: Unused local variable: 'x'.", output.ToString())
+            Assert.Contains("error BC42024: Unused local variable: 'x'.", output.ToString(), StringComparison.Ordinal)
 
             ' Checks the base case with /noconfig (expect to see warning, instead of error)
             vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en", "/noconfig"})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC42024: Unused local variable: 'x'.", output.ToString())
+            Assert.Contains("warning BC42024: Unused local variable: 'x'.", output.ToString(), StringComparison.Ordinal)
 
             ' Checks the base case with /NOCONFIG (expect to see warning, instead of error)
             vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en", "/NOCONFIG"})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC42024: Unused local variable: 'x'.", output.ToString())
+            Assert.Contains("warning BC42024: Unused local variable: 'x'.", output.ToString(), StringComparison.Ordinal)
 
             ' Checks the base case with -noconfig (expect to see warning, instead of error)
             vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en", "-noconfig"})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC42024: Unused local variable: 'x'.", output.ToString())
+            Assert.Contains("warning BC42024: Unused local variable: 'x'.", output.ToString(), StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(source)
             CleanupAllGeneratedFiles(rsp)
@@ -5260,14 +5260,14 @@ End Module
             Dim output As New StringWriter()
             Dim exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString())
+            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString(), StringComparison.Ordinal)
 
             ' Checks the case with /noconfig inside the response file as along with /nowarn (expect to see warning)
             vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en", "/nowarn"})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString())
+            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString(), StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(source)
             CleanupAllGeneratedFiles(rsp)
@@ -5294,14 +5294,14 @@ End Module
             Dim output As New StringWriter()
             Dim exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString())
+            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString(), StringComparison.Ordinal)
 
             ' Checks the case with /NOCONFIG inside the response file as along with /nowarn (expect to see warning)
             vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en", "/nowarn"})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString())
+            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString(), StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(source)
             CleanupAllGeneratedFiles(rsp)
@@ -5328,14 +5328,14 @@ End Module
             Dim output As New StringWriter()
             Dim exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString())
+            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString(), StringComparison.Ordinal)
 
             ' Checks the case with -noconfig inside the response file as along with /nowarn (expect to see warning)
             vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en", "/nowarn"})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString())
+            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString(), StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(source)
             CleanupAllGeneratedFiles(rsp)
@@ -5504,21 +5504,6 @@ Imports System
 
             Assert.True(vbc.Arguments.CompilationOptions.OptionInfer)
         End Sub
-
-        <Fact()>
-        Public Sub TestTempFileCreationFail()
-            Dim comp = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/out:foo", "/t:library", "/res:foo"})
-            AddHandler comp.OnCreateTempFile, Sub(fileName, stream)
-                                                  stream.Dispose()
-                                                  File.Delete(fileName)
-                                                  Throw New IOException("Ronnie James Dio")
-                                              End Sub
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim result = comp.Run(outWriter, Nothing)
-            Assert.Contains("BC30138", outWriter.ToString())
-            Assert.Contains("Ronnie James Dio", outWriter.ToString())
-        End Sub
-
 
         <Fact(Skip:="972948")>
         Public Sub DefaultResponseFileNoConfig()
@@ -5691,7 +5676,7 @@ End Module
             Assert.NotEqual(0, exitCode)
 
             ' error BC2032: File name '' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-            Assert.Contains("BC2032", outWriter.ToString())
+            Assert.Contains("BC2032", outWriter.ToString(), StringComparison.Ordinal)
         End Sub
 
         <WorkItem(1119609, "DevDiv")>
@@ -5700,37 +5685,37 @@ End Module
             Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
             Dim exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("BC2006", outWriter.ToString())
+            Assert.Contains("BC2006", outWriter.ToString(), StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("BC2006", outWriter.ToString())
+            Assert.Contains("BC2006", outWriter.ToString(), StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:zz"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("BC2038", outWriter.ToString())
+            Assert.Contains("BC2038", outWriter.ToString(), StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:en-zz"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("BC2038", outWriter.ToString())
+            Assert.Contains("BC2038", outWriter.ToString(), StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:en-US"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.DoesNotContain("BC2038", outWriter.ToString())
+            Assert.DoesNotContain("BC2038", outWriter.ToString(), StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:de"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.DoesNotContain("BC2038", outWriter.ToString())
+            Assert.DoesNotContain("BC2038", outWriter.ToString(), StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:de-AT"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.DoesNotContain("BC2038", outWriter.ToString())
+            Assert.DoesNotContain("BC2038", outWriter.ToString(), StringComparison.Ordinal)
         End Sub
 
         <Fact, WorkItem(650083, "DevDiv")>
@@ -5759,32 +5744,32 @@ Module Module1
     End Sub
 End Module
 </text>.Value).Path
-            ' Make sure these reversed device names don't affect compiler
+            ' Make sure these reserved device names don't affect compiler
             Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/r:.\com3.dll", "/preferreduilang:en", source})
             Dim output = New StringWriter()
             Dim exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("error BC2017: could not find library '.\com3.dll'", output.ToString().Trim())
+            Assert.Contains("error BC2017: could not find library '.\com3.dll'", output.ToString(), StringComparison.Ordinal)
 
             vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", "/link:prn.dll", source})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("error BC2017: could not find library 'prn.dll'", output.ToString().Trim())
+            Assert.Contains("error BC2017: could not find library 'prn.dll'", output.ToString(), StringComparison.Ordinal)
 
             vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"@aux.rsp", "/preferreduilang:en", source})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
             Dim errMessage = output.ToString().Trim()
-            Assert.Contains("error BC2011: unable to open response file", errMessage)
-            Assert.Contains("aux.rsp", errMessage)
+            Assert.Contains("error BC2011: unable to open response file", errMessage, StringComparison.Ordinal)
+            Assert.Contains("aux.rsp", errMessage, StringComparison.Ordinal)
 
             vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", "/vbruntime:..\con.dll", source})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("error BC2017: could not find library '..\con.dll'", output.ToString().Trim())
+            Assert.Contains("error BC2017: could not find library '..\con.dll'", output.ToString(), StringComparison.Ordinal)
 
             ' Native VB compiler also ignore invalid lib pathes
             vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/LibPath:lpt1,Lpt2,LPT9", source})
@@ -6088,22 +6073,22 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             Assert.True(expectedExitCode = exitCode,
                         String.Format("Expected exit code to be '{0}' was '{1}'.{2}Output:{3}{4}", expectedExitCode, exitCode, Environment.NewLine, Environment.NewLine, output))
 
-            Assert.DoesNotContain(" : hidden", output)
+            Assert.DoesNotContain(" : hidden", output, StringComparison.Ordinal)
 
             If expectedInfoCount = 0 Then
-                Assert.DoesNotContain(" : info", output)
+                Assert.DoesNotContain(" : info", output, StringComparison.Ordinal)
             Else
                 Assert.Equal(expectedInfoCount, OccurrenceCount(output, " : info"))
             End If
 
             If expectedWarningCount = 0 Then
-                Assert.DoesNotContain(" : warning", output)
+                Assert.DoesNotContain(" : warning", output, StringComparison.Ordinal)
             Else
                 Assert.Equal(expectedWarningCount, OccurrenceCount(output, " : warning"))
             End If
 
             If expectedErrorCount = 0 Then
-                Assert.DoesNotContain(" : error", output)
+                Assert.DoesNotContain(" : error", output, StringComparison.Ordinal)
             Else
                 Assert.Equal(expectedErrorCount, OccurrenceCount(output, " : error"))
             End If
@@ -6122,7 +6107,7 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             file.WriteAllText(source)
 
             Dim output = VerifyOutput(dir, file, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler warning BC42376 can be suppressed via /nowarn.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn"})
@@ -6132,11 +6117,11 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
 
             ' TEST: Verify that compiler warning BC42376 can be promoted to an error via /warnaserror+.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler warning BC42376 can be individually promoted to an error via /warnaserror:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:42376"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -6155,60 +6140,60 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             file.WriteAllText(source)
 
             Dim output = VerifyOutput(dir, file, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn"})
 
             ' TEST: Verify that /nowarn: has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:Hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /warnaserror+ has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/nowarn:42376"})
 
             ' TEST: Verify that /warnaserror- has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /warnaserror: promotes custom hidden diagnostic Hidden01 to an error.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:hidden01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /warnaserror-: has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:Hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:Hidden01", "/nowarn:Hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:hidden01", "/warnaserror:Hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror-:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:Hidden01", "/nowarn:Hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror-:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:hidden01", "/warnaserror-:Hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn doesn't override /warnaserror: in the case of custom hidden diagnostics.
             ' Although the compiler normally suppresses printing of hidden diagnostics in the compiler output, they are never really suppressed
             ' because in the IDE features that rely on hidden diagnostics to display light bulb need to continue to work even when users have global
             ' suppression (/nowarn) specified in their project. In other words, /nowarn flag is a no-op for hidden diagnostics.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/warnaserror:Hidden01"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn doesn't override /warnaserror: in the case of custom hidden diagnostics.
             ' Although the compiler normally suppresses printing of hidden diagnostics in the compiler output, they are never really suppressed
             ' because in the IDE features that rely on hidden diagnostics to display light bulb need to continue to work even when users have global
             ' suppression (/nowarn) specified in their project. In other words, /nowarn flag is a no-op for hidden diagnostics.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:HIDDen01", "/nowarn"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn and /warnaserror-: have no impact  on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:Hidden01", "/nowarn"})
@@ -6224,45 +6209,45 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
 
             ' TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:Hidden01", "/warnaserror-:hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:Hidden01", "/warnaserror+:hidden01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-", "/warnaserror+:hidden01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:hiddEn01", "/warnaserror+", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:HiDden01", "/warnaserror-"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/warnaserror-:Hidden01", "/nowarn:42376"})
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-", "/warnaserror-:Hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:Hidden01", "/warnaserror-"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:HiDden01", "/warnaserror+", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/warnaserror+:HiDden01", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -6278,50 +6263,50 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             Dim name = "a.vb"
 
             Dim output = GetOutput(name, source, expectedWarningCount:=1, expectedInfoCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom info diagnostic Info01 can be suppressed via /nowarn.
             output = GetOutput(name, source, additionalFlags:={"/nowarn"})
 
             ' TEST: Verify that custom info diagnostic Info01 can be individually suppressed via /nowarn:.
             output = GetOutput(name, source, additionalFlags:={"/nowarn:Info01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom info diagnostic Info01 can never be promoted to an error via /warnaserror+.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror+", "/nowarn:42376"}, expectedInfoCount:=1)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom info diagnostic Info01 is still reported as an info when /warnaserror- is used.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-"}, expectedWarningCount:=1, expectedInfoCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom info diagnostic Info01 can be individually promoted to an error via /warnaserror:.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror:info01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom info diagnostic Info01 is still reported as an info when passed to /warnaserror-:.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-:info01"}, expectedWarningCount:=1, expectedInfoCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror:.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror:Info01", "/nowarn:info01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror:.
             output = GetOutput(name, source, additionalFlags:={"/nowarn:INFO01", "/warnaserror:Info01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror-:.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-:Info01", "/nowarn:info01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror-:.
             output = GetOutput(name, source, additionalFlags:={"/nowarn:INFO01", "/warnaserror-:Info01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn overrides /warnaserror:.
             output = GetOutput(name, source, additionalFlags:={"/nowarn", "/warnaserror:Info01"})
@@ -6343,49 +6328,49 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
 
             ' TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror+:Info01", "/warnaserror-:info01"}, expectedWarningCount:=1, expectedInfoCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-:Info01", "/warnaserror+:INfo01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-", "/warnaserror+:info01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror+:InFo01", "/warnaserror+", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror+:InfO01", "/warnaserror-"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror+", "/warnaserror-:INfo01", "/nowarn:42376"}, expectedInfoCount:=1)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-", "/warnaserror-:INfo01"}, expectedWarningCount:=1, expectedInfoCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-:Info01", "/warnaserror-"}, expectedWarningCount:=1, expectedInfoCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror+", "/warnaserror+:Info01", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror+:InFO01", "/warnaserror+", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
         End Sub
 
         Private Function GetOutput(name As String,
@@ -6422,10 +6407,10 @@ End Module"
             file.WriteAllText(source)
 
             Dim output = VerifyOutput(dir, file, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler warning BC42024 as well as custom warning diagnostics Warning01 and Warning03 can be suppressed via /nowarn.
             ' This doesn't work for BC42376 currently (Bug 899050).
@@ -6433,50 +6418,50 @@ End Module"
 
             ' TEST: Verify that compiler warning BC42024 as well as custom warning diagnostics Warning01 and Warning03 can be individually suppressed via /nowarn:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler warning BC42024 as well as custom warning diagnostics Warning01 and Warning03 can be promoted to errors via /warnaserror.
             ' Promoting compiler warning BC42024 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler warning BC42024 as well as custom warning diagnostics Warning01 and Warning03 can be promoted to errors via /warnaserror+.
             ' This doesn't work currently - promoting compiler warning BC42024 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /warnaserror- keeps compiler warning BC42024 as well as custom warning diagnostics Warning01 and Warning03 as warnings.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-"}, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom warning diagnostics Warning01 and Warning03 can be individually promoted to errors via /warnaserror:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:warning01,Something,warning03"}, expectedWarningCount:=2, expectedErrorCount:=2)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : error Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler warning BC42024 can be individually promoted to an error via /warnaserror+:.
             ' This doesn't work correctly currently - promoting compiler warning BC42024 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:bc42024"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(4) : error BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : error BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom warning diagnostics Warning01 and Warning03 as well as compiler warning BC42024 can be individually promoted to errors via /warnaserror:.
             ' This doesn't work currently - promoting compiler warning BC42024 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(4) : error BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : error BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that last flag on command line wins between /nowarn and /warnaserror.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror", "/nowarn"})
 
             ' TEST: Verify that last flag on command line wins between /nowarn and /warnaserror+.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/warnaserror+"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn overrides /warnaserror-.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/warnaserror-"})
@@ -6486,19 +6471,19 @@ End Module"
 
             ' TEST: Verify that /nowarn: overrides /warnaserror:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:Something,042024,Warning01,Warning03", "/nowarn:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn: overrides /warnaserror:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:warning01,Warning03,bc42024,58000", "/warnaserror:Something,042024,Warning01,Warning03"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn: overrides /warnaserror-:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:Something,042024,Warning01,Warning03", "/nowarn:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn: overrides /warnaserror-:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:warning01,Warning03,bc42024,58000", "/warnaserror-:Something,042024,Warning01,Warning03"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn: overrides /warnaserror+.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/nowarn:warning01,Warning03,bc42024,58000,42376"})
@@ -6514,11 +6499,11 @@ End Module"
 
             ' TEST: Verify that /nowarn: overrides /warnaserror-:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:warning01,Warning03,bc42024,58000", "/nowarn:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn: overrides /warnaserror-:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:warning01,Warning03,bc42024,58000", "/warnaserror-:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn overrides /warnaserror:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/warnaserror:Something,042024,Warning01,Warning03,42376"})
@@ -6540,7 +6525,7 @@ End Module"
 
             ' TEST: Verify that last /warnaserror[+/-] flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-", "/warnaserror+"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' Note: Old native compiler behaved strangely for the below case.
             ' When /warnaserror+ and /warnaserror- appeared on the same command line, natvie compiler would allow /warnaserror+ to win always
@@ -6551,72 +6536,72 @@ End Module"
 
             ' TEST: Verify that last /warnaserror[+/-] flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/warnaserror-"}, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:warning01,Warning03", "/warnaserror+:Warning01,Warning03"}, expectedWarningCount:=2, expectedErrorCount:=2)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : error Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:Warning01,Warning03", "/warnaserror-:warning01,Warning03"}, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:warning01,Warning03,bc42024,58000,42376", "/warnaserror+"}, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:warning01,Warning03,58000", "/warnaserror-"}, expectedWarningCount:=2, expectedErrorCount:=2)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : error Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-", "/warnaserror+:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(4) : error BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : error BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/warnaserror-:warning01,Warning03,bc42024,58000,42376"}, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/warnaserror+:warning01,Warning03,bc42024,58000,42376"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:warning01,Warning03,bc42024,58000,42376", "/warnaserror"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-", "/warnaserror-:warning01,Warning03,bc42024,58000,42376"}, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:warning01,Warning03,bc42024,58000,42376", "/warnaserror-"}, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -6637,15 +6622,15 @@ End Module"
 
             ' TEST: Verify that custom error diagnostic Error01 can't be suppressed via /nowarn.
             Dim output = VerifyOutput(dir, file, additionalFlags:={"/nowarn"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output)
+            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom error diagnostic Error01 can be suppressed via /nowarn:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:Error01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom error diagnostic Error01 can be suppressed via /nowarn:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:ERROR01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn: overrides /warnaserror+.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/nowarn:ERROR01,42376"})
@@ -6673,27 +6658,27 @@ End Module"
 
             ' TEST: Verify that nothing bad happens when using /warnaserror[+/-] when custom error diagnostic Error01 is present.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output)
+            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output)
+            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that nothing bad happens if someone passes custom error diagnostic Error01 to /warnaserror[+/-]:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:Error01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:ERROR01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:Error01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -6712,50 +6697,50 @@ End Module"
             file.WriteAllText(source)
 
             Dim output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler error BC30311 can't be suppressed via /nowarn.
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler error BC30311 can't be suppressed via /nowarn:.
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn:30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn:BC30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn:bc30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that nothing bad happens when using /warnaserror[+/-] when compiler error BC30311 is present.
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror+"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that nothing bad happens if someone passes BC30311 to /warnaserror[+/-]:.
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror:30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror+:BC30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror+:bc30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-:30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-:BC30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-:bc30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub

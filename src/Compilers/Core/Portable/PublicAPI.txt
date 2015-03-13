@@ -1384,8 +1384,6 @@ Microsoft.CodeAnalysis.Text.TextSpan.Overlap(Microsoft.CodeAnalysis.Text.TextSpa
 Microsoft.CodeAnalysis.Text.TextSpan.OverlapsWith(Microsoft.CodeAnalysis.Text.TextSpan span)
 Microsoft.CodeAnalysis.Text.TextSpan.Start.get
 Microsoft.CodeAnalysis.Text.TextSpan.TextSpan(int start, int length)
-Microsoft.CodeAnalysis.TriggerDiagnosticDescriptor
-Microsoft.CodeAnalysis.TriggerDiagnosticDescriptor.TriggerDiagnosticDescriptor(string id, params string[] customTags)
 Microsoft.CodeAnalysis.TypeInfo
 Microsoft.CodeAnalysis.TypeInfo.ConvertedType.get
 Microsoft.CodeAnalysis.TypeInfo.Equals(Microsoft.CodeAnalysis.TypeInfo other)

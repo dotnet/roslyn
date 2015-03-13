@@ -26,34 +26,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class SynthesizedEventDelegateSymbol
         Inherits InstanceTypeSymbol
 
-        Private ReadOnly m_eventName As String
-        Private ReadOnly m_name As String
-        Private ReadOnly m_containingType As NamedTypeSymbol
-        Private ReadOnly m_syntaxRef As SyntaxReference
+        Private ReadOnly _eventName As String
+        Private ReadOnly _name As String
+        Private ReadOnly _containingType As NamedTypeSymbol
+        Private ReadOnly _syntaxRef As SyntaxReference
 
-        Private m_lazyMembers As ImmutableArray(Of Symbol)
-        Private m_lazyEventSymbol As EventSymbol
+        Private _lazyMembers As ImmutableArray(Of Symbol)
+        Private _lazyEventSymbol As EventSymbol
 
-        Private m_lazyLexicalSortKey As LexicalSortKey = LexicalSortKey.NotInitialized
-
-        Private m_reportedAllDeclarationErrors As Integer = 0 ' An integer to be able to do Interlocked operations.
+        Private _reportedAllDeclarationErrors As Integer = 0 ' An integer to be able to do Interlocked operations.
 
         Friend Sub New(syntaxRef As SyntaxReference, containingSymbol As NamedTypeSymbol)
-            Me.m_containingType = containingSymbol
-            Me.m_syntaxRef = syntaxRef
+            Me._containingType = containingSymbol
+            Me._syntaxRef = syntaxRef
 
             Dim eventName = Me.EventSyntax.Identifier.ValueText
-            Me.m_eventName = eventName
-            Me.m_name = m_eventName & EVENT_DELEGATE_SUFFIX
+            Me._eventName = eventName
+            Me._name = _eventName & EVENT_DELEGATE_SUFFIX
         End Sub
 
         Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-            If Not m_lazyMembers.IsDefault Then
-                Return m_lazyMembers
+            If Not _lazyMembers.IsDefault Then
+                Return _lazyMembers
             End If
 
             Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-            Dim binder As binder = BinderBuilder.CreateBinderForType(sourceModule, m_syntaxRef.SyntaxTree, Me.ContainingType)
+            Dim binder As binder = BinderBuilder.CreateBinderForType(sourceModule, _syntaxRef.SyntaxTree, Me.ContainingType)
 
             Dim diagBag = DiagnosticBag.GetInstance()
 
@@ -78,10 +76,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 members = ImmutableArray.Create(Of Symbol)(ctor, beginInvoke, endInvoke, invoke)
             End If
 
-            sourceModule.AtomicStoreArrayAndDiagnostics(m_lazyMembers, members, diagBag, CompilationStage.Declare)
+            sourceModule.AtomicStoreArrayAndDiagnostics(_lazyMembers, members, diagBag, CompilationStage.Declare)
             diagBag.Free()
 
-            Return m_lazyMembers
+            Return _lazyMembers
         End Function
 
         Public Overloads Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
@@ -94,27 +92,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property EventSyntax As EventStatementSyntax
             Get
-                Return DirectCast(Me.m_syntaxRef.GetSyntax, EventStatementSyntax)
+                Return DirectCast(Me._syntaxRef.GetSyntax, EventStatementSyntax)
             End Get
         End Property
 
         Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
-                If m_lazyEventSymbol Is Nothing Then
-                    Dim events = m_containingType.GetMembers(m_eventName)
+                If _lazyEventSymbol Is Nothing Then
+                    Dim events = _containingType.GetMembers(_eventName)
                     For Each e In events
                         Dim asEvent = TryCast(e, SourceEventSymbol)
                         If asEvent IsNot Nothing Then
                             Dim evSyntax = asEvent.SyntaxReference.GetSyntax
                             If evSyntax IsNot Nothing AndAlso evSyntax Is EventSyntax Then
-                                m_lazyEventSymbol = asEvent
+                                _lazyEventSymbol = asEvent
                             End If
                         End If
                     Next
                 End If
 
-                Debug.Assert(m_lazyEventSymbol IsNot Nothing, "We should have found our event here")
-                Return m_lazyEventSymbol
+                Debug.Assert(_lazyEventSymbol IsNot Nothing, "We should have found our event here")
+                Return _lazyEventSymbol
             End Get
         End Property
 
@@ -130,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return AssociatedSymbol
                 End If
 
-                Dim candidates = membersInProgress(m_eventName)
+                Dim candidates = membersInProgress(_eventName)
                 Dim eventInCurrentContext As SourceEventSymbol = Nothing
 
                 Debug.Assert(candidates IsNot Nothing, "where is my event?")
@@ -158,13 +156,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return m_containingType
+                Return _containingType
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol
             Get
-                Return m_containingType
+                Return _containingType
             End Get
         End Property
 
@@ -212,16 +210,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
             ' WARNING: this should not allocate memory!
-            If Not m_lazyLexicalSortKey.IsInitialized Then
-                m_lazyLexicalSortKey.SetFrom(New LexicalSortKey(m_syntaxRef, Me.DeclaringCompilation))
-            End If
-
-            Return m_lazyLexicalSortKey
+            Return New LexicalSortKey(_syntaxRef, Me.DeclaringCompilation)
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return ImmutableArray.Create(m_syntaxRef.GetLocation())
+                Return ImmutableArray.Create(_syntaxRef.GetLocation())
             End Get
         End Property
 
@@ -240,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
-            Return m_containingType.ContainingAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_MulticastDelegate)
+            Return _containingType.ContainingAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_MulticastDelegate)
         End Function
 
         Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
@@ -321,7 +315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_name
+                Return _name
             End Get
         End Property
 
@@ -371,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Force all declaration errors to be generated.
         ''' </summary>
         Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
-            If m_reportedAllDeclarationErrors <> 0 Then
+            If _reportedAllDeclarationErrors <> 0 Then
                 Return
             End If
 
@@ -385,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Parameters on other delegate methods are derived from Invoke so we don't need to call those.
             Me.DelegateInvokeMethod.GenerateDeclarationErrors(cancellationToken)
 
-            Dim container = m_containingType
+            Dim container = _containingType
             Dim outermostVariantInterface As NamedTypeSymbol = Nothing
 
             Do
@@ -414,7 +408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                 Locations(0)))
             End If
 
-            DirectCast(ContainingModule, SourceModuleSymbol).AtomicStoreIntegerAndDiagnostics(m_reportedAllDeclarationErrors, 1, 0, diagnostics, CompilationStage.Declare)
+            DirectCast(ContainingModule, SourceModuleSymbol).AtomicStoreIntegerAndDiagnostics(_reportedAllDeclarationErrors, 1, 0, diagnostics, CompilationStage.Declare)
 
             diagnostics.Free()
         End Sub

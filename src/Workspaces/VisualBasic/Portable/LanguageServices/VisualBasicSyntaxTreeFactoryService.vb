@@ -36,11 +36,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SyntaxFactory.ParseSyntaxTree(text, options, fileName, cancellationToken)
             End Function
 
-            Public Overloads Overrides Function CreateSyntaxTree(fileName As String, options As ParseOptions, node As SyntaxNode, encoding As Encoding) As SyntaxTree
+            Public Overloads Overrides Function CreateSyntaxTree(fileName As String, options As ParseOptions, encoding As Encoding, root As SyntaxNode) As SyntaxTree
                 If options Is Nothing Then
                     options = GetDefaultParseOptions()
                 End If
-                Return SyntaxFactory.SyntaxTree(node, options, fileName, encoding)
+                Return SyntaxFactory.SyntaxTree(root, options, fileName, encoding)
             End Function
 
             Public Overrides Function CreateRecoverableTree(cacheKey As ProjectId, filePath As String, optionsOpt As ParseOptions, text As ValueSource(Of TextAndVersion), encoding As Encoding, root As SyntaxNode) As SyntaxTree

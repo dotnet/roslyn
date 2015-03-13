@@ -20,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend NotInheritable Class SynthesizedStringSwitchHashMethod
         Inherits SynthesizedGlobalMethodBase
 
-        Private ReadOnly m_parameters As ImmutableArray(Of ParameterSymbol)
-        Private ReadOnly m_returnType As TypeSymbol
+        Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
+        Private ReadOnly _returnType As TypeSymbol
 
         Public Sub New(container As SourceModuleSymbol, privateImplType As PrivateImplementationDetails)
             MyBase.New(container, PrivateImplementationDetails.SynthesizedStringHashFunctionName, privateImplType)
@@ -29,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Signature:  uint ComputeStringHash(s as String)
             Dim compilation = Me.DeclaringCompilation
 
-            m_parameters = ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSimpleSymbol(Me, compilation.GetSpecialType(SpecialType.System_String), 0, "s"))
-            m_returnType = compilation.GetSpecialType(SpecialType.System_UInt32)
+            _parameters = ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSimpleSymbol(Me, compilation.GetSpecialType(SpecialType.System_String), 0, "s"))
+            _returnType = compilation.GetSpecialType(SpecialType.System_UInt32)
         End Sub
 
         Friend Overrides ReadOnly Property ParameterCount As Integer
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                Return m_parameters
+                Return _parameters
             End Get
         End Property
 
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
-                Return m_returnType
+                Return _returnType
             End Get
         End Property
 

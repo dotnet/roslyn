@@ -1169,6 +1169,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return False
         End Function
-
     End Class
 End Namespace

@@ -18,19 +18,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Flags associated with the field
         Protected ReadOnly m_memberFlags As SourceMemberFlags
 
-        Private ReadOnly m_containingType As SourceMemberContainerTypeSymbol
-        Private ReadOnly m_name As String
+        Private ReadOnly _containingType As SourceMemberContainerTypeSymbol
+        Private ReadOnly _name As String
 
         ' The syntax reference for this field (points to the name of the field)
-        Private ReadOnly m_syntaxRef As SyntaxReference
+        Private ReadOnly _syntaxRef As SyntaxReference
 
-        Private m_lazyDocComment As String
-        Private m_lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
-
-        Private m_lazyLexicalSortKey As LexicalSortKey = LexicalSortKey.NotInitialized
+        Private _lazyDocComment As String
+        Private _lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
 
         ' Set to 1 when the compilation event has been produced
-        Private m_eventProduced As Integer
+        Private _eventProduced As Integer
 
         Protected Sub New(container As SourceMemberContainerTypeSymbol,
                           syntaxRef As SyntaxReference,
@@ -41,10 +39,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(syntaxRef IsNot Nothing)
             Debug.Assert(name IsNot Nothing)
 
-            m_name = name
-            m_containingType = container
+            _name = name
+            _containingType = container
 
-            m_syntaxRef = syntaxRef
+            _syntaxRef = syntaxRef
             m_memberFlags = memberFlags
         End Sub
 
@@ -56,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' We want declaration events to be last, after all compilation analysis is done, so we produce them here
             Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-            If Interlocked.CompareExchange(m_eventProduced, 1, 0) = 0 AndAlso Not Me.IsImplicitlyDeclared Then
+            If Interlocked.CompareExchange(_eventProduced, 1, 0) = 0 AndAlso Not Me.IsImplicitlyDeclared Then
                 sourceModule.DeclaringCompilation.SymbolDeclaredEvent(Me)
             End If
         End Sub
@@ -66,13 +64,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property SyntaxTree As SyntaxTree
             Get
-                Return m_syntaxRef.SyntaxTree
+                Return _syntaxRef.SyntaxTree
             End Get
         End Property
 
         Friend ReadOnly Property Syntax As VisualBasicSyntaxNode
             Get
-                Return m_syntaxRef.GetVisualBasicSyntax()
+                Return _syntaxRef.GetVisualBasicSyntax()
             End Get
         End Property
 
@@ -90,36 +88,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property Name As String
             Get
-                Return m_name
+                Return _name
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return m_containingType
+                Return _containingType
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property ContainingType As NamedTypeSymbol
             Get
-                Return m_containingType
+                Return _containingType
             End Get
         End Property
 
         Public ReadOnly Property ContainingSourceType As SourceMemberContainerTypeSymbol
             Get
-                Return m_containingType
+                Return _containingType
             End Get
         End Property
 
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            If m_lazyDocComment Is Nothing Then
+            If _lazyDocComment Is Nothing Then
                 ' NOTE: replace Nothing with empty comment
                 Interlocked.CompareExchange(
-                    m_lazyDocComment, GetDocumentationCommentForSymbol(Me, preferredCulture, expandIncludes, cancellationToken), Nothing)
+                    _lazyDocComment, GetDocumentationCommentForSymbol(Me, preferredCulture, expandIncludes, cancellationToken), Nothing)
             End If
 
-            Return m_lazyDocComment
+            Return _lazyDocComment
         End Function
 
         ''' <summary>
@@ -180,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return m_containingType.AreMembersImplicitlyDeclared
+                Return _containingType.AreMembersImplicitlyDeclared
             End Get
         End Property
 
@@ -192,27 +190,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
             ' WARNING: this should not allocate memory!
-            If Not m_lazyLexicalSortKey.IsInitialized Then
-                m_lazyLexicalSortKey.SetFrom(New LexicalSortKey(m_syntaxRef, Me.DeclaringCompilation))
-            End If
-            Return m_lazyLexicalSortKey
+            Return New LexicalSortKey(_syntaxRef, Me.DeclaringCompilation)
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return ImmutableArray.Create(Of Location)(GetSymbolLocation(m_syntaxRef))
+                Return ImmutableArray.Create(Of Location)(GetSymbolLocation(_syntaxRef))
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return GetDeclaringSyntaxReferenceHelper(m_syntaxRef)
+                Return GetDeclaringSyntaxReferenceHelper(_syntaxRef)
             End Get
         End Property
 
         Friend MustOverride ReadOnly Property GetAttributeDeclarations() As OneOrMany(Of SyntaxList(Of AttributeListSyntax))
 
-        ReadOnly Property DefaultAttributeLocation As AttributeLocation Implements IAttributeTargetSymbol.DefaultAttributeLocation
+        Public ReadOnly Property DefaultAttributeLocation As AttributeLocation Implements IAttributeTargetSymbol.DefaultAttributeLocation
             Get
                 Return AttributeLocation.Field
             End Get
@@ -231,14 +226,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function GetAttributesBag() As CustomAttributesBag(Of VisualBasicAttributeData)
-            If m_lazyCustomAttributesBag Is Nothing OrElse Not m_lazyCustomAttributesBag.IsSealed Then
-                LoadAndValidateAttributes(GetAttributeDeclarations(), m_lazyCustomAttributesBag)
+            If _lazyCustomAttributesBag Is Nothing OrElse Not _lazyCustomAttributesBag.IsSealed Then
+                LoadAndValidateAttributes(GetAttributeDeclarations(), _lazyCustomAttributesBag)
             End If
-            Return m_lazyCustomAttributesBag
+            Return _lazyCustomAttributesBag
         End Function
 
         Private Function GetDecodedWellKnownAttributeData() As CommonFieldWellKnownAttributeData
-            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me.m_lazyCustomAttributesBag
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyCustomAttributesBag
             If attributesBag Is Nothing OrElse Not attributesBag.IsDecodedWellKnownAttributeDataComputed Then
                 attributesBag = Me.GetAttributesBag()
             End If
@@ -250,9 +245,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' and members are fully declared to avoid infinite recursion.
         Friend Sub SetCustomAttributeData(attributeData As CustomAttributesBag(Of VisualBasicAttributeData))
             Debug.Assert(attributeData IsNot Nothing)
-            Debug.Assert(m_lazyCustomAttributesBag Is Nothing)
+            Debug.Assert(_lazyCustomAttributesBag Is Nothing)
 
-            m_lazyCustomAttributesBag = attributeData
+            _lazyCustomAttributesBag = attributeData
         End Sub
 
         Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
@@ -420,13 +415,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 ' If there are no attributes then this symbol is not Obsolete.
-                If (Not Me.m_containingType.AnyMemberHasAttributes) Then
+                If (Not Me._containingType.AnyMemberHasAttributes) Then
                     Return Nothing
                 End If
 
-                Dim lazyCustomAttributesBag = Me.m_lazyCustomAttributesBag
+                Dim lazyCustomAttributesBag = Me._lazyCustomAttributesBag
                 If (lazyCustomAttributesBag IsNot Nothing AndAlso lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed) Then
-                    Dim data = DirectCast(m_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, CommonFieldEarlyWellKnownAttributeData)
+                    Dim data = DirectCast(_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, CommonFieldEarlyWellKnownAttributeData)
                     Return If(data IsNot Nothing, data.ObsoleteAttributeData, Nothing)
                 End If
 

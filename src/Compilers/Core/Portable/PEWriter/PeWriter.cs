@@ -55,10 +55,10 @@ namespace Microsoft.Cci
         private SectionHeader _textSection;
         private SectionHeader _tlsSection;
 
-        public static void WritePeToStream(
+        public static bool WritePeToStream(
             EmitContext context,
             CommonMessageProvider messageProvider,
-            Stream peStream,
+            Func<Stream> getPeStream,
             PdbWriter nativePdbWriterOpt,
             bool allowMissingMethodBodies,
             bool deterministic,
@@ -74,7 +74,10 @@ namespace Microsoft.Cci
             }
 
             uint entryPointToken;
-            peWriter.WritePeToStream(mdWriter, peStream, nativePdbWriterOpt, out entryPointToken);
+            if (!peWriter.WritePeToStream(mdWriter, getPeStream, nativePdbWriterOpt, out entryPointToken))
+            {
+                return false;
+            }
 
             if (nativePdbWriterOpt != null)
             {
@@ -91,9 +94,11 @@ namespace Microsoft.Cci
                     nativePdbWriterOpt.WriteDefinitionLocations(context.Module.GetSymbolToLocationMap());
                 }
             }
+
+            return true;
         }
 
-        private void WritePeToStream(MetadataWriter mdWriter, Stream peStream, PdbWriter nativePdbWriterOpt, out uint entryPointToken)
+        private bool WritePeToStream(MetadataWriter mdWriter, Func<Stream> getPeStream, PdbWriter nativePdbWriterOpt, out uint entryPointToken)
         {
             // TODO: we can precalculate the exact size of IL stream
             var ilBuffer = new MemoryStream(32 * 1024);
@@ -138,6 +143,12 @@ namespace Microsoft.Cci
 
             // write to pe stream.
             long positionOfHeaderTimestamp;
+            Stream peStream = getPeStream();
+            if (peStream == null)
+            {
+                return false;
+            }
+
             WriteHeaders(peStream, out positionOfHeaderTimestamp);
 
             long startOfMetadataStream;
@@ -165,6 +176,8 @@ namespace Microsoft.Cci
                 var positionOfModuleVersionId = startOfMetadataStream + moduleVersionIdOffsetInMetadataStream;
                 WriteDeterministicGuidAndTimestamps(peStream, positionOfModuleVersionId, positionOfHeaderTimestamp, positionOfDebugTableTimestamp);
             }
+
+            return true;
         }
 
         private int CalculateMappedFieldDataStreamRva(MetadataSizes metadataSizes)

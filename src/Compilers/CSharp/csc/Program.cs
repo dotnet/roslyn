@@ -2,11 +2,8 @@
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 {
-    internal class Program
+    public class Program
     {
-        private static int Main(string[] args)
-        {
-            return Csc.Run(args);
-        }
+        public static int Main(string[] args) => Csc.Run(args);
     }
 }

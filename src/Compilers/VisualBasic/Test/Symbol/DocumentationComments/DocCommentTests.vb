@@ -12093,7 +12093,7 @@ xmlDoc)
                 End If
 
                 Try
-                    diagnostics = compilation.GetDiagnostics(CompilationStage.Emit).ToArray()
+                    diagnostics = compilation.GetDiagnostics(CompilationStage.Compile).ToArray()
                 Finally
                     If ensureEnglishUICulture Then
                         Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture

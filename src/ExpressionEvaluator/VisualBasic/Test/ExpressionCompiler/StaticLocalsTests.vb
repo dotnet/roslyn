@@ -147,13 +147,13 @@ End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, compOptions:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             ' Instance method.
-            Dim context = CreateMethodContext(runtime, "C._Closure$__1-0._Lambda$__1")
+            Dim context = CreateMethodContext(runtime, "C._Closure$__1-0._Lambda$__0")
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression("If(x, y)", errorMessage, testData)
             Assert.Equal(errorMessage, "(1,8): error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.")
             ' Shared method.
-            context = CreateMethodContext(runtime, "C._Closure$__2-0._Lambda$__1")
+            context = CreateMethodContext(runtime, "C._Closure$__2-0._Lambda$__0")
             testData = New CompilationTestData()
             context.CompileExpression("x + z", errorMessage, testData)
             Assert.Equal(errorMessage, "(1,6): error BC30451: 'z' is not declared. It may be inaccessible due to its protection level.")
@@ -275,7 +275,7 @@ End Class"
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, compOptions:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C._Closure$__1-0._Lambda$__1")
+            Dim context = CreateMethodContext(runtime, "C._Closure$__1-0._Lambda$__0")
             Dim testData = New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing

@@ -258,6 +258,8 @@ namespace Microsoft.CodeAnalysis
 
         public ICollection<String> Names => _nameMap.Keys;
 
+        public int Count => _nameMap.Count;
+
         /// <summary>
         /// If <paramref name="uniqueSymbol"/> is set, then <paramref name="arities"/> will be null.
         /// The only arity in that case will be encoded in the symbol. 

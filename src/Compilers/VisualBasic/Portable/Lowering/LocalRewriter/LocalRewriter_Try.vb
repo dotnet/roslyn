@@ -11,7 +11,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
         Public Overrides Function VisitTryStatement(node As BoundTryStatement) As BoundNode
-            Debug.Assert(unstructuredExceptionHandling.Context Is Nothing)
+            Debug.Assert(_unstructuredExceptionHandling.Context Is Nothing)
 
             Dim rewrittenTryBlock = RewriteTryBlock(node.TryBlock)
             Dim rewrittenCatchBlocks = VisitList(node.CatchBlocks)
@@ -109,13 +109,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim errorLineNumber As BoundExpression = Nothing
 
             If node.ErrorLineNumberOpt IsNot Nothing Then
-                Debug.Assert(currentLineTemporary Is Nothing)
-                Debug.Assert((Me.Flags And RewritingFlags.AllowCatchWithErrorLineNumberReference) <> 0)
+                Debug.Assert(_currentLineTemporary Is Nothing)
+                Debug.Assert((Me._flags And RewritingFlags.AllowCatchWithErrorLineNumberReference) <> 0)
 
                 errorLineNumber = VisitExpressionNode(node.ErrorLineNumberOpt)
 
-            ElseIf currentLineTemporary IsNot Nothing AndAlso currentMethodOrLambda Is topMethod Then
-                errorLineNumber = New BoundLocal(node.Syntax, currentLineTemporary, isLValue:=False, type:=currentLineTemporary.Type)
+            ElseIf _currentLineTemporary IsNot Nothing AndAlso _currentMethodOrLambda Is _topMethod Then
+                errorLineNumber = New BoundLocal(node.Syntax, _currentLineTemporary, isLValue:=False, type:=_currentLineTemporary.Type)
             End If
 
             Return node.Update(node.LocalOpt, newExceptionSource, errorLineNumber, newFilter, newCatchBody, node.IsSynthesizedAsyncCatchAll)

@@ -12,8 +12,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Implements Cci.IAssembly
 
         Protected ReadOnly m_SourceAssembly As SourceAssemblySymbol
-        Private ReadOnly m_AdditionalTypes As ImmutableArray(Of NamedTypeSymbol)
-        Private m_LazyFiles As ImmutableArray(Of Cci.IFileReference)
+        Private ReadOnly _additionalTypes As ImmutableArray(Of NamedTypeSymbol)
+        Private _lazyFiles As ImmutableArray(Of Cci.IFileReference)
 
         ''' <summary>
         ''' This value will override m_SourceModule.MetadataName.
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ''' This functionality exists for parity with C#, which requires it for
         ''' legacy reasons (see Microsoft.CodeAnalysis.CSharp.Emit.PEAssemblyBuilderBase.metadataName).
         ''' </remarks>
-        Private ReadOnly m_MetadataName As String
+        Private ReadOnly _metadataName As String
 
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
                        emitOptions As EmitOptions,
@@ -43,8 +43,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(manifestResources IsNot Nothing)
 
             Me.m_SourceAssembly = sourceAssembly
-            Me.m_AdditionalTypes = additionalTypes.NullToEmpty()
-            Me.m_MetadataName = If(emitOptions.OutputNameOverride Is Nothing, sourceAssembly.MetadataName, FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension:=Nothing))
+            Me._additionalTypes = additionalTypes.NullToEmpty()
+            Me._metadataName = If(emitOptions.OutputNameOverride Is Nothing, sourceAssembly.MetadataName, FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension:=Nothing))
             m_AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, Me)
         End Sub
 
@@ -53,11 +53,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Sub
 
         Friend Overrides Function GetAdditionalTopLevelTypes() As ImmutableArray(Of NamedTypeSymbol)
-            Return Me.m_AdditionalTypes
+            Return Me._additionalTypes
         End Function
 
         Private Function IAssemblyGetFiles(context As EmitContext) As IEnumerable(Of Cci.IFileReference) Implements Cci.IAssembly.GetFiles
-            If m_LazyFiles.IsDefault Then
+            If _lazyFiles.IsDefault Then
                 Dim builder = ArrayBuilder(Of Cci.IFileReference).GetInstance()
                 Try
                     Dim modules = m_SourceAssembly.Modules
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Next
 
                     ' Dev12 compilers don't report ERR_CryptoHashFailed if there are no files to be hashed.
-                    If ImmutableInterlocked.InterlockedInitialize(m_LazyFiles, builder.ToImmutable()) AndAlso m_LazyFiles.Length > 0 Then
+                    If ImmutableInterlocked.InterlockedInitialize(_lazyFiles, builder.ToImmutable()) AndAlso _lazyFiles.Length > 0 Then
                         If Not CryptographicHashProvider.IsSupportedAlgorithm(m_SourceAssembly.AssemblyHashAlgorithm) Then
                             context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_CryptoHashFailed), NoLocation.Singleton))
                         End If
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End Try
             End If
 
-            Return m_LazyFiles
+            Return _lazyFiles
         End Function
 
         Private Shared Function Free(builder As ArrayBuilder(Of Cci.IFileReference)) As Boolean
@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overrides ReadOnly Property Name As String
             Get
-                Return m_MetadataName
+                Return _metadataName
             End Get
         End Property
 

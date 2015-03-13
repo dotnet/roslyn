@@ -1550,9 +1550,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_EnumsCantContainDefaultConstructor" xml:space="preserve">
     <value>Enums cannot contain explicit parameterless constructors</value>
   </data>
-  <data name="ERR_ParameterlessStructCtorsMustBePublic" xml:space="preserve">
-    <value>Parameterless instance constructors in structs must be public</value>
-  </data>
   <data name="ERR_CantOverrideBogusMethod" xml:space="preserve">
     <value>'{0}': cannot override '{1}' because it is not supported by the language</value>
   </data>
@@ -4547,14 +4544,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DictionaryInitializerInExpressionTree" xml:space="preserve">
     <value>An expression tree lambda may not contain a dictionary initializer.</value>
   </data>
+  <data name="ERR_ExtensionCollectionElementInitializerInExpressionTree" xml:space="preserve">
+    <value>An extension Add method is not supported for a collection initializer in an expression lambda.</value>
+  </data>
   <data name="IDS_FeatureNameof" xml:space="preserve">
     <value>nameof operator</value>
   </data>
   <data name="IDS_FeatureDictionaryInitializer" xml:space="preserve">
     <value>dictionary initializer</value>
-  </data>
-  <data name="IDS_FeatureStructParameterlessConstructors" xml:space="preserve">
-    <value>struct instance parameterless constructors</value>
   </data>
   <data name="ERR_UnclosedExpressionHole" xml:space="preserve">
     <value>Missing close delimiter '}' for interpolated expression started with '{'.</value>

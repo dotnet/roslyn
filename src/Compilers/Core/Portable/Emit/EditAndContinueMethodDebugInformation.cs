@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     while (blobReader.RemainingBytes > 0)
                     {
                         int syntaxOffset = blobReader.ReadCompressedInteger();
-                        int closureOrdinal = blobReader.ReadCompressedInteger() - 1;
+                        int closureOrdinal = blobReader.ReadCompressedInteger() + LambdaDebugInfo.MinClosureOrdinal;
 
                         if (closureOrdinal >= closureCount)
                         {
@@ -270,10 +270,10 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (LambdaDebugInfo info in this.Lambdas)
             {
-                Debug.Assert(info.ClosureOrdinal >= -1);
+                Debug.Assert(info.ClosureOrdinal >= LambdaDebugInfo.MinClosureOrdinal);
 
                 writer.WriteCompressedUInt((uint)(info.SyntaxOffset - syntaxOffsetBaseline));
-                writer.WriteCompressedUInt((uint)(info.ClosureOrdinal + 1));
+                writer.WriteCompressedUInt((uint)(info.ClosureOrdinal - LambdaDebugInfo.MinClosureOrdinal));
             }
         }
 

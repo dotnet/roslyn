@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
     internal sealed class Csc : CSharpCompiler
     {
         internal Csc(string responseFile, string baseDirectory, string[] args)
-            : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"), Path.GetTempPath())
+            : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
         {
         }
 

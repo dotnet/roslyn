@@ -11,14 +11,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits CompilationOptions
         Implements IEquatable(Of VisualBasicCompilationOptions)
 
-        Private Const GlobalImportsString = "GlobalImports"
-        Private Const RootNamespaceString = "RootNamespace"
-        Private Const OptionStrictString = "OptionStrict"
-        Private Const OptionInferString = "OptionInfer"
-        Private Const OptionExplicitString = "OptionExplicit"
-        Private Const OptionCompareTextString = "OptionCompareText"
-        Private Const EmbedVbCoreRuntimeString = "EmbedVbCoreRuntime"
-        Private Const ParseOptionsString = "ParseOptions"
+        Private Const s_globalImportsString = "GlobalImports"
+        Private Const s_rootNamespaceString = "RootNamespace"
+        Private Const s_optionStrictString = "OptionStrict"
+        Private Const s_optionInferString = "OptionInfer"
+        Private Const s_optionExplicitString = "OptionExplicit"
+        Private Const s_optionCompareTextString = "OptionCompareText"
+        Private Const s_embedVbCoreRuntimeString = "EmbedVbCoreRuntime"
+        Private Const s_parseOptionsString = "ParseOptions"
 
         Private _globalImports As ImmutableArray(Of GlobalImport)
         Private _rootNamespace As String
@@ -587,6 +587,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The cryptography key file path. </param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the public key is different; otherwise current instance.</returns>        
         Public Shadows Function WithCryptoPublicKey(value As ImmutableArray(Of Byte)) As VisualBasicCompilationOptions
+            If value.IsDefault Then
+                value = ImmutableArray(Of Byte).Empty
+            End If
+
             If value = Me.CryptoPublicKey Then
                 Return Me
             End If
@@ -839,7 +843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&
             '          (version >= "6.2")
 
-            If Not CryptoPublicKey.IsDefault Then
+            If Not CryptoPublicKey.IsEmpty Then
                 If CryptoKeyFile IsNot Nothing Then
                     builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(CryptoPublicKey), NameOf(CryptoKeyFile)))
                 End If

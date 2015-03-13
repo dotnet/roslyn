@@ -145,9 +145,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return GetSyntaxNodeList(tree).OfType<T>().Where(n => n.Span.Contains(offset)).Last();
         }
 
-        protected static string GetSymbolNamesSortedAndJoined<T>(IEnumerable<T> symbols) where T : ISymbol
+        protected static string GetSymbolNamesJoined<T>(IEnumerable<T> symbols) where T : ISymbol
         {
-            return symbols.Any() ? string.Join(", ", symbols.Select(symbol => symbol.Name).OrderBy(name => name)) : null;
+            return symbols.Any() ? string.Join(", ", symbols.Select(symbol => symbol.Name)) : null;
         }
 
         /// <summary>

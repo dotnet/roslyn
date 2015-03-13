@@ -434,8 +434,10 @@ foreach (var a in z)
                 { "var e = from q in a.Where(l => l > 10) select q + 1;", "var e = from q in a.Where(l => l < 0) select q + 1;" },
                 { "var e = from q in a.Where(l => l > 10) select q + 1", "var e = from q in a.Where(l => l < 0) select q + 1" },
                 { "e = from q in a.Where(l => l > 10) select q + 1", "e = from q in a.Where(l => l < 0) select q + 1" },
+                { "from q in a.Where(l => l > 10)", "from q in a.Where(l => l < 0)" },
                 { "l => l > 10", "l => l < 0" },
-                { "select q + 1", "select q + 1" }
+                { "select q + 1", "select q + 1" },  // select clause
+                { "select q + 1", "select q + 1" }   // query body
             };
 
             expected.AssertEqual(actual);
@@ -565,6 +567,8 @@ var q = from c in cars
                 { "var q = from c in cars         from ud in users_details         from bd in bids         select 1;", "var q = from c in cars         from bd in bids         from ud in users_details         select 2;" },
                 { "var q = from c in cars         from ud in users_details         from bd in bids         select 1", "var q = from c in cars         from bd in bids         from ud in users_details         select 2" },
                 { "q = from c in cars         from ud in users_details         from bd in bids         select 1", "q = from c in cars         from bd in bids         from ud in users_details         select 2" },
+                { "from c in cars", "from c in cars" },
+                { "from ud in users_details         from bd in bids         select 1", "from bd in bids         from ud in users_details         select 2" },
                 { "from ud in users_details", "from ud in users_details" },
                 { "from bd in bids", "from bd in bids" },
                 { "select 1", "select 2" }
@@ -618,16 +622,24 @@ var q = from c in cars
                   "var q = from c in cars         from ud in users_details         from bd in bids         orderby c.listingOption descending         where a.userID == ud.userid         let images = from ai in auction_images                      where ai.belongs_to == c.id2                      select ai + 1         let bid = (from b in bids                     orderby b.id ascending                     where b.carID == c.id2                     select b.bidamount).FirstOrDefault()         select bid" },
                 { "q = from c in cars         from ud in users_details         from bd in bids         orderby c.listingOption descending         where a.userID == ud.userid         let images = from ai in auction_images                      where ai.belongs_to == c.id                      select ai         let bid = (from b in bids                     orderby b.id descending                     where b.carID == c.id                     select b.bidamount).FirstOrDefault()         select bid",
                   "q = from c in cars         from ud in users_details         from bd in bids         orderby c.listingOption descending         where a.userID == ud.userid         let images = from ai in auction_images                      where ai.belongs_to == c.id2                      select ai + 1         let bid = (from b in bids                     orderby b.id ascending                     where b.carID == c.id2                     select b.bidamount).FirstOrDefault()         select bid" },
+                { "from c in cars", "from c in cars" },
+                { "from ud in users_details         from bd in bids         orderby c.listingOption descending         where a.userID == ud.userid         let images = from ai in auction_images                      where ai.belongs_to == c.id                      select ai         let bid = (from b in bids                     orderby b.id descending                     where b.carID == c.id                     select b.bidamount).FirstOrDefault()         select bid", "from ud in users_details         from bd in bids         orderby c.listingOption descending         where a.userID == ud.userid         let images = from ai in auction_images                      where ai.belongs_to == c.id2                      select ai + 1         let bid = (from b in bids                     orderby b.id ascending                     where b.carID == c.id2                     select b.bidamount).FirstOrDefault()         select bid" },
                 { "from ud in users_details", "from ud in users_details" },
                 { "from bd in bids", "from bd in bids" },
+                { "orderby c.listingOption descending", "orderby c.listingOption descending" },
                 { "c.listingOption descending", "c.listingOption descending" },
                 { "where a.userID == ud.userid", "where a.userID == ud.userid" },
                 { "let images = from ai in auction_images                      where ai.belongs_to == c.id                      select ai",
                   "let images = from ai in auction_images                      where ai.belongs_to == c.id2                      select ai + 1" },
+                { "from ai in auction_images", "from ai in auction_images" },
+                { "where ai.belongs_to == c.id                      select ai", "where ai.belongs_to == c.id2                      select ai + 1" },
                 { "where ai.belongs_to == c.id", "where ai.belongs_to == c.id2" },
                 { "select ai", "select ai + 1" },
                 { "let bid = (from b in bids                     orderby b.id descending                     where b.carID == c.id                     select b.bidamount).FirstOrDefault()",
                   "let bid = (from b in bids                     orderby b.id ascending                     where b.carID == c.id2                     select b.bidamount).FirstOrDefault()" },
+                { "from b in bids", "from b in bids" },
+                { "orderby b.id descending                     where b.carID == c.id                     select b.bidamount", "orderby b.id ascending                     where b.carID == c.id2                     select b.bidamount" },
+                { "orderby b.id descending", "orderby b.id ascending" },
                 { "b.id descending", "b.id ascending" },
                 { "where b.carID == c.id", "where b.carID == c.id2" },
                 { "select b.bidamount", "select b.bidamount" },
@@ -641,16 +653,16 @@ var q = from c in cars
         public void MatchQueries3()
         {
             var src1 = @"
-var q = from a in seq1
-        join c in seq2 on F(u => u) equals G(s => s)
-        join l in seq3 on F(v => v) equals G(t => t)
+var q = from a in await seq1
+        join c in await seq2 on F(u => u) equals G(s => s) into g1
+        join l in await seq3 on F(v => v) equals G(t => t) into g2
         select a;
 
 ";
             var src2 = @"
-var q = from a in seq1
-        join c in seq2 on F(u => u + 1) equals G(s => s + 3)
-        join c in seq2 on F(vv => vv + 2) equals G(tt => tt + 4)
+var q = from a in await seq1
+        join c in await seq2 on F(u => u + 1) equals G(s => s + 3) into g1
+        join c in await seq3 on F(vv => vv + 2) equals G(tt => tt + 4) into g2
         select a + 1;
 ";
 
@@ -659,16 +671,68 @@ var q = from a in seq1
 
             var expected = new MatchingPairs
             {
-                { "var q = from a in seq1         join c in seq2 on F(u => u) equals G(s => s)         join l in seq3 on F(v => v) equals G(t => t)         select a;", "var q = from a in seq1         join c in seq2 on F(u => u + 1) equals G(s => s + 3)         join c in seq2 on F(vv => vv + 2) equals G(tt => tt + 4)         select a + 1;" },
-                { "var q = from a in seq1         join c in seq2 on F(u => u) equals G(s => s)         join l in seq3 on F(v => v) equals G(t => t)         select a", "var q = from a in seq1         join c in seq2 on F(u => u + 1) equals G(s => s + 3)         join c in seq2 on F(vv => vv + 2) equals G(tt => tt + 4)         select a + 1" },
-                { "q = from a in seq1         join c in seq2 on F(u => u) equals G(s => s)         join l in seq3 on F(v => v) equals G(t => t)         select a", "q = from a in seq1         join c in seq2 on F(u => u + 1) equals G(s => s + 3)         join c in seq2 on F(vv => vv + 2) equals G(tt => tt + 4)         select a + 1" },
-                { "join c in seq2 on F(u => u) equals G(s => s)", "join c in seq2 on F(u => u + 1) equals G(s => s + 3)" },
+                { "var q = from a in await seq1         join c in await seq2 on F(u => u) equals G(s => s) into g1         join l in await seq3 on F(v => v) equals G(t => t) into g2         select a;", "var q = from a in await seq1         join c in await seq2 on F(u => u + 1) equals G(s => s + 3) into g1         join c in await seq3 on F(vv => vv + 2) equals G(tt => tt + 4) into g2         select a + 1;" },
+                { "var q = from a in await seq1         join c in await seq2 on F(u => u) equals G(s => s) into g1         join l in await seq3 on F(v => v) equals G(t => t) into g2         select a", "var q = from a in await seq1         join c in await seq2 on F(u => u + 1) equals G(s => s + 3) into g1         join c in await seq3 on F(vv => vv + 2) equals G(tt => tt + 4) into g2         select a + 1" },
+                { "q = from a in await seq1         join c in await seq2 on F(u => u) equals G(s => s) into g1         join l in await seq3 on F(v => v) equals G(t => t) into g2         select a", "q = from a in await seq1         join c in await seq2 on F(u => u + 1) equals G(s => s + 3) into g1         join c in await seq3 on F(vv => vv + 2) equals G(tt => tt + 4) into g2         select a + 1" },
+                { "from a in await seq1", "from a in await seq1" },
+                { "await seq1", "await seq1" },
+                { "join c in await seq2 on F(u => u) equals G(s => s) into g1         join l in await seq3 on F(v => v) equals G(t => t) into g2         select a", "join c in await seq2 on F(u => u + 1) equals G(s => s + 3) into g1         join c in await seq3 on F(vv => vv + 2) equals G(tt => tt + 4) into g2         select a + 1" },
+                { "join c in await seq2 on F(u => u) equals G(s => s) into g1", "join c in await seq2 on F(u => u + 1) equals G(s => s + 3) into g1" },
+                { "await seq2", "await seq2" },
                 { "u => u", "u => u + 1" },
                 { "s => s", "s => s + 3" },
-                { "join l in seq3 on F(v => v) equals G(t => t)", "join c in seq2 on F(vv => vv + 2) equals G(tt => tt + 4)" },
+                { "into g1", "into g1" },
+                { "join l in await seq3 on F(v => v) equals G(t => t) into g2", "join c in await seq3 on F(vv => vv + 2) equals G(tt => tt + 4) into g2" },
+                { "await seq3", "await seq3" },
                 { "v => v", "vv => vv + 2" },
                 { "t => t", "tt => tt + 4" },
+                { "into g2", "into g2" },
                 { "select a", "select a + 1" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchQueries4()
+        {
+            var src1 = "F(from a in await b from x in y select c);";
+            var src2 = "F(from a in await c from x in y select c);";
+
+            var match = GetMethodMatches(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "F(from a in await b from x in y select c);", "F(from a in await c from x in y select c);" },
+                { "from a in await b", "from a in await c" },
+                { "await b", "await c" },
+                { "from x in y select c", "from x in y select c" },
+                { "from x in y", "from x in y" },
+                { "select c", "select c" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchQueries5()
+        {
+            var src1 = "F(from a in b  group a by a.x into g  select g);";
+            var src2 = "F(from a in b  group z by z.y into h  select h);";
+
+            var match = GetMethodMatches(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "F(from a in b  group a by a.x into g  select g);", "F(from a in b  group z by z.y into h  select h);" },
+                { "from a in b", "from a in b" },
+                { "group a by a.x into g  select g", "group z by z.y into h  select h" },
+                { "group a by a.x", "group z by z.y" },
+                { "into g  select g", "into h  select h" },
+                { "select g", "select h" },
+                { "select g", "select h" }
             };
 
             expected.AssertEqual(actual);
@@ -2600,18 +2664,18 @@ class C
             var insert = GetTopEdits(src1, src2);
 
             insert.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "y0", "lambda", "x1", "y0"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x3", "x1"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "a", "lambda", "y0", "this"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "a", "lambda", "x3", "this"));
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "y0", "x1"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", "lambda", "x1", "x3"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "y0", "lambda", "this", "y0"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", "lambda", "this", "x3"));
 
             var delete = GetTopEdits(src2, src1);
 
             delete.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "y0", "lambda", "x1", "y0"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x1", "lambda", "x3", "x1"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "F", "lambda", "y0", "this"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "F", "lambda", "x3", "this"));
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x1", "lambda", "y0", "x1"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", "lambda", "x1", "x3"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "y0", "lambda", "this", "y0"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", "lambda", "this", "x3"));
         }
 
         [Fact]
@@ -3918,7 +3982,7 @@ class C
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [F(from a in b from x in y select c);]@2 -> [F(from a in c from x in z select c + 1);]@2",
+                "Update [from a in b]@4 -> [from a in c]@4",
                 "Update [from x in y]@16 -> [from x in z]@16",
                 "Update [select c]@28 -> [select c + 1]@28");
         }
@@ -3932,8 +3996,19 @@ class C
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [F(from a in b from x in y select c);]@2 -> [F(from a in b from x in z select c);]@2",
                 "Update [from x in y]@16 -> [from x in z]@16");
+        }
+
+        [Fact]
+        public void Queries_FromSelect_Update3()
+        {
+            var src1 = "F(from a in await b from x in y select c);";
+            var src2 = "F(from a in await c from x in y select c);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [await b]@14 -> [await c]@14");
         }
 
         [Fact]
@@ -3945,9 +4020,33 @@ class C
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [F(from a in b from c in d select a + c);]@2 -> [F(from a in b select c + 1);]@2",
                 "Update [select a + c]@28 -> [select c + 1]@16",
                 "Delete [from c in d]@16");
+        }
+
+        [Fact]
+        public void Queries_JoinInto_Update()
+        {
+            var src1 = "F(from a in b join b in c on a equals b into g1 select g1);";
+            var src2 = "F(from a in b join b in c on a equals b into g2 select g2);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [select g1]@50 -> [select g2]@50",
+                "Update [into g1]@42 -> [into g2]@42");
+        }
+
+        [Fact]
+        public void Queries_JoinIn_Update()
+        {
+            var src1 = "F(from a in b join b in await A(1) on a equals b select g);";
+            var src2 = "F(from a in b join b in await A(2) on a equals b select g);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [await A(1)]@26 -> [await A(2)]@26");
         }
 
         [Fact]
@@ -3958,12 +4057,9 @@ class C
 
             var edits = GetMethodEdits(src1, src2);
 
-            // Note that "into" isn't an interesting clause as it doesn't produce a lambda,
-            // the edit of "into" is included in the edit of the enclosing statement expression.
-
             edits.VerifyEdits(
-                "Update [F(from a in b  group a by a.x into g  select g);]@2 -> [F(from a in b  group z by z.y into h  select h);]@2",
                 "Update [group a by a.x]@17 -> [group z by z.y]@17",
+                "Update [into g  select g]@32 -> [into h  select h]@32",
                 "Update [select g]@40 -> [select h]@40");
         }
 
@@ -3980,7 +4076,7 @@ class C
         }
 
         [Fact]
-        public void Queries_OrderBy_Continuation_Reorder()
+        public void Queries_OrderBy_Continuation_Update()
         {
             var src1 = "F(from a in b  orderby a.x, a.b descending  select a.d  into z  orderby a.c ascending select z);";
             var src2 = "F(from a in b  orderby a.x, a.c ascending  select a.d  into z  orderby a.b descending select z);";
@@ -3992,23 +4088,164 @@ class C
             var expected = new MatchingPairs
             {
                 { "F(from a in b  orderby a.x, a.b descending  select a.d  into z  orderby a.c ascending select z);", "F(from a in b  orderby a.x, a.c ascending  select a.d  into z  orderby a.b descending select z);" },
+                { "from a in b", "from a in b" },
+                { "orderby a.x, a.b descending  select a.d  into z  orderby a.c ascending select z", "orderby a.x, a.c ascending  select a.d  into z  orderby a.b descending select z" },
+                { "orderby a.x, a.b descending", "orderby a.x, a.c ascending" },
                 { "a.x", "a.x" },
-                { "a.b descending", "a.b descending" },
+                { "a.b descending", "a.c ascending" },
                 { "select a.d", "select a.d" },
-                { "a.c ascending", "a.c ascending" },
+                { "into z  orderby a.c ascending select z", "into z  orderby a.b descending select z" },
+                { "orderby a.c ascending select z", "orderby a.b descending select z" },
+                { "orderby a.c ascending", "orderby a.b descending" },
+                { "a.c ascending", "a.b descending" },
                 { "select z", "select z" }
             };
 
             expected.AssertEqual(actual);
 
-            // LCS match: 
-            // [From] [order a.x] [order a.b] [select a.d] [order a.c] [select z]
-            //    |        |             \___________________             |
-            //    |        |                                 \            |
-            // [From] [order a.x] [order a.c] [select a.d] [order a.b] [select z]
             edits.VerifyEdits(
-                "Reorder [select a.d]@46 -> @45",
-                "Reorder [a.c ascending]@74 -> @30");
+                "Update [a.b descending]@30 -> [a.c ascending]@30",
+                "Update [a.c ascending]@74 -> [a.b descending]@73");
+        }
+
+        [Fact]
+        public void Queries_CapturedTransparentIdentifiers_FromClause1()
+        {
+            string src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+	int Z(Func<int> f)
+	{
+		return 1;
+	}
+
+    void F()
+    {
+		var result = from a in new[] { 1 }
+		             from b in new[] { 2 }
+		             where Z(() => a) > 0
+		             where Z(() => b) > 0
+		             where Z(() => a) > 0
+		             where Z(() => b) > 0
+		             select a;
+    }
+}";
+            string src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+	int Z(Func<int> f)
+	{
+		return 1;
+	}
+
+    void F()
+    {
+		var result = from a in new[] { 1 }
+		             from b in new[] { 2 }
+		             where Z(() => a) > 1  // update
+		             where Z(() => b) > 2  // update
+		             where Z(() => a) > 3  // update
+		             where Z(() => b) > 4  // update
+		             select a;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Queries_CapturedTransparentIdentifiers_LetClause1()
+        {
+            string src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+	int Z(Func<int> f)
+	{
+		return 1;
+	}
+
+    void F()
+    {
+		var result = from a in new[] { 1 }
+		             let b = Z(() => a)
+		             select a + b;
+    }
+}";
+            string src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+	int Z(Func<int> f)
+	{
+		return 1;
+	}
+
+    void F()
+    {
+		var result = from a in new[] { 1 }
+		             let b = Z(() => a + 1)
+		             select a - b;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Queries_CapturedTransparentIdentifiers_JoinClause1()
+        {
+            string src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+	int Z(Func<int> f)
+	{
+		return 1;
+	}
+
+    void F()
+    {
+		var result = from a in new[] { 1 }
+                     join b in new[] { 3 } on Z(() => a + 1) equals Z(() => b - 1) into g
+                     select Z(() => g.First());
+    }
+}";
+            string src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+	int Z(Func<int> f)
+	{
+		return 1;
+	}
+
+    void F()
+    {
+		var result = from a in new[] { 1 }
+                     join b in new[] { 3 } on Z(() => a + 1) equals Z(() => b - 1) into g
+                     select Z(() => g.Last());
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
         }
 
         #endregion

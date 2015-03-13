@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' although the containing type can be PE symbol, such a constructor doesn't 
             ' declare source locals And thus this method shouldn't be called.
             Dim containingType = DirectCast(Me.ContainingType, SourceMemberContainerTypeSymbol)
-            Return containingType.CalculateLocalSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, IsShared)
+            Return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, IsShared)
         End Function
     End Class
 End Namespace
