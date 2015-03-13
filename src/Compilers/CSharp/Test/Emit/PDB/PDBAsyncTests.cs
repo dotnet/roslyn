@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBAsyncTests : CSharpTestBase
     {
-        [Fact]
+        [Fact(Skip = "1137300")]
         [WorkItem(631350, "DevDiv")]
         [WorkItem(643501, "DevDiv")]
         [WorkItem(689616, "DevDiv")]
@@ -515,7 +515,7 @@ namespace ConsoleApplication1
 </symbols>");
         }
 
-        [Fact]
+        [Fact(Skip = "1137300")]
         [WorkItem(690180, "DevDiv")]
         public void TestAsyncDebug3()
         {

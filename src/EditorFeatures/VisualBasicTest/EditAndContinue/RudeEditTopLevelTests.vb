@@ -1905,8 +1905,7 @@ End Class
             edits.VerifyEdits(
                 "Update [Async Function F() As Task(Of String)]@11 -> [Function F() As Task(Of String)]@11")
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Function F()", "method"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>

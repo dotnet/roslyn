@@ -1215,7 +1215,6 @@ static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentationS
 static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.NewLine
 static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.SmartIndent
 static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.TabSize
-static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.UseTabOnlyForIndentation
 static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.UseTabs
 static readonly Microsoft.CodeAnalysis.Recommendations.RecommendationOptions.FilterOutOfScopeLocals
 static readonly Microsoft.CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers

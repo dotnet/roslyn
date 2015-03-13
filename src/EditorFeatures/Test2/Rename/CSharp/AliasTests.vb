@@ -681,16 +681,16 @@ class Program
 using [|$$FooAttribute|] = System.ObsoleteAttribute;
 using Bar = System.ContextStaticAttribute;
 
-[{|long:FooAttribute|}]
+[{|long1:FooAttribute|}]
 class C{ }
 
-[{|short:Foo|}]
+[{|short1:Foo|}]
 class D{ }
 
-[{|long:FooAttribute|}()]
+[{|long2:FooAttribute|}()]
 class B{ }
 
-[{|short:Foo|}()] 
+[{|short2:Foo|}()] 
 class Program
 {    
     static void Main(string[] args)    
@@ -700,8 +700,10 @@ class Program
                     </Project>
                 </Workspace>, renameTo:="BarAttribute")
 
-                result.AssertLabeledSpansAre("short", "BarAttribute", RelatedLocationType.ResolvedReferenceConflict)
-                result.AssertLabeledSpansAre("long", "BarAttribute", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("short1", "BarAttribute", RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("short2", "BarAttribute()", RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("long1", "BarAttribute", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("long2", "BarAttribute", RelatedLocationType.NoConflict)
             End Using
         End Sub
 

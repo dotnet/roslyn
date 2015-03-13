@@ -3140,7 +3140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' more obviously.
             Return _lazyMembersFlattened.DeOrder()
 #Else
-            Return m_lazyMembersFlattened
+            Return _lazyMembersFlattened
 #End If
         End Function
 

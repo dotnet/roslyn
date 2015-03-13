@@ -63,7 +63,7 @@ class [|$$MainAttribute|] : System.Attribute
                     </Project>
                 </Workspace>, renameTo:="ifAttribute")
 
-                result.AssertLabeledSpecialSpansAre("resolved", "ifAttribute", RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpecialSpansAre("resolved", "ifAttribute()", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
