@@ -296,9 +296,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             symMethod.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive);
         }
 
-        internal static MethodContextReuseConstraints GetReuseConstraints(this ArrayBuilder<ISymUnmanagedScope> scopes, int methodToken, int methodVersion, int ilOffset, bool isEndInclusive)
+        internal static MethodContextReuseConstraints GetReuseConstraints(this ArrayBuilder<ISymUnmanagedScope> scopes, Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset, bool isEndInclusive)
         {
-            var builder = new MethodContextReuseConstraints.Builder(methodToken, methodVersion, ilOffset, isEndInclusive);
+            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset, isEndInclusive);
             foreach (ISymUnmanagedScope scope in scopes)
             {
                 builder.AddRange((uint)scope.GetStartOffset(), (uint)scope.GetEndOffset());
