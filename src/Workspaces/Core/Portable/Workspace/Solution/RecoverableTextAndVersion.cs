@@ -32,6 +32,18 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetTextVersion(out VersionStamp version)
         {
             version = _storedVersion;
+
+            // if the TextAndVersion has not been stored yet, but it has been observed
+            // then try to get version from cached value.
+            if (version == default(VersionStamp))
+            {
+                TextAndVersion textAndVersion;
+                if (this.TryGetValue(out textAndVersion))
+                {
+                    version = textAndVersion.Version;
+                }
+            }
+
             return version != default(VersionStamp);
         }
 
