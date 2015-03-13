@@ -106,12 +106,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public override string ToString(IFormatProvider formatProvider)
-        {
-            return ExecuteAndCatchIfThrows(ToStringCore, formatProvider, string.Empty);
-        }
-
-        private string ToStringCore(IFormatProvider formatProvider)
+        protected override string GetText(IFormatProvider formatProvider)
         {
             var culture = formatProvider as CultureInfo ?? CultureInfo.CurrentUICulture;
             var resourceString = _resourceManager.GetString(_nameOfLocalizableResource, culture);
@@ -120,12 +115,7 @@ namespace Microsoft.CodeAnalysis
                 string.Empty;
         }
 
-        public override bool Equals(LocalizableString other)
-        {
-            return ExecuteAndCatchIfThrows(EqualsCore, other, false);
-        }
-
-        private bool EqualsCore(LocalizableString other)
+        protected override bool AreEqual(object other)
         {
             var otherResourceString = other as LocalizableResourceString;
             return other != null &&
@@ -135,12 +125,7 @@ namespace Microsoft.CodeAnalysis
                 _formatArguments.SequenceEqual(otherResourceString._formatArguments, (a, b) => a == b);
         }
 
-        public override int GetHashCode()
-        {
-            return ExecuteAndCatchIfThrows(GetHashCodeCore, 0);
-        }
-
-        private int GetHashCodeCore()
+        protected override int GetHash()
         {
             return Hash.Combine(_nameOfLocalizableResource.GetHashCode(),
                 Hash.Combine(_resourceManager.GetHashCode(),
