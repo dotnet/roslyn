@@ -202,7 +202,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     foreach (string loadedAssemblyFullPath in s_assembliesFromFiles.Keys)
                     {
                         string directoryPath = Path.GetDirectoryName(loadedAssemblyFullPath);
-                        string candidateAssemblyFullPath = Path.Combine(directoryPath, requestedAssemblyIdentity.Name + ".dll");
+
+                        string candidateAssemblyFullPath = AssemblyPathHelper.GetCandidatePath(directoryPath, requestedAssemblyIdentity);
 
                         AssemblyIdentity candidateAssemblyIdentity = TryGetAssemblyIdentity(candidateAssemblyFullPath);
 
@@ -258,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     string directoryPath = Path.GetDirectoryName(requestingAssemblyFullPath);
-                    string assemblyFullPath = Path.Combine(directoryPath, assemblyIdentity.Name + ".dll");
+                    string assemblyFullPath = AssemblyPathHelper.GetCandidatePath(directoryPath, assemblyIdentity);
                     if (!File.Exists(assemblyFullPath))
                     {
                         return null;
