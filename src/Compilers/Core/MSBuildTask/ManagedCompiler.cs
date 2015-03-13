@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            if (!UseSharedCompilation)
+            if (!UseSharedCompilation || this.ToolPath != null )
             {
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
