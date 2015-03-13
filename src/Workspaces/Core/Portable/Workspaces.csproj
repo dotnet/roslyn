@@ -831,7 +831,7 @@
     <Compile Include="LinkedFileDiffMerging\AbstractLinkedFileMergeConflictCommentAdditionService.cs" />
     <Compile Include="Workspace\Solution\AdditionalTextDocument.cs" />
     <Compile Include="LinkedFileDiffMerging\IMergeConflictHandler.cs" />
-    <Compile Include="Workspace\Solution\CachedVersionTextSource.cs" />
+    <Compile Include="Workspace\Solution\DocumentState_TreeTextSource.cs" />
     <Compile Include="Workspace\Solution\IDocumentTextDifferencingService.cs" />
     <Compile Include="Workspace\Solution\MetadataReferenceManager.cs" />
     <Compile Include="Workspace\Solution\TextDocumentState.cs" />

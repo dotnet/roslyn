@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis
             TreeAndVersion lazyTree = null;
 
             // this captures the lazyTree local
-            var lazyText = new CachedVersionTextSource(
+            var lazyText = new TreeTextSource(
                 new AsyncLazy<TextAndVersion>(
                     c => GetTextAndVersionAsync(lazyTree, textVersion, encoding, filePath, c),
                     c => GetTextAndVersion(lazyTree, textVersion, encoding, filePath, c),

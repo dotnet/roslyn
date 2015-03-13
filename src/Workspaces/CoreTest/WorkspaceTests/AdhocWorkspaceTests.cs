@@ -393,6 +393,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 // version is available because it is cached
                 Assert.Equal(true, newDoc.TryGetTextVersion(out currentVersion));
+
+                // access it the hard way
+                var actualVersion = newDoc.GetTextVersionAsync().Result;
+
+                // version is the same 
+                Assert.Equal(currentVersion, actualVersion);
+
+                // accessing text version did not cause text to be constructed.
+                Assert.Equal(false, newDoc.TryGetText(out currentText));
+
+                // now access text directly (force it to be constructed)
+                var actualText = newDoc.GetTextAsync().Result;
+                actualVersion = newDoc.GetTextVersionAsync().Result;
+
+                // prove constructing text did not introduce a new version
+                Assert.Equal(currentVersion, actualVersion);
             }
         }
     }
