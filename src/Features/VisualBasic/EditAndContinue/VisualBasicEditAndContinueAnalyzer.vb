@@ -2378,7 +2378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                If Not SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers) Then
+                If Not ClassifyMethodModifierUpdate(oldNode.Modifiers, newNode.Modifiers) Then
                     ReportError(RudeEditKind.ModifiersUpdate)
                     Return
                 End If
@@ -2394,6 +2394,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
             End Sub
+
+            Private Function ClassifyMethodModifierUpdate(oldModifiers As SyntaxTokenList, newModifiers As SyntaxTokenList) As Boolean
+                Dim oldAsyncIndex = oldModifiers.IndexOf(SyntaxKind.AsyncKeyword)
+                Dim newAsyncIndex = newModifiers.IndexOf(SyntaxKind.AsyncKeyword)
+
+                If oldAsyncIndex >= 0 Then
+                    oldModifiers = oldModifiers.RemoveAt(oldAsyncIndex)
+                End If
+
+                If newAsyncIndex >= 0 Then
+                    newModifiers = newModifiers.RemoveAt(newAsyncIndex)
+                End If
+
+                Dim oldIteratorIndex = oldModifiers.IndexOf(SyntaxKind.IteratorKeyword)
+                Dim newIteratorIndex = newModifiers.IndexOf(SyntaxKind.IteratorKeyword)
+
+                If oldIteratorIndex >= 0 Then
+                    oldModifiers = oldModifiers.RemoveAt(oldIteratorIndex)
+                End If
+
+                If newIteratorIndex >= 0 Then
+                    newModifiers = newModifiers.RemoveAt(newIteratorIndex)
+                End If
+
+                Return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers)
+            End Function
 
             Private Sub ClassifyUpdate(oldNode As DeclareStatementSyntax, newNode As DeclareStatementSyntax)
                 If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
