@@ -373,14 +373,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return SyntaxUtilities.IsLambdaBody(node);
         }
-
-        /// <summary>
-        /// "Pair lambda" is a synthesized lambda that creates an instance of an anonymous type representing a pair of values. 
-        /// TODO: Avoid generating lambdas. Instead generate a method on the anonymous type, or use KeyValuePair instead.
-        /// </summary>
-        internal static bool IsQueryPairLambda(SyntaxNode syntax)
-        {
-            return syntax.IsKind(GroupClause) || syntax.IsKind(JoinClause) || syntax.IsKind(FromClause);
-        }
     }
 }

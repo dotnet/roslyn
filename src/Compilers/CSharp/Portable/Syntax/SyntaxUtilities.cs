@@ -220,6 +220,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// "Pair lambda" is a synthesized lambda that creates an instance of an anonymous type representing a pair of values. 
+        /// TODO: Avoid generating these lambdas. Instead generate a method on the anonymous type, or use KeyValuePair instead.
+        /// </summary>
+        internal static bool IsQueryPairLambda(SyntaxNode syntax)
+        {
+            return syntax.IsKind(SyntaxKind.GroupClause) ||
+                   syntax.IsKind(SyntaxKind.JoinClause) ||
+                   syntax.IsKind(SyntaxKind.FromClause);
+        }
+
+        /// <summary>
         /// Returns true if the specified node can represent a closure scope -- that is a scope of a captured variable.
         /// Doesn't validate whether or not the node actually declares any captured variable.
         /// </summary>

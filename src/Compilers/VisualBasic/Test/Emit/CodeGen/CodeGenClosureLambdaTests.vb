@@ -3848,17 +3848,43 @@ Imports System
 Imports System.Linq
 
 Class C
-    Function G(Of T)(f As Func(Of T)) As T
-        Return f()
-    End Function
-
     Sub F()
-        Dim result = From x In {1} Aggregate y In {2} Into Sum(x + y), z2 = Sum(x + y)
+        Dim result = From x In {1} Aggregate y In {2} Into Sum(x + y), z2 = Sum(x - y)
     End Sub
 End Class   
     </file>
 </compilation>
 
+            CompileAndVerify(source)
+        End Sub
+
+        <Fact>
+        Public Sub QueryRangeVariableClosures_JoinAbsorbedClauses()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Linq
+
+Class C
+    Shared Function G(Of T)(f As Func(Of T)) As T
+        Return f()
+    End Function
+
+    Sub FSelect()
+        Dim result = From x In {1} Join y In {2} On x Equals y Select G(Function() x + y)
+    End Sub
+
+    Sub FLet()
+        Dim result = From x In {1} Join y In {2} On x Equals y Let c = G(Function() x + y)
+    End Sub
+
+    Sub FAggregate()
+        Dim result = From x In {1} Join y In {2} On x Equals y Aggregate z In {3} Skip G(Function() x) Into Sum(G(Function() y))
+    End Sub
+End Class   
+    </file>
+</compilation>
             CompileAndVerify(source)
         End Sub
     End Class

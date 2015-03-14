@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.SingleLineFunctionLambdaExpression,
                      SyntaxKind.SingleLineSubLambdaExpression
                     ' The header represents the lambda body
-                    Return DirectCast(newLambda, LambdaExpressionSyntax).SubOrFunctionHeader
+                    Return GetLambdaExpressionLambdaBody(DirectCast(newLambda, LambdaExpressionSyntax))
 
                 Case SyntaxKind.WhereClause
                     Return DirectCast(newLambda, WhereClauseSyntax).Condition
@@ -75,18 +75,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SyntaxKind.AscendingOrdering,
                      SyntaxKind.DescendingOrdering
-                    Return DirectCast(newLambda, OrderingSyntax).Expression
+                    Return GetOrderingLambdaBody(DirectCast(newLambda, OrderingSyntax))
 
                 Case SyntaxKind.FunctionAggregation
                     ' function call in Group By, Group Join, Aggregate: the argument 
-                    Return DirectCast(newLambda, FunctionAggregationSyntax).Argument
+                    Return GetAggregationLambdaBody(DirectCast(newLambda, FunctionAggregationSyntax))
 
                 Case SyntaxKind.ExpressionRangeVariable
                     ' Let, Select, GroupBy
                     Return DirectCast(newLambda, ExpressionRangeVariableSyntax).Expression
 
                 Case SyntaxKind.CollectionRangeVariable
-                    ' source sequence in From or Aggregate (other than the first in the query)
+                    ' From, Aggregate (other than the first in the query)
                     Return DirectCast(newLambda, CollectionRangeVariableSyntax).Expression
 
                 Case SyntaxKind.JoinCondition
@@ -130,61 +130,161 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return node Is lambdaBody
             End If
 
-            ' SelectClause -> ERV#1 (lambda) -> expression (lambda body node #1)
-            '              -> ERV#2          -> expression (lambda body node #2)
-            '              ...
-            If parent.IsKind(SyntaxKind.ExpressionRangeVariable) AndAlso
-               parent.Parent.IsKind(SyntaxKind.SelectClause) AndAlso
-               node Is DirectCast(parent, ExpressionRangeVariableSyntax).Expression Then
+            Select Case parent.Kind
+                Case SyntaxKind.CollectionRangeVariable
+                    Dim clause = parent.Parent
 
-                lambdaBody = GetSelectClauseLambdaBody(DirectCast(parent, SelectClauseSyntax))
-                Return True
-            End If
+                    ' FromClause#1  -> CRV#1 -> expression
+                    '                  CRV#>1 (lambda) -> expression (lambda body -- representative)
+                    '
+                    ' FromClause#>1 -> CRV (lambda) -> expression    (lambda body -- representative)
+                    '
+                    '
+                    ' Aggregate#1  -> CRV#1 -> expression
+                    '
+                    ' Aggregate#>1 -> CRV#1  (aggregate lambda) -> expression (aggregate lambda body node -- representative)
+                    '                 CRV#>1 (lambda)           -> expression (lambda body node -- representative)
+                    '
+                    ' Aggregate#>1 -> JoinClause  -> CRV -> expression                             (aggregate lambda body node)
+                    '                             -> JoinClause -> CRV -> expression               (aggregate lambda body node)
+                    '                                           -> JoinClause -> CRV -> expression (aggregate lambda body node)
+                    '                             ...
 
-            ' GroupByClause -> Item ERV#1 (item lambda) -> expression (item lambda body node #1)
-            '               -> Item ERV#2               -> expression (item lambda body node #2)
-            '               ...
-            '               -> Key ERV#1 (key lambda)   -> expression (key lambda body node #1)
-            '               -> Key ERV#2                -> expression (key lambda body node #2)
-            '               ...
-            If parent.IsKind(SyntaxKind.ExpressionRangeVariable) AndAlso
-               parent.Parent.IsKind(SyntaxKind.GroupByClause) AndAlso
-               node Is DirectCast(parent, ExpressionRangeVariableSyntax).Expression Then
+                    ' If the CRV is a lambda on its own then the node is its body 
+                    ' (includes the first CRV of non-starting aggregate clause since it represents the aggregate clause lambda)
+                    If IsLambdaCollectionRangeVariable(parent) Then
+                        lambdaBody = node
+                        Return True
+                    End If
 
-                lambdaBody = GetGroupByClauseLambdaBody(DirectCast(parent.Parent, GroupByClauseSyntax), node)
-                Return True
-            End If
+                    ' If the CRV is not a lambda, it may be part of containing aggregate clause lambda body
+                    If IsJoinClause(clause) Then
+                        Dim parentClause = clause.Parent
+                        Do
+                            clause = clause.Parent
+                        Loop While IsJoinClause(clause)
 
-            ' JoinClause -> Condition#1 (lambda) -> left expression  (lambda left body node #1)
-            '                                    -> right expression (lambda right body node #1)
-            '               Condition#2          -> left expression  (lambda left body node #2)
-            '                                    -> right expression (lambda right body node #2)
-            '               Condition#3          -> left expression  (lambda left body node #3)
-            '                                    -> right expression (lambda right body node #3)
-            '               ...
-            If parent.IsKind(SyntaxKind.JoinCondition) AndAlso
-               (parent.Parent.IsKind(SyntaxKind.SimpleJoinClause) OrElse parent.Parent.IsKind(SyntaxKind.GroupJoinClause)) Then
+                        If clause.IsKind(SyntaxKind.AggregateClause) AndAlso Not IsQueryStartingClause(clause) Then
+                            lambdaBody = GetAggregateLambdaBody(DirectCast(clause, AggregateClauseSyntax))
+                            Return True
+                        End If
+                    End If
 
-                lambdaBody = GetJoinClauseLambdaBody(DirectCast(parent.Parent, JoinClauseSyntax), node)
-                Return True
-            End If
+                Case SyntaxKind.TakeClause,
+                     SyntaxKind.SkipClause
+                    ' Aggregate -> TakeClause -> expression (aggregate lambda body node)
+                    '           -> SkipClause -> expression (aggregate lambda body node)
+                    Dim parentClause = parent.Parent
+                    If parentClause.IsKind(SyntaxKind.AggregateClause) AndAlso Not IsQueryStartingClause(parentClause) Then
+                        lambdaBody = GetAggregateLambdaBody(DirectCast(parentClause, AggregateClauseSyntax))
+                        Return True
+                    End If
+
+                Case SyntaxKind.ExpressionRangeVariable
+                    Dim erv = DirectCast(parent, ExpressionRangeVariableSyntax)
+                    If node Is erv.Expression Then
+                        Dim clause = parent.Parent
+
+                        Select Case clause.Kind
+                            ' LetClause -> any ERV (lambda) -> expression (lambda body -- representative)
+                            Case SyntaxKind.LetClause
+                                lambdaBody = node
+                                Return True
+
+                            ' SelectClause -> ERV#1 (lambda) -> expression (lambda body node #1 -- representative)
+                            '              -> ERV#2          -> expression (lambda body node #2)
+                            '              ...
+                            Case SyntaxKind.SelectClause
+                                lambdaBody = GetSelectLambdaBody(DirectCast(clause, SelectClauseSyntax))
+                                Return True
+
+                            ' GroupByClause -> Item ERV#1 (item lambda) -> expression (item lambda body node #1 -- representative)
+                            '               -> Item ERV#2               -> expression (item lambda body node #2)
+                            '               ...
+                            '               -> Key ERV#1 (key lambda)   -> expression (key lambda body node #1 -- representative)
+                            '               -> Key ERV#2                -> expression (key lambda body node #2)
+                            '               ...
+                            Case SyntaxKind.GroupByClause
+                                Dim groupByClause = DirectCast(clause, GroupByClauseSyntax)
+                                If node.SpanStart < groupByClause.ByKeyword.SpanStart Then
+                                    lambdaBody = GetGroupByItemsLambdaBody(groupByClause)
+                                Else
+                                    lambdaBody = GetGroupByKeysLambdaBody(groupByClause)
+                                End If
+
+                                Return True
+                        End Select
+                    End If
+
+                Case SyntaxKind.JoinCondition
+                    ' JoinClause -> Condition#1 (lambda) -> left expression  (lambda left body node #1 -- representative)
+                    '                                    -> right expression (lambda right body node #1)
+                    '               Condition#2          -> left expression  (lambda left body node #2)
+                    '                                    -> right expression (lambda right body node #2)
+                    '               Condition#3          -> left expression  (lambda left body node #3)
+                    '                                    -> right expression (lambda right body node #3)
+                    '               ...
+                    Dim joinCondition = DirectCast(parent, JoinConditionSyntax)
+                    Dim joinClause = DirectCast(parent.Parent, JoinClauseSyntax)
+                    If node Is joinCondition.Left Then
+                        lambdaBody = GetJoinLeftLambdaBody(joinClause)
+                    Else
+                        lambdaBody = GetJoinRightLambdaBody(joinClause)
+                    End If
+
+                    Return True
+            End Select
 
             lambdaBody = Nothing
             Return False
         End Function
 
-        Private Shared Function GetSelectClauseLambdaBody(selectClause As SelectClauseSyntax) As SyntaxNode
-            Return selectClause.Variables.First
+        Private Shared Function IsJoinClause(node As SyntaxNode) As Boolean
+            Return node.IsKind(SyntaxKind.GroupJoinClause) OrElse node.IsKind(SyntaxKind.SimpleJoinClause)
         End Function
 
-        Private Shared Function GetGroupByClauseLambdaBody(groupByClause As GroupByClauseSyntax, node As SyntaxNode) As SyntaxNode
-            Return If(node.SpanStart < groupByClause.ByKeyword.SpanStart, groupByClause.Items.First, groupByClause.Keys.First).Expression
+        Friend Shared Function GetLambdaExpressionLambdaBody(lambda As LambdaExpressionSyntax) As VisualBasicSyntaxNode
+            Return lambda.SubOrFunctionHeader
         End Function
 
-        Private Shared Function GetJoinClauseLambdaBody(joinClause As JoinClauseSyntax, node As SyntaxNode) As SyntaxNode
-            Dim joinCondition = DirectCast(node.Parent, JoinConditionSyntax)
-            Debug.Assert(node Is joinCondition.Left OrElse node Is joinCondition.Right)
-            Return If(node Is joinCondition.Left, joinClause.JoinConditions.First.Left, joinClause.JoinConditions.First.Right)
+        Friend Shared Function GetFromOrAggregateVariableLambdaBody(rangeVariable As CollectionRangeVariableSyntax) As VisualBasicSyntaxNode
+            Return rangeVariable.Expression
+        End Function
+
+        Friend Shared Function GetOrderingLambdaBody(ordering As OrderingSyntax) As VisualBasicSyntaxNode
+            Return ordering.Expression
+        End Function
+
+        Friend Shared Function GetAggregationLambdaBody(aggregation As FunctionAggregationSyntax) As VisualBasicSyntaxNode
+            Return aggregation.Argument
+        End Function
+
+        Friend Shared Function GetLetVariableLambdaBody(rangeVariable As ExpressionRangeVariableSyntax) As VisualBasicSyntaxNode
+            Return rangeVariable.Expression
+        End Function
+
+        Friend Shared Function GetSelectLambdaBody(selectClause As SelectClauseSyntax) As VisualBasicSyntaxNode
+            Return selectClause.Variables.First.Expression
+        End Function
+
+        Friend Shared Function GetAggregateLambdaBody(aggregateClause As AggregateClauseSyntax) As VisualBasicSyntaxNode
+            Return aggregateClause.Variables.First.Expression
+        End Function
+
+        Friend Shared Function GetGroupByItemsLambdaBody(groupByClause As GroupByClauseSyntax) As VisualBasicSyntaxNode
+            Return groupByClause.Items.First.Expression
+        End Function
+
+        Friend Shared Function GetGroupByKeysLambdaBody(groupByClause As GroupByClauseSyntax) As VisualBasicSyntaxNode
+            Return groupByClause.Keys.First.Expression
+        End Function
+
+        Friend Shared Function GetJoinLeftLambdaBody(joinClause As JoinClauseSyntax) As VisualBasicSyntaxNode
+            Return joinClause.JoinConditions.First.Left
+        End Function
+
+        Friend Shared Function GetJoinRightLambdaBody(joinClause As JoinClauseSyntax) As VisualBasicSyntaxNode
+            Return joinClause.JoinConditions.First.Right
         End Function
 
         ''' <summary>
@@ -200,45 +300,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case node.Kind
                 Case SyntaxKind.CollectionRangeVariable
-                    ' source sequence in From or Aggregate (other than the first in the query)
-                    Dim collectionRange = DirectCast(node, CollectionRangeVariableSyntax)
-                    If Not IsLambdaCollectionRangeVariable(collectionRange) Then
+                    ' From or Aggregate (other than the first in the query)
+                    If Not IsLambdaCollectionRangeVariable(node) Then
                         Return False
                     End If
 
-                    lambdaBody1 = collectionRange.Expression
+                    lambdaBody1 = DirectCast(node, CollectionRangeVariableSyntax).Expression
 
                 Case SyntaxKind.ExpressionRangeVariable
-                    Dim clause = node.Parent
-
-                    If clause.IsKind(SyntaxKind.LetClause) Then
-
-                        ' Each ERV in Let clause is translated to a seprate lambda.
-                        ' The lambda is represented by the ERV and its body by the RHS expression.
-                        lambdaBody1 = DirectCast(node, ExpressionRangeVariableSyntax).Expression
-
-                    ElseIf clause.IsKind(SyntaxKind.SelectClause)
-
-                        ' Select clause translates to a single lambda that includes all expression range variables specified in the clause.
-                        ' The lambda is represented by the first ERV and its body by the RHS expression.
-                        lambdaBody1 = GetSelectClauseLambdaBody(DirectCast(clause, SelectClauseSyntax))
-
-                        ' The node only represents a lambda if it's the first ERV 
-                        If node IsNot lambdaBody1.Parent Then
-                            Return False
-                        End If
-
-                    ElseIf clause.IsKind(SyntaxKind.GroupByClause)
-
-                        ' All ERVs in Items (if any) are translated to a single lambda represented by the first ERV,
-                        ' All ERVs in Keys are translated to a single lambda represented by the first ERV.
-                        lambdaBody1 = GetGroupByClauseLambdaBody(DirectCast(clause, GroupByClauseSyntax), node)
-
-                        ' The node only represents a lambda if it's the first Item or Keys ERV 
-                        If node IsNot lambdaBody1.Parent Then
-                            Return False
-                        End If
+                    ' Let, Select, GroupBy
+                    If Not IsLambdaExpressionRangeVariable(node) Then
+                        Return False
                     End If
+
+                    lambdaBody1 = DirectCast(node, ExpressionRangeVariableSyntax).Expression
 
                 Case SyntaxKind.JoinCondition
                     ' Left sides of all join conditions are merged into one body,
@@ -275,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.MultiLineSubLambdaExpression,
                      SyntaxKind.SingleLineSubLambdaExpression
                     ' The header of the lambda represents its body.
-                    lambdaBody = DirectCast(node, LambdaExpressionSyntax).SubOrFunctionHeader
+                    lambdaBody = GetLambdaExpressionLambdaBody(DirectCast(node, LambdaExpressionSyntax))
 
                 Case SyntaxKind.WhereClause
                     lambdaBody = DirectCast(node, WhereClauseSyntax).Condition
@@ -286,11 +361,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SyntaxKind.AscendingOrdering,
                      SyntaxKind.DescendingOrdering
-                    lambdaBody = DirectCast(node, OrderingSyntax).Expression
+                    lambdaBody = GetOrderingLambdaBody(DirectCast(node, OrderingSyntax))
 
                 Case SyntaxKind.FunctionAggregation
                     ' function call in Group By, Group Join, Aggregate: the argument 
-                    lambdaBody = DirectCast(node, FunctionAggregationSyntax).Argument
+                    lambdaBody = GetAggregationLambdaBody(DirectCast(node, FunctionAggregationSyntax))
 
                 Case Else
                     lambdaBody = Nothing
@@ -337,31 +412,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function IsLambdaCollectionRangeVariable(collectionRangeVariable As SyntaxNode) As Boolean
             Debug.Assert(collectionRangeVariable.IsKind(SyntaxKind.CollectionRangeVariable))
 
-            Dim parent = collectionRangeVariable.Parent
+            Dim clause = collectionRangeVariable.Parent
 
-            Dim query = DirectCast(parent.Parent, QueryExpressionSyntax)
-            If query.Clauses.First() Is parent Then
+            ' Join clause has a single CRV that is not a lambda on its own
+            If IsJoinClause(clause) Then
                 Return False
             End If
 
-            Dim variables As SeparatedSyntaxList(Of CollectionRangeVariableSyntax)
+            Debug.Assert(clause.IsKind(SyntaxKind.FromClause) OrElse clause.IsKind(SyntaxKind.AggregateClause))
 
-            Select Case parent.Kind
+            If IsQueryStartingClause(clause) Then
+                ' Only the first collection range variable of the starting From/Aggregate clause is not a lambda
+                Return collectionRangeVariable IsNot GetCollectionRangeVariables(clause).First
+            End If
+
+            ' All variables of any non-starting From/Aggregate clause are lambdas.
+            ' The first variable of each Aggregate clause represents teh lambda contaiing the query nested into the aggregate clause.
+            Return True
+        End Function
+
+        Private Shared Function IsQueryStartingClause(clause As SyntaxNode) As Boolean
+            ' Clauses directly contained in a query expression
+            Return clause.Parent.IsKind(SyntaxKind.QueryExpression) AndAlso
+                   clause Is DirectCast(clause.Parent, QueryExpressionSyntax).Clauses.First
+        End Function
+
+        Private Shared Function GetCollectionRangeVariables(clause As SyntaxNode) As SeparatedSyntaxList(Of CollectionRangeVariableSyntax)
+            Select Case clause.Kind
                 Case SyntaxKind.FromClause
-                    variables = DirectCast(parent, FromClauseSyntax).Variables
+                    Return DirectCast(clause, FromClauseSyntax).Variables
 
                 Case SyntaxKind.AggregateClause
-                    variables = DirectCast(parent, AggregateClauseSyntax).Variables
+                    Return DirectCast(clause, AggregateClauseSyntax).Variables
 
                 Case SyntaxKind.GroupJoinClause,
                      SyntaxKind.SimpleJoinClause
-                    Return False
+                    Return DirectCast(clause, JoinClauseSyntax).JoinedVariables
 
                 Case Else
                     Throw ExceptionUtilities.Unreachable
             End Select
-
-            Return collectionRangeVariable IsNot variables(0)
         End Function
 
         Friend Shared Function IsLambdaJoinCondition(joinCondition As SyntaxNode) As Boolean
@@ -370,18 +460,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
+        ''' Non-user code lambdas are synthesized lambdas that create an instance of an anonymous type representing a pair of values,
+        ''' or otherwise transform sequences/anonymous types from one form to another without calling user code.
+        ''' TODO: Could we avoid generating proper lambdas for these?
+        ''' </summary>
+        Friend Shared Function IsNonUserCodeQueryLambda(syntax As SyntaxNode) As Boolean
+            Return syntax.IsKind(SyntaxKind.GroupJoinClause) OrElse
+                   syntax.IsKind(SyntaxKind.SimpleJoinClause) OrElse
+                   syntax.IsKind(SyntaxKind.AggregateClause) OrElse
+                   syntax.IsKind(SyntaxKind.FromClause) OrElse
+                   syntax.IsKind(SyntaxKind.GroupByClause) OrElse
+                   syntax.IsKind(SyntaxKind.SimpleAsClause)
+        End Function
+
+        ''' <summary>
         ''' Returns true if the specified node can represent a closure scope -- that is a scope of a captured variable.
         ''' Doesn't validate whether or not the node actually declares any captured variable.
         ''' </summary>
         Friend Shared Function IsClosureScope(node As SyntaxNode) As Boolean
             Select Case node.Kind()
-                Case SyntaxKind.MultiLineSubLambdaExpression,
-                     SyntaxKind.MultiLineFunctionLambdaExpression,
-                     SyntaxKind.SingleLineSubLambdaExpression,
-                     SyntaxKind.SingleLineFunctionLambdaExpression
-                    ' lambda parameters, variables defined in lambda body
-                    Return True
-
                 Case SyntaxKind.SubBlock,
                      SyntaxKind.FunctionBlock,
                      SyntaxKind.ConstructorBlock,
@@ -419,43 +516,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' variable declared in a statement block
                     Return True
 
-                Case SyntaxKind.SelectClause,
+                Case SyntaxKind.AggregateClause,
                      SyntaxKind.SimpleJoinClause,
-                     SyntaxKind.GroupJoinClause,
-                     SyntaxKind.GroupByClause,
-                     SyntaxKind.AggregateClause
-                    ' range variable captured by the clause
+                     SyntaxKind.GroupJoinClause
+                    ' synthesized closure
+                    Return True
+
+                Case SyntaxKind.SingleLineFunctionLambdaExpression,
+                     SyntaxKind.SingleLineSubLambdaExpression,
+                     SyntaxKind.MultiLineFunctionLambdaExpression,
+                     SyntaxKind.MultiLineSubLambdaExpression
+                    ' lambda expression body closure
                     Return True
 
                 Case Else
-                    Dim parent = node.Parent
-
-                    If TypeOf node IsNot ExpressionSyntax OrElse parent Is Nothing Then
-                        Return False
+                    If IsLambdaBody(node) Then
+                        Return True
                     End If
 
-                    Select Case parent.Kind()
-                        Case SyntaxKind.WhereClause,
-                             SyntaxKind.TakeWhileClause,
-                             SyntaxKind.SkipWhileClause,
-                             SyntaxKind.AscendingOrdering,
-                             SyntaxKind.DescendingOrdering
-                            ' captured range variable by the clause
-                            Return True
-
-                        Case SyntaxKind.FunctionAggregation
-                            ' range variable captured by IntoClause
-                            Return True
-
-                        Case SyntaxKind.ExpressionRangeVariable
-                            ' range variable captured by Let clause
-                            Return parent.Parent IsNot Nothing AndAlso parent.Parent.IsKind(SyntaxKind.LetClause)
-
-                    End Select
-
                     ' TODO: EE expression
-                    If parent.Parent IsNot Nothing AndAlso
-                       parent.Parent.Parent Is Nothing Then
+                    If node.Parent?.Parent IsNot Nothing AndAlso
+                       node.Parent.Parent.Parent Is Nothing Then
                         Return True
                     End If
 
