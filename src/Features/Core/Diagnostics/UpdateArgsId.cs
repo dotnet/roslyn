@@ -2,14 +2,13 @@
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
+    /// <summary>
+    /// Base type of a type that is used as <see cref="DiagnosticsUpdatedArgs.Id"/> for live diagnostic
+    /// </summary>
     internal class UpdateArgsId
     {
         public readonly DiagnosticAnalyzer Analyzer;
 
-        /// <summary>
-        /// Base type for <see cref="DiagnosticsUpdatedArgs.Id"/> for live diagnostic
-        /// </summary>
-        /// <param name="analyzer"></param>
         protected UpdateArgsId(DiagnosticAnalyzer analyzer)
         {
             Analyzer = analyzer;

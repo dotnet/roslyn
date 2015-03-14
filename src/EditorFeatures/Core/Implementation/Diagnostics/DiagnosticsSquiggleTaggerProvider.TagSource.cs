@@ -64,19 +64,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             private string GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
             {
-                var fromTag = GetErrorTypeFromDiagnosticTags(diagnostic);
-                if (fromTag != null)
-                {
-                    return fromTag;
-                }
-
-                var fromProperty = GetErrorTypeFromDiagnosticProperty(diagnostic);
-                if (fromProperty != null)
-                {
-                    return fromProperty;
-                }
-
-                return GetErrorTypeFromDiagnosticSeverity(diagnostic);
+                return GetErrorTypeFromDiagnosticTags(diagnostic) ??
+                       GetErrorTypeFromDiagnosticProperty(diagnostic) ??
+                       GetErrorTypeFromDiagnosticSeverity(diagnostic);
             }
 
             private string GetErrorTypeFromDiagnosticProperty(DiagnosticData diagnostic)
