@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructor
                 return result;
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get
                 {

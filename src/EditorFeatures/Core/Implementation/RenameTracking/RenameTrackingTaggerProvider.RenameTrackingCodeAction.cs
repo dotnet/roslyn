@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     {
         private class RenameTrackingCodeAction : CodeAction
         {
-            private readonly string _title;
+            private readonly LocalizableString _title;
             private readonly Document _document;
             private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
             private readonly bool _showPreview;
             private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 
-            public RenameTrackingCodeAction(Document document, string title, IEnumerable<IRefactorNotifyService> refactorNotifyServices, ITextUndoHistoryRegistry undoHistoryRegistry, bool showPreview)
+            public RenameTrackingCodeAction(Document document, LocalizableString title, IEnumerable<IRefactorNotifyService> refactorNotifyServices, ITextUndoHistoryRegistry undoHistoryRegistry, bool showPreview)
             {
                 _document = document;
                 _title = title;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _showPreview = showPreview;
             }
 
-            public override string Title { get { return _title; } }
+            public override LocalizableString Title { get { return _title; } }
 
             protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {

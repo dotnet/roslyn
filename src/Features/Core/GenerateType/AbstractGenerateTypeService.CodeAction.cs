@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 _state = state;
                 _intoNamespace = intoNamespace;
                 _inNewFile = inNewFile;
-                _equivalenceKey = Title;
+                _equivalenceKey = Title.ToString(CultureInfo.CurrentUICulture);
             }
 
             private static string FormatDisplayText(
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return await editor.GetOperationsAsync().ConfigureAwait(false);
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get
                 {
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 _state = state;
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get
                 {

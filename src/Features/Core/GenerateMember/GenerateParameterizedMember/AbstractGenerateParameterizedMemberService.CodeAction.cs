@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 }
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get
                 {

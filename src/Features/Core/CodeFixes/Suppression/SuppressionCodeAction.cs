@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     internal sealed class SuppressionCodeAction : CodeAction
     {
         private readonly string _title;
-        public override string Title
+        public override LocalizableString Title
         {
             get
             {

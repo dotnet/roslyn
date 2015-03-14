@@ -117,13 +117,13 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
         {
             private readonly Func<CancellationToken, Task<Solution>> _createChangedAdditionalDocument;
 
-            public AdditionalDocumentChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedAdditionalDocument)
+            public AdditionalDocumentChangeAction(LocalizableString title, Func<CancellationToken, Task<Solution>> createChangedAdditionalDocument)
             {
                 this.Title = title;
                 _createChangedAdditionalDocument = createChangedAdditionalDocument;
             }
 
-            public override string Title { get; }
+            public override LocalizableString Title { get; }
 
             protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
@@ -136,14 +136,14 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             private readonly List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> _diagnosticsToFix;
             private readonly Solution _solution;
 
-            public FixAllAdditionalDocumentChangeAction(string title, Solution solution, List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix)
+            public FixAllAdditionalDocumentChangeAction(LocalizableString title, Solution solution, List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix)
             {
                 this.Title = title;
                 _solution = solution;
                 _diagnosticsToFix = diagnosticsToFix;
             }
 
-            public override string Title { get; }
+            public override LocalizableString Title { get; }
 
             protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {

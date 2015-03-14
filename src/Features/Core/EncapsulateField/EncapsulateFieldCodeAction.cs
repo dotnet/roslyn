@@ -9,15 +9,15 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
     internal class EncapsulateFieldCodeAction : CodeAction
     {
         private EncapsulateFieldResult _result;
-        private string _title;
+        private LocalizableString _title;
 
-        public EncapsulateFieldCodeAction(EncapsulateFieldResult result, string title)
+        public EncapsulateFieldCodeAction(EncapsulateFieldResult result, LocalizableString title)
         {
             _result = result;
             _title = title;
         }
 
-        public override string Title
+        public override LocalizableString Title
         {
             get { return _title; }
         }

@@ -202,15 +202,15 @@ namespace AsyncPackage
         private class CodeActionToDelayWhenAnyWhenAllAsync : CodeAction
         {
             private Func<CancellationToken, Task<Document>> _generateDocument;
-            private string _title;
+            private LocalizableString _title;
 
-            public CodeActionToDelayWhenAnyWhenAllAsync(string title, Func<CancellationToken, Task<Document>> generateDocument)
+            public CodeActionToDelayWhenAnyWhenAllAsync(LocalizableString title, Func<CancellationToken, Task<Document>> generateDocument)
             {
                 _title = title;
                 _generateDocument = generateDocument;
             }
 
-            public override string Title { get { return _title; } }
+            public override LocalizableString Title { get { return _title; } }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
@@ -221,15 +221,15 @@ namespace AsyncPackage
         private class CodeActionChangetoAwaitAsync : CodeAction
         {
             private Func<CancellationToken, Task<Document>> _generateDocument;
-            private string _title;
+            private LocalizableString _title;
 
-            public CodeActionChangetoAwaitAsync(string title, Func<CancellationToken, Task<Document>> generateDocument)
+            public CodeActionChangetoAwaitAsync(LocalizableString title, Func<CancellationToken, Task<Document>> generateDocument)
             {
                 _title = title;
                 _generateDocument = generateDocument;
             }
 
-            public override string Title { get { return _title; } }
+            public override LocalizableString Title { get { return _title; } }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
@@ -240,15 +240,15 @@ namespace AsyncPackage
         private class CodeActionChangetoAwaitGetAwaiterAsync : CodeAction
         {
             private Func<CancellationToken, Task<Document>> _generateDocument;
-            private string _title;
+            private LocalizableString _title;
 
-            public CodeActionChangetoAwaitGetAwaiterAsync(string title, Func<CancellationToken, Task<Document>> generateDocument)
+            public CodeActionChangetoAwaitGetAwaiterAsync(LocalizableString title, Func<CancellationToken, Task<Document>> generateDocument)
             {
                 _title = title;
                 _generateDocument = generateDocument;
             }
 
-            public override string Title { get { return _title; } }
+            public override LocalizableString Title { get { return _title; } }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {

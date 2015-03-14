@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
             private readonly Document _document;
             private readonly State _state;
             private readonly TService _service;
-            private readonly string _title;
+            private readonly LocalizableString _title;
 
             protected AbstractCodeAction(
                 TService service,
                 Document document,
                 State state,
                 IList<IMethodSymbol> constructors,
-                string title)
+                LocalizableString title)
             {
                 _service = service;
                 _document = document;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 _title = title;
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get { return _title; }
             }

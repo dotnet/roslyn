@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.InsertMissingCast
                 Me.node = node
             End Sub
 
-            Public Overrides ReadOnly Property Title As String
+            Public Overrides ReadOnly Property Title As LocalizableString
                 Get
                     Return VBFeaturesResources.InsertMissingCast
                 End Get

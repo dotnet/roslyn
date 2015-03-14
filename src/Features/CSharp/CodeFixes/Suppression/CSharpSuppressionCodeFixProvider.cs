@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         private AttributeArgumentListSyntax CreateAttributeArguments(ISymbol targetSymbol, Diagnostic diagnostic, bool isAssemblyAttribute)
         {
             // SuppressMessage("Rule Category", "Rule Id", Justification = "Justification", MessageId = "MessageId", Scope = "Scope", Target = "Target")
-            var category = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(diagnostic.Descriptor.Category));
+            var category = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(diagnostic.Descriptor.Category.ToString(CultureInfo.CurrentUICulture)));
             var categoryArgument = SyntaxFactory.AttributeArgument(category);
 
             var title = diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture);

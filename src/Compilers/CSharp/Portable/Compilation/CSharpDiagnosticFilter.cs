@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -55,14 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn),
                     ErrorFacts.GetWarningLevel(ErrorCode.WRN_ALinkWarn),
                     d.Location as Location,
-                    d.Category,
+                    d.Category.ToString(CultureInfo.CurrentUICulture),
                     warningLevelOption,
                     generalDiagnosticOption,
                     specificDiagnosticOptions);
             }
             else
             {
-                reportAction = GetDiagnosticReport(d.Severity, d.IsEnabledByDefault, d.Id, d.WarningLevel, d.Location as Location, d.Category, warningLevelOption, generalDiagnosticOption, specificDiagnosticOptions);
+                reportAction = GetDiagnosticReport(d.Severity, d.IsEnabledByDefault, d.Id, d.WarningLevel, d.Location as Location, d.Category.ToString(CultureInfo.CurrentUICulture), warningLevelOption, generalDiagnosticOption, specificDiagnosticOptions);
             }
 
             return d.WithReportDiagnostic(reportAction);

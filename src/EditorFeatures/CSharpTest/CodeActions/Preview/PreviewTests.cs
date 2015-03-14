@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                     _oldDocument = document;
                 }
 
-                public override string Title
+                public override LocalizableString Title
                 {
                     get
                     {

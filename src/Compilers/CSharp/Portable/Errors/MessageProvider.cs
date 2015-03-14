@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ErrorFacts.GetHelpLink((ErrorCode)code);
         }
 
-        public override string GetCategory(int code)
+        public override LocalizableString GetCategory(int code)
         {
             return ErrorFacts.GetCategory((ErrorCode)code);
         }
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                               diagnosticInfo.MessageIdentifier,
                                                               diagnosticInfo.WarningLevel,
                                                               Location.None,
-                                                              diagnosticInfo.Category,
+                                                              diagnosticInfo.Category.ToString(CultureInfo.CurrentUICulture),
                                                               options.WarningLevel,
                                                               options.GeneralDiagnosticOption,
                                                               options.SpecificDiagnosticOptions);

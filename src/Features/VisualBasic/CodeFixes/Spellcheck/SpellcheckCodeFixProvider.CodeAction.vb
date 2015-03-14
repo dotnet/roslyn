@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
                 Me.newIdentifier = newIdentifier
             End Sub
 
-            Public Overrides ReadOnly Property Title As String
+            Public Overrides ReadOnly Property Title As LocalizableString
                 Get
                     Return String.Format(VBFeaturesResources.ChangeTo, originalIdentifier, newIdentifier)
                 End Get

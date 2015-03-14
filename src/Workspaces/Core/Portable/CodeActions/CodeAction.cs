@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
     public abstract class CodeAction
     {
         /// <summary>
-        /// A short title describing the action that may appear in a menu.
+        /// A short localizable title describing the action that may appear in a menu.
         /// </summary>
-        public abstract string Title { get; }
+        public abstract LocalizableString Title { get; }
 
         /// <summary>
         /// Two code actions are treated as equivalent if they have equal non-null <see cref="EquivalenceKey"/> values and were generated
@@ -266,18 +266,18 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal class DocumentChangeAction : CodeAction
         {
-            private readonly string _title;
+            private readonly LocalizableString _title;
             private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
             private readonly string _equivalenceKey;
 
-            public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
+            public DocumentChangeAction(LocalizableString title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
             {
                 _title = title;
                 _createChangedDocument = createChangedDocument;
                 _equivalenceKey = equivalenceKey;
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get { return _title; }
             }
@@ -295,18 +295,18 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal class SolutionChangeAction : CodeAction
         {
-            private readonly string _title;
+            private readonly LocalizableString _title;
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
             private readonly string _equivalenceKey;
 
-            public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey = null)
+            public SolutionChangeAction(LocalizableString title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey = null)
             {
                 _title = title;
                 _createChangedSolution = createChangedSolution;
                 _equivalenceKey = equivalenceKey;
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get { return _title; }
             }

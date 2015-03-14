@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 _generateProperty = generateProperty;
                 _isReadonly = isReadonly;
                 _isConstant = isConstant;
-                _equivalenceKey = Title;
+                _equivalenceKey = Title.ToString(CultureInfo.CurrentUICulture);
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                                                     .Contains(state.TypeToGenerateIn);
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get
                 {

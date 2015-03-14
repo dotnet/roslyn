@@ -169,15 +169,15 @@ Class ConvertToAutoPropertyCodeRefactoringProvider
         Inherits CodeAction
 
         Private generateDocument As Func(Of CancellationToken, Task(Of Document))
-        Private _title As String
+        Private _title As LocalizableString
 
-        Public Overrides ReadOnly Property Title As String
+        Public Overrides ReadOnly Property Title As LocalizableString
             Get
                 Return _title
             End Get
         End Property
 
-        Public Sub New(title As String, generateDocument As Func(Of CancellationToken, Task(Of Document)))
+        Public Sub New(title As LocalizableString, generateDocument As Func(Of CancellationToken, Task(Of Document)))
             Me._title = title
             Me.generateDocument = generateDocument
         End Sub

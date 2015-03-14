@@ -54,11 +54,11 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
         }
 
         private readonly Project _project;
-        private readonly string _title;
+        private readonly LocalizableString _title;
         private readonly ProjectReference _projectReferenceToAdd;
         private readonly AssemblyIdentity _missingAssemblyIdentity;
 
-        public AddMissingReferenceCodeAction(Project project, string title, ProjectReference projectReferenceToAdd, AssemblyIdentity missingAssemblyIdentity)
+        public AddMissingReferenceCodeAction(Project project, LocalizableString title, ProjectReference projectReferenceToAdd, AssemblyIdentity missingAssemblyIdentity)
         {
             _project = project;
             _title = title;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             _missingAssemblyIdentity = missingAssemblyIdentity;
         }
 
-        public override string Title
+        public override LocalizableString Title
         {
             get { return _title; }
         }

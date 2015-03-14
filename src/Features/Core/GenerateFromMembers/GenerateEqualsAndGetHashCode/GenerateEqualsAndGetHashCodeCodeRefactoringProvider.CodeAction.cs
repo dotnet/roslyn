@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateEqualsAndGetHashCod
                     compilation, _containingType, _selectedMembers, cancellationToken);
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get
                 {

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -530,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 get
                 {
-                    return Title;
+                    return Title.ToString(CultureInfo.CurrentUICulture);
                 }
             }
         }

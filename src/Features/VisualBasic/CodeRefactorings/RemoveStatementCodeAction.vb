@@ -12,15 +12,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeActions
         Private ReadOnly document As Document
         Private ReadOnly node As SyntaxNode
         Private ReadOnly cancellationToken As CancellationToken
-        Private ReadOnly _title As String
+        Private ReadOnly _title As LocalizableString
 
-        Sub New(document As Document, node As SyntaxNode, title As String)
+        Sub New(document As Document, node As SyntaxNode, title As LocalizableString)
             Me.document = document
             Me.node = node
             _title = title
         End Sub
 
-        Public Overrides ReadOnly Property Title As String
+        Public Overrides ReadOnly Property Title As LocalizableString
             Get
                 Return _title
             End Get

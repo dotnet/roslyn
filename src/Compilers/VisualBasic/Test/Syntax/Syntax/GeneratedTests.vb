@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return String.Empty
         End Function
 
-        Public Overrides Function GetCategory(code As Integer) As String
+        Public Overrides Function GetCategory(code As Integer) As LocalizableString
             Return String.Empty
         End Function
 

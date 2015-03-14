@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, throughMember: throughMember);
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get
                 {

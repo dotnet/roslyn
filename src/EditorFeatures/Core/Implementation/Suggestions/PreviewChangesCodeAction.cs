@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _changeSummary = changeSummary;
         }
 
-        public override string Title
+        public override LocalizableString Title
         {
             get
             {
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var changedSolution = previewDialogService.PreviewChanges(
                 EditorFeaturesResources.PreviewChanges,
                 "vs.codefix.previewchanges",
-                _originalCodeAction.Title,
+                _originalCodeAction.Title.ToString(CultureInfo.CurrentUICulture),
                 EditorFeaturesResources.PreviewChangesRootNodeText,
                 Glyph.OpenFolder,
                 _changeSummary.NewSolution,

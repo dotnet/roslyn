@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _fixAllProvider = fixAllProvider;
         }
 
-        public override string Title
+        public override LocalizableString Title
         {
             get
             {

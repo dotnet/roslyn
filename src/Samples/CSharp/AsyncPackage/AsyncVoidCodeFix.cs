@@ -66,15 +66,15 @@ namespace AsyncPackage
         private class AsyncVoidCodeAction : CodeAction
         {
             private Func<CancellationToken, Task<Document>> _createDocument;
-            private string _title;
+            private LocalizableString _title;
 
-            public AsyncVoidCodeAction(string title, Func<CancellationToken, Task<Document>> createDocument)
+            public AsyncVoidCodeAction(LocalizableString title, Func<CancellationToken, Task<Document>> createDocument)
             {
                 _title = title;
                 _createDocument = createDocument;
             }
 
-            public override string Title { get { return _title; } }
+            public override LocalizableString Title { get { return _title; } }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {

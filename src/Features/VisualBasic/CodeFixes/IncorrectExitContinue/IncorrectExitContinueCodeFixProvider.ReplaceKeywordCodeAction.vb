@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
                 Me.containingBlock = containingBlock
             End Sub
 
-            Public Overrides ReadOnly Property Title As String
+            Public Overrides ReadOnly Property Title As LocalizableString
                 Get
                     Return String.Format(VBFeaturesResources.ChangeTo, invalidToken.ValueText, SyntaxFacts.GetText(BlockKindToKeywordKind(createBlockKind)))
                 End Get

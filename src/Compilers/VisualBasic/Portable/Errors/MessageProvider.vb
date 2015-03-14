@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ErrorFactory.GetHelpLink(DirectCast(code, ERRID))
         End Function
 
-        Public Overrides Function GetCategory(code As Integer) As String
+        Public Overrides Function GetCategory(code As Integer) As LocalizableString
             Return ErrorFactory.GetCategory(DirectCast(code, ERRID))
         End Function
 
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    True,
                                                                    diagnosticInfo.MessageIdentifier,
                                                                    Location.None,
-                                                                   diagnosticInfo.Category,
+                                                                   diagnosticInfo.Category.ToString(CultureInfo.CurrentUICulture),
                                                                    options.GeneralDiagnosticOption,
                                                                    options.SpecificDiagnosticOptions)
         End Function

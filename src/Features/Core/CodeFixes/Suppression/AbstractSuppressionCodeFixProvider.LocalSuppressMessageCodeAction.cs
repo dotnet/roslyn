@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 return _document.WithSyntaxRoot(newRoot);
             }
 
-            public override string Title
+            public override LocalizableString Title
             {
                 get
                 {
