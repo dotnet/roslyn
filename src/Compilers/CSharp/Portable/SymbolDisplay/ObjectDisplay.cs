@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Append(quote);
             for (int i = 0; i < str.Length; i++)
             {
-                FormatStringChar(ref pooledBuilder, str, i, str[i], quote, useLanguageSpecificEscapes: useQuotes, useUnicodeEscapes: false);
+                FormatStringChar(ref pooledBuilder, str, i, str[i], quote, useLanguageSpecificEscapes: useQuotes, useUnicodeEscapes: useQuotes);
             }
             builder.Append(quote);
             return pooledBuilder.ToStringAndFree();
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Append(quote);
             }
-            FormatStringChar(ref pooledBuilder, str: null, index: 0, c: c, quote: quote, useLanguageSpecificEscapes: useQuotes, useUnicodeEscapes: !includeCodePoints);
+            FormatStringChar(ref pooledBuilder, str: null, index: 0, c: c, quote: quote, useLanguageSpecificEscapes: useQuotes, useUnicodeEscapes: useQuotes);
             if (useQuotes)
             {
                 builder.Append(quote);
