@@ -583,6 +583,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Using directive is unnecessary..
+        /// </summary>
+        internal static string RemoveUnnecessaryUsingsDiagnosticTitle {
+            get {
+                return ResourceManager.GetString("RemoveUnnecessaryUsingsDiagnosticTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &amp;Remove Unnecessary Usings.
         /// </summary>
         internal static string RemoveUnnecessaryUsingsWithAccelerator {

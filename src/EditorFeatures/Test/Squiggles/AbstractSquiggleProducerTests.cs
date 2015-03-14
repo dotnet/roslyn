@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 {
     public abstract class AbstractSquiggleProducerTests
     {
-        protected static IEnumerable<ITagSpan<IErrorTag>> GetErrorSpans(TestWorkspace workspace)
+        protected static IEnumerable<ITagSpan<IErrorTag>> GetErrorSpans(TestWorkspace workspace, ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
         {
             var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             registrationService.Register(workspace);
@@ -29,8 +29,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 () => diagnosticWaiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.DiagnosticService } })));
 
             var optionsService = workspace.Services.GetService<IOptionService>();
-            var compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap();
-            var analyzerService = new DiagnosticAnalyzerService(compilerAnalyzersMap);
+
+            DiagnosticAnalyzerService analyzerService = null;
+            if (analyzerMap == null || analyzerMap.Count == 0)
+            {
+                var compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap();
+                analyzerService = new DiagnosticAnalyzerService(compilerAnalyzersMap);
+            }
+            else
+            {
+                analyzerService = new DiagnosticAnalyzerService(analyzerMap);
+            }
+
             var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable<IDiagnosticUpdateSource>(analyzerService), diagnosticListeners);
 
             var document = workspace.Documents.First();
