@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private readonly CancellationTokenRegistration _queueRegistration;
         protected readonly AnalyzerManager analyzerManager;
-
+        
         // Lazy fields initialized in Initialize() API
         private Compilation _compilation;
         protected AnalyzerExecutor analyzerExecutor;
@@ -47,18 +48,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// The compilation queue to create the compilation with via WithEventQueue.
         /// </summary>
-        public AsyncQueue<CompilationEvent> CompilationEventQueue
-        {
-            get;
-        }
+        public AsyncQueue<CompilationEvent> CompilationEventQueue { get; }
 
         /// <summary>
         /// An async queue that is fed the diagnostics as they are computed.
         /// </summary>
-        public AsyncQueue<Diagnostic> DiagnosticQueue
-        {
-            get;
-        }
+        public AsyncQueue<Diagnostic> DiagnosticQueue { get; }
 
         /// <summary>
         /// Initializes the compilation for the analyzer driver.
@@ -152,12 +147,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// a new compilation. Any further actions on the compilation should use the new compilation.
         /// </remarks>
         public static AnalyzerDriver Create(
-            Compilation compilation,
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
-            AnalyzerOptions options,
-            AnalyzerManager analyzerManager,
-            Action<Diagnostic> addExceptionDiagnostic,
-            out Compilation newCompilation,
+            Compilation compilation, 
+            ImmutableArray<DiagnosticAnalyzer> analyzers, 
+            AnalyzerOptions options, 
+            AnalyzerManager analyzerManager, 
+            Action<Diagnostic> addExceptionDiagnostic, 
+            out Compilation newCompilation, 
             CancellationToken cancellationToken)
         {
             if (compilation == null)
@@ -175,21 +170,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
             }
 
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, analyzer, diagnostic) =>
-            {
-                addExceptionDiagnostic?.Invoke(diagnostic);
-            };
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = 
+                (ex, analyzer, diagnostic) => addExceptionDiagnostic?.Invoke(diagnostic);
+
             return Create(compilation, analyzers, options, analyzerManager, onAnalyzerException, out newCompilation, cancellationToken: cancellationToken);
         }
 
         // internal for testing purposes
         internal static AnalyzerDriver Create(
             Compilation compilation,
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
-            AnalyzerOptions options,
+            ImmutableArray<DiagnosticAnalyzer> analyzers, 
+            AnalyzerOptions options, 
             AnalyzerManager analyzerManager,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
-            out Compilation newCompilation,
+            out Compilation newCompilation, 
             CancellationToken cancellationToken)
         {
             options = options ?? AnalyzerOptions.Empty;
@@ -203,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // Wrap onAnalyzerException to pass in filtered diagnostic.
                 var comp = newCompilation;
-                newOnAnalyzerException = (ex, analyzer, diagnostic) =>
+                newOnAnalyzerException = (ex, analyzer, diagnostic) => 
                     onAnalyzerException(ex, analyzer, GetFilteredDiagnostic(diagnostic, comp));
             }
             else
@@ -213,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, newOnAnalyzerException, cancellationToken);
-
+            
             analyzerDriver.Initialize(newCompilation, analyzerExecutor, cancellationToken);
 
             return analyzerDriver;
@@ -493,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         analyzerExecutor.ExecuteSemanticModelActions(analyzerAndActions.Value, semanticModel);
                     }, cancellationToken);
 
-                    tasks.Add(task);
+                    tasks.Add(task); 
                 }
 
                 return Task.WhenAll(tasks.ToArrayAndFree());
@@ -552,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var filteredDiagnostic = compilation.FilterDiagnostic(diagnostic);
             if (filteredDiagnostic != null)
             {
-                var suppressMessageState = SuppressMessageStateByCompilation.GetValue(compilation, c => new SuppressMessageAttributeState(c));
+                var suppressMessageState = SuppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
                 if (suppressMessageState.IsDiagnosticSuppressed(filteredDiagnostic, symbolOpt: symbolOpt))
                 {
                     return null;
@@ -615,12 +609,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal class AnalyzerDriver<TLanguageKindEnum> : AnalyzerDriver where TLanguageKindEnum : struct
     {
         private readonly Func<SyntaxNode, TLanguageKindEnum> _getKind;
-        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>> _lazyNodeActionsByKind = null;
-        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>> _lazyCodeBlockStartActionsByAnalyzer = null;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>> _lazyNodeActionsByKind;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>> _lazyCodeBlockStartActionsByAnalyzer;
         // Code block actions and code block end actions are kept separate so that it is easy to
         // execute the code block actions before the code block end actions.
-        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> _lazyCodeBlockEndActionsByAnalyzer = null;
-        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> _lazyCodeBlockActionsByAnalyzer = null;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> _lazyCodeBlockEndActionsByAnalyzer;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> _lazyCodeBlockActionsByAnalyzer;
 
         /// <summary>
         /// Create an analyzer driver.
@@ -827,6 +821,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        [StructLayout(LayoutKind.Auto)]
         private struct CodeBlockAnalyzerActions
         {
             public DiagnosticAnalyzer Analyzer;
@@ -852,9 +847,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
                 }
-
+                
                 yield return
-                    new CodeBlockAnalyzerActions()
+                    new CodeBlockAnalyzerActions
                     {
                         Analyzer = analyzerAndActions.Key,
                         CodeBlockStartActions = analyzerAndActions.Value,
@@ -875,9 +870,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
                     }
-
+                    
                     yield return
-                        new CodeBlockAnalyzerActions()
+                        new CodeBlockAnalyzerActions
                         {
                             Analyzer = analyzerAndActions.Key,
                             CodeBlockStartActions = ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>.Empty,
@@ -895,7 +890,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (!CodeBlockStartActionsByAnalyzer.ContainsKey(analyzerAndActions.Key) && !CodeBlockActionsByAnalyzer.ContainsKey(analyzerAndActions.Key))
                 {
                     yield return
-                        new CodeBlockAnalyzerActions()
+                        new CodeBlockAnalyzerActions
                         {
                             Analyzer = analyzerAndActions.Key,
                             CodeBlockStartActions = ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>.Empty,
@@ -928,12 +923,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // if we processing the first field and skip syntax actions for remaining fields in the declaration.
                     if (declInNode.DeclaredSymbol == declaredSymbol)
                     {
-                        if (!first)
+                        if (first)
                         {
-                            return;
+                            break;
                         }
 
-                        break;
+                        return;
                     }
 
                     // Compute the topmost node representing the syntax declaration for the member that needs to be skipped.

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private const string s_suppressionPrefix = "~";
 
+        [StructLayout(LayoutKind.Auto)]
         private struct TargetSymbolResolver
         {
             private static readonly char[] s_nameDelimiters = { ':', '.', '+', '(', ')', '<', '>', '[', ']', '{', '}', ',', '&', '*', '`' };
@@ -42,19 +44,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private static string RemovePrefix(string id, string prefix)
             {
-                if (prefix != null)
+                if (prefix == null)
                 {
-                    if (id == null || !id.StartsWith(prefix, StringComparison.Ordinal))
-                    {
-                        return null;
-                    }
-                    else
-                    {
-                        return id.Substring(prefix.Length);
-                    }
+                    return id;
                 }
 
-                return id;
+                if (id == null || !id.StartsWith(prefix, StringComparison.Ordinal))
+                {
+                    return null;
+                }
+
+                return id.Substring(prefix.Length);
             }
 
             public void Resolve(IList<ISymbol> results)
@@ -395,7 +395,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return null;
                 }
-                else if (result.Value.IsBound)
+
+                if (result.Value.IsBound)
                 {
                     var typeSymbol = result.Value.Type;
 
@@ -414,26 +415,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             }
                             continue;
                         }
-                        else if (nextChar == '*')
+
+                        if (nextChar == '*')
                         {
                             ++_index;
                             typeSymbol = _compilation.CreatePointerTypeSymbol(typeSymbol);
                             continue;
                         }
-                        else
-                        {
-                            break;
-                        }
+
+                        break;
                     }
 
                     return TypeInfo.Create(typeSymbol);
                 }
-                else
-                {
-                    // Skip pointer and array specifiers for unbound types
-                    IgnorePointerAndArraySpecifiers();
-                    return result;
-                }
+                
+                // Skip pointer and array specifiers for unbound types
+                IgnorePointerAndArraySpecifiers();
+                return result;
             }
 
             private void IgnoreCustomModifierList()
@@ -449,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // overloads a method from metadata which uses custom modifiers.
                 if (PeekNextChar() == '{')
                 {
-                    for (; _index < _name.Length && _name[_index] != '}'; ++_index) ;
+                    for (; _index < _name.Length && _name[_index] != '}'; ++_index) { }
                 }
             }
 
@@ -505,42 +503,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             return TypeInfo.Create(methodContext.TypeParameters[methodTypeParameterIndex]);
                         }
-                        else
-                        {
-                            // No such parameter
-                            return null;
-                        }
+                        
+                        // No such parameter
+                        return null;
                     }
-                    else
-                    {
-                        // If there is no method context, then the type is unbound and must be bound later
-                        return TypeInfo.CreateUnbound(startIndex);
-                    }
+                    
+                    // If there is no method context, then the type is unbound and must be bound later
+                    return TypeInfo.CreateUnbound(startIndex);
                 }
-                else
-                {
-                    // ! means this is a regular type parameter
-                    var typeParameterIndex = ReadNextInteger();
+                
+                // ! means this is a regular type parameter
+                var typeParameterIndex = ReadNextInteger();
 
-                    if (bindingContext != null)
+                if (bindingContext != null)
+                {
+                    var typeParameter = GetNthTypeParameter(bindingContext.ContainingType, typeParameterIndex);
+                    if (typeParameter != null)
                     {
-                        var typeParameter = GetNthTypeParameter(bindingContext.ContainingType, typeParameterIndex);
-                        if (typeParameter != null)
-                        {
-                            return TypeInfo.Create(typeParameter);
-                        }
-                        else
-                        {
-                            // no such parameter
-                            return null;
-                        }
+                        return TypeInfo.Create(typeParameter);
                     }
-                    else
-                    {
-                        // If there is no binding context, then the type is unbound and must be bound later
-                        return TypeInfo.CreateUnbound(startIndex);
-                    }
+                    
+                    // no such parameter
+                    return null;
                 }
+                
+                // If there is no binding context, then the type is unbound and must be bound later
+                return TypeInfo.CreateUnbound(startIndex);
             }
 
             private TypeInfo? ParseNamedTypeParameter(ISymbol bindingContext)
@@ -639,26 +627,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             // hope of finding the symbol.
                             return null;
                         }
-                        else
-                        {
-                            continue;
-                        }
+
+                        continue;
                     }
 
                     INamedTypeSymbol typeSymbol = GetFirstMatchingNamedType(candidateMembers, arity);
-                    if (typeSymbol != null)
-                    {
-                        if (typeArguments != null)
-                        {
-                            typeSymbol = typeSymbol.Construct(typeArguments.Select(t => t.Type).ToArray());
-                        }
-
-                        return TypeInfo.Create(typeSymbol);
-                    }
-                    else
+                    if (typeSymbol == null)
                     {
                         return null;
                     }
+
+                    if (typeArguments != null)
+                    {
+                        typeSymbol = typeSymbol.Construct(typeArguments.Select(t => t.Type).ToArray());
+                    }
+
+                    return TypeInfo.Create(typeSymbol);
                 }
             }
 
@@ -752,24 +736,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var symbol in candidateMembers)
                 {
                     var methodSymbol = symbol as IMethodSymbol;
-                    if (methodSymbol != null && (arity == null || methodSymbol.Arity == arity))
+                    if (methodSymbol == null || 
+                        (arity != null && methodSymbol.Arity != arity))
                     {
-                        if (AllParametersMatch(methodSymbol.Parameters, parameters))
+                        continue;
+                    }
+
+                    if (!AllParametersMatch(methodSymbol.Parameters, parameters))
+                    {
+                        continue;
+                    }
+
+                    if (returnType == null)
+                    {
+                        // If no return type specified, then any matches
+                        builder.Add(methodSymbol);
+                    }
+                    else
+                    {
+                        // If return type is specified, then it must match
+                        var boundReturnType = BindParameterOrReturnType(methodSymbol, returnType.Value);
+                        if (boundReturnType != null && methodSymbol.ReturnType.Equals(boundReturnType))
                         {
-                            if (returnType == null)
-                            {
-                                // If no return type specified, then any matches
-                                builder.Add(methodSymbol);
-                            }
-                            else
-                            {
-                                // If return type is specified, then it must match
-                                var boundReturnType = BindParameterOrReturnType(methodSymbol, returnType.Value);
-                                if (boundReturnType != null && methodSymbol.ReturnType.Equals(boundReturnType))
-                                {
-                                    builder.Add(methodSymbol);
-                                }
-                            }
+                            builder.Add(methodSymbol);
                         }
                     }
                 }
@@ -798,7 +787,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private bool ParameterMatches(IParameterSymbol symbol, ParameterInfo parameterInfo)
             {
                 // same ref'ness?
-                if ((symbol.RefKind == RefKind.None) != !parameterInfo.IsRefOrOut)
+                if ((symbol.RefKind == RefKind.None) == parameterInfo.IsRefOrOut)
                 {
                     return false;
                 }
@@ -814,15 +803,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return type.Type;
                 }
-                else
-                {
-                    var currentIndex = _index;
-                    _index = type.StartIndex;
-                    var result = this.ParseType(bindingContext);
-                    _index = currentIndex;
 
-                    return result.HasValue ? result.Value.Type : null;
-                }
+                var currentIndex = _index;
+                _index = type.StartIndex;
+                var result = this.ParseType(bindingContext);
+                _index = currentIndex;
+
+                return result?.Type;
             }
 
             private static INamedTypeSymbol GetFirstMatchingNamedType(ImmutableArray<ISymbol> candidateMembers, int arity)
@@ -842,16 +829,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private static ITypeParameterSymbol GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)
             {
-                var containingTypeParameterCount = GetTypeParameterCount(typeSymbol.ContainingType as INamedTypeSymbol);
+                var containingTypeParameterCount = GetTypeParameterCount(typeSymbol.ContainingType);
                 if (n < containingTypeParameterCount)
                 {
-                    return GetNthTypeParameter(typeSymbol.ContainingType as INamedTypeSymbol, n);
+                    return GetNthTypeParameter(typeSymbol.ContainingType, n);
                 }
-                else
-                {
-                    var index = n - containingTypeParameterCount;
-                    return typeSymbol.TypeParameters[index];
-                }
+
+                return typeSymbol.TypeParameters[n - containingTypeParameterCount];
             }
 
             private static int GetTypeParameterCount(INamedTypeSymbol typeSymbol)
@@ -860,12 +844,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return 0;
                 }
-                else
-                {
-                    return typeSymbol.TypeParameters.Length + GetTypeParameterCount(typeSymbol.ContainingType as INamedTypeSymbol);
-                }
+
+                return typeSymbol.TypeParameters.Length + GetTypeParameterCount(typeSymbol.ContainingType);
             }
 
+            [StructLayout(LayoutKind.Auto)]
             private struct TypeInfo
             {
                 // The type, may be null if unbound.
@@ -896,6 +879,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
+            [StructLayout(LayoutKind.Auto)]
             private struct ParameterInfo
             {
                 public readonly TypeInfo Type;

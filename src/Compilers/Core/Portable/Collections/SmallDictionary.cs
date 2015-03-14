@@ -3,11 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -33,7 +28,7 @@ namespace Microsoft.CodeAnalysis
     //
     internal sealed class SmallDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
     {
-        private AvlNode _root = null;
+        private AvlNode _root;
         private readonly IEqualityComparer<K> _comparer;
 
         public static readonly SmallDictionary<K, V> Empty = new SmallDictionary<K, V>(null);
@@ -94,6 +89,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 return value;
             }
+
             set
             {
                 int hash = GetHashCode(key);
@@ -115,12 +111,12 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
-        private class Node
+        private abstract class Node
         {
             public readonly K key;
             public V Value;
 
-            public Node(K key, V value)
+            protected Node(K key, V value)
             {
                 this.key = key;
                 this.Value = value;
@@ -135,26 +131,18 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private class NodeLinked : Node
+        private sealed class NodeLinked : Node
         {
-            private readonly Node next;
-
             public NodeLinked(K key, V value, Node next)
                 : base(key, value)
             {
-                this.next = next;
+                this.Next = next;
             }
 
-            public override Node Next
-            {
-                get
-                {
-                    return next;
-                }
-            }
+            public override Node Next { get; }
         }
 
-        private class AvlNodeHead : AvlNode
+        private sealed class AvlNodeHead : AvlNode
         {
             public Node next;
 
@@ -175,11 +163,11 @@ namespace Microsoft.CodeAnalysis
 
         // separate class to ensure that HashCode field 
         // is layed out in ram  before other AvlNode fields
-        private class HashedNode : Node
+        private abstract class HashedNode : Node
         {
             public readonly int HashCode;
 
-            public HashedNode(int hashCode, K key, V value)
+            protected HashedNode(int hashCode, K key, V value)
                 : base(key, value)
             {
                 this.HashCode = hashCode;
@@ -463,11 +451,9 @@ namespace Microsoft.CodeAnalysis
                     {
                         throw new InvalidOperationException();
                     }
-                    else
-                    {
-                        currentNode.Value = value;
-                        return;
-                    }
+
+                    currentNode.Value = value;
+                    return;
                 }
 
                 currentNode = currentNode.Next;
