@@ -39,8 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             protected override bool ShouldInclude(DiagnosticData diagnostic)
             {
+                var isUnnecessary = (diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary));
+
                 return
-                    (diagnostic.Severity == DiagnosticSeverity.Warning || diagnostic.Severity == DiagnosticSeverity.Error) &&
+                    (diagnostic.Severity == DiagnosticSeverity.Warning || diagnostic.Severity == DiagnosticSeverity.Error || isUnnecessary) &&
                     !string.IsNullOrWhiteSpace(diagnostic.Message);
             }
 
@@ -123,7 +125,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     case DiagnosticSeverity.Warning:
                         return PredefinedErrorTypeNames.Warning;
                     case DiagnosticSeverity.Info:
+                        return null;
                     case DiagnosticSeverity.Hidden:
+                        if (diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
+                        {
+                            // This ensures that we have an 'invisible' squiggle (which will in turn
+                            // display Quick Info on mouse hover) for the hidden diagnostics that we
+                            // report for 'Remove Unnecessary Usings' and 'Simplify Type Name'. The
+                            // presence of Quick Info pane for such squiggles allows allows platform
+                            // to display Light Bulb for the corresponding fixes (per their current
+                            // design platform can only display light bulb if Quick Info pane is present).
+                            return PredefinedErrorTypeNames.Suggestion;
+                        }
+
                         return null;
                     default:
                         return PredefinedErrorTypeNames.OtherError;
