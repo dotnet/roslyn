@@ -26,11 +26,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         private static readonly string[] s_columns = new string[]
         {
-            ShimTableColumnDefinitions.ErrorSeverity,
-            ShimTableColumnDefinitions.ErrorCode,
+            StandardTableColumnDefinitions.ErrorSeverity,
+            StandardTableColumnDefinitions.ErrorCode,
             StandardTableColumnDefinitions.Text,
-            ShimTableColumnDefinitions.ErrorCategory,
-            ShimTableColumnDefinitions.ProjectName,
+            StandardTableColumnDefinitions.ErrorCategory,
+            StandardTableColumnDefinitions.ProjectName,
             StandardTableColumnDefinitions.DocumentName,
             StandardTableColumnDefinitions.Line,
             StandardTableColumnDefinitions.Column,
@@ -268,22 +268,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                         switch (columnName)
                         {
-                            case ShimTableKeyNames.ProjectRank:
+                            case StandardTableKeyNames.ProjectRank:
                                 content = _projectRank;
                                 return true;
                             case StandardTableKeyNames.ErrorRank:
                                 content = GetErrorRank(item);
                                 return true;
-                            case ShimTableKeyNames.ErrorSeverity:
+                            case StandardTableKeyNames.ErrorSeverity:
                                 content = GetErrorCategory(item.Severity);
                                 return true;
-                            case ShimTableKeyNames.ErrorCode:
+                            case StandardTableKeyNames.ErrorCode:
                                 content = item.Id;
                                 return true;
                             case StandardTableKeyNames.HelpLink:
                                 content = GetHelpLink(item);
                                 return content != null;
-                            case ShimTableKeyNames.ErrorCategory:
+                            case StandardTableKeyNames.ErrorCategory:
                                 content = item.Category;
                                 return true;
                             case StandardTableKeyNames.Text:
@@ -298,10 +298,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case StandardTableKeyNames.Column:
                                 content = item.MappedStartColumn;
                                 return true;
-                            case ShimTableKeyNames.ProjectName:
+                            case StandardTableKeyNames.ProjectName:
                                 content = GetProjectName(_factory._workspace, _factory._projectId);
                                 return content != null;
-                            case ShimTableKeyNames.Project:
+                            case StandardTableKeyNames.Project:
                                 content = GetHierarchy(_factory._workspace, _factory._projectId);
                                 return content != null;
                             default:
