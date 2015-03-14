@@ -1048,4 +1048,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="UncommentTheFollowingLineIfFinalizeIsOverridden" xml:space="preserve">
     <value>TODO: uncomment the following line if Finalize() is overridden above.</value>
   </data>
+  <data name="RemoveUnnecessaryImportsDiagnosticTitle" xml:space="preserve">
+    <value>Imports statement is unnecessary.</value>
+  </data>
 </root>
