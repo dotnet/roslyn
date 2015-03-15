@@ -681,5 +681,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxUtilities.GetCorrespondingLambdaBody(body, Me)
         End Function
 
+        Friend Overrides Function GetLambda() As SyntaxNode
+            Return SyntaxUtilities.GetLambda(Me)
+        End Function
     End Class
 End Namespace

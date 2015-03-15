@@ -410,6 +410,354 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
         End Sub
 
         <Fact>
+        Public Sub MatchMethodBodiesWithLambdas1()
+            Dim src1 = "Dim a = Sub() Console.WriteLine(1)" & vbLf
+            Dim src2 = "Dim a = Sub() Console.WriteLine(2)" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            ' note that the lambda bodies are not included
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim a = Sub() Console.WriteLine(1)", "Dim a = Sub() Console.WriteLine(2)"},
+                {"a = Sub() Console.WriteLine(1)", "a = Sub() Console.WriteLine(2)"},
+                {"a", "a"},
+                {"Sub() Console.WriteLine(1)", "Sub() Console.WriteLine(2)"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_From1()
+            Dim src1 = "Dim result = From a In F(Function() 0), b In Q(Function() 2) Select a + b" & vbLf
+            Dim src2 = "Dim result = From a In F(Function() 1), b In Q(Function() 3) Select a - b" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            ' note missing {"Function() 2", "Function() 3"} -- it's in a lambda body (CRV.Expression)
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In F(Function() 0), b In Q(Function() 2) Select a + b", "Dim result = From a In F(Function() 1), b In Q(Function() 3) Select a - b"},
+                {"result = From a In F(Function() 0), b In Q(Function() 2) Select a + b", "result = From a In F(Function() 1), b In Q(Function() 3) Select a - b"},
+                {"result", "result"},
+                {"From a In F(Function() 0), b In Q(Function() 2) Select a + b", "From a In F(Function() 1), b In Q(Function() 3) Select a - b"},
+                {"From a In F(Function() 0), b In Q(Function() 2)", "From a In F(Function() 1), b In Q(Function() 3)"},
+                {"a In F(Function() 0)", "a In F(Function() 1)"},
+                {"a", "a"},
+                {"Function() 0", "Function() 1"},
+                {"b In Q(Function() 2)", "b In Q(Function() 3)"},
+                {"b", "b"},
+                {"Select a + b", "Select a - b"},
+                {"a + b", "a - b"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_From2()
+            Dim src1 = "Dim result = From a In F(Function() 0) From b In Q(Function() 2) Select a + b" & vbLf
+            Dim src2 = "Dim result = From a In F(Function() 1) From b In Q(Function() 3) Select a - b" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            ' note missing {"Function() 2", "Function() 3"} -- it's in a lambda body (CRV.Expression)
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In F(Function() 0) From b In Q(Function() 2) Select a + b",
+                 "Dim result = From a In F(Function() 1) From b In Q(Function() 3) Select a - b"},
+                {"result = From a In F(Function() 0) From b In Q(Function() 2) Select a + b",
+                 "result = From a In F(Function() 1) From b In Q(Function() 3) Select a - b"},
+                {"result", "result"},
+                {"From a In F(Function() 0) From b In Q(Function() 2) Select a + b",
+                 "From a In F(Function() 1) From b In Q(Function() 3) Select a - b"},
+                {"From a In F(Function() 0)", "From a In F(Function() 1)"},
+                {"a In F(Function() 0)", "a In F(Function() 1)"},
+                {"a", "a"},
+                {"Function() 0", "Function() 1"},
+                {"From b In Q(Function() 2)", "From b In Q(Function() 3)"},
+                {"b In Q(Function() 2)", "b In Q(Function() 3)"},
+                {"b", "b"},
+                {"Select a + b", "Select a - b"},
+                {"a + b", "a - b"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_From3()
+            Dim src1 = "Dim result = From a In {Await F(0)}, b In {Q(Async Function() Await F(2))} Select a + b" & vbLf
+            Dim src2 = "Dim result = From a In {Await F(1)}, b In {Q(Async Function() Await F(3))} Select a - b" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2, stateMachine:=StateMachineKind.Async)
+            Dim actual = ToMatchingPairs(match)
+
+            ' Note that 
+            ' - both {"a", "a"} And {"b", "b"} are included
+            ' - {"Await F(0)", "Await F(1)"} is included but not the other await, since the other is in a lambda
+            Dim expected = New MatchingPairs From
+            {
+                {"Async Function F() As Task(Of Integer)", "Async Function F() As Task(Of Integer)"},
+                {"Dim result = From a In {Await F(0)}, b In {Q(Async Function() Await F(2))} Select a + b", "Dim result = From a In {Await F(1)}, b In {Q(Async Function() Await F(3))} Select a - b"},
+                {"result = From a In {Await F(0)}, b In {Q(Async Function() Await F(2))} Select a + b", "result = From a In {Await F(1)}, b In {Q(Async Function() Await F(3))} Select a - b"},
+                {"result", "result"},
+                {"From a In {Await F(0)}, b In {Q(Async Function() Await F(2))} Select a + b", "From a In {Await F(1)}, b In {Q(Async Function() Await F(3))} Select a - b"},
+                {"From a In {Await F(0)}, b In {Q(Async Function() Await F(2))}", "From a In {Await F(1)}, b In {Q(Async Function() Await F(3))}"},
+                {"a In {Await F(0)}", "a In {Await F(1)}"},
+                {"a", "a"},
+                {"Await F(0)", "Await F(1)"},
+                {"b In {Q(Async Function() Await F(2))}", "b In {Q(Async Function() Await F(3))}"},
+                {"b", "b"},
+                {"Select a + b", "Select a - b"},
+                {"a + b", "a - b"},
+                {"End Function", "End Function"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_Aggregate1()
+            Dim src1 = "Dim result = From a In {1} Aggregate b In Q(Function() 2) Into c = Sum(Q(Function() 4)) Select 5" & vbLf
+            Dim src2 = "Dim result = From a In {10} Aggregate b In Q(Function() 3) Into c = Sum(Q(Function() 5)) Select 50" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            ' note missing {"Function() 2", "Function() 3"} -- it's in the aggregate lambda body
+            ' note missing {"Function() 4", "Function() 5"} -- it's in the aggregation lambda body
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In {1} Aggregate b In Q(Function() 2) Into c = Sum(Q(Function() 4)) Select 5", "Dim result = From a In {10} Aggregate b In Q(Function() 3) Into c = Sum(Q(Function() 5)) Select 50"},
+                {"result = From a In {1} Aggregate b In Q(Function() 2) Into c = Sum(Q(Function() 4)) Select 5", "result = From a In {10} Aggregate b In Q(Function() 3) Into c = Sum(Q(Function() 5)) Select 50"},
+                {"result", "result"},
+                {"From a In {1} Aggregate b In Q(Function() 2) Into c = Sum(Q(Function() 4)) Select 5", "From a In {10} Aggregate b In Q(Function() 3) Into c = Sum(Q(Function() 5)) Select 50"},
+                {"From a In {1}", "From a In {10}"},
+                {"a In {1}", "a In {10}"},
+                {"a", "a"},
+                {"Aggregate b In Q(Function() 2) Into c = Sum(Q(Function() 4))", "Aggregate b In Q(Function() 3) Into c = Sum(Q(Function() 5))"},
+                {"b In Q(Function() 2)", "b In Q(Function() 3)"},
+                {"b", "b"},
+                {"c", "c"},
+                {"Sum(Q(Function() 4))", "Sum(Q(Function() 5))"},
+                {"Select 5", "Select 50"},
+                {"5", "50"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_Aggregate2()
+            Dim src1 = "Dim result = From q in {0} Aggregate b In Q(Function() 1) Join c In Q(Function() 3) On c Equals b Skip Q(Function() 5) Select b Into Count()" & vbLf
+            Dim src2 = "Dim result = From q in {0} Aggregate b In Q(Function() 2) Join c In Q(Function() 4) On c Equals b Skip Q(Function() 6) Select b Into Count()" & vbLf
+
+            ' TODO
+            Dim match = GetMethodMatches(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From q in {0} Aggregate b In Q(Function() 1) Join c In Q(Function() 3) On c Equals b Skip Q(Function() 5) Select b Into Count()", "Dim result = From q in {0} Aggregate b In Q(Function() 2) Join c In Q(Function() 4) On c Equals b Skip Q(Function() 6) Select b Into Count()"},
+                {"result = From q in {0} Aggregate b In Q(Function() 1) Join c In Q(Function() 3) On c Equals b Skip Q(Function() 5) Select b Into Count()", "result = From q in {0} Aggregate b In Q(Function() 2) Join c In Q(Function() 4) On c Equals b Skip Q(Function() 6) Select b Into Count()"},
+                {"result", "result"},
+                {"From q in {0} Aggregate b In Q(Function() 1) Join c In Q(Function() 3) On c Equals b Skip Q(Function() 5) Select b Into Count()", "From q in {0} Aggregate b In Q(Function() 2) Join c In Q(Function() 4) On c Equals b Skip Q(Function() 6) Select b Into Count()"},
+                {"From q in {0}", "From q in {0}"},
+                {"q in {0}", "q in {0}"},
+                {"q", "q"},
+                {"Aggregate b In Q(Function() 1) Join c In Q(Function() 3) On c Equals b Skip Q(Function() 5) Select b Into Count()", "Aggregate b In Q(Function() 2) Join c In Q(Function() 4) On c Equals b Skip Q(Function() 6) Select b Into Count()"},
+                {"b In Q(Function() 1)", "b In Q(Function() 2)"},
+                {"b", "b"},
+                {"Function() 1", "Function() 2"},
+                {"Function()", "Function()"},
+                {"Join c In Q(Function() 3) On c Equals b", "Join c In Q(Function() 4) On c Equals b"},
+                {"c In Q(Function() 3)", "c In Q(Function() 4)"},
+                {"c", "c"},
+                {"c Equals b", "c Equals b"},
+                {"Skip Q(Function() 5)", "Skip Q(Function() 6)"},
+                {"Select b", "Select b"},
+                {"b", "b"},
+                {"Count()", "Count()"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_Select1()
+            Dim src1 = "Dim result = From a As Integer In {0} Select a, b = Q(Function() 1), c = Q(Function() 3)" & vbLf
+            Dim src2 = "Dim result = From a As Integer In {0} Select a, b = Q(Function() 2), c = Q(Function() 4)" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a As Integer In {0} Select a, b = Q(Function() 1), c = Q(Function() 3)", "Dim result = From a As Integer In {0} Select a, b = Q(Function() 2), c = Q(Function() 4)"},
+                {"result = From a As Integer In {0} Select a, b = Q(Function() 1), c = Q(Function() 3)", "result = From a As Integer In {0} Select a, b = Q(Function() 2), c = Q(Function() 4)"},
+                {"result", "result"},
+                {"From a As Integer In {0} Select a, b = Q(Function() 1), c = Q(Function() 3)", "From a As Integer In {0} Select a, b = Q(Function() 2), c = Q(Function() 4)"},
+                {"From a As Integer In {0}", "From a As Integer In {0}"},
+                {"a As Integer In {0}", "a As Integer In {0}"},
+                {"a", "a"},
+                {"Select a, b = Q(Function() 1), c = Q(Function() 3)", "Select a, b = Q(Function() 2), c = Q(Function() 4)"},
+                {"a", "a"},
+                {"b = Q(Function() 1)", "b = Q(Function() 2)"},
+                {"b", "b"},
+                {"c = Q(Function() 3)", "c = Q(Function() 4)"},
+                {"c", "c"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_Let1()
+            Dim src1 = "Dim result = From a In {0} Let b = Q(Function() 1), c = Q(Function() 3) Select a" & vbLf
+            Dim src2 = "Dim result = From a In {0} Let b = Q(Function() 2), c = Q(Function() 4) Select a" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In {0} Let b = Q(Function() 1), c = Q(Function() 3) Select a", "Dim result = From a In {0} Let b = Q(Function() 2), c = Q(Function() 4) Select a"},
+                {"result = From a In {0} Let b = Q(Function() 1), c = Q(Function() 3) Select a", "result = From a In {0} Let b = Q(Function() 2), c = Q(Function() 4) Select a"},
+                {"result", "result"},
+                {"From a In {0} Let b = Q(Function() 1), c = Q(Function() 3) Select a", "From a In {0} Let b = Q(Function() 2), c = Q(Function() 4) Select a"},
+                {"From a In {0}", "From a In {0}"},
+                {"a In {0}", "a In {0}"},
+                {"a", "a"},
+                {"Let b = Q(Function() 1), c = Q(Function() 3)", "Let b = Q(Function() 2), c = Q(Function() 4)"},
+                {"b = Q(Function() 1)", "b = Q(Function() 2)"},
+                {"b", "b"},
+                {"c = Q(Function() 3)", "c = Q(Function() 4)"},
+                {"c", "c"},
+                {"Select a", "Select a"},
+                {"a", "a"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_GroupBy1()
+            Dim src1 = "Dim result = From a In {0} Group a = Q(Function() 1) By b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a" & vbLf
+            Dim src2 = "Dim result = From a In {0} Group a = Q(Function() 2) By b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In {0} Group a = Q(Function() 1) By b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a", "Dim result = From a In {0} Group a = Q(Function() 2) By b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a"},
+                {"result = From a In {0} Group a = Q(Function() 1) By b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a", "result = From a In {0} Group a = Q(Function() 2) By b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a"},
+                {"result", "result"},
+                {"From a In {0} Group a = Q(Function() 1) By b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a", "From a In {0} Group a = Q(Function() 2) By b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a"},
+                {"From a In {0}", "From a In {0}"},
+                {"a In {0}", "a In {0}"},
+                {"a", "a"},
+                {"Group a = Q(Function() 1) By b = Q(Function() 3) Into Sum(Q(Function() 5))", "Group a = Q(Function() 2) By b = Q(Function() 4) Into Sum(Q(Function() 6))"},
+                {"a = Q(Function() 1)", "a = Q(Function() 2)"},
+                {"a", "a"},
+                {"b = Q(Function() 3)", "b = Q(Function() 4)"},
+                {"b", "b"},
+                {"Sum(Q(Function() 5))", "Sum(Q(Function() 6))"},
+                {"Select a", "Select a"},
+                {"a", "a"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_GroupBy2()
+            Dim src1 = "Dim result = From a In {0} Group z = Q(Function() 0) By a = Q(Function() 1), b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a" & vbLf
+            Dim src2 = "Dim result = From a In {0} Group By a = Q(Function() 2), b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            ' Note "z = Q(Function() 0)" doesn't match to "a = Q(Function() 4)" -- the are in different lambda bodies
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In {0} Group z = Q(Function() 0) By a = Q(Function() 1), b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a", "Dim result = From a In {0} Group By a = Q(Function() 2), b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a"},
+                {"result = From a In {0} Group z = Q(Function() 0) By a = Q(Function() 1), b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a", "result = From a In {0} Group By a = Q(Function() 2), b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a"},
+                {"result", "result"},
+                {"From a In {0} Group z = Q(Function() 0) By a = Q(Function() 1), b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a", "From a In {0} Group By a = Q(Function() 2), b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a"},
+                {"From a In {0}", "From a In {0}"},
+                {"a In {0}", "a In {0}"},
+                {"a", "a"},
+                {"Group z = Q(Function() 0) By a = Q(Function() 1), b = Q(Function() 3) Into Sum(Q(Function() 5))", "Group By a = Q(Function() 2), b = Q(Function() 4) Into Sum(Q(Function() 6))"},
+                {"a = Q(Function() 1)", "a = Q(Function() 2)"},
+                {"a", "a"},
+                {"b = Q(Function() 3)", "b = Q(Function() 4)"},
+                {"b", "b"},
+                {"Sum(Q(Function() 5))", "Sum(Q(Function() 6))"},
+                {"Select a", "Select a"},
+                {"a", "a"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_Join1()
+            Dim src1 = "Dim result = From a In {0} Join b In {1} On Q(Function() 1) Equals Q(Function() 3) And Q(Function() 5) Equals Q(Function() 7) Select a" & vbLf
+            Dim src2 = "Dim result = From a In {0} Join b In {1} On Q(Function() 2) Equals Q(Function() 4) And Q(Function() 6) Equals Q(Function() 8) Select a" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In {0} Join b In {1} On Q(Function() 1) Equals Q(Function() 3) And Q(Function() 5) Equals Q(Function() 7) Select a", "Dim result = From a In {0} Join b In {1} On Q(Function() 2) Equals Q(Function() 4) And Q(Function() 6) Equals Q(Function() 8) Select a"},
+                {"result = From a In {0} Join b In {1} On Q(Function() 1) Equals Q(Function() 3) And Q(Function() 5) Equals Q(Function() 7) Select a", "result = From a In {0} Join b In {1} On Q(Function() 2) Equals Q(Function() 4) And Q(Function() 6) Equals Q(Function() 8) Select a"},
+                {"result", "result"},
+                {"From a In {0} Join b In {1} On Q(Function() 1) Equals Q(Function() 3) And Q(Function() 5) Equals Q(Function() 7) Select a", "From a In {0} Join b In {1} On Q(Function() 2) Equals Q(Function() 4) And Q(Function() 6) Equals Q(Function() 8) Select a"},
+                {"From a In {0}", "From a In {0}"},
+                {"a In {0}", "a In {0}"},
+                {"a", "a"},
+                {"Join b In {1} On Q(Function() 1) Equals Q(Function() 3) And Q(Function() 5) Equals Q(Function() 7)", "Join b In {1} On Q(Function() 2) Equals Q(Function() 4) And Q(Function() 6) Equals Q(Function() 8)"},
+                {"b In {1}", "b In {1}"},
+                {"b", "b"},
+                {"Q(Function() 1) Equals Q(Function() 3)", "Q(Function() 2) Equals Q(Function() 4)"},
+                {"Q(Function() 5) Equals Q(Function() 7)", "Q(Function() 6) Equals Q(Function() 8)"},
+                {"Select a", "Select a"},
+                {"a", "a"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        ' TODO: test GroupBy with known matches accross CRVs (coming from active statement tracking)
+
+        <Fact>
         Public Sub MatchLambdas1()
             Dim src1 = "Dim x As Action(Of Object) = Sub(a) Console.WriteLine(a)" & vbLf
             Dim src2 = "Dim x As Action(Of Object) = Sub(b)" & vbLf & "Console.WriteLine(b) : End Sub"
@@ -487,9 +835,12 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
                 {"Dim e = From q In a.Where(Function(l) l > 10) Select q + 1", "Dim e = From q In a.Where(Function(l) l < 0) Select q + 1"},
                 {"e = From q In a.Where(Function(l) l > 10) Select q + 1", "e = From q In a.Where(Function(l) l < 0) Select q + 1"},
                 {"e", "e"},
+                {"From q In a.Where(Function(l) l > 10) Select q + 1", "From q In a.Where(Function(l) l < 0) Select q + 1"},
+                {"From q In a.Where(Function(l) l > 10)", "From q In a.Where(Function(l) l < 0)"},
                 {"q In a.Where(Function(l) l > 10)", "q In a.Where(Function(l) l < 0)"},
                 {"q", "q"},
                 {"Function(l) l > 10", "Function(l) l < 0"},
+                {"Select q + 1", "Select q + 1"},
                 {"q + 1", "q + 1"},
                 {"Next", "Next"},
                 {"End Sub", "End Sub"}
@@ -628,19 +979,22 @@ Dim q = From c In cars
                 {"Dim q = From c In cars         From ud In users_details         From bd In bids         Select 1", "Dim q = From c In cars         From ud In users_details         From bd In bids         Select 2"},
                 {"q = From c In cars         From ud In users_details         From bd In bids         Select 1", "q = From c In cars         From ud In users_details         From bd In bids         Select 2"},
                 {"q", "q"},
+                {"From c In cars         From ud In users_details         From bd In bids         Select 1", "From c In cars         From ud In users_details         From bd In bids         Select 2"},
+                {"From c In cars", "From c In cars"},
                 {"c In cars", "c In cars"},
                 {"c", "c"},
+                {"From ud In users_details", "From ud In users_details"},
                 {"ud In users_details", "ud In users_details"},
                 {"ud", "ud"},
+                {"From bd In bids", "From bd In bids"},
                 {"bd In bids", "bd In bids"},
                 {"bd", "bd"},
+                {"Select 1", "Select 2"},
                 {"1", "2"},
                 {"End Sub", "End Sub"}
             }
 
             expected.AssertEqual(actual)
-        End Sub
-        Shared Sub Main(args As String())
         End Sub
 
         <Fact>
@@ -688,29 +1042,49 @@ Dim q = From c In cars
                 {"q = From c In cars         From ud In users_details         From bd In bids         Order By c.listingOption         Where a.userID = ud.userid         Let images = From ai In auction_images                         Where ai.belongs_to = c.id                         Select ai         Let bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()         Select bid",
                  "q = From c In cars         From ud In users_details         From bd In bids         Order By c.listingOption Descending         Where a.userID = ud.userid         Let images = From ai In auction_images                         Where ai.belongs_to = c.id2                         Select ai + 1         Let bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()         Select bid"},
                 {"q", "q"},
+                {"From c In cars         From ud In users_details         From bd In bids         Order By c.listingOption         Where a.userID = ud.userid         Let images = From ai In auction_images                         Where ai.belongs_to = c.id                         Select ai         Let bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()         Select bid",
+                 "From c In cars         From ud In users_details         From bd In bids         Order By c.listingOption Descending         Where a.userID = ud.userid         Let images = From ai In auction_images                         Where ai.belongs_to = c.id2                         Select ai + 1         Let bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()         Select bid"},
+                {"From c In cars", "From c In cars"},
                 {"c In cars", "c In cars"},
                 {"c", "c"},
+                {"From ud In users_details", "From ud In users_details"},
                 {"ud In users_details", "ud In users_details"},
                 {"ud", "ud"},
+                {"From bd In bids", "From bd In bids"},
                 {"bd In bids", "bd In bids"},
                 {"bd", "bd"},
                 {"Order By c.listingOption", "Order By c.listingOption Descending"},
                 {"c.listingOption", "c.listingOption Descending"},
                 {"Where a.userID = ud.userid", "Where a.userID = ud.userid"},
+                {"Let images = From ai In auction_images                         Where ai.belongs_to = c.id                         Select ai         Let bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()         Select bid",
+                 "Let images = From ai In auction_images                         Where ai.belongs_to = c.id2                         Select ai + 1         Let bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()         Select bid"},
                 {"images = From ai In auction_images                         Where ai.belongs_to = c.id                         Select ai         Let bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()         Select bid",
                  "images = From ai In auction_images                         Where ai.belongs_to = c.id2                         Select ai + 1         Let bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()         Select bid"},
+                {"images", "images"},
+                {"From ai In auction_images                         Where ai.belongs_to = c.id                         Select ai         Let bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()         Select bid",
+                 "From ai In auction_images                         Where ai.belongs_to = c.id2                         Select ai + 1         Let bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()         Select bid"},
+                {"From ai In auction_images", "From ai In auction_images"},
                 {"ai In auction_images", "ai In auction_images"},
                 {"ai", "ai"},
                 {"Where ai.belongs_to = c.id", "Where ai.belongs_to = c.id2"},
+                {"Select ai", "Select ai + 1"},
                 {"ai", "ai + 1"},
+                {"Let bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()",
+                 "Let bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()"},
                 {"bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()",
                  "bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()"},
+                {"bid", "bid"},
+                {"From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount",
+                 "From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount"},
+                {"From b In bids", "From b In bids"},
                 {"b In bids", "b In bids"},
                 {"b", "b"},
                 {"Order By b.id", "Order By b.id Ascending"},
                 {"b.id", "b.id Ascending"},
                 {"Where b.carID = c.id", "Where b.carID = c.id2"},
+                {"Select b.bidamount", "Select b.bidamount"},
                 {"b.bidamount", "b.bidamount"},
+                {"Select bid", "Select bid"},
                 {"bid", "bid"},
                 {"End Sub", "End Sub"}
             }
@@ -745,8 +1119,12 @@ Dim q = From a In seq1
                 {"q = From a In seq1         Join c In seq2 On F(Function(u) u) Equals G(Function(s) s)         Join l In seq3 On F(Function(v) v) Equals G(Function(t) t)         Select a",
                  "q = From a In seq1         Join c In seq2 On F(Function(u) u + 1) Equals G(Function(s) s + 3)         Join l In seq3 On F(Function(vv) vv + 2) Equals G(Function(tt) tt + 4)         Select a + 1"},
                 {"q", "q"},
+                {"From a In seq1         Join c In seq2 On F(Function(u) u) Equals G(Function(s) s)         Join l In seq3 On F(Function(v) v) Equals G(Function(t) t)         Select a",
+                 "From a In seq1         Join c In seq2 On F(Function(u) u + 1) Equals G(Function(s) s + 3)         Join l In seq3 On F(Function(vv) vv + 2) Equals G(Function(tt) tt + 4)         Select a + 1"},
+                {"From a In seq1", "From a In seq1"},
                 {"a In seq1", "a In seq1"},
                 {"a", "a"},
+                {"Join c In seq2 On F(Function(u) u) Equals G(Function(s) s)", "Join c In seq2 On F(Function(u) u + 1) Equals G(Function(s) s + 3)"},
                 {"c In seq2", "c In seq2"},
                 {"c", "c"},
                 {"F(Function(u) u) Equals G(Function(s) s)", "F(Function(u) u + 1) Equals G(Function(s) s + 3)"},
@@ -754,6 +1132,7 @@ Dim q = From a In seq1
                 {"Function(u)", "Function(u)"},
                 {"Function(s) s", "Function(s) s + 3"},
                 {"Function(s)", "Function(s)"},
+                {"Join l In seq3 On F(Function(v) v) Equals G(Function(t) t)", "Join l In seq3 On F(Function(vv) vv + 2) Equals G(Function(tt) tt + 4)"},
                 {"l In seq3", "l In seq3"},
                 {"l", "l"},
                 {"F(Function(v) v) Equals G(Function(t) t)", "F(Function(vv) vv + 2) Equals G(Function(tt) tt + 4)"},
@@ -761,6 +1140,7 @@ Dim q = From a In seq1
                 {"Function(v)", "Function(vv)"},
                 {"Function(t) t", "Function(tt) tt + 4"},
                 {"Function(t)", "Function(tt)"},
+                {"Select a", "Select a + 1"},
                 {"a", "a + 1"},
                 {"End Sub", "End Sub"}
             }
@@ -779,8 +1159,11 @@ Dim q = From a In seq1
             {
                 {"Sub F()", "Sub F()"},
                 {"F(From a In b Group Join c In (Function() d)() On Function(e1) Function(e2) (e1 - e2) Equals Function(f1) Function(f2) (f1 - f2) Into g = Group, h = Sum(Function(f) f + 1) Select g)", "F(From a In b Group Join c In (Function() d + 1)() On Function(e1) Function(e2) (e1 + e2) Equals Function(f1) Function(f2) (f1 + f2) Into g = Group, h = Sum(Function(f) f + 2) Select g)"},
+                {"From a In b Group Join c In (Function() d)() On Function(e1) Function(e2) (e1 - e2) Equals Function(f1) Function(f2) (f1 - f2) Into g = Group, h = Sum(Function(f) f + 1) Select g", "From a In b Group Join c In (Function() d + 1)() On Function(e1) Function(e2) (e1 + e2) Equals Function(f1) Function(f2) (f1 + f2) Into g = Group, h = Sum(Function(f) f + 2) Select g"},
+                {"From a In b", "From a In b"},
                 {"a In b", "a In b"},
                 {"a", "a"},
+                {"Group Join c In (Function() d)() On Function(e1) Function(e2) (e1 - e2) Equals Function(f1) Function(f2) (f1 - f2) Into g = Group, h = Sum(Function(f) f + 1)", "Group Join c In (Function() d + 1)() On Function(e1) Function(e2) (e1 + e2) Equals Function(f1) Function(f2) (f1 + f2) Into g = Group, h = Sum(Function(f) f + 2)"},
                 {"c In (Function() d)()", "c In (Function() d + 1)()"},
                 {"c", "c"},
                 {"Function() d", "Function() d + 1"},
@@ -799,7 +1182,56 @@ Dim q = From a In seq1
                 {"Sum(Function(f) f + 1)", "Sum(Function(f) f + 2)"},
                 {"Function(f) f + 1", "Function(f) f + 2"},
                 {"Function(f)", "Function(f)"},
+                {"Select g", "Select g"},
                 {"g", "g"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchQueries_Aggregate1()
+            Dim src1 = "
+Dim result = From a In {1}
+             Aggregate b In {2} Join c In {3} Join d In {4} On d Equals c On c Equals b Skip 1 Where b > 0 Select b + 1 Into Count(Q(1)), Sum(Q(2))
+"
+
+            Dim src2 = "
+Dim result = From a In {10}
+             Aggregate b In {20} Join c In {30} Join d In {40} On d*10 Equals c*10 On c*10 Equals b*10 Where b*10 > 0 Skip 10 Select b*10 + 1 Into Count(Q(10)), Sum(Q(20))
+"
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In {1}              Aggregate b In {2} Join c In {3} Join d In {4} On d Equals c On c Equals b Skip 1 Where b > 0 Select b + 1 Into Count(Q(1)), Sum(Q(2))", "Dim result = From a In {10}              Aggregate b In {20} Join c In {30} Join d In {40} On d*10 Equals c*10 On c*10 Equals b*10 Where b*10 > 0 Skip 10 Select b*10 + 1 Into Count(Q(10)), Sum(Q(20))"},
+                {"result = From a In {1}              Aggregate b In {2} Join c In {3} Join d In {4} On d Equals c On c Equals b Skip 1 Where b > 0 Select b + 1 Into Count(Q(1)), Sum(Q(2))", "result = From a In {10}              Aggregate b In {20} Join c In {30} Join d In {40} On d*10 Equals c*10 On c*10 Equals b*10 Where b*10 > 0 Skip 10 Select b*10 + 1 Into Count(Q(10)), Sum(Q(20))"},
+                {"result", "result"},
+                {"From a In {1}              Aggregate b In {2} Join c In {3} Join d In {4} On d Equals c On c Equals b Skip 1 Where b > 0 Select b + 1 Into Count(Q(1)), Sum(Q(2))", "From a In {10}              Aggregate b In {20} Join c In {30} Join d In {40} On d*10 Equals c*10 On c*10 Equals b*10 Where b*10 > 0 Skip 10 Select b*10 + 1 Into Count(Q(10)), Sum(Q(20))"},
+                {"From a In {1}", "From a In {10}"},
+                {"a In {1}", "a In {10}"},
+                {"a", "a"},
+                {"Aggregate b In {2} Join c In {3} Join d In {4} On d Equals c On c Equals b Skip 1 Where b > 0 Select b + 1 Into Count(Q(1)), Sum(Q(2))", "Aggregate b In {20} Join c In {30} Join d In {40} On d*10 Equals c*10 On c*10 Equals b*10 Where b*10 > 0 Skip 10 Select b*10 + 1 Into Count(Q(10)), Sum(Q(20))"},
+                {"b In {2}", "b In {20}"},
+                {"b", "b"},
+                {"Join c In {3} Join d In {4} On d Equals c On c Equals b", "Join c In {30} Join d In {40} On d*10 Equals c*10 On c*10 Equals b*10"},
+                {"c In {3}", "c In {30}"},
+                {"c", "c"},
+                {"Join d In {4} On d Equals c", "Join d In {40} On d*10 Equals c*10"},
+                {"d In {4}", "d In {40}"},
+                {"d", "d"},
+                {"d Equals c", "d*10 Equals c*10"},
+                {"c Equals b", "c*10 Equals b*10"},
+                {"Skip 1", "Skip 10"},
+                {"Where b > 0", "Where b*10 > 0"},
+                {"Select b + 1", "Select b*10 + 1"},
+                {"b + 1", "b*10 + 1"},
+                {"Count(Q(1))", "Count(Q(10))"},
+                {"Sum(Q(2))", "Sum(Q(20))"},
                 {"End Sub", "End Sub"}
             }
 
@@ -1831,8 +2263,8 @@ Next
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [F(From a In b From c In d Select a + c)]@8 -> [F(From a In b Select c + 1)]@8",
                 "Update [a + c]@41 -> [c + 1]@29",
+                "Delete [From c In d]@22",
                 "Delete [c In d]@27",
                 "Delete [c]@27")
         End Sub
@@ -1870,16 +2302,19 @@ Next
             Dim expected = New MatchingPairs From
             {
                 {"Sub F()", "Sub F()"},
-                {"F(From a1 In b1 Group Join c1 In d1 On e1 Equals f1 Into g1 = Group, h1 = Sum(f1) Select g1)",
-                 "F(From a2 In b2 Group Join c2 In d2 On e2 Equals f2 Into g2 = Group, h2 = Sum(f2) Select g2)"},
+                {"F(From a1 In b1 Group Join c1 In d1 On e1 Equals f1 Into g1 = Group, h1 = Sum(f1) Select g1)", "F(From a2 In b2 Group Join c2 In d2 On e2 Equals f2 Into g2 = Group, h2 = Sum(f2) Select g2)"},
+                {"From a1 In b1 Group Join c1 In d1 On e1 Equals f1 Into g1 = Group, h1 = Sum(f1) Select g1", "From a2 In b2 Group Join c2 In d2 On e2 Equals f2 Into g2 = Group, h2 = Sum(f2) Select g2"},
+                {"From a1 In b1", "From a2 In b2"},
                 {"a1 In b1", "a2 In b2"},
                 {"a1", "a2"},
+                {"Group Join c1 In d1 On e1 Equals f1 Into g1 = Group, h1 = Sum(f1)", "Group Join c2 In d2 On e2 Equals f2 Into g2 = Group, h2 = Sum(f2)"},
                 {"c1 In d1", "c2 In d2"},
                 {"c1", "c2"},
                 {"e1 Equals f1", "e2 Equals f2"},
                 {"g1", "g2"},
                 {"h1", "h2"},
                 {"Sum(f1)", "Sum(f2)"},
+                {"Select g1", "Select g2"},
                 {"g1", "g2"},
                 {"End Sub", "End Sub"}
             }

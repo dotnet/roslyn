@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Ensure all previous anonymous type templates are included so the
             ' types are available for subsequent edit and continue generations.
             For Each key In moduleBeingBuilt.GetPreviousAnonymousTypes()
-                Dim templateKey = AnonymousTypeDescriptor.ComputeKey(key.Names, Function(f) f, Function(f) False)
+                Dim templateKey = AnonymousTypeDescriptor.ComputeKey(key.Names, Function(f) f, Function(f) True) ' TODO - need to know if it's key or not!
                 If key.IsDelegate Then
                     AnonymousDelegateTemplates.GetOrAdd(templateKey, Function(k) AnonymousDelegateTemplateSymbol.Create(Me, CreatePlaceholderTypeDescriptor(key)))
                 Else

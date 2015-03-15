@@ -446,6 +446,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxUtilities.GetCorrespondingLambdaBody(body, this);
         }
 
+        internal override SyntaxNode GetLambda()
+        {
+            return SyntaxUtilities.GetLambda(this);
+        }
+
         #region Directives
 
         internal IList<DirectiveTriviaSyntax> GetDirectives(Func<DirectiveTriviaSyntax, bool> filter = null)

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using CompilerSyntaxUtilities = Microsoft.CodeAnalysis.CSharp.SyntaxUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             foreach (var child in node.ChildNodes())
             {
-                if (SyntaxUtilities.IsLambdaBodyStatementOrExpression(child))
+                if (CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(child))
                 {
                     continue;
                 }
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private bool DescendIntoChildren(SyntaxNode node)
         {
-            return !SyntaxUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
+            return !CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
         }
 
         protected internal sealed override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
@@ -124,9 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             // TODO: avoid allocation of closure
-            foreach (var descendant in node.DescendantNodes(descendIntoChildren: c => !IsLeaf(c) && (c == node || !SyntaxUtilities.IsLambdaBodyStatementOrExpression(c))))
+            foreach (var descendant in node.DescendantNodes(descendIntoChildren: c => !IsLeaf(c) && (c == node || !CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(c))))
             {
-                if (!SyntaxUtilities.IsLambdaBodyStatementOrExpression(descendant) && HasLabel(descendant))
+                if (!CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(descendant) && HasLabel(descendant))
                 {
                     yield return descendant;
                 }

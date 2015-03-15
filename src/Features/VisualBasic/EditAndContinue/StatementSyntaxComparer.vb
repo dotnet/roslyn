@@ -105,7 +105,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Next
             Else
                 ' TODO: avoid allocation of closure
-                For Each descendant In node.DescendantNodes(descendIntoChildren:=Function(c) Not IsLeaf(c) AndAlso (c Is node OrElse Not CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(c)))
+                Dim descendants = node.DescendantNodes(descendIntoChildren:=Function(c) Not IsLeaf(c) AndAlso (c Is node OrElse Not CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(c)))
+                For Each descendant In descendants
                     If Not CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(descendant) AndAlso HasLabel(descendant) Then
                         Yield descendant
                     End If
@@ -211,28 +212,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             ' TODO: tie query node to their parent
 
-            WhereClauseLambda
-            LetClause
-            SelectClauseLambda
-            PartitionWhileLambda
-            GroupByClause
-            JoinClause
-            AggregateClause
-            FromClause
-            OrderByClause
+            QueryExpression
+            AggregateClause                     ' tied to parent 
+            JoinClause                          ' tied to parent
+            FromClause                          ' tied to parent
+            WhereClauseLambda                   ' tied to parent 
+            LetClause                           ' tied to parent
+            SelectClauseLambda                  ' tied to parent
+            PartitionWhileLambda                ' tied to parent
+            PartitionClause                     ' tied to parent
+            GroupByClause                       ' tied to parent
+            OrderByClause                       ' tied to parent
 
-            CollectionRangeVariable          ' tied to parent (FromClause, JoinClause, AggregateClause)
-            CollectionRangeVariableLambda    ' tied to parent (FromClause, JoinClause, AggregateClause)
-            ExpressionRangeVariable          ' tied to parent (LetClause, SelectClause, GroupByClause)
-            ExpressionRangeVariableLambda    ' tied to parent (LetClause, SelectClause, GroupByClause)
-            FunctionAggregationLambda        ' tied to parent (JoinClause, GroupByClause, AggregateClause)
+            CollectionRangeVariable             ' tied to parent (FromClause, JoinClause, AggregateClause)
+            ExpressionRangeVariable             ' tied to parent (LetClause, SelectClause, GroupByClause keys)
+            ExpressionRangeVariableItems        ' tied to parent (GroupByClause items)
+            FunctionAggregationLambda           ' tied to parent (JoinClause, GroupByClause, AggregateClause)
 
-            OrderingLambda                   ' tied to parent (OrderByClause)
-            JoinConditionLambda              ' tied to parent (JoinClause)
+            OrderingLambda                      ' tied to parent (OrderByClause)
+            JoinConditionLambda                 ' tied to parent (JoinClause)
 
-            LocalDeclarationStatement        ' tied to parent 
-            LocalVariableDeclarator          ' tied to parent 
-            LocalVariableName                ' tied to parent 
+            LocalDeclarationStatement           ' tied to parent 
+            LocalVariableDeclarator             ' tied to parent 
+            LocalVariableName                   ' tied to parent 
 
             Lambda
             LambdaBodyBegin                  ' tied to parent
@@ -281,10 +283,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      Label.CaseClause,
                      Label.EndSelectStatement,
                      Label.ReDimClause,
+                     Label.AggregateClause,
+                     Label.JoinClause,
+                     Label.FromClause,
+                     Label.WhereClauseLambda,
+                     Label.LetClause,
+                     Label.SelectClauseLambda,
+                     Label.PartitionWhileLambda,
+                     Label.PartitionClause,
+                     Label.GroupByClause,
+                     Label.OrderByClause,
                      Label.CollectionRangeVariable,
-                     Label.CollectionRangeVariableLambda,
                      Label.ExpressionRangeVariable,
-                     Label.ExpressionRangeVariableLambda,
+                     Label.ExpressionRangeVariableItems,
                      Label.FunctionAggregationLambda,
                      Label.OrderingLambda,
                      Label.JoinConditionLambda,
@@ -618,11 +629,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = True
                     Return Label.Ignored
 
+                Case SyntaxKind.QueryExpression
+                    Return Label.QueryExpression
+
                 Case SyntaxKind.WhereClause
                     Return Label.WhereClauseLambda
 
                 Case SyntaxKind.LetClause
                     Return Label.LetClause
+
+                Case SyntaxKind.SkipClause,
+                     SyntaxKind.TakeClause
+                    Return Label.PartitionClause
 
                 Case SyntaxKind.TakeWhileClause,
                      SyntaxKind.SkipWhileClause
@@ -641,6 +659,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.GroupByClause
                     Return Label.GroupByClause
 
+                Case SyntaxKind.OrderByClause
+                    Return Label.OrderByClause
+
                 Case SyntaxKind.SimpleJoinClause,
                      SyntaxKind.GroupJoinClause
                     Return Label.JoinClause
@@ -652,32 +673,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return Label.FromClause
 
                 Case SyntaxKind.ExpressionRangeVariable
-                    ' All ERVs need to be included it in the map,
-                    ' so that we are able to map range variable declarations.
-                    ' Therefore we assign a dedicated label to those that don't translate to lambdas.
+                    ' Select, Let, GroupBy
                     '
-                    ' The parent is not available only when comparing nodes for value equality.
+                    ' All ERVs need to be included in the map,
+                    ' so that we are able to map range variable declarations.
+                    ' 
+                    ' Since we don't distinguish between ERVs that represent a lambda and non-lambda ERVs,
+                    ' we need to be handle cases when one maps to the other (and vice versa).
+                    ' This is handled in GetCorresondingLambdaBody.
+                    '
+                    ' On the other hand we don't want map accross lambda body boundaries.
+                    ' Hence we use a label for ERVs in Items distinct from one for Keys of a GroupBy clause.
+                    '
+                    ' Node that the nodeOpt is Nothing only when comparing nodes for value equality.
                     ' In that case it doesn't matter what label the node has as long as it has some.
-
-                    If nodeOpt IsNot Nothing AndAlso CompilerSyntaxUtilities.IsLambdaExpressionRangeVariable(nodeOpt) Then
+                    If nodeOpt IsNot Nothing AndAlso
+                       nodeOpt.Parent.IsKind(SyntaxKind.GroupByClause) AndAlso
+                       nodeOpt.SpanStart < DirectCast(nodeOpt.Parent, GroupByClauseSyntax).ByKeyword.SpanStart Then
+                        Return Label.ExpressionRangeVariableItems
+                    Else
                         Return Label.ExpressionRangeVariable
                     End If
 
-                    Return Label.ExpressionRangeVariableLambda
-
                 Case SyntaxKind.CollectionRangeVariable
-                    ' All CRVs need to be included it in the map,
-                    ' so that we are able to map range variable declarations.
-                    ' Therefore we assign a dedicated label to those that don't translate to lambdas.
+                    ' From, Aggregate
                     '
-                    ' The parent is not available only when comparing nodes for value equality.
-                    ' In that case it doesn't matter what label the node has as long as it has some.
+                    ' All CRVs need to be included in the map,
+                    ' so that we are able to map range variable declarations.
 
-                    If nodeOpt IsNot Nothing AndAlso CompilerSyntaxUtilities.IsLambdaCollectionRangeVariable(nodeOpt) Then
-                        Return Label.CollectionRangeVariable
-                    End If
-
-                    Return Label.CollectionRangeVariableLambda
+                    Return Label.CollectionRangeVariable
 
                 Case SyntaxKind.JoinCondition
                     ' TODO:

@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 partnerOpt = null;
             }
 
-            while (node != declarationBody && !StatementSyntaxComparer.HasLabel(node) && !SyntaxUtilities.IsLambdaBodyStatementOrExpression(node))
+            while (node != declarationBody && !StatementSyntaxComparer.HasLabel(node) && !CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(node))
             {
                 node = node.Parent;
                 if (partnerOpt != null)
@@ -2613,7 +2613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 // stop at lambda:
-                if (SyntaxUtilities.IsLambda(node))
+                if (CompilerSyntaxUtilities.IsLambda(node))
                 {
                     return result;
                 }
@@ -2776,7 +2776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return node;
                 }
 
-                if (SyntaxUtilities.IsLambdaBodyStatementOrExpression(node))
+                if (CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(node))
                 {
                     return node;
                 }
