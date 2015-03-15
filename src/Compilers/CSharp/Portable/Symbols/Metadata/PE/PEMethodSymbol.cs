@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // We currently pack everything into a 32-bit int with the following layout:
             //
-            // | o|nnnnnnnn|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
+            // |            m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             // 
             // a = method kind. 5 bits.
             // b = method kind populated. 1 bit.
@@ -55,8 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // k = isUseSiteDiagnostic populated. 1 bit
             // l = isConditional populated. 1 bit
             // m = isOverriddenOrHiddenMembers populated. 1 bit
-            // n = methodImplLoByte. 8 bits
-            // o = isInternalCall. 1 bit
             // 6 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
@@ -75,8 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int IsUseSiteDiagnosticPopulatedBit = 0x1 << 14;
             private const int IsConditionalPopulatedBit = 0x1 << 15;
             private const int IsOverriddenOrHiddenMembersPopulatedBit = 0x1 << 16;
-            private const int MethodImplLoByteMask = 0xFF << 17;
-            private const int IsInternalCallBit = 0x1 << 26;
 
             private int _bits;
 
@@ -105,7 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool IsUseSiteDiagnosticPopulated => (_bits & IsUseSiteDiagnosticPopulatedBit) != 0;
             public bool IsConditionalPopulated => (_bits & IsConditionalPopulatedBit) != 0;
             public bool IsOverriddenOrHiddenMembersPopulated => (_bits & IsOverriddenOrHiddenMembersPopulatedBit) != 0;
-            public MethodImplAttributes MethodImpl => (MethodImplAttributes)(((_bits & MethodImplLoByteMask) >> 17) | ((_bits & IsInternalCallBit) >> 14));
 
 #if DEBUG
             static PackedFlags()
@@ -180,22 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 ThreadSafeFlagOperations.Set(ref _bits, IsOverriddenOrHiddenMembersPopulatedBit);
             }
-
-            public bool TryInitializeMethodImplAttributes(MethodImplAttributes methodImpl)
-            {
-                // Bits 1-8 and 12
-                const MethodImplAttributes validMask = (MethodImplAttributes)255 | MethodImplAttributes.InternalCall;
-                if ((methodImpl & ~validMask) != 0)
-                {
-                    // Highly unusual.
-                    return false;
-                }
-
-                int bitsToSet = ((int)(methodImpl & ~MethodImplAttributes.InternalCall) << 17) | ((int)(methodImpl & MethodImplAttributes.InternalCall) << 14);
-                Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
-                ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
-                return true;
-            }
         }
 
         private class UncommonFields
@@ -204,7 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public Tuple<CultureInfo, string> _lazyDocComment;
             public OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembersResult;
             public ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-            public MethodImplAttributes _implFlags;
             public ImmutableArray<string> _lazyConditionalAttributeSymbols;
             public ObsoleteAttributeData _lazyObsoleteAttributeData;
             public DiagnosticInfo _lazyUseSiteDiagnostic;
@@ -244,8 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 retVal._lazyOverriddenOrHiddenMembersResult = OverriddenOrHiddenMembersResult.Empty;
             }
 
-            retVal._implFlags = _packedFlags.MethodImpl;
-
             return retVal;
         }
 
@@ -257,10 +233,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private readonly MethodDefinitionHandle _handle;
         private readonly string _name;
-        private readonly MethodAttributes _flags;
         private readonly PENamedTypeSymbol _containingType;
         private Symbol _associatedPropertyOrEventOpt;
         private PackedFlags _packedFlags;
+        private readonly ushort _flags;     // MethodAttributes
+        private readonly ushort _implFlags; // MethoImplAttributes
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
         private UncommonFields _uncommonFields;
         private SignatureData _lazySignature;
@@ -285,10 +262,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 int rva;
                 MethodImplAttributes implFlags;
                 moduleSymbol.Module.GetMethodDefPropsOrThrow(methodDef, out _name, out implFlags, out localflags, out rva);
-                if (!_packedFlags.TryInitializeMethodImplAttributes(implFlags))
-                {
-                    AccessUncommonFields()._implFlags = implFlags;
-                }
+                Debug.Assert((uint)implFlags <= ushort.MaxValue);
+                _implFlags = (ushort)implFlags;
             }
             catch (BadImageFormatException)
             {
@@ -300,7 +275,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 AccessUncommonFields()._lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
             }
 
-            _flags = localflags;
+            Debug.Assert((uint)localflags <= ushort.MaxValue);
+            _flags = (ushort)localflags;
         }
 
         internal sealed override bool TryGetThisParameter(out ParameterSymbol thisParameter)
@@ -316,21 +292,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override string Name => _name;
 
-        internal override bool HasSpecialName => (_flags & MethodAttributes.SpecialName) != 0;
+        private bool HasFlag(MethodAttributes flag)
+        {
+            // flag must be exactly one bit
+            Debug.Assert(flag != 0 && ((ushort)flag & ((ushort)flag - 1)) == 0);
+            return ((ushort)flag & _flags) != 0;
+        }
 
-        internal override bool HasRuntimeSpecialName => (_flags & MethodAttributes.RTSpecialName) != 0;
+        internal override bool HasSpecialName => HasFlag(MethodAttributes.SpecialName);
 
-        internal override System.Reflection.MethodImplAttributes ImplementationAttributes => _uncommonFields?._implFlags ?? _packedFlags.MethodImpl;
+        internal override bool HasRuntimeSpecialName => HasFlag(MethodAttributes.RTSpecialName);
+
+        internal override System.Reflection.MethodImplAttributes ImplementationAttributes => (MethodImplAttributes)_implFlags;
 
         // Exposed for testing purposes only
-        internal MethodAttributes Flags => _flags;
+        internal MethodAttributes Flags => (MethodAttributes)_flags;
 
-        internal override bool RequiresSecurityObject => (_flags & MethodAttributes.RequireSecObject) != 0;
+        internal override bool RequiresSecurityObject => HasFlag(MethodAttributes.RequireSecObject);
 
         // do not cache the result, the compiler doesn't use this (it's only exposed thru public API):
-        public override DllImportData GetDllImportData() => (_flags & MethodAttributes.PinvokeImpl) == 0
-            ? null
-            : _containingType.ContainingPEModule.Module.GetDllImportData(_handle);
+        public override DllImportData GetDllImportData() => HasFlag(MethodAttributes.PinvokeImpl)
+            ? _containingType.ContainingPEModule.Module.GetDllImportData(_handle)
+            : null;
 
         internal override bool ReturnValueIsMarshalledExplicitly => ReturnTypeParameter.IsMarshalledExplicitly;
 
@@ -338,9 +321,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override ImmutableArray<byte> ReturnValueMarshallingDescriptor => ReturnTypeParameter.MarshallingDescriptor;
 
-        internal override bool IsAccessCheckedOnOverride => (_flags & MethodAttributes.CheckAccessOnOverride) != 0;
+        internal override bool IsAccessCheckedOnOverride => HasFlag(MethodAttributes.CheckAccessOnOverride);
 
-        internal override bool HasDeclarativeSecurity => (_flags & MethodAttributes.HasSecurity) != 0;
+        internal override bool HasDeclarativeSecurity => HasFlag(MethodAttributes.HasSecurity);
 
         internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
         {
@@ -353,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var access = Accessibility.Private;
 
-                switch (_flags & MethodAttributes.MemberAccessMask)
+                switch (Flags & MethodAttributes.MemberAccessMask)
                 {
                     case MethodAttributes.Assembly:
                         access = Accessibility.Internal;
@@ -388,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool IsExtern => (_flags & MethodAttributes.PinvokeImpl) != 0;
+        public override bool IsExtern => HasFlag(MethodAttributes.PinvokeImpl);
 
         internal override bool IsExternal => IsExtern || (ImplementationAttributes & MethodImplAttributes.Runtime) != 0;
 
@@ -434,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         // Has to have the abstract flag.
         // NOTE: dev10 treats the method as abstract (i.e. requiring an impl in subtypes) event if it is not metadata virtual.
-        public override bool IsAbstract => (_flags & MethodAttributes.Abstract) != 0;
+        public override bool IsAbstract => HasFlag(MethodAttributes.Abstract);
 
         // NOTE: abstract final methods are a bit strange.  First, they don't
         // PEVerify - there's a specific error message for that combination of modifiers.
@@ -445,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // interpret this overriding method since the overridden method is invalid.
         public override bool IsSealed => this.IsMetadataFinal && !this.IsAbstract && this.IsOverride; //slowest check last
 
-        public override bool HidesBaseMethodsByName => (_flags & MethodAttributes.HideBySig) == 0;
+        public override bool HidesBaseMethodsByName => !HasFlag(MethodAttributes.HideBySig);
 
         // Has to be metadata virtual and cannot be a destructor.  Cannot be either abstract or override.
         // Final is a little special - if a method has the virtual, newslot, and final attr
@@ -467,13 +450,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             this.IsMetadataVirtual() && !this.IsDestructor &&
             ((!this.IsMetadataNewSlot() && (object)_containingType.BaseTypeNoUseSiteDiagnostics != null) || this.IsExplicitClassOverride);
 
-        public override bool IsStatic => (_flags & MethodAttributes.Static) != 0;
+        public override bool IsStatic => HasFlag(MethodAttributes.Static);
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => (_flags & MethodAttributes.Virtual) != 0;
+        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => HasFlag(MethodAttributes.Virtual);
 
-        internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => (_flags & MethodAttributes.NewSlot) != 0;
+        internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => HasFlag(MethodAttributes.NewSlot);
 
-        internal override bool IsMetadataFinal => (_flags & MethodAttributes.Final) != 0;
+        internal override bool IsMetadataFinal => HasFlag(MethodAttributes.Final);
 
         private bool IsExplicitFinalizerOverride
         {
@@ -879,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // This method shall be static, take no parameters, return no value,
                     // be marked with rtspecialname and specialname (§15.4.2.6), and be named .cctor.
 
-                    if ((_flags & (MethodAttributes.RTSpecialName | MethodAttributes.Virtual)) == MethodAttributes.RTSpecialName &&
+                    if ((Flags & (MethodAttributes.RTSpecialName | MethodAttributes.Virtual)) == MethodAttributes.RTSpecialName &&
                         _name.Equals(this.IsStatic ? WellKnownMemberNames.StaticConstructorName : WellKnownMemberNames.InstanceConstructorName) &&
                         this.ReturnsVoid && this.Arity == 0)
                     {
