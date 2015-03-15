@@ -5,6 +5,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
@@ -110,8 +111,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestExternalBuildErrorCustomTags()
-            Assert.Equal(2, ProjectExternalErrorReporter.CustomTags.Count)
-            Assert.Equal(WellKnownDiagnosticTags.Build, ProjectExternalErrorReporter.CustomTags(0))
+            Assert.Equal(1, ProjectExternalErrorReporter.CustomTags.Count)
+            Assert.Equal(WellKnownDiagnosticTags.Telemetry, ProjectExternalErrorReporter.CustomTags(0))
+        End Sub
+
+        <Fact>
+        Public Sub TestExternalBuildErrorProperties()
+            Assert.Equal(1, ProjectExternalErrorReporter.Properties.Count)
+
+            Dim value As String = Nothing
+            Assert.True(ProjectExternalErrorReporter.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, value))
+            Assert.Equal(WellKnownDiagnosticTags.Build, value)
         End Sub
 
         Private Function GetDiagnosticData(workspace As Workspace, projectId As ProjectId) As DiagnosticData
