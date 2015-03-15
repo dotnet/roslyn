@@ -21,28 +21,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
     [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host), Shared]
     internal class SolutionSizeTracker : IIncrementalAnalyzerProvider
     {
-        private readonly IncrementalAnalyzer tracker = new IncrementalAnalyzer();
+        private readonly IncrementalAnalyzer _tracker = new IncrementalAnalyzer();
 
         public long GetSolutionSize(Workspace workspace, SolutionId solutionId)
         {
-            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (vsWorkspace == null)
-            {
-                return -1;
-            }
-
-            return tracker.GetSolutionSize(solutionId);
+            return workspace is VisualStudioWorkspaceImpl ? _tracker.GetSolutionSize(solutionId) : -1;
         }
 
         IIncrementalAnalyzer IIncrementalAnalyzerProvider.CreateIncrementalAnalyzer(Workspace workspace)
         {
-            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (vsWorkspace == null)
-            {
-                return null;
-            }
-
-            return tracker;
+            return workspace is VisualStudioWorkspaceImpl ? _tracker : null;
         }
 
         private class IncrementalAnalyzer : IIncrementalAnalyzer
@@ -54,12 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
 
             public long GetSolutionSize(SolutionId solutionId)
             {
-                if (_solutionId != solutionId)
-                {
-                    return -1;
-                }
-
-                return _size;
+                return _solutionId == solutionId ? _size : -1;
             }
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
@@ -80,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
 
                 _map.AddOrUpdate(project.Id, sum, (id, existing) => sum);
 
-                _size = _map.Values.Sum(v => v);
+                _size = _map.Values.Sum();
             }
 
             public void RemoveProject(ProjectId projectId)
@@ -88,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
                 long unused;
                 _map.TryRemove(projectId, out unused);
 
-                _size = _map.Values.Sum(v => v);
+                _size = _map.Values.Sum();
             }
 
             private static async Task<long> GetProjectSizeAsync(Project project, CancellationToken cancellationToken)
@@ -142,8 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
                         return -1;
                     }
 
-                    var info = new FileInfo(filepath);
-                    return info.Length;
+                    return new FileInfo(filepath).Length;
                 }
                 catch
                 {
