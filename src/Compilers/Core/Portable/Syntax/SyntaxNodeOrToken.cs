@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// A wrapper for either a syntax node (<see cref="SyntaxNode"/>) or a syntax token (<see
     /// cref="SyntaxToken"/>).
     /// </summary>
+    [StructLayout(LayoutKind.Auto)]
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public struct SyntaxNodeOrToken : IEquatable<SyntaxNodeOrToken>
     {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         private readonly GreenNode _token;
 
         // Used in both node and token cases.
-        // When we have a node, position == nodeOrParent.Position.
+        // When we have a node, _position == _nodeOrParent.Position.
         private readonly int _position;
 
         // Index of the token among parent's children. 
@@ -66,46 +67,12 @@ namespace Microsoft.CodeAnalysis
             return GetType().Name + " " + KindText + " " + ToString();
         }
 
-        private string KindText
-        {
-            get
-            {
-                if (_token != null)
-                {
-                    return _token.KindText;
-                }
-                else if (_nodeOrParent != null)
-                {
-                    return _nodeOrParent.Green.KindText;
-                }
-                else
-                {
-                    return "None";
-                }
-            }
-        }
+        private string KindText => _token?.KindText ?? _nodeOrParent?.Green.KindText ?? "None";
 
         /// <summary>
         /// An integer representing the language specific kind of the underlying node or token.
         /// </summary>
-        public int RawKind
-        {
-            get
-            {
-                if (_token != null)
-                {
-                    return _token.RawKind;
-                }
-                else if (_nodeOrParent != null)
-                {
-                    return _nodeOrParent.RawKind;
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-        }
+        public int RawKind => _token?.RawKind ?? _nodeOrParent?.RawKind ?? 0;
 
         /// <summary>
         /// The language name that this node or token is syntax of.
