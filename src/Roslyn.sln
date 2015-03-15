@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22528.0
+VisualStudioVersion = 14.0.22609.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -325,6 +325,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpWinRTTest", "Compilers\CSharp\Test\WinRT\CSharpWinRTTest.csproj", "{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSBuildTask", "Compilers\Core\MSBuildTask\MSBuildTask.csproj", "{D874349C-8BB3-4BDC-8535-2D52CCCA1198}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Exts", "Compilers\VisualBasic\Portable\Exts\Exts.vbproj", "{7AE42BE6-971C-4B13-8546-AC998CC19F18}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -1853,18 +1855,6 @@ Global
 		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}.Release|ARM.ActiveCfg = Release|Any CPU
 		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{CF450DCE-D12B-4A11-8D2D-A7A125372C48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CF450DCE-D12B-4A11-8D2D-A7A125372C48}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CF450DCE-D12B-4A11-8D2D-A7A125372C48}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{CF450DCE-D12B-4A11-8D2D-A7A125372C48}.Debug|ARM.Build.0 = Debug|Any CPU
-		{CF450DCE-D12B-4A11-8D2D-A7A125372C48}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{CF450DCE-D12B-4A11-8D2D-A7A125372C48}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{CF450DCE-D12B-4A11-8D2D-A7A125372C48}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CF450DCE-D12B-4A11-8D2D-A7A125372C48}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CF450DCE-D12B-4A11-8D2D-A7A125372C48}.Release|ARM.ActiveCfg = Release|Any CPU
-		{CF450DCE-D12B-4A11-8D2D-A7A125372C48}.Release|ARM.Build.0 = Release|Any CPU
-		{CF450DCE-D12B-4A11-8D2D-A7A125372C48}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{CF450DCE-D12B-4A11-8D2D-A7A125372C48}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198}.Debug|ARM.ActiveCfg = Debug|Any CPU
@@ -1877,6 +1867,18 @@ Global
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198}.Release|ARM.Build.0 = Release|Any CPU
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7AE42BE6-971C-4B13-8546-AC998CC19F18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AE42BE6-971C-4B13-8546-AC998CC19F18}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AE42BE6-971C-4B13-8546-AC998CC19F18}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{7AE42BE6-971C-4B13-8546-AC998CC19F18}.Debug|ARM.Build.0 = Debug|Any CPU
+		{7AE42BE6-971C-4B13-8546-AC998CC19F18}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{7AE42BE6-971C-4B13-8546-AC998CC19F18}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7AE42BE6-971C-4B13-8546-AC998CC19F18}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AE42BE6-971C-4B13-8546-AC998CC19F18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AE42BE6-971C-4B13-8546-AC998CC19F18}.Release|ARM.ActiveCfg = Release|Any CPU
+		{7AE42BE6-971C-4B13-8546-AC998CC19F18}.Release|ARM.Build.0 = Release|Any CPU
+		{7AE42BE6-971C-4B13-8546-AC998CC19F18}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{7AE42BE6-971C-4B13-8546-AC998CC19F18}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2027,5 +2029,6 @@ Global
 		{C1930979-C824-496B-A630-70F5369A636F} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
+		{7AE42BE6-971C-4B13-8546-AC998CC19F18} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 	EndGlobalSection
 EndGlobal

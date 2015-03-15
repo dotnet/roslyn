@@ -202,13 +202,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend ReadOnly Property LastToken As SyntaxToken
       Get
         Dim count = _tokens.Count
-        If count > 0 Then
-          Return _tokens(count - 1).InnerTokenObject
-        ElseIf _currentToken.InnerTokenObject IsNot Nothing Then
-          Return _currentToken.InnerTokenObject
-        Else
-          Return _prevToken.InnerTokenObject
-        End If
+        If count > 0 Then Return _tokens(count - 1).InnerTokenObject
+        If _currentToken.InnerTokenObject IsNot Nothing Then Return _currentToken.InnerTokenObject
+        Return _prevToken.InnerTokenObject
       End Get
     End Property
 

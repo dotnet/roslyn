@@ -334,8 +334,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
       Return PrecedenceNone
     End Function
 
-    Private Shared Sub AddKeyword ( Token As SyntaxKind, New7To8 As Boolean, Precedence As OperatorPrecedence,
-                            isQueryClause As Boolean, canFollowExpr As Boolean
+    Private Shared Sub AddKeyword ( Token         As SyntaxKind,
+                                    New7To8       As Boolean,
+                                    Precedence    As OperatorPrecedence,
+                                    isQueryClause As Boolean,
+                                    canFollowExpr As Boolean
                                   )
       Dim keyword As New KeywordDescription(New7To8, Precedence, isQueryClause, canFollowExpr)
       _KeywordProperties.Add(Token, keyword)

@@ -10,7 +10,7 @@ Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Exts
+Imports Roslyn.Exts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
   Partial Friend Class Scanner
@@ -107,12 +107,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case "!"c
                   If TryPeek(2, c1) Then
                     Select Case c1
-                      Case "-"c
-                        If NextIs(3, "-"c) Then Return XmlMakeBeginCommentToken(leadingTrivia, _scanNoTriviaFunc)
-                      Case "["c
-                        If NextAre(3, "CDATA[") Then Return XmlMakeBeginCDataToken(leadingTrivia, _scanNoTriviaFunc)
-                      Case "D"c
-                        If NextAre(3, "OCTYPE") Then Return XmlMakeBeginDTDToken(leadingTrivia)
+                      Case "-"c : If NextIs(3, "-"c) Then Return XmlMakeBeginCommentToken(leadingTrivia, _scanNoTriviaFunc)
+                      Case "["c : If NextAre(3, "CDATA[") Then Return XmlMakeBeginCDataToken(leadingTrivia, _scanNoTriviaFunc)
+                      Case "D"c : If NextAre(3, "OCTYPE") Then Return XmlMakeBeginDTDToken(leadingTrivia)
                     End Select
                   End If
                   Return XmlLessThanExclamationToken(state, leadingTrivia)
@@ -289,20 +286,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case "!"c
                   If TryPeek(2,c1) Then
                     Select Case c1
-                      Case "-"c
-                        If NextIs(3,"-"c) Then Return XmlMakeBeginCommentToken(precedingTrivia, _scanNoTriviaFunc)
-                      Case "["c
-                        If NextAre(3, "CDATA[") Then Return XmlMakeBeginCDataToken(precedingTrivia, _scanNoTriviaFunc)
-                      Case "D"c
-                        If NextAre(3, "OCTYPE") Then Return XmlMakeBeginDTDToken(precedingTrivia)
+                      Case "-"c: If NextIs(3,"-"c) Then Return XmlMakeBeginCommentToken(precedingTrivia, _scanNoTriviaFunc)
+                      Case "["c: If NextAre(3, "CDATA[") Then Return XmlMakeBeginCDataToken(precedingTrivia, _scanNoTriviaFunc)
+                      Case "D"c: If NextAre(3, "OCTYPE") Then Return XmlMakeBeginDTDToken(precedingTrivia)
                     End Select
                   End If
-                Case "%"c
-                  If NextIs(2, "="c) Then Return XmlMakeBeginEmbeddedToken(precedingTrivia)
-                Case "?"c
-                  Return XmlMakeBeginProcessingInstructionToken(precedingTrivia, _scanNoTriviaFunc)
-                Case "/"c
-                  Return XmlMakeBeginEndElementToken(precedingTrivia, _scanNoTriviaFunc)
+                Case "%"c: If NextIs(2, "="c) Then Return XmlMakeBeginEmbeddedToken(precedingTrivia)
+                Case "?"c: Return XmlMakeBeginProcessingInstructionToken(precedingTrivia, _scanNoTriviaFunc)
+                Case "/"c: Return XmlMakeBeginEndElementToken(precedingTrivia, _scanNoTriviaFunc)
               End Select
             End If
 

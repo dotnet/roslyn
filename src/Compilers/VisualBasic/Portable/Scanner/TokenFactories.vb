@@ -30,10 +30,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Private Shared ReadOnly triviaKeyEquality As Func(Of TriviaKey, SyntaxTrivia, Boolean) =
         Function(key, value) (key.spelling Is value.Text) AndAlso (key.kind = value.Kind)
 
-    Private Shared ReadOnly singleSpaceWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
-    Private Shared ReadOnly fourSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("    ")
-    Private Shared ReadOnly eightSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("        ")
-    Private Shared ReadOnly twelveSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("            ")
+    Private Shared ReadOnly singleSpaceWhitespaceTrivia   As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
+    Private Shared ReadOnly fourSpacesWhitespaceTrivia    As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("    ")
+    Private Shared ReadOnly eightSpacesWhitespaceTrivia   As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("        ")
+    Private Shared ReadOnly twelveSpacesWhitespaceTrivia  As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("            ")
     Private Shared ReadOnly sixteenSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("                ")
 
 
@@ -105,17 +105,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
     Private Shared ReadOnly tokenKeyEquality As Func(Of TokenParts, SyntaxToken, Boolean) =
-        Function(x, y)
-          If y Is Nothing OrElse
-                  x.spelling IsNot y.Text OrElse
-                  x.fTrivia IsNot y.GetTrailingTrivia OrElse
-                  x.pTrivia IsNot y.GetLeadingTrivia Then
-
-            Return False
-          End If
-
-          Return True
-        End Function
+        Function(x, y) Not ( (y Is Nothing) OrElse (x.spelling IsNot y.Text) OrElse
+                             (x.fTrivia IsNot y.GetTrailingTrivia) OrElse
+                             (x.pTrivia IsNot y.GetLeadingTrivia))
 
 #End Region
 
@@ -127,7 +119,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                SyntaxKind.EndOfLineTrivia,
                SyntaxKind.LineContinuationTrivia,
                SyntaxKind.DocumentationCommentExteriorTrivia
-
           'do nothing
           Case Else
             Return False

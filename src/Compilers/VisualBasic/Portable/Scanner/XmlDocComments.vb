@@ -10,7 +10,7 @@ Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Exts
+Imports Roslyn.Exts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
   Partial Friend Class Scanner

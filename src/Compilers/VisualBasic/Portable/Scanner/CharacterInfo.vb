@@ -8,11 +8,10 @@ Option Explicit On
 Option Infer On
 
 Imports System.Globalization
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Exts
+Imports Roslyn.Exts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-  <System.Runtime.CompilerServices.InternalsVisibleToAttribute()>
   ''' <summary>
   ''' Provides members for determining Syntax facts about characters and Unicode conversions.
   ''' </summary>
@@ -32,7 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     '// MakeHalfWidth - Converts a full-width character to half-width
     Friend Shared Function MakeHalfWidth(c As Char) As Char
       Debug.Assert(IsFullWidth(c))
-
       Return Convert.ToChar(Convert.ToUInt16(c) - fullwidth)
     End Function
 
@@ -227,15 +225,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         IsPropConnectorPunctuation(CharacterProperties)
     End Function
 
+
+
     ' TODO: replace CByte with something faster.
     Friend Shared Function IntegralLiteralCharacterValue ( Digit As Char ) As Byte
       If IsFullWidth(Digit) Then Digit = MakeHalfWidth(Digit)
       Dim u As Integer = AscW(Digit)
       Select Case True
-        Case IsDecimalDigit(Digit) : Return CByte(u - AscW("0"c))
-        Case Digit >= "A"c AndAlso Digit <= "F"c : Return CByte(u + (10 - AscW("A"c)))
+        Case IsDecimalDigit(Digit)       : Return CByte(u - AscW("0"c))
+        Case Digit.IsBetween("A"c, "F"c) : Return CByte(u + (10 - AscW("A"c)))
       End Select
-      Debug.Assert(Digit >= "a"c AndAlso Digit <= "f"c, "Surprising digit.")
+      Debug.Assert(Digit.IsBetween("a"c,"f"c), "Surprising digit.")
       Return CByte(u + (10 - AscW("a"c)))
     End Function
 
@@ -318,7 +318,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Shared Function IsWideIdentifierCharacter(c As Char) As Boolean
       Dim cProps As UnicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c)
-
       Return    IsPropAlphaNumeric(cProps) OrElse IsPropLetterDigit(cProps) OrElse
         IsPropConnectorPunctuation(cProps) OrElse   IsPropCombining(cProps) OrElse
                  IsPropOtherFormat(cProps)
@@ -329,23 +328,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Function
 
     Friend Shared Function IsOctalDigit(c As Char) As Boolean
-      Return (c >= "0"c AndAlso c <= "7"c) OrElse (c >= FULLWIDTH_DIGIT_ZERO AndAlso c <= FULLWIDTH_DIGIT_SEVEN)
+      Return c.IsBetween("0"c,"7"c) OrElse c.IsBetween( FULLWIDTH_DIGIT_ZERO, FULLWIDTH_DIGIT_SEVEN )
     End Function
 
     Friend Shared Function IsDecimalDigit(c As Char) As Boolean
-      Return (c >= "0"c AndAlso c <= "9"c) OrElse (c >= FULLWIDTH_DIGIT_ZERO AndAlso c <= FULLWIDTH_DIGIT_NINE)
+      Return c.IsBetween("0"c,"9"c) OrElse c.IsBetween( FULLWIDTH_DIGIT_ZERO, FULLWIDTH_DIGIT_NINE )
     End Function
 
     Friend Shared Function IsHexDigit(c As Char) As Boolean
       Return IsDecimalDigit(c) OrElse
-              (c >= "a"c AndAlso c <= "f"c) OrElse
-              (c >= "A"c AndAlso c <= "F"c) OrElse
-              (c >= FULLWIDTH_LATIN_SMALL_LETTER_A   AndAlso c <= FULLWIDTH_LATIN_SMALL_LETTER_F) OrElse
-              (c >= FULLWIDTH_LATIN_CAPITAL_LETTER_A AndAlso c <= FULLWIDTH_LATIN_CAPITAL_LETTER_F)
+              c.IsBetween("a"c,"f"c) OrElse
+              c.IsBetween("A"c,"F"c) OrElse
+              c.IsBetween( FULLWIDTH_LATIN_SMALL_LETTER_A, FULLWIDTH_LATIN_SMALL_LETTER_F) OrElse
+              c.IsBetween( FULLWIDTH_LATIN_CAPITAL_LETTER_A, FULLWIDTH_LATIN_CAPITAL_LETTER_F)
     End Function
 
     Friend Shared Function IsDateSeparatorCharacter(c As Char) As Boolean
-      Return c = "/"c Or c = "-"c Or c = FULLWIDTH_SOLIDUS Or c = FULLWIDTH_HYPHEN_MINUS
+      Return c.IsAnyOf("/"c, "-"c, FULLWIDTH_SOLIDUS, FULLWIDTH_HYPHEN_MINUS)
     End Function
 
     Friend Shared ReadOnly DaysToMonth365() As Integer = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365}
@@ -373,7 +372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
       Debug.Assert(IsHalfWidth(another))
 
       If IsFullWidth(ch) Then ch = MakeHalfWidth(ch)
-      Return ch = one OrElse ch = another
+      Return ch.IsAnyOf( one , another)
     End Function
 
     Friend Shared Function IsPropAlpha(CharacterProperties As UnicodeCategory) As Boolean
