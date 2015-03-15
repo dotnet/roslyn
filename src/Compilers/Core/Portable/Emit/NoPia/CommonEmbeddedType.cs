@@ -2,11 +2,9 @@
 
 using System.Collections.Immutable;
 using Roslyn.Utilities;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -120,8 +118,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     }
                     else
                     {
-                        int signatureIndex;
-                        if ((signatureIndex = TypeManager.GetTargetAttributeSignatureIndex(UnderlyingNamedType, attrData, AttributeDescription.InterfaceTypeAttribute)) != -1)
+                        int signatureIndex = TypeManager.GetTargetAttributeSignatureIndex(UnderlyingNamedType, attrData, AttributeDescription.InterfaceTypeAttribute);
+                        if (signatureIndex != -1)
                         {
                             Debug.Assert(signatureIndex == 0 || signatureIndex == 1);
                             if (attrData.CommonConstructorArguments.Length == 1)
@@ -449,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                             {
                                 if (gapSize > 0)
                                 {
-                                    builder.Add(new VtblGap(this, Microsoft.CodeAnalysis.ModuleExtensions.GetVTableGapName(gapIndex, gapSize)));
+                                    builder.Add(new VtblGap(this, ModuleExtensions.GetVTableGapName(gapIndex, gapSize)));
                                     gapIndex++;
                                     gapSize = 0;
                                 }

@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    [StructLayout(LayoutKind.Auto)]
     internal struct ModifierInfo<TypeSymbol>
         where TypeSymbol : class
     {
@@ -23,6 +25,7 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
+    [StructLayout(LayoutKind.Auto)]
     internal struct ParamInfo<TypeSymbol>
         where TypeSymbol : class
     {
@@ -33,6 +36,7 @@ namespace Microsoft.CodeAnalysis
         internal ImmutableArray<ModifierInfo<TypeSymbol>> CustomModifiers;
     }
 
+    [StructLayout(LayoutKind.Auto)]
     internal struct LocalInfo<TypeSymbol>
         where TypeSymbol : class
     {
@@ -468,8 +472,6 @@ namespace Microsoft.CodeAnalysis
 
         private TypeSymbol GetTypeOfTypeDef(TypeDefinitionHandle typeDef, out bool isNoPiaLocalType, bool isContainingType)
         {
-            isNoPiaLocalType = false;
-
             try
             {
                 // This is a cache similar to one used in MetaImport::GetTypeOfToken by native compiler.
@@ -488,6 +490,10 @@ namespace Microsoft.CodeAnalysis
                     {
                         isNoPiaLocalType = true;
                     }
+                    else
+                    {
+                        isNoPiaLocalType = false;
+                    }
 
                     return result;
                 }
@@ -504,6 +510,7 @@ namespace Microsoft.CodeAnalysis
                     // invalid metadata?
                     if (containerTypeDef.IsNil)
                     {
+                        isNoPiaLocalType = false;
                         return GetUnsupportedMetadataTypeSymbol();
                     }
 
@@ -545,8 +552,8 @@ namespace Microsoft.CodeAnalysis
                 // Check if this is NoPia local type which should be substituted 
                 // with corresponding canonical type
                 string interfaceGuid;
-                string identifier;
                 string scope;
+                string identifier;
                 if (Module.IsNoPiaLocalType(
                     typeDef,
                     out interfaceGuid,
@@ -578,12 +585,14 @@ namespace Microsoft.CodeAnalysis
                     return result;
                 }
 
+                isNoPiaLocalType = false;
                 result = LookupTopLevelTypeDefSymbol(ref mdName, out isNoPiaLocalType);
                 Debug.Assert(!isNoPiaLocalType);
                 return result;
             }
             catch (BadImageFormatException mrEx)
             {
+                isNoPiaLocalType = false;
                 return GetUnsupportedMetadataTypeSymbol(mrEx); // an exception from metadata reader.
             }
         }
@@ -880,11 +889,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        internal static void GetSignatureCountsOrThrow(PEModule module, MethodDefinitionHandle methodDef, out int parameterCount, out int typeParameterCount)
+        internal void GetSignatureCountsOrThrow(MethodDefinitionHandle methodDef, out int parameterCount, out int typeParameterCount)
         {
-            BlobHandle signature = module.GetMethodSignatureOrThrow(methodDef);
+            BlobHandle signature = Module.GetMethodSignatureOrThrow(methodDef);
             SignatureHeader signatureHeader;
-            BlobReader signatureReader = DecodeSignatureHeaderOrThrow(module, signature, out signatureHeader);
+            BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
 
             GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out parameterCount, out typeParameterCount);
         }
@@ -1479,13 +1488,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal BlobReader DecodeSignatureHeaderOrThrow(BlobHandle signature, out SignatureHeader signatureHeader)
         {
-            return DecodeSignatureHeaderOrThrow(Module, signature, out signatureHeader);
-        }
-
-        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        internal static BlobReader DecodeSignatureHeaderOrThrow(PEModule module, BlobHandle signature, out SignatureHeader signatureHeader)
-        {
-            BlobReader reader = module.GetMemoryReaderOrThrow(signature);
+            BlobReader reader = Module.GetMemoryReaderOrThrow(signature);
             signatureHeader = reader.ReadSignatureHeader();
             return reader;
         }
@@ -2045,8 +2048,7 @@ namespace Microsoft.CodeAnalysis
         internal MethodSymbol GetMethodSymbolForMethodDefOrMemberRef(Handle memberToken, TypeSymbol container)
         {
             HandleKind type = memberToken.Kind;
-            Debug.Assert(type == HandleKind.MethodDefinition ||
-                            type == HandleKind.MemberReference);
+            Debug.Assert(type == HandleKind.MethodDefinition || type == HandleKind.MemberReference);
 
             if (type == HandleKind.MethodDefinition)
             {
@@ -2108,7 +2110,7 @@ namespace Microsoft.CodeAnalysis
 
             // Check the setter has a void type.
             if (comparingToSetter &&
-                (GetPrimitiveTypeCode(signature2[0].Type) != Microsoft.Cci.PrimitiveTypeCode.Void))
+                (GetPrimitiveTypeCode(signature2[0].Type) != Cci.PrimitiveTypeCode.Void))
             {
                 return false;
             }
@@ -2150,7 +2152,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // Check the accessor has a void type.
-            if (GetPrimitiveTypeCode(methodParams[0].Type) != Microsoft.Cci.PrimitiveTypeCode.Void)
+            if (GetPrimitiveTypeCode(methodParams[0].Type) != Cci.PrimitiveTypeCode.Void)
             {
                 return false;
             }

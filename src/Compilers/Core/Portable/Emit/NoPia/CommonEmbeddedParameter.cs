@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Cci = Microsoft.Cci;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
@@ -98,8 +96,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     }
                     else
                     {
-                        int signatureIndex;
-                        if ((signatureIndex = TypeManager.GetTargetAttributeSignatureIndex(UnderlyingParameter, attrData, AttributeDescription.DecimalConstantAttribute)) != -1)
+                        int signatureIndex = TypeManager.GetTargetAttributeSignatureIndex(UnderlyingParameter, attrData, AttributeDescription.DecimalConstantAttribute);
+                        if (signatureIndex != -1)
                         {
                             Debug.Assert(signatureIndex == 0 || signatureIndex == 1);
 

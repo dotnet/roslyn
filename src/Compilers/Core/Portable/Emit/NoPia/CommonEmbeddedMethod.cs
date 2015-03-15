@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
-using System.Collections.Generic;
-using System;
 using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             Cci.IMethodBody Cci.IMethodDefinition.GetBody(EmitContext context)
             {
-                if (Microsoft.Cci.Extensions.HasBody(this))
+                if (Cci.Extensions.HasBody(this))
                 {
                     // This is an error condition, which we already reported.
                     // To prevent metadata emitter/visitor from crashing, let's
@@ -110,16 +109,16 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             private sealed class EmptyBody : Cci.IMethodBody
             {
-                private readonly CommonEmbeddedMethod Method;
+                private readonly CommonEmbeddedMethod _method;
 
                 public EmptyBody(CommonEmbeddedMethod method)
                 {
-                    this.Method = method;
+                    _method = method;
                 }
 
                 void Cci.IMethodBody.Dispatch(Cci.MetadataVisitor visitor)
                 {
-                    visitor.Visit((Cci.IMethodBody)this);
+                    visitor.Visit(this);
                 }
 
                 ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions
@@ -139,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 Cci.IMethodDefinition Cci.IMethodBody.MethodDefinition
                 {
-                    get { return Method; }
+                    get { return _method; }
                 }
 
                 ushort Cci.IMethodBody.MaxStack
@@ -220,14 +219,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 public int MethodOrdinal
                 {
                     get { return -1; }
-                }
-
-                public string MethodNamespace
-                {
-                    get
-                    {
-                        return null;
-                    }
                 }
             }
 
@@ -452,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
             {
-                visitor.Visit((Cci.IMethodDefinition)this);
+                visitor.Visit(this);
             }
 
             Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
