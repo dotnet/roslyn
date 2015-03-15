@@ -1,31 +1,33 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
-    // Dictionary designed to hold small number of items.
-    // Compared to the regular Dictionary, average overhead per-item is roughly the same, but 
-    // unlike regular dictionary, this one is based on an AVL tree and as such does not require 
-    // rehashing when items are added.
-    // It does require rebalancing, but that is allocation-free.
-    //
-    // Major caveats:
-    //  1) There is no Remove method. (can be added, but we do not seem to use Remove that much)
-    //  2) foreach [keys|values|pairs] may allocate a small array.
-    //  3) Performance is no longer O(1). At a certain count it becomes slower than regular Dictionary.
-    //     In comparison to regular Dictionary on my machine:
-    //        On trivial number of elements (5 or so) it is more than 2x faster.
-    //        The break even count is about 120 elements for read and 55 for write operations (with unknown initial size).
-    //        At UShort.MaxValue elements, this dictionary is 6x slower to read and 4x slower to write
-    //
-    // Generally, this dictionary is a win if number of elements is small, not known beforehand or both.
-    //
-    // If the size of the dictionary is known at creation and it is likely to contain more than 10 elements, 
-    // then regular Dictionary is a better choice.
-    //
+    /// <summary>
+    /// Dictionary designed to hold small number of items.
+    /// Compared to the regular Dictionary, average overhead per-item is roughly the same, but 
+    /// unlike regular dictionary, this one is based on an AVL tree and as such does not require 
+    /// rehashing when items are added.
+    /// It does require rebalancing, but that is allocation-free.
+    ///
+    /// Major caveats:
+    ///  1) There is no Remove method. (can be added, but we do not seem to use Remove that much)
+    ///  2) foreach [keys|values|pairs] may allocate a small array.
+    ///  3) Performance is no longer O(1). At a certain count it becomes slower than regular Dictionary.
+    ///     In comparison to regular Dictionary on my machine:
+    ///        On trivial number of elements (5 or so) it is more than 2x faster.
+    ///        The break even count is about 120 elements for read and 55 for write operations (with unknown initial size).
+    ///        At UShort.MaxValue elements, this dictionary is 6x slower to read and 4x slower to write
+    ///
+    /// Generally, this dictionary is a win if number of elements is small, not known beforehand or both.
+    ///
+    /// If the size of the dictionary is known at creation and it is likely to contain more than 10 elements, 
+    /// then regular Dictionary is a better choice.
+    /// </summary>
     internal sealed class SmallDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
     {
         private AvlNode _root;
@@ -87,6 +89,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw new InvalidOperationException("key not found");
                 }
+
                 return value;
             }
 
@@ -113,22 +116,16 @@ namespace Microsoft.CodeAnalysis
 
         private abstract class Node
         {
-            public readonly K key;
+            public readonly K Key;
             public V Value;
 
             protected Node(K key, V value)
             {
-                this.key = key;
+                this.Key = key;
                 this.Value = value;
             }
 
-            public virtual Node Next
-            {
-                get
-                {
-                    return null;
-                }
-            }
+            public virtual Node Next => null;
         }
 
         private sealed class NodeLinked : Node
@@ -152,13 +149,7 @@ namespace Microsoft.CodeAnalysis
                 this.next = next;
             }
 
-            public override Node Next
-            {
-                get
-                {
-                    return next;
-                }
-            }
+            public override Node Next => next;
         }
 
         // separate class to ensure that HashCode field 
@@ -226,7 +217,7 @@ namespace Microsoft.CodeAnalysis
             return false;
 
         hasBucket:
-            if (CompareKeys(b.key, key))
+            if (CompareKeys(b.Key, key))
             {
                 value = b.Value;
                 return true;
@@ -239,7 +230,7 @@ namespace Microsoft.CodeAnalysis
         {
             while (next != null)
             {
-                if (CompareKeys(key, next.key))
+                if (CompareKeys(key, next.Key))
                 {
                     value = next.Value;
                     return true;
@@ -445,7 +436,7 @@ namespace Microsoft.CodeAnalysis
             Node currentNode = node;
             do
             {
-                if (CompareKeys(currentNode.key, key))
+                if (CompareKeys(currentNode.Key, key))
                 {
                     if (add)
                     {
@@ -495,13 +486,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public KeyCollection Keys
-        {
-            get
-            {
-                return new KeyCollection(this);
-            }
-        }
+        public KeyCollection Keys => new KeyCollection(this);
 
         internal struct KeyCollection : IEnumerable<K>
         {
@@ -537,13 +522,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                public K Current
-                {
-                    get
-                    {
-                        return _current.key;
-                    }
-                }
+                public K Current => _current.Key;
 
                 public bool MoveNext()
                 {
@@ -592,26 +571,20 @@ namespace Microsoft.CodeAnalysis
                     _e = e;
                 }
 
-                K IEnumerator<K>.Current
-                {
-                    get { return _e.Current; }
-                }
+                K IEnumerator<K>.Current => _e.Current;
 
                 void IDisposable.Dispose()
                 {
                 }
 
-                object System.Collections.IEnumerator.Current
-                {
-                    get { return _e.Current; }
-                }
+                object IEnumerator.Current => _e.Current;
 
-                bool System.Collections.IEnumerator.MoveNext()
+                bool IEnumerator.MoveNext()
                 {
                     return _e.MoveNext();
                 }
 
-                void System.Collections.IEnumerator.Reset()
+                void IEnumerator.Reset()
                 {
                     throw new NotSupportedException();
                 }
@@ -622,19 +595,13 @@ namespace Microsoft.CodeAnalysis
                 return new EnumerableImpl(GetEnumerator());
             }
 
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            IEnumerator IEnumerable.GetEnumerator()
             {
                 throw new NotImplementedException();
             }
         }
 
-        public ValueCollection Values
-        {
-            get
-            {
-                return new ValueCollection(this);
-            }
-        }
+        public ValueCollection Values => new ValueCollection(this);
 
         internal struct ValueCollection : IEnumerable<V>
         {
@@ -670,13 +637,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                public V Current
-                {
-                    get
-                    {
-                        return _current.Value;
-                    }
-                }
+                public V Current => _current.Value;
 
                 public bool MoveNext()
                 {
@@ -791,7 +752,7 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return new KeyValuePair<K, V>(_current.key, _current.Value);
+                    return new KeyValuePair<K, V>(_current.Key, _current.Value);
                 }
             }
 

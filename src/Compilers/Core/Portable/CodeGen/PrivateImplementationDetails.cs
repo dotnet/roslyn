@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override IEnumerable<Cci.INestedTypeDefinition> GetNestedTypes(EmitContext context)
         {
             Debug.Assert(IsFrozen);
-            return Enumerable.OfType<ExplicitSizeStruct>(_orderedProxyTypes);
+            return _orderedProxyTypes.OfType<ExplicitSizeStruct>();
         }
 
         public override string ToString() => this.Name;
