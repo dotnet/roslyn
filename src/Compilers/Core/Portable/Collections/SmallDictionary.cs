@@ -66,8 +66,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (_root != null)
             {
-                int hash = GetHashCode(key);
-                return TryGetValue(hash, key, out value);
+                return TryGetValue(GetHashCode(key), key, out value);
             }
 
             value = default(V);
@@ -76,8 +75,7 @@ namespace Microsoft.CodeAnalysis
 
         public void Add(K key, V value)
         {
-            int hash = GetHashCode(key);
-            Insert(hash, key, value, add: true);
+            Insert(GetHashCode(key), key, value, add: true);
         }
 
         public V this[K key]
@@ -95,8 +93,7 @@ namespace Microsoft.CodeAnalysis
 
             set
             {
-                int hash = GetHashCode(key);
-                this.Insert(hash, key, value, add: false);
+                this.Insert(GetHashCode(key), key, value, add: false);
             }
         }
 
@@ -183,7 +180,8 @@ namespace Microsoft.CodeAnalysis
                 int a = AssertBalanced(V.Left);
                 int b = AssertBalanced(V.Right);
 
-                if (((a - b) != V.Balance) || (Math.Abs(a - b) >= 2))
+                if (a - b != V.Balance ||
+                    Math.Abs(a - b) >= 2)
                 {
                     throw new InvalidOperationException();
                 }
@@ -280,6 +278,7 @@ namespace Microsoft.CodeAnalysis
                         currentNode.Left = currentNode = new AvlNode(hashCode, key, value);
                         break;
                     }
+
                     currentNodeParent = currentNode;
                     currentNode = currentNode.Left;
                 }
@@ -290,6 +289,7 @@ namespace Microsoft.CodeAnalysis
                         currentNode.Right = currentNode = new AvlNode(hashCode, key, value);
                         break;
                     }
+
                     currentNodeParent = currentNode;
                     currentNode = currentNode.Right;
                 }
@@ -460,29 +460,27 @@ namespace Microsoft.CodeAnalysis
             {
                 var newNext = new NodeLinked(key, value, head.next);
                 head.next = newNext;
+                return;
+            }
+
+            var newHead = new AvlNodeHead(node.HashCode, key, value, node);
+            newHead.Balance = node.Balance;
+            newHead.Left = node.Left;
+            newHead.Right = node.Right;
+
+            if (parent == null)
+            {
+                _root = newHead;
+                return;
+            }
+
+            if (node == parent.Left)
+            {
+                parent.Left = newHead;
             }
             else
             {
-                var newHead = new AvlNodeHead(node.HashCode, key, value, node);
-                newHead.Balance = node.Balance;
-                newHead.Left = node.Left;
-                newHead.Right = node.Right;
-
-                if (parent == null)
-                {
-                    _root = newHead;
-                }
-                else
-                {
-                    if (node == parent.Left)
-                    {
-                        parent.Left = newHead;
-                    }
-                    else
-                    {
-                        parent.Right = newHead;
-                    }
-                }
+                parent.Right = newHead;
             }
         }
 
@@ -533,19 +531,19 @@ namespace Microsoft.CodeAnalysis
                         return true;
                     }
 
-                    if (_stack != null && _stack.Count != 0)
+                    if (_stack == null || _stack.Count == 0)
                     {
-                        var curr = _stack.Pop();
-                        _current = curr;
-                        _next = curr.Next;
-
-                        PushIfNotNull(curr.Left);
-                        PushIfNotNull(curr.Right);
-
-                        return true;
+                        return false;
                     }
 
-                    return false;
+                    var curr = _stack.Pop();
+                    _current = curr;
+                    _next = curr.Next;
+
+                    PushIfNotNull(curr.Left);
+                    PushIfNotNull(curr.Right);
+
+                    return true;
                 }
 
                 private void PushIfNotNull(AvlNode child)
@@ -622,18 +620,20 @@ namespace Microsoft.CodeAnalysis
                     : this()
                 {
                     var root = dict._root;
-                    if (root != null)
+                    if (root == null)
                     {
-                        // left == right only if both are nulls
-                        if (root.Left == root.Right)
-                        {
-                            _next = dict._root;
-                        }
-                        else
-                        {
-                            _stack = new Stack<AvlNode>(dict.HeightApprox());
-                            _stack.Push(dict._root);
-                        }
+                        return;
+                    }
+
+                    // left == right only if both are nulls
+                    if (root.Left == root.Right)
+                    {
+                        _next = dict._root;
+                    }
+                    else
+                    {
+                        _stack = new Stack<AvlNode>(dict.HeightApprox());
+                        _stack.Push(dict._root);
                     }
                 }
 
@@ -648,19 +648,19 @@ namespace Microsoft.CodeAnalysis
                         return true;
                     }
 
-                    if (_stack != null && _stack.Count != 0)
+                    if (_stack == null || _stack.Count == 0)
                     {
-                        var curr = _stack.Pop();
-                        _current = curr;
-                        _next = curr.Next;
-
-                        PushIfNotNull(curr.Left);
-                        PushIfNotNull(curr.Right);
-
-                        return true;
+                        return false;
                     }
 
-                    return false;
+                    var curr = _stack.Pop();
+                    _current = curr;
+                    _next = curr.Next;
+
+                    PushIfNotNull(curr.Left);
+                    PushIfNotNull(curr.Right);
+
+                    return true;
                 }
 
                 private void PushIfNotNull(AvlNode child)
@@ -686,26 +686,20 @@ namespace Microsoft.CodeAnalysis
                     _e = e;
                 }
 
-                V IEnumerator<V>.Current
-                {
-                    get { return _e.Current; }
-                }
+                V IEnumerator<V>.Current => _e.Current;
 
                 void IDisposable.Dispose()
                 {
                 }
 
-                object System.Collections.IEnumerator.Current
-                {
-                    get { return _e.Current; }
-                }
+                object IEnumerator.Current => _e.Current;
 
-                bool System.Collections.IEnumerator.MoveNext()
+                bool IEnumerator.MoveNext()
                 {
                     return _e.MoveNext();
                 }
 
-                void System.Collections.IEnumerator.Reset()
+                void IEnumerator.Reset()
                 {
                     throw new NotImplementedException();
                 }
@@ -716,12 +710,11 @@ namespace Microsoft.CodeAnalysis
                 return new EnumerableImpl(GetEnumerator());
             }
 
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            IEnumerator IEnumerable.GetEnumerator()
             {
                 throw new NotImplementedException();
             }
         }
-
 
         public struct Enumerator
         {
@@ -733,28 +726,24 @@ namespace Microsoft.CodeAnalysis
                 : this()
             {
                 var root = dict._root;
-                if (root != null)
+                if (root == null)
                 {
-                    // left == right only if both are nulls
-                    if (root.Left == root.Right)
-                    {
-                        _next = dict._root;
-                    }
-                    else
-                    {
-                        _stack = new Stack<AvlNode>(dict.HeightApprox());
-                        _stack.Push(dict._root);
-                    }
+                    return;
+                }
+
+                // left == right only if both are nulls
+                if (root.Left == root.Right)
+                {
+                    _next = dict._root;
+                }
+                else
+                {
+                    _stack = new Stack<AvlNode>(dict.HeightApprox());
+                    _stack.Push(dict._root);
                 }
             }
 
-            public KeyValuePair<K, V> Current
-            {
-                get
-                {
-                    return new KeyValuePair<K, V>(_current.Key, _current.Value);
-                }
-            }
+            public KeyValuePair<K, V> Current => new KeyValuePair<K, V>(_current.Key, _current.Value);
 
             public bool MoveNext()
             {
@@ -765,19 +754,19 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
-                if (_stack != null && _stack.Count != 0)
+                if (_stack == null || _stack.Count == 0)
                 {
-                    var curr = _stack.Pop();
-                    _current = curr;
-                    _next = curr.Next;
-
-                    PushIfNotNull(curr.Left);
-                    PushIfNotNull(curr.Right);
-
-                    return true;
+                    return false;
                 }
 
-                return false;
+                var curr = _stack.Pop();
+                _current = curr;
+                _next = curr.Next;
+
+                PushIfNotNull(curr.Left);
+                PushIfNotNull(curr.Right);
+
+                return true;
             }
 
             private void PushIfNotNull(AvlNode child)
@@ -803,26 +792,20 @@ namespace Microsoft.CodeAnalysis
                 _e = e;
             }
 
-            KeyValuePair<K, V> IEnumerator<KeyValuePair<K, V>>.Current
-            {
-                get { return _e.Current; }
-            }
+            KeyValuePair<K, V> IEnumerator<KeyValuePair<K, V>>.Current => _e.Current;
 
             void IDisposable.Dispose()
             {
             }
 
-            object System.Collections.IEnumerator.Current
-            {
-                get { return _e.Current; }
-            }
+            object IEnumerator.Current => _e.Current;
 
-            bool System.Collections.IEnumerator.MoveNext()
+            bool IEnumerator.MoveNext()
             {
                 return _e.MoveNext();
             }
 
-            void System.Collections.IEnumerator.Reset()
+            void IEnumerator.Reset()
             {
                 throw new NotImplementedException();
             }
@@ -833,7 +816,7 @@ namespace Microsoft.CodeAnalysis
             return new EnumerableImpl(GetEnumerator());
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
             throw new NotImplementedException();
         }
