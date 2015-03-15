@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // We currently pack everything into a 32-bit int with the following layout:
             //
-            // |              k|j|i|h|g|f|e|d|c|b|aaaaa|
+            // | o|nnnnnnnn|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             // 
             // a = method kind. 5 bits.
             // b = method kind populated. 1 bit.
@@ -53,7 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // i = hasCustomAttributes. 1 bit
             // j = hasCustomAttributesPopulated. 1 bit
             // k = isUseSiteDiagnostic populated. 1 bit
-            // 17 bits remain for future purposes.
+            // l = isConditional populated. 1 bit
+            // m = isOverriddenOrHiddenMembers populated. 1 bit
+            // n = methodImplLoByte. 8 bits
+            // o = isInternalCall. 1 bit
+            // 6 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
 
@@ -69,6 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int HasCustomAttributesBit = 0x1 << 12;
             private const int HasCustomAttributesPopulatedBit = 0x1 << 13;
             private const int IsUseSiteDiagnosticPopulatedBit = 0x1 << 14;
+            private const int IsConditionalPopulatedBit = 0x1 << 15;
+            private const int IsOverriddenOrHiddenMembersPopulatedBit = 0x1 << 16;
+            private const int MethodImplLoByteMask = 0xFF << 17;
+            private const int IsInternalCallBit = 0x1 << 26;
 
             private int _bits;
 
@@ -86,50 +94,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            public bool MethodKindIsPopulated
-            {
-                get { return (_bits & MethodKindIsPopulatedBit) != 0; }
-            }
-
-            public bool IsExtensionMethod
-            {
-                get { return (_bits & IsExtensionMethodBit) != 0; }
-            }
-
-            public bool IsExtensionMethodIsPopulated
-            {
-                get { return (_bits & IsExtensionMethodIsPopulatedBit) != 0; }
-            }
-
-            public bool IsExplicitFinalizerOverride
-            {
-                get { return (_bits & IsExplicitFinalizerOverrideBit) != 0; }
-            }
-
-            public bool IsExplicitClassOverride
-            {
-                get { return (_bits & IsExplicitClassOverrideBit) != 0; }
-            }
-
-            public bool IsExplicitOverrideIsPopulated
-            {
-                get { return (_bits & IsExplicitOverrideIsPopulatedBit) != 0; }
-            }
-
-            public bool IsObsoleteAttributePopulated
-            {
-                get { return (_bits & IsObsoleteAttributePopulatedBit) != 0; }
-            }
-
-            public bool DefinitelyHasNoCustomAttributes
-            {
-                get { return (_bits & (HasCustomAttributesBit | HasCustomAttributesPopulatedBit)) == HasCustomAttributesPopulatedBit; }
-            }
-
-            public bool IsUseSiteDiagnosticPopulated
-            {
-                get { return (_bits & IsUseSiteDiagnosticPopulatedBit) != 0; }
-            }
+            public bool MethodKindIsPopulated => (_bits & MethodKindIsPopulatedBit) != 0;
+            public bool IsExtensionMethod => (_bits & IsExtensionMethodBit) != 0;
+            public bool IsExtensionMethodIsPopulated => (_bits & IsExtensionMethodIsPopulatedBit) != 0;
+            public bool IsExplicitFinalizerOverride => (_bits & IsExplicitFinalizerOverrideBit) != 0;
+            public bool IsExplicitClassOverride => (_bits & IsExplicitClassOverrideBit) != 0;
+            public bool IsExplicitOverrideIsPopulated => (_bits & IsExplicitOverrideIsPopulatedBit) != 0;
+            public bool IsObsoleteAttributePopulated => (_bits & IsObsoleteAttributePopulatedBit) != 0;
+            public bool DefinitelyHasNoCustomAttributes => (_bits & (HasCustomAttributesBit | HasCustomAttributesPopulatedBit)) == HasCustomAttributesPopulatedBit;
+            public bool IsUseSiteDiagnosticPopulated => (_bits & IsUseSiteDiagnosticPopulatedBit) != 0;
+            public bool IsConditionalPopulated => (_bits & IsConditionalPopulatedBit) != 0;
+            public bool IsOverriddenOrHiddenMembersPopulated => (_bits & IsOverriddenOrHiddenMembersPopulatedBit) != 0;
+            public MethodImplAttributes MethodImpl => (MethodImplAttributes)(((_bits & MethodImplLoByteMask) >> 17) | ((_bits & IsInternalCallBit) >> 14));
 
 #if DEBUG
             static PackedFlags()
@@ -194,6 +170,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 ThreadSafeFlagOperations.Set(ref _bits, IsUseSiteDiagnosticPopulatedBit);
             }
+
+            public void InitializeIsConditionalAttributePopulated()
+            {
+                ThreadSafeFlagOperations.Set(ref _bits, IsConditionalPopulatedBit);
+            }
+
+            public void InitializeIsOverriddenOrHiddenMembersPopulated()
+            {
+                ThreadSafeFlagOperations.Set(ref _bits, IsOverriddenOrHiddenMembersPopulatedBit);
+            }
+
+            public bool TryInitializeMethodImplAttributes(MethodImplAttributes methodImpl)
+            {
+                // Bits 1-8 and 12
+                const MethodImplAttributes validMask = (MethodImplAttributes)255 | MethodImplAttributes.InternalCall;
+                if ((methodImpl & ~validMask) != 0)
+                {
+                    // Highly unusual.
+                    return false;
+                }
+
+                int bitsToSet = ((int)(methodImpl & ~MethodImplAttributes.InternalCall) << 17) | ((int)(methodImpl & MethodImplAttributes.InternalCall) << 14);
+                Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
+                ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+                return true;
+            }
         }
 
         private class UncommonFields
@@ -211,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private static T InterlockedInitialize<T>(ref T field, T value, T comparand = null) where T : class
         {
             var oldValue = Interlocked.CompareExchange(ref field, value, comparand);
-            return ReferenceEquals(oldValue, comparand) ? value : oldValue;
+            return (object)oldValue == (object)comparand ? value : oldValue;
         }
 
         private UncommonFields CreateUncommonFields()
@@ -231,6 +233,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 retVal._lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
             }
+
+            if (_packedFlags.IsConditionalPopulated)
+            {
+                retVal._lazyConditionalAttributeSymbols = ImmutableArray<string>.Empty;
+            }
+
+            if (_packedFlags.IsOverriddenOrHiddenMembersPopulated)
+            {
+                retVal._lazyOverriddenOrHiddenMembersResult = OverriddenOrHiddenMembersResult.Empty;
+            }
+
+            retVal._implFlags = _packedFlags.MethodImpl;
 
             return retVal;
         }
@@ -271,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 int rva;
                 MethodImplAttributes implFlags;
                 moduleSymbol.Module.GetMethodDefPropsOrThrow(methodDef, out _name, out implFlags, out localflags, out rva);
-                if (implFlags != 0)
+                if (!_packedFlags.TryInitializeMethodImplAttributes(implFlags))
                 {
                     AccessUncommonFields()._implFlags = implFlags;
                 }
@@ -306,23 +320,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override bool HasRuntimeSpecialName => (_flags & MethodAttributes.RTSpecialName) != 0;
 
-        internal override System.Reflection.MethodImplAttributes ImplementationAttributes => _uncommonFields?._implFlags ?? 0;
+        internal override System.Reflection.MethodImplAttributes ImplementationAttributes => _uncommonFields?._implFlags ?? _packedFlags.MethodImpl;
 
         // Exposed for testing purposes only
         internal MethodAttributes Flags => _flags;
 
         internal override bool RequiresSecurityObject => (_flags & MethodAttributes.RequireSecObject) != 0;
 
-        public override DllImportData GetDllImportData()
-        {
-            if ((_flags & MethodAttributes.PinvokeImpl) == 0)
-            {
-                return null;
-            }
-
-            // do not cache the result, the compiler doesn't use this (it's only exposed thru public API):
-            return _containingType.ContainingPEModule.Module.GetDllImportData(_handle);
-        }
+        // do not cache the result, the compiler doesn't use this (it's only exposed thru public API):
+        public override DllImportData GetDllImportData() => (_flags & MethodAttributes.PinvokeImpl) == 0
+            ? null
+            : _containingType.ContainingPEModule.Module.GetDllImportData(_handle);
 
         internal override bool ReturnValueIsMarshalledExplicitly => ReturnTypeParameter.IsMarshalledExplicitly;
 
@@ -443,7 +451,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // Final is a little special - if a method has the virtual, newslot, and final attr
         // (and is not an explicit override) then we treat it as non-virtual for C# purposes.
         public override bool IsVirtual => this.IsMetadataVirtual() && !this.IsDestructor && !this.IsMetadataFinal && !this.IsAbstract && !this.IsOverride;
-
 
         // Has to be metadata virtual and cannot be a destructor.  
         // Must either lack the newslot flag or be an explicit override (i.e. via the MethodImpl table).
@@ -1045,23 +1052,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            var uncommonFields = _uncommonFields;
-            var result = uncommonFields?._lazyUseSiteDiagnostic;
-            if (!_packedFlags.IsUseSiteDiagnosticPopulated || CSDiagnosticInfo.IsEmpty(result))
+            if (!_packedFlags.IsUseSiteDiagnosticPopulated)
             {
-                result = null;
+                DiagnosticInfo result = null;
                 CalculateUseSiteDiagnostic(ref result);
                 EnsureTypeParametersAreLoaded(ref result);
-                if (uncommonFields != null || result != null)
+                Debug.Assert(!CSDiagnosticInfo.IsEmpty(result));
+                if (result != null)
                 {
                     result = InterlockedInitialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, result, CSDiagnosticInfo.EmptyErrorInfo);
                 }
 
                 _packedFlags.InitializeIsUseSiteDiagnosticPopulated();
+                return result;
             }
 
-            Debug.Assert(!CSDiagnosticInfo.IsEmpty(result));
-            return result;
+            var uncommonFields = _uncommonFields;
+            if (uncommonFields == null)
+            {
+                return null;
+            }
+            else
+            {
+                var result = uncommonFields._lazyUseSiteDiagnostic;
+                return CSDiagnosticInfo.IsEmpty(result) ?
+                        InterlockedInitialize(ref uncommonFields._lazyUseSiteDiagnostic, null, CSDiagnosticInfo.EmptyErrorInfo) : result;
+            }
         }
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
@@ -1071,16 +1087,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return ImmutableArray<string>.Empty;
             }
 
-            var uncommonFields = AccessUncommonFields();
-            if (uncommonFields._lazyConditionalAttributeSymbols.IsDefault)
+            if (!_packedFlags.IsConditionalPopulated)
             {
-                var moduleSymbol = _containingType.ContainingPEModule;
-                ImmutableArray<string> conditionalSymbols = moduleSymbol.Module.GetConditionalAttributeValues(_handle);
-                Debug.Assert(!conditionalSymbols.IsDefault);
-                ImmutableInterlocked.InterlockedInitialize(ref uncommonFields._lazyConditionalAttributeSymbols, conditionalSymbols);
+                var result = _containingType.ContainingPEModule.Module.GetConditionalAttributeValues(_handle);
+                Debug.Assert(!result.IsDefault);
+                if (!result.IsEmpty)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref AccessUncommonFields()._lazyConditionalAttributeSymbols, result);
+                }
+
+                _packedFlags.InitializeIsConditionalAttributePopulated();
+                return result;
             }
 
-            return uncommonFields._lazyConditionalAttributeSymbols;
+            var uncommonFields = _uncommonFields;
+            if (uncommonFields == null)
+            {
+                return ImmutableArray<string>.Empty;
+            }
+            else
+            {
+                var result = uncommonFields._lazyConditionalAttributeSymbols;
+                if (!result.IsDefault)
+                {
+                    return result;
+                }
+
+                ImmutableInterlocked.InterlockedInitialize(ref uncommonFields._lazyConditionalAttributeSymbols, ImmutableArray<string>.Empty);
+                return ImmutableArray<string>.Empty;
+            }
         }
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
@@ -1092,21 +1127,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var uncommonFields = _uncommonFields;
-                var result = uncommonFields?._lazyObsoleteAttributeData;
-                if (!_packedFlags.IsObsoleteAttributePopulated || ReferenceEquals(result, ObsoleteAttributeData.Uninitialized))
+                if (!_packedFlags.IsObsoleteAttributePopulated)
                 {
-                    result = ObsoleteAttributeHelpers.GetObsoleteDataFromMetadata(_handle, (PEModuleSymbol)ContainingModule);
-                    if (uncommonFields != null || result != null)
+                    var result = ObsoleteAttributeHelpers.GetObsoleteDataFromMetadata(_handle, (PEModuleSymbol)ContainingModule);
+                    if (result != null)
                     {
                         result = InterlockedInitialize(ref AccessUncommonFields()._lazyObsoleteAttributeData, result, ObsoleteAttributeData.Uninitialized);
                     }
 
                     _packedFlags.InitializeIsObsoleteAttributePopulated();
+                    return result;
                 }
 
-                Debug.Assert(!ReferenceEquals(result, ObsoleteAttributeData.Uninitialized));
-                return result;
+                var uncommonFields = _uncommonFields;
+                if (uncommonFields == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    var result = uncommonFields._lazyObsoleteAttributeData;
+                    if (!ReferenceEquals(result, ObsoleteAttributeData.Uninitialized))
+                    {
+                        return result;
+                    }
+
+                    return InterlockedInitialize(ref uncommonFields._lazyObsoleteAttributeData, null, ObsoleteAttributeData.Uninitialized);
+                }
             }
         }
 
@@ -1116,8 +1163,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var uncommonFields = AccessUncommonFields();
-                return uncommonFields._lazyOverriddenOrHiddenMembersResult ?? InterlockedInitialize(ref uncommonFields._lazyOverriddenOrHiddenMembersResult, base.OverriddenOrHiddenMembers, null);
+                if (!_packedFlags.IsOverriddenOrHiddenMembersPopulated)
+                {
+                    var result = base.OverriddenOrHiddenMembers;
+                    Debug.Assert(result != null);
+                    if (result != OverriddenOrHiddenMembersResult.Empty)
+                    {
+                        result = InterlockedInitialize(ref AccessUncommonFields()._lazyOverriddenOrHiddenMembersResult, result);
+                    }
+
+                    _packedFlags.InitializeIsOverriddenOrHiddenMembersPopulated();
+                    return result;
+                }
+
+                var uncommonFields = _uncommonFields;
+                if (uncommonFields == null)
+                {
+                    return OverriddenOrHiddenMembersResult.Empty;
+                }
+
+                return uncommonFields._lazyOverriddenOrHiddenMembersResult ?? InterlockedInitialize(ref uncommonFields._lazyOverriddenOrHiddenMembersResult, OverriddenOrHiddenMembersResult.Empty);
             }
         }
 
