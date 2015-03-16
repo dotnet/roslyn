@@ -1136,7 +1136,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody1, newLambda, activeNodes, lazyActiveOrMatchedLambdas, diagnostics));
 
-
                         if (oldLambdaBody2 != null)
                         {
                             lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody2, newLambda, activeNodes, lazyActiveOrMatchedLambdas, diagnostics));
@@ -2606,9 +2605,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var oldCapturesToClosureScopes = ArrayBuilder<SyntaxNode>.GetInstance(oldCaptures.Length, null);
 
             CalculateCapturedVariablesMaps(
+                oldModel,
                 oldCaptures,
                 oldMember,
                 oldMemberBody,
+                newModel,
                 newCaptures,
                 newMember,
                 newMemberBody,
@@ -2852,24 +2853,48 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private SyntaxNode GetVariableSyntax(ISymbol localOrParameter, CancellationToken cancellationToken)
+        private SyntaxNode GetSymbolSyntax(ISymbol local, CancellationToken cancellationToken)
         {
-            var references = localOrParameter.DeclaringSyntaxReferences;
-            if (references.Length == 0)
+            return local.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
+        }
+
+        private TextSpan GetThisParameterDiagnosticSpan(ISymbol member)
+        {
+            return member.Locations.First().SourceSpan;
+        }
+
+        private TextSpan GetVariableDiagnosticSpan(ISymbol local, CancellationToken cancellationToken)
+        {
+            var references = local.DeclaringSyntaxReferences;
+            if (!references.IsEmpty)
             {
-                Debug.Assert(((IParameterSymbol)localOrParameter).IsThis);
-                return null;
+                return references.Single().GetSyntax(cancellationToken).Span;
+            }
+
+            // TODO: better location for property parameters
+            return GetThisParameterDiagnosticSpan(local.ContainingSymbol);
+        }
+
+        private static ImmutableArray<IParameterSymbol> GetParametersWithSyntax(ISymbol member)
+        {
+            var method = (IMethodSymbol)member;
+
+            if (method.AssociatedSymbol != null)
+            {
+                return ((IPropertySymbol)method.AssociatedSymbol).Parameters;
             }
             else
             {
-                return references.Single().GetSyntax(cancellationToken);
+                return method.Parameters;
             }
         }
 
         private void CalculateCapturedVariablesMaps(
+            SemanticModel oldModel,
             ImmutableArray<ISymbol> oldCaptures, 
             ISymbol oldMember,
             SyntaxNode oldMemberBody,
+            SemanticModel newModel,
             ImmutableArray<ISymbol> newCaptures,
             ISymbol newMember,
             SyntaxNode newMemberBody,
@@ -2912,75 +2937,78 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             //   the closure tree of the previous version and then map 
             //   closure scopes in the new version to the previous ones, keeping empty closures around.
 
-            var oldCapturesBySyntax = PooledDictionary<SyntaxNode, int>.GetInstance();
-            int oldCapturedThisIndex = -1;
+            var oldLocalCapturesBySyntax = PooledDictionary<SyntaxNode, int>.GetInstance();
+            var oldParameterCapturesByOrdinal = PooledDictionary<int, int>.GetInstance(); 
+
             for (int i = 0; i < oldCaptures.Length; i++)
             {
-                var syntax = GetVariableSyntax(oldCaptures[i], cancellationToken);
-                if (syntax == null)
+                if (oldCaptures[i].Kind == SymbolKind.Parameter)
                 {
-                    oldCapturedThisIndex = i;
+                    oldParameterCapturesByOrdinal.Add(((IParameterSymbol)oldCaptures[i]).Ordinal, i);
                 }
                 else
                 {
-                    oldCapturesBySyntax.Add(syntax, i);
+                    oldLocalCapturesBySyntax.Add(GetSymbolSyntax(oldCaptures[i], cancellationToken), i);
                 }
             }
 
-            int newCapturedThisIndex = -1;
             for (int newCaptureIndex = 0; newCaptureIndex < newCaptures.Length; newCaptureIndex++)
             {
-                int oldCaptureIndex;
-                SyntaxNode mappedOldSyntax;
                 ISymbol newCapture = newCaptures[newCaptureIndex];
+                int oldCaptureIndex;
 
-                var newSyntaxOpt = GetVariableSyntax(newCapture, cancellationToken);
-                if (newSyntaxOpt == null)
+                if (newCapture.Kind == SymbolKind.Parameter)
                 {
-                    // "this" is captured in the new member:
-                    newCapturedThisIndex = newCaptureIndex;
-                 
-                    if (oldCapturedThisIndex < 0)
+                    var newParameterCapture = (IParameterSymbol)newCapture;
+
+                    // parameters can't be reordered, deleted or added, so no syntax mapping is needed
+                    int ordinal = newParameterCapture.Ordinal;
+
+                    if (!oldParameterCapturesByOrdinal.TryGetValue(ordinal, out oldCaptureIndex))
                     {
-                        // "this" has not been captured prior the edit:
+                        // parameter has not been captured prior the edit:
                         diagnostics.Add(new RudeEditDiagnostic(
                             RudeEditKind.CapturingVariable,
-                            newMember.Locations.First().SourceSpan,
+                            GetVariableDiagnosticSpan(newCapture, cancellationToken),
                             null,
                             new[] { newCapture.Name }));
 
                         hasErrors = true;
                     }
-                    else
+
+                    // Remove the old parameter capture so that at the end we can use this hashset 
+                    // to identify old captures that don't have a corresponding capture in the new version:
+                    oldParameterCapturesByOrdinal.Remove(ordinal);
+                }
+                else
+                {
+                    SyntaxNode mappedOldSyntax;
+
+                    var newCaptureSyntax = GetSymbolSyntax(newCapture, cancellationToken);
+                    
+                    // variable doesn't exists in the old method or has not been captured prior the edit:
+                    if (!map.Reverse.TryGetValue(newCaptureSyntax, out mappedOldSyntax) ||
+                        !oldLocalCapturesBySyntax.TryGetValue(mappedOldSyntax, out oldCaptureIndex))
                     {
-                        reverseCapturesMap[newCaptureIndex] = oldCapturedThisIndex;
+                        diagnostics.Add(new RudeEditDiagnostic(
+                            RudeEditKind.CapturingVariable,
+                            newCaptureSyntax.Span,
+                            null,
+                            new[] { newCapture.Name }));
+
+                        hasErrors = true;
+                        continue;
                     }
 
-                    continue;
-                }
-
-                // variable doesn't exists in the old method or has not been captured prior the edit:
-                if (!map.Reverse.TryGetValue(newSyntaxOpt, out mappedOldSyntax) ||
-                    !oldCapturesBySyntax.TryGetValue(mappedOldSyntax, out oldCaptureIndex))
-                {
-                    diagnostics.Add(new RudeEditDiagnostic(
-                        RudeEditKind.CapturingVariable,
-                        newSyntaxOpt.Span,
-                        null,
-                        new[] { newCapture.Name }));
-
-                    hasErrors = true;
-                    continue;
+                    // Remove the old capture so that at the end we can use this hashset 
+                    // to identify old captures that don't have a corresponding capture in the new version:
+                    oldLocalCapturesBySyntax.Remove(mappedOldSyntax);
                 }
 
                 reverseCapturesMap[newCaptureIndex] = oldCaptureIndex;
 
-                // Remove the old capture so that at the end we can use this hashset 
-                // to identify old captures that don't have a corresponding capture in the new version:
-                oldCapturesBySyntax.Remove(mappedOldSyntax);
-
-                // the type and scope of "this" can't change
-                if (newSyntaxOpt == null)
+                // the type and scope of parameters can't change
+                if (newCapture.Kind == SymbolKind.Parameter)
                 {
                     continue;
                 }
@@ -3014,7 +3042,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     diagnostics.Add(new RudeEditDiagnostic(
                         RudeEditKind.ChangingCapturedVariableType,
-                        newSyntaxOpt.Span,
+                        GetVariableDiagnosticSpan(newCapture, cancellationToken),
                         null,
                         new[] { newCapture.Name, oldTypeOpt.ToDisplayString(ErrorDisplayFormat) }));
 
@@ -3029,7 +3057,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     diagnostics.Add(new RudeEditDiagnostic(
                         RudeEditKind.ChangingCapturedVariableScope,
-                        newSyntaxOpt.Span,
+                        GetVariableDiagnosticSpan(newCapture, cancellationToken),
                         null,
                         new[] { newCapture.Name }));
 
@@ -3045,22 +3073,56 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // that have no corresponding captured variables in the new version. 
             // Report a rude edit for all such variables.
 
-            if (oldCapturedThisIndex >= 0 && newCapturedThisIndex < 0)
+            if (oldParameterCapturesByOrdinal.Count > 0)
             {
-                // uncaptured "this":
-                diagnostics.Add(new RudeEditDiagnostic(
-                    RudeEditKind.NotCapturingVariable,
-                    newMember.Locations.First().SourceSpan,
-                    null,
-                    new[] { oldCaptures[oldCapturedThisIndex].Name }));
+                var newMemberParameters = GetParametersWithSyntax(newMember);
+
+                // uncaptured parameters:
+                foreach (var entry in oldParameterCapturesByOrdinal)
+                {
+                    int ordinal = entry.Key;
+                    int oldCaptureIndex = entry.Value;
+                    var oldCapture = oldCaptures[oldCaptureIndex];
+
+                    TextSpan span;
+                    if (ordinal < 0)
+                    {
+                        // this parameter:
+                        span = GetThisParameterDiagnosticSpan(newMember);
+                    }
+                    else if (oldCapture.ContainingSymbol == oldMember)
+                    {
+                        // method or property:
+                        span = GetVariableDiagnosticSpan(newMemberParameters[ordinal], cancellationToken);
+                    }
+                    else
+                    {
+                        // lambda:
+
+                        // We don't include lambda parameters in mapping, so we need to go thru symbols:
+                        var oldCaptureSyntax = GetSymbolSyntax(oldCapture, cancellationToken);
+                        var oldContainingLambda = (IMethodSymbol)oldModel.GetEnclosingSymbol(oldCaptureSyntax.SpanStart);
+                        var oldContainingLambdaSyntax = GetSymbolSyntax(oldContainingLambda, cancellationToken);
+                        var newContainingLambdaSyntax = map.Forward[oldContainingLambdaSyntax];
+                        var newContainingLambda = (IMethodSymbol)newModel.GetEnclosingSymbol(newContainingLambdaSyntax.SpanStart);
+
+                        span = GetVariableDiagnosticSpan(newContainingLambda.Parameters[ordinal], cancellationToken);
+                    }
+
+                    diagnostics.Add(new RudeEditDiagnostic(
+                        RudeEditKind.NotCapturingVariable,
+                        span,
+                        null,
+                        new[] { oldCapture.Name }));
+                }
 
                 hasErrors = true;
             }
 
-            if (oldCapturesBySyntax.Count > 0)
+            if (oldLocalCapturesBySyntax.Count > 0)
             {
                 // uncaptured or deleted variables:
-                foreach (var entry in oldCapturesBySyntax)
+                foreach (var entry in oldLocalCapturesBySyntax)
                 {
                     SyntaxNode oldCaptureNode = entry.Key;
                     int oldCaptureIndex = entry.Value;
@@ -3088,7 +3150,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 hasErrors = true;
             }
 
-            oldCapturesBySyntax.Free();
+            oldLocalCapturesBySyntax.Free();
         }
 
         private void ReportLambdaSignatureRudeEdits(SemanticModel oldModel, SyntaxNode oldLambdaBody, SemanticModel newModel, SyntaxNode newLambdaBody, List<RudeEditDiagnostic> diagnostics, out bool hasErrors)
