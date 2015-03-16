@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal static string GetClassName(string moduleName, int submissionSlotIndex)
         {
-            return $"<PrivateImplementationDetails>{(submissionSlotIndex >= 0 ? submissionSlotIndex.ToString() : "")}<{moduleName}>";
+            return $"<PrivateImplementationDetails><{(submissionSlotIndex >= 0 ? submissionSlotIndex.ToString() : moduleName)}>";
         }
 
         internal void Freeze()

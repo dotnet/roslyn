@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -2725,6 +2726,49 @@ public class Program
                 ////// error CS0101: The namespace '<global namespace>' already contains a definition for '<PrivateImplementationDetails>'
                 ////Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("<PrivateImplementationDetails>", "<global namespace>").WithLocation(1, 1)
                 );
+            CompileAndVerify(comp3, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "Hello, world!");
+        }
+
+        [Fact]
+        public void MultipleNetmodulesWithAnonymousTypes()
+        {
+            var s1 = @"
+public class A
+{
+    internal object o1 = new { hello = 1, world = 2 };
+    public static string M1()
+    {
+        return ""Hello, "";
+    }
+}";
+            var s2 = @"
+public class B : A
+{
+    internal object o2 = new { hello = 1, world = 2 };
+    public static string M2()
+    {
+        return ""world!"";
+    }
+}";
+            var s3 = @"
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        System.Console.Write(A.M1());
+        System.Console.WriteLine(B.M2());
+    }
+}";
+            var comp1 = CreateCompilationWithMscorlib(s1, options: TestOptions.ReleaseModule.WithModuleName("A"));
+            comp1.VerifyDiagnostics();
+            var ref1 = ModuleMetadata.CreateFromStream(comp1.EmitToStream()).GetReference();
+
+            var comp2 = CreateCompilationWithMscorlib(s2, options: TestOptions.ReleaseModule.WithModuleName("B"), references: new[] { ref1 });
+            comp2.VerifyDiagnostics();
+            var ref2 = ModuleMetadata.CreateFromStream(comp2.EmitToStream()).GetReference();
+
+            var comp3 = CreateCompilationWithMscorlib(s3, options: TestOptions.ReleaseExe.WithModuleName("C"), references: new[] { ref1, ref2 });
+            comp3.VerifyDiagnostics();
             CompileAndVerify(comp3, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "Hello, world!");
         }
     }

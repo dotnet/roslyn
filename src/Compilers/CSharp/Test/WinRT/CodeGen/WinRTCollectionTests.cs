@@ -5188,7 +5188,8 @@ class AllMembers
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
                 emitOptions: TestEmitters.RefEmitBug,
-                verify: false);
+                verify: false,
+                options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
