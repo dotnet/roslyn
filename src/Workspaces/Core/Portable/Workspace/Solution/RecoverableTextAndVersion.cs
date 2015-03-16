@@ -9,10 +9,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// A text retainer that will save text to temporary storage when it is evicted from the
+    /// A text source that will save text to temporary storage when it is evicted from the
     /// text cache and reload from that storage if and when it is needed again.
     /// </summary>
-    internal class RecoverableTextAndVersion : RecoverableCachedObjectSource<TextAndVersion>
+    internal class RecoverableTextAndVersion : RecoverableCachedObjectSource<TextAndVersion>, ITextVersionable
     {
         private readonly ITemporaryStorageService _storageService;
 
@@ -32,6 +32,18 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetTextVersion(out VersionStamp version)
         {
             version = _storedVersion;
+
+            // if the TextAndVersion has not been stored yet, but it has been observed
+            // then try to get version from cached value.
+            if (version == default(VersionStamp))
+            {
+                TextAndVersion textAndVersion;
+                if (this.TryGetValue(out textAndVersion))
+                {
+                    version = textAndVersion.Version;
+                }
+            }
+
             return version != default(VersionStamp);
         }
 
