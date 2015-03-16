@@ -4934,11 +4934,9 @@ namespace Microsoft.Cci
                         return;
                 }
 
-                IArrayTypeReference arrayTypeReference;
-                IGenericMethodParameterReference genericMethodParameterReference;
-                IGenericTypeParameterReference genericTypeParameterReference;
 
-                if ((genericTypeParameterReference = typeReference.AsGenericTypeParameterReference) != null)
+                IGenericTypeParameterReference genericTypeParameterReference = typeReference.AsGenericTypeParameterReference;
+                if (genericTypeParameterReference != null)
                 {
                     writer.WriteByte(0x13);
                     uint numberOfInheritedParameters = GetNumberOfInheritedTypeParameters(genericTypeParameterReference.DefiningType);
@@ -4946,7 +4944,8 @@ namespace Microsoft.Cci
                     return;
                 }
 
-                if ((arrayTypeReference = typeReference as IArrayTypeReference) != null && !arrayTypeReference.IsVector)
+                var arrayTypeReference = typeReference as IArrayTypeReference;
+                if (arrayTypeReference?.IsVector == false)
                 {
                     Debug.Assert(noTokens == false, "Custom attributes cannot have multi-dimensional arrays");
 
@@ -4996,7 +4995,8 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                if ((genericMethodParameterReference = typeReference.AsGenericMethodParameterReference) != null)
+                IGenericMethodParameterReference genericMethodParameterReference = typeReference.AsGenericMethodParameterReference;
+                if (genericMethodParameterReference != null)
                 {
                     writer.WriteByte(0x1e);
                     writer.WriteCompressedUInt(genericMethodParameterReference.Index);
@@ -5012,13 +5012,14 @@ namespace Microsoft.Cci
 
                     writer.WriteByte(0x15);
                     this.SerializeTypeReference(uninstantiatedTypeReference, writer, false, false);
-                    ArrayBuilder<ITypeReference> consolidatedTypeArguments = ArrayBuilder<ITypeReference>.GetInstance();
+                    var consolidatedTypeArguments = ArrayBuilder<ITypeReference>.GetInstance();
                     typeReference.GetConsolidatedTypeArguments(consolidatedTypeArguments, this.Context);
                     writer.WriteCompressedUInt((uint)consolidatedTypeArguments.Count);
                     foreach (ITypeReference typeArgument in consolidatedTypeArguments)
                     {
                         this.SerializeTypeReference(typeArgument, writer, false, true);
                     }
+
                     consolidatedTypeArguments.Free();
 
                     return;
@@ -5053,6 +5054,7 @@ namespace Microsoft.Cci
 
                     writer.WriteCompressedUInt(this.GetTypeDefOrRefCodedIndex(typeReference, treatRefAsPotentialTypeSpec));
                 }
+
                 return;
             }
         }
