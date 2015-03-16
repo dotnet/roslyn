@@ -435,7 +435,8 @@ namespace Microsoft.CodeAnalysis
 
             if (tokenType == HandleKind.ModuleReference)
             {
-                return LookupTopLevelTypeDefSymbol(Module.GetModuleRefNameOrThrow((ModuleReferenceHandle)tokenResolutionScope),
+                return LookupTopLevelTypeDefSymbol(
+                    Module.GetModuleRefNameOrThrow((ModuleReferenceHandle)tokenResolutionScope),
                     ref fullName,
                     out isNoPiaLocalType);
             }

@@ -1216,7 +1216,7 @@ namespace Microsoft.CodeAnalysis
             private static bool ParameterMatches(IParameterSymbol symbol, ParameterInfo parameterInfo)
             {
                 // same ref'ness?
-                if ((symbol.RefKind == RefKind.None) != !parameterInfo.IsRefOrOut)
+                if ((symbol.RefKind == RefKind.None) == parameterInfo.IsRefOrOut)
                 {
                     return false;
                 }
@@ -1327,7 +1327,7 @@ namespace Microsoft.CodeAnalysis
 
             private static char PeekNextChar(string id, int index)
             {
-                return (index >= id.Length) ? '\0' : id[index];
+                return index >= id.Length ? '\0' : id[index];
             }
 
             private static readonly char[] s_nameDelimiters = { ':', '.', '(', ')', '{', '}', '[', ']', ',', '\'', '@', '*', '`', '~' };

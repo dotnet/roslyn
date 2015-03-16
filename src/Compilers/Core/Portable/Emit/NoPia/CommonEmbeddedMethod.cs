@@ -69,13 +69,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract Cci.ISignature UnderlyingMethodSignature { get; }
             protected abstract Cci.INamespace ContainingNamespace { get; }
 
-            public TMethodSymbol UnderlyingMethod
-            {
-                get
-                {
-                    return this.UnderlyingSymbol;
-                }
-            }
+            public TMethodSymbol UnderlyingMethod => this.UnderlyingSymbol;
 
             protected sealed override TAttributeData PortAttributeIfNeedTo(TAttributeData attrData, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
             {
@@ -121,40 +115,21 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     visitor.Visit(this);
                 }
 
-                ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions
-                {
-                    get { return ImmutableArray<Cci.ExceptionHandlerRegion>.Empty; }
-                }
+                ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions => 
+                    ImmutableArray<Cci.ExceptionHandlerRegion>.Empty;
 
-                bool Cci.IMethodBody.LocalsAreZeroed
-                {
-                    get { return false; }
-                }
+                bool Cci.IMethodBody.LocalsAreZeroed => false;
 
-                ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables
-                {
-                    get { return ImmutableArray<Cci.ILocalDefinition>.Empty; }
-                }
+                ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables => 
+                    ImmutableArray<Cci.ILocalDefinition>.Empty;
 
-                Cci.IMethodDefinition Cci.IMethodBody.MethodDefinition
-                {
-                    get { return _method; }
-                }
+                Cci.IMethodDefinition Cci.IMethodBody.MethodDefinition => _method;
 
-                ushort Cci.IMethodBody.MaxStack
-                {
-                    get { return 0; }
-                }
+                ushort Cci.IMethodBody.MaxStack => 0;
 
-                byte[] Cci.IMethodBody.IL
-                {
-                    get { return SpecializedCollections.EmptyArray<byte>(); }
-                }
+                byte[] Cci.IMethodBody.IL => SpecializedCollections.EmptyArray<byte>();
 
-                bool Cci.IMethodBody.HasAnySequencePoints
-                {
-                    get { return false; }
-                }
+                bool Cci.IMethodBody.HasAnySequencePoints => false;
 
                 ImmutableArray<Cci.SequencePoint> Cci.IMethodBody.GetSequencePoints()
                 {
@@ -166,189 +141,66 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     return ImmutableArray<Cci.SequencePoint>.Empty;
                 }
 
-                bool Cci.IMethodBody.HasDynamicLocalVariables
-                {
-                    get { return false; }
-                }
+                bool Cci.IMethodBody.HasDynamicLocalVariables => false;
 
-                Cci.AsyncMethodBodyDebugInfo Cci.IMethodBody.AsyncDebugInfo
-                {
-                    get { return null; }
-                }
+                Cci.AsyncMethodBodyDebugInfo Cci.IMethodBody.AsyncDebugInfo => null;
 
-                ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes
-                {
-                    get { return ImmutableArray<Cci.LocalScope>.Empty; }
-                }
+                ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes => 
+                    ImmutableArray<Cci.LocalScope>.Empty;
 
-                Cci.IImportScope Cci.IMethodBody.ImportScope
-                {
-                    get { return null; }
-                }
+                Cci.IImportScope Cci.IMethodBody.ImportScope => null;
 
-                ImmutableArray<Cci.StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes
-                {
-                    get { return default(ImmutableArray<Cci.StateMachineHoistedLocalScope>); }
-                }
+                ImmutableArray<Cci.StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes => 
+                    default(ImmutableArray<Cci.StateMachineHoistedLocalScope>);
 
-                string Cci.IMethodBody.StateMachineTypeName
-                {
-                    get { return null; }
-                }
+                string Cci.IMethodBody.StateMachineTypeName => null;
 
-                ImmutableArray<EncHoistedLocalInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots
-                {
-                    get { return default(ImmutableArray<EncHoistedLocalInfo>); }
-                }
+                ImmutableArray<EncHoistedLocalInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots => 
+                    default(ImmutableArray<EncHoistedLocalInfo>);
 
-                ImmutableArray<Cci.ITypeReference> Cci.IMethodBody.StateMachineAwaiterSlots
-                {
-                    get { return default(ImmutableArray<Cci.ITypeReference>); }
-                }
+                ImmutableArray<Cci.ITypeReference> Cci.IMethodBody.StateMachineAwaiterSlots => 
+                    default(ImmutableArray<Cci.ITypeReference>);
 
-                ImmutableArray<ClosureDebugInfo> Cci.IMethodBody.ClosureDebugInfo
-                {
-                    get { return default(ImmutableArray<ClosureDebugInfo>); }
-                }
+                ImmutableArray<ClosureDebugInfo> Cci.IMethodBody.ClosureDebugInfo => 
+                    default(ImmutableArray<ClosureDebugInfo>);
 
-                ImmutableArray<LambdaDebugInfo> Cci.IMethodBody.LambdaDebugInfo
-                {
-                    get { return default(ImmutableArray<LambdaDebugInfo>); }
-                }
+                ImmutableArray<LambdaDebugInfo> Cci.IMethodBody.LambdaDebugInfo => 
+                    default(ImmutableArray<LambdaDebugInfo>);
 
-                public int MethodOrdinal
-                {
-                    get { return -1; }
-                }
+                public int MethodOrdinal => -1;
             }
 
-            IEnumerable<Cci.IGenericMethodParameter> Cci.IMethodDefinition.GenericParameters
-            {
-                get
-                {
-                    return _typeParameters;
-                }
-            }
+            IEnumerable<Cci.IGenericMethodParameter> Cci.IMethodDefinition.GenericParameters => _typeParameters;
 
-            bool Cci.IMethodDefinition.IsImplicitlyDeclared
-            {
-                get
-                {
-                    return true;
-                }
-            }
+            bool Cci.IMethodDefinition.IsImplicitlyDeclared => true;
 
-            bool Cci.IMethodDefinition.HasDeclarativeSecurity
-            {
-                get
-                {
-                    return false;
-                }
-            }
+            bool Cci.IMethodDefinition.HasDeclarativeSecurity => false;
 
-            bool Cci.IMethodDefinition.IsAbstract
-            {
-                get
-                {
-                    return IsAbstract;
-                }
-            }
+            bool Cci.IMethodDefinition.IsAbstract => IsAbstract;
 
-            bool Cci.IMethodDefinition.IsAccessCheckedOnOverride
-            {
-                get
-                {
-                    return IsAccessCheckedOnOverride;
-                }
-            }
+            bool Cci.IMethodDefinition.IsAccessCheckedOnOverride => IsAccessCheckedOnOverride;
 
-            bool Cci.IMethodDefinition.IsConstructor
-            {
-                get
-                {
-                    return IsConstructor;
-                }
-            }
+            bool Cci.IMethodDefinition.IsConstructor => IsConstructor;
 
-            bool Cci.IMethodDefinition.IsExternal
-            {
-                get
-                {
-                    return IsExternal;
-                }
-            }
+            bool Cci.IMethodDefinition.IsExternal => IsExternal;
 
-            bool Cci.IMethodDefinition.IsHiddenBySignature
-            {
-                get
-                {
-                    return IsHiddenBySignature;
-                }
-            }
+            bool Cci.IMethodDefinition.IsHiddenBySignature => IsHiddenBySignature;
 
-            bool Cci.IMethodDefinition.IsNewSlot
-            {
-                get
-                {
-                    return IsNewSlot;
-                }
-            }
+            bool Cci.IMethodDefinition.IsNewSlot => IsNewSlot;
 
-            bool Cci.IMethodDefinition.IsPlatformInvoke
-            {
-                get
-                {
-                    return PlatformInvokeData != null;
-                }
-            }
+            bool Cci.IMethodDefinition.IsPlatformInvoke => PlatformInvokeData != null;
 
-            Cci.IPlatformInvokeInformation Cci.IMethodDefinition.PlatformInvokeData
-            {
-                get
-                {
-                    return PlatformInvokeData;
-                }
-            }
+            Cci.IPlatformInvokeInformation Cci.IMethodDefinition.PlatformInvokeData => PlatformInvokeData;
 
-            bool Cci.IMethodDefinition.IsRuntimeSpecial
-            {
-                get
-                {
-                    return IsRuntimeSpecial;
-                }
-            }
+            bool Cci.IMethodDefinition.IsRuntimeSpecial => IsRuntimeSpecial;
 
-            bool Cci.IMethodDefinition.IsSpecialName
-            {
-                get
-                {
-                    return IsSpecialName;
-                }
-            }
+            bool Cci.IMethodDefinition.IsSpecialName => IsSpecialName;
 
-            bool Cci.IMethodDefinition.IsSealed
-            {
-                get
-                {
-                    return IsSealed;
-                }
-            }
+            bool Cci.IMethodDefinition.IsSealed => IsSealed;
 
-            bool Cci.IMethodDefinition.IsStatic
-            {
-                get
-                {
-                    return IsStatic;
-                }
-            }
+            bool Cci.IMethodDefinition.IsStatic => IsStatic;
 
-            bool Cci.IMethodDefinition.IsVirtual
-            {
-                get
-                {
-                    return IsVirtual;
-                }
-            }
+            bool Cci.IMethodDefinition.IsVirtual => IsVirtual;
 
             System.Reflection.MethodImplAttributes Cci.IMethodDefinition.GetImplementationAttributes(EmitContext context)
             {
@@ -363,13 +215,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            bool Cci.IMethodDefinition.RequiresSecurityObject
-            {
-                get
-                {
-                    return false;
-                }
-            }
+            bool Cci.IMethodDefinition.RequiresSecurityObject => false;
 
             IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.ReturnValueAttributes
             {
@@ -380,61 +226,20 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            bool Cci.IMethodDefinition.ReturnValueIsMarshalledExplicitly
-            {
-                get
-                {
-                    return ReturnValueIsMarshalledExplicitly;
-                }
-            }
+            bool Cci.IMethodDefinition.ReturnValueIsMarshalledExplicitly => ReturnValueIsMarshalledExplicitly;
 
-            Cci.IMarshallingInformation Cci.IMethodDefinition.ReturnValueMarshallingInformation
-            {
-                get
-                {
-                    return ReturnValueMarshallingInformation;
-                }
-            }
+            Cci.IMarshallingInformation Cci.IMethodDefinition.ReturnValueMarshallingInformation => ReturnValueMarshallingInformation;
 
-            ImmutableArray<byte> Cci.IMethodDefinition.ReturnValueMarshallingDescriptor
-            {
-                get
-                {
-                    return ReturnValueMarshallingDescriptor;
-                }
-            }
+            ImmutableArray<byte> Cci.IMethodDefinition.ReturnValueMarshallingDescriptor => ReturnValueMarshallingDescriptor;
 
-            IEnumerable<Cci.SecurityAttribute> Cci.IMethodDefinition.SecurityAttributes
-            {
-                get
-                {
-                    return SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
-                }
-            }
+            IEnumerable<Cci.SecurityAttribute> Cci.IMethodDefinition.SecurityAttributes => 
+                SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
 
-            Cci.ITypeDefinition Cci.ITypeDefinitionMember.ContainingTypeDefinition
-            {
-                get
-                {
-                    return ContainingType;
-                }
-            }
+            Cci.ITypeDefinition Cci.ITypeDefinitionMember.ContainingTypeDefinition => ContainingType;
 
-            Cci.INamespace Cci.IMethodDefinition.ContainingNamespace
-            {
-                get
-                {
-                    return ContainingNamespace;
-                }
-            }
+            Cci.INamespace Cci.IMethodDefinition.ContainingNamespace => ContainingNamespace;
 
-            Cci.TypeMemberVisibility Cci.ITypeDefinitionMember.Visibility
-            {
-                get
-                {
-                    return Visibility;
-                }
-            }
+            Cci.TypeMemberVisibility Cci.ITypeDefinitionMember.Visibility => Visibility;
 
             Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
             {
@@ -451,34 +256,13 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return this;
             }
 
-            string Cci.INamedEntity.Name
-            {
-                get { return Name; }
-            }
+            string Cci.INamedEntity.Name => Name;
 
-            bool Cci.IMethodReference.AcceptsExtraArguments
-            {
-                get
-                {
-                    return AcceptsExtraArguments;
-                }
-            }
+            bool Cci.IMethodReference.AcceptsExtraArguments => AcceptsExtraArguments;
 
-            ushort Cci.IMethodReference.GenericParameterCount
-            {
-                get
-                {
-                    return (ushort)_typeParameters.Length;
-                }
-            }
+            ushort Cci.IMethodReference.GenericParameterCount => (ushort)_typeParameters.Length;
 
-            bool Cci.IMethodReference.IsGeneric
-            {
-                get
-                {
-                    return _typeParameters.Length > 0;
-                }
-            }
+            bool Cci.IMethodReference.IsGeneric => _typeParameters.Length > 0;
 
             Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
             {
@@ -494,58 +278,23 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.IGenericMethodInstanceReference Cci.IMethodReference.AsGenericMethodInstanceReference
-            {
-                get
-                {
-                    return null;
-                }
-            }
+            Cci.IGenericMethodInstanceReference Cci.IMethodReference.AsGenericMethodInstanceReference => null;
 
-            Cci.ISpecializedMethodReference Cci.IMethodReference.AsSpecializedMethodReference
-            {
-                get
-                {
-                    return null;
-                }
-            }
+            Cci.ISpecializedMethodReference Cci.IMethodReference.AsSpecializedMethodReference => null;
 
-            Cci.CallingConvention Cci.ISignature.CallingConvention
-            {
-                get
-                {
-                    return CallingConvention;
-                }
-            }
+            Cci.CallingConvention Cci.ISignature.CallingConvention => CallingConvention;
 
-            ushort Cci.ISignature.ParameterCount
-            {
-                get
-                {
-                    return (ushort)_parameters.Length;
-                }
-            }
+            ushort Cci.ISignature.ParameterCount => (ushort)_parameters.Length;
 
             ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
             {
                 return StaticCast<Cci.IParameterTypeInformation>.From(_parameters);
             }
 
-            ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
-            {
-                get
-                {
-                    return UnderlyingMethodSignature.ReturnValueCustomModifiers;
-                }
-            }
+            ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers => 
+                UnderlyingMethodSignature.ReturnValueCustomModifiers;
 
-            bool Cci.ISignature.ReturnValueIsByRef
-            {
-                get
-                {
-                    return UnderlyingMethodSignature.ReturnValueIsByRef;
-                }
-            }
+            bool Cci.ISignature.ReturnValueIsByRef => UnderlyingMethodSignature.ReturnValueIsByRef;
 
             Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
             {
