@@ -287,15 +287,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The DiagnosticDescriptor with ID &apos;{0}&apos; threw an exception with message &apos;{1}&apos;..
-        /// </summary>
-        internal static string DiagnosticDescriptorThrows {
-            get {
-                return ResourceManager.GetString("DiagnosticDescriptorThrows", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A DiagnosticDescriptor must have an Id that is neiter null nor an empty string nor a string that only contains white space..
         /// </summary>
         internal static string DiagnosticIdCantBeNullOrWhitespace {
