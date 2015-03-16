@@ -48,14 +48,25 @@
 
   <Target Name="Test">
 
-    <ItemGroup Condition="'$(PublicBuild)' == ''">
+    <ItemGroup Condition="'$(PublicBuild)' == '' AND '$(CIBuild)' == ''">
       <TestAssemblies 
         Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" 
         Exclude="Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll" />
     </ItemGroup>
 
+    <ItemGroup Condition="'$(PublicBuild)' == '' AND '$(CIBuild)' == 'true'">
+      <TestAssemblies 
+        Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" 
+        Exclude="
+        Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
+        Binaries\$(Configuration)\*ResultProvider*.UnitTests.dll;
+        Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;
+        Binaries\$(Configuration)\Roslyn.ExpressionEvaluator.CSharp.ResultProvider.UnitTests.dll;
+        Binaries\$(Configuration)\Roslyn.ExpressionEvaluator.VisualBasic.ResultProvider.UnitTests.dll;" />
+    </ItemGroup>
+
     <!-- The Microsoft.CodeAnalysis.Scripting.UnitTests.dll is disabled due to https://github.com/dotnet/roslyn/issues/860 -->
-    <ItemGroup Condition="'$(PublicBuild)' == 'true'">
+    <ItemGroup Condition="'$(PublicBuild)' == 'true' AND '$(CIBuild)' == ''">
       <TestAssemblies 
         Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" 
         Exclude="
