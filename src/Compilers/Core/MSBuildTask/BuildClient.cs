@@ -52,35 +52,41 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             RequestLanguage language,
             Func<string[], int> fallbackCompiler)
         {
-            var errorMessage = CommandLineParser.CheckClientArgsForErrors(args);
+            args = args.Select(arg => arg.Trim()).ToArray();
 
+            bool hasShared;
+            var errorMessage = CommandLineParser.CheckArgsForClientErrors(args, out hasShared);
             if (errorMessage != null)
             {
                 Console.Out.WriteLine(errorMessage);
                 return CommonCompiler.Failed;
             }
 
-            var responseTask = TryRunServerCompilation(
-                language,
-                Environment.CurrentDirectory,
-                args,
-                default(CancellationToken),
-                libEnvVariable: Environment.GetEnvironmentVariable("LIB"));
-
-            responseTask.Wait();
-
-            int exitCode;
-            var response = responseTask.Result;
-            if (response != null)
+            IEnumerable<string> validatedArgs = args;
+            if (hasShared)
             {
-                exitCode = HandleResponse(response);
-            }
-            else
-            {
-                exitCode = fallbackCompiler(args.Where(arg => !arg.StartsWith("/keepalive", StringComparison.Ordinal)).ToArray());
+                validatedArgs = validatedArgs
+                    .Where(arg => !string.Equals(arg,
+                                                 "/shared",
+                                                 StringComparison.OrdinalIgnoreCase));
+                var responseTask = TryRunServerCompilation(
+                    language,
+                    Environment.CurrentDirectory,
+                    validatedArgs.ToArray(),
+                    default(CancellationToken),
+                    libEnvVariable: Environment.GetEnvironmentVariable("LIB"));
+
+                var response = responseTask.Result;
+                if (response != null)
+                {
+                    return HandleResponse(response);
+                }
             }
 
-            return exitCode;
+            validatedArgs = validatedArgs
+                .Where(arg => !arg.StartsWith("/keepalive", StringComparison.OrdinalIgnoreCase));
+
+            return fallbackCompiler(validatedArgs.ToArray());
         }
 
         private static int HandleResponse(BuildResponse response)

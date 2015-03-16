@@ -3,11 +3,11 @@
 using Microsoft.CodeAnalysis.BuildTasks;
 using static Microsoft.CodeAnalysis.CompilerServer.BuildProtocolConstants;
 
-namespace Microsoft.CodeAnalysis.CSharp.CommandLine
+namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {
     public class Program
     {
         public static int Main(string[] args)
-            => BuildClient.RunWithConsoleOutput(args, RequestLanguage.CSharpCompile, Csc.Run);
+            => BuildClient.RunWithConsoleOutput(args, RequestLanguage.VisualBasicCompile, Vbc.Run);
     }
 }

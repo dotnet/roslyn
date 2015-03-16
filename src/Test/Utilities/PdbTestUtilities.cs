@@ -5,7 +5,9 @@ extern alias PDB;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.Emit;
-using PDB::Microsoft.VisualStudio.SymReaderInterop;
+using Microsoft.DiaSymReader;
+using PDB::Microsoft.DiaSymReader;
+using PDB::Microsoft.CodeAnalysis;
 
 namespace Roslyn.Test.Utilities
 {

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.VisualStudio.TableControl;
 using Microsoft.VisualStudio.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
