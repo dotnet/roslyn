@@ -3231,7 +3231,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: "222333");
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("ＭＯＤＵＬＥ"), expectedOutput: "222333");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -3241,7 +3241,7 @@ public class D
   IL_0000:  ldc.i4.4
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails><MODULE>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails><MODULE>.42F1B77334EDFA917032CCF8353020C73F8C62E1""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails><ＭＯＤＵＬＥ>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails><ＭＯＤＵＬＥ>.42F1B77334EDFA917032CCF8353020C73F8C62E1""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  stloc.0
   IL_0012:  ldloc.0
