@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -2200,7 +2201,7 @@ Next
 
 #Region "Lambdas"
         <Fact>
-        Public Sub Lambdas_InVariableDelcarator()
+        Public Sub Lambdas_InVariableDeclarator()
             Dim src1 = "Dim x = Function(a) a, y = Function(b) b"
             Dim src2 = "Dim x = Sub(a) a, y = Function(b) (b + 1)"
             Dim edits = GetMethodEdits(src1, src2)
@@ -2244,6 +2245,1625 @@ Next
             edits.VerifyEdits(
                 "Update [Sub()" & vbLf & "G(Function(x) y) : End Sub]@10 -> [Function(q) G(Sub(x) f())]@10")
         End Sub
+
+        <Fact>
+        Public Sub Lambdas_Insert_Static_Top()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub F()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub F()
+        Dim f = new Func(Of Integer, Integer)(Function(a) a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Insert_Static_Nested1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function G(f As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Sub F()
+        G(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function G(f As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Sub F()
+        G(Function(a) G(Function(b) b) + a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Insert_ThisOnly_Top1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Dim x As Integer = 0
+
+    Function G(f As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Sub F()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Dim x As Integer = 0
+
+    Function G(f As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Sub F()
+        G(Function(a) x)
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' TODO allow creating a new leaf closure
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "F", "Me"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Insert_ThisOnly_Top2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Do
+            Dim x As Integer = 2
+            Dim f1 = New Func(Of Integer, Integer)(Function(a) y)
+        Loop
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Do
+            Dim x As Integer = 2
+            Dim f2 = From a In {1} Select a + y
+            Dim f3 = From a In {1} Where x > 0 Select a
+        Loop
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Insert_ThisOnly_Nested1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Dim x As Integer = 0
+
+    Function G(f As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Sub F()
+        G(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Dim x As Integer = 0
+
+    Function G(f As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Sub F()
+        G(Function(a) G(Function(b) x))
+    End Sub
+End Class
+
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "F", "Me"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Insert_ThisOnly_Nested2()
+            Dim src1 = "
+Imports System
+
+Class C
+    Dim x As Integer = 0
+
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a)
+                Dim f2 = New Func(Of Integer, Integer)(
+                    Function(b)
+                        Return b
+                    End Function)
+                Return a
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+
+    Dim x As Integer = 0
+
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a)
+                Dim f2 = New Func(Of Integer, Integer)(
+                    Function(b)
+                        Return b
+                    End Function)
+
+                Dim f3 = New Func(Of Integer, Integer)(
+                    Function(c)
+                        Return c + x
+                    End Function)
+                Return a
+            End Function)
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "F", "Me"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_InsertAndDelete_Scopes1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0, y As Integer = 0                   ' Group #0
+
+    Sub F()
+        Dim x0 As Integer = 0, y0 As Integer = 0             ' Group #1
+        Do
+            Dim x1 As Integer = 0, y1 As Integer = 0         ' Group #2
+            Do
+                Dim x2 As Integer = 0, y2 As Integer = 0     ' Group #1
+                Do
+                    Dim x3 As Integer = 0, y3 As Integer = 0 ' Group #2
+
+                    G(Function(a) x3 + x1)
+                    G(Function(a) x0 + y0 + x2)
+                    G(Function(a) x)
+                Loop
+            Loop
+        Loop
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0, y As Integer = 0                   ' Group #0
+
+    Sub F()
+        Dim x0 As Integer = 0, y0 As Integer = 0             ' Group #1
+        Do
+            Dim x1 As Integer = 0, y1 As Integer = 0         ' Group #2
+            Do
+                Dim x2 As Integer = 0, y2 As Integer = 0     ' Group #1
+                Do
+                    Dim x3 As Integer = 0, y3 As Integer = 0 ' Group #2
+
+                    G(Function(a) x3 + x1)
+                    G(Function(a) x0 + y0 + x2)
+                    G(Function(a) x)
+
+                    G(Function(a) x)                         ' OK
+                    G(Function(a) x0 + y0)                   ' OK
+                    G(Function(a) x1 + y0)                   ' error - connecting Group #1 and Group #2
+                    G(Function(a) x3 + x1)                   ' error - multi-scope (conservative)
+                    G(Function(a) x + y0)                    ' error - connecting Group #0 and Group #1
+                    G(Function(a) x + x3)                    ' error - connecting Group #0 and Group #2
+                Loop
+            Loop
+        Loop
+    End Sub
+End Class"
+
+            Dim insert = GetTopEdits(src1, src2)
+            insert.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "y0", "x1"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", "lambda", "x1", "x3"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "y0", "lambda", "Me", "y0"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", "lambda", "Me", "x3"))
+
+            Dim delete = GetTopEdits(src2, src1)
+            delete.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x1", "lambda", "y0", "x1"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", "lambda", "x1", "x3"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "y0", "lambda", "Me", "y0"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", "lambda", "Me", "x3"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_This()
+            Dim src1 = "
+Imports System
+
+Class C
+    Dim x As Integer = 1
+
+    Sub F()
+        Dim f = New Func(Of Integer, Integer)(Function(a) a + x)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Dim x As Integer
+
+    Sub F()
+        Dim f = New Func(Of Integer, Integer)(Function(a) a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "Me"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        Public Sub Lambdas_Update_Signature1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Long, Long))
+    End Sub
+
+    Sub F()
+        G1(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Long, Long))
+    End Sub
+
+    Sub F()
+        G2(Function(a) a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", "lambda"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        Public Sub Lambdas_Update_Signature2()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer, Integer))
+    End Sub
+
+    Sub F()
+        G1(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer, Integer))
+    End Sub
+
+    Sub F()
+        G2(Function(a, b) a + b)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(a, b)", "lambda"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        Public Sub Lambdas_Update_Signature3()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Long))
+    End Sub
+
+    Sub F()
+        G1(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Long))
+    End Sub
+
+    Sub F()
+        G2(Function(a) a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "a", "lambda"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Signature_SyntaxOnly1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G1(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G2(Function(a) a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        Public Sub Lambdas_Update_Signature_ReturnType1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Action(Of Integer))
+    End Sub
+
+    Sub F()
+        G1(Function(a)
+            Return 1
+        End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Action(Of Integer))
+    End Sub
+
+    Sub F()
+        G2(Sub(a)
+           End Sub)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "a", "lambda"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Signature_BodySyntaxOnly()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G1(Function(a)
+               Return 1
+           End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G2(Function(a) 2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Signature_ParameterName1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G1(Function(a) 1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G2(Function(b) 2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        Public Sub Lambdas_Update_Signature_ParameterRefness1()
+            Dim src1 = "
+Imports System
+
+Delegate Function D1(ByRef a As Integer) As Integer
+Delegate Function D2(a As Integer) As Integer
+
+Class C
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G1(Function(ByRef a As Integer) 1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Delegate Function D1(ByRef a As Integer) As Integer
+Delegate Function D2(a As Integer) As Integer
+
+Class C
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G2(Function(a As Integer) 2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(a As Integer)", "lambda"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_DelegateType1()
+            Dim src1 = "
+Imports System
+
+Delegate Function D1(a As Integer) As Integer
+Delegate Function D2(a As Integer) As Integer
+
+Class C
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G1(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Delegate Function D1(a As Integer) As Integer
+Delegate Function D2(a As Integer) As Integer
+
+Class C
+
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G2(Function(a) a)
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_SourceType1()
+            Dim src1 = "
+Imports System
+
+Delegate Function D1(a As C) As C
+Delegate Function D2(a As C) As C
+
+Class C
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G1(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Delegate Function D1(a As C) As C
+Delegate Function D2(a As C) As C
+
+Class C
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G2(Function(a) a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        Public Sub Lambdas_Update_SourceType2()
+            Dim src1 = "
+Imports System
+
+Delegate Function D1(a As C) As C
+Delegate Function D2(a As B) As B
+
+Class B
+End Class
+
+Class C
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G1(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Delegate Function D1(a As C) As C
+Delegate Function D2(a As B) As B
+
+Class B
+End Class
+
+Class C
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G2(Function(a) a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", "lambda"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        Public Sub Lambdas_Update_SourceTypeAndMetadataType1()
+            Dim src1 = "
+Namespace [System]
+
+    Delegate Function D1(a As String) As String
+    Delegate Function D2(a As [String]) As [String]
+
+    Class [String]
+    End Class
+
+    Class C
+
+        Sub G1(f As D1)
+        End Sub
+
+        Sub G2(f As D2)
+        End Sub
+
+        Sub F()
+            G1(Function(a) a)
+        End Sub
+    End Class
+End Namespace
+"
+            Dim src2 = "
+Namespace [System]
+
+    Delegate Function D1(a As String) As String
+    Delegate Function D2(a As [String]) As [String]
+
+    Class [String]
+    End Class
+
+    Class C
+        Sub G1(f As D1)
+        End Sub
+
+        Sub G2(f As D2)
+        End Sub
+
+        Sub F()
+            G2(Function(a) a)
+        End Sub
+    End Class
+End Namespace
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", "lambda"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Generic1()
+            Dim src1 = "
+Delegate Function D1(Of S, T)(a As S, b As T) As T
+Delegate Function D2(Of S, T)(a As T, b As S) As T
+
+Class C
+
+    Sub G1(f As D1(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As D2(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G1(Function(a, b) a + b)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Delegate Function D1(Of S, T)(a As S, b As T) As T
+Delegate Function D2(Of S, T)(a As T, b As S) As T
+
+Class C
+    Sub G1(f As D1(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As D2(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G2(Function(a, b) a + b)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        Public Sub Lambdas_Update_Generic2()
+            Dim src1 = "
+Delegate Function D1(Of S, T)(a As S, b As T) As Integer
+Delegate Function D2(Of S, T)(a As T, b As S) As Integer
+
+Class C
+    Sub G1(f As D1(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As D2(Of Integer, String))
+    End Sub
+
+    Sub F()
+        G1(Function(a, b) 1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Delegate Function D1(Of S, T)(a As S, b As T) As Integer
+Delegate Function D2(Of S, T)(a As T, b As S) As Integer
+
+Class C
+    Sub G1(f As D1(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As D2(Of Integer, String))
+    End Sub
+
+    Sub F()
+        G2(Function(a, b) 1)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(a, b)", "lambda"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CapturedParameters1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F(x1 As Integer)
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) x1 + a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F(x1 As Integer)
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) x1 + a2 + 1)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_Closure1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) y + a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2)
+                Return a1 + y
+            End Function)
+    End Sub
+End Class
+
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function(a2)", "y", "lambda"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_IndexerParameter2()
+            Dim src1 = "
+Imports System
+Class C
+    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+        End Get
+    End Property
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return New Func(Of Integer, Integer)(Function(a3) a2)
+        End Get
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a1 As Integer", "a1"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_MethodParameter1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F(a1 As Integer, a2 As Integer)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F(a1 As Integer, a2 As Integer)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a2 As Integer", "a2"))
+        End Sub
+
+        <Fact, WorkItem(1290)>
+        Public Sub Lambdas_Update_CeaseCapture_LambdaParameter1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) a2) 
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' TODO: better location (bug 1290)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "a1"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_DeleteCapture1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) y + a2)
+                Return y
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer)(Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.DeletingCapturedVariable, "Sub F()", "y"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_IndexerGetterParameter2()
+            Dim src1 = "
+Imports System
+Class C
+    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return New Func(Of Integer, Integer)(Function(a3) a2)
+        End Get
+    End Property
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+        End Get
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' TODO: better location
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "Get", "a1"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_IndexerSetterParameter1()
+            Dim src1 = "
+Imports System
+Class C
+    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return Nothing
+        End Get
+        Set
+            Dim f = New Func(Of Integer, Integer)(Function(a3) a2)
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return Nothing
+        End Get
+        Set
+            Dim f = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+        End Set
+    End Property
+End Class
+"
+            ' better location
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "Set", "a1"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_MethodParameter1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F(a1 As Integer, a2 As Integer)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F(a1 As Integer, a2 As Integer)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a2 As Integer", "a2"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_LambdaParameter1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_StaticToThisOnly1()
+            Dim src1 = "
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    Sub F()
+        Dim f = New Func(Of Integer, Integer)(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    Sub F()
+        Dim f = New Func(Of Integer, Integer)(Function(a) a + x)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "F", "Me"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_StaticToThisOnly_Partial()
+            Dim src1 = "
+Imports System
+
+Partial Class C
+    Dim x As Integer = 1
+    Partial Sub F() ' def
+    End Sub
+End Class
+
+Partial Class C
+    Partial Sub F() ' impl
+        Dim f = New Func(Of Integer, Integer)(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Partial Class C
+    Dim x As Integer = 1
+    Partial Sub F() ' def
+    End Sub
+End Class
+
+Partial Class C
+    Partial Sub F() ' impl
+        Dim f = New Func(Of Integer, Integer)(Function(a) a + x)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "F", "Me").WithFirstLine("Partial Sub F() ' impl"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_StaticToThisOnly3()
+            Dim src1 = "
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer)(Function(a1) a1)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + x)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer)(Function(a1) a1 + x)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + x)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "Function(a1)", "Me", "lambda"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_StaticToClosure1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F()
+        Dim x As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(Function(a1) a1)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + x)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F()
+        Dim x As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Return a1 +
+                        x + ' 1
+                        x   ' 2
+            End Function)
+
+        Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + x)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", "lambda").WithFirstLine("x + ' 1"),
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", "lambda").WithFirstLine("x   ' 2"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_ThisOnlyToClosure1()
+            Dim src1 = "
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(Function(a1) a1 + x)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + x + y)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(Function(a1) a1 + x + y)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + x + y)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "y", "y", "lambda"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Nested1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + y)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + y)
+                Return a1 + y
+            End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Nested2()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) a1 + a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1").WithFirstLine("Function(a1)"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Accessing_Closure1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        Dim x0 As Integer = 0, y0 As Integer = 0
+        G(Function(a) x0)
+        G(Function(a) y0)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        Dim x0 As Integer = 0, y0 As Integer = 0
+        G(Function(a) x0)
+        G(Function(a) y0 + x0)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x0", "x0", "lambda"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Accessing_Closure2()
+            Dim src1 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0                                    ' Group #0
+
+    Sub F()
+        Do
+            Dim x0 As Integer = 0, y0 As Integer = 0        ' Group #0
+            Do
+                Dim x1 As Integer = 0, y1 As Integer = 0    ' Group #1
+
+                G(Function(a) x + x0)
+                G(Function(a) x0)
+                G(Function(a) y0)
+                G(Function(a) x1)
+            Loop
+        Loop
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0                                    ' Group #0
+
+    Sub F()
+        Do
+            Dim x0 As Integer = 0, y0 As Integer = 0        ' Group #0
+            Do
+                Dim x1 As Integer = 0, y1 As Integer = 0    ' Group #1
+
+                G(Function(a) x)  ' error: disconnecting previously connected closures
+                G(Function(a) x0)
+                G(Function(a) y0)
+                G(Function(a) x1)
+            Loop
+        Loop
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function(a)", "x0", "lambda"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Accessing_Closure3()
+            Dim src1 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0                                        ' Group #0
+
+    Sub F()
+        Do
+            Dim x0 As Integer = 0, y0 As Integer = 0            ' Group #0
+            Do                                                  
+                Dim x1 As Integer = 0, y1 As Integer = 0        ' Group #1
+                
+                G(Function(a) x)
+                G(Function(a) x0)
+                G(Function(a) y0)
+                G(Function(a) x1)
+                G(Function(a) y1)
+            Loop
+        Loop
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0                                        ' Group #0
+
+    Sub F()
+        Do
+            Dim x0 As Integer = 0, y0 As Integer = 0            ' Group #0
+            Do                                                  
+                Dim x1 As Integer = 0, y1 As Integer = 0        ' Group #1
+                
+                G(Function(a) x)
+                G(Function(a) x0)
+                G(Function(a) y0)
+                G(Function(a) x1)
+                G(Function(a) y1 + x0) ' error: connecting previously disconnected closures
+            Loop
+        Loop
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x0", "x0", "lambda"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Accessing_Closure4()
+            Dim src1 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0                                    ' Group #0
+    
+    Sub F()
+        Do
+            Dim x0 As Integer = 0, y0 As Integer = 0        ' Group #0
+            Do                                              
+                Dim x1 As Integer = 0, y1 As Integer = 0    ' Group #1
+
+                G(Function(a) x + x0)
+                G(Function(a) x0)
+                G(Function(a) y0)
+                G(Function(a) x1)
+                G(Function(a) y1)
+            Loop
+        Loop
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0                                    ' Group #0
+
+    Sub F()
+        Do
+            Dim x0 As Integer = 0, y0 As Integer = 0        ' Group #0  
+            Do
+                Dim x1 As Integer = 0, y1 As Integer = 0    ' Group #1
+
+                G(Function(a) x)       ' error: disconnecting previously connected closures
+                G(Function(a) x0)      
+                G(Function(a) y0)      
+                G(Function(a) x1)      
+                G(Function(a) y1 + x0) ' error: connecting previously disconnected closures
+            Loop
+        Loop
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' TODO "Function(a) x + x0" Is matched with "Function(a) y1 + x0", hence we report more errors.
+            ' Including statement distance when matching would help.
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function(a)", "Me", "lambda").WithFirstLine("G(Function(a) y1 + x0) ' error: connecting previously disconnected closures"),
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "y1", "y1", "lambda").WithFirstLine("G(Function(a) y1 + x0) ' error: connecting previously disconnected closures"),
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "Function(a)", "Me", "lambda").WithFirstLine("G(Function(a) x)       ' error: disconnecting previously connected closures"),
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function(a)", "y1", "lambda").WithFirstLine("G(Function(a) x)       ' error: disconnecting previously connected closures"))
+        End Sub
+
+
+#End Region
+
+#Region "Queries"
 
         <Fact>
         Public Sub Queries_FromSelect_Update()

@@ -4234,7 +4234,7 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        Dim <AS:0>s = From a In b Select b.bar</AS:0>
+        Dim s = <AS:0>From</AS:0> a In b Select b.bar
         <AS:1>s.ToArray()</AS:1>
     End Sub
 End Class
@@ -4242,7 +4242,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = From a In b Select b.bar", "Where clause"))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", "Where clause"))
         End Sub
 
         <Fact, WorkItem(841361)>
@@ -4259,7 +4259,7 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        Dim <AS:0>s = From a In b Select x</AS:0>
+        Dim s = <AS:0>From</AS:0> a In b Select x
         <AS:1>s.ToArray()</AS:1>
     End Sub
 End Class
@@ -4269,7 +4269,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = From a In b Select x", "Let clause"))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", "Let clause"))
         End Sub
 
         <Fact>
@@ -4288,7 +4288,7 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        Dim <AS:0>s = From a In b Select a.bar</AS:0>
+        Dim s = <AS:0>From</AS:0> a In b Select a.bar
         <AS:1>s.ToArray()</AS:1>
     End Sub
 End Class
@@ -4296,7 +4296,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = From a In b Select a.bar", "join condition"))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", "join condition"))
         End Sub
 
         <Fact>
@@ -4315,7 +4315,7 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        Dim <AS:0>s = From a In b Select a.bar</AS:0>
+        Dim s = <AS:0>From</AS:0> a In b Select a.bar
         <AS:1>s.ToArray()</AS:1>
     End Sub
 End Class
@@ -4323,7 +4323,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = From a In b Select a.bar", "ordering clause"))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", "ordering clause"))
         End Sub
 
         <Fact>
@@ -4342,7 +4342,7 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        Dim <AS:0>s = From a In b Select a.bar</AS:0>
+        Dim s = <AS:0>From</AS:0> a In b Select a.bar
         <AS:1>s.ToArray()</AS:1>
     End Sub
 End Class
@@ -4350,7 +4350,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = From a In b Select a.bar", "ordering clause"))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", "ordering clause"))
         End Sub
 
         <Fact>
@@ -4369,7 +4369,7 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        Dim <AS:0>s = From a In b Select a.bar</AS:0>
+        Dim s = <AS:0>From</AS:0> a In b Select a.bar
         <AS:1>s.ToArray()</AS:1>
     End Sub
 End Class
@@ -4377,7 +4377,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = From a In b Select a.bar", "ordering clause"))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", "ordering clause"))
         End Sub
 
         <Fact>
@@ -4412,7 +4412,32 @@ End Class
 
         <Fact>
         Public Sub MethodToIteratorMethod_WithActiveStatementInLambda()
-            ' TODO
+            Dim src1 = "
+Imports System
+Imports System.Collections.Generic
+Class C
+    Function F() As IEnumerable(Of Integer)
+        Dim a = Sub() <AS:0>Console.WriteLine(1)</AS:0>
+        a()
+        Return {1, 1}
+    End Function
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Collections.Generic
+Class C
+    Iterator Function F() As IEnumerable(Of Integer)
+        Dim a = Sub() <AS:0>Console.WriteLine(1)</AS:0>
+        a()
+        Yield 1
+    End Function
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4427,7 +4452,32 @@ End Class
 
         <Fact>
         Public Sub MethodToAsyncMethod_WithActiveStatementInLambda()
-            ' TODO
+            Dim src1 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Function F() As Task(Of Integer)
+        Dim a = Sub() <AS:0>Console.WriteLine(1)</AS:0>
+        a()
+        Return Task.FromResult(1)
+    End Function
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Async Function F() As Task(Of Integer)
+        Dim a = Sub() <AS:0>Console.WriteLine(1)</AS:0>
+        a()
+        Return Await Task.FromResult(1)
+    End Function
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact>

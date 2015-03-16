@@ -149,9 +149,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Given a node that represents a lambda body returns all nodes of the body in a syntax list.
         /// </summary>
         /// <remarks>
-        /// Note that VB lambda bodies are represented by a lambda header and that some lambda bodies share their parent nodes with other bodies (e.g. join clause expressions).
+        /// Note that VB lambda bodies are represented by a lambda header and that some lambda bodies share 
+        /// their parent nodes with other bodies (e.g. join clause expressions).
         /// </remarks>
-        protected abstract SyntaxList<SyntaxNode> GetLambdaBodyNodes(SyntaxNode lambdaBody);
+        protected abstract SyntaxList<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody);
 
         protected abstract SyntaxNode GetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda);
 
@@ -2676,7 +2677,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             {
                                 // captured variable accessed in new lambda is not accessed in the old lambda
                                 bool hasUseSites = false;
-                                foreach (var useSite in GetVariableUseSites(GetLambdaBodyNodes(newLambdaBody), newCapture, newModel, cancellationToken))
+                                foreach (var useSite in GetVariableUseSites(GetLambdaBodyExpressionsAndStatements(newLambdaBody), newCapture, newModel, cancellationToken))
                                 {
                                     hasUseSites = true;
                                     diagnostics.Add(new RudeEditDiagnostic(rudeEdit, useSite.Span, null, arguments));
@@ -2776,6 +2777,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             bool isInsert,
             CancellationToken cancellationToken)
         {
+            if (captures.Length == 0)
+            {
+                return;
+            }
+
             BitVector accessedCaptures = GetAccessedCaptures(lambdaBody, model, captures, capturesIndex);
 
             int firstAccessedCaptureIndex = -1;
@@ -2801,7 +2807,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             }
                             else
                             {
-                                errorSpan = GetVariableUseSites(GetLambdaBodyNodes(lambdaBody), captures[i], model, cancellationToken).First().Span;
+                                errorSpan = GetVariableUseSites(GetLambdaBodyExpressionsAndStatements(lambdaBody), captures[i], model, cancellationToken).First().Span;
                             }
 
                             rudeEdit = RudeEditKind.InsertLambdaWithMultiScopeCapture;
@@ -2824,12 +2830,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static BitVector GetAccessedCaptures(SyntaxNode lambdaBody, SemanticModel model, ImmutableArray<ISymbol> captures, PooledDictionary<ISymbol, int> capturesIndex)
+        private BitVector GetAccessedCaptures(SyntaxNode lambdaBody, SemanticModel model, ImmutableArray<ISymbol> captures, PooledDictionary<ISymbol, int> capturesIndex)
         {
-            var dataFlow = model.AnalyzeDataFlow(lambdaBody);
             BitVector result = BitVector.Create(captures.Length);
-            MarkVariables(ref result, dataFlow.ReadInside, capturesIndex);
-            MarkVariables(ref result, dataFlow.WrittenInside, capturesIndex);
+
+            foreach (var expressionOrStatement in GetLambdaBodyExpressionsAndStatements(lambdaBody))
+            {
+                var dataFlow = model.AnalyzeDataFlow(expressionOrStatement);
+                MarkVariables(ref result, dataFlow.ReadInside, capturesIndex);
+                MarkVariables(ref result, dataFlow.WrittenInside, capturesIndex);
+            }
+            
             return result;
         }
 
@@ -3102,11 +3113,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // We don't include lambda parameters in mapping, so we need to go thru symbols:
                         var oldCaptureSyntax = GetSymbolSyntax(oldCapture, cancellationToken);
                         var oldContainingLambda = (IMethodSymbol)oldModel.GetEnclosingSymbol(oldCaptureSyntax.SpanStart);
-                        var oldContainingLambdaSyntax = GetSymbolSyntax(oldContainingLambda, cancellationToken);
-                        var newContainingLambdaSyntax = map.Forward[oldContainingLambdaSyntax];
-                        var newContainingLambda = (IMethodSymbol)newModel.GetEnclosingSymbol(newContainingLambdaSyntax.SpanStart);
 
-                        span = GetVariableDiagnosticSpan(newContainingLambda.Parameters[ordinal], cancellationToken);
+                        // TODO: VB doesn't return lambda symbol, but the containing method (bug https://github.com/dotnet/roslyn/issues/1290)
+                        if (oldContainingLambda.MethodKind == MethodKind.LambdaMethod)
+                        {
+                            var oldContainingLambdaSyntax = GetSymbolSyntax(oldContainingLambda, cancellationToken);
+                            var newContainingLambdaSyntax = map.Forward[oldContainingLambdaSyntax];
+                            var newContainingLambda = (IMethodSymbol)newModel.GetEnclosingSymbol(newContainingLambdaSyntax.SpanStart);
+                            span = GetVariableDiagnosticSpan(newContainingLambda.Parameters[ordinal], cancellationToken);
+                        }
+                        else
+                        {
+                            span = GetThisParameterDiagnosticSpan(newMember);
+                        }
                     }
 
                     diagnostics.Add(new RudeEditDiagnostic(

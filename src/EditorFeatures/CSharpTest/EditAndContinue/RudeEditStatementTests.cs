@@ -2458,7 +2458,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
 
-        [Fact]
+        [Fact, WorkItem(1291)]
         public void Lambdas_Insert_ThisOnly_Top2()
         {
             var src1 = @"
@@ -2496,6 +2496,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
+            // TODO: seems incorrect, a is not captured (bug 1291)
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.CapturingVariable, "from a in new[] { 1 }", "a"),
                 Diagnostic(RudeEditKind.CapturingVariable, "x = 2", "x"),
@@ -3055,6 +3056,7 @@ class C
                 Diagnostic(RudeEditKind.ChangingLambdaParameters, "(out int a)", "lambda"));
         }
 
+        // Add corresponding test to VB
         [Fact(Skip = "TODO")]
         public void Lambdas_Update_Signature_CustomModifiers1()
         {
@@ -3324,8 +3326,6 @@ namespace System
 delegate T D1<S, T>(S a, T b);
 delegate T D2<S, T>(T a, S b);
 
-class String { }
-
 class C
 {
     void G1(D1<int, int> f) {}
@@ -3340,8 +3340,6 @@ class C
             var src2 = @"
 delegate T D1<S, T>(S a, T b);
 delegate T D2<S, T>(T a, S b);
-
-class String { }
 
 class C
 {
@@ -3855,7 +3853,7 @@ using System;
 
 class C
 {
-    int x;
+    int x = 1;
    
     void F()
     {
@@ -3934,7 +3932,7 @@ using System;
 
 class C
 {
-    int x;
+    int x = 1;
    
     void F()
     {

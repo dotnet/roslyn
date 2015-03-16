@@ -348,6 +348,139 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
+        Friend Shared Function GetLambdaBodyExpressionsAndStatements(lambdaBody As SyntaxNode) As SyntaxList(Of SyntaxNode)
+            Dim lambda = GetLambda(lambdaBody)
+
+            Select Case lambda.Kind
+                Case SyntaxKind.SingleLineFunctionLambdaExpression,
+                     SyntaxKind.SingleLineSubLambdaExpression
+                    Return SyntaxFactory.SingletonList(DirectCast(lambda, SingleLineLambdaExpressionSyntax).Body)
+
+                Case SyntaxKind.MultiLineFunctionLambdaExpression,
+                     SyntaxKind.MultiLineSubLambdaExpression
+                    Return DirectCast(lambda, MultiLineLambdaExpressionSyntax).Statements
+
+                Case SyntaxKind.WhereClause,
+                     SyntaxKind.TakeWhileClause,
+                     SyntaxKind.SkipWhileClause,
+                     SyntaxKind.AscendingOrdering,
+                     SyntaxKind.DescendingOrdering,
+                     SyntaxKind.FunctionAggregation
+
+                    Debug.Assert(TypeOf lambdaBody Is ExpressionSyntax)
+                    Return SyntaxFactory.SingletonList(lambdaBody)
+
+                Case SyntaxKind.ExpressionRangeVariable
+                    Dim clause = lambda.Parent
+                    Select Case clause.Kind
+                        Case SyntaxKind.LetClause
+                            Return SyntaxFactory.SingletonList(lambdaBody)
+
+                        Case SyntaxKind.SelectClause
+                            Return SyntaxFactory.List(EnumerateExpressions(DirectCast(clause, SelectClauseSyntax).Variables))
+
+                        Case SyntaxKind.GroupByClause
+                            Dim groupByClause = DirectCast(clause, GroupByClauseSyntax)
+                            If lambdaBody.SpanStart < groupByClause.ByKeyword.SpanStart Then
+                                Return SyntaxFactory.List(EnumerateExpressions(groupByClause.Items))
+                            Else
+                                Return SyntaxFactory.List(EnumerateExpressions(groupByClause.Keys))
+                            End If
+
+                        Case Else
+                            Throw ExceptionUtilities.UnexpectedValue(clause.Kind)
+                    End Select
+
+                Case SyntaxKind.CollectionRangeVariable
+                    Dim clause = lambda.Parent
+                    Select Case clause.Kind
+                        Case SyntaxKind.FromClause
+                            Return SyntaxFactory.SingletonList(lambdaBody)
+
+                        Case SyntaxKind.AggregateClause
+                            Dim aggregateClause = DirectCast(clause, AggregateClauseSyntax)
+                            If lambda Is aggregateClause.Variables.First Then
+                                ' first CRV of Aggregate clause represents the entire aggregate lambda
+                                Return GetAggregateLambdaBodyExpressions(aggregateClause)
+                            Else
+                                ' the rest CRVs are translated to their own lambdas
+                                Return SyntaxFactory.SingletonList(lambdaBody)
+                            End If
+
+                        Case Else
+                            Throw ExceptionUtilities.UnexpectedValue(clause.Kind)
+                    End Select
+
+                Case SyntaxKind.JoinCondition
+                    Dim joinClause = DirectCast(lambda.Parent, JoinClauseSyntax)
+                    Dim joinCondition = DirectCast(lambdaBody, JoinConditionSyntax)
+
+                    If lambdaBody Is joinCondition.Left Then
+                        Return SyntaxFactory.List(EnumerateJoinClauseLeftExpressions(joinClause))
+                    Else
+                        Return SyntaxFactory.List(EnumerateJoinClauseRightExpressions(joinClause))
+                    End If
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(lambda.Kind)
+            End Select
+        End Function
+
+        Private Shared Function GetAggregateLambdaBodyExpressions(clause As AggregateClauseSyntax) As SyntaxList(Of SyntaxNode)
+            Dim result = ArrayBuilder(Of SyntaxNode).GetInstance()
+
+            result.Add(clause.Variables.First)
+
+            For Each innerClause In clause.AdditionalQueryOperators
+                Select Case innerClause.Kind
+                    Case SyntaxKind.TakeClause,
+                         SyntaxKind.SkipClause
+                        result.Add(DirectCast(innerClause, PartitionClauseSyntax).Count)
+
+                    Case SyntaxKind.GroupJoinClause,
+                         SyntaxKind.SimpleJoinClause
+                        AddFirstJoinVariableRecursive(result, DirectCast(innerClause, JoinClauseSyntax))
+
+                End Select
+            Next
+
+            Dim list = SyntaxFactory.List(result)
+            result.Free()
+            Return list
+        End Function
+
+        Private Shared Sub AddFirstJoinVariableRecursive(result As ArrayBuilder(Of SyntaxNode), joinClause As JoinClauseSyntax)
+            result.Add(joinClause.JoinedVariables.First.Expression)
+
+            For Each additionalJoin In joinClause.AdditionalJoins
+                AddFirstJoinVariableRecursive(result, additionalJoin)
+            Next
+        End Sub
+
+        Private Shared Iterator Function EnumerateExpressions(variables As SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)) As IEnumerable(Of SyntaxNode)
+            For Each variable In variables
+                Yield variable.Expression
+            Next
+        End Function
+
+        Private Shared Iterator Function EnumerateExpressions(variables As SeparatedSyntaxList(Of CollectionRangeVariableSyntax)) As IEnumerable(Of SyntaxNode)
+            For Each variable In variables
+                Yield variable.Expression
+            Next
+        End Function
+
+        Private Shared Iterator Function EnumerateJoinClauseLeftExpressions(clause As JoinClauseSyntax) As IEnumerable(Of SyntaxNode)
+            For Each condition As JoinConditionSyntax In clause.JoinConditions
+                Yield condition.Left
+            Next
+        End Function
+
+        Private Shared Iterator Function EnumerateJoinClauseRightExpressions(clause As JoinClauseSyntax) As IEnumerable(Of SyntaxNode)
+            For Each condition As JoinConditionSyntax In clause.JoinConditions
+                Yield condition.Right
+            Next
+        End Function
+
         ''' <summary>
         ''' If the specified node represents a "simple" lambda returns a node (or nodes) that represent its body (bodies).
         ''' Lambda is "simple" if all its body nodes are also its child nodes and vice versa.

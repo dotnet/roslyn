@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             // TODO: 
             // Ideally we could declare LocalVariableDeclarator tied to the first enclosing node that defines local scope (block, foreach, etc.)
-            // Also consider handling LocalDeclarationStatement in the same way we handle DeclarationExpression - just a bag of variable declarators,
+            // Also consider handling LocalDeclarationStatement as just a bag of variable declarators,
             // so that variable declarators contained in one can be matched with variable declarators contained in the other.
             LocalDeclarationStatement,         // tied to parent
             LocalVariableDeclaration,          // tied to parent
@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             AwaitExpression,
 
             Lambda,
+
             FromClause,
             QueryBody,
             FromClauseLambda,                 // tied to parent

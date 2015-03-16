@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return null;
         }
 
-        protected override SyntaxList<SyntaxNode> GetLambdaBodyNodes(SyntaxNode lambdaBody)
+        protected override SyntaxList<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody)
         {
             return SyntaxFactory.SingletonList(lambdaBody);
         }

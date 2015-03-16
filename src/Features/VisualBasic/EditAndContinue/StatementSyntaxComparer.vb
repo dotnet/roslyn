@@ -15,15 +15,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Private ReadOnly _newRoot As SyntaxNode
         Private ReadOnly _oldRootChildren As IEnumerable(Of SyntaxNode)
         Private ReadOnly _newRootChildren As IEnumerable(Of SyntaxNode)
+        Private ReadOnly _matchingLambdas As Boolean
 
         Private Sub New()
         End Sub
 
-        Friend Sub New(oldRoot As SyntaxNode, oldRootChildren As IEnumerable(Of SyntaxNode), newRoot As SyntaxNode, newRootChildren As IEnumerable(Of SyntaxNode))
+        Friend Sub New(oldRoot As SyntaxNode,
+                       oldRootChildren As IEnumerable(Of SyntaxNode),
+                       newRoot As SyntaxNode,
+                       newRootChildren As IEnumerable(Of SyntaxNode),
+                       matchingLambdas As Boolean)
             _oldRoot = oldRoot
             _newRoot = newRoot
             _oldRootChildren = oldRootChildren
             _newRootChildren = newRootChildren
+            _matchingLambdas = matchingLambdas
         End Sub
 
 #Region "Tree Traversal"
@@ -132,6 +138,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             ' begin And End statements since they may be active statements.
             BodyBegin                       ' tied to parent
 
+            LambdaRoot
+
             TryBlock
             TryStatement                    ' tied to parent
             CatchBlock                      ' tied to parent 
@@ -210,7 +218,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             YieldStatement
 
-            ' TODO: tie query node to their parent
+            LocalDeclarationStatement           ' tied to parent 
+            LocalVariableDeclarator             ' tied to parent 
+
+            ' TODO: AwaitExpression
+
+            Lambda
+            LambdaBodyBegin                     ' tied to parent
 
             QueryExpression
             AggregateClause                     ' tied to parent 
@@ -232,14 +246,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             OrderingLambda                      ' tied to parent (OrderByClause)
             JoinConditionLambda                 ' tied to parent (JoinClause)
 
-            LocalDeclarationStatement           ' tied to parent 
-            LocalVariableDeclarator             ' tied to parent 
             LocalVariableName                   ' tied to parent 
 
-            Lambda
-            LambdaBodyBegin                  ' tied to parent
-
-            BodyEnd                          ' tied to parent
+            BodyEnd                             ' tied to parent
 
             ' helpers
             Count
@@ -707,12 +716,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' TODO:
                     Return Label.JoinConditionLambda
 
+                ' TODO:
+                'Case SyntaxKind.AwaitExpression
+                '    Return Label.AwaitExpression
+
+                Case SyntaxKind.GenericName
+                    ' optimizaiton - no need to dig into type instantiations
+                    isLeaf = True
+                    Return Label.Ignored
+
                 Case Else
                     Return Label.Ignored
             End Select
         End Function
 
         Protected Overrides Function GetLabel(node As SyntaxNode) As Integer
+            If _matchingLambdas AndAlso (node Is _newRoot OrElse node Is _oldRoot) Then
+                Return Label.LambdaRoot
+            End If
+
             Return GetLabelImpl(node)
         End Function
 

@@ -163,7 +163,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Protected Overrides Function GetCapturedVariables(model As SemanticModel, memberBody As SyntaxNode) As ImmutableArray(Of ISymbol)
             Dim methodBlock = TryCast(memberBody, MethodBlockBaseSyntax)
             If methodBlock IsNot Nothing Then
-                Return model.AnalyzeDataFlow(methodBlock.BlockStatement, methodBlock.EndBlockStatement).Captured
+                If methodBlock.Statements.IsEmpty Then
+                    Return ImmutableArray(Of ISymbol).Empty
+                End If
+
+                Return model.AnalyzeDataFlow(methodBlock.Statements.First, methodBlock.Statements.Last).Captured
             End If
 
             Dim expression = TryCast(memberBody, ExpressionSyntax)
@@ -194,10 +198,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             Return From root In roots
                    From node In root.DescendantNodes()
-                   Where node.IsKind(SyntaxKind.ModifiedIdentifier)
-                   Let modifiedIdentifier = DirectCast(node, ModifiedIdentifierSyntax)
-                   Where String.Equals(DirectCast(modifiedIdentifier.Identifier.Value, String), localOrParameter.Name, StringComparison.OrdinalIgnoreCase) AndAlso
-                         If(model.GetSymbolInfo(modifiedIdentifier, cancellationToken).Symbol?.Equals(localOrParameter), False)
+                   Where node.IsKind(SyntaxKind.IdentifierName)
+                   Let identifier = DirectCast(node, IdentifierNameSyntax)
+                   Where String.Equals(DirectCast(identifier.Identifier.Value, String), localOrParameter.Name, StringComparison.OrdinalIgnoreCase) AndAlso
+                         If(model.GetSymbolInfo(identifier, cancellationToken).Symbol?.Equals(localOrParameter), False)
                    Select node
         End Function
 
@@ -481,7 +485,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             If TypeOf oldBody.Parent Is LambdaExpressionSyntax Then
                 ' The root is a single/multi line sub/function lambda.
-                Return New StatementSyntaxComparer(oldBody.Parent, oldBody.Parent.ChildNodes(), newBody.Parent, newBody.Parent.ChildNodes()).ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
+                Return New StatementSyntaxComparer(oldBody.Parent, oldBody.Parent.ChildNodes(), newBody.Parent, newBody.Parent.ChildNodes(), matchingLambdas:=True).
+                       ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
             End If
 
             If TypeOf oldBody Is ExpressionSyntax Then
@@ -489,7 +494,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ' Dim a As <NewExpression>
                 ' Dim a, b, c As <NewExpression>
                 ' Queries: The root is a query clause, the body is the expression.
-                Return New StatementSyntaxComparer(oldBody.Parent, {oldBody}, newBody.Parent, {newBody}).
+                Return New StatementSyntaxComparer(oldBody.Parent, {oldBody}, newBody.Parent, {newBody}, matchingLambdas:=False).
                        ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
             End If
 
@@ -941,23 +946,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return CompilerSyntaxUtilities.GetLambda(lambdaBody)
         End Function
 
-        Protected Overrides Function GetLambdaBodyNodes(lambdaBody As SyntaxNode) As SyntaxList(Of SyntaxNode)
-            Dim lambda = lambdaBody.Parent
-
-            Select Case lambda.Kind
-                Case SyntaxKind.MultiLineFunctionLambdaExpression,
-                     SyntaxKind.MultiLineSubLambdaExpression
-                    ' The header of the lambda represents its body.
-                    Return DirectCast(lambda, MultiLineLambdaExpressionSyntax).Statements
-
-                Case SyntaxKind.SingleLineFunctionLambdaExpression,
-                 SyntaxKind.SingleLineSubLambdaExpression
-                    ' The header of the lambda represents its body.
-                    Return SyntaxFactory.SingletonList(DirectCast(lambda, SingleLineLambdaExpressionSyntax).Body)
-
-                Case Else
-                    Return SyntaxFactory.SingletonList(lambdaBody)
-            End Select
+        Protected Overrides Function GetLambdaBodyExpressionsAndStatements(lambdaBody As SyntaxNode) As SyntaxList(Of SyntaxNode)
+            Return CompilerSyntaxUtilities.GetLambdaBodyExpressionsAndStatements(lambdaBody)
         End Function
 #End Region
 
