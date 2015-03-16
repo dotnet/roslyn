@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis
     /// cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxToken"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxToken"/>.
     /// </summary>
 #pragma warning restore RS0010
+    [StructLayout(LayoutKind.Auto)]
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public struct SyntaxToken : IEquatable<SyntaxToken>
     {
