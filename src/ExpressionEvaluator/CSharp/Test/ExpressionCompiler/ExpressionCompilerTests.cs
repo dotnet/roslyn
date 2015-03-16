@@ -3343,7 +3343,7 @@ class B : A
         /// initializer expressions. (Is this an unnecessary
         /// burden on the evaluation engine?)
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1300")]
         public void EvaluateInitializerExpression()
         {
             var source =

@@ -113,7 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             platform: Platform.AnyCpu, // Platform should match PEModule.Machine, in this case I386.
             optimizationLevel: OptimizationLevel.Release,
             assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default).
-            WithMetadataImportOptions(MetadataImportOptions.All).
-            WithModuleName("1");
+            WithMetadataImportOptions(MetadataImportOptions.All);
     }
 }
