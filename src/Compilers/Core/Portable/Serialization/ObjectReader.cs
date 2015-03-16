@@ -187,7 +187,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public object ReadValue()
         {
-            DataKind kind = (DataKind)_reader.ReadByte();
+            var kind = (DataKind)_reader.ReadByte();
             switch (kind)
             {
                 case DataKind.Null:
@@ -263,12 +263,7 @@ namespace Roslyn.Utilities
         public string ReadString()
         {
             var kind = (DataKind)_reader.ReadByte();
-            if (kind == DataKind.Null)
-            {
-                return null;
-            }
-
-            return ReadString(kind);
+            return kind == DataKind.Null ? null : ReadString(kind);
         }
 
         private string ReadString(DataKind kind)
@@ -352,7 +347,7 @@ namespace Roslyn.Utilities
 
         private Type ReadType()
         {
-            DataKind kind = (DataKind)_reader.ReadByte();
+            var kind = (DataKind)_reader.ReadByte();
             return ReadType(kind);
         }
 
@@ -490,7 +485,7 @@ namespace Roslyn.Utilities
         private static Exception NoBinderException(string typeName)
         {
 #if COMPILERCORE
-            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.CodeAnalysisResources.NoBinderException, typeName));
+            throw new InvalidOperationException(string.Format(CodeAnalysisResources.NoBinderException, typeName));
 #else
             throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoBinderException, typeName));
 #endif
@@ -499,7 +494,7 @@ namespace Roslyn.Utilities
         private static Exception NoReaderException(string typeName)
         {
 #if COMPILERCORE
-            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.CodeAnalysisResources.NoReaderException, typeName));
+            throw new InvalidOperationException(string.Format(CodeAnalysisResources.NoReaderException, typeName));
 #else
             throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoReaderException, typeName));
 #endif
