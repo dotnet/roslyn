@@ -9,12 +9,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    // Note that we do not store the token directly, we just store enough information to reconstruct it.
-    // This allows us to reuse nodeOrToken as a token's parent.
     /// <summary>
     /// A wrapper for either a syntax node (<see cref="SyntaxNode"/>) or a syntax token (<see
     /// cref="SyntaxToken"/>).
     /// </summary>
+    /// <remarks>
+    /// Note that we do not store the token directly, we just store enough information to reconstruct it.
+    /// This allows us to reuse nodeOrToken as a token's parent.
+    /// </remarks>
     [StructLayout(LayoutKind.Auto)]
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public struct SyntaxNodeOrToken : IEquatable<SyntaxNodeOrToken>
@@ -67,7 +69,23 @@ namespace Microsoft.CodeAnalysis
             return GetType().Name + " " + KindText + " " + ToString();
         }
 
-        private string KindText => _token?.KindText ?? _nodeOrParent?.Green.KindText ?? "None";
+        private string KindText
+        {
+            get
+            {
+                if (_token != null)
+                {
+                    return _token.KindText;
+                }
+
+                if (_nodeOrParent != null)
+                {
+                    return _nodeOrParent.Green.KindText;
+                }
+
+                return "None";
+            }
+        }
 
         /// <summary>
         /// An integer representing the language specific kind of the underlying node or token.
@@ -77,7 +95,23 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The language name that this node or token is syntax of.
         /// </summary>
-        public string Language => _token?.Language ?? _nodeOrParent?.Language ?? string.Empty;
+        public string Language
+        {
+            get
+            {
+                if (_token != null)
+                {
+                    return _token.Language;
+                }
+
+                if (_nodeOrParent != null)
+                {
+                    return _nodeOrParent.Language;
+                }
+
+                return string.Empty;
+            }
+        }
 
         /// <summary>
         /// Determines whether the underlying node or token represents a language construct that was actually parsed

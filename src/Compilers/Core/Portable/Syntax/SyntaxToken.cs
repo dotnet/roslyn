@@ -21,51 +21,37 @@ namespace Microsoft.CodeAnalysis
         internal static readonly Func<SyntaxToken, bool> NonZeroWidth = t => t.Width > 0;
         internal static readonly Func<SyntaxToken, bool> Any = t => true;
 
-        private readonly SyntaxNode _parent;
-        private readonly GreenNode _token;
-        private readonly int _position;
-        private readonly int _index;
-
         internal SyntaxToken(SyntaxNode parent, GreenNode token, int position, int index)
         {
             Debug.Assert(parent == null || !parent.Green.IsList, "list cannot be a parent");
             Debug.Assert(token == null || token.IsToken, "token must be a token");
-            _parent = parent;
-            _token = token;
-            _position = position;
-            _index = index;
+            Parent = parent;
+            Node = token;
+            Position = position;
+            Index = index;
         }
 
         internal SyntaxToken(GreenNode token)
             : this()
         {
             Debug.Assert(token == null || token.IsToken, "token must be a token");
-            _token = token;
+            Node = token;
         }
 
         private string GetDebuggerDisplay()
         {
-            return GetType().Name + " " + (_token != null ? _token.KindText : "None") + " " + ToString();
+            return GetType().Name + " " + (Node != null ? Node.KindText : "None") + " " + ToString();
         }
 
         /// <summary>
         /// An integer representing the language specific kind of this token.
         /// </summary>
-        public int RawKind
-        {
-            get { return _token?.RawKind ?? 0; }
-        }
+        public int RawKind => Node?.RawKind ?? 0;
 
         /// <summary>
         /// The language name that this token is syntax of.
         /// </summary>
-        public string Language
-        {
-            get
-            {
-                return _token?.Language ?? string.Empty;
-            }
-        }
+        public string Language => Node?.Language ?? string.Empty;
 
         /// <summary>
         /// The kind of token, given its position in the syntax. This differs from <see
@@ -77,70 +63,43 @@ namespace Microsoft.CodeAnalysis
         /// from Kind when a token is used in context where the token should be interpreted as a
         /// keyword.
         /// </remarks>
-        internal int RawContextualKind
-        {
-            get
-            {
-                return _token?.RawContextualKind ?? 0;
-            }
-        }
+        internal int RawContextualKind => Node?.RawContextualKind ?? 0;
 
         /// <summary>
         /// The node that contains this token in its Children collection.
         /// </summary>
-        public SyntaxNode Parent
-        {
-            get
-            {
-                return _parent;
-            }
-        }
+        public SyntaxNode Parent { get; }
 
-        internal GreenNode Node
-        {
-            get
-            {
-                return _token;
-            }
-        }
+        internal GreenNode Node { get; }
 
-        internal int Index
-        {
-            get { return _index; }
-        }
+        internal int Index { get; }
 
-        internal int Position
-        {
-            get { return _position; }
-        }
+        internal int Position { get; }
 
         /// <summary>
         /// The width of the token in characters, not including its leading and trailing trivia.
         /// </summary>
-        internal int Width
-        {
-            get { return _token?.Width ?? 0; }
-        }
+        internal int Width => Node?.Width ?? 0;
 
         /// <summary>
         /// The complete width of the token in characters including its leading and trailing trivia.
         /// </summary>
-        internal int FullWidth
-        {
-            get { return _token?.FullWidth ?? 0; }
-        }
+        internal int FullWidth => Node?.FullWidth ?? 0;
 
         /// <summary>
         /// The absolute span of this token in characters, not including its leading and trailing trivia.
         /// </summary>
         public TextSpan Span
         {
-            get { return _token != null ? new TextSpan(_position + _token.GetLeadingTriviaWidth(), _token.Width) : default(TextSpan); }
+            get
+            {
+                return Node != null ? new TextSpan(Position + Node.GetLeadingTriviaWidth(), Node.Width) : default(TextSpan);
+            }
         }
 
         internal int EndPosition
         {
-            get { return _token != null ? _position + _token.FullWidth : 0; }
+            get { return Node != null ? Position + Node.FullWidth : 0; }
         }
 
         /// <summary>
@@ -151,49 +110,34 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public int SpanStart
         {
-            get { return _token != null ? _position + _token.GetLeadingTriviaWidth() : 0; }
+            get { return Node != null ? Position + Node.GetLeadingTriviaWidth() : 0; }
         }
 
         /// <summary>
         /// The absolute span of this token in characters, including its leading and trailing trivia.
         /// </summary>
-        public TextSpan FullSpan
-        {
-            get { return new TextSpan(_position, FullWidth); }
-        }
+        public TextSpan FullSpan => new TextSpan(Position, FullWidth);
 
         /// <summary>
         /// Determines whether this token represents a language construct that was actually parsed from source code.
         /// Missing tokens are typically generated by the parser in error scenarios to represent constructs that should
         /// have been present in the source code for the source code to compile successfully but were actually missing.
         /// </summary>
-        public bool IsMissing
-        {
-            get { return _token != null && _token.IsMissing; }
-        }
+        public bool IsMissing => Node?.IsMissing ?? false;
 
         /// <summary>
         /// Returns the value of the token. For example, if the token represents an integer literal, then this property
         /// would return the actual integer.
         /// </summary>
-        public object Value
-        {
-            get { return _token?.GetValue(); }
-        }
+        public object Value => Node?.GetValue();
 
         /// <summary>
         /// Returns the text representation of the value of the token. For example, if the token represents an integer
         /// literal, then this property would return a string representing the integer.
         /// </summary>
-        public string ValueText
-        {
-            get { return _token?.GetValueText(); }
-        }
+        public string ValueText => Node?.GetValueText();
 
-        public string Text
-        {
-            get { return _token?.ToString() ?? string.Empty; }
-        }
+        public string Text => ToString();
 
         /// <summary>
         /// Returns the string representation of this token, not including its leading and trailing trivia.
@@ -202,7 +146,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>The length of the returned string is always the same as Span.Length</remarks>
         public override string ToString()
         {
-            return _token?.ToString() ?? string.Empty;
+            return Node != null ? Node.ToString() : string.Empty;
         }
 
         /// <summary>
@@ -212,16 +156,15 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
         public string ToFullString()
         {
-            return _token?.ToFullString() ?? string.Empty;
+            return Node != null ? Node.ToFullString() : string.Empty;
         }
 
         /// <summary>
-        /// Writes the full text of this token to the specified TextWriter
+        /// Writes the full text of this token to the specified <paramref name="writer"/>.
         /// </summary>
-        /// <param name="writer"></param>
         public void WriteTo(System.IO.TextWriter writer)
         {
-            _token?.WriteTo(writer);
+            Node?.WriteTo(writer);
         }
 
         /// <summary>
@@ -229,88 +172,65 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal void WriteTo(System.IO.TextWriter writer, bool leading, bool trailing)
         {
-            _token?.WriteTo(writer, leading, trailing);
+            Node?.WriteTo(writer, leading, trailing);
         }
 
         /// <summary>
         /// Determines whether this token has any leading trivia.
         /// </summary>
-        public bool HasLeadingTrivia
-        {
-            get { return this.LeadingTrivia.Count > 0; }
-        }
+        public bool HasLeadingTrivia => this.LeadingTrivia.Count > 0;
 
         /// <summary>
         /// Determines whether this token has any trailing trivia.
         /// </summary>
-        public bool HasTrailingTrivia
-        {
-            get { return this.TrailingTrivia.Count > 0; }
-        }
+        public bool HasTrailingTrivia => this.TrailingTrivia.Count > 0;
 
         /// <summary>
         /// Full width of the leading trivia of this token.
         /// </summary>
-        internal int LeadingWidth
-        {
-            get { return _token?.GetLeadingTriviaWidth() ?? 0; }
-        }
+        internal int LeadingWidth => Node?.GetLeadingTriviaWidth() ?? 0;
 
         /// <summary>
         /// Full width of the trailing trivia of this token.
         /// </summary>
-        internal int TrailingWidth
-        {
-            get { return _token?.GetTrailingTriviaWidth() ?? 0; }
-        }
+        internal int TrailingWidth => Node?.GetTrailingTriviaWidth() ?? 0;
 
         /// <summary>
         /// Determines whether this token or any of its descendant trivia have any diagnostics on them. 
-        /// </summary>>
-        public bool ContainsDiagnostics
-        {
-            get { return _token != null && _token.ContainsDiagnostics; }
-        }
+        /// </summary>
+        public bool ContainsDiagnostics => Node?.ContainsDiagnostics ?? false;
 
         /// <summary>
         /// Determines whether this token has any descendant preprocessor directives.
         /// </summary>
-        public bool ContainsDirectives
-        {
-            get { return _token != null && _token.ContainsDirectives; }
-        }
+        public bool ContainsDirectives => Node?.ContainsDirectives ?? false;
 
         /// <summary>
         /// Determines whether this token is a descendant of a structured trivia.
         /// </summary>
         public bool IsPartOfStructuredTrivia()
         {
-            return _parent != null && _parent.IsPartOfStructuredTrivia();
+            return Parent?.IsPartOfStructuredTrivia() ?? false;
         }
 
         /// <summary>
         /// Determines whether any of this token's trivia is structured.
         /// </summary>
-        public bool HasStructuredTrivia
-        {
-            get { return _token != null && _token.ContainsStructuredTrivia; }
-        }
+        public bool HasStructuredTrivia => Node?.ContainsStructuredTrivia ?? false;
 
-        #region Annotations 
+        #region Annotations
+
         /// <summary>
         /// True if this token or its trivia has any annotations.
         /// </summary>
-        public bool ContainsAnnotations
-        {
-            get { return _token != null && _token.ContainsAnnotations; }
-        }
+        public bool ContainsAnnotations => Node?.ContainsAnnotations ?? false;
 
         /// <summary>
         /// True if this token has annotations of the specified annotation kind.
         /// </summary>
         public bool HasAnnotations(string annotationKind)
         {
-            return _token != null && _token.HasAnnotations(annotationKind);
+            return Node?.HasAnnotations(annotationKind) ?? false;
         }
 
         /// <summary>
@@ -318,7 +238,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool HasAnnotations(params string[] annotationKinds)
         {
-            return _token != null && _token.HasAnnotations(annotationKinds);
+            return Node?.HasAnnotations(annotationKinds) ?? false;
         }
 
         /// <summary>
@@ -326,7 +246,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool HasAnnotation(SyntaxAnnotation annotation)
         {
-            return _token != null && _token.HasAnnotation(annotation);
+            return Node?.HasAnnotation(annotation) ?? false;
         }
 
         /// <summary>
@@ -334,7 +254,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<SyntaxAnnotation> GetAnnotations(string annotationKind)
         {
-            return _token?.GetAnnotations(annotationKind) ?? SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
+            return Node?.GetAnnotations(annotationKind) ?? SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
         }
 
         /// <summary>
@@ -350,7 +270,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<SyntaxAnnotation> GetAnnotations(IEnumerable<string> annotationKinds)
         {
-            return _token?.GetAnnotations(annotationKinds) ?? SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
+            return Node?.GetAnnotations(annotationKinds) ?? SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
         }
 
         /// <summary>
@@ -377,8 +297,9 @@ namespace Microsoft.CodeAnalysis
             {
                 return new SyntaxToken(
                     parent: null,
-                    token: _token.WithAdditionalAnnotationsGreen(annotations),
-                    position: 0, index: 0);
+                    token: Node.WithAdditionalAnnotationsGreen(annotations),
+                    position: 0, 
+                    index: 0);
             }
 
             return default(SyntaxToken);
@@ -406,9 +327,9 @@ namespace Microsoft.CodeAnalysis
             {
                 return new SyntaxToken(
                     parent: null,
-                    token: _token.WithoutAnnotationsGreen(annotations),
-                    position: 0, index: 0
-                    );
+                    token: Node.WithoutAnnotationsGreen(annotations),
+                    position: 0, 
+                    index: 0);
             }
 
             return default(SyntaxToken);
@@ -428,10 +349,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return this.WithoutAnnotations(this.GetAnnotations(annotationKind));
             }
-            else
-            {
-                return this;
-            }
+
+            return this;
         }
 
         /// <summary>
@@ -447,23 +366,25 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxToken);
             }
 
-            if (_token == null)
+            if (Node == null)
             {
                 return token;
             }
 
             var annotations = this.Node.GetAnnotations();
-            if (annotations == null || annotations.Length == 0)
+            if (annotations?.Length > 0)
             {
-                return token;
+                return new SyntaxToken(
+                    parent: null,
+                    token: token.Node.WithAdditionalAnnotationsGreen(annotations),
+                    position: 0,
+                    index: 0);
+                
             }
 
-            return new SyntaxToken(
-                parent: null,
-                token: token.Node.WithAdditionalAnnotationsGreen(annotations),
-                position: 0,
-                index: 0);
+            return token;
         }
+
         #endregion
 
         /// <summary>
@@ -473,8 +394,8 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return _token != null
-                    ? new SyntaxTriviaList(this, _token.GetLeadingTriviaCore(), this.Position)
+                return Node != null
+                    ? new SyntaxTriviaList(this, Node.GetLeadingTriviaCore(), this.Position)
                     : default(SyntaxTriviaList);
             }
         }
@@ -487,29 +408,29 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_token != null)
+                if (Node == null)
                 {
-                    var leading = _token.GetLeadingTriviaCore();
-                    int index = 0;
-                    if (leading != null)
-                    {
-                        index = leading.IsList ? leading.SlotCount : 1;
-                    }
-
-                    var trailingGreen = _token.GetTrailingTriviaCore();
-                    int trailingPosition = _position + this.FullWidth;
-                    if (trailingGreen != null)
-                    {
-                        trailingPosition -= trailingGreen.FullWidth;
-                    }
-
-                    return new SyntaxTriviaList(this,
-                        trailingGreen,
-                        trailingPosition,
-                        index);
+                    return default(SyntaxTriviaList);
                 }
 
-                return default(SyntaxTriviaList);
+                var leading = Node.GetLeadingTriviaCore();
+                int index = 0;
+                if (leading != null)
+                {
+                    index = leading.IsList ? leading.SlotCount : 1;
+                }
+
+                var trailingGreen = Node.GetTrailingTriviaCore();
+                int trailingPosition = Position + this.FullWidth;
+                if (trailingGreen != null)
+                {
+                    trailingPosition -= trailingGreen.FullWidth;
+                }
+
+                return new SyntaxTriviaList(this,
+                    trailingGreen,
+                    trailingPosition,
+                    index);
             }
         }
 
@@ -544,8 +465,8 @@ namespace Microsoft.CodeAnalysis
         {
             var greenList = trivia?.Select(t => t.UnderlyingNode);
 
-            return _token != null
-                ? new SyntaxToken(null, _token.WithLeadingTrivia(_token.CreateList(greenList)), position: 0, index: 0)
+            return Node != null
+                ? new SyntaxToken(null, Node.WithLeadingTrivia(Node.CreateList(greenList)), position: 0, index: 0)
                 : default(SyntaxToken);
         }
 
@@ -572,8 +493,8 @@ namespace Microsoft.CodeAnalysis
         {
             var greenList = trivia?.Select(t => t.UnderlyingNode);
 
-            return _token != null
-                ? new SyntaxToken(null, _token.WithTrailingTrivia(_token.CreateList(greenList)), position: 0, index: 0)
+            return Node != null
+                ? new SyntaxToken(null, Node.WithTrailingTrivia(Node.CreateList(greenList)), position: 0, index: 0)
                 : default(SyntaxToken);
         }
 
@@ -591,14 +512,13 @@ namespace Microsoft.CodeAnalysis
 
                 return this.LeadingTrivia;
             }
-            else if (this.HasTrailingTrivia)
+
+            if (this.HasTrailingTrivia)
             {
                 return this.TrailingTrivia;
             }
-            else
-            {
-                return SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
-            }
+
+            return SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
         }
 
         /// <summary>
@@ -623,10 +543,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool Equals(SyntaxToken other)
         {
-            return _parent == other._parent &&
-                   _token == other._token &&
-                   _position == other._position &&
-                   _index == other._index;
+            return Parent == other.Parent &&
+                   Node == other.Node &&
+                   Position == other.Position &&
+                   Index == other.Index;
         }
 
         /// <summary>
@@ -643,7 +563,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public override int GetHashCode()
         {
-            return Hash.Combine(_parent, Hash.Combine(_token, Hash.Combine(_position, _index)));
+            return Hash.Combine(Parent, Hash.Combine(Node, Hash.Combine(Position, Index)));
         }
 
         /// <summary>
@@ -652,12 +572,12 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The token that follows this token in the syntax tree.</returns>
         public SyntaxToken GetNextToken(bool includeZeroWidth = false, bool includeSkipped = false, bool includeDirectives = false, bool includeDocumentationComments = false)
         {
-            if (_token == null)
+            if (Node == null)
             {
                 return default(SyntaxToken);
             }
 
-            return _token.Navigator.GetNextToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+            return Node.Navigator.GetNextToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
         /// <summary>
@@ -669,12 +589,12 @@ namespace Microsoft.CodeAnalysis
         /// included in the search.</param>
         internal SyntaxToken GetNextToken(Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto = null)
         {
-            if (_token == null)
+            if (Node == null)
             {
                 return default(SyntaxToken);
             }
 
-            return _token.Navigator.GetNextToken(this, predicate, stepInto);
+            return Node.Navigator.GetNextToken(this, predicate, stepInto);
         }
 
         /// <summary>
@@ -683,12 +603,12 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The next token that follows this token in the syntax tree.</returns>
         public SyntaxToken GetPreviousToken(bool includeZeroWidth = false, bool includeSkipped = false, bool includeDirectives = false, bool includeDocumentationComments = false)
         {
-            if (_token == null)
+            if (Node == null)
             {
                 return default(SyntaxToken);
             }
 
-            return _token.Navigator.GetPreviousToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+            return Node.Navigator.GetPreviousToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
         /// <summary>
@@ -700,26 +620,20 @@ namespace Microsoft.CodeAnalysis
         /// included in the search.</param>
         internal SyntaxToken GetPreviousToken(Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto = null)
         {
-            return _token.Navigator.GetPreviousToken(this, predicate, stepInto);
+            return Node.Navigator.GetPreviousToken(this, predicate, stepInto);
         }
 
         /// <summary>
         /// The SyntaxTree that contains this token.
         /// </summary>
-        public SyntaxTree SyntaxTree
-        {
-            get
-            {
-                return _parent?.SyntaxTree;
-            }
-        }
+        public SyntaxTree SyntaxTree => Parent?.SyntaxTree;
 
         /// <summary>
         /// Gets the location for this token.
         /// </summary>
         public Location GetLocation()
         {
-            return _token != null
+            return Node != null
                 ? this.SyntaxTree.GetLocation(this.Span)
                 : Location.None;
         }
@@ -731,7 +645,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<Diagnostic> GetDiagnostics()
         {
-            return _token != null
+            return Node != null
                 ? this.SyntaxTree.GetDiagnostics(this)
                 : SpecializedCollections.EmptyEnumerable<Diagnostic>();
         }
@@ -742,8 +656,8 @@ namespace Microsoft.CodeAnalysis
         public bool IsEquivalentTo(SyntaxToken token)
         {
             return
-                (_token == null && token.Node == null) ||
-                (_token != null && token.Node != null && _token.IsEquivalentTo(token.Node));
+                (Node == null && token.Node == null) ||
+                (Node != null && token.Node != null && Node.IsEquivalentTo(token.Node));
         }
     }
 }
