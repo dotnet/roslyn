@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 "[thiscall]"
             };
 
-            private static readonly ParameterInfo[] s_noParameters = new ParameterInfo[0];
+            private static readonly ParameterInfo[] s_noParameters = SpecializedCollections.EmptyArray<ParameterInfo>();
 
             private readonly Compilation _compilation;
             private readonly TargetScope _scope;
@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return id;
                 }
 
-                if (id == null || !id.StartsWith(prefix, StringComparison.Ordinal))
+                if (id?.StartsWith(prefix, StringComparison.Ordinal) ?? false)
                 {
-                    return null;
+                    return id.Substring(prefix.Length);
                 }
 
-                return id.Substring(prefix.Length);
+                return null;
             }
 
             public void Resolve(IList<ISymbol> results)
@@ -162,7 +162,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             // hope of finding the symbol.
                             return;
                         }
-                        else if (containingSymbol.Kind == SymbolKind.NamedType)
+
+                        if (containingSymbol.Kind == SymbolKind.NamedType)
                         {
                             // If segment resolves to a named type, that restricts what the next segment
                             // can resolve to depending on whether the name continues with '+' or '.'
@@ -351,18 +352,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private ParameterInfo? ParseParameter()
             {
-                bool isRefOrOut = false;
-
                 var type = ParseType(null);
                 if (type == null)
                 {
                     return null;
                 }
 
-                if (PeekNextChar() == '&')
+                var isRefOrOut = PeekNextChar() == '&';
+                if (isRefOrOut)
                 {
                     ++_index;
-                    isRefOrOut = true;
                 }
 
                 return new ParameterInfo(type.Value, isRefOrOut);
@@ -858,7 +857,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // This index is used when rebinding later when the method context is known
                 public readonly int StartIndex;
 
-                public bool IsBound { get { return this.Type != null; } }
+                public bool IsBound => this.Type != null;
 
                 private TypeInfo(ITypeSymbol type, int startIndex)
                 {
