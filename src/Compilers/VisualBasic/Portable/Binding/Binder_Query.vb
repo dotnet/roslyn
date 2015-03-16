@@ -307,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                   aggregate, source.RangeVariables)
 
             ' The lambda that will contain the nested query.
-            Dim letSelectorLambdaSymbol = Me.CreateQueryLambdaSymbol(SyntaxUtilities.GetAggregateLambdaBody(aggregate),
+            Dim letSelectorLambdaSymbol = Me.CreateQueryLambdaSymbol(LambdaUtilities.GetAggregateLambdaBody(aggregate),
                                                                      SynthesizedLambdaKind.AggregateQueryLambda,
                                                                      ImmutableArray.Create(letSelectorParam))
 
@@ -432,7 +432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                          aggregate, letOperator.RangeVariables)
 
                 ' This lambda only contains non-user code. We associate it with the aggregate clause itself.
-                Debug.Assert(SyntaxUtilities.IsNonUserCodeQueryLambda(aggregate))
+                Debug.Assert(LambdaUtilities.IsNonUserCodeQueryLambda(aggregate))
                 Dim selectSelectorLambdaSymbol = Me.CreateQueryLambdaSymbol(aggregate,
                                                                             SynthesizedLambdaKind.AggregateNonUserCodeQueryLambda,
                                                                             ImmutableArray.Create(selectSelectorParam))
@@ -603,7 +603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                        fromClauseSyntax, source.RangeVariables)
 
             ' An implicit selector is an identity (x => x) function that doesn't contain any user code.
-            SyntaxUtilities.IsNonUserCodeQueryLambda(fromClauseSyntax)
+            LambdaUtilities.IsNonUserCodeQueryLambda(fromClauseSyntax)
             Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(fromClauseSyntax,
                                                           SynthesizedLambdaKind.FromNonUserCodeQueryLambda,
                                                           ImmutableArray.Create(param))
@@ -675,7 +675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                        source.CompoundVariableType,
                                                                                        clauseSyntax, source.RangeVariables)
 
-            Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(SyntaxUtilities.GetSelectLambdaBody(clauseSyntax),
+            Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(LambdaUtilities.GetSelectLambdaBody(clauseSyntax),
                                                           SynthesizedLambdaKind.SelectQueryLambda,
                                                           ImmutableArray.Create(param))
 
@@ -821,7 +821,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                            source.CompoundVariableType,
                                                                                            variable, source.RangeVariables)
 
-                Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(SyntaxUtilities.GetLetVariableLambdaBody(variable),
+                Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(LambdaUtilities.GetLetVariableLambdaBody(variable),
                                                               SynthesizedLambdaKind.LetVariableQueryLambda,
                                                               ImmutableArray.Create(param))
 
@@ -1053,7 +1053,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                        source.CompoundVariableType,
                                                                                                        variable, source.RangeVariables)
 
-                Dim manySelectorLambdaSymbol = Me.CreateQueryLambdaSymbol(SyntaxUtilities.GetFromOrAggregateVariableLambdaBody(variable),
+                Dim manySelectorLambdaSymbol = Me.CreateQueryLambdaSymbol(LambdaUtilities.GetFromOrAggregateVariableLambdaBody(variable),
                                                                           SynthesizedLambdaKind.FromOrAggregateVariableQueryLambda,
                                                                           ImmutableArray.Create(manySelectorParam))
 
@@ -1248,29 +1248,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
 
                 lambdaSyntax = clauseSyntax
-                Debug.Assert(SyntaxUtilities.IsNonUserCodeQueryLambda(lambdaSyntax))
+                Debug.Assert(LambdaUtilities.IsNonUserCodeQueryLambda(lambdaSyntax))
             Else
                 Select Case absorbNextOperator.Kind
                     Case SyntaxKind.AggregateClause
                         Dim firstVariable = DirectCast(absorbNextOperator, AggregateClauseSyntax).Variables.First
-                        lambdaSyntax = SyntaxUtilities.GetFromOrAggregateVariableLambdaBody(firstVariable)
+                        lambdaSyntax = LambdaUtilities.GetFromOrAggregateVariableLambdaBody(firstVariable)
                         lambdaKind = SynthesizedLambdaKind.AggregateQueryLambda
 
                     Case SyntaxKind.LetClause
                         Dim firstVariable = DirectCast(absorbNextOperator, LetClauseSyntax).Variables.First
-                        lambdaSyntax = SyntaxUtilities.GetLetVariableLambdaBody(firstVariable)
+                        lambdaSyntax = LambdaUtilities.GetLetVariableLambdaBody(firstVariable)
                         lambdaKind = SynthesizedLambdaKind.LetVariableQueryLambda
 
                     Case SyntaxKind.SelectClause
                         Dim selectClause = DirectCast(absorbNextOperator, SelectClauseSyntax)
-                        lambdaSyntax = SyntaxUtilities.GetSelectLambdaBody(selectClause)
+                        lambdaSyntax = LambdaUtilities.GetSelectLambdaBody(selectClause)
                         lambdaKind = SynthesizedLambdaKind.SelectQueryLambda
 
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(absorbNextOperator.Kind)
                 End Select
 
-                Debug.Assert(SyntaxUtilities.IsLambdaBody(lambdaSyntax))
+                Debug.Assert(LambdaUtilities.IsLambdaBody(lambdaSyntax))
             End If
         End Sub
 
@@ -1920,7 +1920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                 source.CompoundVariableType,
                                                                                                 groupBy, source.RangeVariables)
 
-                Dim itemsLambdaSymbol = Me.CreateQueryLambdaSymbol(SyntaxUtilities.GetGroupByItemsLambdaBody(groupBy),
+                Dim itemsLambdaSymbol = Me.CreateQueryLambdaSymbol(LambdaUtilities.GetGroupByItemsLambdaBody(groupBy),
                                                                    SynthesizedLambdaKind.GroupByItemsQueryLambda,
                                                                    ImmutableArray.Create(itemsParam))
 
@@ -1964,7 +1964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                            source.CompoundVariableType,
                                                                                            groupBy, source.RangeVariables)
 
-            Dim keysLambdaSymbol = Me.CreateQueryLambdaSymbol(SyntaxUtilities.GetGroupByKeysLambdaBody(groupBy),
+            Dim keysLambdaSymbol = Me.CreateQueryLambdaSymbol(LambdaUtilities.GetGroupByKeysLambdaBody(groupBy),
                                                               SynthesizedLambdaKind.GroupByKeysQueryLambda,
                                                               ImmutableArray.Create(keysParam))
 
@@ -2171,7 +2171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim groupParam As BoundLambdaParameterSymbol = CreateQueryLambdaParameterSymbol(StringConstants.ItAnonymous, 1,
                                                                                             groupType, clauseSyntax)
 
-            Debug.Assert(SyntaxUtilities.IsNonUserCodeQueryLambda(clauseSyntax))
+            Debug.Assert(LambdaUtilities.IsNonUserCodeQueryLambda(clauseSyntax))
             Dim intoLambdaSymbol = Me.CreateQueryLambdaSymbol(clauseSyntax,
                                                               SynthesizedLambdaKind.GroupNonUserCodeQueryLambda,
                                                               ImmutableArray.Create(keyParam, groupParam))
@@ -2370,7 +2370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                        source.CompoundVariableType,
                                                                                        condition, source.RangeVariables)
 
-            Debug.Assert(SyntaxUtilities.IsLambdaBody(condition))
+            Debug.Assert(LambdaUtilities.IsLambdaBody(condition))
             Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(condition,
                                                           SynthesizedLambdaKind.FilterConditionQueryLambda,
                                                           ImmutableArray.Create(param))
@@ -2621,7 +2621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                            source.CompoundVariableType,
                                                                                            ordering.Expression, source.RangeVariables)
 
-                Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(SyntaxUtilities.GetOrderingLambdaBody(ordering),
+                Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(LambdaUtilities.GetOrderingLambdaBody(ordering),
                                                               SynthesizedLambdaKind.OrderingQueryLambda,
                                                               ImmutableArray.Create(param))
 
@@ -3340,7 +3340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                    outer.CompoundVariableType,
                                                                                                    join, outer.RangeVariables)
 
-                Dim outerKeyLambdaSymbol = parentBinder.CreateQueryLambdaSymbol(SyntaxUtilities.GetJoinLeftLambdaBody(join),
+                Dim outerKeyLambdaSymbol = parentBinder.CreateQueryLambdaSymbol(LambdaUtilities.GetJoinLeftLambdaBody(join),
                                                                                 SynthesizedLambdaKind.JoinLeftQueryLambda,
                                                                                 ImmutableArray.Create(outerKeyParam))
                 outerKeyBinder = New QueryLambdaBinder(outerKeyLambdaSymbol, joinSelectorRangeVariables)
@@ -3350,7 +3350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                    inner.CompoundVariableType,
                                                                                                    join, inner.RangeVariables)
 
-                Dim innerKeyLambdaSymbol = parentBinder.CreateQueryLambdaSymbol(SyntaxUtilities.GetJoinRightLambdaBody(join),
+                Dim innerKeyLambdaSymbol = parentBinder.CreateQueryLambdaSymbol(LambdaUtilities.GetJoinRightLambdaBody(join),
                                                                                 SynthesizedLambdaKind.JoinRightQueryLambda,
                                                                                 ImmutableArray.Create(innerKeyParam))
 
@@ -3995,7 +3995,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' its special binding and Lookup/LookupNames behavior.
 
                 Dim aggregationLambdaSymbol = Me.ContainingBinder.CreateQueryLambdaSymbol(
-                    If(SyntaxUtilities.GetAggregationLambdaBody(functionAggregationSyntax), functionAggregationSyntax),
+                    If(LambdaUtilities.GetAggregationLambdaBody(functionAggregationSyntax), functionAggregationSyntax),
                     SynthesizedLambdaKind.AggregationQueryLambda,
                     ImmutableArray.Create(aggregationParam))
 
@@ -4342,7 +4342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                            variableType,
                                                                                            syntax.AsClause)
 
-                Debug.Assert(SyntaxUtilities.IsNonUserCodeQueryLambda(syntax.AsClause))
+                Debug.Assert(LambdaUtilities.IsNonUserCodeQueryLambda(syntax.AsClause))
                 Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(syntax.AsClause,
                                                               SynthesizedLambdaKind.ConversionNonUserCodeQueryLambda,
                                                               ImmutableArray.Create(param))

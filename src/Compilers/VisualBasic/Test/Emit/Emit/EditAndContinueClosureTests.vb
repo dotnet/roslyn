@@ -766,7 +766,7 @@ End Class
         ''' of the same kind is mapped to a new node that belongs to the lambda body but is 
         ''' different from the one that represents the new body.
         ''' 
-        ''' This handling is done in <see cref="SyntaxUtilities.GetCorrespondingLambdaBody(SyntaxNode, SyntaxNode)"/>
+        ''' This handling is done in <see cref="LambdaUtilities.GetCorrespondingLambdaBody(SyntaxNode, SyntaxNode)"/>
         ''' </summary>
         <Fact>
         Public Sub SelectClauseCrossMatch()
@@ -829,7 +829,7 @@ End Class
         ''' of the same kind is mapped to a new node that belongs to the lambda body but is 
         ''' different from the one that represents the new body.
         ''' 
-        ''' This handling is done in <see cref="SyntaxUtilities.GetCorrespondingLambdaBody(SyntaxNode, SyntaxNode)"/>
+        ''' This handling is done in <see cref="LambdaUtilities.GetCorrespondingLambdaBody(SyntaxNode, SyntaxNode)"/>
         ''' </summary>
         <Fact>
         Public Sub JoinClauseCrossMatch()

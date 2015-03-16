@@ -2,7 +2,6 @@
 
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports CompilerSyntaxUtilities = Microsoft.CodeAnalysis.VisualBasic.SyntaxUtilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
@@ -75,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             For Each child In node.ChildNodes()
 
-                If CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(child) Then
+                If LambdaUtilities.IsLambdaBodyStatementOrExpression(child) Then
                     Continue For
                 End If
 
@@ -103,17 +102,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     End If
 
                     ' TODO: avoid allocation of closure
-                    For Each descendant In rootChild.DescendantNodes(descendIntoChildren:=Function(c) Not IsLeaf(c) AndAlso (c Is rootChild OrElse Not CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(c)))
-                        If Not CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(descendant) AndAlso HasLabel(descendant) Then
+                    For Each descendant In rootChild.DescendantNodes(descendIntoChildren:=Function(c) Not IsLeaf(c) AndAlso (c Is rootChild OrElse Not LambdaUtilities.IsLambdaBodyStatementOrExpression(c)))
+                        If Not LambdaUtilities.IsLambdaBodyStatementOrExpression(descendant) AndAlso HasLabel(descendant) Then
                             Yield descendant
                         End If
                     Next
                 Next
             Else
                 ' TODO: avoid allocation of closure
-                Dim descendants = node.DescendantNodes(descendIntoChildren:=Function(c) Not IsLeaf(c) AndAlso (c Is node OrElse Not CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(c)))
+                Dim descendants = node.DescendantNodes(descendIntoChildren:=Function(c) Not IsLeaf(c) AndAlso (c Is node OrElse Not LambdaUtilities.IsLambdaBodyStatementOrExpression(c)))
                 For Each descendant In descendants
-                    If Not CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(descendant) AndAlso HasLabel(descendant) Then
+                    If Not LambdaUtilities.IsLambdaBodyStatementOrExpression(descendant) AndAlso HasLabel(descendant) Then
                         Yield descendant
                     End If
                 Next
@@ -121,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Private Function DescendIntoChildren(node As SyntaxNode) As Boolean
-            Return Not CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(node) AndAlso Not HasLabel(node)
+            Return Not LambdaUtilities.IsLambdaBodyStatementOrExpression(node) AndAlso Not HasLabel(node)
         End Function
 #End Region
 

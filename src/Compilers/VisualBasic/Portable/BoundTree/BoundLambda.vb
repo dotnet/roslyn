@@ -36,9 +36,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(
                 TypeOf Syntax Is LambdaExpressionSyntax OrElse
-                SyntaxUtilities.IsLambdaBody(Syntax) OrElse
+                LambdaUtilities.IsLambdaBody(Syntax) OrElse
                 Syntax.IsKind(SyntaxKind.AddressOfExpression) OrElse
-                SyntaxUtilities.IsNonUserCodeQueryLambda(Syntax) OrElse
+                LambdaUtilities.IsNonUserCodeQueryLambda(Syntax) OrElse
                 (DelegateRelaxation And ConversionKind.DelegateRelaxationLevelMask) <> ConversionKind.DelegateRelaxationLevelNone)
         End Sub
 #End If

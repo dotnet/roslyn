@@ -926,14 +926,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim lambdaExpression = TryCast(syntax, LambdaExpressionSyntax)
             If lambdaExpression IsNot Nothing Then
-                lambdaOrLambdaBodySyntax = SyntaxUtilities.GetLambdaExpressionLambdaBody(lambdaExpression)
+                lambdaOrLambdaBodySyntax = LambdaUtilities.GetLambdaExpressionLambdaBody(lambdaExpression)
                 isLambdaBody = True
             ElseIf syntax.IsKind(SyntaxKind.AddressOfExpression) Then
                 ' Late-bound AddressOf operator creates a display class, unlike delegate relaxations.
                 ' EnC is not supported in this case.
                 lambdaOrLambdaBodySyntax = syntax
                 isLambdaBody = False
-            ElseIf SyntaxUtilities.IsNonUserCodeQueryLambda(syntax)
+            ElseIf LambdaUtilities.IsNonUserCodeQueryLambda(syntax)
                 lambdaOrLambdaBodySyntax = syntax
                 isLambdaBody = False
             Else
@@ -942,7 +942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 isLambdaBody = True
             End If
 
-            Debug.Assert(Not isLambdaBody OrElse SyntaxUtilities.IsLambdaBody(lambdaOrLambdaBodySyntax))
+            Debug.Assert(Not isLambdaBody OrElse LambdaUtilities.IsLambdaBody(lambdaOrLambdaBodySyntax))
 
             ' determine lambda ordinal and calculate syntax offset
             lambdaOrdinal = _lambdaDebugInfoBuilder.Count

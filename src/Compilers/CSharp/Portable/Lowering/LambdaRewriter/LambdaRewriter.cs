@@ -924,7 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaOrLambdaBodySyntax = anonymousFunction.Body;
                 isLambdaBody = true;
             }
-            else if (SyntaxUtilities.IsQueryPairLambda(syntax))
+            else if (LambdaUtilities.IsQueryPairLambda(syntax))
             {
                 // "pair" query lambdas
                 lambdaOrLambdaBodySyntax = syntax;
@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isLambdaBody = true;
             }
 
-            Debug.Assert(!isLambdaBody || SyntaxUtilities.IsLambdaBody(lambdaOrLambdaBodySyntax));
+            Debug.Assert(!isLambdaBody || LambdaUtilities.IsLambdaBody(lambdaOrLambdaBodySyntax));
 
             // determine lambda ordinal and calculate syntax offset:
             lambdaOrdinal = _lambdaDebugInfoBuilder.Count;

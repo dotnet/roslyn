@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports CompilerSyntaxUtilities = Microsoft.CodeAnalysis.VisualBasic.SyntaxUtilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
     <ExportLanguageService(GetType(IEditAndContinueAnalyzer), LanguageNames.VisualBasic), [Shared]>
@@ -423,7 +422,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             While node IsNot declarationBody AndAlso
                   Not StatementSyntaxComparer.HasLabel(node) AndAlso
-                  Not CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(node)
+                  Not LambdaUtilities.IsLambdaBodyStatementOrExpression(node)
 
                 node = node.Parent
                 If partnerOpt IsNot Nothing Then
@@ -449,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Friend Overrides Function IsClosureScope(node As SyntaxNode) As Boolean
-            Return CompilerSyntaxUtilities.IsClosureScope(node)
+            Return LambdaUtilities.IsClosureScope(node)
         End Function
 
         Protected Overrides Function FindEnclosingLambdaBody(containerOpt As SyntaxNode, node As SyntaxNode) As SyntaxNode
@@ -457,7 +456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             While node IsNot root
                 Dim body As SyntaxNode = Nothing
-                If CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(node, body) Then
+                If LambdaUtilities.IsLambdaBodyStatementOrExpression(node, body) Then
                     Return body
                 End If
 
@@ -468,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function GetPartnerLambdaBody(oldBody As SyntaxNode, newLambda As SyntaxNode) As SyntaxNode
-            Return CompilerSyntaxUtilities.GetCorrespondingLambdaBody(oldBody, newLambda)
+            Return LambdaUtilities.GetCorrespondingLambdaBody(oldBody, newLambda)
         End Function
 
         Protected Overrides Function ComputeTopLevelMatch(oldCompilationUnit As SyntaxNode, newCompilationUnit As SyntaxNode) As Match(Of SyntaxNode)
@@ -931,23 +930,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Friend Overrides Function ContainsLambda(declaration As SyntaxNode) As Boolean
-            Return declaration.DescendantNodes().Any(AddressOf CompilerSyntaxUtilities.IsLambda)
+            Return declaration.DescendantNodes().Any(AddressOf LambdaUtilities.IsLambda)
         End Function
 
         Friend Overrides Function IsLambda(node As SyntaxNode) As Boolean
-            Return CompilerSyntaxUtilities.IsLambda(node)
+            Return LambdaUtilities.IsLambda(node)
         End Function
 
         Friend Overrides Function TryGetLambdaBodies(node As SyntaxNode, ByRef body1 As SyntaxNode, ByRef body2 As SyntaxNode) As Boolean
-            Return CompilerSyntaxUtilities.TryGetLambdaBodies(node, body1, body2)
+            Return LambdaUtilities.TryGetLambdaBodies(node, body1, body2)
         End Function
 
         Friend Overrides Function GetLambda(lambdaBody As SyntaxNode) As SyntaxNode
-            Return CompilerSyntaxUtilities.GetLambda(lambdaBody)
+            Return LambdaUtilities.GetLambda(lambdaBody)
         End Function
 
         Protected Overrides Function GetLambdaBodyExpressionsAndStatements(lambdaBody As SyntaxNode) As SyntaxList(Of SyntaxNode)
-            Return CompilerSyntaxUtilities.GetLambdaBodyExpressionsAndStatements(lambdaBody)
+            Return LambdaUtilities.GetLambdaBodyExpressionsAndStatements(lambdaBody)
         End Function
 #End Region
 
@@ -2694,7 +2693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End Select
 
                 ' stop at lambda
-                If CompilerSyntaxUtilities.IsLambda(node) Then
+                If LambdaUtilities.IsLambda(node) Then
                     Exit While
                 End If
 
@@ -2813,7 +2812,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return node
                 End Select
 
-                If CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(node) Then
+                If LambdaUtilities.IsLambdaBodyStatementOrExpression(node) Then
                     Return node
                 End If
 

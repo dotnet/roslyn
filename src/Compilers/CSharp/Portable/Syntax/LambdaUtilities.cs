@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class SyntaxUtilities
+    internal static class LambdaUtilities
     {
         /// <summary>
         /// Returns true if the specified node represents a lambda.

@@ -4,14 +4,13 @@ Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports CompilerSyntaxUtilities = Microsoft.CodeAnalysis.VisualBasic.SyntaxUtilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
     Friend NotInheritable Class SyntaxUtilities
         <Conditional("DEBUG")>
         Public Shared Sub AssertIsBody(syntax As SyntaxNode, allowLambda As Boolean)
             ' lambda/query
-            If CompilerSyntaxUtilities.IsLambdaBody(syntax) Then
+            If LambdaUtilities.IsLambdaBody(syntax) Then
                 Debug.Assert(allowLambda)
                 Debug.Assert(TypeOf syntax Is ExpressionSyntax OrElse TypeOf syntax Is LambdaHeaderSyntax)
                 Return
@@ -152,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Public Shared Function GetAwaitExpressions(body As SyntaxNode) As ImmutableArray(Of SyntaxNode)
             ' skip lambda bodies
-            Return ImmutableArray.CreateRange(body.DescendantNodes(AddressOf CompilerSyntaxUtilities.IsNotLambda).
+            Return ImmutableArray.CreateRange(body.DescendantNodes(AddressOf LambdaUtilities.IsNotLambda).
                 Where(Function(n) n.IsKind(SyntaxKind.AwaitExpression)))
         End Function
 

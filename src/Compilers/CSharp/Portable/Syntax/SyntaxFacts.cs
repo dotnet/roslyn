@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static bool IsLambdaBody(SyntaxNode node)
         {
-            return SyntaxUtilities.IsLambdaBody(node);
+            return LambdaUtilities.IsLambdaBody(node);
         }
     }
 }

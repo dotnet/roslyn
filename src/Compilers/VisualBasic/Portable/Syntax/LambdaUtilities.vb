@@ -5,7 +5,7 @@ Imports System.Runtime.InteropServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend NotInheritable Class SyntaxUtilities
+    Friend NotInheritable Class LambdaUtilities
 
         ''' <summary>
         ''' Returns true if the specified node represents a lambda.

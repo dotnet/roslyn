@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using CompilerSyntaxUtilities = Microsoft.CodeAnalysis.CSharp.SyntaxUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
@@ -290,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 partnerOpt = null;
             }
 
-            while (node != declarationBody && !StatementSyntaxComparer.HasLabel(node) && !CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(node))
+            while (node != declarationBody && !StatementSyntaxComparer.HasLabel(node) && !LambdaUtilities.IsLambdaBodyStatementOrExpression(node))
             {
                 node = node.Parent;
                 if (partnerOpt != null)
@@ -389,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override bool IsClosureScope(SyntaxNode node)
         {
-            return CompilerSyntaxUtilities.IsClosureScope(node);
+            return LambdaUtilities.IsClosureScope(node);
         }
 
         protected override SyntaxNode FindEnclosingLambdaBody(SyntaxNode containerOpt, SyntaxNode node)
@@ -399,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             while (node != root)
             {
                 SyntaxNode body;
-                if (CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(node, out body))
+                if (LambdaUtilities.IsLambdaBodyStatementOrExpression(node, out body))
                 {
                     return body;
                 }
@@ -417,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override SyntaxNode GetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
         {
-            return CompilerSyntaxUtilities.GetCorrespondingLambdaBody(oldBody, newLambda);
+            return LambdaUtilities.GetCorrespondingLambdaBody(oldBody, newLambda);
         }
 
         protected override Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit)
@@ -880,22 +879,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override bool ContainsLambda(SyntaxNode declaration)
         {
-            return declaration.DescendantNodes().Any(CompilerSyntaxUtilities.IsLambda);
+            return declaration.DescendantNodes().Any(LambdaUtilities.IsLambda);
         }
 
         internal override bool IsLambda(SyntaxNode node)
         {
-            return CompilerSyntaxUtilities.IsLambda(node);
+            return LambdaUtilities.IsLambda(node);
         }
 
         internal override bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2)
         {
-            return CompilerSyntaxUtilities.TryGetLambdaBodies(node, out body1, out body2);
+            return LambdaUtilities.TryGetLambdaBodies(node, out body1, out body2);
         }
 
         internal override SyntaxNode GetLambda(SyntaxNode lambdaBody)
         {
-            return CompilerSyntaxUtilities.GetLambda(lambdaBody);
+            return LambdaUtilities.GetLambda(lambdaBody);
         }
 
         #endregion
@@ -2613,7 +2612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 // stop at lambda:
-                if (CompilerSyntaxUtilities.IsLambda(node))
+                if (LambdaUtilities.IsLambda(node))
                 {
                     return result;
                 }
@@ -2776,7 +2775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return node;
                 }
 
-                if (CompilerSyntaxUtilities.IsLambdaBodyStatementOrExpression(node))
+                if (LambdaUtilities.IsLambdaBodyStatementOrExpression(node))
                 {
                     return node;
                 }

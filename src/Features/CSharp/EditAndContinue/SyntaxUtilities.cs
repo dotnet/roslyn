@@ -6,7 +6,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
-using CompilerSyntaxUtilities = Microsoft.CodeAnalysis.CSharp.SyntaxUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
@@ -274,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         public static ImmutableArray<SyntaxNode> GetAwaitExpressions(SyntaxNode body)
         {
             // skip lambda bodies:
-            return ImmutableArray.CreateRange(body.DescendantNodesAndSelf(CompilerSyntaxUtilities.IsNotLambda).Where(n => n.IsKind(SyntaxKind.AwaitExpression)));
+            return ImmutableArray.CreateRange(body.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).Where(n => n.IsKind(SyntaxKind.AwaitExpression)));
         }
 
         public static ImmutableArray<SyntaxNode> GetYieldStatements(SyntaxNode body)
