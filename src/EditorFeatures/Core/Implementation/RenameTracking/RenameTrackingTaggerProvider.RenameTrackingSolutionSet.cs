@@ -9,22 +9,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         /// </summary>
         private class RenameTrackingSolutionSet
         {
-            private readonly ISymbol _symbolToRename;
-            private readonly Solution _originalSolution;
-            private readonly Solution _renamedSolution;
-
-            public ISymbol Symbol { get { return _symbolToRename; } }
-            public Solution OriginalSolution { get { return _originalSolution; } }
-            public Solution RenamedSolution { get { return _renamedSolution; } }
+            public ISymbol Symbol { get; }
+            public Solution OriginalSolution { get; }
+            public Solution RenamedSolution { get; }
 
             public RenameTrackingSolutionSet(
                 ISymbol symbolToRename,
                 Solution originalSolution,
                 Solution renamedSolution)
             {
-                _symbolToRename = symbolToRename;
-                _originalSolution = originalSolution;
-                _renamedSolution = renamedSolution;
+                Symbol = symbolToRename;
+                OriginalSolution = originalSolution;
+                RenamedSolution = renamedSolution;
             }
         }
     }

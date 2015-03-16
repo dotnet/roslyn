@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         return SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
                     }
 
-                    _renameTrackingCommitter.RenameSymbolAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                    ////_renameTrackingCommitter.RenameSymbolAsync(cancellationToken).WaitAndGetResult(cancellationToken);
                 }
 
                 var committerOperation = new RenameTrackingCommitterOperation(_renameTrackingCommitter);
@@ -58,8 +58,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     return await SpecializedTasks.EmptyEnumerable<CodeActionOperation>().ConfigureAwait(false);
                 }
 
-                var solutionSet = await _renameTrackingCommitter.RenameSymbolAsync(cancellationToken).ConfigureAwait(false);
-                return SpecializedCollections.SingletonEnumerable((CodeActionOperation)new ApplyChangesOperation(solutionSet.RenamedSolution));
+                var solutionSet = await _renameTrackingCommitter
+                    .RenameSymbolAsync(cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
+
+                return SpecializedCollections.SingletonEnumerable(
+                    (CodeActionOperation)new ApplyChangesOperation(solutionSet.RenamedSolution));
             }
 
             private bool TryInitializeRenameTrackingCommitter(CancellationToken cancellationToken)
