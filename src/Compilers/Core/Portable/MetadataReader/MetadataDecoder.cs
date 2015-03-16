@@ -60,15 +60,9 @@ namespace Microsoft.CodeAnalysis
             return new LocalInfo<TypeSymbol>(this.Type, this.CustomModifiers, this.Constraints, signature);
         }
 
-        public bool IsByRef
-        {
-            get { return (Constraints & LocalSlotConstraints.ByRef) != 0; }
-        }
+        public bool IsByRef => (Constraints & LocalSlotConstraints.ByRef) != 0;
 
-        public bool IsPinned
-        {
-            get { return (Constraints & LocalSlotConstraints.Pinned) != 0; }
-        }
+        public bool IsPinned => (Constraints & LocalSlotConstraints.Pinned) != 0;
     }
 
     internal abstract class MetadataDecoder<ModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol> :
@@ -385,16 +379,10 @@ namespace Microsoft.CodeAnalysis
                 Handle resolutionScope;
                 Module.GetTypeRefPropsOrThrow(typeRef, out name, out @namespace, out resolutionScope);
                 Debug.Assert(MetadataHelpers.IsValidMetadataIdentifier(name));
-                MetadataTypeName mdName;
 
-                if (@namespace.Length == 0)
-                {
-                    mdName = MetadataTypeName.FromTypeName(name);
-                }
-                else
-                {
-                    mdName = MetadataTypeName.FromNamespaceAndTypeName(@namespace, name);
-                }
+                MetadataTypeName mdName = @namespace.Length > 0 
+                    ? MetadataTypeName.FromNamespaceAndTypeName(@namespace, name) 
+                    : MetadataTypeName.FromTypeName(name);
 
                 result = GetTypeByNameOrThrow(ref mdName, resolutionScope, out isNoPiaLocalType);
             }
@@ -533,21 +521,16 @@ namespace Microsoft.CodeAnalysis
 
                 string namespaceName = Module.GetTypeDefNamespaceOrThrow(typeDef);
 
-                if (namespaceName.Length > 0)
-                {
-                    mdName = MetadataTypeName.FromNamespaceAndTypeName(namespaceName, name);
-                }
-                else
-                {
-                    // It is extremely difficult to hit this block because it is executed 
+                mdName = namespaceName.Length > 0 
+                    ? MetadataTypeName.FromNamespaceAndTypeName(namespaceName, name) 
+                    : MetadataTypeName.FromTypeName(name);
+                    // It is extremely difficult to hit the last branch because it is executed 
                     // only for types in the Global namespace and they are getting loaded 
                     // as soon as we start traversing Symbol Table, therefore, their TypeDef
                     // handle is getting cached and lookup in the cache succeeds. 
                     // Probably we can hit it if the first thing we do is to interrogate 
                     // Module/Assembly level attributes, which refer to a TypeDef in the 
                     // Global namespace.
-                    mdName = MetadataTypeName.FromTypeName(name);
-                }
 
                 // Check if this is NoPia local type which should be substituted 
                 // with corresponding canonical type
@@ -1273,15 +1256,9 @@ namespace Microsoft.CodeAnalysis
                 throw new UnsupportedSignatureContent();
             }
 
-            TypedConstant value;
-            if (typeCode == SerializationTypeCode.SZArray)
-            {
-                value = DecodeCustomAttributeElementArrayOrThrow(ref argReader, elementTypeCode, elementType, type);
-            }
-            else
-            {
-                value = DecodeCustomAttributeElementOrThrow(ref argReader, typeCode, type);
-            }
+            TypedConstant value = typeCode == SerializationTypeCode.SZArray 
+                ? DecodeCustomAttributeElementArrayOrThrow(ref argReader, elementTypeCode, elementType, type) 
+                : DecodeCustomAttributeElementOrThrow(ref argReader, typeCode, type);
 
             return new KeyValuePair<string, TypedConstant>(name, value);
         }
@@ -2056,14 +2033,9 @@ namespace Microsoft.CodeAnalysis
             HandleKind type = memberToken.Kind;
             Debug.Assert(type == HandleKind.MethodDefinition || type == HandleKind.MemberReference);
 
-            if (type == HandleKind.MethodDefinition)
-            {
-                return FindMethodSymbolInType(container, (MethodDefinitionHandle)memberToken);
-            }
-            else
-            {
-                return GetMethodSymbolForMemberRef((MemberReferenceHandle)memberToken, container);
-            }
+            return type == HandleKind.MethodDefinition 
+                ? FindMethodSymbolInType(container, (MethodDefinitionHandle)memberToken) 
+                : GetMethodSymbolForMemberRef((MemberReferenceHandle)memberToken, container);
         }
 
         internal FieldSymbol GetFieldSymbolForFieldDefOrMemberRef(Handle memberToken, TypeSymbol container)
@@ -2072,14 +2044,9 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(type == HandleKind.FieldDefinition ||
                             type == HandleKind.MemberReference);
 
-            if (type == HandleKind.FieldDefinition)
-            {
-                return FindFieldSymbolInType(container, (FieldDefinitionHandle)memberToken);
-            }
-            else
-            {
-                return GetFieldSymbolForMemberRef((MemberReferenceHandle)memberToken, container);
-            }
+            return type == HandleKind.FieldDefinition 
+                ? FindFieldSymbolInType(container, (FieldDefinitionHandle)memberToken) 
+                : GetFieldSymbolForMemberRef((MemberReferenceHandle)memberToken, container);
         }
 
         /// <summary>

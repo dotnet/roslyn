@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Roslyn.Utilities;
 
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis
             [Obsolete("Do not use Free, Use ClearAndFree instead.", error: true)]
             public new void Free(List<T> list)
             {
-                ClearAndFree(list);
+                throw new NotSupportedException();
             }
         }
 
@@ -93,14 +94,7 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 Parser.ParseDeclaredSymbolId(id, compilation, results);
-                if (results.Count == 0)
-                {
-                    return null;
-                }
-                else
-                {
-                    return results[0];
-                }
+                return results.Count == 0 ? null : results[0];
             }
             finally
             {
@@ -137,14 +131,7 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 Parser.ParseReferencedSymbolId(id, compilation, results);
-                if (results.Count == 0)
-                {
-                    return null;
-                }
-                else
-                {
-                    return results[0];
-                }
+                return results.Count == 0 ? null : results[0];
             }
             finally
             {
@@ -541,12 +528,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             // only supports type symbols
-            public static bool ParseReferencedSymbolId(string id, Compilation compilation, List<ISymbol> results)
+            public static void ParseReferencedSymbolId(string id, Compilation compilation, List<ISymbol> results)
             {
                 int index = 0;
                 results.Clear();
                 ParseTypeSymbol(id, ref index, compilation, null, results);
-                return results.Count != 0;
             }
 
             private static void ParseDeclaredId(string id, ref int index, Compilation compilation, List<ISymbol> results)
@@ -1262,6 +1248,7 @@ namespace Microsoft.CodeAnalysis
                 return typeSymbol.TypeParameters.Length + GetTypeParameterCount(typeSymbol.ContainingType);
             }
 
+            [StructLayout(LayoutKind.Auto)]
             private struct ParameterInfo
             {
                 internal readonly ITypeSymbol Type;
