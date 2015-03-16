@@ -13,9 +13,8 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.CommandLine</RootNamespace>
     <AssemblyName>csc2</AssemblyName>
     <LargeAddressAware>true</LargeAddressAware>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
     <Compile Include="Csc2.cs" />
   </ItemGroup>
