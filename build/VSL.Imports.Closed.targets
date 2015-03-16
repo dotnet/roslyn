@@ -70,7 +70,6 @@
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
     
-    <Message Text="Fake Sign Assembly" />
     <Exec Command="$(FakeSignToolPath) &quot;@(IntermediateAssembly)&quot;" />
     
   </Target>
