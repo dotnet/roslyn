@@ -1,54 +1,53 @@
 Microsoft.CodeAnalysis.CSharp.Formatting.BinaryOperatorSpacingOptions
-Microsoft.CodeAnalysis.CSharp.Formatting.BinaryOperatorSpacingOptions.Ignore = 1
-Microsoft.CodeAnalysis.CSharp.Formatting.BinaryOperatorSpacingOptions.Remove = 2
-Microsoft.CodeAnalysis.CSharp.Formatting.BinaryOperatorSpacingOptions.Single = 0
+Microsoft.CodeAnalysis.CSharp.Formatting.BinaryOperatorSpacingOptions.Ignore = 1 -> Microsoft.CodeAnalysis.CSharp.Formatting.BinaryOperatorSpacingOptions
+Microsoft.CodeAnalysis.CSharp.Formatting.BinaryOperatorSpacingOptions.Remove = 2 -> Microsoft.CodeAnalysis.CSharp.Formatting.BinaryOperatorSpacingOptions
+Microsoft.CodeAnalysis.CSharp.Formatting.BinaryOperatorSpacingOptions.Single = 0 -> Microsoft.CodeAnalysis.CSharp.Formatting.BinaryOperatorSpacingOptions
 Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions
 Microsoft.CodeAnalysis.CSharp.Formatting.LabelPositionOptions
-Microsoft.CodeAnalysis.CSharp.Formatting.LabelPositionOptions.LeftMost = 0
-Microsoft.CodeAnalysis.CSharp.Formatting.LabelPositionOptions.NoIndent = 2
-Microsoft.CodeAnalysis.CSharp.Formatting.LabelPositionOptions.OneLess = 1
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.IndentBlock
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.IndentBraces
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.IndentSwitchCaseSection
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.IndentSwitchSection
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.LabelPositioning
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForCatch
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForClausesInQuery
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForElse
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForFinally
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForMembersInAnonymousTypes
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForMembersInObjectInit
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInControlBlocks
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInMethods
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers
-
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInTypes
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterCast
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterColonInBaseTypeDeclaration
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterComma
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterControlFlowStatementKeyword
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterDot
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterMethodCallName
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterSemicolonsInForStatement
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBeforeColonInBaseTypeDeclaration
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBeforeComma
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBeforeDot
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBeforeOpenSquareBracket
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBeforeSemicolonsInForStatement
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBetweenEmptyMethodDeclarationParentheses
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinCastParentheses
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinExpressionParentheses
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinMethodCallParentheses
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinMethodDeclarationParenthesis
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinOtherParentheses
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinSquareBrackets
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpacingAfterMethodDeclarationName
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpacingAroundBinaryOperator
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine
-static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.WrappingPreserveSingleLine
+Microsoft.CodeAnalysis.CSharp.Formatting.LabelPositionOptions.LeftMost = 0 -> Microsoft.CodeAnalysis.CSharp.Formatting.LabelPositionOptions
+Microsoft.CodeAnalysis.CSharp.Formatting.LabelPositionOptions.NoIndent = 2 -> Microsoft.CodeAnalysis.CSharp.Formatting.LabelPositionOptions
+Microsoft.CodeAnalysis.CSharp.Formatting.LabelPositionOptions.OneLess = 1 -> Microsoft.CodeAnalysis.CSharp.Formatting.LabelPositionOptions
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.IndentBlock -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.IndentBraces -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.IndentSwitchCaseSection -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.IndentSwitchSection -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.LabelPositioning -> Microsoft.CodeAnalysis.Options.Option<Microsoft.CodeAnalysis.CSharp.Formatting.LabelPositionOptions>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForCatch -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForClausesInQuery -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForElse -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForFinally -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForMembersInAnonymousTypes -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForMembersInObjectInit -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInControlBlocks -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInMethods -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInTypes -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterCast -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterColonInBaseTypeDeclaration -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterComma -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterControlFlowStatementKeyword -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterDot -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterMethodCallName -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterSemicolonsInForStatement -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBeforeColonInBaseTypeDeclaration -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBeforeComma -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBeforeDot -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBeforeOpenSquareBracket -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBeforeSemicolonsInForStatement -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBetweenEmptyMethodDeclarationParentheses -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinCastParentheses -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinExpressionParentheses -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinMethodCallParentheses -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinMethodDeclarationParenthesis -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinOtherParentheses -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinSquareBrackets -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpacingAfterMethodDeclarationName -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpacingAroundBinaryOperator -> Microsoft.CodeAnalysis.Options.Option<Microsoft.CodeAnalysis.CSharp.Formatting.BinaryOperatorSpacingOptions>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine -> Microsoft.CodeAnalysis.Options.Option<bool>
+static readonly Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.WrappingPreserveSingleLine -> Microsoft.CodeAnalysis.Options.Option<bool>
