@@ -2715,13 +2715,14 @@ public class Program
 }";
             var comp1 = CreateCompilationWithMscorlib(s1, options: TestOptions.ReleaseModule);
             comp1.VerifyDiagnostics();
-            var ref1 = ModuleMetadata.CreateFromStream(comp1.EmitToStream()).GetReference();
+            var ref1 = comp1.EmitToImageReference();
 
             var comp2 = CreateCompilationWithMscorlib(s2, options: TestOptions.ReleaseModule, references: new[] { ref1 });
             comp2.VerifyDiagnostics();
-            var ref2 = ModuleMetadata.CreateFromStream(comp2.EmitToStream()).GetReference();
+            var ref2 = comp2.EmitToImageReference();
 
             var comp3 = CreateCompilationWithMscorlib(s3, options: TestOptions.ReleaseExe, references: new[] { ref1, ref2 });
+            // Before the bug was fixed, the PrivateImplementationDetails classes clashed, resulting in the commented-out error below.
             comp3.VerifyDiagnostics(
                 ////// error CS0101: The namespace '<global namespace>' already contains a definition for '<PrivateImplementationDetails>'
                 ////Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("<PrivateImplementationDetails>", "<global namespace>").WithLocation(1, 1)
@@ -2761,11 +2762,11 @@ public class Program
 }";
             var comp1 = CreateCompilationWithMscorlib(s1, options: TestOptions.ReleaseModule.WithModuleName("A"));
             comp1.VerifyDiagnostics();
-            var ref1 = ModuleMetadata.CreateFromStream(comp1.EmitToStream()).GetReference();
+            var ref1 = comp1.EmitToImageReference();
 
             var comp2 = CreateCompilationWithMscorlib(s2, options: TestOptions.ReleaseModule.WithModuleName("B"), references: new[] { ref1 });
             comp2.VerifyDiagnostics();
-            var ref2 = ModuleMetadata.CreateFromStream(comp2.EmitToStream()).GetReference();
+            var ref2 = comp2.EmitToImageReference();
 
             var comp3 = CreateCompilationWithMscorlib(s3, options: TestOptions.ReleaseExe.WithModuleName("C"), references: new[] { ref1, ref2 });
             comp3.VerifyDiagnostics();

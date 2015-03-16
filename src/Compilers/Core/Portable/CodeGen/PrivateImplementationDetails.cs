@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // value, and data field offsets are unique within the method, not across all methods.
         internal const string SynthesizedStringHashFunctionName = "ComputeStringHash";
 
-        private readonly Cci.IModule _moduleBuilder;                     //parent unit
-        private readonly Cci.ITypeReference _systemObject;        //base type
-        private readonly Cci.ITypeReference _systemValueType;     //base for nested structs
+        private readonly Cci.IModule _moduleBuilder;                 //the module builder
+        private readonly Cci.ITypeReference _systemObject;           //base type
+        private readonly Cci.ITypeReference _systemValueType;        //base for nested structs
 
         private readonly Cci.ITypeReference _systemInt8Type;         //for metadata init of byte arrays
         private readonly Cci.ITypeReference _systemInt16Type;        //for metadata init of short arrays
@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal static string GetClassName(string moduleName, int submissionSlotIndex)
         {
+            // we include the module name in the name of the PrivateImplementationDetails class so that more than
+            // one of them can be included in an assembly as part of netmodules.
             return $"<PrivateImplementationDetails><{(submissionSlotIndex >= 0 ? submissionSlotIndex.ToString() : moduleName)}>";
         }
 
