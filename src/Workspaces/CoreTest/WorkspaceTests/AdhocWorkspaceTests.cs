@@ -348,5 +348,68 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(c.EndsWith(".\u0640.txt", StringComparison.Ordinal));
             Assert.False(c.EndsWith("..txt", StringComparison.Ordinal));
         }
+
+        [Fact]
+        public void TestUpdatedDocumentHasTextVersion()
+        {
+            var pid = ProjectId.CreateNewId();
+            var text = SourceText.From("public class C { }");
+            var version = VersionStamp.Create();
+            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "c.cs", loader: TextLoader.From(TextAndVersion.Create(text, version)));
+            var projInfo = ProjectInfo.Create(
+                pid,
+                version: VersionStamp.Default,
+                name: "TestProject",
+                assemblyName: "TestProject.dll",
+                language: LanguageNames.CSharp,
+                documents: new[] { docInfo });
+
+            using (var ws = new AdhocWorkspace())
+            {
+                ws.AddProject(projInfo);
+
+                SourceText currentText;
+                VersionStamp currentVersion;
+
+                var doc = ws.CurrentSolution.GetDocument(docInfo.Id);
+                Assert.Equal(false, doc.TryGetText(out currentText));
+                Assert.Equal(false, doc.TryGetTextVersion(out currentVersion));
+
+                // cause text to load and show that TryGet now works for text and version
+                currentText = doc.GetTextAsync().Result;
+                Assert.Equal(true, doc.TryGetText(out currentText));
+                Assert.Equal(true, doc.TryGetTextVersion(out currentVersion));
+                Assert.Equal(version, currentVersion);
+
+                // change document
+                var root = doc.GetSyntaxRootAsync().Result;
+                var newRoot = root.WithAdditionalAnnotations(new SyntaxAnnotation());
+                Assert.NotSame(root, newRoot);
+                var newDoc = doc.WithSyntaxRoot(newRoot);
+                Assert.NotSame(doc, newDoc);
+
+                // text is now unavailable since it must be constructed from tree
+                Assert.Equal(false, newDoc.TryGetText(out currentText));
+
+                // version is available because it is cached
+                Assert.Equal(true, newDoc.TryGetTextVersion(out currentVersion));
+
+                // access it the hard way
+                var actualVersion = newDoc.GetTextVersionAsync().Result;
+
+                // version is the same 
+                Assert.Equal(currentVersion, actualVersion);
+
+                // accessing text version did not cause text to be constructed.
+                Assert.Equal(false, newDoc.TryGetText(out currentText));
+
+                // now access text directly (force it to be constructed)
+                var actualText = newDoc.GetTextAsync().Result;
+                actualVersion = newDoc.GetTextVersionAsync().Result;
+
+                // prove constructing text did not introduce a new version
+                Assert.Equal(currentVersion, actualVersion);
+            }
+        }
     }
 }
