@@ -54,6 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 var tokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
                 AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
+                var propertyDeclNode = node as PropertyDeclarationSyntax;
+                if (propertyDeclNode?.Initializer != null && propertyDeclNode?.AccessorList != null)
+                {
+                    AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, propertyDeclNode.AccessorList.GetLastToken());
+                }
                 return;
             }
 
