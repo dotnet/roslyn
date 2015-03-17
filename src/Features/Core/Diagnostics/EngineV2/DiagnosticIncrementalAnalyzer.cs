@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -18,6 +19,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private readonly DiagnosticAnalyzerService _owner;
         private readonly HostAnalyzerManager _hostAnalyzerManager;
 
+        private Dictionary<VersionStamp, ImmutableArray<Diagnostic>> _oldDocumentDiagnostics = new Dictionary<VersionStamp, ImmutableArray<Diagnostic>>();
+        private Dictionary<VersionStamp, ImmutableArray<Diagnostic>> _oldProjectDiagnostics = new Dictionary<VersionStamp, ImmutableArray<Diagnostic>>();
+
+        private CompilationDescriptor _oldCompilation = new CompilationDescriptor(VersionStamp.Default, null);
+        private CompilationDescriptor _newCompilation = new CompilationDescriptor(VersionStamp.Default, null);
+
+        private readonly object _getCompilationLock = new object();
+
         public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
             : base(workspace, hostDiagnosticUpdateSource)
         {
@@ -29,14 +38,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         #region IIncrementalAnalyzer
         public async override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
         {
+            Project project = document.Project;
+
             VersionStamp textVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
-            VersionStamp projectVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-            VersionStamp projectDeclarationsVersion = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
+            VersionStamp projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+            VersionStamp projectDeclarationsVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
-            // var versions = new VersionArgument(textVersion, dataVersion, projectVersion);
+            SemanticModel documentModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            Compilation compilation = documentModel.Compilation;
+            CompilationDescriptor compilationDescriptor = GetCompilation(compilation, project, projectVersion, cancellationToken);
 
-            Compilation compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            ImmutableArray<Diagnostic> diagnostics = documentModel.GetDiagnostics(null, cancellationToken);
+            compilationDescriptor.DistributeDiagnostics(diagnostics);
         }
+
+        // New above here.
 
         public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
         {
@@ -212,6 +228,96 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _owner.RaiseDiagnosticsUpdated(
                     this, new DiagnosticsUpdatedArgs(
                         ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty()));
+            }
+        }
+
+        // New below here.
+
+        private CompilationDescriptor GetCompilation(Compilation compilation, Project project, VersionStamp projectVersion, CancellationToken cancellationToken)
+        {
+            lock (_getCompilationLock)
+            {
+                CompilationDescriptor oldCompilation = _oldCompilation;
+                if (oldCompilation.ProjectVersion == projectVersion)
+                {
+                    return oldCompilation;
+                }
+
+                CompilationDescriptor newCompilation = _newCompilation;
+                if (newCompilation.ProjectVersion != projectVersion)
+                {
+                    CompilationWithAnalyzers newCompilationWithAnalyzers = compilation.WithAnalyzers(Flatten(_hostAnalyzerManager.GetHostDiagnosticAnalyzersPerReference(project.Language).Values), project.AnalyzerOptions, cancellationToken);
+                    CompilationDescriptor newerCompilation = new CompilationDescriptor(projectVersion, newCompilationWithAnalyzers);
+                    newCompilation = newerCompilation;
+
+                    _oldCompilation = newCompilation;
+                    _newCompilation = newerCompilation;
+                }
+
+                return newCompilation;
+            }
+        }
+
+        private static ImmutableArray<T> Flatten<T>(IEnumerable<ImmutableArray<T>> arrays)
+        {
+            ImmutableArray<T>.Builder builder = ImmutableArray.CreateBuilder<T>();
+            foreach (ImmutableArray<T> array in arrays)
+            {
+                builder.AddRange(array);
+            }
+
+            return builder.ToImmutable();
+        }
+
+        private static string LocationPath(Location location)
+        {
+            if (location != null)
+            {
+                SyntaxTree tree = location.SourceTree;
+                if (tree != null)
+                {
+                    return tree.FilePath;
+                }
+            }
+
+            return "";
+        }
+
+        private class CompilationDescriptor
+        {
+            public VersionStamp ProjectVersion { get; private set; }
+            public CompilationWithAnalyzers Compilation { get; private set; }
+            public ConcurrentDictionary<string, ImmutableArray<Diagnostic>> DiagnosticsPerPaths { get; private set; }
+            private readonly object UpdateDiagnosticsLock = new object();
+
+            public CompilationDescriptor(VersionStamp projectVersion, CompilationWithAnalyzers compilation)
+            {
+                this.Compilation = compilation;
+                this.ProjectVersion = projectVersion;
+                this.DiagnosticsPerPaths = new ConcurrentDictionary<string, ImmutableArray<Diagnostic>>();
+            }
+
+            public void DistributeDiagnostics(ImmutableArray<Diagnostic> diagnostics)
+            {
+                lock (this.UpdateDiagnosticsLock)
+                {
+                    ConcurrentDictionary<string, ImmutableArray<Diagnostic>> diagnosticMap = this.DiagnosticsPerPaths;
+                    foreach (Diagnostic diagnostic in diagnostics)
+                    {
+                        string diagnosticPath = LocationPath(diagnostic.Location);
+                        ImmutableArray<Diagnostic> diagnosticsPerPath;
+                        if (diagnosticMap.TryGetValue(diagnosticPath, out diagnosticsPerPath))
+                        {
+                            diagnosticsPerPath = diagnosticsPerPath.Add(diagnostic);
+                        }
+                        else
+                        {
+                            diagnosticsPerPath = ImmutableArray.Create(diagnostic);
+                        }
+
+                        diagnosticMap[diagnosticPath] = diagnosticsPerPath;
+                    }
+                }
             }
         }
     }
