@@ -898,11 +898,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        internal void GetSignatureCountsOrThrow(MethodDefinitionHandle methodDef, out int parameterCount, out int typeParameterCount)
+        internal static void GetSignatureCountsOrThrow(PEModule module, MethodDefinitionHandle methodDef, out int parameterCount, out int typeParameterCount)
         {
-            BlobHandle signature = Module.GetMethodSignatureOrThrow(methodDef);
+            BlobHandle signature = module.GetMethodSignatureOrThrow(methodDef);
             SignatureHeader signatureHeader;
-            BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
+            BlobReader signatureReader = DecodeSignatureHeaderOrThrow(module, signature, out signatureHeader);
 
             GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out parameterCount, out typeParameterCount);
         }
@@ -1497,7 +1497,13 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal BlobReader DecodeSignatureHeaderOrThrow(BlobHandle signature, out SignatureHeader signatureHeader)
         {
-            BlobReader reader = Module.GetMemoryReaderOrThrow(signature);
+            return DecodeSignatureHeaderOrThrow(Module, signature, out signatureHeader);
+        }
+
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        internal static BlobReader DecodeSignatureHeaderOrThrow(PEModule module, BlobHandle signature, out SignatureHeader signatureHeader)
+        {
+            BlobReader reader = module.GetMemoryReaderOrThrow(signature);
             signatureHeader = reader.ReadSignatureHeader();
             return reader;
         }

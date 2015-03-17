@@ -1677,8 +1677,7 @@ End Class</Code>
             {
                 {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
                 {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.UseTabOnlyForIndentation, LanguageNames.VisualBasic), True}
+                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
             }
 
             AssertFormat(code, expected, changedOptionSet:=optionSet)
@@ -1697,7 +1696,7 @@ End Class</Code>
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                vbTab + "Sub Foo()			' Comment" + vbCrLf +
+                vbTab + "Sub Foo()           ' Comment" + vbCrLf +
                 vbTab + vbTab + "Foo()" + vbCrLf +
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
@@ -1933,7 +1932,7 @@ End Class</Code>
 End Class</Code>
 
             Dim expected = <Code>Class Foo
-	Sub Foo()			' Comment
+	Sub Foo()           ' Comment
 		Foo()
 	End Sub
 End Class</Code>
@@ -4197,6 +4196,43 @@ End Class
 Class C
     Sub M()
         Dim s = $"{42,-4:x}"
+    End Sub
+End Class
+</Code>
+
+            AssertFormatLf2CrLf(text.Value, expected.Value)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub EmptyCaseBlockCommentGetsIndented()
+            Dim text = <Code>
+Class Program
+    Sub Main(args As String())
+        Dim s = 0
+        Select Case s
+            Case 0
+            ' Comment should be indented
+            Case 2
+                ' comment
+                Console.WriteLine(s)
+            Case 4
+        End Select
+    End Sub
+End Class
+</Code>
+
+            Dim expected = <Code>
+Class Program
+    Sub Main(args As String())
+        Dim s = 0
+        Select Case s
+            Case 0
+                ' Comment should be indented
+            Case 2
+                ' comment
+                Console.WriteLine(s)
+            Case 4
+        End Select
     End Sub
 End Class
 </Code>

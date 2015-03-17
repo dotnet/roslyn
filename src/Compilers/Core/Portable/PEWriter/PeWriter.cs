@@ -55,11 +55,11 @@ namespace Microsoft.Cci
         private SectionHeader _textSection;
         private SectionHeader _tlsSection;
 
-        public static void WritePeToStream(
+        public static bool WritePeToStream(
             EmitContext context,
             CommonMessageProvider messageProvider,
-            Stream peStream,
-            Stream pdbStreamOpt,
+            Func<Stream> getPeStream,
+            Func<Stream> getPdbStreamOpt,
             PdbWriter nativePdbWriterOpt,
             bool allowMissingMethodBodies,
             bool deterministic,
@@ -75,7 +75,10 @@ namespace Microsoft.Cci
             }
 
             uint entryPointToken;
-            peWriter.WritePeToStream(mdWriter, peStream, pdbStreamOpt, nativePdbWriterOpt, out entryPointToken);
+            if (!peWriter.Write(mdWriter, getPeStream, getPdbStreamOpt, nativePdbWriterOpt, out entryPointToken))
+            {
+                return false;
+            }
 
             if (nativePdbWriterOpt != null)
             {
@@ -92,9 +95,11 @@ namespace Microsoft.Cci
                     nativePdbWriterOpt.WriteDefinitionLocations(context.Module.GetSymbolToLocationMap());
                 }
             }
+
+            return true;
         }
 
-        private void WritePeToStream(MetadataWriter mdWriter, Stream peStream, Stream pdbStreamOpt, PdbWriter nativePdbWriterOpt, out uint entryPointToken)
+        private bool Write(MetadataWriter mdWriter, Func<Stream> getPeStream, Func<Stream> getPdbStreamOpt, PdbWriter nativePdbWriterOpt, out uint entryPointToken)
         {
             // TODO: we can precalculate the exact size of IL stream
             var ilBuffer = new MemoryStream(32 * 1024);
@@ -106,7 +111,7 @@ namespace Microsoft.Cci
             var managedResourceBuffer = new MemoryStream(1024);
             var managedResourceWriter = new BinaryWriter(managedResourceBuffer);
 
-            var debugMetadataBuffer = (pdbStreamOpt != null) ? new MemoryStream(16 * 1024) : null;
+            var debugMetadataBuffer = (getPdbStreamOpt != null) ? new MemoryStream(16 * 1024) : null;
             var debugMetadataWriterOpt = new BinaryWriter(debugMetadataBuffer);
 
             // Since we are producing a full assembly, we should not have a module version ID
@@ -135,19 +140,31 @@ namespace Microsoft.Cci
                 out entryPointToken,
                 out metadataSizes);
 
-            if (pdbStreamOpt != null)
-            {
-                debugMetadataBuffer.WriteTo(pdbStreamOpt);
-            }
-
             FillInSectionHeaders();
 
             // fill in header fields.
             FillInNtHeader(metadataSizes, CalculateMappedFieldDataStreamRva(metadataSizes));
             var corHeader = CreateCorHeader(metadataSizes, entryPointToken);
 
-            // write to pe stream.
+            // write to streams
+
+
+            if (getPdbStreamOpt != null)
+            {
+                Stream pdbStream = getPdbStreamOpt();
+                if (pdbStream != null)
+                {
+                    debugMetadataBuffer.WriteTo(pdbStream);
+                }
+            }
+
             long positionOfHeaderTimestamp;
+            Stream peStream = getPeStream();
+            if (peStream == null)
+            {
+                return false;
+            }
+
             WriteHeaders(peStream, out positionOfHeaderTimestamp);
 
             long startOfMetadataStream;
@@ -175,6 +192,8 @@ namespace Microsoft.Cci
                 var positionOfModuleVersionId = startOfMetadataStream + moduleVersionIdOffsetInMetadataStream;
                 WriteDeterministicGuidAndTimestamps(peStream, positionOfModuleVersionId, positionOfHeaderTimestamp, positionOfDebugTableTimestamp);
             }
+
+            return true;
         }
 
         private int CalculateMappedFieldDataStreamRva(MetadataSizes metadataSizes)

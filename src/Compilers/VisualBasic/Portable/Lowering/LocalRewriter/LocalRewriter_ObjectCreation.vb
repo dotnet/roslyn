@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                     Dim conv As ConversionKind = Conversions.ClassifyDirectCastConversion(result.Type, node.Type, useSiteDiagnostics)
                     Debug.Assert(Conversions.ConversionExists(conv))
-                    diagnostics.Add(result, useSiteDiagnostics)
+                    _diagnostics.Add(result, useSiteDiagnostics)
                     result = New BoundDirectCast(node.Syntax, result, conv, node.Type, Nothing)
                 Else
                     Debug.Assert(node.Type = result.Type)
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' If System.Runtime.InteropServices.Marshal.GetTypeFromCLSID is not available (older framework),
             ' System.Type.GetTypeFromCLSID() is used to get the type for the CLSID.
 
-            Dim factory As New SyntheticBoundNodeFactory(topMethod, currentMethodOrLambda, node.Syntax, compilationState, diagnostics)
+            Dim factory As New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, node.Syntax, _compilationState, _diagnostics)
 
             Dim ctor = factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Guid__ctor)
             Dim newGuid As BoundExpression
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If createInstance IsNot Nothing AndAlso Not createInstance.ReturnType.IsErrorType() Then
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 Dim conversion = Conversions.ClassifyDirectCastConversion(createInstance.ReturnType, node.Type, useSiteDiagnostics)
-                diagnostics.Add(node, useSiteDiagnostics)
+                _diagnostics.Add(node, useSiteDiagnostics)
                 rewrittenObjectCreation = New BoundDirectCast(node.Syntax, factory.Call(Nothing, createInstance, callGetTypeFromCLSID), conversion, node.Type)
             Else
                 rewrittenObjectCreation = New BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundNode).Empty, node.Type, hasErrors:=True)
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Unlike C#, "New T()" is always rewritten as "Activator.CreateInstance<T>()",
             ' even if T is known to be a value type or reference type. This matches Dev10 VB.
 
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 ' NOTE: is we are in expression lambda, we want to keep BoundNewT 
                 ' NOTE: node, but we need to rewrite initializers if any
 
@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' create a temp symbol 
             '    Dim temp as CollectionType
             Dim expressionType = node.Type
-            Dim tempLocalSymbol = New SynthesizedLocal(Me.currentMethodOrLambda, expressionType, SynthesizedLocalKind.LoweringTemp)
+            Dim tempLocalSymbol = New SynthesizedLocal(Me._currentMethodOrLambda, expressionType, SynthesizedLocalKind.LoweringTemp)
 
             ' rewrite the object creation expression and create assignment for the rewritten object 
             ' creation expression to the temp
@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             RemovePlaceholderReplacement(node.PlaceholderOpt)
 
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 ' NOTE: if inside expression lambda we rewrite the collection initializer 
                 ' NOTE: node and attach it back to object creation expression, it will be 
                 ' NOTE: rewritten later in ExpressionLambdaRewriter
@@ -290,12 +290,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If node.CreateTemporaryLocalForInitialization Then
                 ' create temporary
                 '    Dim temp as RefTypeName 
-                Dim tempLocalSymbol As LocalSymbol = New SynthesizedLocal(Me.currentMethodOrLambda, expressionType, SynthesizedLocalKind.LoweringTemp)
+                Dim tempLocalSymbol As LocalSymbol = New SynthesizedLocal(Me._currentMethodOrLambda, expressionType, SynthesizedLocalKind.LoweringTemp)
                 sequenceType = expressionType
 
                 sequenceTemporaries = ImmutableArray.Create(Of LocalSymbol)(tempLocalSymbol)
 
-                targetObjectReference = If(inExpressionLambda,
+                targetObjectReference = If(_inExpressionLambda,
                                            DirectCast(node.PlaceholderOpt, BoundExpression),
                                            New BoundLocal(syntaxNode, tempLocalSymbol, expressionType))
                 sequenceValueExpression = targetObjectReference.MakeRValue()
@@ -328,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '        or
             '    temp.FieldName = value expression
             For initializerIndex = 0 To initializerCount - 1
-                If inExpressionLambda Then
+                If _inExpressionLambda Then
                     ' NOTE: Inside expression lambda we rewrite only right-hand-side of the assignments, left part 
                     ' NOTE: will be kept unchanged to make sure we got proper symbol out of it 
                     Dim assignment = DirectCast(node.Initializers(initializerIndex), BoundAssignmentOperator)
@@ -347,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 RemovePlaceholderReplacement(node.PlaceholderOpt)
             End If
 
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 ' when converting object initializer inside expression lambdas we want to keep 
                 ' object initializer in object creation expression; we just store visited initializers 
                 ' back to the original object initializer and update the original object creation expression

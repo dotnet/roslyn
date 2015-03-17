@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private class ComplainAboutX : DiagnosticAnalyzer
         {
             private static readonly DiagnosticDescriptor s_CA9999_UseOfVariableThatStartsWithX =
-                new DiagnosticDescriptor(id: "CA9999", title: "CA9999_UseOfVariableThatStartsWithX", messageFormat: "Use of variable whose name starts with 'x': '{0}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new DiagnosticDescriptor(id: "CA9999_UseOfVariableThatStartsWithX", title: "CA9999_UseOfVariableThatStartsWithX", messageFormat: "Use of variable whose name starts with 'x': '{0}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var id = (IdentifierNameSyntax)context.Node;
                 if (id.Identifier.ValueText.StartsWith("x", StringComparison.Ordinal))
                 {
-                    context.ReportDiagnostic(new TestDiagnostic("CA9999_UseOfVariableThatStartsWithX", "CsTest", DiagnosticSeverity.Warning, id.Location, "Use of variable whose name starts with 'x': '{0}'", id.Identifier.ValueText));
+                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_CA9999_UseOfVariableThatStartsWithX, id.Location, id.Identifier.ValueText));
                 }
             }
         }
@@ -933,6 +933,46 @@ public class B
                     var method = ((IMethodSymbol)ctxt.Symbol);
                     ctxt.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor1, method.Locations[0], method.ToDisplayString()));
                 }, SymbolKind.Method);
+            }
+        }
+
+        [Fact, WorkItem(252, "https://github.com/dotnet/roslyn/issues/252")]
+        public void TestReportingUnsupportedDiagnostic()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerReportingUnsupportedDiagnostic() };
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                     expected: Diagnostic("AD0001")
+                     .WithArguments("Microsoft.CodeAnalysis.CSharp.UnitTests.DiagnosticAnalyzerTests+AnalyzerReportingUnsupportedDiagnostic", 
+                     @"Reported diagnostic with ID 'ID_2' is not supported by the analyzer.
+Parameter name: diagnostic")
+                     .WithLocation(1, 1));
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class AnalyzerReportingUnsupportedDiagnostic : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor SupportedDescriptor =
+                new DiagnosticDescriptor("ID_1", "DummyTitle", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public static readonly DiagnosticDescriptor UnsupportedDescriptor =
+                new DiagnosticDescriptor("ID_2", "DummyTitle", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get
+                {
+                    return ImmutableArray.Create(SupportedDescriptor);
+                }
+            }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationAction(compilationContext =>
+                    compilationContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(UnsupportedDescriptor, Location.None)));
             }
         }
     }

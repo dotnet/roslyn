@@ -20,7 +20,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         internal static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(RoslynDiagnosticIds.DeadCodeRuleId, s_title, s_messageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: false);
 
-        internal static readonly DiagnosticDescriptor s_triggerRule = new DiagnosticDescriptor(RoslynDiagnosticIds.DeadCodeTriggerRuleId, title: "", messageFormat: "", category: "", defaultSeverity: DiagnosticSeverity.Hidden, isEnabledByDefault: true,
+        internal static readonly DiagnosticDescriptor s_triggerRule = new DiagnosticDescriptor(RoslynDiagnosticIds.DeadCodeTriggerRuleId, title: "", messageFormat: "", category: "", defaultSeverity: DiagnosticSeverity.Hidden, isEnabledByDefault: false,
                                                                                                customTags: new[] { WellKnownDiagnosticTags.NotConfigurable, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry });
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
@@ -3541,22 +3542,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             switch (expression.Kind())
             {
                 case SyntaxKind.IdentifierName:
-                case SyntaxKind.GenericName:
                     var sname = (SimpleNameSyntax)expression;
                     return SyntaxFactory.GenericName(sname.Identifier, SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Cast<TypeSyntax>())));
 
+                case SyntaxKind.GenericName:
+                    var gname = (GenericNameSyntax)expression;
+                    return gname.WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Cast<TypeSyntax>())));
+
                 case SyntaxKind.QualifiedName:
                     var qname = (QualifiedNameSyntax)expression;
-                    return SyntaxFactory.QualifiedName(qname.Left, (SimpleNameSyntax)WithTypeArguments(qname.Right, typeArguments));
+                    return qname.WithRight((SimpleNameSyntax)WithTypeArguments(qname.Right, typeArguments));
 
                 case SyntaxKind.AliasQualifiedName:
                     var aname = (AliasQualifiedNameSyntax)expression;
-                    return SyntaxFactory.AliasQualifiedName(aname.Alias, (SimpleNameSyntax)WithTypeArguments(aname.Name, typeArguments));
+                    return aname.WithName((SimpleNameSyntax)WithTypeArguments(aname.Name, typeArguments));
 
                 case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.PointerMemberAccessExpression:
                     var sma = (MemberAccessExpressionSyntax)expression;
-                    return SyntaxFactory.MemberAccessExpression(expression.Kind(), sma.Expression, (SimpleNameSyntax)WithTypeArguments(sma.Name, typeArguments));
+                    return sma.WithName((SimpleNameSyntax)WithTypeArguments(sma.Name, typeArguments));
 
                 default:
                     return expression;
@@ -3565,7 +3569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode QualifiedName(SyntaxNode left, SyntaxNode right)
         {
-            return SyntaxFactory.QualifiedName((NameSyntax)left, (SimpleNameSyntax)right);
+            return SyntaxFactory.QualifiedName((NameSyntax)left, (SimpleNameSyntax)right).WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
         public override SyntaxNode TypeExpression(ITypeSymbol typeSymbol)

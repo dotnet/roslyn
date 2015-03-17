@@ -495,11 +495,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             uint itemid;
             RunningDocumentTable.GetDocumentHierarchyItem(docCookie, out hierarchy, out itemid);
 
-            // If it belongs to a Shared Code project, then the current context is determined 
-            // by the SharedItemContextHierarchy.
-            var hierarchyOwningDocument = LinkedFileUtilities.GetSharedItemContextHierarchy(hierarchy) ?? hierarchy;
+            // If it belongs to a Shared Code or ASP.NET 5 project, then find the correct host project
+            var hostProject = LinkedFileUtilities.GetContextHostProject(hierarchy, _projectContainer);
 
-            return documentKey.HostProject.Hierarchy == hierarchyOwningDocument;
+            return documentKey.HostProject == hostProject;
         }
 
         public IDisposable ProvideDocumentIdHint(string filePath, DocumentId documentId)

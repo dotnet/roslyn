@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class SynthesizedLambdaSymbol
         Inherits LambdaSymbol
 
-        Private ReadOnly m_Kind As SynthesizedLambdaKind
+        Private ReadOnly _kind As SynthesizedLambdaKind
 
         Public Sub New(
             kind As SynthesizedLambdaKind,
@@ -21,14 +21,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             binder As Binder)
 
             MyBase.New(syntaxNode, parameters, returnType, binder)
-            Debug.Assert((returnType Is ReturnTypePendingDelegate) = (kind = SynthesizedLambdaKind.QueryLambda))
+            Debug.Assert((returnType Is ReturnTypePendingDelegate) = kind.IsQueryLambda)
 
-            m_Kind = kind
+            _kind = kind
         End Sub
 
         Public Overrides ReadOnly Property SynthesizedKind As SynthesizedLambdaKind
             Get
-                Return m_Kind
+                Return _kind
             End Get
         End Property
 
@@ -74,13 +74,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 '
                 ' Late-bound AddressOf lambda contains user code, but we don't allow debugging it. 
                 ' It shouldn't really contain the code but to be backward compatible we need to replicate Dev12 behavior.
-                Return m_Kind <> SynthesizedLambdaKind.DelegateRelaxationStub AndAlso
-                       m_Kind <> SynthesizedLambdaKind.LateBoundAddressOfLambda
+                Return _kind <> SynthesizedLambdaKind.DelegateRelaxationStub AndAlso
+                       _kind <> SynthesizedLambdaKind.LateBoundAddressOfLambda
             End Get
         End Property
 
         Public Sub SetQueryLambdaReturnType(returnType As TypeSymbol)
-            Debug.Assert(m_Kind = SynthesizedLambdaKind.QueryLambda)
+            Debug.Assert(_kind.IsQueryLambda)
             Debug.Assert(m_ReturnType Is ReturnTypePendingDelegate)
 
             m_ReturnType = returnType

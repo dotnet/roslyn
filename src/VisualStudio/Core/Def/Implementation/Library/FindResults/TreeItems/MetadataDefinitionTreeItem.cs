@@ -14,14 +14,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         private readonly Workspace _workspace;
         private readonly ProjectId _referencingProjectId;
 
-        public override bool UseGrayText
-        {
-            get
-            {
-                return true;
-            }
-        }
-
         public MetadataDefinitionTreeItem(Workspace workspace, ISymbol definition, ProjectId referencingProjectId, ushort glyphIndex)
             : base(glyphIndex)
         {
@@ -50,14 +42,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
         public void SetReferenceCount(int referenceCount)
         {
-            if (referenceCount > 0)
-            {
-                var referenceCountDisplay = referenceCount == 1
-                    ? string.Format(ServicesVSResources.ReferenceCountSingular, referenceCount)
-                    : string.Format(ServicesVSResources.ReferenceCountPlural, referenceCount);
+            var referenceCountDisplay = referenceCount == 1
+                ? string.Format(ServicesVSResources.ReferenceCountSingular, referenceCount)
+                : string.Format(ServicesVSResources.ReferenceCountPlural, referenceCount);
 
-                this.DisplayText = $"[{_assemblyName}] {_symbolDefinition} ({referenceCountDisplay})";
-            }
+            this.DisplayText = $"[{_assemblyName}] {_symbolDefinition} ({referenceCountDisplay})";
         }
     }
 }

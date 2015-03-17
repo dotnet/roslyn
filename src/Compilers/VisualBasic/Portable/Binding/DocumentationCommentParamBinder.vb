@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return FindSymbolInSymbolArray(name, Me.Parameters)
         End Function
 
-        Private Const InvalidLookupOptions As LookupOptions =
+        Private Const s_invalidLookupOptions As LookupOptions =
                             LookupOptions.LabelsOnly Or
                             LookupOptions.MustNotBeInstance Or
                             LookupOptions.MustBeInstance Or
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    options As LookupOptions,
                                                                    originalBinder As Binder)
 
-            If (options And InvalidLookupOptions) <> 0 Then
+            If (options And s_invalidLookupOptions) <> 0 Then
                 Return
             End If
 
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
             Debug.Assert(lookupResult.IsClear)
 
-            If (options And InvalidLookupOptions) <> 0 OrElse arity > 0 Then
+            If (options And s_invalidLookupOptions) <> 0 OrElse arity > 0 Then
                 Return
             End If
 

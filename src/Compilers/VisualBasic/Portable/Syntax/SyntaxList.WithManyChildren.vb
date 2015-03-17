@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-    Partial Class SyntaxList
+    Friend Partial Class SyntaxList
 
         Friend Class WithManyChildren
             Inherits SyntaxList

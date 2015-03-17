@@ -1903,7 +1903,7 @@ class C1
                     Assert.Equal(1, proj.AdditionalDocuments.Count());
                     var doc = proj.AdditionalDocuments.First();
                     Assert.Equal("XamlFile.xaml", doc.Name);
-                    Assert.Contains("Window", doc.GetTextAsync().WaitAndGetResult(CancellationToken.None).ToString());
+                    Assert.Contains("Window", doc.GetTextAsync().WaitAndGetResult(CancellationToken.None).ToString(), StringComparison.Ordinal);
                 }
             }
 #endif

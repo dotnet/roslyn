@@ -476,7 +476,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             End Class
 
-            Private m_ConditionalAccessReceiverPlaceholderReplacementInfo As ConditionalAccessReceiverPlaceholderReplacementInfo = Nothing
+            Private _conditionalAccessReceiverPlaceholderReplacementInfo As ConditionalAccessReceiverPlaceholderReplacementInfo = Nothing
 
             Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
                 Dim type As TypeSymbol = Me.VisitType(node.Type)
@@ -484,7 +484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim receiverOrCondition As BoundExpression = DirectCast(Me.Visit(node.ReceiverOrCondition), BoundExpression)
                 Dim receiverOrConditionNeedsSpill = NeedsSpill(receiverOrCondition)
 
-                Dim saveConditionalAccessReceiverPlaceholderReplacementInfo = m_ConditionalAccessReceiverPlaceholderReplacementInfo
+                Dim saveConditionalAccessReceiverPlaceholderReplacementInfo = _conditionalAccessReceiverPlaceholderReplacementInfo
                 Dim conditionalAccessReceiverPlaceholderReplacementInfo As ConditionalAccessReceiverPlaceholderReplacementInfo
 
                 If node.PlaceholderId <> 0 Then
@@ -493,7 +493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     conditionalAccessReceiverPlaceholderReplacementInfo = Nothing
                 End If
 
-                m_ConditionalAccessReceiverPlaceholderReplacementInfo = conditionalAccessReceiverPlaceholderReplacementInfo
+                _conditionalAccessReceiverPlaceholderReplacementInfo = conditionalAccessReceiverPlaceholderReplacementInfo
 
                 Dim whenNotNull As BoundExpression = DirectCast(Me.Visit(node.WhenNotNull), BoundExpression)
                 Dim whenNotNullNeedsSpill = NeedsSpill(whenNotNull)
@@ -501,12 +501,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(conditionalAccessReceiverPlaceholderReplacementInfo Is Nothing OrElse
                              (Not conditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled OrElse whenNotNullNeedsSpill))
 
-                m_ConditionalAccessReceiverPlaceholderReplacementInfo = Nothing
+                _conditionalAccessReceiverPlaceholderReplacementInfo = Nothing
 
                 Dim whenNullOpt As BoundExpression = DirectCast(Me.Visit(node.WhenNullOpt), BoundExpression)
                 Dim whenNullNeedsSpill = If(whenNullOpt IsNot Nothing, NeedsSpill(whenNullOpt), False)
 
-                m_ConditionalAccessReceiverPlaceholderReplacementInfo = saveConditionalAccessReceiverPlaceholderReplacementInfo
+                _conditionalAccessReceiverPlaceholderReplacementInfo = saveConditionalAccessReceiverPlaceholderReplacementInfo
 
                 If Not receiverOrConditionNeedsSpill AndAlso Not whenNotNullNeedsSpill AndAlso Not whenNullNeedsSpill Then
                     Return node.Update(receiverOrCondition,
@@ -596,29 +596,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Class ConditionalAccessReceiverPlaceholderReplacement
                 Inherits BoundTreeRewriter
 
-                Private ReadOnly m_PlaceholderId As Integer
-                Private ReadOnly m_ReplaceWith As BoundExpression
-                Private m_Replaced As Boolean
+                Private ReadOnly _placeholderId As Integer
+                Private ReadOnly _replaceWith As BoundExpression
+                Private _replaced As Boolean
 
                 Public Sub New(placeholderId As Integer, replaceWith As BoundExpression)
-                    Me.m_PlaceholderId = placeholderId
-                    Me.m_ReplaceWith = replaceWith
+                    Me._placeholderId = placeholderId
+                    Me._replaceWith = replaceWith
                 End Sub
 
                 Public ReadOnly Property Replaced As Boolean
                     Get
-                        Return m_Replaced
+                        Return _replaced
                     End Get
                 End Property
 
                 Public Overrides Function VisitConditionalAccessReceiverPlaceholder(node As BoundConditionalAccessReceiverPlaceholder) As BoundNode
-                    Debug.Assert(m_PlaceholderId = node.PlaceholderId)
+                    Debug.Assert(_placeholderId = node.PlaceholderId)
 
-                    If m_PlaceholderId = node.PlaceholderId Then
-                        Debug.Assert(Not m_Replaced)
-                        m_Replaced = True
+                    If _placeholderId = node.PlaceholderId Then
+                        Debug.Assert(Not _replaced)
+                        _replaced = True
 
-                        Dim result = m_ReplaceWith
+                        Dim result = _replaceWith
 
                         If node.IsLValue Then
                             Debug.Assert(result.IsLValue)
@@ -633,7 +633,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Class
 
             Public Overrides Function VisitConditionalAccessReceiverPlaceholder(node As BoundConditionalAccessReceiverPlaceholder) As BoundNode
-                If m_ConditionalAccessReceiverPlaceholderReplacementInfo Is Nothing OrElse m_ConditionalAccessReceiverPlaceholderReplacementInfo.PlaceholderId <> node.PlaceholderId Then
+                If _conditionalAccessReceiverPlaceholderReplacementInfo Is Nothing OrElse _conditionalAccessReceiverPlaceholderReplacementInfo.PlaceholderId <> node.PlaceholderId Then
                     Throw ExceptionUtilities.Unreachable
                 End If
 

@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                     return IndentFromStartOfLine(alignmentTokenIndentation.Value);
                 }
 
-                // if we couldn't determine indentation from the service, use hueristic to find indentation.
+                // if we couldn't determine indentation from the service, use heuristic to find indentation.
                 var snapshot = LineToBeIndented.Snapshot;
 
                 // If this is the last token of an embedded statement, walk up to the top-most parenting embedded

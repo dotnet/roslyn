@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // use static method so we don't capture references to this
-        private static Tuple<AsyncLazy<TextAndVersion>, TreeAndVersion> CreateRecoverableTextAndTree(
+        private static Tuple<ValueSource<TextAndVersion>, TreeAndVersion> CreateRecoverableTextAndTree(
             SyntaxNode newRoot, VersionStamp textVersion, VersionStamp treeVersion, Encoding encoding,
             DocumentInfo info, ParseOptions options, ISyntaxTreeFactoryService factory, PreservationMode mode, SolutionServices solutionServices)
         {
@@ -426,18 +426,20 @@ namespace Microsoft.CodeAnalysis
             TreeAndVersion lazyTree = null;
 
             // this captures the lazyTree local
-            var lazyText = new AsyncLazy<TextAndVersion>(
-                c => GetTextAndVersionAsync(lazyTree, textVersion, encoding, filePath, c),
-                c => GetTextAndVersion(lazyTree, textVersion, encoding, filePath, c),
-                cacheResult: false);
+            var lazyText = new TreeTextSource(
+                new AsyncLazy<TextAndVersion>(
+                    c => GetTextAndVersionAsync(lazyTree, textVersion, encoding, filePath, c),
+                    c => GetTextAndVersion(lazyTree, textVersion, encoding, filePath, c),
+                    cacheResult: false),
+                textVersion);
 
             lazyTree = TreeAndVersion.Create(
                 (mode == PreservationMode.PreserveIdentity) || !solutionServices.SupportsCachingRecoverableObjects
-                    ? factory.CreateSyntaxTree(GetSyntaxTreeFilePath(info), options, newRoot, encoding)
+                    ? factory.CreateSyntaxTree(GetSyntaxTreeFilePath(info), options, encoding, newRoot)
                     : factory.CreateRecoverableTree(info.Id.ProjectId, GetSyntaxTreeFilePath(info), options, lazyText, encoding, newRoot),
                 treeVersion);
 
-            return Tuple.Create(lazyText, lazyTree);
+            return Tuple.Create<ValueSource<TextAndVersion>, TreeAndVersion>(lazyText, lazyTree);
         }
 
         private static TextAndVersion GetTextAndVersion(

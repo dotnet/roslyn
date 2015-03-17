@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me.Location = location
         End Sub
 
-        Public Sub New(name As String, location As Location, Optional isKey As Boolean = False)
+        Public Sub New(name As String, location As Location, isKey As Boolean)
             Me.New(name, Nothing, location, isKey)
         End Sub
 

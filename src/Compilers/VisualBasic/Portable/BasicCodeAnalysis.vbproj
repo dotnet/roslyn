@@ -921,7 +921,7 @@
     <Compile Include="Syntax\SyntaxTreeDiagnosticEnumerator.vb" />
     <Compile Include="Syntax\SyntaxTriviaFunctions.vb" />
     <Compile Include="Syntax\SyntaxTriviaListBuilder.vb" />
-    <Compile Include="Syntax\SyntaxUtilities.vb" />
+    <Compile Include="Syntax\LambdaUtilities.vb" />
     <Compile Include="Syntax\TypeBlockSyntax.vb" />
     <Compile Include="Syntax\TypeStatementSyntax.vb" />
     <Compile Include="Syntax\VisualBasicWarningStateMap.vb" />

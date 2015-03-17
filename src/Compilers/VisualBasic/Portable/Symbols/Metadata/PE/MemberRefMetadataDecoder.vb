@@ -21,12 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
     Friend NotInheritable Class MemberRefMetadataDecoder
         Inherits MetadataDecoder
 
-        Private ReadOnly containingType As TypeSymbol
+        Private ReadOnly _containingType As TypeSymbol
 
         Public Sub New(moduleSymbol As PEModuleSymbol, containingType As TypeSymbol)
             MyBase.New(moduleSymbol, TryCast(containingType, PENamedTypeSymbol))
             Debug.Assert(containingType IsNot Nothing)
-            Me.containingType = containingType
+            Me._containingType = containingType
         End Sub
 
         ''' <summary>
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         '''     2) Handle non-PE types.
         ''' </summary>
         Protected Overrides Function GetGenericTypeParamSymbol(position As Integer) As TypeSymbol
-            Dim peType As PENamedTypeSymbol = TryCast(Me.containingType, PENamedTypeSymbol)
+            Dim peType As PENamedTypeSymbol = TryCast(Me._containingType, PENamedTypeSymbol)
             If peType IsNot Nothing Then
                 While peType IsNot Nothing AndAlso (peType.MetadataArity - peType.Arity) > position
                     peType = TryCast(peType.ContainingSymbol, PENamedTypeSymbol)
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return peType.TypeArgumentsNoUseSiteDiagnostics(position)
             End If
 
-            Dim namedType As NamedTypeSymbol = TryCast(Me.containingType, NamedTypeSymbol)
+            Dim namedType As NamedTypeSymbol = TryCast(Me._containingType, NamedTypeSymbol)
             If namedType IsNot Nothing Then
                 Dim cumulativeArity As Integer
                 Dim typeArgument As TypeSymbol = Nothing

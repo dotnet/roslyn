@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Overrides ReadOnly Property ErrorCodeType As Type
+        Public Overrides ReadOnly Property ErrorCodeType As Type
             Get
                 Return GetType(ERRID)
             End Get

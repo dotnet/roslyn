@@ -3,7 +3,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    NotInheritable Class ModuleCompilationState
+    Friend NotInheritable Class ModuleCompilationState
         Inherits ModuleCompilationState(Of NamedTypeSymbol, MethodSymbol)
     End Class
 End Namespace

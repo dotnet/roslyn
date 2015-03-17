@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' capture into local.
-            temp = New SynthesizedLocal(Me.currentMethodOrLambda, operand.Type, SynthesizedLocalKind.LoweringTemp)
+            temp = New SynthesizedLocal(Me._currentMethodOrLambda, operand.Type, SynthesizedLocalKind.LoweringTemp)
             Dim localAccess = New BoundLocal(operand.Syntax, temp, True, temp.Type)
             init = New BoundAssignmentOperator(operand.Syntax, localAccess, operand, True, operand.Type)
             Return localAccess.MakeRValue

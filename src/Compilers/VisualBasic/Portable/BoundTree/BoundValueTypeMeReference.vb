@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundValueTypeMeReference
+    Friend Partial Class BoundValueTypeMeReference
 
 #If DEBUG Then
         Private Sub Validate()

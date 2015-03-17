@@ -19,8 +19,8 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Microsoft.VisualStudio.SymReaderInterop;
 using Roslyn.Test.Utilities;
 using Xunit;
 using PDB::Roslyn.Test.MetadataUtilities;
@@ -172,6 +172,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         manifestResources: null,
                         options: EmitOptions.Default,
                         testData: null,
+                        getHostDiagnostics: null,
                         cancellationToken: default(CancellationToken));
 
                     if (!result.Success)

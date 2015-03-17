@@ -1364,6 +1364,51 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables")
         End Sub
 
+        <WorkItem(1134746, "DevDiv")>
+        <Fact>
+        Public Sub CacheInvalidation()
+            Const source = "
+Imports System.Collections.Generic
+
+Class C
+    Shared Iterator Function M() As IEnumerable(Of Integer)
+#ExternalSource(""Test"", 100)
+        Dim x As Integer = 1
+        Yield x
+#End ExternalSource
+
+        If True Then
+#ExternalSource(""Test"", 200)
+            Dim y As Integer = x + 1
+            Yield y
+#End ExternalSource
+        End If
+    End Function
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(
+                runtime,
+                methodName:="C.VB$StateMachine_1_M.MoveNext",
+                atLineNumber:=100)
+            Dim errorMessage As String = Nothing
+            context.CompileExpression("x", errorMessage)
+            Assert.Null(errorMessage)
+            context.CompileExpression("y", errorMessage)
+            Assert.Equal("(1,2): error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+
+            context = CreateMethodContext(
+                runtime,
+                methodName:="C.VB$StateMachine_1_M.MoveNext",
+                atLineNumber:=200,
+                previous:=New VisualBasicMetadataContext(context))
+            context.CompileExpression("x", errorMessage)
+            Assert.Null(errorMessage)
+            context.CompileExpression("y", errorMessage)
+            Assert.Null(errorMessage)
+        End Sub
+
         Private Shared Function GetLocalNames(context As EvaluationContext) As String()
             Dim unused As String = Nothing
             Dim locals = New ArrayBuilder(Of LocalAndMethod)()

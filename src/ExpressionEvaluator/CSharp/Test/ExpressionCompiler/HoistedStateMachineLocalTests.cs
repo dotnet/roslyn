@@ -1289,6 +1289,51 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables");
         }
 
+        [WorkItem(1134746, "DevDiv")]
+        [Fact]
+        public void CacheInvalidation()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> M()
+    {
+#line 100
+        int x = 1;
+        yield return x;
+
+        {
+#line 200
+            int y = x + 1;
+            yield return y;
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(
+                runtime,
+                methodName: "C.<M>d__0.MoveNext",
+                atLineNumber: 100);
+            string error;
+            context.CompileExpression("x", out error);
+            Assert.Null(error);
+            context.CompileExpression("y", out error);
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+
+            context = CreateMethodContext(
+                runtime,
+                methodName: "C.<M>d__0.MoveNext",
+                atLineNumber: 200,
+                previous: new CSharpMetadataContext(context));
+            context.CompileExpression("x", out error);
+            Assert.Null(error);
+            context.CompileExpression("y", out error);
+            Assert.Null(error);
+        }
+
         private static string[] GetLocalNames(EvaluationContext context)
         {
             string unused;

@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            if (!UseSharedCompilation)
+            if (!UseSharedCompilation || this.ToolPath != null )
             {
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 Debug.Assert(response is MismatchedVersionBuildResponse);
 
-                LogErrorOutput("Roslyn compiler server reports different protocol version than build task.");
+                LogErrorOutput(CommandLineParser.MismatchedVersionErrorText);
                 ExitCode = -1;
             }
             return ExitCode;

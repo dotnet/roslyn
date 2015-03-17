@@ -300,4 +300,76 @@
   <data name="UncommentTheFollowingIfFinalizerOverriddenTodo" xml:space="preserve">
     <value>TODO: uncomment the following line if the finalizer is overridden above.</value>
   </data>
+  <data name="TryBlock" xml:space="preserve">
+    <value>try block</value>
+  </data>
+  <data name="CatchClause" xml:space="preserve">
+    <value>catch clause</value>
+  </data>
+  <data name="FilterClause" xml:space="preserve">
+    <value>filter clause</value>
+  </data>
+  <data name="FinallyClause" xml:space="preserve">
+    <value>finally clause</value>
+  </data>
+  <data name="FixedStatement" xml:space="preserve">
+    <value>fixed statement</value>
+  </data>
+  <data name="UsingStatement" xml:space="preserve">
+    <value>using statement</value>
+  </data>
+  <data name="LockStatement" xml:space="preserve">
+    <value>lock statement</value>
+  </data>
+  <data name="ForEachStatement" xml:space="preserve">
+    <value>foreach statement</value>
+  </data>
+  <data name="CheckedStatement" xml:space="preserve">
+    <value>checked statement</value>
+  </data>
+  <data name="UncheckedStatement" xml:space="preserve">
+    <value>unchecked statement</value>
+  </data>
+  <data name="YieldStatement" xml:space="preserve">
+    <value>yield statement</value>
+  </data>
+  <data name="AwaitExpression" xml:space="preserve">
+    <value>await expression</value>
+  </data>
+  <data name="Lambda" xml:space="preserve">
+    <value>lambda</value>
+  </data>
+  <data name="AnonymousMethod" xml:space="preserve">
+    <value>anonymous method</value>
+  </data>
+  <data name="FromClause" xml:space="preserve">
+    <value>from clause</value>
+  </data>
+  <data name="JoinClause" xml:space="preserve">
+    <value>join clause</value>
+  </data>
+  <data name="LetClause" xml:space="preserve">
+    <value>let clause</value>
+  </data>
+  <data name="WhereClause" xml:space="preserve">
+    <value>where clause</value>
+  </data>
+  <data name="OrderByClause" xml:space="preserve">
+    <value>orderby clause</value>
+  </data>
+  <data name="SelectClause" xml:space="preserve">
+    <value>select clause</value>
+  </data>
+  <data name="GroupByClause" xml:space="preserve">
+    <value>groupby clause</value>
+  </data>
+  <data name="QueryBody" xml:space="preserve">
+    <value>query body</value>
+  </data>
+  <data name="IntoClause" xml:space="preserve">
+    <value>into clause</value>
+  </data>
+  <data name="RemoveUnnecessaryUsingsDiagnosticTitle" xml:space="preserve">
+    <value>Using directive is unnecessary.</value>
+  </data>
 </root>

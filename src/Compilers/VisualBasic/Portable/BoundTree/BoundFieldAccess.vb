@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundFieldAccess
+    Friend Partial Class BoundFieldAccess
 
         Public Sub New(syntax As VisualBasicSyntaxNode, receiverOpt As BoundExpression, fieldSymbol As FieldSymbol, isLValue As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             Me.New(syntax, receiverOpt, fieldSymbol, isLValue, False, Nothing, type, hasErrors)

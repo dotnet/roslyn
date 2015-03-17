@@ -7441,9 +7441,6 @@
              Compile the expression into MSIL code that can be executed by the CLR or debugger
              to evaluate the expression.
             
-             Location constraint: API must be called from an IDE component (component level
-             &gt; 100,000).
-            
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
              <param name="InstructionAddress">
@@ -9919,7 +9916,7 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
              <param name="InspectionContext">
-             [In,Optional] The inspection context for this evaluation.
+             [In] The inspection context for this evaluation.
              </param>
              <returns>
              [Out,Optional] The result of calling ToString on the object represented by this
@@ -9945,7 +9942,7 @@
              WorkList to append the new work item to.
              </param>
              <param name="InspectionContext">
-             [In,Optional] The inspection context for this evaluation.
+             [In] The inspection context for this evaluation.
              </param>
              <param name="TargetType">
              [In] The type to use when evaluating debugger display attributes.
@@ -9971,7 +9968,7 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
              <param name="InspectionContext">
-             [In,Optional] The inspection context for this evaluation.
+             [In] The inspection context for this evaluation.
              </param>
              <param name="Type">
              [In] The type of the proxy to instantiate.  The proxy type should have a
@@ -9981,6 +9978,9 @@
              <returns>
              [Out] A value representing the instantiated type proxy.
              </returns>
+             <exception cref="T:System.ArgumentException">
+             E_INVALIDARG indicates that Type is an unconstructed generic type.
+             </exception>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.InstantiateResultsViewProxy(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,Microsoft.VisualStudio.Debugger.Clr.DkmClrType)">
              <summary>
@@ -9992,7 +9992,7 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
              <param name="InspectionContext">
-             [In,Optional] The inspection context for this evaluation.
+             [In] The inspection context for this evaluation.
              </param>
              <param name="EnumerableType">
              [In] The interface type (IEnumerable or IEnumerable&lt;T&gt;) to construct the
@@ -10003,6 +10003,36 @@
              [Out,Optional] A value representing the instantiated results view proxy. This
              method returns null in case of failure instantiating the results view proxy.
              </returns>
+             <exception cref="T:System.InvalidOperationException">
+             COR_E_INVALIDOPERATION indicates that this method was called on a DkmClrValue
+             that does not implement the requested interface or represents a null value.
+             </exception>
+             <exception cref="T:System.ArgumentException">
+             E_INVALIDARG indicates that EnumerableType is not an interface type.
+             </exception>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.InstantiateDynamicViewProxy(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
+             <summary>
+             Instantiate the proxy class to use for iterating the dynamic members of an
+             IDynamicMetaObjectProvider value.
+            
+             Location constraint: API must be called from a Monitor component (component level
+             &lt; 100,000).
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+             <param name="InspectionContext">
+             [In] The inspection context for this evaluation.
+             </param>
+             <returns>
+             [Out,Optional] A value representing the instantiated results view proxy. This
+             method returns null in case of failure instantiating the dynamic view proxy.
+             </returns>
+             <exception cref="T:System.InvalidOperationException">
+             COR_E_INVALIDOPERATION indicates that this method was called on a DkmClrValue
+             that does not implement the IDynamicMetaObjectProvider interface or represents a
+             null value.
+             </exception>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.GetMemberValue(System.String,System.Int32,System.String,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
              <summary>
@@ -10027,7 +10057,7 @@
              runtime type.
              </param>
              <param name="InspectionContext">
-             [In,Optional] The inspection context for this evaluation.
+             [In] The inspection context for this evaluation.
              </param>
              <returns>
              [Out] The DkmClrValue for the given member.
@@ -10047,7 +10077,7 @@
              [In] The index or indices of the array element to get.
              </param>
              <param name="InspectionContext">
-             [In,Optional] The inspection context for this evaluation.
+             [In] The inspection context for this evaluation.
              </param>
              <returns>
              [Out] The element value.
@@ -10064,7 +10094,7 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
              <param name="InspectionContext">
-             [In,Optional] The inspection context for this evaluation.
+             [In] The inspection context for this evaluation.
              </param>
              <returns>
              [Out] The dereferenced value.
@@ -17480,6 +17510,12 @@
         <member name="F:Microsoft.VisualStudio.Debugger.DefaultPort.DkmSystemInformationFlags.CoreSystem">
             <summary>
             Indicates that the target OS is a core system.  (Examples:  XBox, Phone, etc.).
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.DefaultPort.DkmSystemInformationFlags.LaunchedInChamber">
+            <summary>
+            Indicates that msvsmon has been launched inside a chamber. (Phone execution
+            model).
             </summary>
         </member>
         <member name="T:Microsoft.VisualStudio.Debugger.DefaultPort.DkmTransportConnectionFlags">
@@ -32078,7 +32114,7 @@
             Result Formatter to generate DkmEvaluationResults.
             </param>
             <param name="inspectionContext">
-            [In,Optional] The inspection context for this evaluation.
+            [In] The inspection context for this evaluation.
             </param>
             <returns>
             [Out,Optional] The result of calling ToString on the object represented by this
@@ -32100,7 +32136,7 @@
             until after this function returns.
             </param>
             <param name="inspectionContext">
-            [In,Optional] The inspection context for this evaluation.
+            [In] The inspection context for this evaluation.
             </param>
             <param name="targetType">
             [In] The type to use when evaluating debugger display attributes.
@@ -32125,7 +32161,7 @@
             Result Formatter to generate DkmEvaluationResults.
             </param>
             <param name="inspectionContext">
-            [In,Optional] The inspection context for this evaluation.
+            [In] The inspection context for this evaluation.
             </param>
             <param name="type">
             [In] The type of the proxy to instantiate.  The proxy type should have a
@@ -32135,6 +32171,9 @@
             <returns>
             [Out] A value representing the instantiated type proxy.
             </returns>
+            <exception cref="T:System.ArgumentException">
+            E_INVALIDARG indicates that Type is an unconstructed generic type.
+            </exception>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.InstantiateResultsViewProxy(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,Microsoft.VisualStudio.Debugger.Clr.DkmClrType)">
             <summary>
@@ -32145,7 +32184,7 @@
             Result Formatter to generate DkmEvaluationResults.
             </param>
             <param name="inspectionContext">
-            [In,Optional] The inspection context for this evaluation.
+            [In] The inspection context for this evaluation.
             </param>
             <param name="enumerableType">
             [In] The interface type (IEnumerable or IEnumerable&lt;T&gt;) to construct the
@@ -32156,6 +32195,35 @@
             [Out,Optional] A value representing the instantiated results view proxy. This
             method returns null in case of failure instantiating the results view proxy.
             </returns>
+            <exception cref="T:System.InvalidOperationException">
+            COR_E_INVALIDOPERATION indicates that this method was called on a DkmClrValue
+            that does not implement the requested interface or represents a null value.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            E_INVALIDARG indicates that EnumerableType is not an interface type.
+            </exception>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.InstantiateDynamicViewProxy(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
+            <summary>
+            Instantiate the proxy class to use for iterating the dynamic members of an
+            IDynamicMetaObjectProvider value.
+            </summary>
+            <param name="clrValue">
+            [In] A value resulting from a CLR inspection query.  These values are used by a
+            Result Formatter to generate DkmEvaluationResults.
+            </param>
+            <param name="inspectionContext">
+            [In] The inspection context for this evaluation.
+            </param>
+            <returns>
+            [Out,Optional] A value representing the instantiated results view proxy. This
+            method returns null in case of failure instantiating the dynamic view proxy.
+            </returns>
+            <exception cref="T:System.InvalidOperationException">
+            COR_E_INVALIDOPERATION indicates that this method was called on a DkmClrValue
+            that does not implement the IDynamicMetaObjectProvider interface or represents a
+            null value.
+            </exception>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.GetMemberValue(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,System.String,System.Int32,System.String,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
             <summary>
@@ -32179,7 +32247,7 @@
             runtime type.
             </param>
             <param name="inspectionContext">
-            [In,Optional] The inspection context for this evaluation.
+            [In] The inspection context for this evaluation.
             </param>
             <returns>
             [Out] The DkmClrValue for the given member.
@@ -32198,7 +32266,7 @@
             [In] The index or indices of the array element to get.
             </param>
             <param name="inspectionContext">
-            [In,Optional] The inspection context for this evaluation.
+            [In] The inspection context for this evaluation.
             </param>
             <returns>
             [Out] The element value.
@@ -32214,7 +32282,7 @@
             Result Formatter to generate DkmEvaluationResults.
             </param>
             <param name="inspectionContext">
-            [In,Optional] The inspection context for this evaluation.
+            [In] The inspection context for this evaluation.
             </param>
             <returns>
             [Out] The dereferenced value.
@@ -53426,6 +53494,23 @@
             load will be given an index of zero.
             </summary>
         </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Script.DkmScriptRuntimeInstance.IsEdgeHtmlDll">
+             <summary>
+             A flag indicating whether the current loaded dll is EdgeHtml.dll or not.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Script.DkmScriptRuntimeInstance.ScriptHostVersion">
+             <summary>
+             File version of the script host dll. This will be 0 if it cannot be obtained. The
+             top 16 bits are the major version, followed by 16 bits for the minor version,
+             followed by 16 bits for the build number followed by 16 bits for the build
+             revision.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Script.DkmScriptRuntimeInstance.Create(Microsoft.VisualStudio.Debugger.DkmProcess,Microsoft.VisualStudio.Debugger.DkmRuntimeInstanceId,System.Int32,Microsoft.VisualStudio.Debugger.DkmDataItem)">
              <summary>
              Creates a new runtime instance object from a debug monitor. This method must be
@@ -53490,6 +53575,58 @@
              [In] Index indicating the relative load order of this script runtime instance to
              other script runtime instances within the target process. The first runtime
              instance to load will be given an index of zero.
+             </param>
+             <param name="DataItem">
+             [In,Optional] Data object to add to the new DkmScriptRuntimeInstance instance.
+             Pass 'null' in the case that the caller doesn't need to add a data item.
+             </param>
+             <returns>
+             [Out] Result of this method call.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Script.DkmScriptRuntimeInstance.Create(Microsoft.VisualStudio.Debugger.DkmProcess,Microsoft.VisualStudio.Debugger.DkmRuntimeInstanceId,Microsoft.VisualStudio.Debugger.DkmRuntimeCapabilities,Microsoft.VisualStudio.Debugger.DkmRuntimeInstance,System.Int32,System.Boolean,System.UInt64,Microsoft.VisualStudio.Debugger.DkmDataItem)">
+             <summary>
+             Creates a new runtime instance object from a debug monitor. This method must be
+             called from the event thread when a debug monitor detects that a new runtime
+             instance has loaded (for example, when the corresponding runtime dll loads in the
+             target process).
+            
+             This method will send a RuntimeInstanceLoad event.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+             <param name="Process">
+             [In] DkmProcess represents a target process which is being debugged. The debugger
+             debugs processes, so this is the basic unit of debugging. A DkmProcess can
+             represent a system process or a virtual process such as minidumps.
+             </param>
+             <param name="Id">
+             [In] Identifies a DkmRuntimeInstance object within a process.
+             </param>
+             <param name="Capabilities">
+             [In] Enumeration of runtime capabilities.
+             </param>
+             <param name="ParentRuntime">
+             [In,Optional] For runtimes that are implemented on top of another runtime, this
+             can optionally be used to indicant the logical parent. This can then be used to
+             request services from the parent when the child runtime doesn't implement the
+             service. This is currently used only for obtaining the top stack frame to
+             evaluate a conditional breakpoint when the child runtime doesn't walk stacks
+             itself.
+             </param>
+             <param name="LoadOrderIndex">
+             [In] Index indicating the relative load order of this script runtime instance to
+             other script runtime instances within the target process. The first runtime
+             instance to load will be given an index of zero.
+             </param>
+             <param name="IsEdgeHtmlDll">
+             [In] A flag indicating whether the current loaded dll is EdgeHtml.dll or not.
+             </param>
+             <param name="ScriptHostVersion">
+             [In] File version of the script host dll. This will be 0 if it cannot be
+             obtained. The top 16 bits are the major version, followed by 16 bits for the
+             minor version, followed by 16 bits for the build number followed by 16 bits for
+             the build revision.
              </param>
              <param name="DataItem">
              [In,Optional] Data object to add to the new DkmScriptRuntimeInstance instance.

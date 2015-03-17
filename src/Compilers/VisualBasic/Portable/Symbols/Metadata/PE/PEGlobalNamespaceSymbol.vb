@@ -15,22 +15,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' The module containing the namespace.
         ''' </summary>
         ''' <remarks></remarks>
-        Private ReadOnly m_ModuleSymbol As PEModuleSymbol
+        Private ReadOnly _moduleSymbol As PEModuleSymbol
 
         Friend Sub New(moduleSymbol As PEModuleSymbol)
             Debug.Assert(moduleSymbol IsNot Nothing)
-            m_ModuleSymbol = moduleSymbol
+            _moduleSymbol = moduleSymbol
         End Sub
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return m_ModuleSymbol
+                Return _moduleSymbol
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ContainingPEModule As PEModuleSymbol
             Get
-                Return m_ModuleSymbol
+                Return _moduleSymbol
             End Get
         End Property
 
@@ -48,13 +48,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property ContainingAssembly As AssemblySymbol
             Get
-                Return m_ModuleSymbol.ContainingAssembly
+                Return _moduleSymbol.ContainingAssembly
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingModule As ModuleSymbol
             Get
-                Return m_ModuleSymbol
+                Return _moduleSymbol
             End Get
         End Property
 
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim groups As IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle))
 
                 Try
-                    groups = m_ModuleSymbol.Module.GroupTypesByNamespaceOrThrow(IdentifierComparison.Comparer)
+                    groups = _moduleSymbol.Module.GroupTypesByNamespaceOrThrow(IdentifierComparison.Comparer)
                 Catch mrEx As BadImageFormatException
                     groups = SpecializedCollections.EmptyEnumerable(Of IGrouping(Of String, TypeDefinitionHandle))()
                 End Try

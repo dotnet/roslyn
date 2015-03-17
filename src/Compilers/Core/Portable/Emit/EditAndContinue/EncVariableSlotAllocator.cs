@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             // Syntax map contains mapping for lambdas, but not their bodies. 
             // Map the lambda first and then determine the corresponding body.
-            var currentLambdaSyntax = isLambdaBody ? lambdaOrLambdaBodySyntax.Parent : lambdaOrLambdaBodySyntax;
+            var currentLambdaSyntax = isLambdaBody ? lambdaOrLambdaBodySyntax.GetLambda() : lambdaOrLambdaBodySyntax;
 
             // no syntax map 
             // => the source of the current method is the same as the source of the previous method 

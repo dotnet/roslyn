@@ -76,13 +76,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="System.Collections.Immutable">
       <HintPath>..\..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
-    <Reference Include="System.Reflection.Metadata, Version=1.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="System.Reflection.Metadata">
       <HintPath>..\..\..\..\..\packages\System.Reflection.Metadata.1.1.0-alpha-00001\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.DiaSymReader">
+      <HintPath>..\..\..\..\..\packages\Microsoft.DiaSymReader.1.0.2-rc2\lib\net45\Microsoft.DiaSymReader.dll</HintPath>
     </Reference>
     <Reference Include="xunit">
       <HintPath>..\..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
@@ -106,6 +107,7 @@
     <Compile Include="LocalsTests.cs" />
     <Compile Include="NoPIATests.cs" />
     <Compile Include="PseudoVariableTests.cs" />
+    <Compile Include="MethodContextReuseConstraintsTests.cs" />
     <Compile Include="UsingDebugInfoTests.cs" />
     <Compile Include="WinMdTests.cs" />
   </ItemGroup>

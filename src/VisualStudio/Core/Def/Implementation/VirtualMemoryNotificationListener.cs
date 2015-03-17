@@ -4,6 +4,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -50,8 +51,13 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 case VSConstants.VSM_VIRTUALMEMORYLOW:
                 case VSConstants.VSM_VIRTUALMEMORYCRITICAL:
-                    _workspaceCacheService.FlushCaches();
-                    break;
+                    {
+                        // record that we had hit critical memory barrier
+                        Logger.Log(FunctionId.VirtualMemory_MemoryLow, KeyValueLogMessage.Create(m => m["Memory"] = msg));
+
+                        _workspaceCacheService.FlushCaches();
+                        break;
+                    }
             }
 
             return VSConstants.S_OK;

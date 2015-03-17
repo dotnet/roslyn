@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-' TODO: Strict Module
+Imports System.Runtime.CompilerServices
+
 Public Class TestOptions
     Public Shared ReadOnly Script As New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
     Public Shared ReadOnly Interactive As New VisualBasicParseOptions(kind:=SourceCodeKind.Interactive)
@@ -20,3 +21,15 @@ Public Class TestOptions
     Public Shared ReadOnly ReleaseModule As New VisualBasicCompilationOptions(OutputKind.NetModule, optimizationLevel:=OptimizationLevel.Release)
     Public Shared ReadOnly ReleaseWinMD As New VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata, optimizationLevel:=OptimizationLevel.Release)
 End Class
+
+Module TestOptionExtensions
+    <Extension()>
+    Public Function WithStrictMode(options As VisualBasicCompilationOptions) As VisualBasicCompilationOptions
+        Return options.WithFeatures(options.Features.Add("strict"))
+    End Function
+
+    <Extension()>
+    Public Function WithStrictMode(compilation As VisualBasicCompilation) As VisualBasicCompilation
+        Return compilation.WithOptions(compilation.Options.WithStrictMode())
+    End Function
+End Module

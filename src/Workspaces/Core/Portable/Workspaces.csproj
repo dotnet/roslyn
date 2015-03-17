@@ -326,6 +326,10 @@
     <Compile Include="CodeGeneration\ICodeGenerationService.cs" />
     <Compile Include="CodeGeneration\INamedTypeSymbolExtensions.cs" />
     <Compile Include="CodeGeneration\LiteralSpecialValues.cs" />
+    <Compile Include="Editing\GenerationOptions.cs" />
+    <Compile Include="Editing\GenerationOptionsProvider.cs" />
+    <Compile Include="Editing\ImportAdder.cs" />
+    <Compile Include="Editing\ImportAdderService.cs" />
     <Compile Include="Editing\SolutionEditor.cs" />
     <Compile Include="Editing\SymbolEditor.cs" />
     <Compile Include="Editing\SymbolEditorExtensions.cs" />
@@ -378,6 +382,7 @@
     <Compile Include="Log\LogAggregator.cs" />
     <Compile Include="Log\Logger.LogBlock.cs" />
     <Compile Include="Log\LogMessage.cs" />
+    <Compile Include="Rename\TokenRenameInfo.cs" />
     <Compile Include="Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Serialization\IAssemblySerializationInfoService.cs" />
     <Compile Include="Shared\Extensions\TextDocumentExtensions.cs" />
@@ -822,10 +827,12 @@
     <Compile Include="Workspace\Host\TextFactory\ITextFactoryService.cs" />
     <Compile Include="Workspace\Host\HostWorkspaceServices.cs" />
     <Compile Include="Workspace\Host\TextFactory\TextFactoryService.cs" />
+    <Compile Include="Workspace\Solution\ITextVersionable.cs" />
     <Compile Include="Workspace\PrimaryWorkspace.cs" />
     <Compile Include="LinkedFileDiffMerging\AbstractLinkedFileMergeConflictCommentAdditionService.cs" />
     <Compile Include="Workspace\Solution\AdditionalTextDocument.cs" />
     <Compile Include="LinkedFileDiffMerging\IMergeConflictHandler.cs" />
+    <Compile Include="Workspace\Solution\DocumentState_TreeTextSource.cs" />
     <Compile Include="Workspace\Solution\IDocumentTextDifferencingService.cs" />
     <Compile Include="Workspace\Solution\MetadataReferenceManager.cs" />
     <Compile Include="Workspace\Solution\TextDocumentState.cs" />

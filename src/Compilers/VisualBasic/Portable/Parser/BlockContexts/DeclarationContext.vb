@@ -328,9 +328,9 @@ HandleMethodBase:
                     newContext = Me
                     Return LinkResult.Crumble
 
-                    ' single line If gets parsed as unexpected If + some garbage
-                    ' when in declaration context so cannot be reused
-                    ' see bug 901645 
+                ' single line If gets parsed as unexpected If + some garbage
+                ' when in declaration context so cannot be reused
+                ' see bug 901645 
                 Case SyntaxKind.SingleLineIfStatement
                     newContext = Me
                     Return LinkResult.Crumble
@@ -340,13 +340,13 @@ HandleMethodBase:
                     newContext = Me
                     Return LinkResult.Crumble
 
-                    ' TODO: need to add all executable statements that ParseDeclarationStatement handle as unexpected executables
-                    ' Move error reporting from ParseDeclarationStatement to the context.
+                ' TODO: need to add all executable statements that ParseDeclarationStatement handle as unexpected executables
+                ' Move error reporting from ParseDeclarationStatement to the context.
                 Case SyntaxKind.IfStatement
                     node = Parser.ReportSyntaxError(node, ERRID.ERR_ExecutableAsDeclaration)
                     Return TryUseStatement(node, newContext)
 
-                    ' by default statements are not handled in declaration context
+                ' by default statements are not handled in declaration context
                 Case Else
                     newContext = Me
                     Return LinkResult.NotUsed

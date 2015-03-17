@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundSequencePointExpression
+    Friend Partial Class BoundSequencePointExpression
 
 #If DEBUG Then
         Private Sub Validate()

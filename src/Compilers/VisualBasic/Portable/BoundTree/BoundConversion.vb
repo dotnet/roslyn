@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundConversion
+    Friend Partial Class BoundConversion
 
         Public Sub New(
             syntax As VisualBasicSyntaxNode,

@@ -3596,6 +3596,297 @@ End Class
                 }, c.GetMembers().Select(Function(member) member.ToString()))
             End Sub)
         End Sub
+
+        <Fact>
+        Public Sub DeclarationBlockClosures()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class C
+    Sub New(a As Integer)
+        Dim f = Function() a
+    End Sub
+
+    Sub F1(a As Integer)
+        Dim f = Function() a
+    End Sub
+
+    Function F2(a As Integer) As Integer
+        Dim f = Function() a
+        Return 1
+    End Function
+
+    Property F3(a As Integer) As Integer
+        Get
+            Dim f = Function() a
+            Return 1
+        End Get
+
+        Set(value As Integer)
+            Dim f1 = Function() a
+            Dim f2 = Function() value
+        End Set
+    End Property
+
+    Custom Event F4 As Action
+        AddHandler(value As Action)
+            Dim f1 = Function() value
+        End AddHandler
+
+        RemoveHandler(value As Action)
+            Dim f1 = Function() value
+        End RemoveHandler
+
+        RaiseEvent()
+            Dim x = 1
+            Dim f1 = Function() x
+        End RaiseEvent
+    End Event
+
+    Shared Operator *(a As C, b As C) As C
+        Dim f1 = Function() a
+        Return a
+    End Operator
+
+    Shared Widening Operator CType(a As C) As Integer
+        Dim f1 = Function() a
+        Return 1
+    End Operator
+End Class    </file>
+</compilation>
+
+            CompileAndVerify(source)
+        End Sub
+
+        <Fact>
+        Public Sub StatementBlockClosures()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class D
+    Public Q As Integer
+
+    Shared Function Z(Of T)(f As Func(Of T)) As T
+        Return f()
+    End Function
+
+    Sub F()
+        While True
+            Dim a = 0
+            Dim f1 = Function() a
+        End While
+
+        For x As Integer = 0 To 1
+            Dim a = 0
+            Dim f1 = Function() a
+        Next
+
+        For Each x In {1}
+            Dim a = 0
+            Dim f1 = Function() a
+        Next
+
+        Do
+            Dim a = 0
+            Dim f1 = Function() a
+        Loop
+
+        Do
+            Dim a = 0
+            Dim f1 = Function() a
+        Loop While True
+
+        Do
+            Dim a = 0
+            Dim f1 = Function() a
+        Loop Until True
+
+        Do While True
+            Dim a = 0
+            Dim f1 = Function() a
+        Loop
+
+        Do Until True
+            Dim a = 0
+            Dim f1 = Function() a
+        Loop
+
+        Dim u As IDisposable = Nothing
+        Using u
+            Dim a = 0
+            Dim f1 = Function() a
+        End Using
+
+        SyncLock u
+            Dim a = 0
+            Dim f1 = Function() a
+        End SyncLock
+
+        With u
+            Dim a = 0
+            Dim f1 = Function() a
+        End With
+
+        Select Case Q
+            Case 1
+                Dim a = 0
+                Dim f1 = Function() a
+
+            Case 2
+                Dim a = 0
+                Dim f1 = Function() a
+
+            Case Else
+                Dim a = 0
+                Dim f1 = Function() a
+        End Select
+
+        If True Then _
+            Dim a As Integer = Z(Function() a) _
+            Else Dim a As Integer = Z(Function() a)
+
+        If True Then
+            Dim a = 0
+            Dim f1 = Function() a
+        ElseIf False
+            Dim a = 0
+            Dim f1 = Function() a
+        Else
+            Dim a = 0
+            Dim f1 = Function() a
+        End If
+
+        Try
+            Dim a = 0
+            Dim f1 = Function() a
+        Catch ex As InvalidOperationException When Z(Function() ex) IsNot Nothing
+            Dim a = 0
+            Dim f1 = Function() a
+        Catch
+            Dim a = 0
+            Dim f1 = Function() a
+        Finally
+            Dim a = 0
+            Dim f1 = Function() a
+        End Try
+    End Sub
+End Class   
+</file>
+</compilation>
+
+            CompileAndVerify(source)
+        End Sub
+
+        <Fact>
+        Public Sub ObjectMemberInitializerClosure()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class C
+    Public Q As Integer
+
+    Shared Function Z(Of T)(f As Func(Of T)) As T
+        Return f()
+    End Function
+
+    Sub F()
+        Dim obj = New C With {.Q = Z(Function() .Q)}
+    End Sub
+End Class   
+</file>
+</compilation>
+
+            CompileAndVerify(source)
+        End Sub
+
+        <Fact>
+        Public Sub QueryRangeVariableClosures()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Linq
+
+Class C
+    Function G(Of T)(f As Func(Of T)) As T
+        Return f()
+    End Function
+
+    Sub F()
+        Dim result = From c1 In {1}, c2 In {2}
+                     Join c3 In {3} On G(Function() c3) Equals G(Function() c1) And G(Function() c3) Equals G(Function() c2)
+                     Join c4 In {4} On G(Function() c4) Equals G(Function() c1) And G(Function() c4) Equals G(Function() c2)
+                     Group Join c5 In {5} On G(Function() c5) Equals G(Function() c4) Into a1 = Count(G(Function() c1)), Group
+                     Let e3 = G(Function() a1), e4 = G(Function() Group.First())
+                     Group e4 = G(Function() e3), e5 = G(Function() e4 + 1) By e6 = G(Function() e3), e7 = G(Function() e4 + 2) Into a2 = Count(G(Function() e4 + 3)), a3 = LongCount(G(Function() e4 + 4)), Group
+                     Aggregate c6 In {6}, c7 In {7} From c8 In {8} Select G(Function() c6 + c7 + c8) Into a4 = Sum(G(Function() e6 + 9))
+                     Where G(Function() e6) > 0
+                     Take While G(Function() e6) > 0
+                     Skip While G(Function() e6) > 0
+                     Order By G(Function() e6), G(Function() e7)
+                     Select e8 = G(Function() a2), e9 = G(Function() a3), e10 = G(Function() a4)
+    End Sub
+End Class   
+    </file>
+</compilation>
+
+            CompileAndVerify(source)
+        End Sub
+
+        <Fact>
+        Public Sub QueryRangeVariableClosures_Aggregate()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From x In {1} Aggregate y In {2} Into Sum(x + y), z2 = Sum(x - y)
+    End Sub
+End Class   
+    </file>
+</compilation>
+
+            CompileAndVerify(source)
+        End Sub
+
+        <Fact>
+        Public Sub QueryRangeVariableClosures_JoinAbsorbedClauses()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Linq
+
+Class C
+    Shared Function G(Of T)(f As Func(Of T)) As T
+        Return f()
+    End Function
+
+    Sub FSelect()
+        Dim result = From x In {1} Join y In {2} On x Equals y Select G(Function() x + y)
+    End Sub
+
+    Sub FLet()
+        Dim result = From x In {1} Join y In {2} On x Equals y Let c = G(Function() x + y)
+    End Sub
+
+    Sub FAggregate()
+        Dim result = From x In {1} Join y In {2} On x Equals y Aggregate z In {3} Skip G(Function() x) Into Sum(G(Function() y))
+    End Sub
+End Class   
+    </file>
+</compilation>
+            CompileAndVerify(source)
+        End Sub
     End Class
 End Namespace
 
