@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         // call to this method is serialized. and only this method does the writing.
                         var priorityService = document.GetLanguageService<IWorkCoordinatorPriorityService>();
-                        var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document).ConfigureAwait(false);
+                        var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document, this.CancellationToken).ConfigureAwait(false);
 
                         _processor.Enqueue(
                             new WorkItem(document.Id, document.Project.Language, InvocationReasons.SemanticChanged,
