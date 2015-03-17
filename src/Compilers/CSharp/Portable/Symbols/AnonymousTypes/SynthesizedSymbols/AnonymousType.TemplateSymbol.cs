@@ -131,9 +131,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.SpecialMembers = specialMembers.AsImmutable();
             }
 
-            internal ImmutableArray<string> GetPropertyNames()
+            internal Microsoft.CodeAnalysis.Emit.AnonymousTypeKey GetAnonymousTypeKey()
             {
-                return this.Properties.SelectAsArray(p => p.Name);
+                var properties = this.Properties.SelectAsArray(p => new Microsoft.CodeAnalysis.Emit.AnonymousTypeKeyField(p.Name));
+                return new Microsoft.CodeAnalysis.Emit.AnonymousTypeKey(properties);
             }
 
             /// <summary>
