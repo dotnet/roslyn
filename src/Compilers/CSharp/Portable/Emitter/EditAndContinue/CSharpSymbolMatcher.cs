@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert((object)type.ContainingSymbol == (object)_sourceAssembly.GlobalNamespace);
                 Debug.Assert(AnonymousTypeManager.IsAnonymousTypeTemplate(type));
 
-                var key = new AnonymousTypeKey(AnonymousTypeManager.GetTemplatePropertyNames(type));
+                var key = AnonymousTypeManager.GetAnonymousTypeKey(type);
                 return _anonymousTypeMap.TryGetValue(key, out otherType);
             }
 

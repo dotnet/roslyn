@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _semanticModelActionsMap = MakeSemanticModelActionsByAnalyzer();
                     _compilationActionsMap = MakeCompilationActionsByAnalyzer(this.analyzerActions.CompilationActions);
                     _compilationEndActionsMap = MakeCompilationActionsByAnalyzer(this.analyzerActions.CompilationEndActions);
-                }, cancellationToken);
+                }, cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
 
                 // create the primary driver task.
                 cancellationToken.ThrowIfCancellationRequested();
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             else
             {
-                map[analyzer] = currentTask.ContinueWith(_ => executeAnalyzerActions(), cancellationToken);
+                map[analyzer] = currentTask.ContinueWith(_ => executeAnalyzerActions(), cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
             }
         }
 

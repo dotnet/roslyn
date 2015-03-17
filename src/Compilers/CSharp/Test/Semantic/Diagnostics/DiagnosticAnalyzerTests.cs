@@ -946,9 +946,10 @@ public class B
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
                      expected: Diagnostic("AD0001")
-                        .WithArguments("Microsoft.CodeAnalysis.CSharp.UnitTests.DiagnosticAnalyzerTests+AnalyzerReportingUnsupportedDiagnostic", 
-                            "Reported diagnostic with ID 'ID_2' is not supported by the analyzer.")
-                        .WithLocation(1, 1));
+                     .WithArguments("Microsoft.CodeAnalysis.CSharp.UnitTests.DiagnosticAnalyzerTests+AnalyzerReportingUnsupportedDiagnostic", 
+                     @"Reported diagnostic with ID 'ID_2' is not supported by the analyzer.
+Parameter name: diagnostic")
+                     .WithLocation(1, 1));
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]

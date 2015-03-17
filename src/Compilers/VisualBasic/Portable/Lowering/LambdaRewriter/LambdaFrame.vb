@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return
             End If
 
-            If SyntaxUtilities.IsClosureScope(syntaxOpt) Then
+            If LambdaUtilities.IsClosureScope(syntaxOpt) Then
                 Return
             End If
 
