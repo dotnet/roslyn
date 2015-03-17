@@ -4404,6 +4404,7 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Commo
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithXmlReferenceResolver(resolver As Microsoft.CodeAnalysis.XmlReferenceResolver) -> Microsoft.CodeAnalysis.CompilationOptions
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Equals(obj As Object) -> Boolean
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.GetHashCode() -> Integer
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFormatter.GetAnalyzerIdentity(analyzer As Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer) -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.CommonWithDocumentationMode(documentationMode As Microsoft.CodeAnalysis.DocumentationMode) -> Microsoft.CodeAnalysis.ParseOptions
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.CommonWithFeatures(features As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, String))) -> Microsoft.CodeAnalysis.ParseOptions
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.CommonWithKind(kind As Microsoft.CodeAnalysis.SourceCodeKind) -> Microsoft.CodeAnalysis.ParseOptions

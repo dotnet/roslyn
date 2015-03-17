@@ -224,7 +224,7 @@ Microsoft.CodeAnalysis.DiagnosticDescriptor.IsEnabledByDefault.get -> bool
 Microsoft.CodeAnalysis.DiagnosticDescriptor.MessageFormat.get -> Microsoft.CodeAnalysis.LocalizableString
 Microsoft.CodeAnalysis.DiagnosticDescriptor.Title.get -> Microsoft.CodeAnalysis.LocalizableString
 Microsoft.CodeAnalysis.DiagnosticFormatter
-Microsoft.CodeAnalysis.DiagnosticFormatter.DiagnosticFormatter(bool displayAnalyzer)
+Microsoft.CodeAnalysis.DiagnosticFormatter.DiagnosticFormatter(bool displayAnalyzer) -> void
 Microsoft.CodeAnalysis.DiagnosticSeverity
 Microsoft.CodeAnalysis.DiagnosticSeverity.Error = 3 -> Microsoft.CodeAnalysis.DiagnosticSeverity
 Microsoft.CodeAnalysis.DiagnosticSeverity.Hidden = 0 -> Microsoft.CodeAnalysis.DiagnosticSeverity
@@ -2066,6 +2066,7 @@ static readonly Microsoft.CodeAnalysis.Text.TextChangeRange.NoChanges -> System.
 virtual Microsoft.CodeAnalysis.Diagnostic.DefaultSeverity.get -> Microsoft.CodeAnalysis.DiagnosticSeverity
 virtual Microsoft.CodeAnalysis.Diagnostic.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
 virtual Microsoft.CodeAnalysis.DiagnosticFormatter.Format(Microsoft.CodeAnalysis.Diagnostic diagnostic, System.IFormatProvider formatter = null) -> string
+virtual Microsoft.CodeAnalysis.DiagnosticFormatter.GetAnalyzerIdentity(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer analyzer) -> string
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.Display.get -> string
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.IsUnresolved.get -> bool
 virtual Microsoft.CodeAnalysis.Emit.EmitResult.GetDebuggerDisplay() -> string
