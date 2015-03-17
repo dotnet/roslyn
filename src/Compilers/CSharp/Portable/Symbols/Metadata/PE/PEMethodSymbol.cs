@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <summary>
         /// Holds infrequently accessed fields. See <seealso cref="_uncommonFields"/> for an explanation.
         /// </summary>
-        private class UncommonFields
+        private sealed class UncommonFields
         {
             public ParameterSymbol _lazyThisParameter;
             public Tuple<CultureInfo, string> _lazyDocComment;
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _name = String.Empty;
                 }
 
-                AccessUncommonFields()._lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                InitializeUseSiteDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
             }
 
             Debug.Assert((uint)localflags <= ushort.MaxValue);
@@ -609,9 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (makeBad || isBadParameter)
             {
-                var old = Interlocked.CompareExchange(ref AccessUncommonFields()._lazyUseSiteDiagnostic, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
-                Debug.Assert((object)old == (object)CSDiagnosticInfo.EmptyErrorInfo ||
-                             ((object)old != null && old.Code == (int)ErrorCode.ERR_BindToBogus && old.Arguments.Length == 1 && old.Arguments[0] == (object)this));
+                InitializeUseSiteDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
             }
 
             var signature = new SignatureData(signatureHeader, @params, returnParam);
@@ -623,8 +621,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                DiagnosticInfo ignored = null;
-                return EnsureTypeParametersAreLoaded(ref ignored);
+                DiagnosticInfo diagnosticInfo = null;
+                var typeParams = EnsureTypeParametersAreLoaded(ref diagnosticInfo);
+                if (diagnosticInfo != null)
+                {
+                    InitializeUseSiteDiagnostic(diagnosticInfo);
+                }
+
+                return typeParams;
             }
         }
 
@@ -664,10 +668,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             catch (BadImageFormatException)
             {
                 diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
-                var old = Interlocked.CompareExchange(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnosticInfo, CSDiagnosticInfo.EmptyErrorInfo);
-                Debug.Assert((object)old == (object)CSDiagnosticInfo.EmptyErrorInfo ||
-                                ((object)old != null && old.Code == (int)ErrorCode.ERR_BindToBogus && old.Arguments.Length == 1 && old.Arguments[0] == (object)this));
-
                 return ImmutableArray<TypeParameterSymbol>.Empty;
             }
         }
@@ -992,15 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 DiagnosticInfo result = null;
                 CalculateUseSiteDiagnostic(ref result);
                 EnsureTypeParametersAreLoaded(ref result);
-
-                Debug.Assert(!CSDiagnosticInfo.IsEmpty(result));
-                if (result != null)
-                {
-                    result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, result, CSDiagnosticInfo.EmptyErrorInfo);
-                }
-
-                _packedFlags.InitializeIsUseSiteDiagnosticPopulated();
-                return result;
+                return InitializeUseSiteDiagnostic(result);
             }
 
             var uncommonFields = _uncommonFields;
@@ -1015,6 +1007,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                        ? InterlockedOperations.Initialize(ref uncommonFields._lazyUseSiteDiagnostic, null, CSDiagnosticInfo.EmptyErrorInfo)
                        : result;
             }
+        }
+
+        private DiagnosticInfo InitializeUseSiteDiagnostic(DiagnosticInfo diagnostic)
+        {
+            Debug.Assert(!CSDiagnosticInfo.IsEmpty(diagnostic));
+            if (diagnostic != null)
+            {
+                diagnostic = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnostic, CSDiagnosticInfo.EmptyErrorInfo);
+            }
+
+            _packedFlags.InitializeIsUseSiteDiagnosticPopulated();
+            return diagnostic;
         }
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
