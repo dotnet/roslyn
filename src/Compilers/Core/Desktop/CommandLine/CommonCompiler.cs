@@ -407,25 +407,40 @@ namespace Microsoft.CodeAnalysis
                         WithOutputNameOverride(outputName).
                         WithPdbFilePath(finalPdbFilePath);
 
-                    var pdbOutputInfo = Arguments.EmitPdb
-                        ? new Cci.PdbOutputInfo(finalPdbFilePath)
-                        : Cci.PdbOutputInfo.None;
+                    Cci.PdbOutputInfo pdbOutputInfo;
 
-                    using (var peStreamProvider = new CompilerEmitStreamProvider(this, touchedFilesLogger, finalOutputPath))
+                    // TODO: do this better
+                    if (!Arguments.EmitPdb)
                     {
-                        emitResult = compilation.Emit(
-                            peStreamProvider,
-                            pdbOutputInfo,
-                            xml,
-                            win32Res,
-                            Arguments.ManifestResources,
-                            emitOptions,
-                            getAnalyzerDiagnostics,
-                            cancellationToken);
+                        pdbOutputInfo = Cci.PdbOutputInfo.None;
+                    }
+                    else if (emitOptions.DebugInformationFormat == DebugInformationFormat.Pdb)
+                    {
+                        pdbOutputInfo = new Cci.PdbOutputInfo(finalPdbFilePath);
+                    }
+                    else
+                    {
+                        pdbOutputInfo = new Cci.PdbOutputInfo(File.OpenWrite(finalPdbFilePath));
+                    }
 
-                        if (emitResult.Success && !pdbOutputInfo.IsNone && touchedFilesLogger != null)
+                    using (pdbOutputInfo.Stream)
+                    {
+                        using (var peStreamProvider = new CompilerEmitStreamProvider(this, touchedFilesLogger, finalOutputPath))
                         {
-                            touchedFilesLogger.AddWritten(pdbOutputInfo.FileName);
+                            emitResult = compilation.Emit(
+                                peStreamProvider,
+                                pdbOutputInfo,
+                                xml,
+                                win32Res,
+                                Arguments.ManifestResources,
+                                emitOptions,
+                                getAnalyzerDiagnostics,
+                                cancellationToken);
+
+                            if (emitResult.Success && !pdbOutputInfo.IsNone && touchedFilesLogger != null)
+                            {
+                                touchedFilesLogger.AddWritten(pdbOutputInfo.FileName);
+                            }
                         }
                     }
                 }

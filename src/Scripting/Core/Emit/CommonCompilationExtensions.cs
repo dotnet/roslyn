@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
                     context,
                     compilation.MessageProvider,
                     () => stream,
-                    pdbStreamOpt: null,
+                    getPdbStreamOpt: null,
                     nativePdbWriterOpt: null,
                     allowMissingMethodBodies: false,
                     deterministic: false,
