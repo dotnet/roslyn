@@ -116,6 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Debug.Assert(typeParameter.ContainingSymbol = type)
                     Dim index = typeParameter.Ordinal
                     Debug.Assert(properties(index).Name Is Nothing)
+                    ' ReadOnly anonymous type properties were 'Key' properties.
                     properties(index) = New AnonymousTypeKeyField([property].Name, [property].IsReadOnly)
                 End If
             Next
@@ -134,8 +135,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim method = DirectCast(members(0), MethodSymbol)
             Debug.Assert(method.Parameters.Count + If(method.IsSub, 0, 1) = type.TypeParameters.Length)
             Dim parameters = ArrayBuilder(Of AnonymousTypeKeyField).GetInstance()
-            parameters.AddRange(method.Parameters.SelectAsArray(Function(p) New AnonymousTypeKeyField(p.Name, isKey:=False)))
-            parameters.Add(New AnonymousTypeKeyField(AnonymousTypeDescriptor.GetReturnParameterName(Not method.IsSub), isKey:=False))
+            parameters.AddRange(method.Parameters.SelectAsArray(Function(p) New AnonymousTypeKeyField(p.Name)))
+            parameters.Add(New AnonymousTypeKeyField(AnonymousTypeDescriptor.GetReturnParameterName(Not method.IsSub)))
             Return New AnonymousTypeKey(parameters.ToImmutableAndFree(), isDelegate:=True)
         End Function
 

@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Sub
 
             Friend Overrides Function GetAnonymousTypeKey() As Microsoft.CodeAnalysis.Emit.AnonymousTypeKey
-                Dim parameters = TypeDescr.Parameters.SelectAsArray(Function(p) New Microsoft.CodeAnalysis.Emit.AnonymousTypeKeyField(p.Name, p.IsByRef))
+                Dim parameters = TypeDescr.Parameters.SelectAsArray(Function(p) New Microsoft.CodeAnalysis.Emit.AnonymousTypeKeyField(p.Name))
                 Return New Microsoft.CodeAnalysis.Emit.AnonymousTypeKey(parameters, isDelegate:=True)
             End Function
 
