@@ -78,23 +78,32 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
                         New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer()))
 
             Dim spans = ProduceSquiggles(analyzerMap.ToImmutable(),
-"Imports System.Collections ' Unused import.
+"
+' System.Diagnostics is used - rest are unused.
+Imports System.Diagnostics
+Imports System.Collections
+Imports System.Collections.Generic
+Imports System.Linq
+
 Class C1
     Sub Foo()
-        Dim x as System.Int32 = 2 ' Simplify type name.
-        x = x + 1
+        Process.Start(GetType(Int32).ToString()) 'Int32 can be simplified.
     End Sub
-End Class")
-            spans = spans.OrderBy(Function(s) s.Span.Span.Start)
+End Class").OrderBy(Function(s) s.Span.Span.Start).ToImmutableArray()
 
-            Assert.Equal(2, spans.Count())
-            Dim first = spans.First()
-            Dim second = spans.Last()
+            Assert.Equal(2, spans.Length)
+            Dim first = spans(0)
+            Dim second = spans(1)
 
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType)
             Assert.Equal(VBFeaturesResources.RemoveUnnecessaryImportsDiagnosticTitle, first.Tag.ToolTipContent)
+            Assert.Equal(79, first.Span.Start)
+            Assert.Equal(83, first.Span.Length)
+
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, second.Tag.ErrorType)
             Assert.Equal(WorkspacesResources.NameCanBeSimplified, second.Tag.ToolTipContent)
+            Assert.Equal(221, second.Span.Start)
+            Assert.Equal(5, second.Span.Length)
         End Sub
     End Class
 End Namespace
