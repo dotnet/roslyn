@@ -156,8 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns true if the character should be replaced and sets
-        /// replaceWith to the replacement text if the character is
-        /// replaced with text other than the Unicode escape sequence.
+        /// <paramref name="replaceWith"/> to the replacement text if the
+        /// character is replaced with text other than the Unicode escape sequence.
         /// </summary>
         private static bool ReplaceChar(char c, char quote, out string replaceWith)
         {
