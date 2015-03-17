@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
@@ -60,9 +61,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // internal for testing
         internal class IncrementalAnalyzerDelegatee : BaseDiagnosticIncrementalAnalyzer
         {
-            private readonly HostAnalyzerManager _hostAnalyzerManager;
-            private readonly DiagnosticAnalyzerService _owner;
-
             // v1 diagnostic engine
             private readonly EngineV1.DiagnosticIncrementalAnalyzer _engineV1;
 
@@ -70,16 +68,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly EngineV2.DiagnosticIncrementalAnalyzer _engineV2;
 
             public IncrementalAnalyzerDelegatee(DiagnosticAnalyzerService owner, Workspace workspace, HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
-                : base(workspace, hostDiagnosticUpdateSource)
+                : base(owner, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource)
             {
-                _hostAnalyzerManager = hostAnalyzerManager;
-                _owner = owner;
-
                 var v1CorrelationId = LogAggregator.GetNextId();
-                _engineV1 = new EngineV1.DiagnosticIncrementalAnalyzer(_owner, v1CorrelationId, workspace, _hostAnalyzerManager, hostDiagnosticUpdateSource);
+                _engineV1 = new EngineV1.DiagnosticIncrementalAnalyzer(owner, v1CorrelationId, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource);
 
                 var v2CorrelationId = LogAggregator.GetNextId();
-                _engineV2 = new EngineV2.DiagnosticIncrementalAnalyzer(_owner, v2CorrelationId, workspace, _hostAnalyzerManager, hostDiagnosticUpdateSource);
+                _engineV2 = new EngineV2.DiagnosticIncrementalAnalyzer(owner, v2CorrelationId, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource);
             }
 
             #region IIncrementalAnalyzer

@@ -24,13 +24,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
     internal partial class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
     {
         private readonly int _correlationId;
-        private readonly DiagnosticAnalyzerService _owner;
         private readonly MemberRangeMap _memberRangeMap;
         private readonly AnalyzerExecutor _executor;
         private readonly StateManager _stateManger;
         private readonly SimpleTaskQueue _eventQueue;
-
-        private DiagnosticLogAggregator _diagnosticLogAggregator;
 
         public DiagnosticIncrementalAnalyzer(
             DiagnosticAnalyzerService owner,
@@ -38,9 +35,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             Workspace workspace,
             HostAnalyzerManager analyzerManager,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
-            : base(workspace, hostDiagnosticUpdateSource)
+            : base(owner, workspace, analyzerManager, hostDiagnosticUpdateSource)
         {
-            _owner = owner;
             _correlationId = correlationId;
             _memberRangeMap = new MemberRangeMap();
             _executor = new AnalyzerExecutor(this);
@@ -48,8 +44,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             _stateManger = new StateManager(analyzerManager);
             _stateManger.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
-
-            _diagnosticLogAggregator = new DiagnosticLogAggregator(_owner);
         }
 
         private void OnProjectAnalyzerReferenceChanged(object sender, ProjectAnalyzerReferenceChangedEventArgs e)
@@ -61,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
 
             // guarantee order of the events.
-            var asyncToken = _owner.Listener.BeginAsyncOperation(nameof(OnProjectAnalyzerReferenceChanged));
+            var asyncToken = Owner.Listener.BeginAsyncOperation(nameof(OnProjectAnalyzerReferenceChanged));
             _eventQueue.ScheduleTask(() => ClearProjectStatesAsync(e.Project, e.Removed, CancellationToken.None), CancellationToken.None).CompletesAsyncOperation(asyncToken);
         }
 
@@ -129,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var fullSpan = root == null ? null : (TextSpan?)root.FullSpan;
 
-                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
+                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, this, cancellationToken);
                 var openedDocument = document.IsOpen();
 
                 foreach (var stateSet in _stateManger.GetOrUpdateStateSets(document.Project))
@@ -205,8 +199,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var memberId = syntaxFacts.GetMethodLevelMemberId(root, member);
 
-                var spanBasedDriver = new DiagnosticAnalyzerDriver(document, member.FullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
-                var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
+                var spanBasedDriver = new DiagnosticAnalyzerDriver(document, member.FullSpan, root, this, cancellationToken);
+                var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, this, cancellationToken);
 
                 foreach (var stateSet in _stateManger.GetOrUpdateStateSets(document.Project))
                 {
@@ -251,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var fullSpan = root == null ? null : (TextSpan?)root.FullSpan;
 
-                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
+                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, this, cancellationToken);
                 bool openedDocument = document.IsOpen();
 
                 foreach (var stateSet in _stateManger.GetOrUpdateStateSets(document.Project))
@@ -305,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var projectTextVersion = await project.GetLatestDocumentVersionAsync(cancellationToken).ConfigureAwait(false);
                 var semanticVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
                 var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-                var analyzerDriver = new DiagnosticAnalyzerDriver(project, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
+                var analyzerDriver = new DiagnosticAnalyzerDriver(project, this, cancellationToken);
 
                 var versions = new VersionArgument(projectTextVersion, semanticVersion, projectVersion);
                 foreach (var stateSet in _stateManger.GetOrUpdateStateSets(project))
@@ -439,14 +433,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return true;
             }
 
-            return _owner.GetDiagnosticDescriptors(analyzer).Any(d => d.DefaultSeverity != DiagnosticSeverity.Hidden);
+            return Owner.GetDiagnosticDescriptors(analyzer).Any(d => d.DefaultSeverity != DiagnosticSeverity.Hidden);
         }
 
         private bool ShouldRunAnalyzerForStateType(DiagnosticAnalyzerDriver driver, DiagnosticAnalyzer analyzer,
             StateType stateTypeId, ImmutableHashSet<string> diagnosticIds)
         {
             bool discarded;
-            return ShouldRunAnalyzerForStateType(driver, analyzer, stateTypeId, out discarded, diagnosticIds, _owner.GetDiagnosticDescriptors);
+            return ShouldRunAnalyzerForStateType(driver, analyzer, stateTypeId, out discarded, diagnosticIds, Owner.GetDiagnosticDescriptors);
         }
 
         private static bool ShouldRunAnalyzerForStateType(DiagnosticAnalyzerDriver driver, DiagnosticAnalyzer analyzer, StateType stateTypeId,
@@ -479,17 +473,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         // internal for testing purposes only.
         internal void ForceAnalyzeAllDocuments(Project project, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            var diagnosticIds = _owner.GetDiagnosticDescriptors(analyzer).Select(d => d.Id).ToImmutableHashSet();
+            var diagnosticIds = Owner.GetDiagnosticDescriptors(analyzer).Select(d => d.Id).ToImmutableHashSet();
             ReanalyzeAllDocumentsAsync(project, diagnosticIds, cancellationToken).Wait(cancellationToken);
         }
 
         public override void LogAnalyzerCountSummary()
         {
-            DiagnosticAnalyzerLogger.LogAnalyzerCrashCountSummary(_correlationId, _diagnosticLogAggregator);
-            DiagnosticAnalyzerLogger.LogAnalyzerTypeCountSummary(_correlationId, _diagnosticLogAggregator);
+            DiagnosticAnalyzerLogger.LogAnalyzerCrashCountSummary(_correlationId, DiagnosticLogAggregator);
+            DiagnosticAnalyzerLogger.LogAnalyzerTypeCountSummary(_correlationId, DiagnosticLogAggregator);
 
             // reset the log aggregator
-            _diagnosticLogAggregator = new DiagnosticLogAggregator(_owner);
+            ResetDiagnosticLogAggregator();
         }
 
         private static bool CheckSyntaxVersions(Document document, AnalysisData existingData, VersionArgument versions)
@@ -596,13 +590,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private void RaiseDiagnosticsUpdated(
             StateType type, object key, DiagnosticAnalyzer analyzer, SolutionArgument solution, ImmutableArray<DiagnosticData> diagnostics)
         {
-            if (_owner == null)
+            if (Owner == null)
             {
                 return;
             }
 
             var id = new ArgumentKey(analyzer, type, key);
-            _owner.RaiseDiagnosticsUpdated(this,
+            Owner.RaiseDiagnosticsUpdated(this,
                 new DiagnosticsUpdatedArgs(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId, diagnostics));
         }
 
