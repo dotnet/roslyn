@@ -6149,5 +6149,35 @@ class Program
             };
             AssertFormat(expected, code, changedOptionSet: optionSet);
         }
+
+        [WorkItem(1298, "https://github.com/dotnet/roslyn/issues/1298")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DontforceAccessorsToNewLineWithPropertyInitializers()
+        {
+            var code = @"using System.Collections.Generic;
+
+class Program
+{
+    public List<ExcludeValidation> ValidationExcludeFilters { get; }
+    = new List<ExcludeValidation>();
+}
+
+public class ExcludeValidation
+{
+}";
+
+            var expected = @"using System.Collections.Generic;
+
+class Program
+{
+    public List<ExcludeValidation> ValidationExcludeFilters { get; }
+    = new List<ExcludeValidation>();
+}
+
+public class ExcludeValidation
+{
+}";
+            AssertFormat(expected, code);
+        }
     }
 }

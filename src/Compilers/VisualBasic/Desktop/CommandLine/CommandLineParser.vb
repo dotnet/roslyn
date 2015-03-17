@@ -93,6 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim outputFileName As String = Nothing
             Dim outputDirectory As String = baseDirectory
             Dim documentationPath As String = Nothing
+            Dim errorLogPath As String = Nothing
             Dim parseDocumentationComments As Boolean = False ' Don't just null check documentationFileName because we want to do this even if the file name is invalid.
             Dim outputKind As OutputKind = OutputKind.ConsoleApplication
             Dim ssVersion As SubsystemVersion = SubsystemVersion.None
@@ -457,6 +458,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' Seems redundant with default values, but we need to clobber any preceding /doc switches
                             documentationPath = Nothing
                             parseDocumentationComments = False
+                            Continue For
+
+                        Case "errorlog"
+                            Dim unquoted = RemoveAllQuotes(value)
+                            If String.IsNullOrEmpty(unquoted) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "errorlog", ":<file>")
+                            Else
+                                errorLogPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory)
+                            End If
+
                             Continue For
 
                         Case "netcf"
@@ -1168,6 +1179,7 @@ lVbRuntimePlus:
                     .OutputFileName = outputFileName,
                     .OutputDirectory = outputDirectory,
                     .DocumentationPath = documentationPath,
+                    .ErrorLogPath = errorLogPath,
                     .SourceFiles = sourceFiles.AsImmutable(),
                     .Encoding = codepage,
                     .ChecksumAlgorithm = checksumAlgorithm,
