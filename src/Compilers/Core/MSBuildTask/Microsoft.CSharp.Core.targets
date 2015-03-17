@@ -34,11 +34,6 @@
       <NoWarn Condition=" '$(BuildingInsideVisualStudio)' == 'true' and '$(VisualStudioVersion)' != '' and '$(VisualStudioVersion)' > '10.0' ">$(NoWarn);2008</NoWarn>
     </PropertyGroup>
 
-    <PropertyGroup>
-      <!-- If we are building in visual studio setting the CscToolPath will prevent the inproc compiler from being used during compile-->
-      <CscToolPath Condition="'$(CscToolPath)' == '' and '$(BuildingOutOfProcess)' != 'false'" >$(MsBuildToolsPath)</CscToolPath>
-    </PropertyGroup>
-
     <ItemGroup Condition="'$(TargetingClr2Framework)'=='true'">
       <ReferencePath>
         <EmbedInteropTypes/>
@@ -63,6 +58,10 @@
       <AdditionalFileItems Include="$(AdditionalFileItemNames)" />
       <AdditionalFiles Include="@(%(AdditionalFileItems.Identity))" />
     </ItemGroup>
+
+    <PropertyGroup Condition="'$(UseSharedCompilation)' == ''">
+      <UseSharedCompilation>true</UseSharedCompilation>
+    </PropertyGroup>
 
     <!-- Condition is to filter out the _CoreCompileResourceInputs so that it doesn't pass in culture resources to the compiler -->
     <Csc  Condition=" '%(_CoreCompileResourceInputs.WithCulture)' != 'true' "
@@ -114,6 +113,7 @@
           ToolPath="$(CscToolPath)"
           TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
           UseHostCompilerIfAvailable="$(UseHostCompilerIfAvailable)"
+          UseSharedCompilation="$(UseSharedCompilation)"
           Utf8Output="$(Utf8Output)"
           VsSessionGuid="$(VsSessionGuid)"
           WarningLevel="$(WarningLevel)"

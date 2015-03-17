@@ -92,8 +92,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Sub
 
             Friend Overrides Function GetAnonymousTypeKey() As Microsoft.CodeAnalysis.Emit.AnonymousTypeKey
-                Dim names = _properties.SelectAsArray(Function(p) p.Name)
-                Return New Microsoft.CodeAnalysis.Emit.AnonymousTypeKey(names)
+                Dim properties = _properties.SelectAsArray(Function(p) New Microsoft.CodeAnalysis.Emit.AnonymousTypeKeyField(p.Name, p.IsReadOnly))
+                Return New Microsoft.CodeAnalysis.Emit.AnonymousTypeKey(properties)
             End Function
 
             Friend Overrides ReadOnly Property GeneratedNamePrefix As String

@@ -4762,7 +4762,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TestSpacingOptionAroundControlFlow()
         {
-            var code = @"
+            const string code = @"
 class Program
 {
     public void foo()
@@ -4789,14 +4789,19 @@ class Program
 
         try
         { }
+        catch (System.Exception)
+        { }
         catch (System.Exception e)
         { }
 
         using(somevar)
         { }
+
+        lock(somevar)
+        { }
     }
 }";
-            var expected = @"
+            const string expected = @"
 class Program
 {
     public void foo()
@@ -4823,10 +4828,15 @@ class Program
 
         try
         { }
+        catch ( System.Exception )
+        { }
         catch ( System.Exception e )
         { }
 
         using ( somevar )
+        { }
+
+        lock ( somevar )
         { }
     }
 }";
@@ -5323,6 +5333,29 @@ class Program
 }";
 
             var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, true } };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void ArrayDeclarationShouldFollowEmptySquareBrackets()
+        {
+            const string code = @"
+class Program
+{
+   var t = new Foo(new[ ] { ""a"", ""b"" });
+}";
+
+            const string expected = @"
+class Program
+{
+    var t = new Foo(new[] { ""a"", ""b"" });
+}";
+
+            var options = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.SpaceWithinSquareBrackets, true },
+                { CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, false }
+            };
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
@@ -6081,6 +6114,40 @@ class Program
     }
 }";
             AssertFormat(code, code);
+        }
+
+        [Fact]
+        public void SpacingInMethodCallArguments_True()
+        {
+            const string code = @"
+[Bar(A=1,B=2)]
+class Program
+{
+    public void foo()
+    {
+        var a = typeof(A);
+        var b = M(a);
+        M();
+    }
+}";
+            const string expected = @"
+[Bar ( A = 1, B = 2 )]
+class Program
+{
+    public void foo()
+    {
+        var a = typeof ( A );
+        var b = M ( a );
+        M ( );
+    }
+}";
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.SpaceWithinMethodCallParentheses, true },
+                { CSharpFormattingOptions.SpaceAfterMethodCallName, true },
+                { CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, true },
+            };
+            AssertFormat(expected, code, changedOptionSet: optionSet);
         }
     }
 }

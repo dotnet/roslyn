@@ -14,18 +14,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Private ReadOnly _newRoot As SyntaxNode
         Private ReadOnly _oldRootChildren As IEnumerable(Of SyntaxNode)
         Private ReadOnly _newRootChildren As IEnumerable(Of SyntaxNode)
+        Private ReadOnly _matchingLambdas As Boolean
 
         Private Sub New()
         End Sub
 
-        Friend Sub New(oldRoot As SyntaxNode, oldRootChildren As IEnumerable(Of SyntaxNode), newRoot As SyntaxNode, newRootChildren As IEnumerable(Of SyntaxNode))
+        Friend Sub New(oldRoot As SyntaxNode,
+                       oldRootChildren As IEnumerable(Of SyntaxNode),
+                       newRoot As SyntaxNode,
+                       newRootChildren As IEnumerable(Of SyntaxNode),
+                       matchingLambdas As Boolean)
             _oldRoot = oldRoot
             _newRoot = newRoot
             _oldRootChildren = oldRootChildren
             _newRootChildren = newRootChildren
+            _matchingLambdas = matchingLambdas
         End Sub
 
 #Region "Tree Traversal"
+        Protected Overrides Function TryGetParent(node As SyntaxNode, ByRef parent As SyntaxNode) As Boolean
+            parent = node.Parent
+            While parent IsNot Nothing AndAlso Not HasLabel(parent)
+                parent = parent.Parent
+            End While
+
+            Return parent IsNot Nothing
+        End Function
 
         Protected Overrides Function GetChildren(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
             Debug.Assert(HasLabel(node))
@@ -60,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             For Each child In node.ChildNodes()
 
-                If SyntaxUtilities.IsLambdaBodyStatementOrExpression(child) Then
+                If LambdaUtilities.IsLambdaBodyStatementOrExpression(child) Then
                     Continue For
                 End If
 
@@ -88,33 +102,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     End If
 
                     ' TODO: avoid allocation of closure
-                    For Each descendant In rootChild.DescendantNodes(descendIntoChildren:=Function(c) Not IsLeaf(c) AndAlso (c Is rootChild OrElse Not SyntaxUtilities.IsLambdaBodyStatementOrExpression(c)))
-                        If Not SyntaxUtilities.IsLambdaBodyStatementOrExpression(descendant) AndAlso HasLabel(descendant) Then
+                    For Each descendant In rootChild.DescendantNodes(descendIntoChildren:=Function(c) Not IsLeaf(c) AndAlso (c Is rootChild OrElse Not LambdaUtilities.IsLambdaBodyStatementOrExpression(c)))
+                        If Not LambdaUtilities.IsLambdaBodyStatementOrExpression(descendant) AndAlso HasLabel(descendant) Then
                             Yield descendant
                         End If
                     Next
                 Next
             Else
                 ' TODO: avoid allocation of closure
-                For Each descendant In node.DescendantNodes(descendIntoChildren:=Function(c) Not IsLeaf(c) AndAlso (c Is node OrElse Not SyntaxUtilities.IsLambdaBodyStatementOrExpression(c)))
-                    If Not SyntaxUtilities.IsLambdaBodyStatementOrExpression(descendant) AndAlso HasLabel(descendant) Then
+                Dim descendants = node.DescendantNodes(descendIntoChildren:=Function(c) Not IsLeaf(c) AndAlso (c Is node OrElse Not LambdaUtilities.IsLambdaBodyStatementOrExpression(c)))
+                For Each descendant In descendants
+                    If Not LambdaUtilities.IsLambdaBodyStatementOrExpression(descendant) AndAlso HasLabel(descendant) Then
                         Yield descendant
                     End If
                 Next
             End If
         End Function
 
-        Protected Overrides Function TryGetParent(node As SyntaxNode, ByRef parent As SyntaxNode) As Boolean
-            parent = node.Parent
-            While parent IsNot Nothing AndAlso Not HasLabel(parent)
-                parent = parent.Parent
-            End While
-
-            Return parent IsNot Nothing
-        End Function
-
         Private Function DescendIntoChildren(node As SyntaxNode) As Boolean
-            Return Not SyntaxUtilities.IsLambdaBodyStatementOrExpression(node) AndAlso Not HasLabel(node)
+            Return Not LambdaUtilities.IsLambdaBodyStatementOrExpression(node) AndAlso Not HasLabel(node)
         End Function
 #End Region
 
@@ -130,6 +136,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             ' We need to represent sub/function/ctor/accessor/operator declaration 
             ' begin And End statements since they may be active statements.
             BodyBegin                       ' tied to parent
+
+            LambdaRoot
 
             TryBlock
             TryStatement                    ' tied to parent
@@ -209,24 +217,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             YieldStatement
 
-            WhereClauseLambda
-            CollectionRangeVariable
-            CollectionRangeVariableLambda
-            FunctionAggregationLambda
-            ExpressionRangeVariableLambda
-            PartitionWhileLambda
-            OrderByClause
-            OrderingLambda
-            JoinConditionLambda
+            LocalDeclarationStatement           ' tied to parent 
+            LocalVariableDeclarator             ' tied to parent 
 
-            LocalDeclarationStatement        ' tied to parent 
-            LocalVariableDeclarator          ' tied to parent 
-            LocalVariableName                ' tied to parent 
+            ' TODO: AwaitExpression
 
             Lambda
-            LambdaBodyBegin                  ' tied to parent
+            LambdaBodyBegin                     ' tied to parent
 
-            BodyEnd                          ' tied to parent
+            QueryExpression
+            AggregateClause                     ' tied to parent 
+            JoinClause                          ' tied to parent
+            FromClause                          ' tied to parent
+            WhereClauseLambda                   ' tied to parent 
+            LetClause                           ' tied to parent
+            SelectClauseLambda                  ' tied to parent
+            PartitionWhileLambda                ' tied to parent
+            PartitionClause                     ' tied to parent
+            GroupByClause                       ' tied to parent
+            OrderByClause                       ' tied to parent
+
+            CollectionRangeVariable             ' tied to parent (FromClause, JoinClause, AggregateClause)
+            ExpressionRangeVariable             ' tied to parent (LetClause, SelectClause, GroupByClause keys)
+            ExpressionRangeVariableItems        ' tied to parent (GroupByClause items)
+            FunctionAggregationLambda           ' tied to parent (JoinClause, GroupByClause, AggregateClause)
+
+            OrderingLambda                      ' tied to parent (OrderByClause)
+            JoinConditionLambda                 ' tied to parent (JoinClause)
+
+            LocalVariableName                   ' tied to parent 
+
+            BodyEnd                             ' tied to parent
 
             ' helpers
             Count
@@ -270,6 +291,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      Label.CaseClause,
                      Label.EndSelectStatement,
                      Label.ReDimClause,
+                     Label.AggregateClause,
+                     Label.JoinClause,
+                     Label.FromClause,
+                     Label.WhereClauseLambda,
+                     Label.LetClause,
+                     Label.SelectClauseLambda,
+                     Label.PartitionWhileLambda,
+                     Label.PartitionClause,
+                     Label.GroupByClause,
+                     Label.OrderByClause,
+                     Label.CollectionRangeVariable,
+                     Label.ExpressionRangeVariable,
+                     Label.ExpressionRangeVariableItems,
+                     Label.FunctionAggregationLambda,
+                     Label.OrderingLambda,
+                     Label.JoinConditionLambda,
                      Label.LocalDeclarationStatement,
                      Label.LocalVariableDeclarator,
                      Label.LocalVariableName
@@ -588,7 +625,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.YieldStatement
                     Return Label.YieldStatement
 
-
                 Case SyntaxKind.SingleLineFunctionLambdaExpression,
                      SyntaxKind.SingleLineSubLambdaExpression,
                      SyntaxKind.MultiLineFunctionLambdaExpression,
@@ -597,49 +633,96 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.FunctionLambdaHeader,
                      SyntaxKind.SubLambdaHeader
+                    ' TODO: Parameters are not mapped?
                     isLeaf = True
                     Return Label.Ignored
+
+                Case SyntaxKind.QueryExpression
+                    Return Label.QueryExpression
 
                 Case SyntaxKind.WhereClause
                     Return Label.WhereClauseLambda
 
-                Case SyntaxKind.CollectionRangeVariable
-                    ' The first CRV of a query is not a lambda.
-                    ' We have to assign it a label different from "CollectionVariableLambda"
-                    ' so that we won't match lambda-from to non-lambda-from.
-                    '
-                    ' All CRVs need to be included it in the map,
-                    ' so that we are able to map range variable declarations.
-                    ' Therefore we assign a dedicated label to those that don't translate to lambdas.
-                    '
-                    ' The parent is not available only when comparing nodes for value equality.
-                    ' In that case it doesn't matter what label the node has as long as it has some.
+                Case SyntaxKind.LetClause
+                    Return Label.LetClause
 
-                    If nodeOpt IsNot Nothing AndAlso SyntaxUtilities.IsFirstInQuery(DirectCast(nodeOpt, CollectionRangeVariableSyntax)) Then
-                        Return Label.CollectionRangeVariable
-                    End If
-
-                    Return Label.CollectionRangeVariableLambda
-
-                Case SyntaxKind.FunctionAggregation
-                    Return Label.FunctionAggregationLambda
-
-                Case SyntaxKind.ExpressionRangeVariable
-                    Return Label.ExpressionRangeVariableLambda
+                Case SyntaxKind.SkipClause,
+                     SyntaxKind.TakeClause
+                    Return Label.PartitionClause
 
                 Case SyntaxKind.TakeWhileClause,
                      SyntaxKind.SkipWhileClause
                     Return Label.PartitionWhileLambda
 
-                Case SyntaxKind.OrderByClause
-                    Return Label.OrderByClause
-
                 Case SyntaxKind.AscendingOrdering,
                      SyntaxKind.DescendingOrdering
                     Return Label.OrderingLambda
 
+                Case SyntaxKind.FunctionAggregation
+                    Return Label.FunctionAggregationLambda
+
+                Case SyntaxKind.SelectClause
+                    Return Label.SelectClauseLambda
+
+                Case SyntaxKind.GroupByClause
+                    Return Label.GroupByClause
+
+                Case SyntaxKind.OrderByClause
+                    Return Label.OrderByClause
+
+                Case SyntaxKind.SimpleJoinClause,
+                     SyntaxKind.GroupJoinClause
+                    Return Label.JoinClause
+
+                Case SyntaxKind.AggregateClause
+                    Return Label.AggregateClause
+
+                Case SyntaxKind.FromClause
+                    Return Label.FromClause
+
+                Case SyntaxKind.ExpressionRangeVariable
+                    ' Select, Let, GroupBy
+                    '
+                    ' All ERVs need to be included in the map,
+                    ' so that we are able to map range variable declarations.
+                    ' 
+                    ' Since we don't distinguish between ERVs that represent a lambda and non-lambda ERVs,
+                    ' we need to be handle cases when one maps to the other (and vice versa).
+                    ' This is handled in GetCorresondingLambdaBody.
+                    '
+                    ' On the other hand we don't want map accross lambda body boundaries.
+                    ' Hence we use a label for ERVs in Items distinct from one for Keys of a GroupBy clause.
+                    '
+                    ' Node that the nodeOpt is Nothing only when comparing nodes for value equality.
+                    ' In that case it doesn't matter what label the node has as long as it has some.
+                    If nodeOpt IsNot Nothing AndAlso
+                       nodeOpt.Parent.IsKind(SyntaxKind.GroupByClause) AndAlso
+                       nodeOpt.SpanStart < DirectCast(nodeOpt.Parent, GroupByClauseSyntax).ByKeyword.SpanStart Then
+                        Return Label.ExpressionRangeVariableItems
+                    Else
+                        Return Label.ExpressionRangeVariable
+                    End If
+
+                Case SyntaxKind.CollectionRangeVariable
+                    ' From, Aggregate
+                    '
+                    ' All CRVs need to be included in the map,
+                    ' so that we are able to map range variable declarations.
+
+                    Return Label.CollectionRangeVariable
+
                 Case SyntaxKind.JoinCondition
+                    ' TODO:
                     Return Label.JoinConditionLambda
+
+                ' TODO:
+                'Case SyntaxKind.AwaitExpression
+                '    Return Label.AwaitExpression
+
+                Case SyntaxKind.GenericName
+                    ' optimizaiton - no need to dig into type instantiations
+                    isLeaf = True
+                    Return Label.Ignored
 
                 Case Else
                     Return Label.Ignored
@@ -647,6 +730,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function GetLabel(node As SyntaxNode) As Integer
+            If _matchingLambdas AndAlso (node Is _newRoot OrElse node Is _oldRoot) Then
+                Return Label.LambdaRoot
+            End If
+
             Return GetLabelImpl(node)
         End Function
 

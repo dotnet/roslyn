@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports CompilerSyntaxUtilities = Microsoft.CodeAnalysis.VisualBasic.SyntaxUtilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
     <ExportLanguageService(GetType(IEditAndContinueAnalyzer), LanguageNames.VisualBasic), [Shared]>
@@ -160,33 +159,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Protected Overrides Function GetCapturedVariables(model As SemanticModel, body As SyntaxNode) As ImmutableArray(Of ISymbol)
-            Dim methodBlock = TryCast(body, MethodBlockBaseSyntax)
+        Protected Overrides Function GetCapturedVariables(model As SemanticModel, memberBody As SyntaxNode) As ImmutableArray(Of ISymbol)
+            Dim methodBlock = TryCast(memberBody, MethodBlockBaseSyntax)
             If methodBlock IsNot Nothing Then
-                Return model.AnalyzeDataFlow(methodBlock.BlockStatement, methodBlock.EndBlockStatement).Captured
+                If methodBlock.Statements.IsEmpty Then
+                    Return ImmutableArray(Of ISymbol).Empty
+                End If
+
+                Return model.AnalyzeDataFlow(methodBlock.Statements.First, methodBlock.Statements.Last).Captured
             End If
 
-            Dim expression = TryCast(body, ExpressionSyntax)
+            Dim expression = TryCast(memberBody, ExpressionSyntax)
             If expression IsNot Nothing Then
                 Return model.AnalyzeDataFlow(expression).Captured
             End If
 
             ' Edge case, no need to be efficient, currently there can either be no captured variables or just "Me".
             ' Dim a((Function(n) n + 1).Invoke(1), (Function(n) n + 2).Invoke(2)) As Integer
-            Dim arrayBounds = TryCast(body, ArgumentListSyntax)
+            Dim arrayBounds = TryCast(memberBody, ArgumentListSyntax)
             If arrayBounds IsNot Nothing Then
                 Return ImmutableArray.CreateRange(
                     arrayBounds.Arguments.SelectMany(Function(argument) model.AnalyzeDataFlow(argument).Captured).Distinct())
             End If
 
-            Throw ExceptionUtilities.UnexpectedValue(body)
+            Throw ExceptionUtilities.UnexpectedValue(memberBody)
         End Function
 
         Friend Overrides Function HasParameterClosureScope(member As ISymbol) As Boolean
             Return False
         End Function
 
-        Protected Overrides Function GetVariableUseSites(roots As SyntaxList(Of SyntaxNode), localOrParameter As ISymbol, model As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
+        Protected Overrides Function GetVariableUseSites(roots As IEnumerable(Of SyntaxNode), localOrParameter As ISymbol, model As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
             Debug.Assert(TypeOf localOrParameter Is IParameterSymbol OrElse TypeOf localOrParameter Is ILocalSymbol)
 
             ' Not supported (it's non trivial to find all places where "this" is used):
@@ -194,10 +197,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             Return From root In roots
                    From node In root.DescendantNodes()
-                   Where node.IsKind(SyntaxKind.ModifiedIdentifier)
-                   Let modifiedIdentifier = DirectCast(node, ModifiedIdentifierSyntax)
-                   Where String.Equals(DirectCast(modifiedIdentifier.Identifier.Value, String), localOrParameter.Name, StringComparison.OrdinalIgnoreCase) AndAlso
-                         If(model.GetSymbolInfo(modifiedIdentifier, cancellationToken).Symbol?.Equals(localOrParameter), False)
+                   Where node.IsKind(SyntaxKind.IdentifierName)
+                   Let identifier = DirectCast(node, IdentifierNameSyntax)
+                   Where String.Equals(DirectCast(identifier.Identifier.Value, String), localOrParameter.Name, StringComparison.OrdinalIgnoreCase) AndAlso
+                         If(model.GetSymbolInfo(identifier, cancellationToken).Symbol?.Equals(localOrParameter), False)
                    Select node
         End Function
 
@@ -419,7 +422,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             While node IsNot declarationBody AndAlso
                   Not StatementSyntaxComparer.HasLabel(node) AndAlso
-                  Not SyntaxUtilities.IsLambdaBodyStatementOrExpression(node)
+                  Not LambdaUtilities.IsLambdaBodyStatementOrExpression(node)
 
                 node = node.Parent
                 If partnerOpt IsNot Nothing Then
@@ -444,12 +447,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return Function(newNode) SyntaxUtilities.FindPartner(newRoot, oldRoot, newNode)
         End Function
 
+        Friend Overrides Function IsClosureScope(node As SyntaxNode) As Boolean
+            Return LambdaUtilities.IsClosureScope(node)
+        End Function
+
         Protected Overrides Function FindEnclosingLambdaBody(containerOpt As SyntaxNode, node As SyntaxNode) As SyntaxNode
             Dim root As SyntaxNode = GetEncompassingAncestor(containerOpt)
 
             While node IsNot root
                 Dim body As SyntaxNode = Nothing
-                If SyntaxUtilities.IsLambdaBodyStatementOrExpression(node, body) Then
+                If LambdaUtilities.IsLambdaBodyStatementOrExpression(node, body) Then
                     Return body
                 End If
 
@@ -460,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function GetPartnerLambdaBody(oldBody As SyntaxNode, newLambda As SyntaxNode) As SyntaxNode
-            Return CompilerSyntaxUtilities.GetCorrespondingLambdaBody(oldBody, newLambda)
+            Return LambdaUtilities.GetCorrespondingLambdaBody(oldBody, newLambda)
         End Function
 
         Protected Overrides Function ComputeTopLevelMatch(oldCompilationUnit As SyntaxNode, newCompilationUnit As SyntaxNode) As Match(Of SyntaxNode)
@@ -477,7 +484,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             If TypeOf oldBody.Parent Is LambdaExpressionSyntax Then
                 ' The root is a single/multi line sub/function lambda.
-                Return New StatementSyntaxComparer(oldBody.Parent, oldBody.Parent.ChildNodes(), newBody.Parent, newBody.Parent.ChildNodes()).ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
+                Return New StatementSyntaxComparer(oldBody.Parent, oldBody.Parent.ChildNodes(), newBody.Parent, newBody.Parent.ChildNodes(), matchingLambdas:=True).
+                       ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
             End If
 
             If TypeOf oldBody Is ExpressionSyntax Then
@@ -485,7 +493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ' Dim a As <NewExpression>
                 ' Dim a, b, c As <NewExpression>
                 ' Queries: The root is a query clause, the body is the expression.
-                Return New StatementSyntaxComparer(oldBody.Parent, {oldBody}, newBody.Parent, {newBody}).
+                Return New StatementSyntaxComparer(oldBody.Parent, {oldBody}, newBody.Parent, {newBody}, matchingLambdas:=False).
                        ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
             End If
 
@@ -922,34 +930,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Friend Overrides Function ContainsLambda(declaration As SyntaxNode) As Boolean
-            Return declaration.DescendantNodes().Any(AddressOf SyntaxUtilities.IsLambda)
+            Return declaration.DescendantNodes().Any(AddressOf LambdaUtilities.IsLambda)
         End Function
 
         Friend Overrides Function IsLambda(node As SyntaxNode) As Boolean
-            Return SyntaxUtilities.IsLambda(node)
+            Return LambdaUtilities.IsLambda(node)
+        End Function
+
+        Friend Overrides Function IsLambdaExpression(node As SyntaxNode) As Boolean
+            Return TypeOf node Is LambdaExpressionSyntax
         End Function
 
         Friend Overrides Function TryGetLambdaBodies(node As SyntaxNode, ByRef body1 As SyntaxNode, ByRef body2 As SyntaxNode) As Boolean
-            Return SyntaxUtilities.TryGetLambdaBodies(node, body1, body2)
+            Return LambdaUtilities.TryGetLambdaBodies(node, body1, body2)
         End Function
 
-        Protected Overrides Function GetLambdaBodyNodes(lambdaBody As SyntaxNode) As SyntaxList(Of SyntaxNode)
-            Dim lambda = lambdaBody.Parent
+        Friend Overrides Function GetLambda(lambdaBody As SyntaxNode) As SyntaxNode
+            Return LambdaUtilities.GetLambda(lambdaBody)
+        End Function
 
-            Select Case lambda.Kind
-                Case SyntaxKind.MultiLineFunctionLambdaExpression,
-                     SyntaxKind.MultiLineSubLambdaExpression
-                    ' The header of the lambda represents its body.
-                    Return DirectCast(lambda, MultiLineLambdaExpressionSyntax).Statements
-
-                Case SyntaxKind.SingleLineFunctionLambdaExpression,
-                 SyntaxKind.SingleLineSubLambdaExpression
-                    ' The header of the lambda represents its body.
-                    Return SyntaxFactory.SingletonList(DirectCast(lambda, SingleLineLambdaExpressionSyntax).Body)
-
-                Case Else
-                    Return SyntaxFactory.SingletonList(lambdaBody)
-            End Select
+        Protected Overrides Function GetLambdaBodyExpressionsAndStatements(lambdaBody As SyntaxNode) As IEnumerable(Of SyntaxNode)
+            Return LambdaUtilities.GetLambdaBodyExpressionsAndStatements(lambdaBody)
         End Function
 #End Region
 
@@ -2379,7 +2380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                If Not SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers) Then
+                If Not ClassifyMethodModifierUpdate(oldNode.Modifiers, newNode.Modifiers) Then
                     ReportError(RudeEditKind.ModifiersUpdate)
                     Return
                 End If
@@ -2395,6 +2396,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
             End Sub
+
+            Private Function ClassifyMethodModifierUpdate(oldModifiers As SyntaxTokenList, newModifiers As SyntaxTokenList) As Boolean
+                Dim oldAsyncIndex = oldModifiers.IndexOf(SyntaxKind.AsyncKeyword)
+                Dim newAsyncIndex = newModifiers.IndexOf(SyntaxKind.AsyncKeyword)
+
+                If oldAsyncIndex >= 0 Then
+                    oldModifiers = oldModifiers.RemoveAt(oldAsyncIndex)
+                End If
+
+                If newAsyncIndex >= 0 Then
+                    newModifiers = newModifiers.RemoveAt(newAsyncIndex)
+                End If
+
+                Dim oldIteratorIndex = oldModifiers.IndexOf(SyntaxKind.IteratorKeyword)
+                Dim newIteratorIndex = newModifiers.IndexOf(SyntaxKind.IteratorKeyword)
+
+                If oldIteratorIndex >= 0 Then
+                    oldModifiers = oldModifiers.RemoveAt(oldIteratorIndex)
+                End If
+
+                If newIteratorIndex >= 0 Then
+                    newModifiers = newModifiers.RemoveAt(newIteratorIndex)
+                End If
+
+                Return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers)
+            End Function
 
             Private Sub ClassifyUpdate(oldNode As DeclareStatementSyntax, newNode As DeclareStatementSyntax)
                 If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
@@ -2696,7 +2723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End Select
 
                 ' stop at lambda
-                If SyntaxUtilities.IsLambda(kind) Then
+                If LambdaUtilities.IsLambda(node) Then
                     Exit While
                 End If
 
@@ -2815,7 +2842,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return node
                 End Select
 
-                If SyntaxUtilities.IsLambdaBodyStatementOrExpression(node) Then
+                If LambdaUtilities.IsLambdaBodyStatementOrExpression(node) Then
                     Return node
                 End If
 
@@ -2959,11 +2986,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 areSimilar:=Function(n1, n2) SyntaxFactory.AreEquivalent(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                                          DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
         End Sub
-
-        Friend Overrides Function IsClosureScope(node As SyntaxNode) As Boolean
-            ' TODO
-            Return False
-        End Function
 #End Region
     End Class
 End Namespace

@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (SyntaxUtilities.IsClosureScope(syntaxOpt))
+            if (LambdaUtilities.IsClosureScope(syntaxOpt))
             {
                 return;
             }

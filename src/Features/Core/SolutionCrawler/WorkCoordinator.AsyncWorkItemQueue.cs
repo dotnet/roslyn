@@ -102,25 +102,41 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public void RequestCancellationOnRunningTasks()
                 {
+                    List<CancellationTokenSource> cancellations;
                     lock (_gate)
                     {
                         // request to cancel all running works
-                        CancelAll_NoLock();
+                        cancellations = CancelAll_NoLock();
                     }
+
+                    RaiseCancellation_NoLock(cancellations);
                 }
 
                 public void Dispose()
                 {
+                    List<CancellationTokenSource> cancellations;
                     lock (_gate)
                     {
                         // here we don't need to care about progress reporter since
                         // it will be only called when host is shutting down.
                         // we do the below since we want to kill any pending tasks
-
                         Dispose_NoLock();
 
-                        CancelAll_NoLock();
+                        cancellations = CancelAll_NoLock();
                     }
+
+                    RaiseCancellation_NoLock(cancellations);
+                }
+
+                private static void RaiseCancellation_NoLock(List<CancellationTokenSource> cancellations)
+                {
+                    if (cancellations == null)
+                    {
+                        return;
+                    }
+
+                    // cancel can cause outer code to be run inlined, run it outside of the lock.
+                    cancellations.Do(s => s.Cancel());
                 }
 
                 private bool HasAnyWork_NoLock
@@ -131,22 +147,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private void CancelAll_NoLock()
+                private List<CancellationTokenSource> CancelAll_NoLock()
                 {
                     // nothing to do
                     if (_cancellationMap.Count == 0)
                     {
-                        return;
+                        return null;
                     }
 
+                    // make a copy
                     var cancellations = _cancellationMap.Values.ToList();
-
-                    // it looks like Cancel can cause some code to run at the same thread, which can cause _cancellationMap to be changed.
-                    // make a copy of the list and call cancellation
-                    cancellations.Do(s => s.Cancel());
 
                     // clear cancellation map
                     _cancellationMap.Clear();
+
+                    return cancellations;
                 }
 
                 protected void Cancel_NoLock(object key)

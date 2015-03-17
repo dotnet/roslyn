@@ -320,14 +320,20 @@ namespace Microsoft.CodeAnalysis
         /// Returns an error message if any of the client arguments are invalid
         /// and null otherwise.
         /// </summary>
-        internal static string CheckClientArgsForErrors(IEnumerable<string> args)
+        internal static string CheckArgsForClientErrors(
+            IEnumerable<string> args,
+            out bool containsShared)
         {
+            const string keepAlive = "/keepalive";
+            const string shared = "/shared";
+            bool hasKeepAlive = false;
+            containsShared = false;
             foreach (var arg in args)
             {
-                const string keepAlive = "/keepalive";
                 var prefixLength = keepAlive.Length;
-                if (arg.StartsWith(keepAlive, StringComparison.Ordinal))
+                if (arg.StartsWith(keepAlive, StringComparison.OrdinalIgnoreCase))
                 {
+                    hasKeepAlive = true;
                     if (arg.Length < prefixLength + 2 ||
                         arg[prefixLength] != ':' &&
                         arg[prefixLength] != '=')
@@ -349,8 +355,15 @@ namespace Microsoft.CodeAnalysis
                         return CodeAnalysisDesktopResources.KeepAliveIsNotAnInteger;
                     }
                 }
+
+                if (string.Equals(arg, shared, StringComparison.OrdinalIgnoreCase))
+                {
+                    containsShared = true;
+                }
             }
-            return null;
+            return hasKeepAlive && !containsShared
+                ? CodeAnalysisDesktopResources.KeepAliveWithoutShared
+                : null;
         }
 
         internal static string MismatchedVersionErrorText => CodeAnalysisDesktopResources.MismatchedVersion;
