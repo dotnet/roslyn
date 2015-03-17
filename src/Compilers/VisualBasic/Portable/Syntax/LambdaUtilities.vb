@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
+Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -348,13 +349,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Friend Shared Function GetLambdaBodyExpressionsAndStatements(lambdaBody As SyntaxNode) As SyntaxList(Of SyntaxNode)
+        Friend Shared Function GetLambdaBodyExpressionsAndStatements(lambdaBody As SyntaxNode) As IEnumerable(Of SyntaxNode)
             Dim lambda = GetLambda(lambdaBody)
 
             Select Case lambda.Kind
                 Case SyntaxKind.SingleLineFunctionLambdaExpression,
                      SyntaxKind.SingleLineSubLambdaExpression
-                    Return SyntaxFactory.SingletonList(DirectCast(lambda, SingleLineLambdaExpressionSyntax).Body)
+                    Return SpecializedCollections.SingletonEnumerable(DirectCast(lambda, SingleLineLambdaExpressionSyntax).Body)
 
                 Case SyntaxKind.MultiLineFunctionLambdaExpression,
                      SyntaxKind.MultiLineSubLambdaExpression
@@ -368,23 +369,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.FunctionAggregation
 
                     Debug.Assert(TypeOf lambdaBody Is ExpressionSyntax)
-                    Return SyntaxFactory.SingletonList(lambdaBody)
+                    Return SpecializedCollections.SingletonEnumerable(lambdaBody)
 
                 Case SyntaxKind.ExpressionRangeVariable
                     Dim clause = lambda.Parent
                     Select Case clause.Kind
                         Case SyntaxKind.LetClause
-                            Return SyntaxFactory.SingletonList(lambdaBody)
+                            Return SpecializedCollections.SingletonEnumerable(lambdaBody)
 
                         Case SyntaxKind.SelectClause
-                            Return SyntaxFactory.List(EnumerateExpressions(DirectCast(clause, SelectClauseSyntax).Variables))
+                            Return EnumerateExpressions(DirectCast(clause, SelectClauseSyntax).Variables)
 
                         Case SyntaxKind.GroupByClause
                             Dim groupByClause = DirectCast(clause, GroupByClauseSyntax)
                             If lambdaBody.SpanStart < groupByClause.ByKeyword.SpanStart Then
-                                Return SyntaxFactory.List(EnumerateExpressions(groupByClause.Items))
+                                Return EnumerateExpressions(groupByClause.Items)
                             Else
-                                Return SyntaxFactory.List(EnumerateExpressions(groupByClause.Keys))
+                                Return EnumerateExpressions(groupByClause.Keys)
                             End If
 
                         Case Else
@@ -395,7 +396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim clause = lambda.Parent
                     Select Case clause.Kind
                         Case SyntaxKind.FromClause
-                            Return SyntaxFactory.SingletonList(lambdaBody)
+                            Return SpecializedCollections.SingletonEnumerable(lambdaBody)
 
                         Case SyntaxKind.AggregateClause
                             Dim aggregateClause = DirectCast(clause, AggregateClauseSyntax)
@@ -404,7 +405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Return GetAggregateLambdaBodyExpressions(aggregateClause)
                             Else
                                 ' the rest CRVs are translated to their own lambdas
-                                Return SyntaxFactory.SingletonList(lambdaBody)
+                                Return SpecializedCollections.SingletonEnumerable(lambdaBody)
                             End If
 
                         Case Else
@@ -426,7 +427,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Shared Function GetAggregateLambdaBodyExpressions(clause As AggregateClauseSyntax) As SyntaxList(Of SyntaxNode)
+        Private Shared Function GetAggregateLambdaBodyExpressions(clause As AggregateClauseSyntax) As IEnumerable(Of SyntaxNode)
             Dim result = ArrayBuilder(Of SyntaxNode).GetInstance()
 
             result.Add(clause.Variables.First)
@@ -444,9 +445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
             Next
 
-            Dim list = SyntaxFactory.List(result)
-            result.Free()
-            Return list
+            Return result.ToImmutableAndFree()
         End Function
 
         Private Shared Sub AddFirstJoinVariableRecursive(result As ArrayBuilder(Of SyntaxNode), joinClause As JoinClauseSyntax)

@@ -3859,8 +3859,6 @@ End Class
                 Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "Function(a)", "Me", "lambda").WithFirstLine("G(Function(a) x)       ' error: disconnecting previously connected closures"),
                 Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function(a)", "y1", "lambda").WithFirstLine("G(Function(a) x)       ' error: disconnecting previously connected closures"))
         End Sub
-
-
 #End Region
 
 #Region "Queries"
@@ -3952,6 +3950,220 @@ End Class
                 "Update [a1]@15 -> [a2]@15",
                 "Update [c1]@35 -> [c2]@35")
         End Sub
+
+        <Fact>
+        Public Sub Queries_CapturedTransparentIdentifiers_FromClause1()
+            Dim src1 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     From b In {2} 
+                     Where Z(Function() a) > 0 
+                     Where Z(Function() b) > 0 
+                     Where Z(Function() a) > 0 
+                     Where Z(Function() b) > 0 
+                     Select a
+    End Sub
+End Class
+"
+
+            Dim src2 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1}
+                     From b In {2} 
+                     Where Z(Function() a) > 1  ' update
+                     Where Z(Function() b) > 2  ' update
+                     Where Z(Function() a) > 3  ' update
+                     Where Z(Function() b) > 4  ' update
+                     Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Queries_CapturedTransparentIdentifiers_LetClause1()
+            Dim src1 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Let b = Z(Function() a) 
+                     Select a + b
+    End Sub
+End Class
+"
+            Dim src2 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Let b = Z(Function() a) 
+                     Select a - b
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_CapturedTransparentIdentifiers_JoinClause1()
+            Dim src1 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Group Join b In {3} On Z(Function() a + 1) Equals Z(Function() b - 1) Into g = Group
+                     Select Z(Function() g.First())
+    End Sub
+End Class
+"
+            Dim src2 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Group Join b In {3} On Z(Function() a + 1) Equals Z(Function() b - 1) Into g = Group
+                     Select Z(Function() g.Last())
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' TODO (bug 1212) should report no error
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, "Group Join", "method"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1312"), WorkItem(1312)>
+        Public Sub Queries_CeaseCapturingTransparentIdentifiers1()
+            Dim src1 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1}
+                     From b In {2} 
+                     Where Z(Function() a + b) > 0 
+                     Select a
+    End Sub
+End Class
+"
+            Dim src2 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1}
+                     From b In {2} 
+                     Where Z(Function() a + 1) > 0 
+                     Select a
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' TODO: better Location(the variable, not the from clause)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "From", "b"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1312"), WorkItem(1312)>
+        Public Sub Queries_CapturingTransparentIdentifiers1()
+            Dim src1 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     From b In {2} 
+                     Where Z(Function() a + 1) > 0 
+                     Select a
+    End Sub
+End Class
+"
+            Dim src2 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     From b In {2} 
+                     Where Z(Function() a + b) > 0 
+                     Select a
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "From", "b"))
+        End Sub
+
+
 #End Region
 
 #Region "Yield"

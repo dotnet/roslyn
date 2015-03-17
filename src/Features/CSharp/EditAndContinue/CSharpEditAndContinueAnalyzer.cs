@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return (member as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
         }
 
-        protected override IEnumerable<SyntaxNode> GetVariableUseSites(SyntaxList<SyntaxNode> roots, ISymbol localOrParameter, SemanticModel model, CancellationToken cancellationToken)
+        protected override IEnumerable<SyntaxNode> GetVariableUseSites(IEnumerable<SyntaxNode> roots, ISymbol localOrParameter, SemanticModel model, CancellationToken cancellationToken)
         {
             Debug.Assert(localOrParameter is IParameterSymbol || localOrParameter is ILocalSymbol);
 
@@ -409,9 +409,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return null;
         }
 
-        protected override SyntaxList<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody)
+        protected override IEnumerable<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody)
         {
-            return SyntaxFactory.SingletonList(lambdaBody);
+            return SpecializedCollections.SingletonEnumerable(lambdaBody);
         }
 
         protected override SyntaxNode GetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)

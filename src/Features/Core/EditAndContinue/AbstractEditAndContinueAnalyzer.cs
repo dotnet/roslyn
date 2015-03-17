@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Note that VB lambda bodies are represented by a lambda header and that some lambda bodies share 
         /// their parent nodes with other bodies (e.g. join clause expressions).
         /// </remarks>
-        protected abstract SyntaxList<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody);
+        protected abstract IEnumerable<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody);
 
         protected abstract SyntaxNode GetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda);
 
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Enumerates all use sites of a specified variable within the specified syntax subtrees.
         /// </summary>
-        protected abstract IEnumerable<SyntaxNode> GetVariableUseSites(SyntaxList<SyntaxNode> roots, ISymbol localOrParameter, SemanticModel model, CancellationToken cancellationToken);
+        protected abstract IEnumerable<SyntaxNode> GetVariableUseSites(IEnumerable<SyntaxNode> roots, ISymbol localOrParameter, SemanticModel model, CancellationToken cancellationToken);
 
         protected abstract TextSpan GetDiagnosticSpan(SyntaxNode node, EditKind editKind);
         protected abstract string GetTopLevelDisplayName(SyntaxNode node, EditKind editKind);
