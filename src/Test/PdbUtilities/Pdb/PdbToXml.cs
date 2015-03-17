@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis;
+using Microsoft.DiaSymReader;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,12 +15,10 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Xml;
-using Microsoft.CodeAnalysis;
-using Microsoft.DiaSymReader;
 using CDI = Microsoft.CodeAnalysis.CustomDebugInfoReader;
 using CDIC = Microsoft.Cci.CustomDebugInfoConstants;
 using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
-using ImportScope = Microsoft.VisualStudio.SymReaderInterop.ImportScope;
+using ImportScope = Microsoft.CodeAnalysis.ImportScope;
 
 namespace Roslyn.Test.PdbUtilities
 {
