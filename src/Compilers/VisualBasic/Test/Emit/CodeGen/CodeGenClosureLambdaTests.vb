@@ -3824,7 +3824,7 @@ Class C
                      Join c4 In {4} On G(Function() c4) Equals G(Function() c1) And G(Function() c4) Equals G(Function() c2)
                      Group Join c5 In {5} On G(Function() c5) Equals G(Function() c4) Into a1 = Count(G(Function() c1)), Group
                      Let e3 = G(Function() a1), e4 = G(Function() Group.First())
-                     Group e4 = G(Function() e3), e5 = G(Function() e4 + 1) By e6 = G(Function() e3), e7 = G(Function() e4 + 2) Into a2 = Count(G(Function() e4 + 3)), a3 = LongCount(G(Function() e4 + 4))
+                     Group e4 = G(Function() e3), e5 = G(Function() e4 + 1) By e6 = G(Function() e3), e7 = G(Function() e4 + 2) Into a2 = Count(G(Function() e4 + 3)), a3 = LongCount(G(Function() e4 + 4)), Group
                      Aggregate c6 In {6}, c7 In {7} From c8 In {8} Select G(Function() c6 + c7 + c8) Into a4 = Sum(G(Function() e6 + 9))
                      Where G(Function() e6) > 0
                      Take While G(Function() e6) > 0
@@ -3848,17 +3848,43 @@ Imports System
 Imports System.Linq
 
 Class C
-    Function G(Of T)(f As Func(Of T)) As T
-        Return f()
-    End Function
-
     Sub F()
-        Dim result = From x In {1} Aggregate y In {2} Into Sum(x + y), z2 = Sum(x + y)
+        Dim result = From x In {1} Aggregate y In {2} Into Sum(x + y), z2 = Sum(x - y)
     End Sub
 End Class   
     </file>
 </compilation>
 
+            CompileAndVerify(source)
+        End Sub
+
+        <Fact>
+        Public Sub QueryRangeVariableClosures_JoinAbsorbedClauses()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Linq
+
+Class C
+    Shared Function G(Of T)(f As Func(Of T)) As T
+        Return f()
+    End Function
+
+    Sub FSelect()
+        Dim result = From x In {1} Join y In {2} On x Equals y Select G(Function() x + y)
+    End Sub
+
+    Sub FLet()
+        Dim result = From x In {1} Join y In {2} On x Equals y Let c = G(Function() x + y)
+    End Sub
+
+    Sub FAggregate()
+        Dim result = From x In {1} Join y In {2} On x Equals y Aggregate z In {3} Skip G(Function() x) Into Sum(G(Function() y))
+    End Sub
+End Class   
+    </file>
+</compilation>
             CompileAndVerify(source)
         End Sub
     End Class
