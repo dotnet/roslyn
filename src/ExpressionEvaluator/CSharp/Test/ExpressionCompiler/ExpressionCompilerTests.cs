@@ -3339,9 +3339,8 @@ class B : A
         }
 
         /// <summary>
-        /// Generate PrivateImplementationDetails class for
-        /// initializer expressions. (Is this an unnecessary
-        /// burden on the evaluation engine?)
+        /// Generate PrivateImplementationDetails class
+        /// for initializer expressions.
         /// </summary>
         [Fact]
         public void EvaluateInitializerExpression()
@@ -3355,7 +3354,7 @@ class B : A
 }";
             var compilation0 = CreateCompilationWithMscorlib(
                 source,
-                options: TestOptions.DebugDll,
+                options: TestOptions.DebugDll.WithModuleName("MODULE"),
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
@@ -3363,15 +3362,17 @@ class B : A
                 methodName: "C.M");
             string error;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression("new [] { 1, 2, 3, 4, 5 }", out error, testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            context.CompileExpression("new [] { 1, 2, 3, 4, 5 }", out error, testData);
+            var methodData = testData.GetMethodData("<>x.<>m0");
+            Assert.Equal(methodData.Method.ReturnType.ToDisplayString(), "int[]");
+            methodData.VerifyIL(
 @"{
   // Code size       18 (0x12)
   .maxstack  3
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-1036C5F8EF306104BD582D73E555F4DAE8EECB24""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails><{#Module#}.dll>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails><{#Module#}.dll>.1036C5F8EF306104BD582D73E555F4DAE8EECB24""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  ret
 }");

@@ -421,6 +421,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing the type of &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ChangingQueryLambdaType {
+            get {
+                return ResourceManager.GetString("ChangingQueryLambdaType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing the constraint from &apos;{0}&apos; to &apos;{1}&apos; will prevent the debug session from continuing..
         /// </summary>
         internal static string ChangingTheConstraintFromTo {
@@ -1240,6 +1249,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ModifyingAWhichContainsComplexQuery {
+            get {
+                return ResourceManager.GetString("ModifyingAWhichContainsComplexQuery", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a lambda expression will prevent the debug session from continuing..
         /// </summary>
         internal static string ModifyingAWhichContainsLambda {
@@ -1742,6 +1760,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string UnknownSymbolKind {
             get {
                 return ResourceManager.GetString("UnknownSymbolKind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic with ID &apos;{0}&apos; is not supported by the analyzer..
+        /// </summary>
+        internal static string UnsupportedDiagnosticReported {
+            get {
+                return ResourceManager.GetString("UnsupportedDiagnosticReported", resourceCulture);
             }
         }
         

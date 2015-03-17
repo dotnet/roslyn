@@ -74,15 +74,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 @"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"">
         <Document FilePath = ""Test.cs"" >
-            using System.Collections; // Unused using.
-            class Program
-            {
-                void Test()
-                {
-                    System.Int32 x = 2; // Simplify type name.
-                    x += 1;
-                }
-            }
+// System is used - rest are unused.
+using System.Collections;
+using System;
+using System.Diagnostics;
+using System.Collections.Generic;
+
+class Program
+{
+    void Test()
+    {
+        Int32 x = 2; // Int32 can be simplified.
+        x += 1;
+    }
+}
         </Document>
     </Project>
 </Workspace>";
@@ -94,18 +99,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
                     ImmutableArray.Create<DiagnosticAnalyzer>(
                         new CSharpSimplifyTypeNamesDiagnosticAnalyzer(),
                         new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer()));
-                var spans = GetErrorSpans(workspace, analyzerMap.ToImmutable());
 
-                spans = spans.OrderBy(s => s.Span.Span.Start);
+                var spans = 
+                    GetErrorSpans(workspace, analyzerMap.ToImmutable())
+                        .OrderBy(s => s.Span.Span.Start).ToImmutableArray();
 
-                Assert.Equal(2, spans.Count());
-                var first = spans.First();
-                var second = spans.Last();
+                Assert.Equal(3, spans.Length);
+                var first = spans[0];
+                var second = spans[1];
+                var third = spans[2];
 
                 Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType);
                 Assert.Equal(CSharpFeaturesResources.RemoveUnnecessaryUsingsDiagnosticTitle, first.Tag.ToolTipContent);
+                Assert.Equal(40, first.Span.Start);
+                Assert.Equal(25, first.Span.Length);
+
                 Assert.Equal(PredefinedErrorTypeNames.Suggestion, second.Tag.ErrorType);
-                Assert.Equal(WorkspacesResources.NameCanBeSimplified, second.Tag.ToolTipContent);
+                Assert.Equal(CSharpFeaturesResources.RemoveUnnecessaryUsingsDiagnosticTitle, second.Tag.ToolTipContent);
+                Assert.Equal(82, second.Span.Start);
+                Assert.Equal(60, second.Span.Length);
+
+                Assert.Equal(PredefinedErrorTypeNames.Suggestion, third.Tag.ErrorType);
+                Assert.Equal(WorkspacesResources.NameCanBeSimplified, third.Tag.ToolTipContent);
+                Assert.Equal(196, third.Span.Start);
+                Assert.Equal(5, third.Span.Length);
             }
         }
 

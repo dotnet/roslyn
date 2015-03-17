@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Action<Exception, DiagnosticAnalyzer, Diagnostic> voidHandler = (ex, a, diag) => { };
             onAnalyzerException = onAnalyzerException ?? voidHandler;
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, CancellationToken.None);
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, AnalyzerManager.Instance, CancellationToken.None);
 
             return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, AnalyzerManager.Instance, analyzerExecutor);
         }
