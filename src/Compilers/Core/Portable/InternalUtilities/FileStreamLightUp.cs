@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
             try
             {
                 // try contract name first:
-                file = Type.GetType("System.IO.File, System.IO.FileStream, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", throwOnError: false);
+                file = Type.GetType("System.IO.File, System.IO.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", throwOnError: false);
             }
             catch
             {
