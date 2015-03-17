@@ -3362,8 +3362,10 @@ class B : A
                 methodName: "C.M");
             string error;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression("new [] { 1, 2, 3, 4, 5 }", out error, testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            context.CompileExpression("new [] { 1, 2, 3, 4, 5 }", out error, testData);
+            var methodData = testData.GetMethodData("<>x.<>m0");
+            Assert.Equal(methodData.Method.ReturnType.ToDisplayString(), "int[]");
+            methodData.VerifyIL(
 @"{
   // Code size       18 (0x12)
   .maxstack  3

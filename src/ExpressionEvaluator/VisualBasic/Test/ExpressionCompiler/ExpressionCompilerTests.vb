@@ -2087,7 +2087,7 @@ End Class"
         ''' for initializer expressions.
         ''' </summary>
         <Fact>
-        Public Sub ExpressionInitializerExpression()
+        Public Sub EvaluateInitializerExpression()
             Const source =
 "Class C
     Shared Sub M()
@@ -2106,7 +2106,9 @@ End Class"
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression("{ 1, 2, 3, 4, 5 }", resultProperties, errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            Dim methodData = testData.GetMethodData("<>x.<>m0")
+            Assert.Equal(methodData.Method.ReturnType.ToDisplayString(), "Integer()")
+            methodData.VerifyIL(
 "{
   // Code size       18 (0x12)
   .maxstack  3
