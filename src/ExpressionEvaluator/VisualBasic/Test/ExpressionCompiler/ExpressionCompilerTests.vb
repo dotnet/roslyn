@@ -255,7 +255,7 @@ End Class"
 
             ' At start of outer scope.
             Dim context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, startOffset, localSignatureToken)
-            Assert.Null(previous)
+            Assert.Equal(Nothing, previous)
             previous = new VisualBasicMetadataContext(context)
 
             ' At end of outer scope - not reused because of the nested scope.

@@ -5,11 +5,11 @@
     <Import Project="..\..\..\..\..\..\build\VSL.Settings.Closed.targets" />
   </ImportGroup>
   <PropertyGroup>
-    <OutDir>$(OutDir)Phone\</OutDir>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{FA0E905D-EC46-466D-B7B2-3B5557F9428C}</ProjectGuid>
     <OutputType>Library</OutputType>
+    <AuthenticodeCertificateName>WindowsPhone623</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\..\</SolutionDir>
@@ -62,8 +62,10 @@
     <Compile Include="..\..\ExpressionCompiler\DateTimeUtilities.cs">
       <Link>ExpressionCompiler\DateTimeUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\ExpressionCompiler\ReflectionHelpers.cs">
+      <Link>ExpressionCompiler\ReflectionHelpers.cs</Link>
+    </Compile>
     <Compile Include="Helpers\Placeholders.cs" />
-    <Compile Include="Helpers\ReflectionHelpers.cs" />
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />

@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             compilationB.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
             const int methodVersion = 1;
 
-            CSharpMetadataContext previous = null;
+            CSharpMetadataContext previous = default(CSharpMetadataContext);
             int startOffset;
             int endOffset;
             var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, new SymReader(pdbBytes));
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // At start of outer scope.
             var context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, startOffset, localSignatureToken);
-            Assert.Null(previous);
+            Assert.Equal(default(CSharpMetadataContext), previous);
             previous = new CSharpMetadataContext(context);
 
             // At end of outer scope - not reused because of the nested scope.
