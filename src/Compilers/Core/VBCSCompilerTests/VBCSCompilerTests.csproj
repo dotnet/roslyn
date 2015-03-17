@@ -30,8 +30,8 @@
       <Project>{21446697-e359-41d9-b39d-40ada2b20823}</Project>
       <Name>vbc2</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\VisualBasic\vbc\vbc.vbproj">
-      <Project>{2ac2755d-9437-4271-bbde-1a3795a0c320}</Project>
+    <ProjectReference Include="..\..\VisualBasic\vbc\vbc.csproj">
+      <Project>{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}</Project>
       <Name>vbc</Name>
     </ProjectReference>
     <ProjectReference Include="..\Desktop\CodeAnalysis.Desktop.csproj">

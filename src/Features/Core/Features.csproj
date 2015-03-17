@@ -215,6 +215,7 @@
     <Compile Include="Diagnostics\IWorkspaceDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
     <Compile Include="Diagnostics\PredefinedDiagnosticProviderNames.cs" />
+    <Compile Include="Diagnostics\UpdateArgsId.cs" />
     <Compile Include="Diagnostics\WorkspaceAnalyzerOptions.cs" />
     <Compile Include="EditAndContinue\EncDebuggingSessionInfo.cs" />
     <Compile Include="EditAndContinue\EncEditSessionInfo.cs" />

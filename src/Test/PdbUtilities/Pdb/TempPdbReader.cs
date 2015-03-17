@@ -2,7 +2,7 @@
 
 using System;
 using System.IO;
-using Microsoft.VisualStudio.SymReaderInterop;
+using Microsoft.DiaSymReader;
 
 namespace Roslyn.Test.PdbUtilities
 {

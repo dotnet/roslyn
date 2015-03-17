@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -23,32 +24,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal class VisualStudioBaseDiagnosticListTable : AbstractTable<DiagnosticsUpdatedArgs, DiagnosticData>
     {
-        // predefined name of diagnostic property which shows in what compilation stage the diagnostic is created.
-        private const string Origin = "Origin";
-
-        // key for new errorrank data. we will remove this once we get official vs base drop update.
-        private const string ErrorRankKey = "errorrank";
-
-        // predefined error ranks. we are going to start with this predefined error ranks for now and can be extended to support additional languages
-        // this predefined ranks will be moved from roslyn to table control in next base drop update.
-        private static class ErrorRank
-        {
-            public const int Lexical = 0;
-            public const int Syntactic = 100;
-            public const int Declaration = 200;
-            public const int Semantic = 300;
-            public const int Emit = 400;
-            public const int PostBuild = 500;
-            public const int Other = int.MaxValue;
-        }
-
         private static readonly string[] s_columns = new string[]
         {
-            ShimTableColumnDefinitions.ErrorSeverity,
-            ShimTableColumnDefinitions.ErrorCode,
+            StandardTableColumnDefinitions.ErrorSeverity,
+            StandardTableColumnDefinitions.ErrorCode,
             StandardTableColumnDefinitions.Text,
-            ShimTableColumnDefinitions.ErrorCategory,
-            ShimTableColumnDefinitions.ProjectName,
+            StandardTableColumnDefinitions.ErrorCategory,
+            StandardTableColumnDefinitions.ProjectName,
             StandardTableColumnDefinitions.DocumentName,
             StandardTableColumnDefinitions.Line,
             StandardTableColumnDefinitions.Column,
@@ -286,22 +268,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                         switch (columnName)
                         {
-                            case ShimTableKeyNames.ProjectRank:
+                            case StandardTableKeyNames.ProjectRank:
                                 content = _projectRank;
                                 return true;
-                            case ErrorRankKey:
+                            case StandardTableKeyNames.ErrorRank:
                                 content = GetErrorRank(item);
                                 return true;
-                            case ShimTableKeyNames.ErrorSeverity:
+                            case StandardTableKeyNames.ErrorSeverity:
                                 content = GetErrorCategory(item.Severity);
                                 return true;
-                            case ShimTableKeyNames.ErrorCode:
+                            case StandardTableKeyNames.ErrorCode:
                                 content = item.Id;
                                 return true;
                             case StandardTableKeyNames.HelpLink:
                                 content = GetHelpLink(item);
                                 return content != null;
-                            case ShimTableKeyNames.ErrorCategory:
+                            case StandardTableKeyNames.ErrorCategory:
                                 content = item.Category;
                                 return true;
                             case StandardTableKeyNames.Text:
@@ -316,10 +298,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case StandardTableKeyNames.Column:
                                 content = item.MappedStartColumn;
                                 return true;
-                            case ShimTableKeyNames.ProjectName:
+                            case StandardTableKeyNames.ProjectName:
                                 content = GetProjectName(_factory._workspace, _factory._projectId);
                                 return content != null;
-                            case ShimTableKeyNames.Project:
+                            case StandardTableKeyNames.Project:
                                 content = GetHierarchy(_factory._workspace, _factory._projectId);
                                 return content != null;
                             default:
@@ -328,16 +310,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         }
                     }
 
-                    private int GetErrorRank(DiagnosticData item)
+                    private ErrorRank GetErrorRank(DiagnosticData item)
                     {
                         string value;
-                        if (!item.Properties.TryGetValue(Origin, out value))
+                        if (!item.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out value))
                         {
                             return ErrorRank.Other;
                         }
 
                         switch (value)
                         {
+                            case WellKnownDiagnosticTags.Build:
+                                // any error from build is highest priority
+                                return ErrorRank.Lexical;
                             case nameof(ErrorRank.Lexical):
                                 return ErrorRank.Lexical;
                             case nameof(ErrorRank.Syntactic):

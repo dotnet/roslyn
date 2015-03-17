@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
-using PDB::Microsoft.VisualStudio.SymReaderInterop;
+using PDB::Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
 using Xunit;
 
