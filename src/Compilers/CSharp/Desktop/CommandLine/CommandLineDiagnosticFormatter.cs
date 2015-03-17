@@ -13,7 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _displayFullPaths;
         private readonly bool _displayEndLocations;
 
-        internal CommandLineDiagnosticFormatter(string baseDirectory, bool displayFullPaths, bool displayEndLocations)
+        internal CommandLineDiagnosticFormatter(string baseDirectory, bool displayFullPaths, bool displayEndLocations, bool displayAnalyzer) :
+            base(displayAnalyzer)
         {
             _baseDirectory = baseDirectory;
             _displayFullPaths = displayFullPaths;

@@ -51,6 +51,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>>> _descriptorCache =
             new ConditionalWeakTable<DiagnosticAnalyzer, Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>>>();
 
+        /// <summary>
+        /// map from <see cref="DiagnosticDescriptor"/> to <see cref="DiagnosticAnalyzer"/>.
+        /// this is used to find out from which <see cref="DiagnosticAnalyzer"/> the <see cref="DiagnosticDescriptor"/> came from.
+        /// </summary>
+        private readonly ConditionalWeakTable<DiagnosticDescriptor, DiagnosticAnalyzer> _descriptorToAnalyzerMap =
+            new ConditionalWeakTable<DiagnosticDescriptor, DiagnosticAnalyzer>();
+
         private Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
             AnalyzerAndOptions analyzerAndOptions,
             HostSessionStartAnalysisScope sessionScope,
@@ -198,12 +205,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     descriptor.Title.OnException += handler;
                     descriptor.MessageFormat.OnException += handler;
                     descriptor.Description.OnException += handler;
+
+                    // store description to analyzer map
+                    AddDescriptorToAnalyzerMap(descriptor, key, handler);
                 }
 
                 return Tuple.Create(supportedDiagnostics, handler);
             });
 
             return descriptors.Item1;
+        }
+
+        public DiagnosticAnalyzer GetDiagnosticAnalyzer(DiagnosticDescriptor descriptor)
+        {
+            DiagnosticAnalyzer analyzer;
+            if (_descriptorToAnalyzerMap.TryGetValue(descriptor, out analyzer))
+            {
+                return analyzer;
+            }
+
+            return null;
+        }
+
+        private void AddDescriptorToAnalyzerMap(DiagnosticDescriptor descriptor, DiagnosticAnalyzer analyzer, EventHandler<Exception> handler)
+        {
+            try
+            {
+                _descriptorToAnalyzerMap.Add(descriptor, analyzer);
+            }
+            catch (Exception ex)
+            {
+                // descriptor can't be shared between multiple analyzers.
+                handler(this, ex);
+            }
         }
 
         internal void ClearAnalyzerExceptionHandlers(DiagnosticAnalyzer analyzer)

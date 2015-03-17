@@ -12,7 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             var formatter = new CommandLineDiagnosticFormatter(
                 baseDirectory: @"X:\rootdir\dir",
                 displayFullPaths: true,
-                displayEndLocations: true);
+                displayEndLocations: true,
+                displayAnalyzer: false);
 
             Assert.Equal(@"a.cs", formatter.RelativizeNormalizedPath(@"X:\rootdir\dir\a.cs"));
             Assert.Equal(@"temp\a.cs", formatter.RelativizeNormalizedPath(@"X:\rootdir\dir\temp\a.cs"));
@@ -21,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             formatter = new CommandLineDiagnosticFormatter(
                 baseDirectory: @"X:\rootdir\..\rootdir\dir",
                 displayFullPaths: true,
-                displayEndLocations: true);
+                displayEndLocations: true,
+                displayAnalyzer: false);
 
             Assert.Equal(@"a.cs", formatter.RelativizeNormalizedPath(@"X:\rootdir\dir\a.cs"));
             Assert.Equal(@"temp\a.cs", formatter.RelativizeNormalizedPath(@"X:\rootdir\dir\temp\a.cs"));

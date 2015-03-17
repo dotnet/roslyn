@@ -104,6 +104,7 @@
           Prefer32Bit="$(Prefer32Bit)"
           PreferredUILang="$(PreferredUILang)"
           References="@(ReferencePath)"
+          ReportAnalyzer="@(ReportAnalyzer)"
           Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
           ResponseFiles="$(CompilerResponseFile)"
           Sources="@(Compile)"

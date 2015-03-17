@@ -109,6 +109,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<CommandLineSourceFile> AdditionalFiles { get; internal set; }
 
+        /// <value>
+        /// Should the format of error messages include the analyzer that reported the error.
+        /// </value>
+        public bool ReportAnalyzer { get; internal set; }
+
         /// <summary>
         /// If true, prepend the command line header logo during 
         /// <see cref="CommonCompiler.Run"/>.

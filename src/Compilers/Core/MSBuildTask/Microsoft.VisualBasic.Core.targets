@@ -97,6 +97,7 @@
           PreferredUILang="$(PreferredUILang)"
           References="@(ReferencePath)"
           RemoveIntegerChecks="$(RemoveIntegerChecks)"
+          ReportAnalyzer="@(ReportAnalyzer)"
           Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
           ResponseFiles="$(CompilerResponseFile)"
           RootNamespace="$(RootNamespace)"

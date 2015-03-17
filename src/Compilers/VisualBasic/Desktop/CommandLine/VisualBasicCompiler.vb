@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(parser, responseFile, args, baseDirectory, additionalReferencePaths)
             Debug.Assert(responseFile Is Nothing OrElse Path.IsPathRooted(responseFile))
             _responseFile = responseFile
-            _diagnosticFormatter = New CommandLineDiagnosticFormatter(baseDirectory)
+            _diagnosticFormatter = New CommandLineDiagnosticFormatter(baseDirectory, Arguments.ReportAnalyzer)
         End Sub
 
         Friend Overloads ReadOnly Property Arguments As VisualBasicCommandLineArguments

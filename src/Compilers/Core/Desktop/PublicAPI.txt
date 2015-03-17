@@ -33,6 +33,7 @@ Microsoft.CodeAnalysis.CommandLineArguments.PdbPath.get
 Microsoft.CodeAnalysis.CommandLineArguments.PreferredUILang.get
 Microsoft.CodeAnalysis.CommandLineArguments.PrintFullPaths.get
 Microsoft.CodeAnalysis.CommandLineArguments.ReferencePaths.get
+Microsoft.CodeAnalysis.CommandLineArguments.ReportAnalyzer.get
 Microsoft.CodeAnalysis.CommandLineArguments.ResolveAnalyzerReferences()
 Microsoft.CodeAnalysis.CommandLineArguments.ResolveMetadataReferences(Microsoft.CodeAnalysis.MetadataReferenceResolver metadataResolver)
 Microsoft.CodeAnalysis.CommandLineArguments.ScriptArguments.get

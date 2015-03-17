@@ -3104,7 +3104,6 @@ Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithSpecificDia
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithStrongNameProvider(provider As Microsoft.CodeAnalysis.StrongNameProvider)
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithXmlReferenceResolver(resolver As Microsoft.CodeAnalysis.XmlReferenceResolver)
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFormatter
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFormatter.New()
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.Add(list As Microsoft.CodeAnalysis.SyntaxTokenList, ParamArray items As Microsoft.CodeAnalysis.SyntaxToken())
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.AliasImports(compilation As Microsoft.CodeAnalysis.Compilation)
@@ -4405,6 +4404,7 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Commo
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithXmlReferenceResolver(resolver As Microsoft.CodeAnalysis.XmlReferenceResolver)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Equals(obj As Object)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.GetHashCode()
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFormatter.GetAnalyzerIdentity(analyzer As Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.CommonWithDocumentationMode(documentationMode As Microsoft.CodeAnalysis.DocumentationMode)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.CommonWithFeatures(features As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, String)))
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.CommonWithKind(kind As Microsoft.CodeAnalysis.SourceCodeKind)

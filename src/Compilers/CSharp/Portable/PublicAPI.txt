@@ -2481,6 +2481,7 @@ override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithStrong
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithXmlReferenceResolver(Microsoft.CodeAnalysis.XmlReferenceResolver resolver)
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.Equals(object obj)
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.GetHashCode()
+override Microsoft.CodeAnalysis.CSharp.CSharpDiagnosticFormatter.GetAnalyzerIdentity(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer analyzer)
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CommonWithDocumentationMode(Microsoft.CodeAnalysis.DocumentationMode documentationMode)
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CommonWithFeatures(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>> features)
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CommonWithKind(Microsoft.CodeAnalysis.SourceCodeKind kind)

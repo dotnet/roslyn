@@ -9,7 +9,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _baseDirectory As String
 
-        Friend Sub New(baseDirectory As String)
+        Friend Sub New(baseDirectory As String, displayAnalyzer As Boolean)
+            MyBase.New(displayAnalyzer)
+
             _baseDirectory = baseDirectory
         End Sub
 

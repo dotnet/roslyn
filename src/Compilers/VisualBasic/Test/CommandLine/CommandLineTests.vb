@@ -2066,7 +2066,7 @@ a.vb
             Assert.Equal(ERRID.ERR_CantReadRulesetFile, err.Code)
             Assert.Equal(2, err.Arguments.Count)
             Assert.Equal(file.Path, DirectCast(err.Arguments(0), String))
-            Dim currentUICultureName  = Thread.CurrentThread.CurrentUICulture.Name
+            Dim currentUICultureName = Thread.CurrentThread.CurrentUICulture.Name
             If currentUICultureName.Length = 0 OrElse currentUICultureName.StartsWith("en", StringComparison.OrdinalIgnoreCase) Then
                 Assert.Equal(err.Arguments(1), "Root element is missing.")
             End If
@@ -7027,6 +7027,32 @@ out
             Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
+        <Fact>
+        Public Sub ReportAnalyzer()
+            Dim args1 = VisualBasicCommandLineParser.Default.Parse({"/reportanalyzer", "a.vb"}, _baseDirectory)
+            Assert.True(args1.ReportAnalyzer)
+
+            Dim args2 = VisualBasicCommandLineParser.Default.Parse({"", "a.vb"}, _baseDirectory)
+            Assert.False(args2.ReportAnalyzer)
+        End Sub
+
+        <Fact>
+        Public Sub ReportAnalyzerOutput()
+            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+Class $C
+End Class
+</text>.Value).Path
+
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/reportanalyzer", source})
+            Dim output = New StringWriter()
+            Dim exitCode = vbc.Run(output, Nothing)
+            Assert.Equal(1, exitCode)
+
+            Dim stringEnd = "Microsoft.CodeAnalysis.Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer"
+            Dim text = output.ToString().Trim()
+            Assert.Equal(stringEnd, text.Substring(text.Length - stringEnd.Length))
+            CleanupAllGeneratedFiles(source)
+        End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

@@ -174,6 +174,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (ITaskItem[])_store["References"]; }
         }
 
+        public bool ReportAnalyzer
+        {
+            set { _store["ReportAnalyzer"] = value; }
+            get { return (bool)_store["ReportAnalyzer"]; }
+        }
+
         public ITaskItem[] Resources
         {
             set { _store["Resources"] = value; }

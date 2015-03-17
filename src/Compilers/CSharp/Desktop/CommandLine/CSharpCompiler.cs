@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(responseFile == null || Path.IsPathRooted(responseFile));
             _responseFile = responseFile;
-            _diagnosticFormatter = new CommandLineDiagnosticFormatter(baseDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
+            _diagnosticFormatter = new CommandLineDiagnosticFormatter(baseDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation, Arguments.ReportAnalyzer);
         }
 
         public override DiagnosticFormatter DiagnosticFormatter { get { return _diagnosticFormatter; } }

@@ -9,6 +9,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         internal new static readonly CustomDiagnosticFormatter Instance = new CustomDiagnosticFormatter();
 
+        public CustomDiagnosticFormatter() : base(displayAnalyzer: false)
+        {
+        }
+
         public override string Format(Diagnostic diagnostic, IFormatProvider formatter = null)
         {
             var cultureInfo = (CultureInfo)formatter;

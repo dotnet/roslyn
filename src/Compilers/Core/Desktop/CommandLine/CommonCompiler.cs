@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis
             return diagnosticInfo;
         }
 
-        internal bool PrintErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput)
+        private bool PrintErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, AnalyzerManager analyzerManager = null)
         {
             bool hasErrors = false;
             foreach (var diag in diagnostics)
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis
                 // Catch exceptions from diagnostic formatter as diagnostic descriptors for analyzer diagnostics can throw an exception while formatting diagnostic message.
                 try
                 {
-                    consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
+                    consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture, analyzerManager));
                 }
                 catch (Exception ex)
                 {
@@ -331,30 +331,17 @@ namespace Microsoft.CodeAnalysis
             CancellationTokenSource analyzerCts = null;
             try
             {
-                Func<ImmutableArray<Diagnostic>> getAnalyzerDiagnostics = null;
-                if (!analyzers.IsDefaultOrEmpty)
-                {
-                    analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    var analyzerManager = new AnalyzerManager();
-                    var analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
-                    Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
-                    var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText, AdditionalTextFile>(additionalTextFiles));
-                    var analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, out compilation, analyzerCts.Token);
-
-                    getAnalyzerDiagnostics = () =>
-                        {
-                            var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
-                            return analyzerDiagnostics.AddRange(analyzerExceptionDiagnostics);
-                        };
-                }
+                var analyzerManager = new AnalyzerManager();
+                var getAnalyzerDiagnostics = GetAnalyzerDiagnosticGetter(
+                        analyzerManager, analyzers, additionalTextFiles, ref compilation, out analyzerCts, cancellationToken);
 
                 // Print the diagnostics produced during the parsing stage and exit if there were any errors.
-                if (PrintErrors(compilation.GetParseDiagnostics(), consoleOutput))
+                if (PrintErrors(compilation.GetParseDiagnostics(), consoleOutput, analyzerManager))
                 {
                     return Failed;
                 }
 
-                if (PrintErrors(compilation.GetDeclarationDiagnostics(), consoleOutput))
+                if (PrintErrors(compilation.GetDeclarationDiagnostics(), consoleOutput, analyzerManager))
                 {
                     return Failed;
                 }
@@ -432,7 +419,7 @@ namespace Microsoft.CodeAnalysis
 
                 GenerateSqmData(Arguments.CompilationOptions, emitResult.Diagnostics);
 
-                if (PrintErrors(emitResult.Diagnostics, consoleOutput))
+                if (PrintErrors(emitResult.Diagnostics, consoleOutput, analyzerManager))
                 {
                     return Failed;
                 }
@@ -500,6 +487,30 @@ namespace Microsoft.CodeAnalysis
             }
 
             return Succeeded;
+        }
+
+        private static Func<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticGetter(
+            AnalyzerManager analyzerManager, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<AdditionalTextFile> additionalTextFiles,
+            ref Compilation compilation, out CancellationTokenSource cancellationTokenSource, CancellationToken cancellationToken)
+        {
+            Func<ImmutableArray<Diagnostic>> getAnalyzerDiagnostics = null;
+            if (!analyzers.IsDefaultOrEmpty)
+            {
+                cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                var analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
+                Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
+                var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText, AdditionalTextFile>(additionalTextFiles));
+                var analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, out compilation, cancellationTokenSource.Token);
+
+                getAnalyzerDiagnostics = () =>
+                {
+                    var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
+                    return analyzerDiagnostics.AddRange(analyzerExceptionDiagnostics);
+                };
+            }
+
+            cancellationTokenSource = default(CancellationTokenSource);
+            return getAnalyzerDiagnostics;
         }
 
         private ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFilesLogger)

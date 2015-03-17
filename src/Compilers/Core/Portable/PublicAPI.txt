@@ -224,6 +224,7 @@ Microsoft.CodeAnalysis.DiagnosticDescriptor.IsEnabledByDefault.get
 Microsoft.CodeAnalysis.DiagnosticDescriptor.MessageFormat.get
 Microsoft.CodeAnalysis.DiagnosticDescriptor.Title.get
 Microsoft.CodeAnalysis.DiagnosticFormatter
+Microsoft.CodeAnalysis.DiagnosticFormatter.DiagnosticFormatter(bool displayAnalyzer)
 Microsoft.CodeAnalysis.DiagnosticSeverity
 Microsoft.CodeAnalysis.DiagnosticSeverity.Error = 3
 Microsoft.CodeAnalysis.DiagnosticSeverity.Hidden = 0
@@ -2065,6 +2066,7 @@ static readonly Microsoft.CodeAnalysis.Text.TextChangeRange.NoChanges
 virtual Microsoft.CodeAnalysis.Diagnostic.DefaultSeverity.get
 virtual Microsoft.CodeAnalysis.Diagnostic.Properties.get
 virtual Microsoft.CodeAnalysis.DiagnosticFormatter.Format(Microsoft.CodeAnalysis.Diagnostic diagnostic, System.IFormatProvider formatter = null)
+virtual Microsoft.CodeAnalysis.DiagnosticFormatter.GetAnalyzerIdentity(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer analyzer)
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.Display.get
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.IsUnresolved.get
 virtual Microsoft.CodeAnalysis.Emit.EmitResult.GetDebuggerDisplay()

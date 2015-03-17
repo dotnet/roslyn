@@ -2,6 +2,7 @@
 
 using System;
 using System.Globalization;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -12,6 +13,13 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public class DiagnosticFormatter
     {
+        private readonly bool _displayAnalyzer;
+
+        public DiagnosticFormatter(bool displayAnalyzer)
+        {
+            _displayAnalyzer = displayAnalyzer;
+        }
+
         /// <summary>
         /// Formats the <see cref="Diagnostic"/> message using the optional <see cref="IFormatProvider"/>.
         /// </summary>
@@ -101,6 +109,34 @@ namespace Microsoft.CodeAnalysis
                 diagnostic.Id);
         }
 
-        internal static readonly DiagnosticFormatter Instance = new DiagnosticFormatter();
+        internal string Format(Diagnostic diagnostic, IFormatProvider formatter, AnalyzerManager analyzerManager)
+        {
+#pragma warning disable RS0013 // we do need descriptor instance here
+            if (!_displayAnalyzer || analyzerManager == null || diagnostic.Descriptor == null)
+            {
+                return Format(diagnostic, formatter);
+            }
+
+            var analyzerIdentity = GetAnalyzerIdentity(analyzerManager.GetDiagnosticAnalyzer(diagnostic.Descriptor));
+            if (analyzerIdentity == null)
+            {
+                return Format(diagnostic, formatter);
+            }
+
+            return Format(diagnostic, formatter) + ": " + analyzerIdentity;
+#pragma warning restore RS0013 
+        }
+
+        protected virtual string GetAnalyzerIdentity(DiagnosticAnalyzer analyzer)
+        {
+            if (analyzer == null)
+            {
+                return null;
+            }
+
+            return analyzer.GetType().ToString();
+        }
+
+        internal static readonly DiagnosticFormatter Instance = new DiagnosticFormatter(displayAnalyzer: false);
     }
 }

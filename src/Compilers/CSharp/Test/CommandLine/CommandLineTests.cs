@@ -6285,6 +6285,32 @@ public class C { }
         }
 
         [Fact]
+        public void ReportAnalyzer()
+        {
+            var parsedArgs1 = CSharpCommandLineParser.Default.Parse(new[] { "a.cs", "/reportanalyzer" }, _baseDirectory);
+            Assert.True(parsedArgs1.ReportAnalyzer);
+
+            var parsedArgs2 = CSharpCommandLineParser.Default.Parse(new[] { "a.cs", "" }, _baseDirectory);
+            Assert.False(parsedArgs2.ReportAnalyzer);
+        }
+
+        [Fact]
+        public void ReportAnalyzerOutput()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("class C public { }", path: "foo");
+
+            var comp = new MockCSharpCompiler(null, _baseDirectory, new[] { "/reportanalyzer" });
+            var loc = new SourceLocation(tree.GetCompilationUnitRoot().FindToken(6));
+            var diag = new CSDiagnostic(new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_MetadataNameTooLong), loc);
+            var manager = new AnalyzerManager();
+            var text = comp.DiagnosticFormatter.Format(diag, formatter: null, analyzerManager: manager);
+
+            var stringEnd = "Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer";
+
+            Assert.Equal(stringEnd, text.Substring(text.Length - stringEnd.Length));
+        }
+
+        [Fact]
         public void ErrorPathsFromLineDirectives()
         {
             string sampleProgram = @"
