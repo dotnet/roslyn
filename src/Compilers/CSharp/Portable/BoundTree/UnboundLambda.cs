@@ -407,7 +407,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (this.HasSignature)
             {
-                for (int i = 0, n = parameters.Length; i < n; i++)
+                // NOTE: we can get here with parameters.Length > ParameterCount
+                // in a case where we are binding for error reporting purposes 
+                var numParametersToCheck = Math.Min(parameters.Length, ParameterCount);
+                for (int i = 0; i < numParametersToCheck; i++)
                 {
                     ParameterSymbol parameter = parameters[i];
                     if (parameter.Type.IsUnsafe())
