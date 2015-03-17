@@ -70,8 +70,8 @@
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
     
-    <Exec Command="$(VSLOutDir)\FakeSign.exe &quot;@(IntermediateAssembly)&quot;" />
-    
+    <Exec Condition=" '$(OS)' == 'Windows_NT'" Command="$(VSLOutDir)\FakeSign.exe &quot;@(IntermediateAssembly)&quot;" />
+    <Exec Condition=" '$(OS)' != 'Windows_NT'" Command="mono $(VSLOutDir)\FakeSign.exe &quot;@(IntermediateAssembly)&quot;" />
   </Target>
 
   <!-- ====================================================================================
