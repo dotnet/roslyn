@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -218,6 +219,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public DiagnosticAnalyzer GetDiagnosticAnalyzer(DiagnosticDescriptor descriptor)
         {
+            // one can't have descriptor without first putting the descriptor to _descriptorToAnalyzerMap
+            // since all descriptors used should be from GetSupportedDiagnosticDescriptors
             DiagnosticAnalyzer analyzer;
             if (_descriptorToAnalyzerMap.TryGetValue(descriptor, out analyzer))
             {
@@ -229,15 +232,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void AddDescriptorToAnalyzerMap(DiagnosticDescriptor descriptor, DiagnosticAnalyzer analyzer, EventHandler<Exception> handler)
         {
-            try
-            {
-                _descriptorToAnalyzerMap.Add(descriptor, analyzer);
-            }
-            catch (Exception ex)
-            {
-                // descriptor can't be shared between multiple analyzers.
-                handler(this, ex);
-            }
+            // TODO: should I check shared descriptor for multiple analyzer case?
+            _descriptorToAnalyzerMap.GetValue(descriptor, _ => analyzer);
         }
 
         internal void ClearAnalyzerExceptionHandlers(DiagnosticAnalyzer analyzer)
