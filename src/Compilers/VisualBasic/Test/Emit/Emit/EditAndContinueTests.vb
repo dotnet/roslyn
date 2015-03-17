@@ -3276,6 +3276,7 @@ End Class
 ]]>.Value)
         End Sub
 
+        <Fact>
         Public Sub AnonymousTypes()
             Dim sources0 = <compilation>
                                <file name="a.vb"><![CDATA[
@@ -3313,8 +3314,9 @@ Namespace M
 End Namespace
 ]]></file>
                            </compilation>
-
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            ' Compile must be non-concurrent to ensure types are created in fixed order.
+            Dim compOptions = TestOptions.DebugDll.WithConcurrentBuild(False)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, compOptions)
             Dim compilation1 = compilation0.WithSource(sources1)
 
             Dim testData0 = New CompilationTestData()
@@ -3324,7 +3326,13 @@ End Namespace
                                                                      testData0.GetMethodData("M.B.M").EncDebugInfoProvider)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.B.M")
                 Dim reader0 = md0.MetadataReader
-                CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "VB$AnonymousType_1`2", "VB$AnonymousType_0`2", "VB$AnonymousType_2`1", "A", "B")
+                CheckNames(reader0, reader0.GetTypeDefNames(),
+                           "<Module>",
+                           "VB$AnonymousType_0`2",
+                           "VB$AnonymousType_1`2",
+                           "VB$AnonymousType_2`1",
+                           "A",
+                           "B")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.B.M")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
@@ -3364,7 +3372,7 @@ End Namespace
         ''' Update method with anonymous type that was
         ''' not directly referenced in previous generation.
         ''' </summary>
-        <Fact()>
+        <Fact>
         Public Sub AnonymousTypes_SkipGeneration()
             Dim sources0 = <compilation>
                                <file name="a.vb"><![CDATA[
@@ -3554,7 +3562,7 @@ End Class
         ''' Update another method (without directly referencing
         ''' anonymous type) after updating method with anonymous type.
         ''' </summary>
-        <Fact()>
+        <Fact>
         Public Sub AnonymousTypes_SkipGeneration_2()
             Dim sources0 = <compilation>
                                <file name="a.vb"><![CDATA[
@@ -3661,6 +3669,83 @@ End Class
                             CheckNames({reader0, reader1, reader2, reader3}, reader3.GetTypeDefNames()) ' no additional types
                         End Using
                     End Using
+                End Using
+            End Using
+        End Sub
+
+        <WorkItem(1292, "https://github.com/dotnet/roslyn/issues/1292")>
+        <Fact>
+        Public Sub AnonymousTypes_Key()
+            Dim sources0 = <compilation>
+                               <file name="a.vb"><![CDATA[
+Class C
+    Shared Sub M()
+        Dim x As New With {.A = 1, .B = 2}
+        Dim y As New With {Key .A = 3, .B = 4}
+        Dim z As New With {.A = 5, Key .B = 6}
+    End Sub
+End Class
+]]></file>
+                           </compilation>
+            Dim sources1 = <compilation>
+                               <file name="a.vb"><![CDATA[
+Class C
+    Shared Sub M()
+        Dim x As New With {.A = 1, .B = 2}
+        Dim y As New With {Key .A = 3, Key .B = 4}
+        Dim z As New With {Key .A = 5, .B = 6}
+    End Sub
+End Class
+]]></file>
+                           </compilation>
+            ' Compile must be non-concurrent to ensure types are created in fixed order.
+            Dim compOptions = TestOptions.DebugDll.WithConcurrentBuild(False)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, compOptions)
+            Dim compilation1 = compilation0.WithSource(sources1)
+            Dim testData0 = New CompilationTestData()
+            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
+            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0),
+                                                                     testData0.GetMethodData("C.M").EncDebugInfoProvider)
+                Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
+                Dim reader0 = md0.MetadataReader
+                CheckNames(reader0, reader0.GetTypeDefNames(),
+                    "<Module>",
+                    "VB$AnonymousType_0`2",
+                    "VB$AnonymousType_2`2",
+                    "VB$AnonymousType_1`2",
+                    "C")
+                Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
+                Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
+                Using md1 = diff1.GetMetadata()
+                    Dim reader1 = md1.Reader
+                    CheckNames({reader0, reader1}, reader1.GetTypeDefNames(), "VB$AnonymousType_3`2")
+                    diff1.VerifyIL("C.M",
+"{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (VB$AnonymousType_0(Of Integer, Integer) V_0, //x
+                [unchanged] V_1,
+                [unchanged] V_2,
+                VB$AnonymousType_3(Of Integer, Integer) V_3, //y
+                VB$AnonymousType_1(Of Integer, Integer) V_4) //z
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  ldc.i4.2
+  IL_0003:  newobj     ""Sub VB$AnonymousType_0(Of Integer, Integer)..ctor(Integer, Integer)""
+  IL_0008:  stloc.0
+  IL_0009:  ldc.i4.3
+  IL_000a:  ldc.i4.4
+  IL_000b:  newobj     ""Sub VB$AnonymousType_3(Of Integer, Integer)..ctor(Integer, Integer)""
+  IL_0010:  stloc.3
+  IL_0011:  ldc.i4.5
+  IL_0012:  ldc.i4.6
+  IL_0013:  newobj     ""Sub VB$AnonymousType_1(Of Integer, Integer)..ctor(Integer, Integer)""
+  IL_0018:  stloc.s    V_4
+  IL_001a:  ret
+}")
                 End Using
             End Using
         End Sub

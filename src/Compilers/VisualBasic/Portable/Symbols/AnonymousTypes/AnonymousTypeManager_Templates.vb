@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Shared Function CreatePlaceholderTypeDescriptor(key As Microsoft.CodeAnalysis.Emit.AnonymousTypeKey) As AnonymousTypeDescriptor
-            Dim names = key.Names.SelectAsArray(Function(n) New AnonymousTypeField(n, Location.None))
+            Dim names = key.Fields.SelectAsArray(Function(f) New AnonymousTypeField(f.Name, Location.None, f.IsKey))
             Return New AnonymousTypeDescriptor(names, Location.None, True)
         End Function
 
@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Ensure all previous anonymous type templates are included so the
             ' types are available for subsequent edit and continue generations.
             For Each key In moduleBeingBuilt.GetPreviousAnonymousTypes()
-                Dim templateKey = AnonymousTypeDescriptor.ComputeKey(key.Names, Function(f) f, Function(f) False)
+                Dim templateKey = AnonymousTypeDescriptor.ComputeKey(key.Fields, Function(f) f.Name, Function(f) f.IsKey)
                 If key.IsDelegate Then
                     AnonymousDelegateTemplates.GetOrAdd(templateKey, Function(k) AnonymousDelegateTemplateSymbol.Create(Me, CreatePlaceholderTypeDescriptor(key)))
                 Else
