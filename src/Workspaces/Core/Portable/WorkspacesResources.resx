@@ -300,9 +300,6 @@
   <data name="UnknownIdentifier" xml:space="preserve">
     <value>Unknown identifier.</value>
   </data>
-  <data name="RemoveUnnecessaryImportsOrUsings" xml:space="preserve">
-    <value>Remove Unnecessary Imports/Usings.</value>
-  </data>
   <data name="CannotCodeGenUnsupportedOperator" xml:space="preserve">
     <value>Cannot generate code for unsupported operator '{0}'</value>
   </data>

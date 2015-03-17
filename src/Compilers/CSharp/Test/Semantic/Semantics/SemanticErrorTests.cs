@@ -22237,6 +22237,46 @@ class Program
         {
             var text = @"
 using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication31
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var o = new Foo();
+            var x = o.E.Compile()().Pop();
+            System.Console.WriteLine(x);
+        }
+    }
+
+    static class StackExtensions
+    {
+        public static void Add<T>(this Stack<T> s, T x) => s.Push(x);
+    }
+
+    class Foo
+    {
+        public Expression<Func<Stack<int>>> E = () => new Stack<int> { 42 };
+    }
+}
+
+";
+            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }).VerifyDiagnostics(
+    // (25,72): error CS8075: An expression tree lambda may not contain an extension collection element initializer.
+    //         public Expression<Func<Stack<int>>> E = () => new Stack<int> { 42 };
+    Diagnostic(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, "42").WithLocation(25, 72)
+               );
+        }
+
+        [WorkItem(310, "https://github.com/dotnet/roslyn/issues/310")]
+        [Fact]
+        public void ExtensionElementInitializerInExpressionLambda()
+        {
+            var text = @"
+using System;
 using System.Collections;
 using System.Linq.Expressions;
 class C

@@ -29,7 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             base(optionService, workingFolderPath, solutionFilePath, disposer)
         {
             // solution must exist in disk. otherwise, we shouldn't be here at all.
-            Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(workingFolderPath));
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(solutionFilePath));
 
             var databaseFile = GetDatabaseFile(workingFolderPath);
@@ -45,6 +44,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
 
             var enablePerformanceMonitor = optionService.GetOption(InternalFeatureOnOffOptions.EsentPerformanceMonitor);
             _esentStorage = new EsentStorage(databaseFile, enablePerformanceMonitor);
+        }
+
+        public static string GetDatabaseFile(string workingFolderPath)
+        {
+            Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(workingFolderPath));
+
+            return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
         }
 
         public void Initialize()
@@ -260,11 +266,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
         public override void Close()
         {
             _esentStorage.Close();
-        }
-
-        private string GetDatabaseFile(string workingFolderPath)
-        {
-            return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
         }
 
         private bool TryGetUniqueNameId(string name, out int id)

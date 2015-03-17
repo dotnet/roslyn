@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
@@ -356,6 +357,7 @@ class A
         private IPersistentStorage GetStorage(Solution solution)
         {
             var storage = new PersistentStorageService(_persistentEnabledOptionService, testing: true).GetStorage(solution);
+
             Assert.NotEqual(PersistentStorageService.NoOpPersistentStorageInstance, storage);
             return storage;
         }

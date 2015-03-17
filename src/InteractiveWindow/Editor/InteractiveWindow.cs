@@ -1801,7 +1801,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var taskDone = Submit();
                 if (submission.Completion != null)
                 {
-                    taskDone.ContinueWith(x => submission.Completion.SetResult(null));
+                    taskDone.ContinueWith(x => submission.Completion.SetResult(null), TaskScheduler.Current);
                 }
             }));
         }

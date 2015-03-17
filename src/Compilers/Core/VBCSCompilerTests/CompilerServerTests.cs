@@ -2059,7 +2059,7 @@ class Hello
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Missing argument for '/keepalive' option", result.Output.Trim());
+            Assert.Equal("Missing argument for '/keepalive' option.", result.Output.Trim());
             Assert.Equal("", result.Errors);
         }
 
@@ -2070,7 +2070,7 @@ class Hello
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Argument to '/keepalive' option is not an integer", result.Output.Trim());
+            Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
             Assert.Equal("", result.Errors);
         }
 
@@ -2081,7 +2081,7 @@ class Hello
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Arguments to '/keepalive' option below -1 are invalid", result.Output.Trim());
+            Assert.Equal("Arguments to '/keepalive' option below -1 are invalid.", result.Output.Trim());
             Assert.Equal("", result.Errors);
         }
 
@@ -2092,7 +2092,7 @@ class Hello
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Argument to '/keepalive' is out of 32-bit integer range", result.Output.Trim());
+            Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
             Assert.Equal("", result.Errors);
         }
 

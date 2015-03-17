@@ -144,6 +144,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// test framework.  The code hooks <see cref="AppDomain.AssemblyResolve"/> in a way
         /// that prevents xUnit from running correctly and hence must be disabled. 
         /// </remarks>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", 
+            MessageId = "System.GC.Collect", 
+            Justification ="We intentionally call GC.Collect when anticipate long period on inactivity.")]
         public void ListenAndDispatchConnections(string pipeName, TimeSpan? keepAlive, bool watchAnalyzerFiles, CancellationToken cancellationToken = default(CancellationToken))
         {
             Debug.Assert(SynchronizationContext.Current == null);

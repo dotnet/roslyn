@@ -57,13 +57,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         try
                         {
                             // we wait for global operation, higher and normal priority processor to finish its working
-                            await Task.WhenAll(this.Processor._highPriorityProcessor.Running,
+                            await Task.WhenAll(
+                                this.Processor._highPriorityProcessor.Running,
                                 this.Processor._normalPriorityProcessor.Running,
                                 GlobalOperationWaitAsync()).ConfigureAwait(false);
 
-                            // process any available project work, preferring the active project.                            
-                            CancellationTokenSource projectCancellation;
+                            // process any available project work, preferring the active project.
                             WorkItem workItem;
+                            CancellationTokenSource projectCancellation;
                             if (_workItemQueue.TryTakeAnyWork(this.Processor.GetActiveProject(), out workItem, out projectCancellation))
                             {
                                 await ProcessProjectAsync(this.Analyzers, workItem, projectCancellation).ConfigureAwait(false);
