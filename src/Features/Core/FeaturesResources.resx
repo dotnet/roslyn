@@ -737,6 +737,9 @@ Do you want to continue?</value>
   <data name="ArgumentCannotBeEmpty" xml:space="preserve">
     <value>Argument cannot be empty.</value>
   </data>
+  <data name="UnsupportedDiagnosticReported" xml:space="preserve">
+    <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
+  </data>
   <data name="FixAllTitle_Document" xml:space="preserve">
     <value>Document</value>
   </data>

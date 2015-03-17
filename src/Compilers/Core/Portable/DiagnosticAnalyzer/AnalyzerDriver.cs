@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 newOnAnalyzerException = (ex, analyzer, diagnostic) => addDiagnostic(diagnostic);
             }
 
-            var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, newOnAnalyzerException, cancellationToken);
+            var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, newOnAnalyzerException, IsCompilerAnalyzer, analyzerManager, cancellationToken);
             
             analyzerDriver.Initialize(newCompilation, analyzerExecutor, cancellationToken);
 
@@ -969,5 +969,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal static string DiagnosticDescriptorThrows => CodeAnalysisResources.DiagnosticDescriptorThrows;
         internal static string ArgumentElementCannotBeNull => CodeAnalysisResources.ArgumentElementCannotBeNull;
         internal static string ArgumentCannotBeEmpty => CodeAnalysisResources.ArgumentCannotBeEmpty;
+        internal static string UnsupportedDiagnosticReported => CodeAnalysisResources.UnsupportedDiagnosticReported;
     }
 }
