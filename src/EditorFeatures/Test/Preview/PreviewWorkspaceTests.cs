@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
                     source = new CancellationTokenSource();
                     var cancellationToken = source.Token;
-                    Task.Delay(2000, cancellationToken).ContinueWith(t => taskSource.TrySetResult(a), TaskContinuationOptions.OnlyOnRanToCompletion);
+                    Task.Delay(2000, cancellationToken).ContinueWith(t => taskSource.TrySetResult(a), CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current);
                 };
 
                 var hostDocument = workspace.Projects.First().Documents.First();

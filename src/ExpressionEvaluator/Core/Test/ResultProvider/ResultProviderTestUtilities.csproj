@@ -76,7 +76,7 @@
     <Compile Include="..\..\Source\ExpressionCompiler\ExpressionEvaluatorFatalError.cs">
       <Link>ExpressionCompiler\ExpressionEvaluatorFatalError.cs</Link>
     </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Resources.Designer.cs">
+    <Compile Include="..\..\Source\ResultProvider\Portable\Resources.Designer.cs">
       <Link>Resources.Designer.cs</Link>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -148,7 +148,7 @@
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ResultProvider.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\..\Source\ResultProvider\Resources.resx">
+    <EmbeddedResource Include="..\..\Source\ResultProvider\Portable\Resources.resx">
       <Link>Resources.resx</Link>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

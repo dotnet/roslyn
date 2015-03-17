@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class VisualBasicEditAndContinueAnalyzerTests
 
 #Region "Helpers"
-        Private Shared Sub TestSpans(source As String, hasLabel As Func(Of SyntaxKind, Boolean))
+        Private Shared Sub TestSpans(source As String, hasLabel As Func(Of SyntaxNode, Boolean))
             Dim tree = SyntaxFactory.ParseSyntaxTree(ClearSource(source))
 
             For Each expected In GetExpectedPositionsAndSpans(source)
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 Dim expectedText As String = source.Substring(expectedSpan.Start, expectedSpan.Length)
                 Dim node = tree.GetRoot().FindToken(expected.Key).Parent
 
-                While Not hasLabel(node.Kind)
+                While Not hasLabel(node)
                     node = node.Parent
                 End While
 
@@ -201,7 +201,7 @@ End Enum
     End Operator
 End Class
 ]]>.Value
-            TestSpans(source, Function(kind) TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations:=False))
+            TestSpans(source, Function(node) TopSyntaxComparer.HasLabel(node.Kind(), ignoreVariableDeclarations:=False))
         End Sub
 
         <Fact>
@@ -409,7 +409,7 @@ End Class
         ''' </summary>
         <Fact>
         Public Sub ErrorSpansAllKinds()
-            TestErrorSpansAllKinds(AddressOf StatementSyntaxComparer.HasLabel)
+            TestErrorSpansAllKinds(AddressOf StatementSyntaxComparer.IgnoreLabeledChild)
             TestErrorSpansAllKinds(Function(kind) TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations:=False))
         End Sub
 

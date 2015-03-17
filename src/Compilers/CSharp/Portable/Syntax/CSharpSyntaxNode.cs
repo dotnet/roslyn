@@ -443,7 +443,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal sealed override SyntaxNode GetCorrespondingLambdaBody(SyntaxNode body)
         {
-            return SyntaxUtilities.GetCorrespondingLambdaBody(body, this);
+            return LambdaUtilities.GetCorrespondingLambdaBody(body, this);
+        }
+
+        internal override SyntaxNode GetLambda()
+        {
+            return LambdaUtilities.GetLambda(this);
         }
 
         #region Directives
