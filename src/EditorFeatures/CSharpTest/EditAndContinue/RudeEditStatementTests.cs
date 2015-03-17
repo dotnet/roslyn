@@ -4327,6 +4327,40 @@ class C
         #region Queries
 
         [Fact]
+        public void Queries_Update_Signature1()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} from b in new[] {2} select b;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1.0} from b in new[] {2} select b;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "from", "from clause"),
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "select", "select clause"));
+        }
+
+        [Fact]
         public void Queries_FromSelect_Update1()
         {
             var src1 = "F(from a in b from x in y select c);";

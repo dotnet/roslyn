@@ -396,6 +396,9 @@
   <data name="ChangingLambdaReturnType" xml:space="preserve">
     <value>Changing the return type of '{0}' will prevent the debug session from continuing.</value>
   </data>
+  <data name="ChangingQueryLambdaType" xml:space="preserve">
+    <value>Changing the type of '{0}' will prevent the debug session from continuing.</value>
+  </data>
   <data name="ChangingCapturedVariableScope" xml:space="preserve">
     <value>Changing the declaration scope of a captured variable '{0}' will prevent the debug session from continuing.</value>
   </data>

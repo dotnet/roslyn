@@ -937,6 +937,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return LambdaUtilities.IsLambda(node)
         End Function
 
+        Friend Overrides Function IsLambdaExpression(node As SyntaxNode) As Boolean
+            Return TypeOf node Is LambdaExpressionSyntax
+        End Function
+
         Friend Overrides Function TryGetLambdaBodies(node As SyntaxNode, ByRef body1 As SyntaxNode, ByRef body2 As SyntaxNode) As Boolean
             Return LambdaUtilities.TryGetLambdaBodies(node, body1, body2)
         End Function

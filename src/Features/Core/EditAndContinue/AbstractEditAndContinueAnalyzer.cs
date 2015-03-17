@@ -233,6 +233,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal abstract bool IsMethod(SyntaxNode declaration);
         internal abstract bool IsLambda(SyntaxNode node);
+        internal abstract bool IsLambdaExpression(SyntaxNode node);
         internal abstract bool IsClosureScope(SyntaxNode node);
         internal abstract bool ContainsLambda(SyntaxNode declaration);
         internal abstract SyntaxNode GetLambda(SyntaxNode lambdaBody);
@@ -3194,6 +3195,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var newLambda = GetLambda(newLambdaBody);
+
+            if (!IsLambdaExpression(newLambda))
+            {
+                rudeEdit = RudeEditKind.ChangingQueryLambdaType;
+            }
 
             diagnostics.Add(new RudeEditDiagnostic(
                 rudeEdit,

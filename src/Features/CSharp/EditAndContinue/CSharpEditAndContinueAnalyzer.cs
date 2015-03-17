@@ -887,6 +887,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return LambdaUtilities.IsLambda(node);
         }
 
+        internal override bool IsLambdaExpression(SyntaxNode node)
+        {
+            return node is LambdaExpressionSyntax;
+        }
+
         internal override bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2)
         {
             return LambdaUtilities.TryGetLambdaBodies(node, out body1, out body2);

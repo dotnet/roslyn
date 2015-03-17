@@ -3862,6 +3862,33 @@ End Class
 #End Region
 
 #Region "Queries"
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1315"), WorkItem(1315)>
+        Public Sub Queries_Update_Signature1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1} From b In {2} Select b
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1.0} From b In {2} Select b
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", "From clause"),
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", "Select clause"))
+        End Sub
 
         <Fact>
         Public Sub Queries_FromSelect_Update()

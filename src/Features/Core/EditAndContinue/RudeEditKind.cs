@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         NotAccessingCapturedVariableInLambda = 56,
         InsertLambdaWithMultiScopeCapture = 57,
         DeleteLambdaWithMultiScopeCapture = 58,
-
-        // 59 can be used
+        ChangingQueryLambdaType = 59,
 
         InsertAroundActiveStatement = 60,
         DeleteAroundActiveStatement = 61,

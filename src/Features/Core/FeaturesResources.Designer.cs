@@ -421,6 +421,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing the type of &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ChangingQueryLambdaType {
+            get {
+                return ResourceManager.GetString("ChangingQueryLambdaType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing the constraint from &apos;{0}&apos; to &apos;{1}&apos; will prevent the debug session from continuing..
         /// </summary>
         internal static string ChangingTheConstraintFromTo {
