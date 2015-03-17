@@ -629,5 +629,269 @@ End Class
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default))
         End Sub
+
+        <Fact>
+        Public Sub JoinAndGroupByClauses()
+            ' In the following markup we use <N> tag to denote only those matching syntax nodes that represent emitted lambdas.
+            ' The true match produced by the IDE includes more matches that are needed for matching active statements and detection of rude edits, 
+            ' but the compiler doesn't need them.
+
+            Dim source0 = MarkedSource("
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In { 1 }
+                     <N:7>Join b In { 5 } On <N:0>a + 1 Equals b - 1</N:0></N:7>
+                     <N:8>Group <N:2>a = 100</N:2>, b = a + 5 By <N:3>c = a + 4</N:3> Into d = <N:4>Count(Q(1))</N:4></N:8>
+                     Select <N:1>z = d + 0</N:1>, y = d + 1
+   End Sub
+    
+    Shared Function Q(a As Integer) As Boolean
+        Return True
+    End Function
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In { 1 }
+                     <N:7>Join b In { 5 } On <N:0>a + 1 Equals b - 1</N:0></N:7>
+                     <N:8>Group <N:2>a = 100</N:2>, b = a + 6 By <N:3>c = a + 4</N:3> Into d = <N:4>Count(Q(1))</N:4></N:8>
+                     Select <N:1>z = d + 0</N:1>, y = d + 1
+    End Sub
+    
+    Shared Function Q(a As Integer) As Boolean
+        Return True
+    End Function
+End Class
+")
+            Dim compilation0 = CreateCompilationWithReferences(source0.Tree, {MscorlibRef, SystemCoreRef}, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreatePdbInfoProvider().GetEncMethodDebugInfo)
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            ' no new synthesized members generated (with #1 in names)
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I1-0, $I1-1, $I1-2, $I1-3, $I1-4, $I1-6, $I1-5, $I1-7, _Lambda$__1-0, _Lambda$__1-1, _Lambda$__1-2, _Lambda$__1-3, _Lambda$__1-4, _Lambda$__1-5, _Lambda$__1-6, _Lambda$__1-7}")
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            ' Method updates for lambdas
+            CheckEncLogDefinitions(reader1,
+                Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(23, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(27, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(28, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(29, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(30, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(31, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(32, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(33, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(34, TableIndex.MethodDef, EditAndContinueOperation.Default))
+        End Sub
+
+        <Fact>
+        Public Sub SelectClauseWithIdentifierOnly()
+            ' In the following markup we use <N> tag to denote only those matching syntax nodes that represent emitted lambdas.
+            ' The true match produced by the IDE includes more matches that are needed for matching active statements and detection of rude edits, 
+            ' but the compiler doesn't need them.
+
+            Dim source0 = MarkedSource("
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In { 1 }
+                     Select <N:0:ExpressionRangeVariable>a</N:0>, b = a + 1
+   End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In { 1 }
+                     Select <N:0:ExpressionRangeVariable>a</N:0>, b = a + 2
+    End Sub
+End Class
+")
+            Dim compilation0 = CreateCompilationWithReferences(source0.Tree, {MscorlibRef, SystemCoreRef}, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreatePdbInfoProvider().GetEncMethodDebugInfo)
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            ' no new synthesized members generated (with #1 in names)
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I1-0, _Lambda$__1-0}")
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            ' Method updates for lambdas
+            CheckEncLogDefinitions(reader1,
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default))
+        End Sub
+
+        ''' <summary>
+        ''' We need to handle case when an old node that represents a lambda body with multiple nodes 
+        ''' of the same kind is mapped to a new node that belongs to the lambda body but is 
+        ''' different from the one that represents the new body.
+        ''' 
+        ''' This handling is done in <see cref="LambdaUtilities.GetCorrespondingLambdaBody(SyntaxNode, SyntaxNode)"/>
+        ''' </summary>
+        <Fact>
+        Public Sub SelectClauseCrossMatch()
+            ' In the following markup we use <N> tag to denote only those matching syntax nodes that represent emitted lambdas.
+            ' The true match produced by the IDE includes more matches that are needed for matching active statements and detection of rude edits, 
+            ' but the compiler doesn't need them.
+
+            Dim source0 = MarkedSource("
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In { 1 }
+                     Select <N:0>a = a + 1</N:0>, <N:1>b = 1000</N:1>
+   End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In { 1 }
+                     Select <N:1>a = 1000</N:1>, <N:0>b = a + 1</N:0>
+    End Sub
+End Class
+")
+            Dim compilation0 = CreateCompilationWithReferences(source0.Tree, {MscorlibRef, SystemCoreRef}, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreatePdbInfoProvider().GetEncMethodDebugInfo)
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            ' no new synthesized members generated (with #1 in names)
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I1-0, _Lambda$__1-0}")
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            ' Method updates for lambdas
+            CheckEncLogDefinitions(reader1,
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default))
+        End Sub
+
+        ''' <summary>
+        ''' We need to handle case when an old node that represents a lambda body with multiple nodes 
+        ''' of the same kind is mapped to a new node that belongs to the lambda body but is 
+        ''' different from the one that represents the new body.
+        ''' 
+        ''' This handling is done in <see cref="LambdaUtilities.GetCorrespondingLambdaBody(SyntaxNode, SyntaxNode)"/>
+        ''' </summary>
+        <Fact>
+        Public Sub JoinClauseCrossMatch()
+            ' In the following markup we use <N> tag to denote only those matching syntax nodes that represent emitted lambdas.
+            ' The true match produced by the IDE includes more matches that are needed for matching active statements and detection of rude edits, 
+            ' but the compiler doesn't need them.
+
+            Dim source0 = MarkedSource("
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In { 1 }
+                     <N:3>Join b in { 2 } On <N:0>a Equals b</N:0> And <N:1>a + 1 Equals b + 1</N:1></N:3>
+                     Select <N:2>z = 1</N:2>
+   End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In { 1 }
+                     <N:3>Join b in { 2 } On <N:1>a Equals b</N:1> And <N:0>a + 1 Equals b + 1</N:0></N:3>
+                     Select <N:2>z = 1</N:2>
+    End Sub
+End Class
+")
+            Dim compilation0 = CreateCompilationWithReferences(source0.Tree, {MscorlibRef, SystemCoreRef}, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreatePdbInfoProvider().GetEncMethodDebugInfo)
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            ' no new synthesized members generated (with #1 in names)
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I1-0, $I1-1, $I1-2, _Lambda$__1-0, _Lambda$__1-1, _Lambda$__1-2}")
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            ' Method updates for lambdas
+            CheckEncLogDefinitions(reader1,
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default))
+        End Sub
+
+        ' TODO: AggregateClauseCrossMatch
+        ' TODO: port C# tests, add more VB specific tests
     End Class
 End Namespace

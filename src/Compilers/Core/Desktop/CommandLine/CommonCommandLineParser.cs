@@ -317,6 +317,58 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns an error message if any of the client arguments are invalid
+        /// and null otherwise.
+        /// </summary>
+        internal static string CheckArgsForClientErrors(
+            IEnumerable<string> args,
+            out bool containsShared)
+        {
+            const string keepAlive = "/keepalive";
+            const string shared = "/shared";
+            bool hasKeepAlive = false;
+            containsShared = false;
+            foreach (var arg in args)
+            {
+                var prefixLength = keepAlive.Length;
+                if (arg.StartsWith(keepAlive, StringComparison.OrdinalIgnoreCase))
+                {
+                    hasKeepAlive = true;
+                    if (arg.Length < prefixLength + 2 ||
+                        arg[prefixLength] != ':' &&
+                        arg[prefixLength] != '=')
+                    {
+                        return CodeAnalysisDesktopResources.MissingKeepAlive;
+                    }
+
+                    var value = arg.Substring(prefixLength + 1).Trim('"');
+                    int intValue;
+                    if (int.TryParse(value, out intValue))
+                    {
+                        if (intValue < -1)
+                        {
+                            return CodeAnalysisDesktopResources.KeepAliveIsTooSmall;
+                        }
+                    }
+                    else
+                    {
+                        return CodeAnalysisDesktopResources.KeepAliveIsNotAnInteger;
+                    }
+                }
+
+                if (string.Equals(arg, shared, StringComparison.OrdinalIgnoreCase))
+                {
+                    containsShared = true;
+                }
+            }
+            return hasKeepAlive && !containsShared
+                ? CodeAnalysisDesktopResources.KeepAliveWithoutShared
+                : null;
+        }
+
+        internal static string MismatchedVersionErrorText => CodeAnalysisDesktopResources.MismatchedVersion;
+
+        /// <summary>
         /// Parse a response file into a set of arguments. Errors openening the response file are output into "errors".
         /// </summary>
         internal IEnumerable<string> ParseResponseFile(string fullPath, IList<Diagnostic> errors)

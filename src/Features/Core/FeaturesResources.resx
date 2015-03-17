@@ -396,6 +396,9 @@
   <data name="ChangingLambdaReturnType" xml:space="preserve">
     <value>Changing the return type of '{0}' will prevent the debug session from continuing.</value>
   </data>
+  <data name="ChangingQueryLambdaType" xml:space="preserve">
+    <value>Changing the type of '{0}' will prevent the debug session from continuing.</value>
+  </data>
   <data name="ChangingCapturedVariableScope" xml:space="preserve">
     <value>Changing the declaration scope of a captured variable '{0}' will prevent the debug session from continuing.</value>
   </data>
@@ -558,6 +561,9 @@
   <data name="ModifyingAWhichContainsQuery" xml:space="preserve">
     <value>Modifying '{0}' which contains a query expression will prevent the debug session from continuing.</value>
   </data>
+  <data name="ModifyingAWhichContainsComplexQuery" xml:space="preserve">
+    <value>Modifying '{0}' which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing.</value>
+  </data>
   <data name="ModifyingAFileWithExperimentalFeaturesEnabled" xml:space="preserve">
     <value>Modifying source with experimental language features enabled will prevent the debug session from continuing.</value>
   </data>
@@ -653,9 +659,6 @@ Do you want to continue?</value>
   <data name="UserDiagnosticAnalyzerThrows" xml:space="preserve">
     <value>The User Diagnostic Analyzer '{0}' threw an exception with message '{1}'.</value>
   </data>
-  <data name="DiagnosticDescriptorThrows" xml:space="preserve">
-    <value>The DiagnosticDescriptor with ID '{0}' threw an exception with message '{1}'.</value>
-  </data>
   <data name="RemoveUnnecessaryCast" xml:space="preserve">
     <value>Remove Unnecessary Cast</value>
   </data>
@@ -730,6 +733,9 @@ Do you want to continue?</value>
   </data>
   <data name="ArgumentCannotBeEmpty" xml:space="preserve">
     <value>Argument cannot be empty.</value>
+  </data>
+  <data name="UnsupportedDiagnosticReported" xml:space="preserve">
+    <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
   </data>
   <data name="FixAllTitle_Document" xml:space="preserve">
     <value>Document</value>

@@ -987,5 +987,136 @@ class C$$
                 Assert.Empty(state.GetDocumentDiagnostics());
             }
         }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_Nameof_FromMethodGroupReference()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        nameof(M$$).ToString();
+    }
+
+    void M(int x)
+    {
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("at");
+
+                state.AssertTag("M", "Mat", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+class C
+{
+    void Mat()
+    {
+        nameof(Mat).ToString();
+    }
+
+    void Mat(int x)
+    {
+    }
+}";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                state.AssertNoTag();
+            }
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_Nameof_FromMethodDefinition_NoOverloads()
+        {
+            var code = @"
+class C
+{
+    void M$$()
+    {
+        nameof(M).ToString();
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("at");
+
+                state.AssertTag("M", "Mat", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+class C
+{
+    void Mat()
+    {
+        nameof(Mat).ToString();
+    }
+}";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                state.AssertNoTag();
+            }
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_Nameof_FromMethodDefinition_WithOverloads()
+        {
+            var code = @"
+class C
+{
+    void M$$()
+    {
+        nameof(M).ToString();
+    }
+
+    void M(int x)
+    {
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("at");
+
+                state.AssertTag("M", "Mat", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+class C
+{
+    void Mat()
+    {
+        nameof(M).ToString();
+    }
+
+    void M(int x)
+    {
+    }
+}";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                state.AssertNoTag();
+            }
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_Nameof_FromReferenceToMetadata_NoTag()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var x = nameof(ToString$$);
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("z");
+                state.AssertNoTag();
+            }
+        }
     }
 }

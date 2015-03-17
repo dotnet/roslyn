@@ -3923,6 +3923,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An extension Add method is not supported for a collection initializer in an expression lambda..
+        /// </summary>
+        internal static string ERR_ExtensionCollectionElementInitializerInExpressionTree {
+            get {
+                return ResourceManager.GetString("ERR_ExtensionCollectionElementInitializerInExpressionTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extension methods must be defined in a top level static class; {0} is a nested class.
         /// </summary>
         internal static string ERR_ExtensionMethodsDecl {
@@ -9180,7 +9189,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Microsoft (R) Visual C# Compiler version {0}.
+        ///   Looks up a localized string similar to {0} version {1}.
         /// </summary>
         internal static string IDS_LogoLine1 {
             get {
@@ -9383,6 +9392,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_Text {
             get {
                 return ResourceManager.GetString("IDS_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Microsoft (R) Visual C# Compiler.
+        /// </summary>
+        internal static string IDS_ToolName {
+            get {
+                return ResourceManager.GetString("IDS_ToolName", resourceCulture);
             }
         }
         

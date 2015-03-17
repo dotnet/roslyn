@@ -297,9 +297,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             lock (s_cacheGate)
             {
-                if (s_cachedDocuments[document] != null)
+                Task<AbstractSyntaxContext> cachedContext;
+                if (s_cachedDocuments.TryGetValue(document, out cachedContext) && cachedContext != null)
                 {
-                    return s_cachedDocuments[document];
+                    return cachedContext;
                 }
             }
 

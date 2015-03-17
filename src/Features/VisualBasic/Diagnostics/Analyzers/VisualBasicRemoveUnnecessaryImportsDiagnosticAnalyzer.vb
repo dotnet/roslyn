@@ -11,6 +11,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.RemoveUnnecessaryImport
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer
         Inherits RemoveUnnecessaryImportsDiagnosticAnalyzerBase
+        Private Shared ReadOnly s_TitleAndMessageFormat As LocalizableString =
+            New LocalizableResourceString(NameOf(VBFeaturesResources.RemoveUnnecessaryImportsDiagnosticTitle), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources.VBFeaturesResources))
+
+        Protected Overrides Function GetTitleAndMessageFormatForClassificationIdDescriptor() As LocalizableString
+            Return s_TitleAndMessageFormat
+        End Function
 
         Protected Overrides Function GetUnnecessaryImports(semanticModel As SemanticModel, root As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As IEnumerable(Of SyntaxNode)
             Return VisualBasicRemoveUnnecessaryImportsService.GetUnnecessaryImports(semanticModel, root, cancellationToken)

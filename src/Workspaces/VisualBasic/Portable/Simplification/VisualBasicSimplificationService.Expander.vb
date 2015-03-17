@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Rename
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     Partial Friend Class VisualBasicSimplificationService
@@ -554,7 +555,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                    symbol.Kind = SymbolKind.Field OrElse
                    symbol.Kind = SymbolKind.Property Then
 
-                    If symbol.IsStatic OrElse (TypeOf (parent) Is CrefReferenceSyntax) Then
+                    If symbol.IsStatic OrElse
+                       (TypeOf (parent) Is CrefReferenceSyntax) OrElse
+                       _semanticModel.SyntaxTree.IsNameOfContext(originalSimpleName.SpanStart, _cancellationToken) Then
+
                         newNode = FullyQualifyIdentifierName(
                             symbol,
                             newNode,

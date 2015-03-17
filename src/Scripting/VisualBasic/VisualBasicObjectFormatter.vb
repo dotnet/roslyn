@@ -3,13 +3,8 @@
 Imports System
 Imports System.Collections
 Imports System.Collections.Generic
-Imports System.Globalization
 Imports System.Text
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
 
@@ -50,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             If useHexadecimalNumbers Then
                 options = options Or ObjectDisplayOptions.UseHexadecimalNumbers
             End If
-            Return ObjectDisplay.FormatLiteral(value, options, nonPrintableSubstitute:=If(quote, Nothing, " "c))
+            Return ObjectDisplay.FormatLiteral(value, options)
         End Function
 
         Public Overrides Function FormatLiteral(c As Char, quote As Boolean, Optional includeCodePoints As Boolean = False, Optional useHexadecimalNumbers As Boolean = False) As String

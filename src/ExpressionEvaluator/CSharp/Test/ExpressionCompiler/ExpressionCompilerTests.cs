@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Microsoft.VisualStudio.SymReaderInterop;
+using Microsoft.DiaSymReader;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var constraints = previous.EvaluationContext.MethodContextReuseConstraints;
                 if (constraints.HasValue)
                 {
-                    Assert.Equal(scope == previousScope, constraints.GetValueOrDefault().AreSatisfied(methodToken, methodVersion, offset));
+                    Assert.Equal(scope == previousScope, constraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset));
                 }
 
                 context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, offset, localSignatureToken);
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // Different references. No reuse.
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken);
             Assert.NotEqual(context, previous.EvaluationContext);
-            Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(methodToken, methodVersion, endOffset));
+            Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset));
             Assert.NotEqual(context.Compilation, previous.Compilation);
             previous = new CSharpMetadataContext(context);
 
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             GetContextState(runtime, "C.G", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken);
             Assert.NotEqual(context, previous.EvaluationContext);
-            Assert.False(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(methodToken, methodVersion, 0));
+            Assert.False(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, 0));
             Assert.Equal(context.Compilation, previous.Compilation);
 
             // No EvaluationContext. Should reuse Compilation
@@ -3339,9 +3339,8 @@ class B : A
         }
 
         /// <summary>
-        /// Generate PrivateImplementationDetails class for
-        /// initializer expressions. (Is this an unnecessary
-        /// burden on the evaluation engine?)
+        /// Generate PrivateImplementationDetails class
+        /// for initializer expressions.
         /// </summary>
         [Fact]
         public void EvaluateInitializerExpression()
@@ -3355,7 +3354,7 @@ class B : A
 }";
             var compilation0 = CreateCompilationWithMscorlib(
                 source,
-                options: TestOptions.DebugDll,
+                options: TestOptions.DebugDll.WithModuleName("MODULE"),
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
@@ -3363,15 +3362,17 @@ class B : A
                 methodName: "C.M");
             string error;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression("new [] { 1, 2, 3, 4, 5 }", out error, testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            context.CompileExpression("new [] { 1, 2, 3, 4, 5 }", out error, testData);
+            var methodData = testData.GetMethodData("<>x.<>m0");
+            Assert.Equal(methodData.Method.ReturnType.ToDisplayString(), "int[]");
+            methodData.VerifyIL(
 @"{
   // Code size       18 (0x12)
   .maxstack  3
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-1036C5F8EF306104BD582D73E555F4DAE8EECB24""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails><{#Module#}.dll>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails><{#Module#}.dll>.1036C5F8EF306104BD582D73E555F4DAE8EECB24""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  ret
 }");
@@ -3774,7 +3775,7 @@ class C
                 }
             }
 
-            var references = ImmutableArray.Create<MetadataReference>(
+            var references = ImmutableArray.Create(
                     MscorlibRef,
                     referenceD0,
                     referenceN0, // From D0
@@ -3790,11 +3791,11 @@ class C
             // Expression references ambiguous modules.
             string error;
             context.CompileExpression("x.F0 + y.F0", out error);
-            Assert.Equal(error, "error CS7079: The type 'A0' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.");
+            Assert.Equal("error CS7079: The type 'A0' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.", error);
             context.CompileExpression("y.F0", out error);
-            Assert.Equal(error, "error CS7079: The type 'A0' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.");
+            Assert.Equal("error CS7079: The type 'A0' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.", error);
             context.CompileExpression("z.F1", out error);
-            Assert.Equal(error, "error CS7079: The type 'A1' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.");
+            Assert.Equal("error CS7079: The type 'A1' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.", error);
 
             // Expression does not reference ambiguous modules.
             var testData = new CompilationTestData();

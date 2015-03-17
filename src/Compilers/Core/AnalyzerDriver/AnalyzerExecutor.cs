@@ -17,17 +17,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal class AnalyzerExecutor
     {
         private const string AnalyzerExceptionDiagnosticId = "AD0001";
-        private const string DescriptorExceptionDiagnosticId = "AD0002";
         private const string DiagnosticCategory = "Compiler";
 
         private readonly Compilation _compilation;
         private readonly AnalyzerOptions _analyzerOptions;
         private readonly Action<Diagnostic> _addDiagnostic;
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
+        private readonly AnalyzerManager _analyzerManager;
+        private readonly Func<DiagnosticAnalyzer, bool> _isCompilerAnalyzer;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Creates AnalyzerActionsExecutor to execute analyzer actions with given arguments
+        /// Creates <see cref="AnalyzerExecutor"/> to execute analyzer actions with given arguments
         /// </summary>
         /// <param name="compilation">Compilation to be used in the analysis.</param>
         /// <param name="analyzerOptions">Analyzer options.</param>
@@ -36,34 +37,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Optional delegate which is invoked when an analyzer throws an exception.
         /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
         /// </param>
+        /// <param name="isCompilerAnalyzer">Delegate to determine if the given analyzer is compiler analyzer. 
+        /// We need to special case the compiler analyzer at few places for performance reasons.</param>
+        /// <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor Create(
             Compilation compilation,
             AnalyzerOptions analyzerOptions,
             Action<Diagnostic> addDiagnostic,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
+            AnalyzerManager analyzerManager,
             CancellationToken cancellationToken)
         {
-            return new AnalyzerExecutor(compilation, analyzerOptions, addDiagnostic, onAnalyzerException, cancellationToken);
+            return new AnalyzerExecutor(compilation, analyzerOptions, addDiagnostic, onAnalyzerException, isCompilerAnalyzer, analyzerManager, cancellationToken);
         }
 
         /// <summary>
-        /// Creates AnalyzerActionsExecutor to fetch <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/>.
+        /// Creates <see cref="AnalyzerExecutor"/> to fetch <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/>.
         /// </summary>
         /// <param name="onAnalyzerException">
         /// Optional delegate which is invoked when an analyzer throws an exception.
         /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
         /// </param>
+        /// <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor CreateForSupportedDiagnostics(
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            AnalyzerManager analyzerManager,
             CancellationToken cancellationToken)
         {
             return new AnalyzerExecutor(
                 compilation: null,
                 analyzerOptions: null,
                 addDiagnostic: null,
+                isCompilerAnalyzer: null,
                 onAnalyzerException: onAnalyzerException,
+                analyzerManager: analyzerManager,
                 cancellationToken: cancellationToken);
         }
 
@@ -72,12 +82,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions analyzerOptions,
             Action<Diagnostic> addDiagnostic,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
+            AnalyzerManager analyzerManager,
             CancellationToken cancellationToken)
         {
             _compilation = compilation;
             _analyzerOptions = analyzerOptions;
             _addDiagnostic = addDiagnostic;
             _onAnalyzerException = onAnalyzerException;
+            _isCompilerAnalyzer = isCompilerAnalyzer;
+            _analyzerManager = analyzerManager;
             _cancellationToken = cancellationToken;
         }
 
@@ -127,7 +141,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _cancellationToken.ThrowIfCancellationRequested();
                 ExecuteAndCatchIfThrows(endAction.Analyzer,
-                    () => endAction.Action(new CompilationAnalysisContext(_compilation, _analyzerOptions, _addDiagnostic, _cancellationToken)));
+                    () => endAction.Action(new CompilationAnalysisContext(_compilation, _analyzerOptions, _addDiagnostic, 
+                        d => IsSupportedDiagnostic(endAction.Analyzer, d), _cancellationToken)));
             }
         }
 
@@ -172,7 +187,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
                     ExecuteAndCatchIfThrows(symbolAction.Analyzer,
-                        () => action(new SymbolAnalysisContext(symbol, _compilation, _analyzerOptions, addDiagnostic, _cancellationToken)));
+                        () => action(new SymbolAnalysisContext(symbol, _compilation, _analyzerOptions, addDiagnostic,
+                            d => IsSupportedDiagnostic(symbolAction.Analyzer, d), _cancellationToken)));
                 }
             }
         }
@@ -200,7 +216,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Catch Exception from action.
                 ExecuteAndCatchIfThrows(semanticModelAction.Analyzer,
-                    () => semanticModelAction.Action(new SemanticModelAnalysisContext(semanticModel, _analyzerOptions, _addDiagnostic, _cancellationToken)));
+                    () => semanticModelAction.Action(new SemanticModelAnalysisContext(semanticModel, _analyzerOptions, _addDiagnostic,
+                        d => IsSupportedDiagnostic(semanticModelAction.Analyzer, d), _cancellationToken)));
             }
         }
 
@@ -227,7 +244,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Catch Exception from action.
                 ExecuteAndCatchIfThrows(syntaxTreeAction.Analyzer,
-                    () => syntaxTreeAction.Action(new SyntaxTreeAnalysisContext(tree, _analyzerOptions, _addDiagnostic, _cancellationToken)));
+                    () => syntaxTreeAction.Action(new SyntaxTreeAnalysisContext(tree, _analyzerOptions, _addDiagnostic,
+                        d => IsSupportedDiagnostic(syntaxTreeAction.Analyzer, d), _cancellationToken)));
             }
         }
 
@@ -265,7 +283,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel semanticModel)
             where TLanguageKindEnum : struct
         {
-            var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, semanticModel, _analyzerOptions, _addDiagnostic, _cancellationToken);
+            var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, semanticModel, _analyzerOptions, _addDiagnostic,
+                d => IsSupportedDiagnostic(syntaxNodeAction.Analyzer, d), _cancellationToken);
             ExecuteAndCatchIfThrows(syntaxNodeAction.Analyzer, () => syntaxNodeAction.Action(syntaxNodeContext));
         }
 
@@ -369,7 +388,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var blockAction in blockActions)
             {
                 ExecuteAndCatchIfThrows(blockAction.Analyzer,
-                    () => blockAction.Action(new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, _analyzerOptions, _addDiagnostic, _cancellationToken)));
+                    () => blockAction.Action(new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, _analyzerOptions, _addDiagnostic,
+                        d => IsSupportedDiagnostic(blockAction.Analyzer, d), _cancellationToken)));
             }
 
             blockActions.Free();
@@ -484,21 +504,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return Diagnostic.Create(descriptor, Location.None, analyzer.ToString(), e.Message);
         }
 
-        internal static Diagnostic GetDescriptorDiagnostic(string faultedDescriptorId, Exception e)
-        {
-            var descriptor = new DiagnosticDescriptor(DescriptorExceptionDiagnosticId,
-                AnalyzerDriverResources.AnalyzerFailure,
-                AnalyzerDriverResources.DiagnosticDescriptorThrows,
-                category: DiagnosticCategory,
-                defaultSeverity: DiagnosticSeverity.Info,
-                isEnabledByDefault: true,
-                customTags: WellKnownDiagnosticTags.AnalyzerException);
-            return Diagnostic.Create(descriptor, Location.None, faultedDescriptorId, e.Message);
-        }
-
         internal static bool IsAnalyzerExceptionDiagnostic(Diagnostic diagnostic)
         {
-            if (diagnostic.Id == AnalyzerExceptionDiagnosticId || diagnostic.Id == DescriptorExceptionDiagnosticId)
+            if (diagnostic.Id == AnalyzerExceptionDiagnosticId)
             {
 #pragma warning disable RS0013 // Its ok to realize the Descriptor for analyzer exception diagnostics, which are descriptor based and also rare.
                 foreach (var tag in diagnostic.Descriptor.CustomTags)
@@ -512,6 +520,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return false;
+        }
+
+        private bool IsSupportedDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
+        {
+            Debug.Assert(_isCompilerAnalyzer != null);
+
+            return _analyzerManager.IsSupportedDiagnostic(analyzer, diagnostic, _isCompilerAnalyzer, this);
         }
     }
 }

@@ -1050,8 +1050,8 @@ class C
             context.CompileExpression(
                 // typeof(Exception), typeof(A<B<object>>), typeof(B<A<object>[]>)
                 InspectionContextFactory.Empty.Add("$exception", "System.Exception, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").
-                    Add("1", "A`1[[B`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], 397300B0-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null]], 397300B0-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=null").
-                    Add("2", "B`1[[A`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]][], 397300B0-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=null]], 397300B0-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null"),
+                    Add("1", "A`1[[B`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], 397300B0-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null]], 397300B0-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=1f8a32457d187bf3").
+                    Add("2", "B`1[[A`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]][], 397300B0-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=1f8a32457d187bf3]], 397300B0-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null"),
                 "(object)$exception ?? (object)$1 ?? $2",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,

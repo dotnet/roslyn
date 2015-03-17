@@ -1676,10 +1676,26 @@ class E : System.Exception
                 EvalResult("c", "4660 '\u1234'", "char", "c", editableValue: "'\u1234'"));
 
             // This char is not printable, so we expect the EditableValue to be the unicode escape representation.
-            value = CreateDkmClrValue('\u0007', typeof(char));
+            value = CreateDkmClrValue('\u001f');
             evalResult = FormatResult("c", value, inspectionContext: CreateDkmInspectionContext(radix: 16));
             Verify(evalResult,
-                EvalResult("c", "0x0007 '\u0007'", "char", "c", editableValue: "'\\u0007'"));
+                EvalResult("c", "0x001f '\\u001f'", "char", "c", editableValue: "'\\u001f'"));
+
+            // This char is not printable, but there is a specific escape character.
+            value = CreateDkmClrValue('\u0007');
+            evalResult = FormatResult("c", value, inspectionContext: CreateDkmInspectionContext(radix: 16));
+            Verify(evalResult,
+                EvalResult("c", "0x0007 '\\a'", "char", "c", editableValue: "'\\a'"));
+        }
+
+        [WorkItem(1138095)]
+        [Fact]
+        public void UnicodeString()
+        {
+            var value = CreateDkmClrValue("\u1234\u001f\u0007");
+            var evalResult = FormatResult("s", value);
+            Verify(evalResult,
+                EvalResult("s", $"\"{'\u1234'}\\u001f\\a\"", "string", "s", editableValue: $"\"{'\u1234'}\\u001f\\a\"", flags: DkmEvaluationResultFlags.RawString));
         }
 
         [WorkItem(1002381)]

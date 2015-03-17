@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     // Get all rename locations for the current document.
                     var allTextSpansInSingleSourceTree = renameLocations
-                        .Where(l => l.DocumentId == documentId && !l.IsRenameInStringOrComment && (renameLocations.Count() == 1 || !l.IsCandidateLocation))
+                        .Where(l => l.DocumentId == documentId && !l.IsRenameInStringOrComment && (renameLocations.Count() == 1 || !l.IsCandidateLocation || l.IsMethodGroupReference))
                         .ToDictionary(l => l.Location.SourceSpan);
 
                     // All textspan in the document documentId, that requires rename in String or Comment

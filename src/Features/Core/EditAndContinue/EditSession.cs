@@ -136,21 +136,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             get { return _projects; }
         }
 
-        internal bool TryGetProjectState(string projectName, out ProjectReadOnlyReason reason)
-        {
-            // We used to keep track of project ids but Venus may have multiple project ids during debugging sessions,
-            // causing EnC fail to recognize they belong to the same project. Therefore, instead of ids,
-            // their public display name (which is shared between multiple projects in Venus) is compared.
-            foreach (var pair in Projects.Where((p) => _baseSolution.GetProject(p.Key)?.Name == projectName))
-            {
-                reason = pair.Value;
-                return true;
-            }
-
-            reason = ProjectReadOnlyReason.NotLoaded;
-            return false;
-        }
-
         internal bool HasProject(ProjectId id)
         {
             ProjectReadOnlyReason reason;
