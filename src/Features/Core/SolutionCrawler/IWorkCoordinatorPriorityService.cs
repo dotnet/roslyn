@@ -16,6 +16,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// contained in, and should have work scheduled for it happen after all other documents
         /// in the project.
         /// </summary>
-        bool IsLowPriority(Document document);
+        Task<bool> IsLowPriorityAsync(Document document);
     }
 }
