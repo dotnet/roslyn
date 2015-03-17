@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Dim index As Integer = 0
                 If GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousTypeTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
-                    Dim key = GetAnonymousTypeKey(type)
+                    Dim key = New AnonymousTypeKey(GetAnonymousTypeKeyFields(type))
                     Dim value = New AnonymousTypeValue(name, index, type)
                     result.Add(key, value)
                 ElseIf GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousDelegateTemplateNamePrefix, name, index) Then
@@ -94,16 +94,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return result
         End Function
 
-        Private Shared Function GetAnonymousTypeKey(type As NamedTypeSymbol) As AnonymousTypeKey
+        Private Shared Function GetAnonymousTypeKeyFields(type As NamedTypeSymbol) As ImmutableArray(Of String)
             ' The key is the set of properties that correspond to type parameters.
             ' For each type parameter, get the name of the property of that type.
             Dim n = type.TypeParameters.Length
             If n = 0 Then
-                Return New AnonymousTypeKey(ImmutableArray(Of AnonymousTypeKeyField).Empty)
+                Return ImmutableArray(Of String).Empty
             End If
 
-            ' Properties indexed by type parameter ordinal.
-            Dim properties = New AnonymousTypeKeyField(n - 1) {}
+            ' Names of properties indexed by type parameter ordinal.
+            Dim propertyNames = New String(n - 1) {}
             For Each member In type.GetMembers()
                 If member.Kind <> SymbolKind.Property Then
                     Continue For
@@ -115,14 +115,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim typeParameter = DirectCast(propertyType, TypeParameterSymbol)
                     Debug.Assert(typeParameter.ContainingSymbol = type)
                     Dim index = typeParameter.Ordinal
-                    Debug.Assert(properties(index).Name Is Nothing)
-                    ' ReadOnly anonymous type properties were 'Key' properties.
-                    properties(index) = New AnonymousTypeKeyField([property].Name, [property].IsReadOnly)
+                    Debug.Assert(propertyNames(index) Is Nothing)
+                    propertyNames(index) = [property].Name
                 End If
             Next
 
-            Debug.Assert(properties.All(Function(f) Not String.IsNullOrEmpty(f.Name)))
-            Return New AnonymousTypeKey(ImmutableArray.Create(properties))
+            Debug.Assert(propertyNames.All(Function(f) Not String.IsNullOrEmpty(f)))
+            Return ImmutableArray.Create(propertyNames)
         End Function
 
         Private Shared Function GetAnonymousDelegateKey(type As NamedTypeSymbol) As AnonymousTypeKey
@@ -134,10 +133,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(members.Length = 1 AndAlso members(0).Kind = SymbolKind.Method)
             Dim method = DirectCast(members(0), MethodSymbol)
             Debug.Assert(method.Parameters.Count + If(method.IsSub, 0, 1) = type.TypeParameters.Length)
-            Dim parameters = ArrayBuilder(Of AnonymousTypeKeyField).GetInstance()
-            parameters.AddRange(method.Parameters.SelectAsArray(Function(p) New AnonymousTypeKeyField(p.Name)))
-            parameters.Add(New AnonymousTypeKeyField(AnonymousTypeDescriptor.GetReturnParameterName(Not method.IsSub)))
-            Return New AnonymousTypeKey(parameters.ToImmutableAndFree(), isDelegate:=True)
+            Dim parameterNames = ArrayBuilder(Of String).GetInstance()
+            parameterNames.AddRange(method.Parameters.SelectAsArray(Function(p) p.Name))
+            parameterNames.Add(AnonymousTypeDescriptor.GetReturnParameterName(Not method.IsSub))
+            Return New AnonymousTypeKey(parameterNames.ToImmutableAndFree(), isDelegate:=True)
         End Function
 
         Private Shared Function EnsureInitialized(previousGeneration As EmitBaseline,

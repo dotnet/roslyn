@@ -4,7 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.SymbolStore;
 using System.Runtime.InteropServices.ComTypes;
-using Microsoft.DiaSymReader;
+using Microsoft.VisualStudio.SymReaderInterop;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             _methodDebugInfoMap = methodDebugInfoMap;
         }
 
-        int ISymUnmanagedReader.GetSymAttribute(int token, string name, int bytesDesired, out int bytesRead, byte[] buffer)
+        int ISymUnmanagedReader.GetSymAttribute(SymbolToken token, string name, int bytesDesired, out int bytesRead, byte[] buffer)
         {
             Assert.Equal("MD2", name);
 
             MethodDebugInfoBytes info;
-            if (!_methodDebugInfoMap.TryGetValue(token, out info))
+            if (!_methodDebugInfoMap.TryGetValue(token.GetToken(), out info))
             {
                 bytesRead = 0;
                 return SymUnmanagedReaderExtensions.S_FALSE; // This is a guess.  We're not consuming it, so it doesn't really matter.
@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return SymUnmanagedReaderExtensions.S_OK;
         }
 
-        int ISymUnmanagedReader.GetMethodByVersion(int methodToken, int version, out ISymUnmanagedMethod retVal)
+        int ISymUnmanagedReader.GetMethodByVersion(SymbolToken methodToken, int version, out ISymUnmanagedMethod retVal)
         {
             Assert.Equal(1, version);
 
             MethodDebugInfoBytes info;
-            if (!_methodDebugInfoMap.TryGetValue(methodToken, out info))
+            if (!_methodDebugInfoMap.TryGetValue(methodToken.GetToken(), out info))
             {
                 retVal = null;
                 return SymUnmanagedReaderExtensions.E_FAIL;
@@ -60,17 +60,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             throw new NotImplementedException();
         }
 
-        int ISymUnmanagedReader.GetUserEntryPoint(out int EntryPoint)
+        int ISymUnmanagedReader.GetUserEntryPoint(out SymbolToken EntryPoint)
         {
             throw new NotImplementedException();
         }
 
-        int ISymUnmanagedReader.GetMethod(int methodToken, out ISymUnmanagedMethod retVal)
+        int ISymUnmanagedReader.GetMethod(SymbolToken methodToken, out ISymUnmanagedMethod retVal)
         {
             throw new NotImplementedException();
         }
 
-        int ISymUnmanagedReader.GetVariables(int parent, int cVars, out int pcVars, ISymUnmanagedVariable[] vars)
+        int ISymUnmanagedReader.GetVariables(SymbolToken parent, int cVars, out int pcVars, ISymUnmanagedVariable[] vars)
         {
             throw new NotImplementedException();
         }
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             throw new NotImplementedException();
         }
 
-        int ISymUnmanagedMethod.GetToken(out int pToken)
+        int ISymUnmanagedMethod.GetToken(out SymbolToken pToken)
         {
             throw new NotImplementedException();
         }

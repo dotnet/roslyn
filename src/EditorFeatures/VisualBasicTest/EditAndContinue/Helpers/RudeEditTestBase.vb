@@ -71,10 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Return match
         End Function
 
-        Public Shared Function GetMethodMatches(src1 As String,
-                                                src2 As String,
-                                                Optional options As ParseOptions = Nothing,
-                                                Optional stateMachine As StateMachineKind = StateMachineKind.None) As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))
+        Public Shared Function GetMethodMatches(src1 As String, src2 As String, Optional options As ParseOptions = Nothing, Optional stateMachine As StateMachineKind = StateMachineKind.None) As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))
             Dim methodMatch = GetMethodMatch(src1, src2, options, stateMachine)
             Return EditAndContinueTestHelpers.GetMethodMatches(Analyzer, methodMatch)
         End Function

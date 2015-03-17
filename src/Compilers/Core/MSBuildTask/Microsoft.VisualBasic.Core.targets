@@ -28,6 +28,9 @@
     </PropertyGroup>
 
     <PropertyGroup>
+      <!-- If we are building in visual studio setting the VbcToolPath will prevent the inproc compiler from being used during compile-->
+      <VbcToolPath Condition="'$(VbcToolPath)' == '' and '$(BuildingInsideVisualStudio)' != 'true'">$(MsBuildToolsPath)</VbcToolPath>
+
       <!-- If we are targeting winmdobj we want to specifically the pdbFile property since we do not want it to collide with the output of winmdexp-->
       <PdbFile Condition="'$(PdbFile)' == '' and '$(OutputType)' == 'winmdobj' and '$(DebugSymbols)' == 'true'">$(IntermediateOutputPath)$(TargetName).compile.pdb</PdbFile>
     </PropertyGroup>
@@ -47,10 +50,6 @@
       <AdditionalFileItems Include="$(AdditionalFileItemNames)" />
       <AdditionalFiles Include="@(%(AdditionalFileItems.Identity))" />
     </ItemGroup>
-
-    <PropertyGroup Condition="'$(UseSharedCompilation)' == ''">
-      <UseSharedCompilation>true</UseSharedCompilation>
-    </PropertyGroup>
 
     <!-- Condition is to filter out the _CoreCompileResourceInputs so that it doesn't pass in culture resources to the compiler -->
     <Vbc  Condition=" '%(_CoreCompileResourceInputs.WithCulture)' != 'true' "
@@ -109,7 +108,6 @@
           ToolPath="$(VbcToolPath)"
           TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
           UseHostCompilerIfAvailable="$(UseHostCompilerIfAvailable)"
-          UseSharedCompilation="$(UseSharedCompilation)"
           Utf8Output="$(Utf8Output)"
           VBRuntimePath="$(VBRuntimePath)"
           Verbosity="$(VbcVerbosity)"

@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
 {
@@ -218,24 +217,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
                     return lastStatement.GetLocation().SourceSpan.End;
                 }
             }
-            else if (caretTarget is BasePropertyDeclarationSyntax)
+            else if (caretTarget is PropertyDeclarationSyntax)
             {
-                // property: no accessors; move to the end of the declaration
-                var propertyDeclaration = (BasePropertyDeclarationSyntax)caretTarget;
-                if (propertyDeclaration.AccessorList != null && propertyDeclaration.AccessorList.Accessors.Any())
+                // property: no accesors; move to the end of the declaration
+                var propertyDeclaration = (PropertyDeclarationSyntax)caretTarget;
+                if (!propertyDeclaration.AccessorList.Accessors.Any())
+                {
+                    return propertyDeclaration.GetLocation().SourceSpan.End;
+                }
+                else
                 {
                     // move to the end of the last statement of the first accessor
                     var firstAccessorStatement = propertyDeclaration.AccessorList.Accessors.First().Body.Statements.Last();
                     return firstAccessorStatement.GetLocation().SourceSpan.End;
                 }
-                else
-                {
-                    return propertyDeclaration.GetLocation().SourceSpan.End;
-                }
             }
             else
             {
-                throw ExceptionUtilities.Unreachable;
+                // indexer: move to the end of the last statement
+                var indexerDeclaration = (IndexerDeclarationSyntax)caretTarget;
+                var firstAccessorStatement = indexerDeclaration.AccessorList.Accessors.First().Body.Statements.Last();
+                return firstAccessorStatement.GetLocation().SourceSpan.End;
             }
         }
     }

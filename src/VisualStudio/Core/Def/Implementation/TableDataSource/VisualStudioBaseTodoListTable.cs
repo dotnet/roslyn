@@ -22,13 +22,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         private static readonly string[] s_columns = new string[]
         {
-            StandardTableColumnDefinitions.Priority,
+            ShimTableColumnDefinitions.Priority,
             StandardTableColumnDefinitions.Text,
-            StandardTableColumnDefinitions.ProjectName,
+            ShimTableColumnDefinitions.ProjectName,
             StandardTableColumnDefinitions.DocumentName,
             StandardTableColumnDefinitions.Line,
             StandardTableColumnDefinitions.Column,
-            StandardTableColumnDefinitions.TaskCategory
+            ShimTableColumnDefinitions.TaskCategory
         };
 
         protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, Guid identifier, ITableManagerProvider provider) :
@@ -168,7 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                         switch (columnName)
                         {
-                            case StandardTableKeyNames.Priority:
+                            case ShimTableKeyNames.Priority:
                                 content = (VSTASKPRIORITY)item.Priority;
                                 return true;
                             case StandardTableKeyNames.Text:
@@ -183,13 +183,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case StandardTableKeyNames.Column:
                                 content = GetLineColumn(item).Character;
                                 return true;
-                            case StandardTableKeyNames.ProjectName:
+                            case ShimTableKeyNames.ProjectName:
                                 content = GetProjectName(_factory._workspace, _factory._documentId.ProjectId);
                                 return content != null;
-                            case StandardTableKeyNames.Project:
+                            case ShimTableKeyNames.Project:
                                 content = GetHierarchy(_factory._workspace, _factory._documentId.ProjectId);
                                 return content != null;
-                            case StandardTableKeyNames.TaskCategory:
+                            case ShimTableKeyNames.TaskCategory:
                                 content = VSTASKCATEGORY.CAT_COMMENTS;
                                 return true;
                             default:

@@ -347,18 +347,5 @@ namespace Roslyn.Utilities
         {
             return sequence.Any(predicate);
         }
-
-        public static bool Contains(this IEnumerable<string> sequence, string s)
-        {
-            foreach (var item in sequence)
-            {
-                if (item == s)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
     }
 }

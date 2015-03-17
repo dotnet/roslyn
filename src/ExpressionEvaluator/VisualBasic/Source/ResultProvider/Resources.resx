@@ -112,57 +112,13 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ErrorName" xml:space="preserve">
-    <value>Error</value>
-    <comment>Error result name</comment>
-  </data>
-  <data name="ExceptionThrown" xml:space="preserve">
-    <value>'{0}' threw an exception of type '{1}'</value>
-    <comment>Threw an exception while evaluating a value.</comment>
-  </data>
-  <data name="InvalidPointerDereference" xml:space="preserve">
-    <value>Cannot dereference '{0}'. The pointer is not valid.</value>
-    <comment>Invalid pointer dereference</comment>
-  </data>
-  <data name="NativeView" xml:space="preserve">
-    <value>Native View</value>
-    <comment>Native COM object expansion</comment>
-  </data>
-  <data name="NativeViewNotNativeDebugging" xml:space="preserve">
-    <value>To inspect the native object, enable native code debugging.</value>
-    <comment>Display value of Native View node when native debugging is not enabled</comment>
-  </data>
-  <data name="NonPublicMembers" xml:space="preserve">
-    <value>Non-Public members</value>
-    <comment>Non-public type members</comment>
-  </data>
-  <data name="RawView" xml:space="preserve">
-    <value>Raw View</value>
-    <comment>DebuggerTypeProxy "Raw View"</comment>
-  </data>
-  <data name="ResultsView" xml:space="preserve">
-    <value>Results View</value>
-    <comment>IEnumerable results expansion</comment>
-  </data>
-  <data name="ResultsViewNoSystemCore" xml:space="preserve">
-    <value>Results View requires System.Core.dll to be referenced</value>
-    <comment>"results" format specifier requires System.Core.dll</comment>
-  </data>
-  <data name="ResultsViewNotEnumerable" xml:space="preserve">
-    <value>Only Enumerable types can have Results View</value>
-    <comment>Cannot use "results" format specifier on non-enumerable type</comment>
-  </data>
-  <data name="ResultsViewValueWarning" xml:space="preserve">
-    <value>Expanding the Results View will enumerate the IEnumerable</value>
-    <comment>Warning reported in Results View value</comment>
-  </data>
-  <data name="TypeVariablesName" xml:space="preserve">
-    <value>Type variables</value>
-    <comment>Type variables result name</comment>
+  <data name="SharedMembers" xml:space="preserve">
+    <value>Shared members</value>
+    <comment>Shared type members</comment>
   </data>
 </root>

@@ -6,7 +6,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.TableControl;
 using Microsoft.VisualStudio.TableManager;
 using Microsoft.VisualStudio.Text;
 

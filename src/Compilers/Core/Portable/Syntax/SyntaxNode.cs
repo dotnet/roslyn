@@ -621,8 +621,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract SyntaxNode GetCorrespondingLambdaBody(SyntaxNode body);
 
-        internal abstract SyntaxNode GetLambda();
-
         #region Node Lookup
 
         /// <summary>

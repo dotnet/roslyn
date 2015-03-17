@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private AnonymousTypeTemplateSymbol CreatePlaceholderTemplate(Microsoft.CodeAnalysis.Emit.AnonymousTypeKey key)
         {
-            var fields = key.Fields.SelectAsArray(f => new AnonymousTypeField(f.Name, Location.None, (TypeSymbol)null));
+            var fields = key.Names.SelectAsArray(n => new AnonymousTypeField(n, Location.None, (TypeSymbol)null));
             var typeDescr = new AnonymousTypeDescriptor(fields, Location.None);
             return new AnonymousTypeTemplateSymbol(this, typeDescr);
         }
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // types are available for subsequent edit and continue generations.
             foreach (var key in moduleBeingBuilt.GetPreviousAnonymousTypes())
             {
-                var templateKey = AnonymousTypeDescriptor.ComputeKey(key.Fields, f => f.Name);
+                var templateKey = AnonymousTypeDescriptor.ComputeKey(key.Names, f => f);
                 this.AnonymousTypeTemplates.GetOrAdd(templateKey, k => this.CreatePlaceholderTemplate(key));
             }
 
@@ -366,9 +366,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static Microsoft.CodeAnalysis.Emit.AnonymousTypeKey GetAnonymousTypeKey(NamedTypeSymbol type)
+        internal static ImmutableArray<string> GetTemplatePropertyNames(NamedTypeSymbol type)
         {
-            return ((AnonymousTypeTemplateSymbol)type).GetAnonymousTypeKey();
+            return ((AnonymousTypeTemplateSymbol)type).GetPropertyNames();
         }
 
         internal IReadOnlyDictionary<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue> GetAnonymousTypeMap()
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (AnonymousTypeTemplateSymbol template in templates)
             {
                 var nameAndIndex = template.NameAndIndex;
-                var key = template.GetAnonymousTypeKey();
+                var key = new Microsoft.CodeAnalysis.Emit.AnonymousTypeKey(template.GetPropertyNames());
                 var value = new Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(nameAndIndex.Name, nameAndIndex.Index, template);
                 result.Add(key, value);
             }

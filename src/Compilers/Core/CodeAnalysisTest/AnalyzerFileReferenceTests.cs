@@ -210,30 +210,6 @@ Delta: Gamma: Beta: Test B
             Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, errors.First().ErrorCode);
         }
 
-        [Fact]
-        public void AssemblyPathHelper_NeutralCultureAssembly()
-        {
-            string directoryPath = @"C:\Alpha\Beta";
-            AssemblyIdentity assemblyIdentity = new AssemblyIdentity("Gamma");
-
-            string expected = @"C:\Alpha\Beta\Gamma.dll";
-            string actual = AnalyzerFileReference.AssemblyPathHelper.GetCandidatePath(directoryPath, assemblyIdentity);
-
-            Assert.Equal(expected, actual, StringComparer.OrdinalIgnoreCase);
-        }
-
-        [Fact]
-        public void AssemblyPathHelper_AssemblyWithCulture()
-        {
-            string directoryPath = @"C:\Alpha\Beta";
-            AssemblyIdentity assemblyIdentity = new AssemblyIdentity(name: "Gamma", cultureName: "fr-FR");
-
-            string expected = @"C:\Alpha\Beta\fr-FR\Gamma.dll";
-            string actual = AnalyzerFileReference.AssemblyPathHelper.GetCandidatePath(directoryPath, assemblyIdentity);
-
-            Assert.Equal(expected, actual, StringComparer.OrdinalIgnoreCase);
-        }
-
         [DiagnosticAnalyzer(LanguageNames.CSharp, new string[] { LanguageNames.VisualBasic })]
         public class TestAnalyzer : DiagnosticAnalyzer
         {

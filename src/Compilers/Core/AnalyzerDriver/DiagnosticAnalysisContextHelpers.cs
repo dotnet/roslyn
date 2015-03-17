@@ -25,16 +25,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifySyntaxKinds(syntaxKinds);
         }
 
-        internal static void VerifyArguments(Diagnostic diagnostic, Func<Diagnostic, bool> isSupportedDiagnostic)
+        internal static void VerifyArguments(Diagnostic diagnostic)
         {
             if (diagnostic == null)
             {
                 throw new ArgumentNullException(nameof(diagnostic));
-            }
-
-            if (!isSupportedDiagnostic(diagnostic))
-            {
-                throw new ArgumentException(string.Format(AnalyzerDriverResources.UnsupportedDiagnosticReported, diagnostic.Id), nameof(diagnostic));
             }
         }
 

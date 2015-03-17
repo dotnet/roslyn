@@ -63,7 +63,9 @@
     <Compile Include="..\..\ExpressionCompiler\DateTimeUtilities.cs">
       <Link>ExpressionCompiler\DateTimeUtilities.cs</Link>
     </Compile>
-    <Compile Include="Helpers\Placeholders.cs" />
+    <Compile Include="..\Helpers\Placeholders.cs">
+      <Link>Helpers\Placeholders.cs</Link>
+    </Compile>
     <Compile Include="..\SystemHelpers.cs">
       <Link>Helpers\SystemHelpers.cs</Link>
     </Compile>
@@ -82,7 +84,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
-    <Compile Include="..\Portable\Resources.Designer.cs">
+    <Compile Include="..\Resources.Designer.cs">
       <Link>Resources.Designer.cs</Link>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -90,7 +92,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\Portable\Resources.resx">
+    <EmbeddedResource Include="..\Resources.resx">
       <Link>Resources.resx</Link>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

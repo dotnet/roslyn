@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
-using Microsoft.DiaSymReader;
+using Microsoft.VisualStudio.SymReaderInterop;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests

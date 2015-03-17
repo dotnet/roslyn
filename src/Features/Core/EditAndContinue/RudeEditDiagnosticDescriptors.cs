@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.ChangingCapturedVariableScope,             FeaturesResources.ChangingCapturedVariableScope) },
             { GetDescriptorPair(RudeEditKind.ChangingLambdaParameters,                  FeaturesResources.ChangingLambdaParameters) },
             { GetDescriptorPair(RudeEditKind.ChangingLambdaReturnType,                  FeaturesResources.ChangingLambdaReturnType) },
-            { GetDescriptorPair(RudeEditKind.ChangingQueryLambdaType,                   FeaturesResources.ChangingQueryLambdaType) },
             { GetDescriptorPair(RudeEditKind.AccessingCapturedVariableInLambda,         FeaturesResources.AccessingCapturedVariableInLambda) },
             { GetDescriptorPair(RudeEditKind.NotAccessingCapturedVariableInLambda,      FeaturesResources.NotAccessingCapturedVariableInLambda) },
             { GetDescriptorPair(RudeEditKind.InsertLambdaWithMultiScopeCapture,         FeaturesResources.InsertLambdaWithMultiScopeCapture) },

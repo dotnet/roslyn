@@ -9,6 +9,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal static string DiagnosticDescriptorThrows => FeaturesResources.DiagnosticDescriptorThrows;
         internal static string ArgumentElementCannotBeNull => FeaturesResources.ArgumentElementCannotBeNull;
         internal static string ArgumentCannotBeEmpty => FeaturesResources.ArgumentCannotBeEmpty;
-        internal static string UnsupportedDiagnosticReported => FeaturesResources.UnsupportedDiagnosticReported;
     }
 }

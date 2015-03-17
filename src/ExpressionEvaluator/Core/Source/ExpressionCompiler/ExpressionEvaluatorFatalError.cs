@@ -24,25 +24,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 // Microsoft.Win32.Registry is not supported on OneCore/CoreSystem,
                 // so we have to check to see if it's there at runtime.
-                var registryType = typeof(object).GetTypeInfo().Assembly.GetType("Microsoft.Win32.Registry");
-                if (registryType != null)
+                var registry = typeof(object).Assembly.GetType("Microsoft.Win32.Registry");
+                if (registry != null)
                 {
-                    var hKeyCurrentUserField = registryType.GetTypeInfo().GetField("CurrentUser");
-                    if (hKeyCurrentUserField != null && hKeyCurrentUserField.IsStatic)
+                    var hKeyCurrentUserField = registry.GetField("CurrentUser", BindingFlags.Static | BindingFlags.Public);
+                    using (var currentUserKey = (IDisposable)hKeyCurrentUserField.GetValue(null))
                     {
-                        using (var currentUserKey = (IDisposable)hKeyCurrentUserField.GetValue(null))
+                        var openSubKeyMethod = currentUserKey.GetType().GetMethod("OpenSubKey", new Type[] { typeof(string), typeof(bool) });
+                        using (var eeKey = (IDisposable)openSubKeyMethod.Invoke(currentUserKey, new object[] { RegistryKey, /*writable*/ false }))
                         {
-                            var openSubKeyMethod = currentUserKey.GetType().GetTypeInfo().GetMethod("OpenSubKey", new Type[] { typeof(string), typeof(bool) });
-                            using (var eeKey = (IDisposable)openSubKeyMethod.Invoke(currentUserKey, new object[] { RegistryKey, /*writable*/ false }))
+                            if (eeKey != null)
                             {
-                                if (eeKey != null)
+                                var getValueMethod = eeKey.GetType().GetMethod("GetValue", new Type[] { typeof(string) });
+                                var value = getValueMethod.Invoke(eeKey, new object[] { RegistryValue });
+                                if ((value != null) && (value is int))
                                 {
-                                    var getValueMethod = eeKey.GetType().GetTypeInfo().GetMethod("GetValue", new Type[] { typeof(string) });
-                                    var value = getValueMethod.Invoke(eeKey, new object[] { RegistryValue });
-                                    if ((value != null) && (value is int))
-                                    {
-                                        s_isFailFastEnabled = ((int)value == 1);
-                                    }
+                                    s_isFailFastEnabled = ((int)value == 1);
                                 }
                             }
                         }

@@ -388,15 +388,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 return $"using {namespaceString};";
             }
 
-            string staticNamespaceString;
-            if (TryGetStaticNamespaceString(namespaceSymbol, root, false, null, out staticNamespaceString))
-            {
-                return $"using static {staticNamespaceString};";
-            }
-
-            // If we get here then neither a namespace or an extern alias can be added.
+            // If we get here then neither a namespace or a an extern alias can be added.
             // There is no valid string to show to the user and there is 
-            // likely a bug that we should know about.
+            // likely a bug in that we should know about.
             throw ExceptionUtilities.Unreachable;
         }
 
@@ -482,39 +476,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
         private UsingDirectiveSyntax GetUsingDirective(CompilationUnitSyntax root, INamespaceOrTypeSymbol namespaceSymbol, SemanticModel semanticModel, bool fullyQualify)
         {
-            if (namespaceSymbol is INamespaceSymbol)
+            string namespaceString;
+            string externAliasString;
+            TryGetExternAliasString(namespaceSymbol, semanticModel, root, out externAliasString);
+            if (externAliasString != null)
             {
-                string namespaceString;
-                string externAliasString;
-                TryGetExternAliasString(namespaceSymbol, semanticModel, root, out externAliasString);
-                if (externAliasString != null)
-                {
-                    if (TryGetNamespaceString(namespaceSymbol, root, false, externAliasString, out namespaceString))
-                    {
-                        return SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(namespaceString));
-                    }
-
-                    return null;
-                }
-
-                if (TryGetNamespaceString(namespaceSymbol, root, fullyQualify, null, out namespaceString))
+                if (TryGetNamespaceString(namespaceSymbol, root, false, externAliasString, out namespaceString))
                 {
                     return SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(namespaceString));
                 }
+
+                return null;
             }
 
-            if (namespaceSymbol is ITypeSymbol)
+            if (TryGetNamespaceString(namespaceSymbol, root, fullyQualify, null, out namespaceString))
             {
-                string staticNamespaceString;
-                if (TryGetStaticNamespaceString(namespaceSymbol, root, fullyQualify, null, out staticNamespaceString))
-                {
-                    return SyntaxFactory.UsingDirective(
-                        SyntaxFactory.Token(SyntaxKind.UsingKeyword), 
-                        SyntaxFactory.Token(SyntaxKind.StaticKeyword), 
-                        null, 
-                        SyntaxFactory.ParseName(staticNamespaceString), 
-                        SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-                }
+                return SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(namespaceString));
             }
 
             return null;
@@ -552,12 +529,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
         private static bool TryGetNamespaceString(INamespaceOrTypeSymbol namespaceSymbol, CompilationUnitSyntax root, bool fullyQualify, string alias, out string namespaceString)
         {
-            if (namespaceSymbol is ITypeSymbol)
-            {
-                namespaceString = null;
-                return false;
-            }
-
             namespaceString = fullyQualify
                     ? namespaceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
                     : namespaceSymbol.ToDisplayString();
@@ -570,26 +541,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             return ShouldAddUsing(namespaceString, root);
         }
 
-        private static bool TryGetStaticNamespaceString(INamespaceOrTypeSymbol namespaceSymbol, CompilationUnitSyntax root, bool fullyQualify, string alias, out string namespaceString)
-        {
-            if (namespaceSymbol is INamespaceSymbol)
-            {
-                namespaceString = null;
-                return false;
-            }
-
-            namespaceString = fullyQualify
-                    ? namespaceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-                    : namespaceSymbol.ToDisplayString();
-
-            if (alias != null)
-            {
-                namespaceString = alias + "::" + namespaceString;
-            }
-
-            return ShouldAddStaticUsing(namespaceString, root);
-        }
-
         private static bool ShouldAddExternAlias(ImmutableArray<string> aliases, CompilationUnitSyntax root)
         {
             var identifiers = root.DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Select(e => e.Identifier.ToString());
@@ -599,14 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
         private static bool ShouldAddUsing(string usingDirective, CompilationUnitSyntax root)
         {
-            var simpleUsings = root.Usings.Where(u => u.StaticKeyword.IsKind(SyntaxKind.None));
-            return !simpleUsings.Any(u => u.Name.ToString() == usingDirective);
-        }
-
-        private static bool ShouldAddStaticUsing(string usingDirective, CompilationUnitSyntax root)
-        {
-            var staticUsings = root.Usings.Where(u => u.StaticKeyword.IsKind(SyntaxKind.StaticKeyword));
-            return !staticUsings.Any(u => u.Name.ToString() == usingDirective);
+            return !root.Usings.Select(u => u.Name.ToString()).Contains(usingDirective);
         }
 
         private static CompilationUnitSyntax GetCompilationUnitSyntaxNode(SyntaxNode contextNode, CancellationToken cancellationToken = default(CancellationToken))

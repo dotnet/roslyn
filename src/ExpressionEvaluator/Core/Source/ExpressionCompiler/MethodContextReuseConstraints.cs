@@ -9,38 +9,34 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal struct MethodContextReuseConstraints
     {
-        private readonly Guid _moduleVersionId;
         private readonly int _methodToken;
         private readonly int _methodVersion;
         private readonly uint _startOffset;
         private readonly uint _endOffsetExclusive;
 
-        private MethodContextReuseConstraints(Guid moduleVersionId, int methodToken, int methodVersion, uint startOffset, uint endOffsetExclusive)
+        private MethodContextReuseConstraints(int methodToken, int methodVersion, uint startOffset, uint endOffsetExclusive)
         {
-            Debug.Assert(moduleVersionId != default(Guid));
             Debug.Assert(MetadataTokens.Handle(methodToken).Kind == HandleKind.MethodDefinition);
             Debug.Assert(methodVersion >= 1);
             Debug.Assert(startOffset <= endOffsetExclusive);
 
-            _moduleVersionId = moduleVersionId;
             _methodToken = methodToken;
             _methodVersion = methodVersion;
             _startOffset = startOffset;
             _endOffsetExclusive = endOffsetExclusive;
         }
 
-        public bool AreSatisfied(Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset)
+        public bool AreSatisfied(int methodToken, int methodVersion, int ilOffset)
         {
-            return moduleVersionId == _moduleVersionId &&
-                methodToken == _methodToken &&
+            return methodToken == _methodToken &&
                 methodVersion == _methodVersion &&
                 ilOffset >= _startOffset &&
                 ilOffset < _endOffsetExclusive;
         }
 
-        internal static MethodContextReuseConstraints CreateTestInstance(Guid moduleVersionId, int methodToken, int methodVersion, uint startOffset, uint endOffsetExclusive)
+        internal static MethodContextReuseConstraints CreateTestInstance(int methodToken, int methodVersion, uint startOffset, uint endOffsetExclusive)
         {
-            return new MethodContextReuseConstraints(moduleVersionId, methodToken, methodVersion, startOffset, endOffsetExclusive);
+            return new MethodContextReuseConstraints(methodToken, methodVersion, startOffset, endOffsetExclusive);
         }
 
         internal bool HasExpectedSpan(uint startOffset, uint endOffsetExclusive)
@@ -50,12 +46,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public override string ToString()
         {
-            return $"0x{_methodToken:x8}v{_methodVersion} from {_moduleVersionId} [{_startOffset}, {_endOffsetExclusive})";
+            return $"0x{_methodToken:x8}v{_methodVersion} [{_startOffset}, {_endOffsetExclusive})";
         }
 
         public class Builder
         {
-            private readonly Guid _moduleVersionId;
             private readonly int _methodToken;
             private readonly int _methodVersion;
             private readonly int _ilOffset;
@@ -64,14 +59,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             private uint _startOffset;
             private uint _endOffsetExclusive;
 
-            public Builder(Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset, bool areRangesEndInclusive)
+            public Builder(int methodToken, int methodVersion, int ilOffset, bool areRangesEndInclusive)
             {
-                Debug.Assert(moduleVersionId != default(Guid));
                 Debug.Assert(MetadataTokens.Handle(methodToken).Kind == HandleKind.MethodDefinition);
                 Debug.Assert(methodVersion >= 1);
                 Debug.Assert(ilOffset >= 0);
 
-                _moduleVersionId = moduleVersionId;
                 _methodToken = methodToken;
                 _methodVersion = methodVersion;
                 _ilOffset = ilOffset;
@@ -83,7 +76,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             public Builder(MethodContextReuseConstraints existingConstraints, int ilOffset, bool areRangesEndInclusive)
             {
-                _moduleVersionId = existingConstraints._moduleVersionId;
                 _methodToken = existingConstraints._methodToken;
                 _methodVersion = existingConstraints._methodVersion;
                 _ilOffset = ilOffset;
@@ -119,7 +111,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             public MethodContextReuseConstraints Build()
             {
                 return new MethodContextReuseConstraints(
-                    _moduleVersionId,
                     _methodToken,
                     _methodVersion,
                     _startOffset,

@@ -23,16 +23,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
     {
         // Note: Dev11 uses the source method token as the prefix, rather than a fixed token
         // value, and data field offsets are unique within the method, not across all methods.
-        internal const string SynthesizedStringHashFunctionName = "ComputeStringHash";
+        private const string MemberNamePrefix = "$$method0x6000001-";
+        internal const string SynthesizedStringHashFunctionName = MemberNamePrefix + "ComputeStringHash";
 
-        private readonly Cci.IModule _moduleBuilder;                 //the module builder
-        private readonly Cci.ITypeReference _systemObject;           //base type
-        private readonly Cci.ITypeReference _systemValueType;        //base for nested structs
+        private readonly Cci.IModule _module;                     //parent unit
+        private readonly Cci.ITypeReference _systemObject;        //base type
+        private readonly Cci.ITypeReference _systemValueType;     //base for nested structs
 
-        private readonly Cci.ITypeReference _systemInt8Type;         //for metadata init of byte arrays
+        private readonly Cci.ITypeReference _systemInt8Type;         //for metadata init of short arrays
         private readonly Cci.ITypeReference _systemInt16Type;        //for metadata init of short arrays
-        private readonly Cci.ITypeReference _systemInt32Type;        //for metadata init of int arrays
-        private readonly Cci.ITypeReference _systemInt64Type;        //for metadata init of long arrays
+        private readonly Cci.ITypeReference _systemInt32Type;        //for metadata init of short arrays
+        private readonly Cci.ITypeReference _systemInt64Type;        //for metadata init of short arrays
 
         private readonly Cci.ICustomAttribute _compilerGeneratedAttribute;
 
@@ -56,8 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ConcurrentDictionary<uint, Cci.ITypeReference> _proxyTypes = new ConcurrentDictionary<uint, Cci.ITypeReference>();
 
         internal PrivateImplementationDetails(
-            Cci.IModule moduleBuilder,
-            string moduleName,
+            Cci.IModule module,
             int submissionSlotIndex,
             Cci.ITypeReference systemObject,
             Cci.ITypeReference systemValueType,
@@ -67,10 +67,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.ITypeReference systemInt64Type,
             Cci.ICustomAttribute compilerGeneratedAttribute)
         {
+            Debug.Assert(module != null);
             Debug.Assert(systemObject != null);
             Debug.Assert(systemValueType != null);
 
-            _moduleBuilder = moduleBuilder;
+            _module = module;
             _systemObject = systemObject;
             _systemValueType = systemValueType;
 
@@ -80,14 +81,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _systemInt64Type = systemInt64Type;
 
             _compilerGeneratedAttribute = compilerGeneratedAttribute;
-            _name = GetClassName(moduleName, submissionSlotIndex);
+            _name = GetClassName(submissionSlotIndex);
         }
 
-        internal static string GetClassName(string moduleName, int submissionSlotIndex)
+        internal static string GetClassName(int submissionSlotIndex)
         {
-            // we include the module name in the name of the PrivateImplementationDetails class so that more than
-            // one of them can be included in an assembly as part of netmodules.
-            return $"<PrivateImplementationDetails><{(submissionSlotIndex >= 0 ? submissionSlotIndex.ToString() : moduleName)}>";
+            return "<PrivateImplementationDetails>" + (submissionSlotIndex >= 0 ? submissionSlotIndex.ToString() : "");
         }
 
         internal void Freeze()
@@ -198,8 +197,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.IUnitReference GetUnit(EmitContext context)
         {
-            Debug.Assert(context.Module == _moduleBuilder);
-            return _moduleBuilder;
+            Debug.Assert(context.Module == _module);
+            return _module;
         }
 
         public string NamespaceName => string.Empty;
@@ -215,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 c[i++] = Hexchar(b & 0xF);
             }
 
-            return new string(c);
+            return MemberNamePrefix + new string(c);
         }
 
         private static char Hexchar(int x)

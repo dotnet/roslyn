@@ -1156,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var property = node as BasePropertyDeclarationSyntax;
-            if (property != null && property.AccessorList != null)
+            if (property != null)
             {
                 return property.AccessorList.Accessors.Select(a => a.Body).WhereNotNull();
             }

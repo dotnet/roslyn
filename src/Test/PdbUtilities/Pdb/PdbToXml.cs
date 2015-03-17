@@ -13,9 +13,8 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Xml;
-using Microsoft.CodeAnalysis;
-using Microsoft.DiaSymReader;
-using CDI = Microsoft.CodeAnalysis.CustomDebugInfoReader;
+using Microsoft.VisualStudio.SymReaderInterop;
+using CDI = Microsoft.VisualStudio.SymReaderInterop.CustomDebugInfoReader;
 using CDIC = Microsoft.Cci.CustomDebugInfoConstants;
 using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
 
@@ -1100,7 +1099,7 @@ namespace Roslyn.Test.PdbUtilities
                 _writer.WriteAttributeString("languageVendor", doc.GetLanguageVendor().ToString());
                 _writer.WriteAttributeString("documentType", doc.GetDocumentType().ToString());
 
-                var checkSum = string.Concat(doc.GetChecksum().Select(b => string.Format("{0,2:X}", b) + ", "));
+                var checkSum = string.Concat(doc.GetCheckSum().Select(b => string.Format("{0,2:X}", b) + ", "));
 
                 if (!string.IsNullOrEmpty(checkSum))
                 {

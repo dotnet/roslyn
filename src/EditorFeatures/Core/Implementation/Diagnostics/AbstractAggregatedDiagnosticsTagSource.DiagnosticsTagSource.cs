@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV1;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -22,18 +21,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private class DiagnosticsTagSource
         {
             private readonly AbstractAggregatedDiagnosticsTagSource<TTag> _owner;
-            private readonly object _id;
-
             private readonly AsynchronousSerialWorkQueue _workQueue;
 
             private IntervalTree<Data> _lastDiagnostics;
 
-            public DiagnosticsTagSource(AbstractAggregatedDiagnosticsTagSource<TTag> owner, object id)
+            public DiagnosticsTagSource(AbstractAggregatedDiagnosticsTagSource<TTag> owner)
             {
                 _owner = owner;
-                _id = id;
-
                 _workQueue = new AsynchronousSerialWorkQueue(_owner.Listener);
+
                 _lastDiagnostics = IntervalTree<Data>.Empty;
             }
 
@@ -110,12 +106,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     return;
                 }
 
-                // only follow minimum length for live diagnostic. otherwise, let it be zero length.
-                var minimumLegnth = _id is UpdateArgsId ? _owner.MinimumLength : 0;
-
                 foreach (var data in result)
                 {
-                    var span = data.GetSnapshotSpan(introspector.Snapshot, minimumLegnth);
+                    var span = data.GetSnapshotSpan(introspector.Snapshot, _owner.MinimumLength);
                     if (span.Length == 0)
                     {
                         continue;

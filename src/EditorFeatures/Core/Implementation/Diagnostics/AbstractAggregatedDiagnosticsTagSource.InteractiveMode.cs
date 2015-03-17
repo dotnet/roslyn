@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             private DiagnosticsTagSource GetOrAddTagSource(object id)
             {
-                return _tagSources.GetOrAdd(id, key => new DiagnosticsTagSource(this.Owner, key));
+                return _tagSources.GetOrAdd(id, _ => new DiagnosticsTagSource(this.Owner));
             }
 
             private bool ProcessRemovedDocument(DiagnosticsUpdatedArgs e)

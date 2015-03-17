@@ -77,7 +77,7 @@
     <Compile Include="..\..\..\..\Compilers\VisualBasic\Portable\SymbolDisplay\ObjectDisplay.vb">
       <Link>Compiler\SymbolDisplay\ObjectDisplay.vb</Link>
     </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Portable\Resources.Designer.vb">
+    <Compile Include="..\..\Source\ResultProvider\Resources.Designer.vb">
       <Link>Resources.Designer.vb</Link>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -97,7 +97,7 @@
     <Compile Include="VisualBasicResultProviderTestBase.vb" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\..\Source\ResultProvider\Portable\Resources.resx">
+    <EmbeddedResource Include="..\..\Source\ResultProvider\Resources.resx">
       <Link>Resources.resx</Link>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>

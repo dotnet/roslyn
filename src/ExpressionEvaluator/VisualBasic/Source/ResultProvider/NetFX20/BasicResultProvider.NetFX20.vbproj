@@ -58,7 +58,7 @@
     <Compile Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Syntax\SyntaxKindFacts.vb">
       <Link>Compiler\Syntax\SyntaxKindFacts.vb</Link>
     </Compile>
-    <Compile Include="..\Portable\Resources.Designer.vb">
+    <Compile Include="..\Resources.Designer.vb">
       <Link>Resources.Designer.vb</Link>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -71,7 +71,7 @@
     <Compile Include="$(IntermediateOutputPath)Syntax.xml.Generated.vb" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\Portable\Resources.resx">
+    <EmbeddedResource Include="..\Resources.resx">
       <Link>Resources.resx</Link>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>

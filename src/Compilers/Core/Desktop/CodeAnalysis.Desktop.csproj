@@ -49,7 +49,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AdditionalTextFile.cs" />
-    <Compile Include="AnalyzerFileReference.AssemblyPathHelper.cs" />
     <Compile Include="AnalyzerLoadFailureEventArgs.cs" />
     <Compile Include="AssemblyReferenceResolver.cs" />
     <Compile Include="CodeAnalysisDesktopResources.Designer.cs">

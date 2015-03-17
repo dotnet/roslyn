@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _semanticModelActionsMap = MakeSemanticModelActionsByAnalyzer();
                     _compilationActionsMap = MakeCompilationActionsByAnalyzer(this.analyzerActions.CompilationActions);
                     _compilationEndActionsMap = MakeCompilationActionsByAnalyzer(this.analyzerActions.CompilationEndActions);
-                }, cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
+                }, cancellationToken);
 
                 // create the primary driver task.
                 cancellationToken.ThrowIfCancellationRequested();
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 newOnAnalyzerException = (ex, analyzer, diagnostic) => addDiagnostic(diagnostic);
             }
 
-            var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, newOnAnalyzerException, IsCompilerAnalyzer, analyzerManager, cancellationToken);
+            var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, newOnAnalyzerException, cancellationToken);
             
             analyzerDriver.Initialize(newCompilation, analyzerExecutor, cancellationToken);
 
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             else
             {
-                map[analyzer] = currentTask.ContinueWith(_ => executeAnalyzerActions(), cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
+                map[analyzer] = currentTask.ContinueWith(_ => executeAnalyzerActions(), cancellationToken);
             }
         }
 
@@ -969,6 +969,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal static string DiagnosticDescriptorThrows => CodeAnalysisResources.DiagnosticDescriptorThrows;
         internal static string ArgumentElementCannotBeNull => CodeAnalysisResources.ArgumentElementCannotBeNull;
         internal static string ArgumentCannotBeEmpty => CodeAnalysisResources.ArgumentCannotBeEmpty;
-        internal static string UnsupportedDiagnosticReported => CodeAnalysisResources.UnsupportedDiagnosticReported;
     }
 }

@@ -7,11 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.Isam.Esent.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Esent;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -22,16 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     /// </summary>
     internal partial class PersistentStorageService : IPersistentStorageService
     {
-        /// <summary>
-        /// threshold to start to use esent (50MB)
-        /// </summary>
-        private const int SolutionSizeThreshold = 50 * 1024 * 1024;
-
         internal static readonly IPersistentStorage NoOpPersistentStorageInstance = new NoOpPersistentStorage();
 
         private readonly IOptionService _optionService;
-        private readonly SolutionSizeTracker _solutionSizeTracker;
-
         private readonly object _lookupAccessLock;
         private readonly Dictionary<string, AbstractPersistentStorage> _lookup;
         private readonly bool _testing;
@@ -41,12 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private SolutionId _primarySolutionId;
         private AbstractPersistentStorage _primarySolutionStorage;
 
-        public PersistentStorageService(
-            IOptionService optionService,
-            SolutionSizeTracker solutoinSizeTracker)
+        public PersistentStorageService(IOptionService optionService)
         {
             _optionService = optionService;
-            _solutionSizeTracker = solutoinSizeTracker;
 
             _lookupAccessLock = new object();
             _lookup = new Dictionary<string, AbstractPersistentStorage>();
@@ -62,13 +50,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _testing = true;
         }
 
-        public PersistentStorageService(IOptionService optionService) : this(optionService, null)
-        {
-        }
-
         public IPersistentStorage GetStorage(Solution solution)
         {
-            if (!ShouldUseEsent(solution))
+            if (solution.FilePath == null)
             {
                 return NoOpPersistentStorageInstance;
             }
@@ -94,25 +78,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return NoOpPersistentStorageInstance;
             }
 
-            return GetStorage(solution, workingFolderPath);
-        }
-
-        private IPersistentStorage GetStorage(Solution solution, string workingFolderPath)
-        {
             lock (_lookupAccessLock)
             {
                 // see whether we have something we can use
                 AbstractPersistentStorage storage;
                 if (_lookup.TryGetValue(solution.FilePath, out storage))
                 {
-                    // previous attempt to create esent storage failed.
-                    if (storage == null && !SolutionSizeAboveThreshold(solution))
+                    // previous attempt to create esent storage failed, don't try again within same VS session
+                    // just don't use esent within this same vs session
+                    if (storage == null)
                     {
                         return NoOpPersistentStorageInstance;
                     }
 
                     // everything seems right, use what we have
-                    if (storage?.WorkingFolderPath == workingFolderPath)
+                    if (storage.WorkingFolderPath == workingFolderPath)
                     {
                         storage.AddRefUnsafe();
                         return storage;
@@ -122,13 +102,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // either this is the first time, or working folder path has changed.
                 // remove existing one
                 _lookup.Remove(solution.FilePath);
-
-                var dbFile = EsentPersistentStorage.GetDatabaseFile(workingFolderPath);
-                if (!File.Exists(dbFile) && !SolutionSizeAboveThreshold(solution))
-                {
-                    _lookup.Add(solution.FilePath, storage);
-                    return NoOpPersistentStorageInstance;
-                }
 
                 // try create new one
                 storage = TryCreateEsentStorage(workingFolderPath, solution.FilePath);
@@ -144,38 +117,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 return NoOpPersistentStorageInstance;
             }
-        }
-
-        private bool ShouldUseEsent(Solution solution)
-        {
-            if (_testing)
-            {
-                return true;
-            }
-
-            // we only use esent for primary solution. (Ex, forked solution will not use esent)
-            if (solution.BranchId != solution.Workspace.PrimaryBranchId || solution.FilePath == null)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        private bool SolutionSizeAboveThreshold(Solution solution)
-        {
-            if (_testing)
-            {
-                return true;
-            }
-
-            if (_solutionSizeTracker == null)
-            {
-                return false;
-            }
-
-            var size = _solutionSizeTracker.GetSolutionSize(solution.Workspace, solution.Id);
-            return size > SolutionSizeThreshold;
         }
 
         private void RegisterPrimarySolutionStorageIfNeeded(Solution solution, AbstractPersistentStorage storage)
@@ -200,6 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var vsWorkspace = solution.Workspace as VisualStudioWorkspaceImpl;
             if (vsWorkspace == null)
             {
+                // we can't get to working path.
                 return null;
             }
 

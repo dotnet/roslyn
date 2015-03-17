@@ -917,28 +917,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SyntaxNode lambdaOrLambdaBodySyntax;
             var anonymousFunction = syntax as AnonymousFunctionExpressionSyntax;
-            bool isLambdaBody;
-
             if (anonymousFunction != null)
             {
                 lambdaOrLambdaBodySyntax = anonymousFunction.Body;
-                isLambdaBody = true;
             }
-            else if (LambdaUtilities.IsQueryPairLambda(syntax))
+            else if (SyntaxFacts.IsQueryPairLambda(syntax))
             {
                 // "pair" query lambdas
                 lambdaOrLambdaBodySyntax = syntax;
-                isLambdaBody = false;
                 Debug.Assert(closureKind == ClosureKind.Static);
             }
             else
             {
                 // query lambdas
+                Debug.Assert(SyntaxFacts.IsLambdaBody(syntax));
                 lambdaOrLambdaBodySyntax = syntax;
-                isLambdaBody = true;
             }
-
-            Debug.Assert(!isLambdaBody || LambdaUtilities.IsLambdaBody(lambdaOrLambdaBodySyntax));
 
             // determine lambda ordinal and calculate syntax offset:
             lambdaOrdinal = _lambdaDebugInfoBuilder.Count;
@@ -947,7 +941,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int previousLambdaOrdinal;
             if (slotAllocatorOpt != null &&
-                slotAllocatorOpt.TryGetPreviousLambda(lambdaOrLambdaBodySyntax, isLambdaBody, out previousLambdaOrdinal))
+                slotAllocatorOpt.TryGetPreviousLambda(
+                    lambdaOrLambdaBodySyntax,
+                    !SyntaxFacts.IsQueryPairLambda(lambdaOrLambdaBodySyntax),
+                    out previousLambdaOrdinal))
             {
                 topLevelMethodId = slotAllocatorOpt.PreviousMethodId;
                 lambdaOrdinal = previousLambdaOrdinal;

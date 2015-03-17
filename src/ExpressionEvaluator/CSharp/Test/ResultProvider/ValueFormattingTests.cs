@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Xunit;
@@ -84,8 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // as a few double-byte characters.  Testing all possible characters takes too long.
             const string format = "{0} '{1}'";
             const string formatUsingHex = "0x{0:x4} '{1}'";
-            char ch;
-            for (ch = (char)0; ch < 0xff; ch++)
+            for (char ch = (char)0; ch < 0xff; ch++)
             {
                 string expected;
                 switch (ch)
@@ -121,28 +119,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         expected = "\\\\";
                         break;
                     default:
-                        expected = FormatStringChar(ch);
+                        expected = ch.ToString();
                         break;
                 }
                 Assert.Equal(string.Format(format, (int)ch, expected), FormatValue(ch));
                 Assert.Equal(string.Format(formatUsingHex, (int)ch, expected), FormatValue(ch, useHexadecimal: true));
             }
 
-            ch = (char)0xabcd;
-            Assert.Equal(string.Format(format, (int)ch, ch), FormatValue(ch));
-            Assert.Equal(string.Format(formatUsingHex, (int)ch, ch), FormatValue(ch, useHexadecimal: true));
+            foreach (char ch in new[] { (char)0xabcd, (char)0xfeef, (char)0xffef })
+            {
+                Assert.Equal(string.Format(format, (int)ch, ch), FormatValue(ch));
+                Assert.Equal(string.Format(formatUsingHex, (int)ch, ch), FormatValue(ch, useHexadecimal: true));
+            }
 
-            ch = (char)0xfeef;
-            Assert.Equal(string.Format(format, (int)ch, ch), FormatValue(ch));
-            Assert.Equal(string.Format(formatUsingHex, (int)ch, ch), FormatValue(ch, useHexadecimal: true));
-
-            ch = (char)0xffef;
-            Assert.Equal("65519 '\\uffef'", FormatValue(ch));
-            Assert.Equal("0xffef '\\uffef'", FormatValue(ch, useHexadecimal: true));
-
-            ch = char.MaxValue;
-            Assert.Equal("65535 '\\uffff'", FormatValue(ch));
-            Assert.Equal("0xffff '\\uffff'", FormatValue(ch, useHexadecimal: true));
+            Assert.Equal("65535 '\uffff'", FormatValue(char.MaxValue));
+            Assert.Equal("0xffff '\uffff'", FormatValue(char.MaxValue, useHexadecimal: true));
         }
 
         [Fact]
@@ -190,39 +181,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         expected = "\\\\";
                         break;
                     default:
-                        expected = FormatStringChar(ch);
+                        expected = ch.ToString();
                         break;
                 }
                 Assert.Equal(string.Format(format, expected), FormatValue(ch.ToString()));
                 Assert.Equal(string.Format(format, expected), FormatValue(ch.ToString(), useHexadecimal: true));
             }
 
-            var s = ((char)0xabcd).ToString();
-            Assert.Equal(string.Format(format, s), FormatValue(s));
-            Assert.Equal(string.Format(format, s), FormatValue(s, useHexadecimal: true));
+            foreach (char ch in new[] { (char)0xabcd, (char)0xfeef, (char)0xffef })
+            {
+                Assert.Equal(string.Format(format, ch), FormatValue(ch.ToString()));
+                Assert.Equal(string.Format(format, ch), FormatValue(ch.ToString(), useHexadecimal: true));
+            }
 
-            s = ((char)0xfeef).ToString();
-            Assert.Equal(string.Format(format, s), FormatValue(s));
-            Assert.Equal(string.Format(format, s), FormatValue(s, useHexadecimal: true));
-
-            s = ((char)0xffef).ToString();
-            Assert.Equal("\"\\uffef\"", FormatValue(s));
-            Assert.Equal("\"\\uffef\"", FormatValue(s, useHexadecimal: true));
-
-            s = char.MaxValue.ToString();
-            Assert.Equal("\"\\uffff\"", FormatValue(s));
-            Assert.Equal("\"\\uffff\"", FormatValue(s, useHexadecimal: true));
+            Assert.Equal("\"\uffff\"", FormatValue(char.MaxValue.ToString()));
+            Assert.Equal("\"\uffff\"", FormatValue(char.MaxValue.ToString(), useHexadecimal: true));
 
             string multiByte = "\ud83c\udfc8";
             Assert.Equal(string.Format(format, "🏈"), FormatValue(multiByte));
             Assert.Equal(string.Format(format, "🏈"), FormatValue(multiByte, useHexadecimal: true));
-        }
-
-        private static string FormatStringChar(char c)
-        {
-            return (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Control) ?
-                $"\\u{((int)c).ToString("x4")}" :
-                c.ToString();
         }
 
         [Fact]

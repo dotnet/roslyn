@@ -19,18 +19,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Formats the value of the current instance using the optionally specified format. 
         /// </summary>
-        public string ToString(IFormatProvider formatProvider)
-        {
-            try
-            {
-                return GetText(formatProvider);
-            }
-            catch (Exception ex)
-            {
-                RaiseOnException(ex);
-                return string.Empty;
-            }
-        }
+        public abstract string ToString(IFormatProvider formatProvider);
 
         public static explicit operator string (LocalizableString localizableResource)
         {
@@ -52,58 +41,52 @@ namespace Microsoft.CodeAnalysis
             return ToString(formatProvider);
         }
 
-        public sealed override int GetHashCode()
+        public abstract override int GetHashCode();
+        public abstract bool Equals(LocalizableString other);
+
+        public override bool Equals(object other)
+        {
+            return Equals(other as LocalizableString);
+        }
+
+        internal LocalizableString MakeExceptionSafe()
+        {
+            if (this is FixedLocalizableString || this is LocalizableResourceString)
+            {
+                // These are already sealed types which have exception safe implementations.
+                return this;
+            }
+
+            // Wrap the localizableString within an ExceptionSafeLocalizableString.
+            return new ExceptionSafeLocalizableString(this);
+        }
+
+        internal T ExecuteAndCatchIfThrows<T>(Func<T> action, T defaulValueOnException)
         {
             try
             {
-                return GetHash();
+                return action();
             }
             catch (Exception ex)
             {
                 RaiseOnException(ex);
-                return 0;
+                return defaulValueOnException;
             }
         }
 
-        public sealed override bool Equals(object other)
+        internal T ExecuteAndCatchIfThrows<U, T>(Func<U, T> action, U argument, T defaulValueOnException)
         {
             try
             {
-                return AreEqual(other);
+                return action(argument);
             }
             catch (Exception ex)
             {
                 RaiseOnException(ex);
-                return false;
+                return defaulValueOnException;
             }
         }
 
-        public bool Equals(LocalizableString other)
-        {
-            return Equals((object)other);
-        }
-
-        /// <summary>
-        /// Formats the value of the current instance using the optionally specified format.
-        /// Provides the implementation of ToString. ToString will provide a default value
-        /// if this method throws an exception.
-        /// </summary>
-        protected abstract string GetText(IFormatProvider formatProvider);
-
-        /// <summary>
-        /// Provides the implementation of GetHashCode. GetHashCode will provide a default value
-        /// if this method throws an exception.
-        /// </summary>
-        /// <returns></returns>
-        protected abstract int GetHash();
-
-        /// <summary>
-        /// Provides the implementation of Equals. Equals will provide a default value
-        /// if this method throws an exception.
-        /// </summary>
-        /// <returns></returns>
-        protected abstract bool AreEqual(object other);
-        
         private void RaiseOnException(Exception ex)
         {
             if (ex is OperationCanceledException)

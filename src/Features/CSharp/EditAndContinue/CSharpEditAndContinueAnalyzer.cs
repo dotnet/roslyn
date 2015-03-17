@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using CompilerSyntaxUtilities = Microsoft.CodeAnalysis.CSharp.SyntaxUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
@@ -119,10 +120,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return SyntaxUtilities.TryGetMethodDeclarationBody(node);
         }
 
-        protected override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model, SyntaxNode memberBody)
+        protected override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model, SyntaxNode body)
         {
-            Debug.Assert(memberBody.IsKind(SyntaxKind.Block) || memberBody is ExpressionSyntax);
-            return model.AnalyzeDataFlow(memberBody).Captured;
+            Debug.Assert(body.IsKind(SyntaxKind.Block) || body is ExpressionSyntax);
+            return model.AnalyzeDataFlow(body).Captured;
         }
 
         internal override bool HasParameterClosureScope(ISymbol member)
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return (member as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
         }
 
-        protected override IEnumerable<SyntaxNode> GetVariableUseSites(IEnumerable<SyntaxNode> roots, ISymbol localOrParameter, SemanticModel model, CancellationToken cancellationToken)
+        protected override IEnumerable<SyntaxNode> GetVariableUseSites(SyntaxList<SyntaxNode> roots, ISymbol localOrParameter, SemanticModel model, CancellationToken cancellationToken)
         {
             Debug.Assert(localOrParameter is IParameterSymbol || localOrParameter is ILocalSymbol);
 
@@ -289,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 partnerOpt = null;
             }
 
-            while (node != declarationBody && !StatementSyntaxComparer.HasLabel(node) && !LambdaUtilities.IsLambdaBodyStatementOrExpression(node))
+            while (node != declarationBody && !StatementSyntaxComparer.HasLabel(node) && !SyntaxUtilities.IsLambdaBodyStatementOrExpression(node))
             {
                 node = node.Parent;
                 if (partnerOpt != null)
@@ -388,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override bool IsClosureScope(SyntaxNode node)
         {
-            return LambdaUtilities.IsClosureScope(node);
+            return CompilerSyntaxUtilities.IsClosureScope(node);
         }
 
         protected override SyntaxNode FindEnclosingLambdaBody(SyntaxNode containerOpt, SyntaxNode node)
@@ -398,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             while (node != root)
             {
                 SyntaxNode body;
-                if (LambdaUtilities.IsLambdaBodyStatementOrExpression(node, out body))
+                if (SyntaxUtilities.IsLambdaBodyStatementOrExpression(node, out body))
                 {
                     return body;
                 }
@@ -409,14 +410,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return null;
         }
 
-        protected override IEnumerable<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody)
+        protected override SyntaxList<SyntaxNode> GetLambdaBodyNodes(SyntaxNode lambdaBody)
         {
-            return SpecializedCollections.SingletonEnumerable(lambdaBody);
+            return SyntaxFactory.SingletonList(lambdaBody);
         }
 
         protected override SyntaxNode GetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
         {
-            return LambdaUtilities.GetCorrespondingLambdaBody(oldBody, newLambda);
+            return CompilerSyntaxUtilities.GetCorrespondingLambdaBody(oldBody, newLambda);
         }
 
         protected override Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit)
@@ -879,27 +880,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override bool ContainsLambda(SyntaxNode declaration)
         {
-            return declaration.DescendantNodes().Any(LambdaUtilities.IsLambda);
+            return declaration.DescendantNodes().Any(SyntaxUtilities.IsLambda);
         }
 
         internal override bool IsLambda(SyntaxNode node)
         {
-            return LambdaUtilities.IsLambda(node);
-        }
-
-        internal override bool IsLambdaExpression(SyntaxNode node)
-        {
-            return node is LambdaExpressionSyntax;
+            return SyntaxUtilities.IsLambda(node);
         }
 
         internal override bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2)
         {
-            return LambdaUtilities.TryGetLambdaBodies(node, out body1, out body2);
-        }
-
-        internal override SyntaxNode GetLambda(SyntaxNode lambdaBody)
-        {
-            return LambdaUtilities.GetLambda(lambdaBody);
+            return SyntaxUtilities.TryGetLambdaBodies(node, out body1, out body2);
         }
 
         #endregion
@@ -2617,7 +2608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 // stop at lambda:
-                if (LambdaUtilities.IsLambda(node))
+                if (SyntaxUtilities.IsLambda(node))
                 {
                     return result;
                 }
@@ -2780,7 +2771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return node;
                 }
 
-                if (LambdaUtilities.IsLambdaBodyStatementOrExpression(node))
+                if (SyntaxUtilities.IsLambdaBodyStatementOrExpression(node))
                 {
                     return node;
                 }

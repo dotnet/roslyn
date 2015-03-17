@@ -678,11 +678,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetCorrespondingLambdaBody(body As SyntaxNode) As SyntaxNode
-            Return LambdaUtilities.GetCorrespondingLambdaBody(body, Me)
+            Return SyntaxUtilities.GetCorrespondingLambdaBody(body, Me)
         End Function
 
-        Friend Overrides Function GetLambda() As SyntaxNode
-            Return LambdaUtilities.GetLambda(Me)
-        End Function
     End Class
 End Namespace

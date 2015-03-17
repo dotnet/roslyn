@@ -86,7 +86,7 @@
     <Compile Include="..\..\..\..\Compilers\CSharp\Portable\SymbolDisplay\ObjectDisplay.cs">
       <Link>Compiler\SymbolDisplay\ObjectDisplay.cs</Link>
     </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Portable\Resources.Designer.cs">
+    <Compile Include="..\..\Source\ResultProvider\Resources.Designer.cs">
       <Link>Resources.Designer.cs</Link>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -111,7 +111,7 @@
     <Compile Include="ValueFormattingTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\..\Source\ResultProvider\Portable\Resources.resx">
+    <EmbeddedResource Include="..\..\Source\ResultProvider\Resources.resx">
       <Link>Resources.resx</Link>
       <CustomToolNamespace>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator</CustomToolNamespace>
       <Generator>ResXFileCodeGenerator</Generator>

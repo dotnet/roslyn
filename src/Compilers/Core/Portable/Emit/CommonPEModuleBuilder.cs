@@ -28,13 +28,16 @@ namespace Microsoft.CodeAnalysis.Emit
     /// <summary>
     /// Common base class for C# and VB PE module builder.
     /// </summary>
-    internal abstract class PEModuleBuilder<TCompilation, TSourceModuleSymbol, TAssemblySymbol, TTypeSymbol, TNamedTypeSymbol, TMethodSymbol, TSyntaxNode, TEmbeddedTypesManager, TModuleCompilationState> : CommonPEModuleBuilder, Cci.IModule, ITokenDeferral
+    internal abstract class PEModuleBuilder<TCompilation, TSymbol, TSourceModuleSymbol, TModuleSymbol, TAssemblySymbol, TNamespaceSymbol, TTypeSymbol, TNamedTypeSymbol, TMethodSymbol, TSyntaxNode, TEmbeddedTypesManager, TModuleCompilationState> : CommonPEModuleBuilder, Cci.IModule, ITokenDeferral
         where TCompilation : Compilation
-        where TSourceModuleSymbol : class, IModuleSymbol
-        where TAssemblySymbol : class
-        where TTypeSymbol : class
+        where TSymbol : class
+        where TSourceModuleSymbol : class, TModuleSymbol
+        where TModuleSymbol : class, TSymbol
+        where TAssemblySymbol : class, TSymbol
+        where TNamespaceSymbol : class, TSymbol
+        where TTypeSymbol : class, TSymbol
         where TNamedTypeSymbol : class, TTypeSymbol, Cci.INamespaceTypeDefinition
-        where TMethodSymbol : class, Cci.IMethodDefinition
+        where TMethodSymbol : class, TSymbol, Cci.IMethodDefinition
         where TSyntaxNode : SyntaxNode
         where TEmbeddedTypesManager : NoPia.CommonEmbeddedTypesManager
         where TModuleCompilationState : ModuleCompilationState<TNamedTypeSymbol, TMethodSymbol>
@@ -651,7 +654,6 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 result = new PrivateImplementationDetails(
                         this,
-                        this.SourceModule.Name,
                         _compilation.GetSubmissionSlotIndex(),
                         this.GetSpecialType(SpecialType.System_Object, syntaxNodeOpt, diagnostics),
                         this.GetSpecialType(SpecialType.System_ValueType, syntaxNodeOpt, diagnostics),

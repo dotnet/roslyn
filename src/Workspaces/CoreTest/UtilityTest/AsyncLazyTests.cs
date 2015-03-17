@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     synchronousRequestThread = null;
                 }
-            }, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Current);
+            }, CancellationToken.None);
 
             // Wait until this request has actually started
             synchronousComputationStartedEvent.WaitOne();

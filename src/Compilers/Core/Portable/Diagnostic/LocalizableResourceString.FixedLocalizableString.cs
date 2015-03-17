@@ -30,18 +30,18 @@ namespace Microsoft.CodeAnalysis
                 _fixedString = fixedResource;
             }
 
-            protected override string GetText(IFormatProvider formatProvider)
+            public override string ToString(IFormatProvider formatProvider)
             {
                 return _fixedString;
             }
 
-            protected override bool AreEqual(object other)
+            public override bool Equals(LocalizableString other)
             {
                 var fixedStr = other as FixedLocalizableString;
-                return fixedStr != null && string.Equals(_fixedString, fixedStr._fixedString);
+                return fixedStr != null && string.Equals(_fixedString, fixedStr.ToString());
             }
 
-            protected override int GetHash()
+            public override int GetHashCode()
             {
                 return _fixedString != null ? _fixedString.GetHashCode() : 0;
             }

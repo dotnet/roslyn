@@ -1322,7 +1322,7 @@ class Test
 
             var expectedText =
 @"using System;
-using static Outer;
+using Outer;
 
 public static class Outer
 {
@@ -1364,7 +1364,7 @@ class Test
 
             var expectedText =
 @"using System;
-using static Outer.Inner;
+using Outer.Inner;
 
 public static class Outer
 {
@@ -1434,7 +1434,7 @@ class Test
             var expectedText =
 @"using System;
 using Outer;
-using static Outer.Inner;
+using Outer.Inner;
 
 public static class Outer
 {

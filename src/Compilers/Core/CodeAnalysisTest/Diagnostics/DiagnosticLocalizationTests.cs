@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var analyzer = new MyAnalyzer(descriptor);
             var exceptionDiagnostics = new List<Diagnostic>();
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diag) => exceptionDiagnostics.Add(diag);
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, AnalyzerManager.Instance, CancellationToken.None);
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, CancellationToken.None);
             var descriptors = AnalyzerManager.Instance.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
 
             Assert.Equal(1, descriptors.Length);
@@ -356,17 +356,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private class ThrowingLocalizableString : LocalizableString
         {
-            protected override bool AreEqual(object other)
+            public override bool Equals(LocalizableString other)
             {
                 throw new NotImplementedException();
             }
 
-            protected override int GetHash()
+            public override int GetHashCode()
             {
                 throw new NotImplementedException();
             }
 
-            protected override string GetText(IFormatProvider formatProvider)
+            public override string ToString(IFormatProvider formatProvider)
             {
                 throw new NotImplementedException();
             }

@@ -4,11 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
-namespace Microsoft.DiaSymReader
+namespace Microsoft.VisualStudio.SymReaderInterop
 {
     internal struct AsyncStepInfo : IEquatable<AsyncStepInfo>
     {
@@ -165,13 +166,13 @@ namespace Microsoft.DiaSymReader
         /// </summary>
         public static byte[] GetCustomDebugInfoBytes(this ISymUnmanagedReader reader, int methodToken, int methodVersion)
         {
-            return GetItems(reader, methodToken, CdiAttributeName,
-                (ISymUnmanagedReader a, int b, string c, int d, out int e, byte[] f) => a.GetSymAttribute(b, c, d, out e, f));
+            return GetItems(reader, new SymbolToken(methodToken), CdiAttributeName,
+                (ISymUnmanagedReader a, SymbolToken b, string c, int d, out int e, byte[] f) => a.GetSymAttribute(b, c, d, out e, f));
         }
 
         public static int GetUserEntryPoint(this ISymUnmanagedReader symReader)
         {
-            int entryPoint;
+            SymbolToken entryPoint;
             int hr = symReader.GetUserEntryPoint(out entryPoint);
             if (hr == E_FAIL)
             {
@@ -181,7 +182,7 @@ namespace Microsoft.DiaSymReader
             }
 
             ThrowExceptionForHR(hr);
-            return entryPoint;
+            return entryPoint.GetToken();
         }
 
         public static ImmutableArray<ISymUnmanagedDocument> GetDocuments(this ISymUnmanagedReader reader)
@@ -192,22 +193,22 @@ namespace Microsoft.DiaSymReader
 
         public static int GetToken(this ISymUnmanagedMethod method)
         {
-            int token;
+            SymbolToken token;
             int hr = method.GetToken(out token);
             ThrowExceptionForHR(hr);
-            return token;
+            return token.GetToken();
         }
 
         public static ImmutableArray<ISymUnmanagedDocument> GetDocumentsForMethod(this ISymUnmanagedMethod method)
         {
-            return ToImmutableOrEmpty(GetItems((ISymEncUnmanagedMethod)method,
-                (ISymEncUnmanagedMethod a, out int b) => a.GetDocumentsForMethodCount(out b),
-                (ISymEncUnmanagedMethod a, int b, out int c, ISymUnmanagedDocument[] d) => a.GetDocumentsForMethod(b, out c, d)));
+            return ToImmutableOrEmpty(GetItems((ISymENCUnmanagedMethod)method,
+                (ISymENCUnmanagedMethod a, out int b) => a.GetDocumentsForMethodCount(out b),
+                (ISymENCUnmanagedMethod a, int b, out int c, ISymUnmanagedDocument[] d) => a.GetDocumentsForMethod(b, out c, d)));
         }
 
         public static void GetSourceExtentInDocument(this ISymUnmanagedMethod method, ISymUnmanagedDocument document, out int startLine, out int endLine)
         {
-            var symMethodEnc = (ISymEncUnmanagedMethod)method;
+            var symMethodEnc = (ISymENCUnmanagedMethod)method;
             int hr = symMethodEnc.GetSourceExtentInDocument(document, out startLine, out endLine);
             ThrowExceptionForHR(hr);
         }
@@ -215,7 +216,13 @@ namespace Microsoft.DiaSymReader
         public static ImmutableArray<ISymUnmanagedMethod> GetMethodsInDocument(this ISymUnmanagedReader reader, ISymUnmanagedDocument symDocument)
         {
             return ToImmutableOrEmpty(GetItems((ISymUnmanagedReader2)reader, symDocument,
-                (ISymUnmanagedReader2 a, ISymUnmanagedDocument b, int c, out int d, ISymUnmanagedMethod[] e) => a.GetMethodsInDocument(b, c, out d, e)));
+                (ISymUnmanagedReader2 a, ISymUnmanagedDocument b, int c, out int d, ISymUnmanagedMethod[] e) =>
+                {
+                    uint ud;
+                    var result = a.GetMethodsInDocument(b, (uint)c, out ud, e);
+                    d = (int)ud;
+                    return result;
+                }));
         }
 
         public static ISymUnmanagedMethod GetMethod(this ISymUnmanagedReader reader, int methodToken)
@@ -226,7 +233,7 @@ namespace Microsoft.DiaSymReader
         public static ISymUnmanagedMethod GetMethodByVersion(this ISymUnmanagedReader reader, int methodToken, int methodVersion)
         {
             ISymUnmanagedMethod method = null;
-            int hr = reader.GetMethodByVersion(methodToken, methodVersion, out method);
+            int hr = reader.GetMethodByVersion(new SymbolToken(methodToken), methodVersion, out method);
             ThrowExceptionForHR(hr);
 
             if (hr < 0)
@@ -242,13 +249,13 @@ namespace Microsoft.DiaSymReader
         internal static string GetName(this ISymUnmanagedDocument document)
         {
             return ToString(GetItems(document,
-                (ISymUnmanagedDocument a, int b, out int c, char[] d) => a.GetUrl(b, out c, d)));
+                (ISymUnmanagedDocument a, int b, out int c, char[] d) => a.GetURL(b, out c, d)));
         }
 
-        public static ImmutableArray<byte> GetChecksum(this ISymUnmanagedDocument document)
+        public static ImmutableArray<byte> GetCheckSum(this ISymUnmanagedDocument document)
         {
             return ToImmutableOrEmpty(GetItems(document,
-                (ISymUnmanagedDocument a, int b, out int c, byte[] d) => a.GetChecksum(b, out c, d)));
+                (ISymUnmanagedDocument a, int b, out int c, byte[] d) => a.GetCheckSum(b, out c, d)));
         }
 
         public static Guid GetLanguage(this ISymUnmanagedDocument document)
@@ -278,7 +285,7 @@ namespace Microsoft.DiaSymReader
         public static Guid GetHashAlgorithm(this ISymUnmanagedDocument document)
         {
             Guid result = default(Guid);
-            int hr = document.GetChecksumAlgorithmId(ref result);
+            int hr = document.GetCheckSumAlgorithmId(ref result);
             ThrowExceptionForHR(hr);
             return result;
         }
@@ -559,23 +566,23 @@ namespace Microsoft.DiaSymReader
                 return -1;
             }
 
-            int result;
+            uint result;
             hr = asyncMethod.GetCatchHandlerILOffset(out result);
             ThrowExceptionForHR(hr);
-            return result;
+            return (int)result;
         }
 
         public static int GetKickoffMethod(this ISymUnmanagedAsyncMethod asyncMethod)
         {
-            int result;
+            uint result;
             int hr = asyncMethod.GetKickoffMethod(out result);
             ThrowExceptionForHR(hr);
-            return result;
+            return (int)result;
         }
 
         public static IEnumerable<AsyncStepInfo> GetAsyncStepInfos(this ISymUnmanagedAsyncMethod asyncMethod)
         {
-            int count;
+            uint count;
             int hr = asyncMethod.GetAsyncStepInfoCount(out count);
             ThrowExceptionForHR(hr);
             if (count == 0)
@@ -583,18 +590,18 @@ namespace Microsoft.DiaSymReader
                 yield break;
             }
 
-            var yieldOffsets = new int[count];
-            var breakpointOffsets = new int[count];
-            var breakpointMethods = new int[count];
+            var yieldOffsets = new uint[count];
+            var breakpointOffsets = new uint[count];
+            var breakpointMethods = new uint[count];
             hr = asyncMethod.GetAsyncStepInfo(count, out count, yieldOffsets, breakpointOffsets, breakpointMethods);
             ThrowExceptionForHR(hr);
-            ValidateItems(count, yieldOffsets.Length);
-            ValidateItems(count, breakpointOffsets.Length);
-            ValidateItems(count, breakpointMethods.Length);
+            ValidateItems((int)count, yieldOffsets.Length);
+            ValidateItems((int)count, breakpointOffsets.Length);
+            ValidateItems((int)count, breakpointMethods.Length);
 
             for (int i = 0; i < count; i++)
             {
-                yield return new AsyncStepInfo(yieldOffsets[i], breakpointOffsets[i], breakpointMethods[i]);
+                yield return new AsyncStepInfo((int)yieldOffsets[i], (int)breakpointOffsets[i], (int)breakpointMethods[i]);
             }
         }
     }

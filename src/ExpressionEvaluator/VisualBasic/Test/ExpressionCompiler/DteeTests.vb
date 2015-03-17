@@ -7,7 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.DiaSymReader
+Imports Microsoft.VisualStudio.SymReaderInterop
 Imports Roslyn.Test.Utilities
 Imports Xunit
 

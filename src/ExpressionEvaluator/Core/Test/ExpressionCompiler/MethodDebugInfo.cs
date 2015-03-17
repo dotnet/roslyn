@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Utilities;
-using Microsoft.DiaSymReader;
+using Microsoft.VisualStudio.SymReaderInterop;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator

@@ -81,13 +81,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        public class ArgumentKey : UpdateArgsId
+        public class ArgumentKey
         {
+            public readonly DiagnosticAnalyzer Analyzer;
             public readonly StateType StateType;
             public readonly object Key;
 
-            public ArgumentKey(DiagnosticAnalyzer analyzer, StateType stateTypeId, object key) : base(analyzer)
+            public ArgumentKey(DiagnosticAnalyzer analyzer, StateType stateTypeId, object key)
             {
+                this.Analyzer = analyzer;
                 this.StateType = stateTypeId;
                 this.Key = key;
             }
@@ -100,12 +102,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return false;
                 }
 
-                return base.Equals(obj) && StateType == other.StateType && Key == other.Key;
+                return Analyzer == other.Analyzer && StateType == other.StateType && Key == other.Key;
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(Key, Hash.Combine(base.GetHashCode(), (int)StateType));
+                return Hash.Combine(Key, Hash.Combine(Analyzer.GetHashCode(), (int)StateType));
             }
         }
     }

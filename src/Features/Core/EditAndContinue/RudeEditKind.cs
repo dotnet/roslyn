@@ -71,7 +71,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         NotAccessingCapturedVariableInLambda = 56,
         InsertLambdaWithMultiScopeCapture = 57,
         DeleteLambdaWithMultiScopeCapture = 58,
-        ChangingQueryLambdaType = 59,
+
+        // 59 can be used
 
         InsertAroundActiveStatement = 60,
         DeleteAroundActiveStatement = 61,
@@ -88,8 +89,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         // TODO: remove values below
         RUDE_EDIT_ANON_METHOD = 0x100,
-        RUDE_EDIT_LAMBDA_EXPRESSION = 0x101,
-        RUDE_EDIT_QUERY_EXPRESSION = 0x102,
-        RUDE_EDIT_COMPLEX_QUERY_EXPRESSION = 0x103,
+        RUDE_EDIT_LAMBDA_EXPRESSION,
+        RUDE_EDIT_QUERY_EXPRESSION,
+        RUDE_EDIT_COMPLEX_QUERY_EXPRESSION
     }
 }

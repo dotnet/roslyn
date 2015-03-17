@@ -148,28 +148,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
 
         private static bool IsBadProperty(SyntaxNode node)
         {
-            return IsBadAccessorList(node as PropertyDeclarationSyntax);
+            var propDecl = node as PropertyDeclarationSyntax;
+            if (propDecl != null)
+            {
+                if (propDecl.AccessorList.OpenBraceToken.IsMissing ||
+                    propDecl.AccessorList.CloseBraceToken.IsMissing)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool IsBadEvent(SyntaxNode node)
         {
-            return IsBadAccessorList(node as EventDeclarationSyntax);
+            var eventDecl = node as EventDeclarationSyntax;
+            if (eventDecl != null)
+            {
+                if (eventDecl.AccessorList.OpenBraceToken.IsMissing ||
+                    eventDecl.AccessorList.CloseBraceToken.IsMissing)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool IsBadIndexer(SyntaxNode node)
         {
-            return IsBadAccessorList(node as IndexerDeclarationSyntax);
-        }
-
-        private static bool IsBadAccessorList(BasePropertyDeclarationSyntax baseProperty)
-        {
-            if (baseProperty?.AccessorList == null)
+            var indexerDecl = node as IndexerDeclarationSyntax;
+            if (indexerDecl != null)
             {
-                return false;
+                if (indexerDecl.AccessorList.OpenBraceToken.IsMissing ||
+                    indexerDecl.AccessorList.CloseBraceToken.IsMissing)
+                {
+                    return true;
+                }
             }
 
-            return baseProperty.AccessorList.OpenBraceToken.IsMissing ||
-                baseProperty.AccessorList.CloseBraceToken.IsMissing;
+            return false;
         }
 
         private static bool IsBadConstructor(SyntaxNode node)

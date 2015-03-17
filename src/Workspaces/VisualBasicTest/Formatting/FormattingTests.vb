@@ -4203,42 +4203,5 @@ End Class
             AssertFormatLf2CrLf(text.Value, expected.Value)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Sub EmptyCaseBlockCommentGetsIndented()
-            Dim text = <Code>
-Class Program
-    Sub Main(args As String())
-        Dim s = 0
-        Select Case s
-            Case 0
-            ' Comment should be indented
-            Case 2
-                ' comment
-                Console.WriteLine(s)
-            Case 4
-        End Select
-    End Sub
-End Class
-</Code>
-
-            Dim expected = <Code>
-Class Program
-    Sub Main(args As String())
-        Dim s = 0
-        Select Case s
-            Case 0
-                ' Comment should be indented
-            Case 2
-                ' comment
-                Console.WriteLine(s)
-            Case 4
-        End Select
-    End Sub
-End Class
-</Code>
-
-            AssertFormatLf2CrLf(text.Value, expected.Value)
-        End Sub
-
     End Class
 End Namespace

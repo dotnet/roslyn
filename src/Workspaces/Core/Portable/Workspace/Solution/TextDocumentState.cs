@@ -140,10 +140,9 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetTextVersion(out VersionStamp version)
         {
             // try fast path first
-            var versionable = this.textSource as ITextVersionable;
-            if (versionable != null)
+            if (TryGetTextVersionFromRecoverableTextAndVersion(out version))
             {
-                return versionable.TryGetTextVersion(out version);
+                return true;
             }
 
             TextAndVersion textAndVersion;
@@ -159,6 +158,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        protected bool TryGetTextVersionFromRecoverableTextAndVersion(out VersionStamp version)
+        {
+            version = default(VersionStamp);
+
+            var recoverable = this.textSource as RecoverableTextAndVersion;
+            return recoverable != null && recoverable.TryGetTextVersion(out version);
+        }
+
         public async Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
         {
             var textAndVersion = await this.textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -169,7 +176,7 @@ namespace Microsoft.CodeAnalysis
         {
             // try fast path first
             VersionStamp version;
-            if (TryGetTextVersion(out version))
+            if (TryGetTextVersionFromRecoverableTextAndVersion(out version))
             {
                 return version;
             }

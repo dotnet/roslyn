@@ -364,7 +364,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.NotNull(wpfTableEntriesSnapshot)
 
                 Dim ui As FrameworkElement = Nothing
-                Assert.False(wpfTableEntriesSnapshot.TryCreateColumnContent(0, StandardTableKeyNames.ErrorCode, False, ui))
+                Assert.False(wpfTableEntriesSnapshot.TryCreateColumnContent(0, ShimTableKeyNames.ErrorCode, False, ui))
 
                 Assert.Null(ui)
             End Using
@@ -396,7 +396,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.NotNull(wpfTableEntriesSnapshot)
 
                 Dim ui As FrameworkElement = Nothing
-                Assert.False(wpfTableEntriesSnapshot.TryCreateColumnContent(0, StandardTableKeyNames.ErrorCode, False, ui))
+                Assert.False(wpfTableEntriesSnapshot.TryCreateColumnContent(0, ShimTableKeyNames.ErrorCode, False, ui))
 
                 Assert.Null(ui)
             End Using
@@ -483,7 +483,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.Equal(1, snapshot.Count)
 
                 Dim content As Object = Nothing
-                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.ProjectRank, content))
+                Assert.True(snapshot.TryGetValue(0, ShimTableKeyNames.ProjectRank, content))
                 Assert.NotNull(content)
                 Assert.Equal(CType(content, Integer), 0)
             End Using

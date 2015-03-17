@@ -3,7 +3,8 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
-Imports Microsoft.DiaSymReader
+Imports Microsoft.VisualStudio.SymReaderInterop
+Imports ImportScope = Microsoft.VisualStudio.SymReaderInterop.ImportScope
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend Module SymUnmanagedReaderExtensions

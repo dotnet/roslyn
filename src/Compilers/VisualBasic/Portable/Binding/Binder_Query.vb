@@ -12,23 +12,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class Binder
 
         Private Function CreateQueryLambdaSymbol(syntaxNode As VisualBasicSyntaxNode,
-                                                 kind As SynthesizedLambdaKind,
                                                  parameters As ImmutableArray(Of BoundLambdaParameterSymbol)) As SynthesizedLambdaSymbol
 
-            Debug.Assert(kind.IsQueryLambda)
-
-            Return New SynthesizedLambdaSymbol(kind,
+            Return New SynthesizedLambdaSymbol(SynthesizedLambdaKind.QueryLambda,
                                                syntaxNode,
                                                parameters,
                                                LambdaSymbol.ReturnTypePendingDelegate,
                                                Me)
-        End Function
-
-        Private Shared Function CreateBoundQueryLambda(queryLambdaSymbol As SynthesizedLambdaSymbol,
-                                                       rangeVariables As ImmutableArray(Of RangeVariableSymbol),
-                                                       expression As BoundExpression,
-                                                       exprIsOperandOfConditionalBranch As Boolean) As BoundQueryLambda
-            Return New BoundQueryLambda(queryLambdaSymbol.Syntax, queryLambdaSymbol, rangeVariables, expression, exprIsOperandOfConditionalBranch)
         End Function
 
         Friend Overridable Function BindGroupAggregationExpression(group As GroupAggregationSyntax, diagnostics As DiagnosticBag) As BoundExpression
@@ -306,10 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                   source.CompoundVariableType,
                                                                                                   aggregate, source.RangeVariables)
 
-            ' The lambda that will contain the nested query.
-            Dim letSelectorLambdaSymbol = Me.CreateQueryLambdaSymbol(LambdaUtilities.GetAggregateLambdaBody(aggregate),
-                                                                     SynthesizedLambdaKind.AggregateQueryLambda,
-                                                                     ImmutableArray.Create(letSelectorParam))
+            Dim letSelectorLambdaSymbol = Me.CreateQueryLambdaSymbol(aggregate, ImmutableArray.Create(letSelectorParam))
 
             ' Create binder for the [Let] selector.
             Dim letSelectorBinder As New QueryLambdaBinder(letSelectorLambdaSymbol, source.RangeVariables)
@@ -327,10 +314,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim letSelectorLambda As BoundQueryLambda
 
-            letSelectorLambda = CreateBoundQueryLambda(letSelectorLambdaSymbol,
-                                                       source.RangeVariables,
-                                                       letSelector,
-                                                       exprIsOperandOfConditionalBranch:=False)
+            letSelectorLambda = New BoundQueryLambda(aggregate,
+                                                     letSelectorLambdaSymbol,
+                                                     source.RangeVariables,
+                                                     letSelector,
+                                                     exprIsOperandOfConditionalBranch:=False)
 
             letSelectorLambdaSymbol.SetQueryLambdaReturnType(letSelector.Type)
             letSelectorLambda.SetWasCompilerGenerated()
@@ -431,11 +419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                          letOperator.CompoundVariableType,
                                                                                                          aggregate, letOperator.RangeVariables)
 
-                ' This lambda only contains non-user code. We associate it with the aggregate clause itself.
-                Debug.Assert(LambdaUtilities.IsNonUserCodeQueryLambda(aggregate))
-                Dim selectSelectorLambdaSymbol = Me.CreateQueryLambdaSymbol(aggregate,
-                                                                            SynthesizedLambdaKind.AggregateNonUserCodeQueryLambda,
-                                                                            ImmutableArray.Create(selectSelectorParam))
+                Dim selectSelectorLambdaSymbol = Me.CreateQueryLambdaSymbol(aggregate, ImmutableArray.Create(selectSelectorParam))
 
                 ' Create new binder for the [Select] selector.
                 Dim groupRangeVar As RangeVariableSymbol = firstSelectDeclaredRangeVariables(0)
@@ -532,10 +516,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                     declaredRangeVariables,
                                                                                     diagnostics)
 
-                Dim selectSelectorLambda = CreateBoundQueryLambda(selectSelectorLambdaSymbol,
-                                                                  letOperator.RangeVariables,
-                                                                  selectSelector,
-                                                                  exprIsOperandOfConditionalBranch:=False)
+                Dim selectSelectorLambda As New BoundQueryLambda(aggregate,
+                                                                 selectSelectorLambdaSymbol,
+                                                                 letOperator.RangeVariables,
+                                                                 selectSelector,
+                                                                 exprIsOperandOfConditionalBranch:=False)
 
                 selectSelectorLambdaSymbol.SetQueryLambdaReturnType(selectSelector.Type)
                 selectSelectorLambda.SetWasCompilerGenerated()
@@ -580,6 +565,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
+
+
         ''' <summary>
         ''' Apply implicit Select operator at the end of the query to 
         ''' ensure that at least one query operator is called.
@@ -595,19 +582,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As BoundQueryClause
             Debug.Assert(Not source.Type.IsErrorType())
 
-            Dim fromClauseSyntax = DirectCast(source.Syntax.Parent, FromClauseSyntax)
-
             ' Create LambdaSymbol for the shape of the selector.
             Dim param As BoundLambdaParameterSymbol = CreateQueryLambdaParameterSymbol(GetQueryLambdaParameterName(source.RangeVariables), 0,
                                                                                        source.CompoundVariableType,
-                                                                                       fromClauseSyntax, source.RangeVariables)
+                                                                                       source.Syntax, source.RangeVariables)
 
-            ' An implicit selector is an identity (x => x) function that doesn't contain any user code.
-            LambdaUtilities.IsNonUserCodeQueryLambda(fromClauseSyntax)
-            Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(fromClauseSyntax,
-                                                          SynthesizedLambdaKind.FromNonUserCodeQueryLambda,
-                                                          ImmutableArray.Create(param))
-
+            Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(source.Syntax, ImmutableArray.Create(param))
             lambdaSymbol.SetQueryLambdaReturnType(source.CompoundVariableType)
 
             Dim selector As BoundExpression = New BoundParameter(param.Syntax,
@@ -617,10 +597,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Not selector.HasErrors)
 
-            Dim selectorLambda = CreateBoundQueryLambda(lambdaSymbol,
-                                                        ImmutableArray(Of RangeVariableSymbol).Empty,
-                                                        selector,
-                                                        exprIsOperandOfConditionalBranch:=False)
+            Dim selectorLambda As New BoundQueryLambda(source.Syntax,
+                                                       lambdaSymbol,
+                                                       ImmutableArray(Of RangeVariableSymbol).Empty,
+                                                       selector,
+                                                       exprIsOperandOfConditionalBranch:=False)
             selectorLambda.SetWasCompilerGenerated()
 
             Debug.Assert(Not selectorLambda.HasErrors)
@@ -664,34 +645,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function BindSelectClause(
             source As BoundQueryClauseBase,
-            clauseSyntax As SelectClauseSyntax,
+            [select] As SelectClauseSyntax,
             operatorsEnumerator As SyntaxList(Of QueryClauseSyntax).Enumerator,
             diagnostics As DiagnosticBag
         ) As BoundQueryClause
-            Debug.Assert(clauseSyntax Is operatorsEnumerator.Current)
+            Debug.Assert([select] Is operatorsEnumerator.Current)
 
             ' Create LambdaSymbol for the shape of the selector.
             Dim param As BoundLambdaParameterSymbol = CreateQueryLambdaParameterSymbol(GetQueryLambdaParameterName(source.RangeVariables), 0,
                                                                                        source.CompoundVariableType,
-                                                                                       clauseSyntax, source.RangeVariables)
+                                                                                       [select], source.RangeVariables)
 
-            Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(LambdaUtilities.GetSelectLambdaBody(clauseSyntax),
-                                                          SynthesizedLambdaKind.SelectQueryLambda,
-                                                          ImmutableArray.Create(param))
+            Dim lambdaSymbol = Me.CreateQueryLambdaSymbol([select], ImmutableArray.Create(param))
 
             ' Create binder for the selector.
             Dim selectorBinder As New QueryLambdaBinder(lambdaSymbol, source.RangeVariables)
 
             Dim declaredRangeVariables As ImmutableArray(Of RangeVariableSymbol) = Nothing
-            Dim selector As BoundExpression = selectorBinder.BindSelectClauseSelector(clauseSyntax,
+            Dim selector As BoundExpression = selectorBinder.BindSelectClauseSelector([select],
                                                                                       operatorsEnumerator,
                                                                                       declaredRangeVariables,
                                                                                       diagnostics)
 
-            Dim selectorLambda = CreateBoundQueryLambda(lambdaSymbol,
-                                                        source.RangeVariables,
-                                                        selector,
-                                                        exprIsOperandOfConditionalBranch:=False)
+            Dim selectorLambda As New BoundQueryLambda([select],
+                                                       lambdaSymbol,
+                                                       source.RangeVariables,
+                                                       selector,
+                                                       exprIsOperandOfConditionalBranch:=False)
 
             lambdaSymbol.SetQueryLambdaReturnType(selector.Type)
             selectorLambda.SetWasCompilerGenerated()
@@ -700,7 +680,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundCallOrBadExpression As BoundExpression
 
             If source.Type.IsErrorType() Then
-                boundCallOrBadExpression = BadExpression(clauseSyntax, ImmutableArray.Create(Of BoundNode)(source, selectorLambda),
+                boundCallOrBadExpression = BadExpression([select], ImmutableArray.Create(Of BoundNode)(source, selectorLambda),
                                                          ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
             Else
                 Dim suppressDiagnostics As DiagnosticBag = Nothing
@@ -711,10 +691,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     diagnostics = suppressDiagnostics
                 End If
 
-                boundCallOrBadExpression = BindQueryOperatorCall(clauseSyntax, source,
+                boundCallOrBadExpression = BindQueryOperatorCall([select], source,
                                                                  StringConstants.SelectMethod,
                                                                  ImmutableArray.Create(Of BoundExpression)(selectorLambda),
-                                                                 clauseSyntax.SelectKeyword.Span,
+                                                                 [select].SelectKeyword.Span,
                                                                  diagnostics)
 
                 If suppressDiagnostics IsNot Nothing Then
@@ -722,7 +702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Return New BoundQueryClause(clauseSyntax,
+            Return New BoundQueryClause([select],
                                         boundCallOrBadExpression,
                                         declaredRangeVariables,
                                         selectorLambda.Expression.Type,
@@ -783,26 +763,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function BindLetClause(
             source As BoundQueryClauseBase,
-            clauseSyntax As LetClauseSyntax,
+            [let] As LetClauseSyntax,
             operatorsEnumerator As SyntaxList(Of QueryClauseSyntax).Enumerator,
             diagnostics As DiagnosticBag,
             Optional skipFirstVariable As Boolean = False
         ) As BoundQueryClause
-            Debug.Assert(clauseSyntax Is operatorsEnumerator.Current)
+            Debug.Assert([let] Is operatorsEnumerator.Current)
 
             Dim suppressDiagnostics As DiagnosticBag = Nothing
             Dim callDiagnostics As DiagnosticBag = diagnostics
 
-            Dim variables As SeparatedSyntaxList(Of ExpressionRangeVariableSyntax) = clauseSyntax.Variables
-            Debug.Assert(variables.Count > 0, "Malformed syntax tree.")
+            Dim variables As SeparatedSyntaxList(Of ExpressionRangeVariableSyntax) = [let].Variables
 
             If variables.Count = 0 Then
-                ' Handle malformed tree gracefully.
+                ' Malformed tree.
+                Debug.Assert(variables.Count > 0, "Malformed syntax tree.")
                 Debug.Assert(Not skipFirstVariable)
-                Return New BoundQueryClause(clauseSyntax,
-                                            BadExpression(clauseSyntax, source, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated(),
+                Return New BoundQueryClause([let],
+                                            BadExpression([let], source, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated(),
                                             source.RangeVariables.Add(RangeVariableSymbol.CreateForErrorRecovery(Me,
-                                                                                                                 clauseSyntax,
+                                                                                                                 [let],
                                                                                                                  ErrorTypeSymbol.UnknownResultType)),
                                             ErrorTypeSymbol.UnknownResultType,
                                             ImmutableArray.Create(Me),
@@ -821,9 +801,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                            source.CompoundVariableType,
                                                                                            variable, source.RangeVariables)
 
-                Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(LambdaUtilities.GetLetVariableLambdaBody(variable),
-                                                              SynthesizedLambdaKind.LetVariableQueryLambda,
-                                                              ImmutableArray.Create(param))
+                Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(variable, ImmutableArray.Create(param))
 
                 ' Create binder for a variable expression.
                 Dim selectorBinder As New QueryLambdaBinder(lambdaSymbol, source.RangeVariables)
@@ -834,10 +812,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                declaredRangeVariables,
                                                                                                diagnostics)
 
-                Dim selectorLambda = CreateBoundQueryLambda(lambdaSymbol,
-                                                            source.RangeVariables,
-                                                            selector,
-                                                            exprIsOperandOfConditionalBranch:=False)
+                Dim selectorLambda As New BoundQueryLambda(variable.Expression,
+                                                           lambdaSymbol,
+                                                           source.RangeVariables,
+                                                           selector,
+                                                           exprIsOperandOfConditionalBranch:=False)
 
                 lambdaSymbol.SetQueryLambdaReturnType(selector.Type)
                 selectorLambda.SetWasCompilerGenerated()
@@ -859,7 +838,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If i = 0 Then
                         ' This is the first variable.
-                        operatorNameLocation = clauseSyntax.LetKeyword.Span
+                        operatorNameLocation = [let].LetKeyword.Span
                     Else
                         operatorNameLocation = variables.GetSeparator(i - 1).Span
                     End If
@@ -998,23 +977,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' See comments for BindFromClause method, this method actually does all the work.
         ''' </summary>
         Private Function BindCollectionRangeVariables(
-            clauseSyntax As QueryClauseSyntax,
+            syntaxNode As QueryClauseSyntax,
             sourceOpt As BoundQueryClauseBase,
             variables As SeparatedSyntaxList(Of CollectionRangeVariableSyntax),
             ByRef operatorsEnumerator As SyntaxList(Of QueryClauseSyntax).Enumerator,
             diagnostics As DiagnosticBag
         ) As BoundQueryClauseBase
 
-            Debug.Assert(clauseSyntax.IsKind(SyntaxKind.AggregateClause) OrElse clauseSyntax.IsKind(SyntaxKind.FromClause))
-            Debug.Assert(variables.Count > 0, "Malformed syntax tree.")
-
-            ' Handle malformed tree gracefully.
             If variables.Count = 0 Then
-                Dim rangeVar = RangeVariableSymbol.CreateForErrorRecovery(Me, clauseSyntax, ErrorTypeSymbol.UnknownResultType)
+                ' Malformed tree.
+                Debug.Assert(variables.Count > 0, "Malformed syntax tree.")
+
+                Dim rangeVar = RangeVariableSymbol.CreateForErrorRecovery(Me, syntaxNode, ErrorTypeSymbol.UnknownResultType)
 
                 If sourceOpt Is Nothing Then
-                    Return New BoundQueryableSource(clauseSyntax,
-                                                    New BoundQuerySource(BadExpression(clauseSyntax, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()).MakeCompilerGenerated(),
+                    Return New BoundQueryableSource(syntaxNode,
+                                                    New BoundQuerySource(BadExpression(syntaxNode, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()).MakeCompilerGenerated(),
                                                     Nothing,
                                                     ImmutableArray.Create(rangeVar),
                                                     ErrorTypeSymbol.UnknownResultType,
@@ -1022,8 +1000,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     ErrorTypeSymbol.UnknownResultType,
                                                     hasErrors:=True)
                 Else
-                    Return New BoundQueryClause(clauseSyntax,
-                                                BadExpression(clauseSyntax, sourceOpt, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated(),
+                    Return New BoundQueryClause(syntaxNode,
+                                                BadExpression(syntaxNode, sourceOpt, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated(),
                                                 sourceOpt.RangeVariables.Add(rangeVar),
                                                 ErrorTypeSymbol.UnknownResultType,
                                                 ImmutableArray.Create(Me),
@@ -1053,9 +1031,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                        source.CompoundVariableType,
                                                                                                        variable, source.RangeVariables)
 
-                Dim manySelectorLambdaSymbol = Me.CreateQueryLambdaSymbol(LambdaUtilities.GetFromOrAggregateVariableLambdaBody(variable),
-                                                                          SynthesizedLambdaKind.FromOrAggregateVariableQueryLambda,
-                                                                          ImmutableArray.Create(manySelectorParam))
+                Dim manySelectorLambdaSymbol = Me.CreateQueryLambdaSymbol(variable, ImmutableArray.Create(manySelectorParam))
 
                 ' Create binder for the many selector.
                 Dim manySelectorBinder As New QueryLambdaBinder(manySelectorLambdaSymbol, source.RangeVariables)
@@ -1063,10 +1039,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim manySelector As BoundQueryableSource = manySelectorBinder.BindCollectionRangeVariable(variable, False, Nothing, diagnostics)
                 Debug.Assert(manySelector.RangeVariables.Length = 1)
 
-                Dim manySelectorLambda = CreateBoundQueryLambda(manySelectorLambdaSymbol,
-                                                                source.RangeVariables,
-                                                                manySelector,
-                                                                exprIsOperandOfConditionalBranch:=False)
+                Dim manySelectorLambda As New BoundQueryLambda(variable,
+                                                               manySelectorLambdaSymbol,
+                                                               source.RangeVariables,
+                                                               manySelector,
+                                                               exprIsOperandOfConditionalBranch:=False)
 
                 ' Note, we are not setting return type for the manySelectorLambdaSymbol because
                 ' we want it to be taken from the target delegate type. We don't care what it is going to be
@@ -1081,6 +1058,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim joinSelectorParamRight As BoundLambdaParameterSymbol = CreateQueryLambdaParameterSymbol(GetQueryLambdaParameterNameRight(manySelector.RangeVariables), 1,
                                                                                                             manySelector.CompoundVariableType,
                                                                                                             variable, manySelector.RangeVariables)
+
+                Dim joinSelectorLambdaSymbol = Me.CreateQueryLambdaSymbol(variable, ImmutableArray.Create(joinSelectorParamLeft, joinSelectorParamRight))
+
                 Dim lambdaBinders As ImmutableArray(Of Binder)
 
                 ' If this is the last collection range variable, see if the next operator is
@@ -1095,18 +1075,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim sourceRangeVariables = source.RangeVariables
                 Dim joinSelectorRangeVariables As ImmutableArray(Of RangeVariableSymbol) = sourceRangeVariables.Concat(manySelector.RangeVariables)
                 Dim joinSelectorDeclaredRangeVariables As ImmutableArray(Of RangeVariableSymbol)
+                Dim joinSelectorSyntax As VisualBasicSyntaxNode
                 Dim joinSelector As BoundExpression
                 Dim group As BoundQueryClauseBase = Nothing
                 Dim intoBinder As IntoClauseDisallowGroupReferenceBinder = Nothing
                 Dim joinSelectorBinder As QueryLambdaBinder = Nothing
-
-                Dim joinSelectorLambdaKind As SynthesizedLambdaKind = Nothing
-                Dim joinSelectorSyntax As VisualBasicSyntaxNode = Nothing
-                GetAbsorbingJoinSelectorLambdaKindAndSyntax(clauseSyntax, absorbNextOperator, joinSelectorLambdaKind, joinSelectorSyntax)
-
-                Dim joinSelectorLambdaSymbol = Me.CreateQueryLambdaSymbol(joinSelectorSyntax,
-                                                                          joinSelectorLambdaKind,
-                                                                          ImmutableArray.Create(joinSelectorParamLeft, joinSelectorParamRight))
 
                 If absorbNextOperator IsNot Nothing Then
 
@@ -1114,10 +1087,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     joinSelectorBinder = New QueryLambdaBinder(joinSelectorLambdaSymbol, joinSelectorRangeVariables)
 
                     joinSelectorDeclaredRangeVariables = Nothing
+                    joinSelectorSyntax = Nothing
                     joinSelector = joinSelectorBinder.BindAbsorbingJoinSelector(absorbNextOperator,
                                                                                 operatorsEnumerator,
                                                                                 sourceRangeVariables,
                                                                                 manySelector.RangeVariables,
+                                                                                joinSelectorSyntax,
                                                                                 joinSelectorDeclaredRangeVariables,
                                                                                 group,
                                                                                 intoBinder,
@@ -1151,15 +1126,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                            False, joinSelectorParamRight.Type).MakeCompilerGenerated()
                     End If
 
+                    joinSelectorSyntax = variable
                     lambdaBinders = ImmutableArray.Create(Of Binder)(manySelectorBinder)
                 End If
 
-                ' Join selector is either associated with absorbed select/let/aggregate clause
-                ' or it doesn't contain user code (just pairs outer with inner into an anonymous type or is an identity).
-                Dim joinSelectorLambda = CreateBoundQueryLambda(joinSelectorLambdaSymbol,
-                                                                joinSelectorRangeVariables,
-                                                                joinSelector,
-                                                                exprIsOperandOfConditionalBranch:=False)
+
+                Dim joinSelectorLambda As New BoundQueryLambda(joinSelectorSyntax,
+                                                               joinSelectorLambdaSymbol,
+                                                               joinSelectorRangeVariables,
+                                                               joinSelector,
+                                                               exprIsOperandOfConditionalBranch:=False)
 
                 joinSelectorLambdaSymbol.SetQueryLambdaReturnType(joinSelector.Type)
                 joinSelectorLambda.SetWasCompilerGenerated()
@@ -1182,7 +1158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If i = 0 Then
                         ' This is the first variable.
-                        operatorNameLocation = clauseSyntax.GetFirstToken().Span
+                        operatorNameLocation = syntaxNode.GetFirstToken().Span
                     Else
                         operatorNameLocation = variables.GetSeparator(i - 1).Span
                     End If
@@ -1222,57 +1198,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return source
         End Function
-
-        Private Shared Sub GetAbsorbingJoinSelectorLambdaKindAndSyntax(
-            clauseSyntax As QueryClauseSyntax,
-            absorbNextOperator As QueryClauseSyntax,
-            <Out> ByRef lambdaKind As SynthesizedLambdaKind,
-            <Out> ByRef lambdaSyntax As VisualBasicSyntaxNode)
-
-            ' Join selector is either associated with absorbed select/let/aggregate clause
-            ' or it doesn't contain user code (just pairs outer with inner into an anonymous type or is an identity).
-
-            If absorbNextOperator Is Nothing Then
-                Select Case clauseSyntax.Kind
-                    Case SyntaxKind.SimpleJoinClause
-                        lambdaKind = SynthesizedLambdaKind.JoinNonUserCodeQueryLambda
-
-                    Case SyntaxKind.FromClause
-                        lambdaKind = SynthesizedLambdaKind.FromNonUserCodeQueryLambda
-
-                    Case SyntaxKind.AggregateClause
-                        lambdaKind = SynthesizedLambdaKind.FromNonUserCodeQueryLambda
-
-                    Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(clauseSyntax.Kind)
-                End Select
-
-                lambdaSyntax = clauseSyntax
-                Debug.Assert(LambdaUtilities.IsNonUserCodeQueryLambda(lambdaSyntax))
-            Else
-                Select Case absorbNextOperator.Kind
-                    Case SyntaxKind.AggregateClause
-                        Dim firstVariable = DirectCast(absorbNextOperator, AggregateClauseSyntax).Variables.First
-                        lambdaSyntax = LambdaUtilities.GetFromOrAggregateVariableLambdaBody(firstVariable)
-                        lambdaKind = SynthesizedLambdaKind.AggregateQueryLambda
-
-                    Case SyntaxKind.LetClause
-                        Dim firstVariable = DirectCast(absorbNextOperator, LetClauseSyntax).Variables.First
-                        lambdaSyntax = LambdaUtilities.GetLetVariableLambdaBody(firstVariable)
-                        lambdaKind = SynthesizedLambdaKind.LetVariableQueryLambda
-
-                    Case SyntaxKind.SelectClause
-                        Dim selectClause = DirectCast(absorbNextOperator, SelectClauseSyntax)
-                        lambdaSyntax = LambdaUtilities.GetSelectLambdaBody(selectClause)
-                        lambdaKind = SynthesizedLambdaKind.SelectQueryLambda
-
-                    Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(absorbNextOperator.Kind)
-                End Select
-
-                Debug.Assert(LambdaUtilities.IsLambdaBody(lambdaSyntax))
-            End If
-        End Sub
 
         Private Shared Function JoinShouldAbsorbNextOperator(
             ByRef operatorsEnumerator As SyntaxList(Of QueryClauseSyntax).Enumerator
@@ -1484,6 +1409,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                         inner.CompoundVariableType,
                                                                                                         join, inner.RangeVariables)
 
+            Dim joinSelectorLambdaSymbol = Me.CreateQueryLambdaSymbol(join, ImmutableArray.Create(joinSelectorParamLeft, joinSelectorParamRight))
+
             Dim lambdaBinders As ImmutableArray(Of Binder)
 
             ' If the next operator is a Select or a Let, we should absorb it by putting its selector
@@ -1495,17 +1422,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim joinSelectorDeclaredRangeVariables As ImmutableArray(Of RangeVariableSymbol)
+            Dim joinSelectorSyntax As VisualBasicSyntaxNode
             Dim joinSelector As BoundExpression
             Dim group As BoundQueryClauseBase = Nothing
             Dim intoBinder As IntoClauseDisallowGroupReferenceBinder = Nothing
-
-            Dim joinSelectorLambdaKind As SynthesizedLambdaKind = Nothing
-            Dim joinSelectorSyntax As VisualBasicSyntaxNode = Nothing
-            GetAbsorbingJoinSelectorLambdaKindAndSyntax(join, absorbNextOperator, joinSelectorLambdaKind, joinSelectorSyntax)
-
-            Dim joinSelectorLambdaSymbol = Me.CreateQueryLambdaSymbol(joinSelectorSyntax,
-                                                                      joinSelectorLambdaKind,
-                                                                      ImmutableArray.Create(joinSelectorParamLeft, joinSelectorParamRight))
 
             Dim joinSelectorBinder As New QueryLambdaBinder(joinSelectorLambdaSymbol, joinSelectorRangeVariables)
 
@@ -1518,6 +1438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                             operatorsEnumerator,
                                                                             outer.RangeVariables,
                                                                             inner.RangeVariables,
+                                                                            joinSelectorSyntax,
                                                                             joinSelectorDeclaredRangeVariables,
                                                                             group,
                                                                             intoBinder,
@@ -1539,15 +1460,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     MustProduceFlatCompoundVariable(join, operatorsEnumerator),
                                                                     diagnostics)
 
+                joinSelectorSyntax = join
+
                 ' Not including joinSelectorBinder because there is no syntax behind this joinSelector,
                 ' it is purely synthetic.
                 lambdaBinders = ImmutableArray.Create(Of Binder)(outerKeyBinder, innerKeyBinder)
             End If
 
-            Dim joinSelectorLambda = CreateBoundQueryLambda(joinSelectorLambdaSymbol,
-                                                            joinSelectorRangeVariables,
-                                                            joinSelector,
-                                                            exprIsOperandOfConditionalBranch:=False)
+            Dim joinSelectorLambda As New BoundQueryLambda(joinSelectorSyntax,
+                                                           joinSelectorLambdaSymbol,
+                                                           joinSelectorRangeVariables,
+                                                           joinSelector,
+                                                           exprIsOperandOfConditionalBranch:=False)
 
             joinSelectorLambdaSymbol.SetQueryLambdaReturnType(joinSelector.Type)
             joinSelectorLambda.SetWasCompilerGenerated()
@@ -1920,9 +1844,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                 source.CompoundVariableType,
                                                                                                 groupBy, source.RangeVariables)
 
-                Dim itemsLambdaSymbol = Me.CreateQueryLambdaSymbol(LambdaUtilities.GetGroupByItemsLambdaBody(groupBy),
-                                                                   SynthesizedLambdaKind.GroupByItemsQueryLambda,
-                                                                   ImmutableArray.Create(itemsParam))
+                Dim itemsLambdaSymbol = Me.CreateQueryLambdaSymbol(groupBy, ImmutableArray.Create(itemsParam))
 
                 ' Create binder for the selector.
                 itemsLambdaBinder = New QueryLambdaBinder(itemsLambdaSymbol, source.RangeVariables)
@@ -1930,10 +1852,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim itemsSelector = itemsLambdaBinder.BindExpressionRangeVariables(items, False, groupBy,
                                                                                    itemsRangeVariables, diagnostics)
 
-                itemsLambda = CreateBoundQueryLambda(itemsLambdaSymbol,
-                                                     source.RangeVariables,
-                                                     itemsSelector,
-                                                     exprIsOperandOfConditionalBranch:=False)
+                itemsLambda = New BoundQueryLambda(groupBy,
+                                                   itemsLambdaSymbol,
+                                                   source.RangeVariables,
+                                                   itemsSelector,
+                                                   exprIsOperandOfConditionalBranch:=False)
 
                 itemsLambdaSymbol.SetQueryLambdaReturnType(itemsSelector.Type)
                 itemsLambda.SetWasCompilerGenerated()
@@ -1964,9 +1887,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                            source.CompoundVariableType,
                                                                                            groupBy, source.RangeVariables)
 
-            Dim keysLambdaSymbol = Me.CreateQueryLambdaSymbol(LambdaUtilities.GetGroupByKeysLambdaBody(groupBy),
-                                                              SynthesizedLambdaKind.GroupByKeysQueryLambda,
-                                                              ImmutableArray.Create(keysParam))
+            Dim keysLambdaSymbol = Me.CreateQueryLambdaSymbol(groupBy, ImmutableArray.Create(keysParam))
 
             ' Create binder for the selector.
             keysLambdaBinder = New QueryLambdaBinder(keysLambdaSymbol, source.RangeVariables)
@@ -1974,10 +1895,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim keysSelector = keysLambdaBinder.BindExpressionRangeVariables(keys, True, groupBy,
                                                                              keysRangeVariables, diagnostics)
 
-            Dim keysLambda = CreateBoundQueryLambda(keysLambdaSymbol,
-                                                    source.RangeVariables,
-                                                    keysSelector,
-                                                    exprIsOperandOfConditionalBranch:=False)
+            Dim keysLambda As New BoundQueryLambda(groupBy,
+                                                   keysLambdaSymbol,
+                                                   source.RangeVariables,
+                                                   keysSelector,
+                                                   exprIsOperandOfConditionalBranch:=False)
 
             keysLambdaSymbol.SetQueryLambdaReturnType(keysSelector.Type)
             keysLambda.SetWasCompilerGenerated()
@@ -2143,7 +2065,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' of a Group By or a Group Join operator. 
         ''' </summary>
         Private Function BindIntoSelectorLambda(
-            clauseSyntax As QueryClauseSyntax,
+            syntaxNode As QueryClauseSyntax,
             keysRangeVariables As ImmutableArray(Of RangeVariableSymbol),
             keysCompoundVariableType As TypeSymbol,
             addKeysInScope As Boolean,
@@ -2157,24 +2079,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             <Out()> ByRef intoBinder As IntoClauseBinder,
             <Out()> ByRef intoRangeVariables As ImmutableArray(Of RangeVariableSymbol)
         ) As BoundQueryLambda
-            Debug.Assert(clauseSyntax.Kind = SyntaxKind.GroupByClause OrElse clauseSyntax.Kind = SyntaxKind.GroupJoinClause)
-            Debug.Assert(mustProduceFlatCompoundVariable OrElse clauseSyntax.Kind = SyntaxKind.GroupJoinClause)
-            Debug.Assert((declaredNames IsNot Nothing) = (clauseSyntax.Kind = SyntaxKind.GroupJoinClause))
+            Debug.Assert(syntaxNode.Kind = SyntaxKind.GroupByClause OrElse syntaxNode.Kind = SyntaxKind.GroupJoinClause)
+            Debug.Assert(mustProduceFlatCompoundVariable OrElse syntaxNode.Kind = SyntaxKind.GroupJoinClause)
+            Debug.Assert((declaredNames IsNot Nothing) = (syntaxNode.Kind = SyntaxKind.GroupJoinClause))
             Debug.Assert(keysRangeVariables.Length > 0)
             Debug.Assert(intoBinder Is Nothing)
             Debug.Assert(intoRangeVariables.IsDefault)
 
             Dim keyParam As BoundLambdaParameterSymbol = CreateQueryLambdaParameterSymbol(GetQueryLambdaParameterName(keysRangeVariables), 0,
                                                                                           keysCompoundVariableType,
-                                                                                          clauseSyntax, keysRangeVariables)
+                                                                                          syntaxNode, keysRangeVariables)
 
             Dim groupParam As BoundLambdaParameterSymbol = CreateQueryLambdaParameterSymbol(StringConstants.ItAnonymous, 1,
-                                                                                            groupType, clauseSyntax)
+                                                                                            groupType, syntaxNode)
 
-            Debug.Assert(LambdaUtilities.IsNonUserCodeQueryLambda(clauseSyntax))
-            Dim intoLambdaSymbol = Me.CreateQueryLambdaSymbol(clauseSyntax,
-                                                              SynthesizedLambdaKind.GroupNonUserCodeQueryLambda,
-                                                              ImmutableArray.Create(keyParam, groupParam))
+            Dim intoLambdaSymbol = Me.CreateQueryLambdaSymbol(syntaxNode, ImmutableArray.Create(keyParam, groupParam))
 
             ' Create binder for the INTO lambda.
             Dim intoLambdaBinder As New QueryLambdaBinder(intoLambdaSymbol, ImmutableArray(Of RangeVariableSymbol).Empty)
@@ -2184,7 +2103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               groupReference, groupRangeVariables, groupCompoundVariableType,
                                               If(addKeysInScope, keysRangeVariables.Concat(groupRangeVariables), groupRangeVariables))
 
-            Dim intoSelector As BoundExpression = intoBinder.BindIntoSelector(clauseSyntax,
+            Dim intoSelector As BoundExpression = intoBinder.BindIntoSelector(syntaxNode,
                                                                               keysRangeVariables,
                                                                               New BoundParameter(keyParam.Syntax, keyParam, False, keyParam.Type).MakeCompilerGenerated(),
                                                                               keysRangeVariables,
@@ -2196,10 +2115,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                               intoRangeVariables,
                                                                               diagnostics)
 
-            Dim intoLambda = CreateBoundQueryLambda(intoLambdaSymbol,
-                                                    keysRangeVariables,
-                                                    intoSelector,
-                                                    exprIsOperandOfConditionalBranch:=False)
+            Dim intoLambda As New BoundQueryLambda(syntaxNode,
+                                                   intoLambdaSymbol,
+                                                   keysRangeVariables,
+                                                   intoSelector,
+                                                   exprIsOperandOfConditionalBranch:=False)
 
             intoLambdaSymbol.SetQueryLambdaReturnType(intoSelector.Type)
             intoLambda.SetWasCompilerGenerated()
@@ -2370,10 +2290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                        source.CompoundVariableType,
                                                                                        condition, source.RangeVariables)
 
-            Debug.Assert(LambdaUtilities.IsLambdaBody(condition))
-            Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(condition,
-                                                          SynthesizedLambdaKind.FilterConditionQueryLambda,
-                                                          ImmutableArray.Create(param))
+            Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(condition, ImmutableArray.Create(param))
 
             ' Create binder for a filter condition.
             Dim filterBinder As New QueryLambdaBinder(lambdaSymbol, source.RangeVariables)
@@ -2420,10 +2337,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             conversionDiagnostic.Free()
 
             ' Bind the Filter
-            Dim filterLambda = CreateBoundQueryLambda(lambdaSymbol,
-                                                      source.RangeVariables,
-                                                      predicate,
-                                                      exprIsOperandOfConditionalBranch:=True)
+            Dim filterLambda As New BoundQueryLambda(condition,
+                                                     lambdaSymbol,
+                                                     source.RangeVariables,
+                                                     predicate,
+                                                     exprIsOperandOfConditionalBranch:=True)
 
             filterLambda.SetWasCompilerGenerated()
 
@@ -2621,9 +2539,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                            source.CompoundVariableType,
                                                                                            ordering.Expression, source.RangeVariables)
 
-                Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(LambdaUtilities.GetOrderingLambdaBody(ordering),
-                                                              SynthesizedLambdaKind.OrderingQueryLambda,
-                                                              ImmutableArray.Create(param))
+                Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(ordering.Expression, ImmutableArray.Create(param))
 
                 ' Create binder for a key expression.
                 keyBinder = New QueryLambdaBinder(lambdaSymbol, source.RangeVariables)
@@ -2631,10 +2547,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Bind expression as a value, conversion during overload resolution should take care of the rest (making it an RValue, etc.). 
                 Dim key As BoundExpression = keyBinder.BindValue(ordering.Expression, diagnostics)
 
-                Dim keyLambda = CreateBoundQueryLambda(lambdaSymbol,
-                                                       source.RangeVariables,
-                                                       key,
-                                                       exprIsOperandOfConditionalBranch:=False)
+                Dim keyLambda As New BoundQueryLambda(ordering.Expression,
+                                                      lambdaSymbol,
+                                                      source.RangeVariables,
+                                                      key,
+                                                      exprIsOperandOfConditionalBranch:=False)
 
                 keyLambda.SetWasCompilerGenerated()
 
@@ -3154,7 +3071,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         '      Sum(b)
                         '
 
-                        ' Handle selector for the Let.
+                        ' Handle selector for the [Let].
                         groupRangeVar = RangeVariableSymbol.CreateCompilerGenerated(Me, aggregate, StringConstants.Group, group.Type)
 
                         If _rangeVariables.Length = 0 Then
@@ -3180,12 +3097,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 operatorsEnumerator As SyntaxList(Of QueryClauseSyntax).Enumerator,
                 leftRangeVariables As ImmutableArray(Of RangeVariableSymbol),
                 rightRangeVariables As ImmutableArray(Of RangeVariableSymbol),
-                <Out> ByRef joinSelectorDeclaredRangeVariables As ImmutableArray(Of RangeVariableSymbol),
-                <Out> ByRef group As BoundQueryClauseBase,
-                <Out> ByRef intoBinder As IntoClauseDisallowGroupReferenceBinder,
+                <Out()> ByRef joinSelectorSyntax As VisualBasicSyntaxNode,
+                <Out()> ByRef joinSelectorDeclaredRangeVariables As ImmutableArray(Of RangeVariableSymbol),
+                <Out()> ByRef group As BoundQueryClauseBase,
+                <Out()> ByRef intoBinder As IntoClauseDisallowGroupReferenceBinder,
                 diagnostics As DiagnosticBag
             ) As BoundExpression
-                Debug.Assert(joinSelectorDeclaredRangeVariables.IsDefault)
+                Debug.Assert(joinSelectorSyntax Is Nothing AndAlso joinSelectorDeclaredRangeVariables.IsDefault)
                 Debug.Assert(absorbNextOperator Is operatorsEnumerator.Current)
 
                 group = Nothing
@@ -3196,8 +3114,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case absorbNextOperator.Kind
                     Case SyntaxKind.SelectClause
                         ' Absorb Select
-                        Dim [select] = DirectCast(absorbNextOperator, SelectClauseSyntax)
-                        joinSelector = BindSelectClauseSelector([select],
+                        joinSelectorSyntax = absorbNextOperator
+                        joinSelector = BindSelectClauseSelector(DirectCast(absorbNextOperator, SelectClauseSyntax),
                                                                 operatorsEnumerator,
                                                                 joinSelectorDeclaredRangeVariables,
                                                                 diagnostics)
@@ -3206,16 +3124,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' Absorb Let
                         Dim [let] = DirectCast(absorbNextOperator, LetClauseSyntax)
                         Debug.Assert([let].Variables.Count > 0)
-
-                        joinSelector = BindLetClauseVariableSelector([let].Variables.First,
+                        Dim firstVariable As ExpressionRangeVariableSyntax = [let].Variables.First
+                        joinSelectorSyntax = firstVariable
+                        joinSelector = BindLetClauseVariableSelector(firstVariable,
                                                                      operatorsEnumerator,
                                                                      joinSelectorDeclaredRangeVariables,
                                                                      diagnostics)
 
                     Case SyntaxKind.AggregateClause
                         ' Absorb Aggregate
-                        Dim aggregate = DirectCast(absorbNextOperator, AggregateClauseSyntax)
-                        joinSelector = BindAggregateClauseFirstSelector(aggregate,
+                        joinSelectorSyntax = absorbNextOperator
+                        joinSelector = BindAggregateClauseFirstSelector(DirectCast(absorbNextOperator, AggregateClauseSyntax),
                                                                         operatorsEnumerator,
                                                                         leftRangeVariables,
                                                                         rightRangeVariables,
@@ -3340,9 +3259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                    outer.CompoundVariableType,
                                                                                                    join, outer.RangeVariables)
 
-                Dim outerKeyLambdaSymbol = parentBinder.CreateQueryLambdaSymbol(LambdaUtilities.GetJoinLeftLambdaBody(join),
-                                                                                SynthesizedLambdaKind.JoinLeftQueryLambda,
-                                                                                ImmutableArray.Create(outerKeyParam))
+                Dim outerKeyLambdaSymbol = parentBinder.CreateQueryLambdaSymbol(join, ImmutableArray.Create(outerKeyParam))
                 outerKeyBinder = New QueryLambdaBinder(outerKeyLambdaSymbol, joinSelectorRangeVariables)
 
                 Dim innerKeyParam As BoundLambdaParameterSymbol = parentBinder.CreateQueryLambdaParameterSymbol(
@@ -3350,10 +3267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                    inner.CompoundVariableType,
                                                                                                    join, inner.RangeVariables)
 
-                Dim innerKeyLambdaSymbol = parentBinder.CreateQueryLambdaSymbol(LambdaUtilities.GetJoinRightLambdaBody(join),
-                                                                                SynthesizedLambdaKind.JoinRightQueryLambda,
-                                                                                ImmutableArray.Create(innerKeyParam))
-
+                Dim innerKeyLambdaSymbol = parentBinder.CreateQueryLambdaSymbol(join, ImmutableArray.Create(innerKeyParam))
                 innerKeyBinder = New QueryLambdaBinder(innerKeyLambdaSymbol, joinSelectorRangeVariables)
 
                 Dim suppressDiagnostics As DiagnosticBag = Nothing
@@ -3442,17 +3356,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     suppressDiagnostics.Free()
                 End If
 
-                outerKeyLambda = CreateBoundQueryLambda(outerKeyLambdaSymbol,
-                                                        outer.RangeVariables,
-                                                        outerKey,
-                                                        exprIsOperandOfConditionalBranch:=False)
+                outerKeyLambda = New BoundQueryLambda(join,
+                                                      outerKeyLambdaSymbol,
+                                                      outer.RangeVariables,
+                                                      outerKey,
+                                                      exprIsOperandOfConditionalBranch:=False)
 
                 outerKeyLambda.SetWasCompilerGenerated()
 
-                innerKeyLambda = CreateBoundQueryLambda(innerKeyLambdaSymbol,
-                                                        inner.RangeVariables,
-                                                        innerKey,
-                                                        exprIsOperandOfConditionalBranch:=False)
+                innerKeyLambda = New BoundQueryLambda(join,
+                                                      innerKeyLambdaSymbol,
+                                                      inner.RangeVariables,
+                                                      innerKey,
+                                                      exprIsOperandOfConditionalBranch:=False)
 
                 innerKeyLambda.SetWasCompilerGenerated()
 
@@ -3993,10 +3909,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Note [Binder:=Me.ContainingBinder] below. We are excluding this binder from the chain of
                 ' binders for an argument of the function. Do not want it to interfere in any way given
                 ' its special binding and Lookup/LookupNames behavior.
-
                 Dim aggregationLambdaSymbol = Me.ContainingBinder.CreateQueryLambdaSymbol(
-                    If(LambdaUtilities.GetAggregationLambdaBody(functionAggregationSyntax), functionAggregationSyntax),
-                    SynthesizedLambdaKind.AggregationQueryLambda,
+                    If(functionAggregationSyntax.Argument, functionAggregationSyntax),
                     ImmutableArray.Create(aggregationParam))
 
                 ' Create binder for the aggregation.
@@ -4011,10 +3925,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Bind argument as a value, conversion during overload resolution should take care of the rest (making it an RValue, etc.). 
                     Dim aggregationSelector = aggregationBinder.BindValue(functionAggregationSyntax.Argument, diagnostics)
 
-                    aggregationLambda = CreateBoundQueryLambda(aggregationLambdaSymbol,
-                                                               _groupRangeVariables,
-                                                               aggregationSelector,
-                                                               exprIsOperandOfConditionalBranch:=False)
+                    aggregationLambda = New BoundQueryLambda(functionAggregationSyntax.Argument,
+                                                             aggregationLambdaSymbol,
+                                                             _groupRangeVariables,
+                                                             aggregationSelector,
+                                                             exprIsOperandOfConditionalBranch:=False)
 
                     ' Note, we are not setting ReturnType for aggregationLambdaSymbol to allow
                     ' additional conversions. This type doesn't affect type of any range variable
@@ -4342,11 +4257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                            variableType,
                                                                                            syntax.AsClause)
 
-                Debug.Assert(LambdaUtilities.IsNonUserCodeQueryLambda(syntax.AsClause))
-                Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(syntax.AsClause,
-                                                              SynthesizedLambdaKind.ConversionNonUserCodeQueryLambda,
-                                                              ImmutableArray.Create(param))
-
+                Dim lambdaSymbol = Me.CreateQueryLambdaSymbol(syntax.AsClause, ImmutableArray.Create(param))
                 lambdaSymbol.SetQueryLambdaReturnType(targetVariableType)
 
                 Dim selectorBinder As New QueryLambdaBinder(lambdaSymbol, ImmutableArray(Of RangeVariableSymbol).Empty)
@@ -4358,10 +4269,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                             type:=variableType).MakeCompilerGenerated(),
                                                                                          diagnostics)
 
-                Dim selectorLambda = CreateBoundQueryLambda(lambdaSymbol,
-                                                            ImmutableArray(Of RangeVariableSymbol).Empty,
-                                                            selector,
-                                                            exprIsOperandOfConditionalBranch:=False)
+                Dim selectorLambda As New BoundQueryLambda(syntax.AsClause,
+                                                         lambdaSymbol,
+                                                         ImmutableArray(Of RangeVariableSymbol).Empty,
+                                                         selector,
+                                                         exprIsOperandOfConditionalBranch:=False)
                 selectorLambda.SetWasCompilerGenerated()
 
                 Dim suppressDiagnostics As DiagnosticBag = Nothing
