@@ -91,44 +91,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(string src1, string src2, ParseOptions options = null, StateMachineKind stateMachine = StateMachineKind.None)
         {
             var methodMatch = GetMethodMatch(src1, src2, options, stateMachine);
-
-            Dictionary<SyntaxNode, AbstractEditAndContinueAnalyzer.LambdaInfo> lazyActiveOrMatchedLambdas = null;
-            var map = Analyzer.ComputeMap(methodMatch, new AbstractEditAndContinueAnalyzer.ActiveNode[0], ref lazyActiveOrMatchedLambdas, new List<RudeEditDiagnostic>());
-
-            var result = new Dictionary<SyntaxNode, SyntaxNode>();
-            foreach (var pair in map.Forward)
-            {
-                if (pair.Value == methodMatch.NewRoot)
-                {
-                    Assert.Same(pair.Key, methodMatch.OldRoot);
-                    continue;
-                }
-
-                result.Add(pair.Key, pair.Value);
-            }
-
-            return result;
+            return EditAndContinueTestHelpers.GetMethodMatches(Analyzer, methodMatch);
         }
 
         public static MatchingPairs ToMatchingPairs(Match<SyntaxNode> match)
         {
-            return ToMatchingPairs(match.Matches.Where(partners => partners.Key != match.OldRoot));
+            return EditAndContinueTestHelpers.ToMatchingPairs(match);
         }
 
         public static MatchingPairs ToMatchingPairs(IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> matches)
         {
-            return new MatchingPairs(matches
-                .OrderBy(partners => partners.Key.GetLocation().SourceSpan.Start)
-                .ThenByDescending(partners => partners.Key.Span.Length)
-                .Select(partners => new MatchingPair { Old = partners.Key.ToString().Replace("\r\n", " "), New = partners.Value.ToString().Replace("\r\n", " ") }));
-        }
-
-        private static IEnumerable<KeyValuePair<K, V>> ReverseMapping<K, V>(IEnumerable<KeyValuePair<V, K>> mapping)
-        {
-            foreach (var pair in mapping)
-            {
-                yield return KeyValuePair.Create(pair.Value, pair.Key);
-            }
+            return EditAndContinueTestHelpers.ToMatchingPairs(matches);
         }
 
         internal static BlockSyntax MakeMethodBody(
