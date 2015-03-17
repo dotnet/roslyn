@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -397,7 +396,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _shutdownToken.ThrowIfCancellationRequested();
 
                 var priorityService = document.GetLanguageService<IWorkCoordinatorPriorityService>();
-                var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document).ConfigureAwait(false);
+                var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document, _shutdownToken).ConfigureAwait(false);
 
                 var currentMember = GetSyntaxPath(changedMember);
 
@@ -448,7 +447,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     var priorityService = document.GetLanguageService<IWorkCoordinatorPriorityService>();
-                    var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document).ConfigureAwait(false);
+                    var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document, _shutdownToken).ConfigureAwait(false);
 
                     _documentAndProjectWorkerProcessor.Enqueue(
                         new WorkItem(documentId, document.Project.Language, InvocationReasons.Reanalyze,
