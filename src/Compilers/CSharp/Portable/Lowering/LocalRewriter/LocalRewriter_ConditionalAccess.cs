@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DuplicateCode
         }
 
-        // in simple cases could be left unlowered.
-        // IL gen can generate more compact code for unlowered conditional accesses 
+        // IL gen can generate more compact code for certain conditional accesses 
         // by utilizing stack dup/pop instructions 
         internal BoundExpression RewriteConditionalAccess(BoundConditionalAccess node, bool used, BoundExpression rewrittenWhenNull = null)
         {
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localsMayBeAssignedOrCaptured = !receiverType.IsNullableType();
             var needTemp = IntroducingReadCanBeObservable(loweredReceiver, localsMayBeAssignedOrCaptured);
 
-            if (!isAsync && !node.AccessExpression.Type.IsDynamic() && rewrittenWhenNull == null &&
+            if (!isAsync && !node.AccessExpression.Type.IsDynamic() &&
                 (receiverType.IsReferenceType || receiverType.IsTypeParameter() && needTemp))
             {
                 // trivial cases can be handled more efficiently in IL gen
@@ -166,7 +165,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case ConditionalAccessLoweringKind.None:
                     Debug.Assert(!receiverType.IsValueType);
-                    result = node.Update(loweredReceiver, loweredAccessExpression, type);
+                    result = new BoundLoweredConditionalAccess(
+                        node.Syntax, 
+                        loweredReceiver, 
+                        loweredAccessExpression, 
+                        rewrittenWhenNull, type);
+
                     break;
 
                 case ConditionalAccessLoweringKind.CaptureReceiverByVal:

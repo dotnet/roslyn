@@ -968,6 +968,13 @@
     <Field Name="AccessExpression" Type="BoundExpression"/> 
   </Node>
 
+  <Node Name="BoundLoweredConditionalAccess" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Receiver" Type="BoundExpression"/>
+    <Field Name="WhenNotNull" Type="BoundExpression"/>
+    <Field Name="WhenNullOpt" Type="BoundExpression" Null="allow"/>
+  </Node>
+  
   <!-- represents the receiver of a conditional access expression -->
   <Node Name="BoundConditionalReceiver" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>

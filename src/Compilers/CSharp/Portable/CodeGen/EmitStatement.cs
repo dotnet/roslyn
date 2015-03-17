@@ -418,9 +418,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // then it is regular binary expression - Or, And, Xor ...
                     goto default;
 
-                case BoundKind.ConditionalAccess:
+                case BoundKind.LoweredConditionalAccess:
                     {
-                        var ca = (BoundConditionalAccess)condition;
+                        var ca = (BoundLoweredConditionalAccess)condition;
                         var receiver = ca.Receiver;
                         var receiverType = receiver.Type;
 
@@ -428,7 +428,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         // or if we deal with stack local (reads are destructive)
                         var complexCase = !receiverType.IsReferenceType ||
                                           LocalRewriter.IntroducingReadCanBeObservable(receiver, localsMayBeAssignedOrCaptured: false) ||
-                                          (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
+                                          (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol)) ||
+                                          (ca.WhenNullOpt?.IsDefaultValue() == false) ;
 
                         if (complexCase)
                         {
@@ -445,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                             EmitCondBranch(receiver, ref fallThrough, sense: false);
                             EmitReceiverRef(receiver, isAccessConstrained: false);
-                            EmitCondBranch(ca.AccessExpression, ref dest, sense: true);
+                            EmitCondBranch(ca.WhenNotNull, ref dest, sense: true);
 
                             if (fallThrough != null)
                             {
@@ -458,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             // gotoif(!receiver.Access) labDest
                             EmitCondBranch(receiver, ref dest, sense: false);
                             EmitReceiverRef(receiver, isAccessConstrained: false);
-                            condition = ca.AccessExpression;
+                            condition = ca.WhenNotNull;
                             goto oneMoreTime;
                         }
                     }

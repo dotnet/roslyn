@@ -1210,7 +1210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(left, right, node.LeftConversion, node.Type);
         }
 
-        public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
+        public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
         {
             var origStack = _evalStack;
             BoundExpression receiver = VisitCallReceiver(node.Receiver);
@@ -1220,11 +1220,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // right is evaluated with original stack 
             // (this is not entirely true, codegen will keep receiver on the stack, but that is irrelevant here)
             _evalStack = origStack;
-            BoundExpression access = (BoundExpression)this.Visit(node.AccessExpression);
+            BoundExpression whenNotNull = (BoundExpression)this.Visit(node.WhenNotNull);
 
             EnsureStackState(cookie);   // implicit label here
 
-            return node.Update(receiver, access, node.Type);
+            var whenNull = node.WhenNullOpt;
+            if (whenNull != null)
+            {
+                _evalStack = origStack;  // whennull is evaluated with original stack
+                whenNull = (BoundExpression)this.Visit(whenNull);
+                EnsureStackState(cookie);   // implicit label here
+            }
+
+            return node.Update(receiver, whenNotNull, whenNull, node.Type);
         }
 
         public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
