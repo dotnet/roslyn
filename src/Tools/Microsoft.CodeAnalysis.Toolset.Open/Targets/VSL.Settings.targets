@@ -60,22 +60,22 @@
   </PropertyGroup>
 
   <!-- Import the props files from the toolset NuGet packages if we're not in a bootstrap build -->
-  <ImportGroup Label="GlobalNuGets" Condition="'$(BootstrapBuild)' == ''">
+  <ImportGroup Label="GlobalNuGets" Condition="'$(BootstrapBuildPath)' == ''">
     <Import Project="$(ToolsetCompilerPropsFilePath)"
             Condition="Exists('$(ToolsetCompilerPropsFilePath)')" />
     <Import Project="$(RoslynDiagnosticsPropsFilePath)"
             Condition="Exists('$(RoslynDiagnosticsPropsFilePath)') And ('$(UseRoslynAnalyzers)' == 'true')" />
   </ImportGroup>
 
-  <Target Name="EnsureGlobalNuGets" Condition="'$(BootstrapBuild)' == ''">
+  <Target Name="EnsureGlobalNuGets" Condition="'$(BootstrapBuildPath)' == ''">
     <Error Condition="!$(CscToolPath.Contains('$(ToolsetCompilerPackageName)'))"
            Text="This project requires the $(ToolsetCompilerPackageName) NuGet package to build. Use NuGet Package Restore to download the required files (&quot;powershell .nuget\NuGetRestore.ps1&quot;). The missing file is &quot;$(ToolsetCompilerPropsFilePath)&quot;." />
   </Target>
 
-  <PropertyGroup Condition="'$(BootstrapBuild)' != ''">
-    <CscToolPath>$(BootstrapBuild)</CscToolPath>
+  <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
+    <CscToolPath>$(BootstrapBuildPath)</CscToolPath>
     <CscToolExe>csc.exe</CscToolExe>
-    <VbcToolPath>$(BootstrapBuild)</VbcToolPath>
+    <VbcToolPath>$(BootstrapBuildPath)</VbcToolPath>
     <VbcToolExe>vbc.exe</VbcToolExe>
   </PropertyGroup>
 
