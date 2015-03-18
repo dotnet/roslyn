@@ -36,11 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             if (analyzerMap == null || analyzerMap.Count == 0)
             {
                 var compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap();
-                analyzerService = new DiagnosticAnalyzerService(compilerAnalyzersMap);
+                analyzerService = new TestDiagnosticAnalyzerService(compilerAnalyzersMap);
             }
             else
             {
-                analyzerService = new DiagnosticAnalyzerService(analyzerMap);
+                analyzerService = new TestDiagnosticAnalyzerService(analyzerMap);
             }
 
             var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable<IDiagnosticUpdateSource>(analyzerService), diagnosticListeners);
