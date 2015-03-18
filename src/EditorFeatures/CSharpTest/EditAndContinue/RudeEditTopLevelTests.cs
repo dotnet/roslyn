@@ -2465,7 +2465,7 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "await", "await expression"));
+                Diagnostic(RudeEditKind.Delete, "await", CSharpFeaturesResources.AwaitExpression));
         }
 
         [Fact]

@@ -1,8 +1,11 @@
 ## Welcome to the .NET Compiler Platform ("Roslyn")
 
+|Windows|Linux|
+|:-:|:-:|
+|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/)|
+
 [![Join the chat at https://gitter.im/dotnet/roslyn](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/roslyn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/)
 
 The .NET Compiler Platform ("Roslyn") provides open-source C# and Visual Basic compilers 
 with rich code analysis APIs.  It enables building code analysis tools with the same APIs 
