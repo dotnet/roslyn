@@ -534,6 +534,30 @@ class Hello
 
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
+        public void CompileErrorsCSWithAnalyzers()
+        {
+            Dictionary<string, string> files =
+                                   new Dictionary<string, string> {
+                                           { "hello.cs",
+@"using System;
+class Hello 
+{
+    static void Main()
+    { Console.WriteLine(""Hello, world."") }
+}"}};
+
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "/reportanalyzer hello.cs", _tempDirectory, files);
+
+            // Should output errors, but not create output file.                  
+            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+            Assert.Contains("hello.cs(5,42): error CS1002: ; expected: Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer\r\n", result.Output, StringComparison.Ordinal);
+            Assert.Equal("", result.Errors);
+            Assert.Equal(1, result.ExitCode);
+            Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
+        }
+
+        [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void CompileErrorsVB()
         {
             Dictionary<string, string> files =
@@ -553,6 +577,31 @@ End Class"}};
             Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
             Assert.Contains("hellovb.vb(3) : error BC30625: 'Module' statement must end with a matching 'End Module'.\r\n", result.Output, StringComparison.Ordinal);
             Assert.Contains("hellovb.vb(7) : error BC30460: 'End Class' must be preceded by a matching 'Class'.\r\n", result.Output, StringComparison.Ordinal);
+            Assert.Equal("", result.Errors);
+            Assert.Equal(1, result.ExitCode);
+            Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
+        }
+
+        [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
+        public void CompileErrorsVBWithAnalyzers()
+        {
+            Dictionary<string, string> files =
+                                   new Dictionary<string, string> {
+                                           { "hellovb.vb",
+@"Imports System
+
+Module Module1
+    Sub Main()
+        Console.WriteLine(""Hello from VB"")
+    End Sub
+End Class"}};
+
+            var result = RunCommandLineCompiler(_basicCompilerClientExecutable, "/reportanalyzer /r:Microsoft.VisualBasic.dll hellovb.vb", _tempDirectory, files);
+
+            // Should output errors, but not create output file.
+            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+            Assert.Contains(": Microsoft.CodeAnalysis.Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer\r\n", result.Output, StringComparison.Ordinal);
             Assert.Equal("", result.Errors);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
