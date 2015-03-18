@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                         definitions.Add(definitionItem);
                         var referenceItems = CreateReferenceItems(solution, uniqueLocations, referencedSymbol.Locations.Select(loc => loc.Location), Glyph.Reference);
                         definitionItem.Children.AddRange(referenceItems);
-                        (definitionItem as ITreeItemWithReferenceCount)?.SetReferenceCount(referenceItems.Count);
+                        definitionItem.SetReferenceCount(referenceItems.Count);
                     }
                 }
 
