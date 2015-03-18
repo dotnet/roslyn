@@ -22,7 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
         private AbstractTreeItem CreateTreeItem(INavigableItem item)
         {
-            var result = new SourceReferenceTreeItem(item.Document, item.SourceSpan, item.Glyph.GetGlyphIndex());
+            var displayText = !item.ChildItems.IsEmpty ? item.DisplayName : null;
+            var result = new SourceReferenceTreeItem(item.Document, item.SourceSpan, item.Glyph.GetGlyphIndex(), displayText);
+
             if (!item.ChildItems.IsEmpty)
             {
                 var childItems = CreateGoToDefinitionItems(item.ChildItems);
