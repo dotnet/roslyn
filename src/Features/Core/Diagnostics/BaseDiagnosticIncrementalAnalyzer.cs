@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -13,10 +14,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract class BaseDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
     {
-        protected BaseDiagnosticIncrementalAnalyzer(Workspace workspace, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+        protected BaseDiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, Workspace workspace, HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
+            this.Owner = owner;
             this.Workspace = workspace;
+            this.HostAnalyzerManager = hostAnalyzerManager;
             this.HostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+            this.DiagnosticLogAggregator = new DiagnosticLogAggregator(owner);
         }
 
         #region IIncrementalAnalyzer
@@ -162,8 +166,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, CancellationToken cancellationToken);
         #endregion
 
-        protected Workspace Workspace { get; }
-        protected AbstractHostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
+        internal DiagnosticAnalyzerService Owner { get; }
+        internal Workspace Workspace { get; }
+        internal AbstractHostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
+        internal HostAnalyzerManager HostAnalyzerManager { get; }
+        internal DiagnosticLogAggregator DiagnosticLogAggregator { get; private set; }
+
+        protected void ResetDiagnosticLogAggregator()
+        {
+            DiagnosticLogAggregator = new DiagnosticLogAggregator(Owner);
+        }
 
         public virtual bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
         {
@@ -172,6 +184,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public virtual void LogAnalyzerCountSummary()
         {
+        }
+
+        // internal for testing purposes.
+        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(Project project)
+        {
+            return Owner?.GetOnAnalyzerException(project, DiagnosticLogAggregator);
+        }
+
+        // internal for testing purposes.
+        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException_NoTelemetryLogging(Project project)
+        {
+            return Owner?.GetOnAnalyzerException_NoTelemetryLogging(project);
         }
     }
 }
