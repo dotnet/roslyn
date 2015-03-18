@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -109,18 +110,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        private IEnumerable<CodeActionOperation> _operations;
         protected async Task<SolutionPreviewResult> GetPreviewResultAsync(CancellationToken cancellationToken)
         {
             AssertIsForeground();
 
-            if (_operations == null)
-            {
-                // We use ConfigureAwait(true) to stay on the UI thread.
-                _operations = await this.CodeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(true);
-            }
+            // We use ConfigureAwait(true) to stay on the UI thread.
+            var operations = await CodeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(true);
 
-            return EditHandler.GetPreviews(Workspace, _operations, cancellationToken);
+            return EditHandler.GetPreviews(Workspace, operations, cancellationToken);
         }
 
         public virtual bool HasPreview
@@ -130,7 +127,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // Light bulb will always invoke this property on the UI thread.
                 AssertIsForeground();
 
-                return true;
+                var hasHeader = !string.IsNullOrWhiteSpace(GetDiagnostic()?.GetMessage());
+
+                // Preview pane needs to be displayed if we wither have a diagnostic with a 'message'
+                // (which means we will have a header for the preview pane) or if GetPreviewOperationsAsync()
+                // returns at least one operation.
+                return hasHeader || CodeAction.GetPreviewOperationsAsync(CancellationToken.None).Result.Any();
             }
         }
 
