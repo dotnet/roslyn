@@ -365,10 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// Returns true if the specified <paramref name="node"/> is a body of an anonymous method, lambda, 
-        /// or a part of a query clause that is syntactically translated to a lambda body.
-        /// </summary>
+        [System.Obsolete("IsLambdaBody API is obsolete", true)]
         public static bool IsLambdaBody(SyntaxNode node)
         {
             return LambdaUtilities.IsLambdaBody(node);

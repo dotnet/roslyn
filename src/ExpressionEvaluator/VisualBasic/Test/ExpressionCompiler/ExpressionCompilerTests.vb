@@ -2082,6 +2082,45 @@ End Class"
 }")
         End Sub
 
+        ''' <summary>
+        ''' Generate PrivateImplementationDetails class
+        ''' for initializer expressions.
+        ''' </summary>
+        <Fact>
+        Public Sub EvaluateInitializerExpression()
+            Const source =
+"Class C
+    Shared Sub M()
+    End Sub
+End Class"
+            Dim compilation0 = CreateCompilationWithMscorlib(
+                {source},
+                references:={SystemCoreRef},
+                compOptions:=TestOptions.DebugDll.WithModuleName("MODULE"),
+                assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim runtime = CreateRuntimeInstance(compilation0)
+            Dim context = CreateMethodContext(
+                runtime,
+                methodName:="C.M")
+            Dim resultProperties As ResultProperties = Nothing
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("{ 1, 2, 3, 4, 5 }", resultProperties, errorMessage, testData)
+            Dim methodData = testData.GetMethodData("<>x.<>m0")
+            Assert.Equal(methodData.Method.ReturnType.ToDisplayString(), "Integer()")
+            methodData.VerifyIL(
+"{
+  // Code size       18 (0x12)
+  .maxstack  3
+  IL_0000:  ldc.i4.5
+  IL_0001:  newarr     ""Integer""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails><{#Module#}.dll>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails><{#Module#}.dll>.1036C5F8EF306104BD582D73E555F4DAE8EECB24""
+  IL_000c:  call       ""Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  ret
+}")
+        End Sub
+
         <Fact>
         Public Sub ExpressionTree()
             Const source =

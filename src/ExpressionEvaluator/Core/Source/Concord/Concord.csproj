@@ -37,7 +37,7 @@
           Inputs="@(ConcordAssemblies->'$(ConcordDir)%(Identity).NetFX20.il')"
           Outputs="$(OutDir)%(Identity).dll">
     <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet /mdv:v2.0.50727 &quot;/output:$(OutDir)@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).NetFX20.il" />
-    <Exec Command="$(VSLOutDir)\FakeSign.exe &quot;$(OutDir)@(ConcordAssemblies).dll&quot;" />
+    <Exec Command="$(FakeSignToolPath) &quot;$(OutDir)@(ConcordAssemblies).dll&quot;" />
   </Target>
   <Target Name="IlasmPortable" 
           AfterTargets="CoreCompile"
@@ -45,7 +45,7 @@
           Outputs="$(OutDir)Phone\%(Identity).dll">
     <MakeDir Directories="$(OutDir)Phone" />
     <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet &quot;/output:$(OutDir)Phone\@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).Portable.il" />
-    <Exec Command="$(VSLOutDir)\FakeSign.exe &quot;$(OutDir)Phone\@(ConcordAssemblies).dll&quot;" />
+    <Exec Command="$(FakeSignToolPath) &quot;$(OutDir)Phone\@(ConcordAssemblies).dll&quot;" />
   </Target>
   <Target Name="CleanIlasmOutputs" AfterTargets="Clean">
     <Delete Files="@(ConcordAssemblies->'$(OutDir)%(Identity).dll')" />

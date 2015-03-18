@@ -2723,7 +2723,7 @@ End Class
 
         <WorkItem(866094)>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug866094_DaveTest()
+        Public Sub Bug866094()
             Using result = RenameEngineResult.Create(
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">

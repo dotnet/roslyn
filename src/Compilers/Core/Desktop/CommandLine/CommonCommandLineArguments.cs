@@ -84,6 +84,11 @@ namespace Microsoft.CodeAnalysis
         public string DocumentationPath { get; internal set; }
 
         /// <summary>
+        /// Absolute path of the error log file or null if not specified.
+        /// </summary>
+        public string ErrorLogPath { get; internal set; }
+
+        /// <summary>
         /// An absolute path of the App.config file or null if not specified.
         /// </summary>
         public string AppConfigPath { get; internal set; }

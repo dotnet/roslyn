@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         public static void AssertIsBody(SyntaxNode syntax, bool allowLambda)
         {
             // lambda/query
-            if (SyntaxFacts.IsLambdaBody(syntax))
+            if (LambdaUtilities.IsLambdaBody(syntax))
             {
                 Debug.Assert(allowLambda);
                 Debug.Assert(syntax is ExpressionSyntax || syntax is BlockSyntax);

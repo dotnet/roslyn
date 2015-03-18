@@ -21,6 +21,7 @@ Microsoft.CodeAnalysis.CommandLineArguments.DocumentationPath.get -> string
 Microsoft.CodeAnalysis.CommandLineArguments.EmitOptions.get -> Microsoft.CodeAnalysis.Emit.EmitOptions
 Microsoft.CodeAnalysis.CommandLineArguments.EmitPdb.get -> bool
 Microsoft.CodeAnalysis.CommandLineArguments.Encoding.get -> System.Text.Encoding
+Microsoft.CodeAnalysis.CommandLineArguments.ErrorLogPath.get -> string
 Microsoft.CodeAnalysis.CommandLineArguments.Errors.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
 Microsoft.CodeAnalysis.CommandLineArguments.KeyFileSearchPaths.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.CommandLineArguments.ManifestResources.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ResourceDescription>

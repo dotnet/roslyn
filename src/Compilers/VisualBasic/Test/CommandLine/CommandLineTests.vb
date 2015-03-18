@@ -2976,6 +2976,79 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub ParseErrorLog()
+            Const baseDirectory As String = "C:\abc\def\baz"
+
+            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/errorlog:", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("errorlog", ":<file>"))
+            Assert.Null(parsedArgs.ErrorLogPath)
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/errorlog", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("errorlog", ":<file>"))
+            Assert.Null(parsedArgs.ErrorLogPath)
+
+            ' Should preserve fully qualified paths
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/errorlog:C:\MyFolder\MyBinary.xml", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal("C:\MyFolder\MyBinary.xml", parsedArgs.ErrorLogPath)
+
+            ' Should handle quotes
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/errorlog:C:\""My Folder""\MyBinary.xml", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal("C:\My Folder\MyBinary.xml", parsedArgs.ErrorLogPath)
+
+            ' Should expand partially qualified paths
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/errorlog:MyBinary.xml", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(Path.Combine(baseDirectory, "MyBinary.xml"), parsedArgs.ErrorLogPath)
+
+            ' Should expand partially qualified paths
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/errorlog:..\MyBinary.xml", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal("C:\abc\def\MyBinary.xml", parsedArgs.ErrorLogPath)
+
+            ' drive-relative path:
+            Dim currentDrive As Char = Directory.GetCurrentDirectory()(0)
+            Dim filePath = currentDrive + ":a.xml"
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/errorlog:" + filePath, "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(filePath))
+
+            Assert.Null(parsedArgs.ErrorLogPath)
+
+            ' UNC
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/errorlog:\\server\share\file.xml", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+
+            Assert.Equal("\\server\share\file.xml", parsedArgs.ErrorLogPath)
+        End Sub
+
+        <Fact>
+        Public Sub ParseErrorLogAndOut()
+            Const baseDirectory As String = "C:\abc\def\baz"
+
+            ' Can specify separate directories for binary and error log output.
+            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/errorlog:a\b.xml", "/out:c\d.exe", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+
+            Assert.Equal("C:\abc\def\baz\a\b.xml", parsedArgs.ErrorLogPath)
+
+            Assert.Equal("C:\abc\def\baz\c", parsedArgs.OutputDirectory)
+            Assert.Equal("d.exe", parsedArgs.OutputFileName)
+
+            ' error log does not fall back on output directory.
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/errorlog:b.xml", "/out:c\d.exe", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+
+            Assert.Equal("C:\abc\def\baz\b.xml", parsedArgs.ErrorLogPath)
+
+            Assert.Equal("C:\abc\def\baz\c", parsedArgs.OutputDirectory)
+            Assert.Equal("d.exe", parsedArgs.OutputFileName)
+        End Sub
+
+        <Fact>
         Public Sub KeyContainerAndKeyFile()
             ' KEYCONTAINER
             Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/KeyContainer:key-cont-name", "a.vb"}, _baseDirectory)

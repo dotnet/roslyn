@@ -2575,6 +2575,85 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         }
 
         [Fact]
+        public void ParseErrorLog()
+        {
+            const string baseDirectory = @"C:\abc\def\baz";
+
+            var parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/errorlog:""""", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing ':<file>' for '/errorlog:' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments(":<file>", "/errorlog:"));
+            Assert.Null(parsedArgs.ErrorLogPath);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/errorlog:", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing ':<file>' for '/errorlog:' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments(":<file>", "/errorlog:"));
+            Assert.Null(parsedArgs.ErrorLogPath);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/errorlog", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing ':<file>' for '/errorlog' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments(":<file>", "/errorlog"));
+            Assert.Null(parsedArgs.ErrorLogPath);
+
+            // Should preserve fully qualified paths
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/errorlog:C:\MyFolder\MyBinary.xml", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(@"C:\MyFolder\MyBinary.xml", parsedArgs.ErrorLogPath);
+
+            // Should handle quotes
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/errorlog:C:\""My Folder""\MyBinary.xml", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(@"C:\My Folder\MyBinary.xml", parsedArgs.ErrorLogPath);
+
+            // Should expand partially qualified paths
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/errorlog:MyBinary.xml", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(baseDirectory, "MyBinary.xml"), parsedArgs.ErrorLogPath);
+
+            // Should expand partially qualified paths
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/errorlog:..\MyBinary.xml", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(@"C:\abc\def\MyBinary.xml", parsedArgs.ErrorLogPath);
+
+            // drive-relative path:
+            char currentDrive = Directory.GetCurrentDirectory()[0];
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/errorlog:" + currentDrive + @":a.xml", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2021: File name 'D:a.xml' is contains invalid characters, has a drive specification without an absolute path, or is too long
+                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(currentDrive + ":a.xml"));
+
+            Assert.Null(parsedArgs.ErrorLogPath);
+
+            // UNC
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/errorlog:\\b", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(@"\\b"));
+
+            Assert.Null(parsedArgs.ErrorLogPath);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/errorlog:\\server\share\file.xml", "a.vb" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+
+            Assert.Equal(@"\\server\share\file.xml", parsedArgs.ErrorLogPath);
+
+            // invalid name:
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/errorlog:a.b\0b", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a.b\0b"));
+
+            Assert.Null(parsedArgs.ErrorLogPath);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/errorlog:""a<>.xml""", "a.vb" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2021: File name 'a<>.xml' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a<>.xml"));
+
+            Assert.Null(parsedArgs.ErrorLogPath);
+        }
+
+        [Fact]
         public void AppConfigParse()
         {
             const string baseDirectory = @"C:\abc\def\baz";
@@ -2673,6 +2752,30 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             parsedArgs.Errors.Verify();
 
             Assert.Equal(@"C:\abc\def\baz\b.xml", parsedArgs.DocumentationPath);
+
+            Assert.Equal(@"C:\abc\def\baz\c", parsedArgs.OutputDirectory);
+            Assert.Equal("d.exe", parsedArgs.OutputFileName);
+        }
+
+        [Fact]
+        public void ParseErrorLogAndOut()
+        {
+            const string baseDirectory = @"C:\abc\def\baz";
+
+            // Can specify separate directories for binary and error log output.
+            var parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/errorlog:a\b.xml", @"/out:c\d.exe", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+
+            Assert.Equal(@"C:\abc\def\baz\a\b.xml", parsedArgs.ErrorLogPath);
+
+            Assert.Equal(@"C:\abc\def\baz\c", parsedArgs.OutputDirectory);
+            Assert.Equal("d.exe", parsedArgs.OutputFileName);
+
+            // XML does not fall back on output directory.
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/errorlog:b.xml", @"/out:c\d.exe", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+
+            Assert.Equal(@"C:\abc\def\baz\b.xml", parsedArgs.ErrorLogPath);
 
             Assert.Equal(@"C:\abc\def\baz\c", parsedArgs.OutputDirectory);
             Assert.Equal("d.exe", parsedArgs.OutputFileName);
