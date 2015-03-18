@@ -3328,18 +3328,15 @@ class Program
 42");
             comp.VerifyIL("Program.Test1(Program.C1)", @"
 {
-  // Code size       15 (0xf)
+  // Code size       13 (0xd)
   .maxstack  1
-  .locals init (Program.C1 V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  brtrue.s   IL_0008
-  IL_0005:  ldc.i4.s   42
-  IL_0007:  ret
-  IL_0008:  ldloc.0
-  IL_0009:  callvirt   ""int Program.C1.x.get""
-  IL_000e:  ret
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldc.i4.s   42
+  IL_0005:  ret
+  IL_0006:  ldarg.0
+  IL_0007:  call       ""int Program.C1.x.get""
+  IL_000c:  ret
 }
 ").VerifyIL("Program.Test2(Program.C1)", @"
 {
@@ -3409,19 +3406,17 @@ class Program
 42");
             comp.VerifyIL("Program.Test1(ref Program.C1)", @"
 {
-  // Code size       16 (0x10)
-  .maxstack  1
-  .locals init (Program.C1 V_0)
+  // Code size       15 (0xf)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldind.ref
-  IL_0002:  stloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  brtrue.s   IL_0009
+  IL_0002:  dup
+  IL_0003:  brtrue.s   IL_0009
+  IL_0005:  pop
   IL_0006:  ldc.i4.s   42
   IL_0008:  ret
-  IL_0009:  ldloc.0
-  IL_000a:  callvirt   ""int Program.C1.x.get""
-  IL_000f:  ret
+  IL_0009:  call       ""int Program.C1.x.get""
+  IL_000e:  ret
 }
 ").VerifyIL("Program.Test2(ref Program.C1)", @"
 {
@@ -3682,20 +3677,17 @@ False
 False");
             comp.VerifyIL("Program.Test1(Program.C1)", @"
 {
-  // Code size       16 (0x10)
+  // Code size       14 (0xe)
   .maxstack  1
-  .locals init (Program.C1 V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  brtrue.s   IL_0007
-  IL_0005:  ldc.i4.1
-  IL_0006:  ret
-  IL_0007:  ldloc.0
-  IL_0008:  callvirt   ""int Program.C1.x.get""
-  IL_000d:  pop
-  IL_000e:  ldc.i4.0
-  IL_000f:  ret
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.1
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""int Program.C1.x.get""
+  IL_000b:  pop
+  IL_000c:  ldc.i4.0
+  IL_000d:  ret
 }
 ").VerifyIL("Program.Test2(Program.C1)", @"
 {
@@ -3795,22 +3787,19 @@ False");
 }
 ").VerifyIL("Program.Test2(Program.C1)", @"
 {
-  // Code size       20 (0x14)
+  // Code size       18 (0x12)
   .maxstack  2
-  .locals init (Program.C1 V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  brtrue.s   IL_0007
-  IL_0005:  ldc.i4.1
-  IL_0006:  ret
-  IL_0007:  ldloc.0
-  IL_0008:  callvirt   ""N Program.C1.x.get""
-  IL_000d:  ldc.i4.1
-  IL_000e:  ceq
-  IL_0010:  ldc.i4.0
-  IL_0011:  ceq
-  IL_0013:  ret
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.1
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""N Program.C1.x.get""
+  IL_000b:  ldc.i4.1
+  IL_000c:  ceq
+  IL_000e:  ldc.i4.0
+  IL_000f:  ceq
+  IL_0011:  ret
 }
 ").VerifyIL("Program.Test3(Program.C1)", @"
 {
@@ -4461,24 +4450,22 @@ class Program
 }
 ").VerifyIL("Program.Test2<T>(T[])", @"
 {
-  // Code size       27 (0x1b)
+  // Code size       26 (0x1a)
   .maxstack  2
-  .locals init (T[] V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  brtrue.s   IL_0008
+  IL_0001:  dup
+  IL_0002:  brtrue.s   IL_0008
+  IL_0004:  pop
   IL_0005:  ldc.i4.1
-  IL_0006:  br.s       IL_000d
-  IL_0008:  ldloc.0
-  IL_0009:  ldlen
-  IL_000a:  ldc.i4.0
-  IL_000b:  cgt.un
-  IL_000d:  brtrue.s   IL_0015
-  IL_000f:  ldstr      ""empty""
-  IL_0014:  ret
-  IL_0015:  ldstr      ""not empty""
-  IL_001a:  ret
+  IL_0006:  br.s       IL_000c
+  IL_0008:  ldlen
+  IL_0009:  ldc.i4.0
+  IL_000a:  cgt.un
+  IL_000c:  brtrue.s   IL_0014
+  IL_000e:  ldstr      ""empty""
+  IL_0013:  ret
+  IL_0014:  ldstr      ""not empty""
+  IL_0019:  ret
 }
 ");
         }
@@ -4729,18 +4716,15 @@ public class MyType
 
             verifier.VerifyIL("C.MyMethod", @"
 {
-  // Code size       18 (0x12)
+  // Code size       16 (0x10)
   .maxstack  1
-  .locals init (MyType V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  brtrue.s   IL_000b
-  IL_0005:  ldsfld     ""decimal decimal.Zero""
-  IL_000a:  ret
-  IL_000b:  ldloc.0
-  IL_000c:  ldfld      ""decimal MyType.MyField""
-  IL_0011:  ret
+  IL_0001:  brtrue.s   IL_0009
+  IL_0003:  ldsfld     ""decimal decimal.Zero""
+  IL_0008:  ret
+  IL_0009:  ldarg.0
+  IL_000a:  ldfld      ""decimal MyType.MyField""
+  IL_000f:  ret
 }");
         }
 
@@ -4773,18 +4757,15 @@ public class MyType
 
             verifier.VerifyIL("C.MyMethod", @"
 {
-  // Code size       18 (0x12)
+  // Code size       16 (0x10)
   .maxstack  1
-  .locals init (MyType V_0)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  brtrue.s   IL_000b
-  IL_0005:  ldsfld     ""decimal decimal.Zero""
-  IL_000a:  ret
-  IL_000b:  ldloc.0
-  IL_000c:  ldfld      ""decimal MyType.MyField""
-  IL_0011:  ret
+  IL_0001:  brtrue.s   IL_0009
+  IL_0003:  ldsfld     ""decimal decimal.Zero""
+  IL_0008:  ret
+  IL_0009:  ldarg.0
+  IL_000a:  ldfld      ""decimal MyType.MyField""
+  IL_000f:  ret
 }");
         }
 
