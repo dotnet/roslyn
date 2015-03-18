@@ -57,9 +57,6 @@ namespace Microsoft.CodeAnalysis
 
         public bool TryGetTextVersion(out VersionStamp version)
         {
-<<<<<<< HEAD
-            version = _version;
-=======
             version = _storedVersion;
 
             // if the TextAndVersion has not been stored yet, but it has been observed
@@ -73,7 +70,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
->>>>>>> upstream/master
             return version != default(VersionStamp);
         }
 
