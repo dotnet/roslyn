@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         public bool ReportAnalyzer
         {
             set { _store["ReportAnalyzer"] = value; }
-            get { return (bool)_store["ReportAnalyzer"]; }
+            get { return _store.GetOrDefault("ReportAnalyzer", false); }
         }
 
         public ITaskItem[] Resources
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            if (!UseSharedCompilation || this.ToolPath != null )
+            if (!UseSharedCompilation || this.ToolPath != null)
             {
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
@@ -549,6 +549,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendWhenTrue("/utf8output", this._store, "Utf8Output");
             commandLine.AppendSwitchIfNotNull("/win32icon:", this.Win32Icon);
             commandLine.AppendSwitchIfNotNull("/win32manifest:", this.Win32Manifest);
+
+            // report analyzer if flag is set
+            commandLine.AppendWhenTrue("/reportanalyzer", this._store, "ReportAnalyzer");
 
             // Append the analyzers.
             this.AddAnalyzersToCommandLine(commandLine);

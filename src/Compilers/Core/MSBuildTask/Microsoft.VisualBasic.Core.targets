@@ -52,6 +52,10 @@
       <UseSharedCompilation>true</UseSharedCompilation>
     </PropertyGroup>
 
+    <PropertyGroup>
+      <ReportAnalyzer Condition="'$(BuildingInsideVisualStudio)' == 'true' and '$(ReportAnalyzer)' == ''">true</ReportAnalyzer>
+    </PropertyGroup>
+
     <!-- Condition is to filter out the _CoreCompileResourceInputs so that it doesn't pass in culture resources to the compiler -->
     <Vbc  Condition=" '%(_CoreCompileResourceInputs.WithCulture)' != 'true' "
           AdditionalLibPaths="$(AdditionalLibPaths)"
@@ -97,7 +101,7 @@
           PreferredUILang="$(PreferredUILang)"
           References="@(ReferencePath)"
           RemoveIntegerChecks="$(RemoveIntegerChecks)"
-          ReportAnalyzer="@(ReportAnalyzer)"
+          ReportAnalyzer="$(ReportAnalyzer)"
           Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
           ResponseFiles="$(CompilerResponseFile)"
           RootNamespace="$(RootNamespace)"

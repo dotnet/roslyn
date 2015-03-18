@@ -32,6 +32,7 @@
     <PropertyGroup>
       <!-- To match historical behavior, when inside VS11+ disable the warning from csc.exe indicating that no sources were passed in-->
       <NoWarn Condition=" '$(BuildingInsideVisualStudio)' == 'true' and '$(VisualStudioVersion)' != '' and '$(VisualStudioVersion)' > '10.0' ">$(NoWarn);2008</NoWarn>
+      <ReportAnalyzer Condition="'$(BuildingInsideVisualStudio)' == 'true' and '$(ReportAnalyzer)' == ''">true</ReportAnalyzer>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(TargetingClr2Framework)'=='true'">
@@ -104,7 +105,7 @@
           Prefer32Bit="$(Prefer32Bit)"
           PreferredUILang="$(PreferredUILang)"
           References="@(ReferencePath)"
-          ReportAnalyzer="@(ReportAnalyzer)"
+          ReportAnalyzer="$(ReportAnalyzer)"
           Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
           ResponseFiles="$(CompilerResponseFile)"
           Sources="@(Compile)"
