@@ -38,28 +38,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         #region IIncrementalAnalyzer
         public async override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
         {
-            Project project = document.Project;
+            // ToDo: Should there be an exception handler here? Should there be checks for cancellation?
 
-            VersionStamp textVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
+            Project project = document.Project;
             VersionStamp projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-            VersionStamp projectDeclarationsVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
             SemanticModel documentModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             Compilation compilation = documentModel.Compilation;
             CompilationDescriptor compilationDescriptor = GetCompilation(compilation, project, projectVersion, cancellationToken);
 
-            ImmutableArray<Diagnostic> diagnostics = documentModel.GetDiagnostics(null, cancellationToken);
+            ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.Compilation.GetAllDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
             compilationDescriptor.DistributeDiagnostics(diagnostics);
+            RaiseEvents(project, GetDiagnosticData(project, diagnostics).ToImmutableArrayOrEmpty());
         }
 
-        // New above here.
 
         public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
         {
-            var diagnostics = await GetDiagnosticsAsync(project.Solution, project.Id, null, cancellationToken).ConfigureAwait(false);
+            VersionStamp projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
 
-            RaiseEvents(project, diagnostics);
+            Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            CompilationDescriptor compilationDescriptor = GetCompilation(compilation, project, projectVersion, cancellationToken);
+
+            ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.Compilation.GetAllDiagnosticsAsync().ConfigureAwait(false);
+            compilationDescriptor.DistributeDiagnostics(diagnostics);
+            RaiseEvents(project, GetDiagnosticData(project, diagnostics).ToImmutableArrayOrEmpty());
         }
+
+        // New above here.
 
         public override Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {

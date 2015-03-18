@@ -65,6 +65,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Returns diagnostics produced by compilation and by diagnostic analyzers from analyzing a single document.
+        /// <param name="model">Semantic model for the document.</param>
+        /// </summary>
+        public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsFromDocumentAsync(SemanticModel model)
+        {
+            // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
+            ImmutableArray<Diagnostic> compilerDiagnostics = model.GetDiagnostics(null, _cancellationToken);
+
+            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
+            return compilerDiagnostics.AddRange(analyzerDiagnostics).AddRange(_exceptionDiagnostics);
+        }
+
+        /// <summary>
         /// Given a set of compiler or <see cref="DiagnosticAnalyzer"/> generated <paramref name="diagnostics"/>, returns the effective diagnostics after applying the below filters:
         /// 1) <see cref="CompilationOptions.SpecificDiagnosticOptions"/> specified for the given <paramref name="compilation"/>.
         /// 2) <see cref="CompilationOptions.GeneralDiagnosticOption"/> specified for the given <paramref name="compilation"/>.
