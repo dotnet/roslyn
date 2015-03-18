@@ -438,15 +438,12 @@ namespace Microsoft.CodeAnalysis
                         WithOutputNameOverride(outputName).
                         WithPdbFilePath(finalPdbFilePath);
 
-                    var pdbOutputInfo = Arguments.EmitPdb
-                        ? new Cci.PdbOutputInfo(finalPdbFilePath)
-                        : Cci.PdbOutputInfo.None;
-
-                    using (var peStreamProvider = new CompilerEmitStreamProvider(this, touchedFilesLogger, finalOutputPath))
+                    using (var peStreamProvider = new CompilerEmitStreamProvider(this, finalOutputPath, streamCreatedByNativePdbWriter: false))
+                    using (var pdbStreamProviderOpt = Arguments.EmitPdb ? new CompilerEmitStreamProvider(this, finalOutputPath, streamCreatedByNativePdbWriter: true) : null)
                     {
                         emitResult = compilation.Emit(
                             peStreamProvider,
-                            pdbOutputInfo,
+                            pdbStreamProviderOpt,
                             xml,
                             win32Res,
                             Arguments.ManifestResources,
@@ -454,9 +451,14 @@ namespace Microsoft.CodeAnalysis
                             getAnalyzerDiagnostics,
                             cancellationToken);
 
-                        if (emitResult.Success && !pdbOutputInfo.IsNone && touchedFilesLogger != null)
+                        if (emitResult.Success && touchedFilesLogger != null)
                         {
-                            touchedFilesLogger.AddWritten(pdbOutputInfo.FileName);
+                            if (pdbStreamProviderOpt != null)
+                            {
+                                touchedFilesLogger.AddWritten(finalPdbFilePath);
+                            }
+
+                            touchedFilesLogger.AddWritten(finalOutputPath);
                         }
                     }
                 }

@@ -29,64 +29,6 @@ namespace Microsoft.Cci
         }
     }
 
-    /// <summary>
-    /// This struct abstracts away the possible values for specifying the output information
-    /// for a PDB.  It is legal to specify a file name, a stream or both.  In the case both
-    /// are specified though the <see cref="Stream"/> value will be preferred.  
-    /// </summary>
-    /// <remarks>
-    /// The file name is still used within the PDB writing code hence is not completely 
-    /// redundant in the face of a <see cref="Stream"/> value.
-    /// </remarks>
-    internal struct PdbOutputInfo
-    {
-        internal static PdbOutputInfo None
-        {
-            get { return new PdbOutputInfo(); }
-        }
-
-        internal readonly string FileName;
-        internal readonly Stream Stream;
-
-        internal bool IsNone
-        {
-            get { return FileName == null && Stream == null; }
-        }
-
-        internal bool IsValid
-        {
-            get { return !IsNone; }
-        }
-
-        internal PdbOutputInfo(string fileName)
-        {
-            Debug.Assert(fileName != null);
-            FileName = fileName;
-            Stream = null;
-        }
-
-        internal PdbOutputInfo(Stream stream)
-        {
-            FileName = null;
-            Stream = stream;
-        }
-
-        internal PdbOutputInfo(string fileName, Stream stream)
-        {
-            Debug.Assert(fileName != null);
-            Debug.Assert(stream != null && stream.CanWrite);
-            FileName = fileName;
-            Stream = stream;
-        }
-
-        internal PdbOutputInfo WithStream(Stream stream)
-        {
-            return FileName != null
-                ? new PdbOutputInfo(FileName, stream)
-                : new PdbOutputInfo(stream);
-        }
-    }
-
     internal sealed class PdbWriter : IDisposable
     {
         internal const uint HiddenLocalAttributesValue = 1u;
@@ -94,7 +36,8 @@ namespace Microsoft.Cci
 
         private static Type s_lazyCorSymWriterSxSType;
 
-        private readonly PdbOutputInfo _pdbOutputInfo;
+        private readonly Func<Stream> _streamProvider;
+        private readonly string _fileName;
         private readonly Func<object> _symWriterFactory;
         private MetadataWriter _metadataWriter;
         private ISymUnmanagedWriter2 _symWriter;
@@ -111,10 +54,11 @@ namespace Microsoft.Cci
         private uint[] _sequencePointEndLines;
         private uint[] _sequencePointEndColumns;
 
-        public PdbWriter(PdbOutputInfo pdbOutputInfo, Func<object> symWriterFactory = null)
+        public PdbWriter(Func<Stream> streamProvider, string fileName, Func<object> symWriterFactory = null)
         {
-            Debug.Assert(pdbOutputInfo.IsValid);
-            _pdbOutputInfo = pdbOutputInfo;
+            Debug.Assert(streamProvider != null);
+            _streamProvider = streamProvider;
+            _fileName = fileName;
             _symWriterFactory = symWriterFactory;
             CreateSequencePointBuffers(capacity: 64);
         }
@@ -131,8 +75,8 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// Close the PDB writer and write the contents to the location specified by the <see cref="PdbOutputInfo"/>
-        /// value.  If a file name was specified this is the method which will cause it to be created.
+        /// Close the PDB writer and write the contents to the stream provided by <see cref="_streamProvider"/> 
+        /// or file name specified by <see cref="_fileName"/> value if no stream has been provided. 
         /// </summary>
         public void WritePdbToOutput()
         {
@@ -619,11 +563,14 @@ namespace Microsoft.Cci
 
         public void SetMetadataEmitter(MetadataWriter metadataWriter)
         {
+            Stream streamOpt = _streamProvider();
+
             try
             {
                 var instance = (ISymUnmanagedWriter2)(_symWriterFactory != null ? _symWriterFactory() : Activator.CreateInstance(GetCorSymWriterSxSType()));
-                var comStream = _pdbOutputInfo.Stream != null ? new ComStreamWrapper(_pdbOutputInfo.Stream) : null;
-                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _pdbOutputInfo.FileName, comStream, fullBuild: true);
+                var comStream = (streamOpt != null) ? new ComStreamWrapper(streamOpt) : null;
+
+                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, comStream, fullBuild: true);
 
                 _metadataWriter = metadataWriter;
                 _symWriter = instance;
