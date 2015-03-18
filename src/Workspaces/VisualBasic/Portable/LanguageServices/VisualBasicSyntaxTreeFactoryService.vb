@@ -43,7 +43,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SyntaxFactory.SyntaxTree(root, options, fileName, encoding)
             End Function
 
+            Public Overrides Function CanCreateRecoverableTree(root As SyntaxNode) As Boolean
+                Dim cu = TryCast(root, CompilationUnitSyntax)
+                Return MyBase.CanCreateRecoverableTree(root) AndAlso cu IsNot Nothing AndAlso cu.Attributes.Count = 0
+            End Function
+
             Public Overrides Function CreateRecoverableTree(cacheKey As ProjectId, filePath As String, optionsOpt As ParseOptions, text As ValueSource(Of TextAndVersion), encoding As Encoding, root As SyntaxNode) As SyntaxTree
+                Debug.Assert(CanCreateRecoverableTree(root))
                 Return RecoverableSyntaxTree.CreateRecoverableTree(Me, cacheKey, filePath, If(optionsOpt, GetDefaultParseOptions()), text, encoding, DirectCast(root, CompilationUnitSyntax))
             End Function
 

@@ -9,11 +9,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
-    /// This class is a ValueSource that manages storing an item in a cache,
-    /// saving the item's state when it is evicted from the cache and recovering
-    /// it from its saved state when the value source is accessed again.
+    /// This class is a <see cref="ValueSource{T}"/> that holds onto a value weakly, 
+    /// but can save its value and recover it on demand if needed.
+    /// 
+    /// The initial value comes from the <see cref="ValueSource{T}"/> specified in the constructor.
+    /// Derived types implement SaveAsync and RecoverAsync.
     /// </summary>
-    internal abstract class RecoverableCachedObjectSource<T> : ValueSource<T> where T : class
+    internal abstract class RecoverableWeakValueSource<T> : ValueSource<T> where T : class
     {
         private AsyncSemaphore _gateDoNotAccessDirectly; // Lazily created. Access via the Gate property
         private bool _saved;
@@ -22,13 +24,13 @@ namespace Microsoft.CodeAnalysis.Host
 
         private static readonly WeakReference<T> s_noReference = new WeakReference<T>(null);
 
-        public RecoverableCachedObjectSource(ValueSource<T> initialValue)
+        public RecoverableWeakValueSource(ValueSource<T> initialValue)
         {
             _weakInstance = s_noReference;
             _recoverySource = initialValue;
         }
 
-        public RecoverableCachedObjectSource(RecoverableCachedObjectSource<T> savedSource)
+        public RecoverableWeakValueSource(RecoverableWeakValueSource<T> savedSource)
         {
             Contract.ThrowIfFalse(savedSource._saved);
             Contract.ThrowIfFalse(savedSource.GetType() == this.GetType());
