@@ -1190,27 +1190,19 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<string> GetInternalsVisibleToAttributeValues(Handle token)
         {
-            List<AttributeInfo> attrInfos = FindTargetAttributes(token, AttributeDescription.InternalsVisibleToAttribute);
-            ArrayBuilder<string> result = ExtractStringValuesFromAttributes(attrInfos);
-            return result != null ? result.ToImmutableAndFree() : ImmutableArray<string>.Empty;
+            return GetAttributeValues(token, AttributeDescription.InternalsVisibleToAttribute);
         }
 
         internal ImmutableArray<string> GetConditionalAttributeValues(Handle token)
         {
-            List<AttributeInfo> attrInfos = FindTargetAttributes(token, AttributeDescription.ConditionalAttribute);
+            return GetAttributeValues(token, AttributeDescription.ConditionalAttribute);
+        }
+
+        private ImmutableArray<string> GetAttributeValues(Handle token, AttributeDescription attributeDescription)
+        {
+            List<AttributeInfo> attrInfos = FindTargetAttributes(token, attributeDescription);
             ArrayBuilder<string> result = ExtractStringValuesFromAttributes(attrInfos);
-
-            ImmutableArray<string> list;
-            if (result != null)
-            {
-                list = result.ToImmutableAndFree();
-            }
-            else
-            {
-                list = ImmutableArray<string>.Empty;
-            }
-
-            return list;
+            return result != null ? result.ToImmutableAndFree() : ImmutableArray<string>.Empty;
         }
 
         // This method extracts all the non-null string values from the given attributes.

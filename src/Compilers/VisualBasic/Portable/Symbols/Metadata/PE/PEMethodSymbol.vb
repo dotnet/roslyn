@@ -758,8 +758,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' If method is not generic, let's assign empty list for type parameters
                 If Not signatureHeader.IsGeneric() AndAlso
                     _lazyTypeParameters.IsDefault Then
-                    ImmutableInterlocked.InterlockedCompareExchange(_lazyTypeParameters,
-                                                ImmutableArray(Of TypeParameterSymbol).Empty, Nothing)
+                    ImmutableInterlocked.InterlockedInitialize(_lazyTypeParameters,
+                                                ImmutableArray(Of TypeParameterSymbol).Empty)
                 End If
 
                 Dim count As Integer = paramInfo.Length - 1
@@ -849,7 +849,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     typeParams = ImmutableArray(Of TypeParameterSymbol).Empty
                 End Try
 
-                ImmutableInterlocked.InterlockedCompareExchange(_lazyTypeParameters, typeParams, Nothing)
+                ImmutableInterlocked.InterlockedInitialize(_lazyTypeParameters, typeParams)
             End If
 
         End Sub
@@ -897,7 +897,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         explicitImplementations = explicitInterfaceImplementationsBuilder.ToImmutableAndFree()
                     End If
 
-                    ImmutableInterlocked.InterlockedCompareExchange(_lazyExplicitMethodImplementations, explicitImplementations, Nothing)
+                    ImmutableInterlocked.InterlockedInitialize(_lazyExplicitMethodImplementations, explicitImplementations)
                 End If
 
                 Return _lazyExplicitMethodImplementations
@@ -907,7 +907,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            ' Note: m_lazyDocComment is passed ByRef
+            ' Note: _lazyDocComment is passed ByRef
             Return PEDocumentationCommentUtils.GetDocumentationComment(
                 Me, _containingType.ContainingPEModule, preferredCulture, cancellationToken, _lazyDocComment)
         End Function
@@ -940,7 +940,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim moduleSymbol As PEModuleSymbol = _containingType.ContainingPEModule
                 Dim conditionalSymbols As ImmutableArray(Of String) = moduleSymbol.Module.GetConditionalAttributeValues(_handle)
                 Debug.Assert(Not conditionalSymbols.IsDefault)
-                ImmutableInterlocked.InterlockedCompareExchange(_lazyConditionalAttributeSymbols, conditionalSymbols, Nothing)
+                ImmutableInterlocked.InterlockedInitialize(_lazyConditionalAttributeSymbols, conditionalSymbols)
             End If
 
             Return Me._lazyConditionalAttributeSymbols
