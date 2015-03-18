@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             if (IsEmpty)
             {
-                return null;
+                return Task.FromResult<object>(null);
             }
 
             SolutionPreviewItem previewItem = null;
