@@ -16,7 +16,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.DiaSymReader
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
-Imports ImportScope = Microsoft.VisualStudio.SymReaderInterop.ImportScope
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
