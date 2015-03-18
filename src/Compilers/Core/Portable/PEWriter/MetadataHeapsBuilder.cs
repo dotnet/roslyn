@@ -208,7 +208,7 @@ namespace Microsoft.Cci
                 index = _userStringWriter.BaseStream.Position + (uint)_userStringIndexStartOffset;
                 _userStringIndex.Add(str, index);
                 _userStringWriter.WriteCompressedUInt((uint)str.Length * 2 + 1);
-                _userStringWriter.WriteChars(str.ToCharArray());
+                _userStringWriter.WriteStringUtf16LE(str);
 
                 // Write out a trailing byte indicating if the string is really quite simple
                 byte stringKind = 0;
@@ -315,10 +315,7 @@ namespace Microsoft.Cci
                 else
                 {
                     _stringIndexMap[cur.Value.VirtIdx] = position;
-
-                    // TODO (tomat): consider reusing the buffer instead of allocating a new one for each string
-                    _stringWriter.WriteBytes(s_utf8Encoding.GetBytes(cur.Key));
-
+                    _stringWriter.WriteString(cur.Key, s_utf8Encoding);
                     _stringWriter.WriteByte(0);
                 }
 
