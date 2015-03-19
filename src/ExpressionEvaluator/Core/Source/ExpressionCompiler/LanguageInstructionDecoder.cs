@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // to argument names in C# or Visual Basic.  For consistency with the old behavior, we'll
                 // just ignore the the flag as well.
                 Debug.Assert((argumentFlags & (DkmVariableInfoFlags.FullNames | DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types)) == argumentFlags,
-                    "Unexpected argumentFlags", "argumentFlags = {0}", argumentFlags);
+                    $"Unexpected argumentFlags '{argumentFlags}'");
 
                 var instructionAddress = (DkmClrInstructionAddress)languageInstructionAddress.Address;
                 var compilation = _instructionDecoder.GetCompilation(instructionAddress.ModuleInstance);

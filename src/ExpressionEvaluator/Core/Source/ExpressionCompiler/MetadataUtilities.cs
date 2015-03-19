@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
@@ -17,11 +19,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         internal const uint COR_E_BADIMAGEFORMAT = 0x8007000b;
         internal const uint CORDBG_E_MISSING_METADATA = 0x80131c35;
-
-        internal static bool HaveNotChanged(this ImmutableArray<MetadataBlock> metadataBlocks, MetadataContext previous)
-        {
-            return ((previous != null) && metadataBlocks.SequenceEqual(previous.MetadataBlocks));
-        }
 
         /// <summary>
         /// Group module metadata into assemblies.
@@ -178,9 +175,23 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return fileName;
         }
 
+        private static byte[] GetWindowsProxyBytes()
+        {
+            var assembly = typeof(ExpressionCompiler).GetTypeInfo().Assembly;
+            using (var stream = assembly.GetManifestResourceStream("Microsoft.CodeAnalysis.ExpressionEvaluator.Resources.WindowsProxy.winmd"))
+            {
+                var bytes = new byte[stream.Length];
+                using (var memoryStream = new MemoryStream(bytes))
+                {
+                    stream.CopyTo(memoryStream);
+                }
+                return bytes;
+            }
+        }
+
         private static PortableExecutableReference MakeCompileTimeWinMdAssemblyMetadata(ArrayBuilder<ModuleMetadata> runtimeModules)
         {
-            var metadata = ModuleMetadata.CreateFromImage(Resources.WindowsProxy_winmd);
+            var metadata = ModuleMetadata.CreateFromImage(GetWindowsProxyBytes());
             var builder = ArrayBuilder<ModuleMetadata>.GetInstance();
             builder.Add(metadata);
             builder.AddRange(runtimeModules);
@@ -450,11 +461,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private static uint GetHResult(Exception e)
         {
             return unchecked((uint)e.HResult);
-        }
-
-        internal static string GetUtf8String(this BlobHandle blobHandle, MetadataReader metadataReader)
-        {
-            return Encoding.UTF8.GetString(metadataReader.GetBlobBytes(blobHandle));
         }
     }
 }

@@ -35,21 +35,21 @@
   <Target Name="IlasmNetFX20" 
           AfterTargets="CoreCompile"
           Inputs="@(ConcordAssemblies->'$(ConcordDir)%(Identity).NetFX20.il')"
-          Outputs="$(OutDir)%(Identity).dll">
-    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet /mdv:v2.0.50727 &quot;/output:$(OutDir)@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).NetFX20.il" />
-    <Exec Command="$(FakeSignToolPath) &quot;$(OutDir)@(ConcordAssemblies).dll&quot;" />
+          Outputs="$(OutDir)NetFX20\%(Identity).dll">
+    <MakeDir Directories="$(OutDir)NetFX20" />
+    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet /mdv:v2.0.50727 &quot;/output:$(OutDir)NetFX20\@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).NetFX20.il" />
+    <Exec Command="$(FakeSignToolPath) &quot;$(OutDir)NetFX20\@(ConcordAssemblies).dll&quot;" />
   </Target>
   <Target Name="IlasmPortable" 
           AfterTargets="CoreCompile"
           Inputs="@(ConcordAssemblies->'$(ConcordDir)%(Identity).Portable.il')"
-          Outputs="$(OutDir)Phone\%(Identity).dll">
-    <MakeDir Directories="$(OutDir)Phone" />
-    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet &quot;/output:$(OutDir)Phone\@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).Portable.il" />
-    <Exec Command="$(FakeSignToolPath) &quot;$(OutDir)Phone\@(ConcordAssemblies).dll&quot;" />
+          Outputs="$(OutDir)%(Identity).dll">
+    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet &quot;/output:$(OutDir)@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).Portable.il" />
+    <Exec Command="$(FakeSignToolPath) &quot;$(OutDir)@(ConcordAssemblies).dll&quot;" />
   </Target>
   <Target Name="CleanIlasmOutputs" AfterTargets="Clean">
+    <Delete Files="@(ConcordAssemblies->'$(OutDir)NetFX20\%(Identity).dll')" />
     <Delete Files="@(ConcordAssemblies->'$(OutDir)%(Identity).dll')" />
-    <Delete Files="@(ConcordAssemblies->'$(OutDir)Phone\%(Identity).dll')" />
   </Target>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
