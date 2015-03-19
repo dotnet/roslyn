@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Differencing;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             previews = editHandler.GetPreviews(workspace, action.GetPreviewOperationsAsync(CancellationToken.None).Result, CancellationToken.None);
         }
 
-        [Fact(Skip = "Fix for async")]
+        [Fact]
         public void TestPickTheRightPreview_NoPreference()
         {
             using (var workspace = CreateWorkspaceFromFile("class D {}", null, null))
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 GetMainDocumentAndPreviews(workspace, out document, out previews);
 
                 // The changed document comes first.
-                var preview = previews.TakeNextPreviewAsync().Result;
+                var preview = previews.TakeNextPreviewAsync().PumpingWaitResult();
                 Assert.NotNull(preview);
                 Assert.True(preview is IWpfDifferenceViewer);
                 var diffView = preview as IWpfDifferenceViewer;
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 diffView.Close();
 
                 // The added document comes next.
-                preview = previews.TakeNextPreviewAsync().Result;
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult();
                 Assert.NotNull(preview);
                 Assert.True(preview is IWpfDifferenceViewer);
                 diffView = preview as IWpfDifferenceViewer;
@@ -121,28 +122,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 diffView.Close();
 
                 // Then comes the removed metadata reference.
-                preview = previews.TakeNextPreviewAsync().Result;
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult();
                 Assert.NotNull(preview);
                 Assert.True(preview is string);
                 text = preview as string;
                 Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal);
 
                 // And finally the added project.
-                preview = previews.TakeNextPreviewAsync().Result;
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult();
                 Assert.NotNull(preview);
                 Assert.True(preview is string);
                 text = preview as string;
                 Assert.Contains(AddedProjectName, text, StringComparison.Ordinal);
 
                 // There are no more previews.
-                preview = previews.TakeNextPreviewAsync().Result;
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult();
                 Assert.Null(preview);
-                preview = previews.TakeNextPreviewAsync().Result;
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult();
                 Assert.Null(preview);
             }
         }
 
-        [Fact(Skip = "Fix for async")]
+        [Fact]
         public void TestPickTheRightPreview_WithPreference()
         {
             using (var workspace = CreateWorkspaceFromFile("class D {}", null, null))
@@ -152,14 +153,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 GetMainDocumentAndPreviews(workspace, out document, out previews);
 
                 // Should return preview that matches the preferred (added) project.
-                var preview = previews.TakeNextPreviewAsync(preferredProjectId: s_addedProjectId).Result;
+                var preview = previews.TakeNextPreviewAsync(preferredProjectId: s_addedProjectId).PumpingWaitResult();
                 Assert.NotNull(preview);
                 Assert.True(preview is string);
                 var text = preview as string;
                 Assert.Contains(AddedProjectName, text, StringComparison.Ordinal);
 
                 // Should return preview that matches the preferred (changed) document.
-                preview = previews.TakeNextPreviewAsync(preferredDocumentId: document.Id).Result;
+                preview = previews.TakeNextPreviewAsync(preferredDocumentId: document.Id).PumpingWaitResult();
                 Assert.NotNull(preview);
                 Assert.True(preview is IWpfDifferenceViewer);
                 var diffView = preview as IWpfDifferenceViewer;
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 diffView.Close();
 
                 // There is no longer a preview for the preferred project. Should return the first remaining preview.
-                preview = previews.TakeNextPreviewAsync(preferredProjectId: s_addedProjectId).Result;
+                preview = previews.TakeNextPreviewAsync(preferredProjectId: s_addedProjectId).PumpingWaitResult();
                 Assert.NotNull(preview);
                 Assert.True(preview is IWpfDifferenceViewer);
                 diffView = preview as IWpfDifferenceViewer;
@@ -178,16 +179,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 diffView.Close();
 
                 // There is no longer a preview for the  preferred document. Should return the first remaining preview.
-                preview = previews.TakeNextPreviewAsync(preferredDocumentId: document.Id).Result;
+                preview = previews.TakeNextPreviewAsync(preferredDocumentId: document.Id).PumpingWaitResult();
                 Assert.NotNull(preview);
                 Assert.True(preview is string);
                 text = preview as string;
                 Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal);
 
                 // There are no more previews.
-                preview = previews.TakeNextPreviewAsync().Result;
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult();
                 Assert.Null(preview);
-                preview = previews.TakeNextPreviewAsync().Result;
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult();
                 Assert.Null(preview);
             }
         }

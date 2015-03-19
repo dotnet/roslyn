@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [Fact(Skip = "Fix for async")]
+        [Fact]
         public void TestPreviewDiagnosticTaggerInPreviewPane()
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines("class { }"))
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
                 // create a diff view
                 var previewFactoryService = workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
-                var diffView = (IWpfDifferenceViewer)previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None).Result;
+                var diffView = (IWpfDifferenceViewer)previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None).PumpingWaitResult();
 
                 var foregroundService = new TestForegroundNotificationService();
                 var optionsService = workspace.Services.GetService<IOptionService>();

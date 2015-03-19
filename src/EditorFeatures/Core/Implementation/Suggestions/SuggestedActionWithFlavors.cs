@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -31,13 +32,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // Light bulb will always invoke this property on the UI thread.
                 AssertIsForeground();
 
-                return true;
+                var operations = CodeAction.GetPreviewOperationsAsync(CancellationToken.None).Result;
+
+                // We will have a PreviewChangesSuggestedAction only for fixes that don't override preview (by returning
+                // PreviewOperation or some other (non-preview-able) operation). In other words, we will only have a
+                // PreviewChangesSuggestedAction for fixes that provide an ApplyChangesOperation.
+                var hasPreviewChangesSuggestedAction = operations.Any(o => o is ApplyChangesOperation);
+
+                // We have flavored actions if we either have a PreviewChangesSuggestedAction or one or more
+                // FixAllSuggestedActions.
+                return hasPreviewChangesSuggestedAction || (GetFixAllSuggestedActionSet() != null);
             }
         }
 
         private ImmutableArray<SuggestedActionSet> _actionSets;
         public async override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Light bulb will invoke this property on the UI thread.
             AssertIsForeground();
 
@@ -50,6 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     builder.Add(previewChangesSuggestedActionSet);
                 }
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 var fixAllSuggestedActionSet = GetFixAllSuggestedActionSet();
                 if (fixAllSuggestedActionSet != null)

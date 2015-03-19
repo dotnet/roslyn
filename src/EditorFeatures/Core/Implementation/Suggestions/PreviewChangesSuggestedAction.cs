@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // 'flavored' action, code in the VS editor / lightbulb layer should
             // never call GetPreview() on it. We override and return null here
             // regardless so that nothing blows up if this ends up getting called.
-            return Task.FromResult<object>(null); ;
+            return Task.FromResult<object>(null);
         }
     }
 }
