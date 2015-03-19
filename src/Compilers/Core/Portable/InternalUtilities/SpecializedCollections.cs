@@ -85,9 +85,10 @@ namespace Roslyn.Utilities
 
         public static ISet<T> ReadOnlySet<T>(IEnumerable<T> values)
         {
-            if (values is ISet<T>)
+            var set = values as ISet<T>;
+            if (set != null)
             {
-                return ReadOnlySet((ISet<T>)values);
+                return ReadOnlySet(set);
             }
 
             HashSet<T> result = null;

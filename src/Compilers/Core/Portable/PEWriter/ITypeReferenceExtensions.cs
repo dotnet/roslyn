@@ -12,10 +12,7 @@ namespace Microsoft.Cci
         internal static void GetConsolidatedTypeArguments(this ITypeReference typeReference, ArrayBuilder<ITypeReference> consolidatedTypeArguments, EmitContext context)
         {
             INestedTypeReference nestedTypeReference = typeReference.AsNestedTypeReference;
-            if (nestedTypeReference != null)
-            {
-                nestedTypeReference.GetContainingType(context).GetConsolidatedTypeArguments(consolidatedTypeArguments, context);
-            }
+            nestedTypeReference?.GetContainingType(context).GetConsolidatedTypeArguments(consolidatedTypeArguments, context);
 
             IGenericTypeInstanceReference genTypeInstance = typeReference.AsGenericTypeInstanceReference;
             if (genTypeInstance != null)

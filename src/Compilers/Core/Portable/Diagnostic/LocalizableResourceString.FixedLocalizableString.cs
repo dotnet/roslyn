@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
 
             protected override int GetHash()
             {
-                return _fixedString != null ? _fixedString.GetHashCode() : 0;
+                return _fixedString?.GetHashCode() ?? 0;
             }
         }
     }

@@ -2,11 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using CDI = Microsoft.Cci.CustomDebugInfoConstants;
@@ -264,7 +262,7 @@ namespace Microsoft.Cci
                     {
                         if ((bool)dynamicTransformFlags[k].Value)
                         {
-                            flag[k] = (byte)1;
+                            flag[k] = 1;
                         }
                     }
                     cmw.WriteBytes(flag); //Written Flag
@@ -345,7 +343,7 @@ namespace Microsoft.Cci
             // case where usingCounts was empty, but I'm not sure why.
             if (usingCounts.Count > 0)
             {
-                uint streamLength = 0;
+                uint streamLength;
                 cmw.WriteByte(CDI.CdiVersion);
                 cmw.WriteByte(CDI.CdiKindUsingInfo);
                 cmw.Align(4);

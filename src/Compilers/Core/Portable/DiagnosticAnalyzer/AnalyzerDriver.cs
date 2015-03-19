@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -47,18 +48,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// The compilation queue to create the compilation with via WithEventQueue.
         /// </summary>
-        public AsyncQueue<CompilationEvent> CompilationEventQueue
-        {
-            get;
-        }
+        public AsyncQueue<CompilationEvent> CompilationEventQueue { get; }
 
         /// <summary>
         /// An async queue that is fed the diagnostics as they are computed.
         /// </summary>
-        public AsyncQueue<Diagnostic> DiagnosticQueue
-        {
-            get;
-        }
+        public AsyncQueue<Diagnostic> DiagnosticQueue { get; }
 
         /// <summary>
         /// Initializes the compilation for the analyzer driver.
@@ -175,13 +170,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
             }
 
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, analyzer, diagnostic) =>
-            {
-                if (addExceptionDiagnostic != null)
-                {
-                    addExceptionDiagnostic(diagnostic);
-        }
-            };
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = 
+                (ex, analyzer, diagnostic) => addExceptionDiagnostic?.Invoke(diagnostic);
+
             return Create(compilation, analyzers, options, analyzerManager, onAnalyzerException, out newCompilation, cancellationToken: cancellationToken);
         }
 
@@ -552,15 +543,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static Diagnostic GetFilteredDiagnostic(Diagnostic diagnostic, Compilation compilation, ISymbol symbolOpt = null)
         {
-                var filteredDiagnostic = compilation.FilterDiagnostic(diagnostic);
-                if (filteredDiagnostic != null)
-                {
-                    var suppressMessageState = SuppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
+            var filteredDiagnostic = compilation.FilterDiagnostic(diagnostic);
+            if (filteredDiagnostic != null)
+            {
+                var suppressMessageState = SuppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
                 if (suppressMessageState.IsDiagnosticSuppressed(filteredDiagnostic, symbolOpt: symbolOpt))
-                    {
+                {
                     return null;
-                    }
                 }
+            }
 
             return filteredDiagnostic;
         }
@@ -617,13 +608,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal class AnalyzerDriver<TLanguageKindEnum> : AnalyzerDriver where TLanguageKindEnum : struct
     {
-        private Func<SyntaxNode, TLanguageKindEnum> _getKind;
-        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>> _lazyNodeActionsByKind = null;
-        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>> _lazyCodeBlockStartActionsByAnalyzer = null;
+        private readonly Func<SyntaxNode, TLanguageKindEnum> _getKind;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>> _lazyNodeActionsByKind;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>> _lazyCodeBlockStartActionsByAnalyzer;
         // Code block actions and code block end actions are kept separate so that it is easy to
         // execute the code block actions before the code block end actions.
-        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> _lazyCodeBlockEndActionsByAnalyzer = null;
-        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> _lazyCodeBlockActionsByAnalyzer = null;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> _lazyCodeBlockEndActionsByAnalyzer;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> _lazyCodeBlockActionsByAnalyzer;
 
         /// <summary>
         /// Create an analyzer driver.
@@ -830,6 +821,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        [StructLayout(LayoutKind.Auto)]
         private struct CodeBlockAnalyzerActions
         {
             public DiagnosticAnalyzer Analyzer;
@@ -857,7 +849,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 
                 yield return
-                    new CodeBlockAnalyzerActions()
+                    new CodeBlockAnalyzerActions
                     {
                         Analyzer = analyzerAndActions.Key,
                         CodeBlockStartActions = analyzerAndActions.Value,
@@ -880,7 +872,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                     
                     yield return
-                        new CodeBlockAnalyzerActions()
+                        new CodeBlockAnalyzerActions
                         {
                             Analyzer = analyzerAndActions.Key,
                             CodeBlockStartActions = ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>.Empty,
@@ -898,7 +890,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (!CodeBlockStartActionsByAnalyzer.ContainsKey(analyzerAndActions.Key) && !CodeBlockActionsByAnalyzer.ContainsKey(analyzerAndActions.Key))
                 {
                     yield return
-                        new CodeBlockAnalyzerActions()
+                        new CodeBlockAnalyzerActions
                         {
                             Analyzer = analyzerAndActions.Key,
                             CodeBlockStartActions = ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>.Empty,
@@ -931,12 +923,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // if we processing the first field and skip syntax actions for remaining fields in the declaration.
                     if (declInNode.DeclaredSymbol == declaredSymbol)
                     {
-                        if (!first)
+                        if (first)
                         {
-                            return;
+                            break;
                         }
-                        
-                        break;
+
+                        return;
                     }
 
                     // Compute the topmost node representing the syntax declaration for the member that needs to be skipped.

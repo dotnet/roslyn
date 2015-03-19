@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (displayName == null)
             {
-                throw new ArgumentNullException("displayName");
+                throw new ArgumentNullException(nameof(displayName));
             }
 
             AssemblyIdentityParts parts;
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis
 
             if (displayName == null)
             {
-                throw new ArgumentNullException("displayName");
+                throw new ArgumentNullException(nameof(displayName));
             }
 
             if (displayName.IndexOf('\0') >= 0)
@@ -751,27 +751,6 @@ namespace Microsoft.CodeAnalysis
             if (quoted)
             {
                 result.Append('"');
-            }
-        }
-
-        private static bool CanBeEscaped(char c)
-        {
-            switch (c)
-            {
-                case ',':
-                case '=':
-                case '\\':
-                case '/':
-                case '"':
-                case '\'':
-                case 't':
-                case 'n':
-                case 'r':
-                case 'u':
-                    return true;
-
-                default:
-                    return false;
             }
         }
 

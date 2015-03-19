@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return (_value == null) ? 0 : _value.GetHashCode();
+            return _value?.GetHashCode() ?? 0;
         }
 
         public override bool Equals(object obj)

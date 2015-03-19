@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             public Glyph Glyph => _lazySymbol.Value?.GetGlyph() ?? Glyph.Error;
             public TextSpan SourceSpan => _declaredSymbolInfo.Span;
             public ISymbol Symbol => _lazySymbol.Value;
+            public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
 
             private readonly DeclaredSymbolInfo _declaredSymbolInfo;
             private readonly Lazy<string> _lazyDisplayName;

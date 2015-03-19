@@ -20,14 +20,14 @@ namespace Roslyn.Utilities
 
         private static bool TryGetEnsureSufficientExecutionStack(out Action ensureSufficientExecutionStack)
         {
-            var type = System.Reflection.IntrospectionExtensions.GetTypeInfo(typeof(object)).Assembly.GetType("System.Runtime.CompilerServices.RuntimeHelpers");
+            var type = typeof(object).GetTypeInfo().Assembly.GetType("System.Runtime.CompilerServices.RuntimeHelpers");
             if (type == null)
             {
                 ensureSufficientExecutionStack = null;
                 return false;
             }
 
-            foreach (var methodInfo in System.Reflection.IntrospectionExtensions.GetTypeInfo(type).GetDeclaredMethods("EnsureSufficientExecutionStack"))
+            foreach (var methodInfo in type.GetTypeInfo().GetDeclaredMethods("EnsureSufficientExecutionStack"))
             {
                 if (methodInfo.IsStatic && !methodInfo.ContainsGenericParameters && methodInfo.ReturnType == typeof(void) && methodInfo.GetParameters().Length == 0)
                 {
