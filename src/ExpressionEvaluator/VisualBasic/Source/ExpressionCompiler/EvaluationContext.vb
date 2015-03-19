@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Debug.Assert(MetadataTokens.Handle(typeToken).Kind = HandleKind.TypeDefinition)
 
             ' Re-use the previous compilation if possible.
-            Dim compilation = If(metadataBlocks.HaveNotChanged(previous),
+            Dim compilation = If(previous.Matches(metadataBlocks),
                 previous.Compilation,
                 metadataBlocks.ToCompilation())
 
@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             ' Re-use the previous compilation if possible.
             Dim compilation As VisualBasicCompilation
-            If metadataBlocks.HaveNotChanged(previous) Then
+            If previous.Matches(metadataBlocks) Then
                 ' Re-use entire context if method scope has not changed.
                 Dim previousContext = previous.EvaluationContext
                 If previousContext IsNot Nothing AndAlso

@@ -8,6 +8,7 @@
     <Import Project="..\..\..\..\..\..\build\VSL.Settings.Closed.targets" />
   </ImportGroup>
   <PropertyGroup>
+    <OutDir>$(OutDir)NetFX20\</OutDir>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{BEDC5A4A-809E-4017-9CFD-6C8D4E1847F0}</ProjectGuid>
