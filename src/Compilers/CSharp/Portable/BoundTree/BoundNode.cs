@@ -2,10 +2,7 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -48,11 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Determines if a bound node, or associated syntax or type has an error (not a waring) 
+        /// Determines if a bound node, or associated syntax or type has an error (not a warning) 
         /// diagnostic associated with it.
         /// 
         /// Typically used in the binder as a way to prevent cascading errors. 
-        /// In most other cases a more lightweigth HasErrors should be used.
+        /// In most other cases a more lightweight HasErrors should be used.
         /// </summary>
         public bool HasAnyErrors
         {
