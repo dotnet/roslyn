@@ -40,9 +40,13 @@ namespace System.Runtime.Analyzers
                         return;
 
                     case DefineAccessorsForAttributeArgumentsAnalyzer.MakePublicCase:
-                        context.RegisterCodeFix(new MyCodeAction(SystemRuntimeAnalyzersResources.MakeGetterPublic,
-                                                         async ct => await MakePublic(context.Document, node, ct).ConfigureAwait(false)),
-                                                diagnostic);
+                        var property = generator.GetDeclaration(node, DeclarationKind.Property);
+                        if (property != null)
+                        {
+                            context.RegisterCodeFix(new MyCodeAction(SystemRuntimeAnalyzersResources.MakeGetterPublic,
+                                                             async ct => await MakePublic(context.Document, node, property, ct).ConfigureAwait(false)),
+                                                    diagnostic);
+                        }
                         return;
 
                     case DefineAccessorsForAttributeArgumentsAnalyzer.RemoveSetterCase:
@@ -96,6 +100,7 @@ namespace System.Runtime.Analyzers
                                                           (editor, propertyDeclaration) =>
                                                           {
                                                               editor.SetGetAccessorStatements(propertyDeclaration, null);
+                                                              editor.SetModifiers(propertyDeclaration, editor.Generator.GetModifiers(propertyDeclaration) - DeclarationModifiers.WriteOnly);
                                                           },
                                                           cancellationToken).ConfigureAwait(false);
             }
@@ -103,10 +108,19 @@ namespace System.Runtime.Analyzers
             return symbolEditor.GetChangedDocuments().First();
         }
 
-        private async Task<Document> MakePublic(Document document, SyntaxNode getMethod, CancellationToken cancellationToken)
+        private async Task<Document> MakePublic(Document document, SyntaxNode getMethod, SyntaxNode property, CancellationToken cancellationToken)
         {
+            // Clear the accessibility on the getter.
             DocumentEditor editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            editor.SetAccessibility(getMethod, Accessibility.Public);
+            editor.SetAccessibility(getMethod, Accessibility.NotApplicable);
+
+            // If the containing property is not public, make it so
+            var propertyAccessibility = editor.Generator.GetAccessibility(property);
+            if (propertyAccessibility != Accessibility.Public)
+            {
+                editor.SetAccessibility(property, Accessibility.Public);
+            }
+
             return editor.GetChangedDocument();
         }
 
