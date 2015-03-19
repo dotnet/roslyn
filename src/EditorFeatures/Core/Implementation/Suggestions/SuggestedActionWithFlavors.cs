@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private ImmutableArray<SuggestedActionSet> _actionSets;
         public async override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Light bulb will invoke this property on the UI thread.
             AssertIsForeground();
 
@@ -60,6 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     builder.Add(previewChangesSuggestedActionSet);
                 }
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 var fixAllSuggestedActionSet = GetFixAllSuggestedActionSet();
                 if (fixAllSuggestedActionSet != null)

@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
             foreach (var op in operations)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var applyChanges = op as ApplyChangesOperation;
                 if (applyChanges != null)
                 {

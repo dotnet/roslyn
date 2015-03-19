@@ -112,6 +112,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         protected async Task<SolutionPreviewResult> GetPreviewResultAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // We will always invoke this from the UI thread.
             AssertIsForeground();
 
             // We use ConfigureAwait(true) to stay on the UI thread.
@@ -138,6 +141,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public virtual async Task<object> GetPreviewAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Light bulb will always invoke this function on the UI thread.
             AssertIsForeground();
 
@@ -169,6 +174,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 return null;
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             // GetPreviewPane() needs to run on the UI thread.
             AssertIsForeground();

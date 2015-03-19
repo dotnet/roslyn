@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private IEnumerable<SuggestedActionSet> _actionSets;
         public override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (_actionSets != null)
             {
                 return Task.FromResult(_actionSets);
@@ -58,6 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 foreach (var c in suppressionAction.NestedActions)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     nestedSuggestedActions.Add(new CodeFixSuggestedAction(
                             this.Workspace, this.SubjectBuffer, this.EditHandler,
                             new CodeFix(c, _fix.Diagnostics), this.Provider, null));
