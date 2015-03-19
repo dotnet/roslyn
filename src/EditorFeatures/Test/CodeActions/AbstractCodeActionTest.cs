@@ -307,15 +307,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             if (expectedPreviewContents != null)
             {
-                // TODO: Fix for async.
-                // var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
-                // var content = editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync().Result;
-                // var diffView = content as IWpfDifferenceViewer;
-                // Assert.NotNull(diffView);
-                // var previewContents = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
-                // diffView.Close();
+                var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
+                var content = editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync().PumpingWaitResult();
+                var diffView = content as IWpfDifferenceViewer;
+                Assert.NotNull(diffView);
+                var previewContents = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
+                diffView.Close();
 
-                // Assert.Equal(expectedPreviewContents, previewContents);
+                Assert.Equal(expectedPreviewContents, previewContents);
             }
         }
 
@@ -415,13 +414,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 Assert.Equal(expected, addedDocument.GetTextAsync().Result.ToString());
             }
 
-            // TODO: Fix for async.
-            // var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
-            // var content = editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync().Result;
-            // var textView = content as IWpfTextView;
-            // Assert.NotNull(textView);
+            var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
+            var content = editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync().PumpingWaitResult();
+            var textView = content as IWpfTextView;
+            Assert.NotNull(textView);
 
-            // textView.Close();
+            textView.Close();
         }
     }
 }

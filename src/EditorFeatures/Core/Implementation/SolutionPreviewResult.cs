@@ -33,9 +33,11 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </remarks>
         public Task<object> TakeNextPreviewAsync(DocumentId preferredDocumentId = null, ProjectId preferredProjectId = null, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (IsEmpty)
             {
-                return null;
+                return Task.FromResult<object>(null);
             }
 
             SolutionPreviewItem previewItem = null;

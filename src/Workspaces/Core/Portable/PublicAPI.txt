@@ -830,7 +830,7 @@ Microsoft.CodeAnalysis.WorkspaceRegistration.WorkspaceChanged -> System.EventHan
 abstract Microsoft.CodeAnalysis.CodeActions.CodeAction.Title.get -> string
 abstract Microsoft.CodeAnalysis.CodeActions.CodeActionWithOptions.ComputeOperationsAsync(object options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeActions.CodeActionOperation>>
 abstract Microsoft.CodeAnalysis.CodeActions.CodeActionWithOptions.GetOptions(System.Threading.CancellationToken cancellationToken) -> object
-abstract Microsoft.CodeAnalysis.CodeActions.PreviewOperation.GetPreview() -> object
+abstract Microsoft.CodeAnalysis.CodeActions.PreviewOperation.GetPreviewAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<object>
 abstract Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.FixableDiagnosticIds.get -> System.Collections.Immutable.ImmutableArray<string>
 abstract Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.RegisterCodeFixesAsync(Microsoft.CodeAnalysis.CodeFixes.CodeFixContext context) -> System.Threading.Tasks.Task
 abstract Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.GetFixAsync(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction>
