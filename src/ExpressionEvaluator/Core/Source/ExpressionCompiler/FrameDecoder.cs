@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             try
             {
                 Debug.Assert((argumentFlags & (DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Values)) == argumentFlags,
-                    "Unexpected argumentFlags", "argumentFlags = {0}", argumentFlags);
+                    $"Unexpected argumentFlags '{argumentFlags}'");
 
                 GetNameWithGenericTypeArguments(inspectionContext, workList, frame,
                     onSuccess: method => GetFrameName(inspectionContext, workList, frame, argumentFlags, completionRoutine, method),

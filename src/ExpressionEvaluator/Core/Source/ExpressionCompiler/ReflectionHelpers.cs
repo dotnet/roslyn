@@ -5,6 +5,8 @@ using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
+    using TypeInfo = System.Reflection.TypeInfo;
+
     internal static class ReflectionHelpers
     {
         public static MethodInfo GetMethod(this TypeInfo typeInfo, string name, Type[] types)
