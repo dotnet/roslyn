@@ -18,13 +18,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Shared Sub InitializeObsoleteDataFromMetadata(ByRef data As ObsoleteAttributeData, token As Handle, containingModule As PEModuleSymbol)
             If data Is ObsoleteAttributeData.Uninitialized Then
-                Dim obsoleteAttributeData As ObsoleteAttributeData = Nothing
-                Dim isObsolete As Boolean = containingModule.Module.HasDeprecatedOrObsoleteAttribute(token, obsoleteAttributeData)
-                Debug.Assert(isObsolete = (obsoleteAttributeData IsNot Nothing))
-                Debug.Assert(obsoleteAttributeData Is Nothing OrElse Not obsoleteAttributeData.IsUninitialized)
+                Dim obsoleteAttributeData As ObsoleteAttributeData = GetObsoleteDataFromMetadata(token, containingModule)
                 Interlocked.CompareExchange(data, obsoleteAttributeData, obsoleteAttributeData.Uninitialized)
             End If
         End Sub
+
+        Friend Shared Function GetObsoleteDataFromMetadata(token As Handle, containingModule As PEModuleSymbol) As ObsoleteAttributeData
+            Dim obsoleteAttributeData As ObsoleteAttributeData = Nothing
+            Dim isObsolete As Boolean = containingModule.Module.HasDeprecatedOrObsoleteAttribute(token, obsoleteAttributeData)
+            Debug.Assert(isObsolete = (obsoleteAttributeData IsNot Nothing))
+            Debug.Assert(obsoleteAttributeData Is Nothing OrElse Not obsoleteAttributeData.IsUninitialized)
+            Return obsoleteAttributeData
+        End Function
 
         ''' <summary>
         ''' This method checks to see if the given symbol is Obsolete or if any symbol in the parent hierarchy is Obsolete.
