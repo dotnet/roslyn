@@ -33,31 +33,37 @@ Module Program
             Dim outputFile = paths(1)
 
             If Not File.Exists(inputFile) Then
-                WriteLine("Input file not found - ""{0}""", inputFile)
+                Console.Error.WriteLine("Input file not found - ""{0}""", inputFile)
 
                 Return exitWithErrors
             End If
 
-            Dim definition = ReadDefinition(inputFile)
+            Dim definition As ParseTree = Nothing
+            If Not TryReadDefinition(inputFile, definition) Then
+                Return exitWithErrors
+            End If
+
             Dim outputKind = If(switches.Any(), switches(0).ToLowerInvariant(), Nothing)
             WriteOutput(outputFile, definition, outputKind)
 
             Return exitWithoutErrors
         Catch ex As Exception
-            WriteLine("FATAL ERROR: {0}", ex.Message)
-            WriteLine(ex.StackTrace)
+            Console.Error.WriteLine("FATAL ERROR: {0}", ex.Message)
+            Console.Error.WriteLine(ex.StackTrace)
 
             Return exitWithErrors
         End Try
 
     End Function
 
-    Function ReadDefinition(inputFile As String) As ParseTree
-        Dim definition = ReadTheTree(inputFile)
+    Function TryReadDefinition(inputFile As String, ByRef definition As ParseTree) As Boolean
+        If Not TryReadTheTree(inputFile, definition) Then
+            Return False
+        End If
 
         ValidateTree(definition)
 
-        Return definition
+        Return True
     End Function
 
     Sub WriteOutput(outputFile As String, definition As ParseTree, outputKind As String)
