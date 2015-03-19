@@ -974,17 +974,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 #End Region
 
-        ' at this point it is very likely that we are located at 
-        ' the beginning of a token        
-        Private Function TryScanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
-
-            If Not CanGetChar() Then
-                Return MakeEofToken(precedingTrivia)
-            End If
-
-            Dim ch As Char = PeekChar()
+        Private Function _Unified_(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), ch As Char, fullWidth As Boolean) As SyntaxToken
+            Dim lengthWithMaybeEquals = 1
             Select Case ch
-                Case CARRIAGE_RETURN, LINE_FEED, NEXT_LINE, LINE_SEPARATOR, PARAGRAPH_SEPARATOR
+                Case CARRIAGE_RETURN, LINE_FEED
+                    Return ScanNewlineAsStatementTerminator(ch, precedingTrivia)
+                Case NEXT_LINE, LINE_SEPARATOR, PARAGRAPH_SEPARATOR
+                    If fullWidth Then Exit Select
                     Return ScanNewlineAsStatementTerminator(ch, precedingTrivia)
 
                 Case " "c, CHARACTER_TABULATION, "'"c
@@ -992,128 +988,109 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return Nothing ' trivia cannot start a token
 
                 Case "@"c
-                    Return MakeAtToken(precedingTrivia, False)
+                    Return MakeAtToken(precedingTrivia, fullWidth)
 
                 Case "("c
-                    Return MakeOpenParenToken(precedingTrivia, False)
+                    Return MakeOpenParenToken(precedingTrivia, fullWidth)
 
                 Case ")"c
-                    Return MakeCloseParenToken(precedingTrivia, False)
+                    Return MakeCloseParenToken(precedingTrivia, fullWidth)
 
                 Case "{"c
-                    Return MakeOpenBraceToken(precedingTrivia, False)
+                    Return MakeOpenBraceToken(precedingTrivia, fullWidth)
 
                 Case "}"c
-                    Return MakeCloseBraceToken(precedingTrivia, False)
+                    Return MakeCloseBraceToken(precedingTrivia, fullWidth)
 
                 Case ","c
-                    Return MakeCommaToken(precedingTrivia, False)
+                    Return MakeCommaToken(precedingTrivia, fullWidth)
 
                 Case "#"c
                     Dim dl = ScanDateLiteral(precedingTrivia)
-                    If dl IsNot Nothing Then
-                        Return dl
-                    Else
-                        Return MakeHashToken(precedingTrivia, False)
-                    End If
+                    Return If(dl, MakeHashToken(precedingTrivia, fullWidth))
+
 
                 Case "&"c
                     If CanGetCharAtOffset(1) AndAlso BeginsBaseLiteral(PeekAheadChar(1)) Then
                         Return ScanNumericLiteral(precedingTrivia)
                     End If
 
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakeAmpersandEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
-                        Return MakeAmpersandToken(precedingTrivia, False)
+                        Return MakeAmpersandToken(precedingTrivia, fullWidth)
                     End If
 
                 Case "="c
-                    Return MakeEqualsToken(precedingTrivia, False)
+                    Return MakeEqualsToken(precedingTrivia, fullWidth)
 
                 Case "<"c
-                    Return ScanLeftAngleBracket(precedingTrivia, False, _scanSingleLineTriviaFunc)
+                    Return ScanLeftAngleBracket(precedingTrivia, fullWidth, _scanSingleLineTriviaFunc)
 
                 Case ">"c
-                    Return ScanRightAngleBracket(precedingTrivia, False)
+                    Return ScanRightAngleBracket(precedingTrivia, fullWidth)
 
                 Case ":"c
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakeColonEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
-                        Return ScanColonAsStatementTerminator(precedingTrivia, False)
+                        Return ScanColonAsStatementTerminator(precedingTrivia, fullWidth)
                     End If
 
                 Case "+"c
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakePlusEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
-                        Return MakePlusToken(precedingTrivia, False)
+                        Return MakePlusToken(precedingTrivia, fullWidth)
                     End If
 
                 Case "-"c
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakeMinusEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
-                        Return MakeMinusToken(precedingTrivia, False)
+                        Return MakeMinusToken(precedingTrivia, fullWidth)
                     End If
 
                 Case "*"c
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakeAsteriskEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
-                        Return MakeAsteriskToken(precedingTrivia, False)
+                        Return MakeAsteriskToken(precedingTrivia, fullWidth)
                     End If
 
                 Case "/"c
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakeSlashEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
-                        Return MakeSlashToken(precedingTrivia, False)
+                        Return MakeSlashToken(precedingTrivia, fullWidth)
                     End If
 
                 Case "\"c
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakeBackSlashEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
-                        Return MakeBackslashToken(precedingTrivia, False)
+                        Return MakeBackslashToken(precedingTrivia, fullWidth)
                     End If
 
                 Case "^"c
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakeCaretEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
-                        Return MakeCaretToken(precedingTrivia, False)
+                        Return MakeCaretToken(precedingTrivia, fullWidth)
                     End If
 
                 Case "!"c
-                    Return MakeExclamationToken(precedingTrivia, False)
+                    Return MakeExclamationToken(precedingTrivia, fullWidth)
 
                 Case "."c
                     If CanGetCharAtOffset(1) AndAlso IsDecimalDigit(PeekAheadChar(1)) Then
                         Return ScanNumericLiteral(precedingTrivia)
                     Else
-                        Return MakeDotToken(precedingTrivia, False)
+                        Return MakeDotToken(precedingTrivia, fullWidth)
                     End If
 
-                Case "0"c,
-                      "1"c,
-                      "2"c,
-                      "3"c,
-                      "4"c,
-                      "5"c,
-                      "6"c,
-                      "7"c,
-                      "8"c,
-                      "9"c
+                Case "0"c, "1"c, "2"c, "3"c, "4"c,
+                     "5"c, "6"c, "7"c, "8"c, "9"c
                     Return ScanNumericLiteral(precedingTrivia)
 
                 Case """"c
@@ -1124,7 +1101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = "As"
-                        AdvanceChar(2)
+                        If fullWidth Then spelling = GetText(2) Else AdvanceChar(2)
                         Return MakeKeyword(SyntaxKind.AsKeyword, spelling, precedingTrivia)
                     Else
                         Return ScanIdentifierOrKeyword(precedingTrivia)
@@ -1135,7 +1112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = "End"
-                        AdvanceChar(3)
+                        If fullWidth Then spelling = GetText(3) Else AdvanceChar(3)
                         Return MakeKeyword(SyntaxKind.EndKeyword, spelling, precedingTrivia)
                     Else
                         Return ScanIdentifierOrKeyword(precedingTrivia)
@@ -1146,7 +1123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = "If"
-                        AdvanceChar(2)
+                        If fullWidth Then spelling = GetText(2) Else AdvanceChar(2)
                         Return MakeKeyword(SyntaxKind.IfKeyword, spelling, precedingTrivia)
                     Else
                         Return ScanIdentifierOrKeyword(precedingTrivia)
@@ -1157,7 +1134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "B"c, "C"c, "D"c, "F"c, "G"c, "H"c, "J"c, "K"c, "L"c, "M"c, "N"c, "O"c, "P"c, "Q"c,
-                      "R"c, "S"c, "T"c, "U"c, "V"c, "W"c, "X"c, "Y"c, "Z"c
+                     "R"c, "S"c, "T"c, "U"c, "V"c, "W"c, "X"c, "Y"c, "Z"c
                     Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "_"c
@@ -1178,15 +1155,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanBracketedIdentifier(precedingTrivia)
 
                 Case "?"c
-                    Return MakeQuestionToken(precedingTrivia, False)
+                    Return MakeQuestionToken(precedingTrivia, fullWidth)
 
                 Case "%"c
-                    If CanGetCharAtOffset(1) AndAlso
-                        PeekAheadChar(1) = ">"c Then
+                    If CanGetCharAtOffset(1) AndAlso PeekAheadChar(1) = ">"c Then
                         Return XmlMakeEndEmbeddedToken(precedingTrivia, _scanSingleLineTriviaFunc)
                     End If
 
                 Case "$"c, FULLWIDTH_DOLLAR_SIGN
+                    If fullWidth Then Exit Select
                     If CanGetCharAtOffset(1) AndAlso IsDoubleQuote(PeekAheadChar(1)) Then
                         Return MakePunctuationToken(precedingTrivia, 2, SyntaxKind.DollarSignDoubleQuoteToken)
                     End If
@@ -1198,227 +1175,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Debug.Assert(Not IsNewLine(ch))
+            If fullWidth Then
+                Debug.Assert(Not IsDoubleQuote(ch))
 
-            If IsDoubleQuote(ch) Then
-                Return ScanStringLiteral(precedingTrivia)
-            End If
-
-            If IsFullWidth(ch) Then
-                ch = MakeHalfWidth(ch)
-                Return ScanTokenFullWidth(precedingTrivia, ch)
-            End If
-
-            Return Nothing
-        End Function
-
-        ' REVIEW: Is there a better way to reuse this logic? 
-        Private Function ScanTokenFullWidth(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), ch As Char) As SyntaxToken
-            Select Case ch
-                Case CARRIAGE_RETURN, LINE_FEED
-                    Return ScanNewlineAsStatementTerminator(ch, precedingTrivia)
-
-                Case " "c, CHARACTER_TABULATION, "'"c
-                    Debug.Assert(False, String.Format("Unexpected char: &H{0:x}", AscW(ch)))
-                    Return Nothing ' trivia cannot start a token
-
-                Case "@"c
-                    Return MakeAtToken(precedingTrivia, True)
-
-                Case "("c
-                    Return MakeOpenParenToken(precedingTrivia, True)
-
-                Case ")"c
-                    Return MakeCloseParenToken(precedingTrivia, True)
-
-                Case "{"c
-                    Return MakeOpenBraceToken(precedingTrivia, True)
-
-                Case "}"c
-                    Return MakeCloseBraceToken(precedingTrivia, True)
-
-                Case ","c
-                    Return MakeCommaToken(precedingTrivia, True)
-
-                Case "#"c
-                    Dim dl = ScanDateLiteral(precedingTrivia)
-                    If dl IsNot Nothing Then
-                        Return dl
-                    Else
-                        Return MakeHashToken(precedingTrivia, True)
-                    End If
-
-                Case "&"c
-                    If CanGetCharAtOffset(1) AndAlso BeginsBaseLiteral(PeekAheadChar(1)) Then
-                        Return ScanNumericLiteral(precedingTrivia)
-                    End If
-
-                    Dim lengthWithMaybeEquals = 1
-                    If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
-                        Return MakeAmpersandEqualsToken(precedingTrivia, lengthWithMaybeEquals)
-                    Else
-                        Return MakeAmpersandToken(precedingTrivia, True)
-                    End If
-
-                Case "="c
-                    Return MakeEqualsToken(precedingTrivia, True)
-
-                Case "<"c
-                    Return ScanLeftAngleBracket(precedingTrivia, True, _scanSingleLineTriviaFunc)
-
-                Case ">"c
-                    Return ScanRightAngleBracket(precedingTrivia, True)
-
-                Case ":"c
-                    Dim lengthWithMaybeEquals = 1
-                    If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
-                        Return MakeColonEqualsToken(precedingTrivia, lengthWithMaybeEquals)
-                    Else
-                        Return ScanColonAsStatementTerminator(precedingTrivia, True)
-                    End If
-
-                Case "+"c
-                    Dim lengthWithMaybeEquals = 1
-                    If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
-                        Return MakePlusEqualsToken(precedingTrivia, lengthWithMaybeEquals)
-                    Else
-                        Return MakePlusToken(precedingTrivia, True)
-                    End If
-
-                Case "-"c
-                    Dim lengthWithMaybeEquals = 1
-                    If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
-                        Return MakeMinusEqualsToken(precedingTrivia, lengthWithMaybeEquals)
-                    Else
-                        Return MakeMinusToken(precedingTrivia, True)
-                    End If
-
-                Case "*"c
-                    Dim lengthWithMaybeEquals = 1
-                    If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
-                        Return MakeAsteriskEqualsToken(precedingTrivia, lengthWithMaybeEquals)
-                    Else
-                        Return MakeAsteriskToken(precedingTrivia, True)
-                    End If
-
-                Case "/"c
-                    Dim lengthWithMaybeEquals = 1
-                    If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
-                        Return MakeSlashEqualsToken(precedingTrivia, lengthWithMaybeEquals)
-                    Else
-                        Return MakeSlashToken(precedingTrivia, True)
-                    End If
-
-                Case "\"c
-                    Dim lengthWithMaybeEquals = 1
-                    If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
-                        Return MakeBackSlashEqualsToken(precedingTrivia, lengthWithMaybeEquals)
-                    Else
-                        Return MakeBackslashToken(precedingTrivia, True)
-                    End If
-
-                Case "^"c
-                    Dim lengthWithMaybeEquals = 1
-                    If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
-                        Return MakeCaretEqualsToken(precedingTrivia, lengthWithMaybeEquals)
-                    Else
-                        Return MakeCaretToken(precedingTrivia, True)
-                    End If
-
-                Case "!"c
-                    Return MakeExclamationToken(precedingTrivia, True)
-
-                Case "."c
-                    If CanGetCharAtOffset(1) AndAlso IsDecimalDigit(PeekAheadChar(1)) Then
-                        Return ScanNumericLiteral(precedingTrivia)
-                    Else
-                        Return MakeDotToken(precedingTrivia, True)
-                    End If
-
-                Case "0"c,
-                      "1"c,
-                      "2"c,
-                      "3"c,
-                      "4"c,
-                      "5"c,
-                      "6"c,
-                      "7"c,
-                      "8"c,
-                      "9"c
-                    Return ScanNumericLiteral(precedingTrivia)
-
-                Case """"c
+            Else
+                If IsDoubleQuote(ch) Then
                     Return ScanStringLiteral(precedingTrivia)
+                End If
 
-                Case "A"c
-                    If NextAre(1, "s ") Then
-                        Dim spelling = GetText(2)
-                        Return MakeKeyword(SyntaxKind.AsKeyword, spelling, precedingTrivia)
-                    Else
-                        Return ScanIdentifierOrKeyword(precedingTrivia)
-                    End If
-
-                Case "E"c
-                    If NextAre(1, "nd ") Then
-                        Dim spelling = GetText(3)
-                        Return MakeKeyword(SyntaxKind.EndKeyword, spelling, precedingTrivia)
-                    Else
-                        Return ScanIdentifierOrKeyword(precedingTrivia)
-                    End If
-
-                Case "I"c
-                    If NextAre(1, "f ") Then
-                        ' TODO: do we allow widechars in keywords?
-                        Dim spelling = GetText(2)
-                        Return MakeKeyword(SyntaxKind.IfKeyword, spelling, precedingTrivia)
-                    Else
-                        Return ScanIdentifierOrKeyword(precedingTrivia)
-                    End If
-
-                Case "a"c, "b"c, "c"c, "d"c, "e"c, "f"c, "g"c, "h"c, "i"c, "j"c, "k"c, "l"c, "m"c,
-                     "n"c, "o"c, "p"c, "q"c, "r"c, "s"c, "t"c, "u"c, "v"c, "w"c, "x"c, "y"c, "z"c
-                    Return ScanIdentifierOrKeyword(precedingTrivia)
-
-                Case "B"c, "C"c, "D"c, "F"c, "G"c, "H"c, "J"c, "K"c, "L"c, "M"c, "N"c, "O"c, "P"c, "Q"c,
-                      "R"c, "S"c, "T"c, "U"c, "V"c, "W"c, "X"c, "Y"c, "Z"c
-                    Return ScanIdentifierOrKeyword(precedingTrivia)
-
-                Case "_"c
-                    If CanGetCharAtOffset(1) AndAlso IsIdentifierPartCharacter(PeekAheadChar(1)) Then
-                        Return ScanIdentifierOrKeyword(precedingTrivia)
-                    End If
-
-                    Dim err As ERRID = ERRID.ERR_ExpectedIdentifier
-                    Dim len = GetWhitespaceLength(1)
-                    If Not CanGetCharAtOffset(len) OrElse IsNewLine(PeekAheadChar(len)) OrElse PeekStartComment(len) > 0 Then
-                        err = ERRID.ERR_LineContWithCommentOrNoPrecSpace
-                    End If
-
-                    ' not a line continuation and cannot start identifier.
-                    Return MakeBadToken(precedingTrivia, 1, err)
-
-                Case "["c
-                    Return ScanBracketedIdentifier(precedingTrivia)
-
-                Case "?"c
-                    Return MakeQuestionToken(precedingTrivia, True)
-
-                Case "%"c
-                    If CanGetCharAtOffset(1) AndAlso
-                        PeekAheadChar(1) = ">"c Then
-                        Return XmlMakeEndEmbeddedToken(precedingTrivia, _scanSingleLineTriviaFunc)
-                    End If
-
-            End Select
-
-            If IsIdentifierStartCharacter(ch) Then
-                Return ScanIdentifierOrKeyword(precedingTrivia)
+                If IsFullWidth(ch) Then
+                    ch = MakeHalfWidth(ch)
+                    Return ScanTokenFullWidth(precedingTrivia, ch)
+                End If                
             End If
-
-            Debug.Assert(Not IsNewLine(ch))
-            Debug.Assert(Not IsDoubleQuote(ch))
 
             Return Nothing
         End Function
+
+        ' at this point it is very likely that we are located at 
+        ' the beginning of a token        
+        Private Function TryScanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
+            If Not CanGetChar() Then
+                Return MakeEofToken(precedingTrivia)
+            End If
+            Dim ch As Char = PeekChar()
+            Return _Unified_(precedingTrivia,ch,False)
+        End Function
+
+
+
+
+        Private Function ScanTokenFullWidth(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), ch As Char) As SyntaxToken
+            Return _Unified_(precedingTrivia,ch,True)
+        End Function
+  
+ 
 
         ' // Allow whitespace between the characters of a two-character token.
         Private Function TrySkipFollowingEquals(ByRef Index As Integer) As Boolean
