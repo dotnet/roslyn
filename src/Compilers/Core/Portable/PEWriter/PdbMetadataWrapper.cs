@@ -114,7 +114,7 @@ namespace Microsoft.Cci
         uint FindMemberRef(uint td, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] voidPointerSigBlob, uint byteCountSigBlob);
         uint GetMethodProps(uint mb, out uint pointerClass, IntPtr stringMethod, uint cchMethod, out uint pchMethod, IntPtr pdwAttr,
           IntPtr ppvSigBlob, IntPtr pcbSigBlob, IntPtr pulCodeRVA);
-        unsafe uint GetMemberRefProps(uint mr, ref uint ptk, StringBuilder stringMember, uint cchMember, out uint pchMember, out byte* ppvSigBlob);
+        uint GetMemberRefProps(uint mr, ref uint ptk, StringBuilder stringMember, uint cchMember, out uint pchMember, out byte* ppvSigBlob);
         uint EnumProperties(ref uint handlePointerEnum, uint td, uint* arrayProperties, uint countMax);
         uint EnumEvents(ref uint handlePointerEnum, uint td, uint* arrayEvents, uint countMax);
         uint GetEventProps(uint ev, out uint pointerClass, StringBuilder stringEvent, uint cchEvent, out uint pchEvent, out uint pdwEventFlags,
@@ -123,13 +123,13 @@ namespace Microsoft.Cci
         uint EnumMethodSemantics(ref uint handlePointerEnum, uint mb, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] uint[] arrayEventProp, uint countMax);
         uint GetMethodSemantics(uint mb, uint tokenEventProp);
         uint GetClassLayout(uint td, out uint pdwPackSize, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] COR_FIELD_OFFSET[] arrayFieldOffset, uint countMax, out uint countPointerFieldOffset);
-        unsafe uint GetFieldMarshal(uint tk, out byte* ppvNativeType);
+        uint GetFieldMarshal(uint tk, out byte* ppvNativeType);
         uint GetRVA(uint tk, out uint pulCodeRVA);
-        unsafe uint GetPermissionSetProps(uint pm, out uint pdwAction, out void* ppvPermission);
-        unsafe uint GetSigFromToken(uint memberDefSig, out IntPtr ppvSig, out uint pcbSig);
+        uint GetPermissionSetProps(uint pm, out uint pdwAction, out void* ppvPermission);
+        uint GetSigFromToken(uint memberDefSig, out IntPtr ppvSig, out uint pcbSig);
         uint GetModuleRefProps(uint mur, StringBuilder stringName, uint cchName);
         uint EnumModuleRefs(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] uint[] arrayModuleRefs, uint cmax);
-        unsafe uint GetTypeSpecFromToken(uint typespec, out byte* ppvSig);
+        uint GetTypeSpecFromToken(uint typespec, out byte* ppvSig);
         uint GetNameFromToken(uint tk);
         uint EnumUnresolvedMethods(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] uint[] arrayMethods, uint countMax);
         uint GetUserString(uint stk, StringBuilder stringString, uint cchString);
@@ -232,8 +232,6 @@ namespace Microsoft.Cci
           IntPtr ppvSigBlob, IntPtr pcbSigBlob, IntPtr pulCodeRVA)
         {
             IMethodDefinition m = _writer.GetMethodDefinition(mb);
-            pchMethod = 0;
-            pointerClass = 0;
             pointerClass = _writer.GetTypeToken(m.GetContainingType(_writer.Context));
             string methName = m.Name;
 
@@ -701,7 +699,7 @@ namespace Microsoft.Cci
             throw new NotImplementedException();
         }
 
-        unsafe uint IMetaDataImport.GetSigFromToken(uint memberDefSig, out IntPtr ppvSig, out uint pcbSig)
+        uint IMetaDataImport.GetSigFromToken(uint memberDefSig, out IntPtr ppvSig, out uint pcbSig)
         {
             throw new NotImplementedException();
         }

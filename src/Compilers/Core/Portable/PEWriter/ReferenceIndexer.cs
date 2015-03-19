@@ -441,8 +441,7 @@ namespace Microsoft.Cci
             if (this.typeReferenceNeedsToken || nestedTypeReference != null ||
               (typeReference.TypeCode(Context) == PrimitiveTypeCode.NotPrimitive && typeReference.AsNamespaceTypeReference != null))
             {
-                ISpecializedNestedTypeReference/*?*/ specializedNestedTypeReference = (nestedTypeReference == null ? null :
-                                                                                            nestedTypeReference.AsSpecializedNestedTypeReference);
+                ISpecializedNestedTypeReference/*?*/ specializedNestedTypeReference = nestedTypeReference?.AsSpecializedNestedTypeReference;
                 if (specializedNestedTypeReference != null)
                 {
                     INestedTypeReference unspecializedNestedTypeReference = specializedNestedTypeReference.UnspecializedVersion;

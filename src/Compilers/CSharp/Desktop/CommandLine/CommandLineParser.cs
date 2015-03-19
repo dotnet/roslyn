@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string outputDirectory = baseDirectory;
             string outputFileName = null;
             string documentationPath = null;
+            string errorLogPath = null;
             bool parseDocumentationComments = false; //Don't just null check documentationFileName because we want to do this even if the file name is invalid.
             bool utf8output = false;
             OutputKind outputKind = OutputKind.ConsoleApplication;
@@ -895,6 +896,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "errorreport":
                             continue;
 
+                        case "errorlog":
+                            unquoted = RemoveAllQuotes(value);
+                            if (string.IsNullOrEmpty(unquoted))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ":<file>", RemoveAllQuotes(arg));
+                            }
+                            else
+                            {
+                                errorLogPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory);
+                            }
+                            continue;
+
                         case "appconfig":
                             unquoted = RemoveAllQuotes(value);
                             if (string.IsNullOrEmpty(unquoted))
@@ -903,8 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                appConfigPath = ParseGenericPathToFile(
-                                    unquoted, diagnostics, baseDirectory);
+                                appConfigPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory);
                             }
                             continue;
 
@@ -1056,6 +1068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EmitPdb = emitPdb,
                 OutputDirectory = outputDirectory,
                 DocumentationPath = documentationPath,
+                ErrorLogPath = errorLogPath,
                 AppConfigPath = appConfigPath,
                 SourceFiles = sourceFiles.AsImmutable(),
                 Encoding = codepage,

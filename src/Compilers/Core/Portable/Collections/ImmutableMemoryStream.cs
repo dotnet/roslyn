@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 if (value < 0 || value >= _array.Length)
                 {
-                    throw new ArgumentOutOfRangeException("value");
+                    throw new ArgumentOutOfRangeException(nameof(value));
                 }
 
                 _position = (int)value;
@@ -92,17 +92,17 @@ namespace Microsoft.CodeAnalysis.Collections
                         break;
 
                     default:
-                        throw new ArgumentOutOfRangeException("origin");
+                        throw new ArgumentOutOfRangeException(nameof(origin));
                 }
             }
             catch (OverflowException)
             {
-                throw new ArgumentOutOfRangeException("offset");
+                throw new ArgumentOutOfRangeException(nameof(offset));
             }
 
             if (target < 0 || target >= _array.Length)
             {
-                throw new ArgumentOutOfRangeException("offset");
+                throw new ArgumentOutOfRangeException(nameof(offset));
             }
 
             _position = (int)target;

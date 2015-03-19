@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -202,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if ((object)_name == null)
                 {
-                    _name = String.Empty;
+                    _name = string.Empty;
                 }
 
                 _lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
@@ -211,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _flags = localflags;
         }
 
-        internal sealed override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
             thisParameter = _lazyThisParameter;
             if ((object)thisParameter != null || IsStatic)
@@ -264,11 +263,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
+        internal override MethodImplAttributes ImplementationAttributes
         {
             get
             {
-                return (System.Reflection.MethodImplAttributes)_implFlags;
+                return _implFlags;
             }
         }
 
@@ -340,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
+        internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -349,40 +348,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var access = Accessibility.Private;
-
                 switch (_flags & MethodAttributes.MemberAccessMask)
                 {
                     case MethodAttributes.Assembly:
-                        access = Accessibility.Internal;
-                        break;
+                        return Accessibility.Internal;
 
                     case MethodAttributes.FamORAssem:
-                        access = Accessibility.ProtectedOrInternal;
-                        break;
+                        return Accessibility.ProtectedOrInternal;
 
                     case MethodAttributes.FamANDAssem:
-                        access = Accessibility.ProtectedAndInternal;
-                        break;
+                        return Accessibility.ProtectedAndInternal;
 
                     case MethodAttributes.Private:
                     case MethodAttributes.PrivateScope:
-                        access = Accessibility.Private;
-                        break;
+                        return Accessibility.Private;
 
                     case MethodAttributes.Public:
-                        access = Accessibility.Public;
-                        break;
+                        return Accessibility.Public;
 
                     case MethodAttributes.Family:
-                        access = Accessibility.Protected;
-                        break;
+                        return Accessibility.Protected;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(_flags);
                 }
-
-                return access;
             }
         }
 
@@ -431,23 +420,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if (_lazyTypeParameters.IsDefault)
-                {
-                    try
-                    {
-                        int parameterCount;
-                        int typeParameterCount;
-                        MetadataDecoder.GetSignatureCountsOrThrow(_containingType.ContainingPEModule.Module, _handle, out parameterCount, out typeParameterCount);
-                        return typeParameterCount;
-                    }
-                    catch (BadImageFormatException)
-                    {
-                        return TypeParameters.Length;
-                    }
-                }
-                else
+                if (!_lazyTypeParameters.IsDefault)
                 {
                     return _lazyTypeParameters.Length;
+                }
+
+                try
+                {
+                    int parameterCount;
+                    int typeParameterCount;
+                    MetadataDecoder.GetSignatureCountsOrThrow(_containingType.ContainingPEModule.Module, _handle, out parameterCount, out typeParameterCount);
+                    return typeParameterCount;
+                }
+                catch (BadImageFormatException)
+                {
+                    return TypeParameters.Length;
                 }
             }
         }
@@ -533,12 +520,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
         {
             return (_flags & MethodAttributes.Virtual) != 0;
         }
 
-        internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
             return (_flags & MethodAttributes.NewSlot) != 0;
         }
@@ -594,23 +581,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if (_lazySignature == null)
-                {
-                    try
-                    {
-                        int parameterCount;
-                        int typeParameterCount;
-                        MetadataDecoder.GetSignatureCountsOrThrow(_containingType.ContainingPEModule.Module, _handle, out parameterCount, out typeParameterCount);
-                        return parameterCount;
-                    }
-                    catch (BadImageFormatException)
-                    {
-                        return Parameters.Length;
-                    }
-                }
-                else
+                if (_lazySignature != null)
                 {
                     return _lazySignature.Parameters.Length;
+                }
+
+                try
+                {
+                    int parameterCount;
+                    int typeParameterCount;
+                    MetadataDecoder.GetSignatureCountsOrThrow(_containingType.ContainingPEModule.Module, _handle,
+                        out parameterCount, out typeParameterCount);
+                    return parameterCount;
+                }
+                catch (BadImageFormatException)
+                {
+                    return Parameters.Length;
                 }
             }
         }
@@ -781,10 +767,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     return this.TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
                 }
-                else
-                {
-                    return ImmutableArray<TypeSymbol>.Empty;
-                }
+
+                return ImmutableArray<TypeSymbol>.Empty;
             }
         }
 
@@ -812,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             ownedParams[i] = new PETypeParameterSymbol(moduleSymbol, this, (ushort)i, gpHandles[i]);
                         }
 
-                        typeParams = ImmutableArray.Create<TypeParameterSymbol>(ownedParams);
+                        typeParams = ImmutableArray.Create(ownedParams);
                     }
                 }
                 catch (BadImageFormatException)
@@ -992,7 +976,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     return MethodKind.Ordinary;
                 }
-                else if (!this.HasRuntimeSpecialName && this.IsStatic && this.DeclaredAccessibility == Accessibility.Public)
+
+                if (!this.HasRuntimeSpecialName && this.IsStatic && this.DeclaredAccessibility == Accessibility.Public)
                 {
                     switch (_name)
                     {
@@ -1067,12 +1052,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return MethodKind.Ordinary;
         }
 
-        internal override Microsoft.Cci.CallingConvention CallingConvention
+        internal override Cci.CallingConvention CallingConvention
         {
             get
             {
                 EnsureSignatureIsLoaded();
-                return (Microsoft.Cci.CallingConvention)_lazySignature.Header.RawValue;
+                return (Cci.CallingConvention)_lazySignature.Header.RawValue;
             }
         }
 
@@ -1098,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         if (!method.ContainingType.IsInterface)
                         {
                             anyToRemove = true;
-                            sawObjectFinalize = sawObjectFinalize ||
+                            sawObjectFinalize = 
                                 (method.ContainingType.SpecialType == SpecialType.System_Object &&
                                  method.Name == WellKnownMemberNames.DestructorName && // Cheaper than MethodKind.
                                  method.MethodKind == MethodKind.Destructor);
@@ -1189,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return false; }
         }
 
-        internal sealed override OverriddenOrHiddenMembersResult OverriddenOrHiddenMembers
+        internal override OverriddenOrHiddenMembersResult OverriddenOrHiddenMembers
         {
             get
             {
@@ -1202,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }

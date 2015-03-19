@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (newLength < 0)
             {
-                throw new ArgumentOutOfRangeException("newLength");
+                throw new ArgumentOutOfRangeException(nameof(newLength));
             }
 
             this.Span = span;

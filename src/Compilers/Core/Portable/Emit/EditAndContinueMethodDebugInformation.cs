@@ -191,9 +191,6 @@ namespace Microsoft.CodeAnalysis.Emit
             var closuresBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
             var lambdasBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
 
-            int syntaxOffsetBaseline = -1;
-            int closureCount;
-
             fixed (byte* blobPtr = &compressedLambdaMap.ToArray()[0])
             {
                 var blobReader = new BlobReader(blobPtr, compressedLambdaMap.Length);
@@ -204,9 +201,9 @@ namespace Microsoft.CodeAnalysis.Emit
                     // [-1, inf)
                     methodOrdinal = blobReader.ReadCompressedInteger() - 1;
 
-                    syntaxOffsetBaseline = -blobReader.ReadCompressedInteger();
+                    int syntaxOffsetBaseline = -blobReader.ReadCompressedInteger();
 
-                    closureCount = blobReader.ReadCompressedInteger();
+                    int closureCount = blobReader.ReadCompressedInteger();
 
                     for (int i = 0; i < closureCount; i++)
                     {

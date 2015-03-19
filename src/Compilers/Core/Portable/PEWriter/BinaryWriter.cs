@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
+using System.Text;
 
 namespace Microsoft.Cci
 {
@@ -74,12 +75,17 @@ namespace Microsoft.Cci
 
         internal void WriteBytes(byte[] buffer)
         {
-            if (buffer == null)
+            WriteBytes(buffer, 0, buffer.Length);
+        }
+
+        internal void WriteBytes(byte[] buffer, int offset, int count)
+        {
+            if (buffer == null || count == 0)
             {
                 return;
             }
 
-            this.BaseStream.Write(buffer, 0, buffer.Length);
+            this.BaseStream.Write(buffer, offset, count);
         }
 
         internal void WriteBytes(ImmutableArray<byte> buffer)
@@ -119,7 +125,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            Debug.Assert(!_utf8, "WriteChars has a problem with unmatches surrogate pairs and does not support writing utf8");
+            Debug.Assert(!_utf8, "WriteChars has a problem with unmatched surrogate pairs and does not support writing utf8");
 
             MemoryStream m = this.BaseStream;
             uint i = m.Position;
@@ -129,6 +135,29 @@ namespace Microsoft.Cci
             for (int j = 0; j < chars.Length; j++, i += 2)
             {
                 char ch = chars[j];
+                unchecked
+                {
+                    buffer[i] = (byte)ch;
+                    buffer[i + 1] = (byte)(ch >> 8);
+                }
+            }
+        }
+
+        internal void WriteStringUtf16LE(string str)
+        {
+            if (str == null)
+            {
+                return;
+            }
+
+            MemoryStream m = this.BaseStream;
+            uint i = m.Position;
+
+            m.Position = i + (uint)str.Length * 2;
+            byte[] buffer = m.Buffer;
+            for (int j = 0; j < str.Length; j++, i += 2)
+            {
+                char ch = str[j];
                 unchecked
                 {
                     buffer[i] = (byte)ch;
@@ -403,6 +432,14 @@ namespace Microsoft.Cci
                     buffer[i] = 0;
                 }
             }
+        }
+
+        internal void WriteString(string str, Encoding encoding)
+        {
+            MemoryStream m = this.BaseStream;
+            uint i = m.Position;
+            m.Position = i + (uint)encoding.GetByteCount(str);
+            encoding.GetBytes(str, 0, str.Length, m.Buffer, (int)i);
         }
 
         /// <summary>

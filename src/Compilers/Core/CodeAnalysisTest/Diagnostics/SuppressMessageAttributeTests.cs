@@ -1222,9 +1222,17 @@ public class C2
             }
         }
 
-        protected static DiagnosticDescription Diagnostic(string id, string squiggledText)
+        protected virtual bool ConsiderArgumentsForComparingDiagnostics
         {
-            var arguments = squiggledText != null ? new[] { squiggledText } : null;
+            get
+            {
+                return true;
+            }
+        }
+
+        protected DiagnosticDescription Diagnostic(string id, string squiggledText)
+        {
+            var arguments = (this.ConsiderArgumentsForComparingDiagnostics && squiggledText != null) ? new[] { squiggledText } : null;
             return new DiagnosticDescription(id, false, squiggledText, arguments, null, null, false);
         }
     }
