@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim index = typeParameter.Ordinal
                     Debug.Assert(properties(index).Name Is Nothing)
                     ' ReadOnly anonymous type properties were 'Key' properties.
-                    properties(index) = AnonymousTypeKeyField.CreateField([property].Name, [property].IsReadOnly)
+                    properties(index) = AnonymousTypeKeyField.CreateField([property].Name, isKey:=[property].IsReadOnly)
                 End If
             Next
 
