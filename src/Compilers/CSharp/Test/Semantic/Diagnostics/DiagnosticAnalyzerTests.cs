@@ -568,10 +568,11 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
         {
             public static DiagnosticDescriptor desc1 = new DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
             public static DiagnosticDescriptor desc2 = new DiagnosticDescriptor("XX002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
+            public static DiagnosticDescriptor desc3 = new DiagnosticDescriptor("XX003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false, customTags: WellKnownDiagnosticTags.NotConfigurable);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
-                get { return ImmutableArray.Create(desc1, desc2); }
+                get { return ImmutableArray.Create(desc1, desc2, desc3); }
             }
 
             public override void Initialize(AnalysisContext context)
@@ -631,6 +632,10 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
             Assert.False(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
             Assert.True(partiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
+
+            specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
+            specificDiagOptions.Add(FullyDisabledAnalyzer.desc3.Id, ReportDiagnostic.Warn);
+            Assert.False(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
         }
 
         [Fact, WorkItem(1008059)]
