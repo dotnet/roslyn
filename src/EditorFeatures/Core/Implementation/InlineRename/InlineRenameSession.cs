@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 foreach (var buffer in openBuffers)
                 {
-                    TryCreateOpenTextBufferManagerForBuffer(buffer, buffer.AsTextContainer().GetRelatedDocuments());
+                    TryPopulateOpenTextBufferManagerForBuffer(buffer, buffer.AsTextContainer().GetRelatedDocuments());
                 }
             }
 
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             RenameTrackingDismisser.DismissRenameTracking(_workspace, _workspace.GetOpenDocumentIds());
         }
 
-        private bool TryCreateOpenTextBufferManagerForBuffer(ITextBuffer buffer, IEnumerable<Document> documents)
+        private bool TryPopulateOpenTextBufferManagerForBuffer(ITextBuffer buffer, IEnumerable<Document> documents)
         {
             AssertIsForeground();
             VerifyNotDismissed();
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 if (buffer.GetWorkspace() == _workspace)
                 {
                     var documents = buffer.AsTextContainer().GetRelatedDocuments();
-                    if (TryCreateOpenTextBufferManagerForBuffer(buffer, documents))
+                    if (TryPopulateOpenTextBufferManagerForBuffer(buffer, documents))
                     {
                         _openTextBuffers[buffer].ConnectToView(e.TextView);
                     }
