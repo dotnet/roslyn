@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var conversion = compilation.Conversions.ClassifyConversionFromExpression(expr, type, ref useSiteDiagnostics);
             diagnostics.Add(expr.Syntax, useSiteDiagnostics);
+            Debug.Assert(conversion.IsValid || diagnostics.HasAnyErrors());
 
             return BoundConversion.Synthesized(
                 expr.Syntax,

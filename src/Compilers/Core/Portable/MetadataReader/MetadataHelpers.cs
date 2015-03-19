@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis
             internal readonly string TopLevelType;
             internal readonly string[] NestedTypes;
             internal readonly AssemblyQualifiedTypeName[] TypeArguments;
+            internal readonly int PointerCount;
             internal readonly int[] ArrayRanks;
             internal readonly string AssemblyName;
 
@@ -39,12 +40,14 @@ namespace Microsoft.CodeAnalysis
                 string topLevelType,
                 string[] nestedTypes,
                 AssemblyQualifiedTypeName[] typeArguments,
+                int pointerCount,
                 int[] arrayRanks,
                 string assemblyName)
             {
                 this.TopLevelType = topLevelType;
                 this.NestedTypes = nestedTypes;
                 this.TypeArguments = typeArguments;
+                this.PointerCount = pointerCount;
                 this.ArrayRanks = arrayRanks;
                 this.AssemblyName = assemblyName;
             }
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private struct SerializedTypeDecoder
         {
-            private static readonly char[] s_typeNameDelimiters = { '+', ',', '[', ']' };
+            private static readonly char[] s_typeNameDelimiters = { '+', ',', '[', ']', '*' };
             private readonly string _input;
             private int _offset;
 
@@ -126,6 +129,7 @@ namespace Microsoft.CodeAnalysis
                 string topLevelType = null;
                 ArrayBuilder<string> nestedTypesBuilder = null;
                 AssemblyQualifiedTypeName[] typeArguments = null;
+                int pointerCount = 0;
                 ArrayBuilder<int> arrayRanksBuilder = null;
                 string assemblyName = null;
                 bool decodingTopLevelType = true;
@@ -152,12 +156,27 @@ namespace Microsoft.CodeAnalysis
 
                         switch (c)
                         {
-                            case '+':
+                            case '*':
                                 if (arrayRanksBuilder != null)
                                 {
                                     // Error case, array shape must be specified at the end of the type name.
                                     // Process as a regular character and continue.
-                                    typeNameBuilder.Append('+');
+                                    typeNameBuilder.Append(c);
+                                }
+                                else
+                                {
+                                    pointerCount++;
+                                }
+
+                                Advance();
+                                break;
+
+                            case '+':
+                                if (arrayRanksBuilder != null || pointerCount > 0)
+                                {
+                                    // Error case, array shape must be specified at the end of the type name.
+                                    // Process as a regular character and continue.
+                                    typeNameBuilder.Append(c);
                                 }
                                 else
                                 {
@@ -175,11 +194,11 @@ namespace Microsoft.CodeAnalysis
                                 if (isGenericTypeName && typeArguments == null)
                                 {
                                     Advance();
-                                    if (arrayRanksBuilder != null)
+                                    if (arrayRanksBuilder != null || pointerCount > 0)
                                     {
                                         // Error case, array shape must be specified at the end of the type name.
                                         // Process as a regular character and continue.
-                                        typeNameBuilder.Append('[');
+                                        typeNameBuilder.Append(c);
                                     }
                                     else
                                     {
@@ -205,7 +224,7 @@ namespace Microsoft.CodeAnalysis
                                 else
                                 {
                                     // Error case, process as a regular character and continue.
-                                    typeNameBuilder.Append(']');
+                                    typeNameBuilder.Append(c);
                                     Advance();
                                     break;
                                 }
@@ -246,6 +265,7 @@ namespace Microsoft.CodeAnalysis
                     topLevelType,
                     nestedTypesBuilder?.ToArrayAndFree(),
                     typeArguments,
+                    pointerCount,
                     arrayRanksBuilder?.ToArrayAndFree(),
                     assemblyName);
             }
