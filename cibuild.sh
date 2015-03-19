@@ -13,10 +13,19 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# NuGet on mono crashes about every 5th time we run it.  This is causing
+# Linux runs to fail frequently enough that we need to employee a 
+# temporary work around.  
 echo Restoring NuGet packages
-mono src/.nuget/NuGet.exe restore src/Roslyn.sln
+i=5
+while [ $i -gt 0 ]; do
+    mono src/.nuget/NuGet.exe restore src/Roslyn.sln
+    if [ $? -eq 0 ]; then
+        i=0
+    fi
+done
 if [ $? -ne 0 ]; then
-    echo Failed restoring NuGet packages
+    echo NuGet Failed
     exit 1
 fi
 
