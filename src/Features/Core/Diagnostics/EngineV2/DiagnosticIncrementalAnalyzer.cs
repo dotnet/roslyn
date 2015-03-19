@@ -45,24 +45,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             SemanticModel documentModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             Compilation compilation = documentModel.Compilation;
-            CompilationDescriptor compilationDescriptor = GetCompilation(compilation, project, projectVersion, cancellationToken);
+            CompilationDescriptor compilationDescriptor = GetCompilationDescriptor(compilation, project, projectVersion, cancellationToken);
 
-            ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.Compilation.GetAllDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
-            compilationDescriptor.DistributeDiagnostics(diagnostics);
-            RaiseEvents(project, GetDiagnosticData(project, diagnostics).ToImmutableArrayOrEmpty());
+            ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.CompilationWithAnalyzers.GetAllDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
+            DistributeDiagnostics(project, compilationDescriptor, diagnostics);
         }
-
 
         public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
         {
             VersionStamp projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
 
             Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            CompilationDescriptor compilationDescriptor = GetCompilation(compilation, project, projectVersion, cancellationToken);
+            CompilationDescriptor compilationDescriptor = GetCompilationDescriptor(compilation, project, projectVersion, cancellationToken);
 
-            ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.Compilation.GetAllDiagnosticsAsync().ConfigureAwait(false);
+            ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.CompilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
+            DistributeDiagnostics(project, compilationDescriptor, diagnostics);
+        }
+
+        private void DistributeDiagnostics(Project project, CompilationDescriptor compilationDescriptor, ImmutableArray<Diagnostic> diagnostics)
+        {
             compilationDescriptor.DistributeDiagnostics(diagnostics);
-            RaiseEvents(project, GetDiagnosticData(project, diagnostics).ToImmutableArrayOrEmpty());
+            RaiseEvents(project, diagnostics);
         }
 
         // New above here.
@@ -214,8 +217,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private void RaiseEvents(Project project, ImmutableArray<DiagnosticData> diagnostics)
+        private void RaiseEvents(Project project, ImmutableArray<Diagnostic> rawDiagnostics)
         {
+            var diagnostics = GetDiagnosticData(project, rawDiagnostics);
             var groups = diagnostics.GroupBy(d => d.DocumentId);
 
             var solution = project.Solution;
@@ -239,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         // New below here.
 
-        private CompilationDescriptor GetCompilation(Compilation compilation, Project project, VersionStamp projectVersion, CancellationToken cancellationToken)
+        private CompilationDescriptor GetCompilationDescriptor(Compilation compilation, Project project, VersionStamp projectVersion, CancellationToken cancellationToken)
         {
             lock (_getCompilationLock)
             {
@@ -292,13 +296,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private class CompilationDescriptor
         {
             public VersionStamp ProjectVersion { get; private set; }
-            public CompilationWithAnalyzers Compilation { get; private set; }
+            public CompilationWithAnalyzers CompilationWithAnalyzers { get; private set; }
             public ConcurrentDictionary<string, ImmutableArray<Diagnostic>> DiagnosticsPerPaths { get; private set; }
             private readonly object UpdateDiagnosticsLock = new object();
 
             public CompilationDescriptor(VersionStamp projectVersion, CompilationWithAnalyzers compilation)
             {
-                this.Compilation = compilation;
+                this.CompilationWithAnalyzers = compilation;
                 this.ProjectVersion = projectVersion;
                 this.DiagnosticsPerPaths = new ConcurrentDictionary<string, ImmutableArray<Diagnostic>>();
             }
