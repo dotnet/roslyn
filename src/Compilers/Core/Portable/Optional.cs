@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T"></typeparam>
     public struct Optional<T>
     {
-        private bool _hasValue;
-        private T _value;
+        private readonly bool _hasValue;
+        private readonly T _value;
 
         /// <summary>
         /// Initializes a new instance to the specified value.

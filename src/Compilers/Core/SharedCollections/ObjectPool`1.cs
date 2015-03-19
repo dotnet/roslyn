@@ -157,14 +157,13 @@ namespace Roslyn.Utilities
         private T AllocateSlow()
         {
             var items = _items;
-            T inst;
 
             for (int i = 0; i < items.Length; i++)
             {
                 // Note that the initial read is optimistically not synchronized. That is intentional. 
                 // We will interlock only when we have a candidate. in a worst case we may miss some
                 // recently returned objects. Not a big deal.
-                inst = items[i].Value;
+                T inst = items[i].Value;
                 if (inst != null)
                 {
                     if (inst == Interlocked.CompareExchange(ref items[i].Value, null, inst))

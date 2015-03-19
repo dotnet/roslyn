@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -103,7 +101,6 @@ namespace Microsoft.CodeAnalysis
                 switch (_flags & Cci.PInvokeAttributes.CallConvMask)
                 {
                     default:
-                    case Cci.PInvokeAttributes.CallConvWinapi:
                         return CallingConvention.Winapi;
 
                     case Cci.PInvokeAttributes.CallConvCdecl:
@@ -175,10 +172,6 @@ namespace Microsoft.CodeAnalysis
 
             switch (charSet)
             {
-                default: // Dev10: use default without reporting an error
-                case Cci.Constants.CharSet_None:
-                    break;
-
                 case CharSet.Ansi:
                     result |= Cci.PInvokeAttributes.CharSetAnsi;
                     break;
@@ -190,6 +183,8 @@ namespace Microsoft.CodeAnalysis
                 case Cci.Constants.CharSet_Auto:
                     result |= Cci.PInvokeAttributes.CharSetAuto;
                     break;
+
+                // Dev10: use default without reporting an error
             }
 
             if (setLastError)
@@ -200,7 +195,6 @@ namespace Microsoft.CodeAnalysis
             switch (callingConvention)
             {
                 default: // Dev10: uses default without reporting an error
-                case CallingConvention.Winapi:
                     result |= Cci.PInvokeAttributes.CallConvWinapi;
                     break;
 

@@ -2280,9 +2280,7 @@ End Class
             Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "F(2, Function(a As Integer) a) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            ' TODO (tomat): should be allowed (726990)
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(a As Integer)", "method"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -2291,9 +2289,7 @@ End Class
             Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "F(2, From foo In bar Select baz) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            ' TODO (tomat): should be allowed (726990)
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "method"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>

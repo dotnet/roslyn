@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Rename;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -507,7 +508,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     symbol.Kind == SymbolKind.Field ||
                     symbol.Kind == SymbolKind.Property)
                 {
-                    if (symbol.IsStatic || originalSimpleName.IsParentKind(SyntaxKind.NameMemberCref))
+                    if (symbol.IsStatic ||
+                        originalSimpleName.IsParentKind(SyntaxKind.NameMemberCref) ||
+                        _semanticModel.SyntaxTree.IsNameOfContext(originalSimpleName.SpanStart, _semanticModel, _cancellationToken))
                     {
                         newNode = FullyQualifyIdentifierName(
                             symbol,

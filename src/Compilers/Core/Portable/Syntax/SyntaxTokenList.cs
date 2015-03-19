@@ -5,19 +5,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    ///  Represents a read-only list of <see cref="SyntaxToken"/>.
+    /// Represents a read-only list of <see cref="SyntaxToken"/>.
     /// </summary>
+    [StructLayout(LayoutKind.Auto)]
     public partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, IReadOnlyList<SyntaxToken>
     {
         private readonly SyntaxNode _parent;
-        private readonly GreenNode _node;
-        private readonly int _position;
         private readonly int _index;
 
         internal SyntaxTokenList(SyntaxNode parent, GreenNode tokenOrList, int position, int index)
@@ -26,73 +26,55 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(position >= 0);
             Debug.Assert(tokenOrList == null || (tokenOrList.IsToken) || (tokenOrList.IsList));
             _parent = parent;
-            _node = tokenOrList;
-            _position = position;
+            Node = tokenOrList;
+            Position = position;
             _index = index;
         }
 
         internal SyntaxTokenList(SyntaxToken token)
         {
             _parent = token.Parent;
-            _node = token.Node;
-            _position = token.Position;
+            Node = token.Node;
+            Position = token.Position;
             _index = 0;
         }
 
-        internal GreenNode Node
-        {
-            get
-            {
-                return _node;
-            }
-        }
+        internal GreenNode Node { get; }
 
-        internal int Position
-        {
-            get
-            {
-                return _position;
-            }
-        }
+        internal int Position { get; }
 
         /// <summary>
         /// Returns the number of tokens in the list.
         /// </summary>
-        public int Count
-        {
-            get
-            {
-                return _node == null ? 0 : (_node.IsList ? _node.SlotCount : 1);
-            }
-        }
+        public int Count => Node == null ? 0 : (Node.IsList ? Node.SlotCount : 1);
 
         /// <summary>
         /// Gets the token at the specified index.
         /// </summary>
         /// <param name="index">The zero-based index of the token to get.</param>
         /// <returns>The token at the specified index.</returns>
-        /// <exception cref="System.ArgumentOutOfRangeException">
-        ///   <paramref name="index" /> is less than 0.-or-<paramref name="index" /> is equal to or greater than <see cref="SyntaxTokenList.Count" />. </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="index" /> is less than 0.-or-<paramref name="index" /> is equal to or greater than <see cref="Count" />. </exception>
         public SyntaxToken this[int index]
         {
             get
             {
-                if (_node != null)
+                if (Node != null)
                 {
-                    if (_node.IsList)
+                    if (Node.IsList)
                     {
-                        if (unchecked((uint)index < (uint)_node.SlotCount))
+                        if (unchecked((uint)index < (uint)Node.SlotCount))
                         {
-                            return new SyntaxToken(_parent, _node.GetSlot(index), _position + _node.GetSlotOffset(index), _index + index);
+                            return new SyntaxToken(_parent, Node.GetSlot(index), Position + Node.GetSlotOffset(index), _index + index);
                         }
                     }
                     else if (index == 0)
                     {
-                        return new SyntaxToken(_parent, _node, _position, _index);
+                        return new SyntaxToken(_parent, Node, Position, _index);
                     }
                 }
 
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
         }
 
@@ -103,14 +85,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_node == null)
+                if (Node == null)
                 {
                     return default(TextSpan);
                 }
-                else
-                {
-                    return new TextSpan(this.Position, _node.FullWidth);
-                }
+
+                return new TextSpan(this.Position, Node.FullWidth);
             }
         }
 
@@ -121,15 +101,13 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_node == null)
+                if (Node == null)
                 {
                     return default(TextSpan);
                 }
-                else
-                {
-                    return TextSpan.FromBounds(_position + _node.GetLeadingTriviaWidth(),
-                                               _position + _node.FullWidth - _node.GetTrailingTriviaWidth());
-                }
+
+                return TextSpan.FromBounds(Position + Node.GetLeadingTriviaWidth(),
+                    Position + Node.FullWidth - Node.GetTrailingTriviaWidth());
             }
         }
 
@@ -143,7 +121,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public override string ToString()
         {
-            return _node != null ? _node.ToString() : string.Empty;
+            return Node != null ? Node.ToString() : string.Empty;
         }
 
         /// <summary>
@@ -156,14 +134,14 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public string ToFullString()
         {
-            return _node != null ? _node.ToFullString() : string.Empty;
+            return Node != null ? Node.ToFullString() : string.Empty;
         }
 
         /// <summary>
         /// Returns the first token in the list.
         /// </summary>
         /// <returns>The first token in the list.</returns>
-        /// <exception cref="System.InvalidOperationException">The list is empty.</exception>        
+        /// <exception cref="InvalidOperationException">The list is empty.</exception>        
         public SyntaxToken First()
         {
             if (Any())
@@ -178,7 +156,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns the last token in the list.
         /// </summary>
         /// <returns> The last token in the list.</returns>
-        /// <exception cref="System.InvalidOperationException">The list is empty.</exception>        
+        /// <exception cref="InvalidOperationException">The list is empty.</exception>        
         public SyntaxToken Last()
         {
             if (Any())
@@ -195,7 +173,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if the list contains any tokens.</returns>
         public bool Any()
         {
-            return _node != null;
+            return Node != null;
         }
 
         /// <summary>
@@ -222,7 +200,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private GreenNode GetGreenNodeAt(int i)
         {
-            return GetGreenNodeAt(_node, i);
+            return GetGreenNodeAt(Node, i);
         }
 
         /// <summary>
@@ -288,7 +266,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (token == default(SyntaxToken))
             {
-                throw new ArgumentException("token");
+                throw new ArgumentOutOfRangeException(nameof(token));
             }
 
             return InsertRange(index, new[] { token });
@@ -303,12 +281,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (index < 0 || index > this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             if (tokens == null)
             {
-                throw new ArgumentNullException("tokens");
+                throw new ArgumentNullException(nameof(tokens));
             }
 
             var items = tokens.ToList();
@@ -324,10 +302,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return this;
             }
-            else
-            {
-                return new SyntaxTokenList(null, list[0].Node.CreateList(list.Select(n => n.Node)), 0, 0);
-            }
+
+            return new SyntaxTokenList(null, list[0].Node.CreateList(list.Select(n => n.Node)), 0, 0);
         }
 
         /// <summary>
@@ -338,12 +314,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (index < 0 || index >= this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             var list = this.ToList();
             list.RemoveAt(index);
-            return new SyntaxTokenList(null, _node.CreateList(list.Select(n => n.Node)), 0, 0);
+            return new SyntaxTokenList(null, Node.CreateList(list.Select(n => n.Node)), 0, 0);
         }
 
         /// <summary>
@@ -357,10 +333,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return RemoveAt(index);
             }
-            else
-            {
-                return this;
-            }
+
+            return this;
         }
 
         /// <summary>
@@ -372,7 +346,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (newToken == default(SyntaxToken))
             {
-                throw new ArgumentException("newToken");
+                throw new ArgumentOutOfRangeException(nameof(newToken));
             }
 
             return ReplaceRange(tokenInList, new[] { newToken });
@@ -391,19 +365,14 @@ namespace Microsoft.CodeAnalysis
                 var list = this.ToList();
                 list.RemoveAt(index);
                 list.InsertRange(index, newTokens);
-                return new SyntaxTokenList(null, _node.CreateList(list.Select(n => n.Node)), 0, 0);
+                return new SyntaxTokenList(null, Node.CreateList(list.Select(n => n.Node)), 0, 0);
             }
-            else
-            {
-                throw new ArgumentException("tokenInList");
-            }
+
+            throw new ArgumentOutOfRangeException(nameof(tokenInList));
         }
 
         // for debugging
-        private SyntaxToken[] Nodes
-        {
-            get { return this.ToArray(); }
-        }
+        private SyntaxToken[] Nodes => this.ToArray();
 
         /// <summary>
         /// Returns an enumerator for the tokens in the <see cref="SyntaxTokenList"/>
@@ -415,7 +384,7 @@ namespace Microsoft.CodeAnalysis
 
         IEnumerator<SyntaxToken> IEnumerable<SyntaxToken>.GetEnumerator()
         {
-            if (_node == null)
+            if (Node == null)
             {
                 return SpecializedCollections.EmptyEnumerator<SyntaxToken>();
             }
@@ -425,7 +394,7 @@ namespace Microsoft.CodeAnalysis
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            if (_node == null)
+            if (Node == null)
             {
                 return SpecializedCollections.EmptyEnumerator<SyntaxToken>();
             }
@@ -457,7 +426,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(SyntaxTokenList other)
         {
-            return _node == other._node && _parent == other._parent && _index == other._index;
+            return Node == other.Node && _parent == other._parent && _index == other._index;
         }
 
         /// <summary>
@@ -466,7 +435,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if the two objects are equal.</returns>
         public override bool Equals(object obj)
         {
-            return (obj is SyntaxTokenList) && Equals((SyntaxTokenList)obj);
+            return obj is SyntaxTokenList && Equals((SyntaxTokenList)obj);
         }
 
         /// <summary>
@@ -475,14 +444,13 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             // Not call GHC on parent as it's expensive
-            return Hash.Combine(_node, _index);
+            return Hash.Combine(Node, _index);
         }
 
         /// <summary>
         /// Create a new Token List
         /// </summary>
         /// <param name="token">Element of the return Token List</param>
-        /// <returns></returns>
         public static SyntaxTokenList Create(SyntaxToken token)
         {
             return new SyntaxTokenList(token);

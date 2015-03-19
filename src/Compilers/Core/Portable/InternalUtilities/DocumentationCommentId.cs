@@ -4,9 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -31,12 +30,12 @@ namespace Microsoft.CodeAnalysis
             [Obsolete("Do not use Free, Use ClearAndFree instead.", error: true)]
             public new void Free(List<T> list)
             {
-                ClearAndFree(list);
+                throw new NotSupportedException();
             }
         }
 
-        private static ListPool<ISymbol> s_symbolListPool = new ListPool<ISymbol>();
-        private static ListPool<INamespaceOrTypeSymbol> s_namespaceOrTypeListPool = new ListPool<INamespaceOrTypeSymbol>();
+        private static readonly ListPool<ISymbol> s_symbolListPool = new ListPool<ISymbol>();
+        private static readonly ListPool<INamespaceOrTypeSymbol> s_namespaceOrTypeListPool = new ListPool<INamespaceOrTypeSymbol>();
 
         /// <summary>
         /// Creates an id string used by external documenation comment files to identify declarations
@@ -95,14 +94,7 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 Parser.ParseDeclaredSymbolId(id, compilation, results);
-                if (results.Count == 0)
-                {
-                    return null;
-                }
-                else
-                {
-                    return results[0];
-                }
+                return results.Count == 0 ? null : results[0];
             }
             finally
             {
@@ -119,12 +111,10 @@ namespace Microsoft.CodeAnalysis
             {
                 return GetSymbolsForDeclarationId(id, compilation);
             }
-            else
-            {
-                var results = new List<ISymbol>();
-                Parser.ParseReferencedSymbolId(id, compilation, results);
-                return results;
-            }
+
+            var results = new List<ISymbol>();
+            Parser.ParseReferencedSymbolId(id, compilation, results);
+            return results;
         }
 
         /// <summary>
@@ -136,25 +126,16 @@ namespace Microsoft.CodeAnalysis
             {
                 return GetFirstSymbolForDeclarationId(id, compilation);
             }
-            else
+
+            var results = s_symbolListPool.Allocate();
+            try
             {
-                var results = s_symbolListPool.Allocate();
-                try
-                {
-                    Parser.ParseReferencedSymbolId(id, compilation, results);
-                    if (results.Count == 0)
-                    {
-                        return null;
-                    }
-                    else
-                    {
-                        return results[0];
-                    }
-                }
-                finally
-                {
-                    s_symbolListPool.ClearAndFree(results);
-                }
+                Parser.ParseReferencedSymbolId(id, compilation, results);
+                return results.Count == 0 ? null : results[0];
+            }
+            finally
+            {
+                s_symbolListPool.ClearAndFree(results);
             }
         }
 
@@ -177,16 +158,14 @@ namespace Microsoft.CodeAnalysis
             {
                 return name.Replace('.', '#');
             }
-            else
-            {
-                return name;
-            }
+
+            return name;
         }
 
         private class DeclarationGenerator : SymbolVisitor
         {
-            private StringBuilder _builder;
-            private Generator _generator;
+            private readonly StringBuilder _builder;
+            private readonly Generator _generator;
 
             public DeclarationGenerator(StringBuilder builder)
             {
@@ -237,7 +216,7 @@ namespace Microsoft.CodeAnalysis
 
             private class Generator : SymbolVisitor<bool>
             {
-                private StringBuilder _builder;
+                private readonly StringBuilder _builder;
                 private ReferenceGenerator _referenceGenerator;
 
                 public Generator(StringBuilder builder)
@@ -352,16 +331,14 @@ namespace Microsoft.CodeAnalysis
                     {
                         return false;
                     }
-                    else
-                    {
-                        if (this.Visit(symbol.ContainingSymbol))
-                        {
-                            _builder.Append(".");
-                        }
 
-                        _builder.Append(EncodeName(symbol.Name));
-                        return true;
+                    if (this.Visit(symbol.ContainingSymbol))
+                    {
+                        _builder.Append(".");
                     }
+
+                    _builder.Append(EncodeName(symbol.Name));
+                    return true;
                 }
 
                 public override bool VisitNamedType(INamedTypeSymbol symbol)
@@ -421,11 +398,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     return false;
                 }
-                else
-                {
-                    this.BuildDottedName(symbol);
-                    return true;
-                }
+
+                this.BuildDottedName(symbol);
+                return true;
             }
 
             public override bool VisitNamedType(INamedTypeSymbol symbol)
@@ -445,8 +420,6 @@ namespace Microsoft.CodeAnalysis
 
                         for (int i = 0, n = symbol.TypeArguments.Length; i < n; i++)
                         {
-                            var arg = symbol.TypeArguments[i];
-
                             if (i > 0)
                             {
                                 _builder.Append(",");
@@ -508,7 +481,7 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     // get count of all type parameter preceding the declaration of the type parameters containing symbol.
-                    var container = symbol.ContainingSymbol != null ? symbol.ContainingSymbol.ContainingSymbol : null;
+                    var container = symbol.ContainingSymbol?.ContainingSymbol;
                     var b = GetTotalTypeParameterCount(container as INamedTypeSymbol);
                     _builder.Append("`");
                     _builder.Append(b + symbol.Ordinal);
@@ -555,18 +528,17 @@ namespace Microsoft.CodeAnalysis
             }
 
             // only supports type symbols
-            public static bool ParseReferencedSymbolId(string id, Compilation compilation, List<ISymbol> results)
+            public static void ParseReferencedSymbolId(string id, Compilation compilation, List<ISymbol> results)
             {
                 int index = 0;
                 results.Clear();
                 ParseTypeSymbol(id, ref index, compilation, null, results);
-                return results.Count != 0;
             }
 
             private static void ParseDeclaredId(string id, ref int index, Compilation compilation, List<ISymbol> results)
             {
                 var kindChar = PeekNextChar(id, index);
-                SymbolKind kind = default(SymbolKind);
+                SymbolKind kind;
 
                 switch (kindChar)
                 {
@@ -605,7 +577,7 @@ namespace Microsoft.CodeAnalysis
                     containers.Add(compilation.GlobalNamespace);
 
                     string name;
-                    int arity = 0;
+                    int arity;
 
                     // process dotted names
                     while (true)
@@ -760,7 +732,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (ch == '`')
                     {
-                        ParseTypeParameterSymbol(id, ref index, compilation, typeParameterContext, results);
+                        ParseTypeParameterSymbol(id, ref index, typeParameterContext, results);
                     }
                     else
                     {
@@ -784,16 +756,15 @@ namespace Microsoft.CodeAnalysis
                                 typeSymbol = compilation.CreateArrayTypeSymbol(typeSymbol, bounds);
                                 continue;
                             }
-                            else if (PeekNextChar(id, index) == '*')
+
+                            if (PeekNextChar(id, index) == '*')
                             {
                                 index++;
                                 typeSymbol = compilation.CreatePointerTypeSymbol(typeSymbol);
                                 continue;
                             }
-                            else
-                            {
-                                break;
-                            }
+
+                            break;
                         }
 
                         results[i] = typeSymbol;
@@ -804,10 +775,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private static void ParseTypeParameterSymbol(string id, ref int index, Compilation compilation, ISymbol typeParameterContext, List<ISymbol> results)
+            private static void ParseTypeParameterSymbol(string id, ref int index, ISymbol typeParameterContext, List<ISymbol> results)
             {
-                var startIndex = index;
-
                 // skip the first `
                 System.Diagnostics.Debug.Assert(PeekNextChar(id, index) == '`');
                 index++;
@@ -902,10 +871,8 @@ namespace Microsoft.CodeAnalysis
                             results.Clear();
                             continue;
                         }
-                        else
-                        {
-                            break;
-                        }
+
+                        break;
                     }
                 }
                 finally
@@ -922,12 +889,9 @@ namespace Microsoft.CodeAnalysis
 
                 while (true)
                 {
-                    int lowerBound = 0;
-                    int size = -1;
-
                     if (char.IsDigit(PeekNextChar(id, index)))
                     {
-                        lowerBound = ReadNextInteger(id, ref index);
+                        ReadNextInteger(id, ref index);
                     }
 
                     if (PeekNextChar(id, index) == ':')
@@ -936,7 +900,7 @@ namespace Microsoft.CodeAnalysis
 
                         if (char.IsDigit(PeekNextChar(id, index)))
                         {
-                            size = ReadNextInteger(id, ref index);
+                            ReadNextInteger(id, ref index);
                         }
                     }
 
@@ -947,10 +911,8 @@ namespace Microsoft.CodeAnalysis
                         index++;
                         continue;
                     }
-                    else
-                    {
-                        break;
-                    }
+
+                    break;
                 }
 
                 if (PeekNextChar(id, index) == ']')
@@ -983,10 +945,8 @@ namespace Microsoft.CodeAnalysis
                         index++;
                         continue;
                     }
-                    else
-                    {
-                        break;
-                    }
+
+                    break;
                 }
 
                 if (PeekNextChar(id, index) == '}')
@@ -1083,10 +1043,7 @@ namespace Microsoft.CodeAnalysis
                             var methodSymbol = symbol as IMethodSymbol;
                             if (methodSymbol != null && methodSymbol.Arity == arity)
                             {
-                                if (parameters != null)
-                                {
-                                    parameters.Clear();
-                                }
+                                parameters?.Clear();
 
                                 if (PeekNextChar(id, index) == '(')
                                 {
@@ -1105,17 +1062,16 @@ namespace Microsoft.CodeAnalysis
                                         continue;
                                     }
                                 }
-                                else if (!AllParametersMatch(id, methodSymbol.Parameters, parameters, compilation))
+                                else if (!AllParametersMatch(methodSymbol.Parameters, parameters))
                                 {
                                     // parameters don't match, try next method symbol
                                     continue;
                                 }
 
-                                ITypeSymbol returnType = null;
                                 if (PeekNextChar(id, index) == '~')
                                 {
                                     index++;
-                                    returnType = ParseTypeSymbol(id, ref index, compilation, methodSymbol);
+                                    ITypeSymbol returnType = ParseTypeSymbol(id, ref index, compilation, methodSymbol);
 
                                     // if return type is specified, then it must match
                                     if (returnType != null && methodSymbol.ReturnType.Equals(returnType))
@@ -1181,7 +1137,7 @@ namespace Microsoft.CodeAnalysis
                                     }
 
                                     if (ParseParameterList(id, ref index, compilation, propertySymbol.ContainingSymbol, parameters)
-                                        && AllParametersMatch(id, propertySymbol.Parameters, parameters, compilation))
+                                        && AllParametersMatch(propertySymbol.Parameters, parameters))
                                     {
                                         results.Add(propertySymbol);
                                         endIndex = index;
@@ -1239,7 +1195,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private static bool AllParametersMatch(string id, ImmutableArray<IParameterSymbol> symbolParameters, List<ParameterInfo> expectedParameters, Compilation compilation)
+            private static bool AllParametersMatch(ImmutableArray<IParameterSymbol> symbolParameters, List<ParameterInfo> expectedParameters)
             {
                 if (symbolParameters.Length != expectedParameters.Count)
                 {
@@ -1248,7 +1204,7 @@ namespace Microsoft.CodeAnalysis
 
                 for (int i = 0; i < expectedParameters.Count; i++)
                 {
-                    if (!ParameterMatches(id, symbolParameters[i], expectedParameters[i], compilation))
+                    if (!ParameterMatches(symbolParameters[i], expectedParameters[i]))
                     {
                         return false;
                     }
@@ -1257,15 +1213,14 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            private static bool ParameterMatches(string id, IParameterSymbol symbol, ParameterInfo parameterInfo, Compilation compilation)
+            private static bool ParameterMatches(IParameterSymbol symbol, ParameterInfo parameterInfo)
             {
                 // same ref'ness?
-                if ((symbol.RefKind == RefKind.None) != !parameterInfo.IsRefOrOut)
+                if ((symbol.RefKind == RefKind.None) == parameterInfo.IsRefOrOut)
                 {
                     return false;
                 }
 
-                var methodSymbol = symbol.ContainingSymbol as IMethodSymbol;
                 var parameterType = parameterInfo.Type;
 
                 return parameterType != null && symbol.Type.Equals(parameterType);
@@ -1273,16 +1228,14 @@ namespace Microsoft.CodeAnalysis
 
             private static ITypeParameterSymbol GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)
             {
-                var containingTypeParameterCount = GetTypeParameterCount(typeSymbol.ContainingType as INamedTypeSymbol);
+                var containingTypeParameterCount = GetTypeParameterCount(typeSymbol.ContainingType);
                 if (n < containingTypeParameterCount)
                 {
-                    return GetNthTypeParameter(typeSymbol.ContainingType as INamedTypeSymbol, n);
+                    return GetNthTypeParameter(typeSymbol.ContainingType, n);
                 }
-                else
-                {
-                    var index = n - containingTypeParameterCount;
-                    return typeSymbol.TypeParameters[index];
-                }
+
+                var index = n - containingTypeParameterCount;
+                return typeSymbol.TypeParameters[index];
             }
 
             private static int GetTypeParameterCount(INamedTypeSymbol typeSymbol)
@@ -1291,16 +1244,15 @@ namespace Microsoft.CodeAnalysis
                 {
                     return 0;
                 }
-                else
-                {
-                    return typeSymbol.TypeParameters.Length + GetTypeParameterCount(typeSymbol.ContainingType as INamedTypeSymbol);
-                }
+
+                return typeSymbol.TypeParameters.Length + GetTypeParameterCount(typeSymbol.ContainingType);
             }
 
+            [StructLayout(LayoutKind.Auto)]
             private struct ParameterInfo
             {
                 internal readonly ITypeSymbol Type;
-                internal bool IsRefOrOut;
+                internal readonly bool IsRefOrOut;
 
                 public ParameterInfo(ITypeSymbol type, bool isRefOrOut)
                 {
@@ -1309,7 +1261,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private static ListPool<ParameterInfo> s_parameterListPool = new ListPool<ParameterInfo>();
+            private static readonly ListPool<ParameterInfo> s_parameterListPool = new ListPool<ParameterInfo>();
 
             private static bool ParseParameterList(string id, ref int index, Compilation compilation, ISymbol typeParameterContext, List<ParameterInfo> parameters)
             {
@@ -1375,10 +1327,10 @@ namespace Microsoft.CodeAnalysis
 
             private static char PeekNextChar(string id, int index)
             {
-                return (index >= id.Length) ? '\0' : id[index];
+                return index >= id.Length ? '\0' : id[index];
             }
 
-            private static readonly char[] s_nameDelimiters = new char[] { ':', '.', '(', ')', '{', '}', '[', ']', ',', '\'', '@', '*', '`', '~' };
+            private static readonly char[] s_nameDelimiters = { ':', '.', '(', ')', '{', '}', '[', ']', ',', '\'', '@', '*', '`', '~' };
 
             private static string ParseName(string id, ref int index)
             {
@@ -1406,10 +1358,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     return name.Replace('#', '.');
                 }
-                else
-                {
-                    return name;
-                }
+
+                return name;
             }
 
             private static int ReadNextInteger(string id, ref int index)

@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if ((object)_name == null)
                 {
-                    _name = String.Empty;
+                    _name = string.Empty;
                 }
 
                 InitializeUseSiteDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _flags = (ushort)localflags;
         }
 
-        internal sealed override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
             thisParameter = IsStatic ? null :
                            _uncommonFields?._lazyThisParameter ?? InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyThisParameter, new ThisParameterSymbol(this));
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override bool HasDeclarativeSecurity => HasFlag(MethodAttributes.HasSecurity);
 
-        internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
+        internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -332,40 +332,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var access = Accessibility.Private;
-
                 switch (Flags & MethodAttributes.MemberAccessMask)
                 {
                     case MethodAttributes.Assembly:
-                        access = Accessibility.Internal;
-                        break;
+                        return Accessibility.Internal;
 
                     case MethodAttributes.FamORAssem:
-                        access = Accessibility.ProtectedOrInternal;
-                        break;
+                        return Accessibility.ProtectedOrInternal;
 
                     case MethodAttributes.FamANDAssem:
-                        access = Accessibility.ProtectedAndInternal;
-                        break;
+                        return Accessibility.ProtectedAndInternal;
 
                     case MethodAttributes.Private:
                     case MethodAttributes.PrivateScope:
-                        access = Accessibility.Private;
-                        break;
+                        return Accessibility.Private;
 
                     case MethodAttributes.Public:
-                        access = Accessibility.Public;
-                        break;
+                        return Accessibility.Public;
 
                     case MethodAttributes.Family:
-                        access = Accessibility.Protected;
-                        break;
+                        return Accessibility.Protected;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(_flags);
                 }
-
-                return access;
             }
         }
 
@@ -383,23 +373,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if (_lazyTypeParameters.IsDefault)
-                {
-                    try
-                    {
-                        int parameterCount;
-                        int typeParameterCount;
-                        MetadataDecoder.GetSignatureCountsOrThrow(_containingType.ContainingPEModule.Module, _handle, out parameterCount, out typeParameterCount);
-                        return typeParameterCount;
-                    }
-                    catch (BadImageFormatException)
-                    {
-                        return TypeParameters.Length;
-                    }
-                }
-                else
+                if (!_lazyTypeParameters.IsDefault)
                 {
                     return _lazyTypeParameters.Length;
+                }
+
+                try
+                {
+                    int parameterCount;
+                    int typeParameterCount;
+                    MetadataDecoder.GetSignatureCountsOrThrow(_containingType.ContainingPEModule.Module, _handle, out parameterCount, out typeParameterCount);
+                    return typeParameterCount;
+                }
+                catch (BadImageFormatException)
+                {
+                    return TypeParameters.Length;
                 }
             }
         }
@@ -439,13 +427,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // is a new virtual method and doesn't override anything.
         public override bool IsOverride =>
             this.IsMetadataVirtual() && !this.IsDestructor &&
-            ((!this.IsMetadataNewSlot() && (object)_containingType.BaseTypeNoUseSiteDiagnostics != null) || this.IsExplicitClassOverride);
+                       ((!this.IsMetadataNewSlot() && (object)_containingType.BaseTypeNoUseSiteDiagnostics != null) || this.IsExplicitClassOverride);
 
         public override bool IsStatic => HasFlag(MethodAttributes.Static);
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => HasFlag(MethodAttributes.Virtual);
+        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => HasFlag(MethodAttributes.Virtual);
 
-        internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => HasFlag(MethodAttributes.NewSlot);
+        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => HasFlag(MethodAttributes.NewSlot);
 
         internal override bool IsMetadataFinal => HasFlag(MethodAttributes.Final);
 
@@ -483,23 +471,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if (_lazySignature == null)
-                {
-                    try
-                    {
-                        int parameterCount;
-                        int typeParameterCount;
-                        MetadataDecoder.GetSignatureCountsOrThrow(_containingType.ContainingPEModule.Module, _handle, out parameterCount, out typeParameterCount);
-                        return parameterCount;
-                    }
-                    catch (BadImageFormatException)
-                    {
-                        return Parameters.Length;
-                    }
-                }
-                else
+                if (_lazySignature != null)
                 {
                     return _lazySignature.Parameters.Length;
+                }
+
+                try
+                {
+                    int parameterCount;
+                    int typeParameterCount;
+                    MetadataDecoder.GetSignatureCountsOrThrow(_containingType.ContainingPEModule.Module, _handle,
+                        out parameterCount, out typeParameterCount);
+                    return parameterCount;
+                }
+                catch (BadImageFormatException)
+                {
+                    return Parameters.Length;
                 }
             }
         }
@@ -838,7 +825,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     return MethodKind.Ordinary;
                 }
-                else if (!this.HasRuntimeSpecialName && this.IsStatic && this.DeclaredAccessibility == Accessibility.Public)
+
+                if (!this.HasRuntimeSpecialName && this.IsStatic && this.DeclaredAccessibility == Accessibility.Public)
                 {
                     switch (_name)
                     {
@@ -913,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return MethodKind.Ordinary;
         }
 
-        internal override Microsoft.Cci.CallingConvention CallingConvention => (Microsoft.Cci.CallingConvention)Signature.Header.RawValue;
+        internal override Cci.CallingConvention CallingConvention => (Cci.CallingConvention)Signature.Header.RawValue;
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
@@ -941,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (!method.ContainingType.IsInterface)
                     {
                         anyToRemove = true;
-                        sawObjectFinalize = sawObjectFinalize ||
+                        sawObjectFinalize =
                             (method.ContainingType.SpecialType == SpecialType.System_Object &&
                              method.Name == WellKnownMemberNames.DestructorName && // Cheaper than MethodKind.
                              method.MethodKind == MethodKind.Destructor);
@@ -1088,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override bool GenerateDebugInfo => false;
 
-        internal sealed override OverriddenOrHiddenMembersResult OverriddenOrHiddenMembers
+        internal override OverriddenOrHiddenMembersResult OverriddenOrHiddenMembers
         {
             get
             {
@@ -1116,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         // perf, not correctness
-        internal sealed override CSharpCompilation DeclaringCompilation => null;
+        internal override CSharpCompilation DeclaringCompilation => null;
 
         // Internal for unit test
         internal bool TestIsExtensionBitSet => _packedFlags.IsExtensionMethodIsPopulated;

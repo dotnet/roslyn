@@ -148,10 +148,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             s_reportedException = exception;
             s_reportedExceptionMessage = exception.ToString();
 
-            if (handler != null)
-            {
-                handler(exception);
-            }
+            handler?.Invoke(exception);
         }
     }
 }
