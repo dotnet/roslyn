@@ -1341,7 +1341,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.FieldDeclaration
                     Dim declaration = DirectCast(node, FieldDeclarationSyntax)
-                    Return If(declaration.Modifiers.Any(SyntaxKind.WithEventsKeyword), "WithEvents field", "field")
+                    Return If(declaration.Modifiers.Any(SyntaxKind.WithEventsKeyword), "WithEvents field",
+                           If(declaration.Modifiers.Any(SyntaxKind.ConstKeyword), "const field", "field"))
 
                 Case SyntaxKind.VariableDeclarator,
                      SyntaxKind.ModifiedIdentifier
@@ -2269,10 +2270,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                ClassifyTypeAndInitializerUpdates(oldNode.Initializer,
+                If ClassifyTypeAndInitializerUpdates(oldNode.Initializer,
                                                   oldNode.AsClause,
                                                   newNode.Initializer,
-                                                  newNode.AsClause)
+                                                  newNode.AsClause) Then
+                    ' Check if a constant field is updated:
+                    Dim fieldDeclaration = TryCast(oldNode.Parent, FieldDeclarationSyntax)
+                    If fieldDeclaration IsNot Nothing AndAlso fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) Then
+                        ReportError(RudeEditKind.Update)
+                        Return
+                    End If
+                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As PropertyStatementSyntax, newNode As PropertyStatementSyntax)

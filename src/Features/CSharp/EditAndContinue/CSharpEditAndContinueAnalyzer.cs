@@ -1250,7 +1250,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return "delegate";
 
                 case SyntaxKind.FieldDeclaration:
-                    return "field";
+                    var declaration = (FieldDeclarationSyntax)node;
+                    return declaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? "const field" : "field";
 
                 case SyntaxKind.EventFieldDeclaration:
                     return "event field";
@@ -2105,6 +2106,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 if (typeDeclaration.Arity > 0)
                 {
                     ReportError(RudeEditKind.GenericTypeInitializerUpdate);
+                    return;
+                }
+
+                // Check if a constant field is updated:
+                var fieldDeclaration = oldNode.Parent.Parent as FieldDeclarationSyntax;
+                if (fieldDeclaration != null && fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
+                {
+                    ReportError(RudeEditKind.Update);
                     return;
                 }
 
