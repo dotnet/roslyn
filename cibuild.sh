@@ -14,7 +14,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # NuGet on mono crashes about every 5th time we run it.  This is causing
-# Linux runs to fail frequently enough that we need to employee a 
+# Linux runs to fail frequently enough that we need to employ a 
 # temporary work around.  
 echo Restoring NuGet packages
 i=5
