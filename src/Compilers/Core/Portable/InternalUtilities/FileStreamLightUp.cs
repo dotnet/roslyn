@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
 {
     internal static class FileStreamLightUp
     {
-        private static Lazy<Func<string, Stream>> s_lazyFileOpenStreamMethod = new Lazy<Func<string, Stream>>(() =>
+        private static readonly Lazy<Func<string, Stream>> s_lazyFileOpenStreamMethod = new Lazy<Func<string, Stream>>(() =>
         {
             Type file;
             try

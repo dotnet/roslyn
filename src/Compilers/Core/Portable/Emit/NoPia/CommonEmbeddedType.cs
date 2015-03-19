@@ -2,11 +2,9 @@
 
 using System.Collections.Immutable;
 using Roslyn.Utilities;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -91,7 +89,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 // Copy some of the attributes.
 
-                int signatureIndex;
                 bool hasGuid = false;
                 bool hasComEventInterfaceAttribute = false;
 
@@ -119,56 +116,60 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                             builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ComEventInterfaceAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
                         }
                     }
-                    else if ((signatureIndex = TypeManager.GetTargetAttributeSignatureIndex(UnderlyingNamedType, attrData, AttributeDescription.InterfaceTypeAttribute)) != -1)
+                    else
                     {
-                        Debug.Assert(signatureIndex == 0 || signatureIndex == 1);
-                        if (attrData.CommonConstructorArguments.Length == 1)
+                        int signatureIndex = TypeManager.GetTargetAttributeSignatureIndex(UnderlyingNamedType, attrData, AttributeDescription.InterfaceTypeAttribute);
+                        if (signatureIndex != -1)
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(signatureIndex == 0 ? WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorInt16 :
-                                                                                            WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorComInterfaceType,
-                                                                      attrData, syntaxNodeOpt, diagnostics));
-                        }
-                    }
-                    else if (IsTargetAttribute(attrData, AttributeDescription.BestFitMappingAttribute))
-                    {
-                        if (attrData.CommonConstructorArguments.Length == 1)
-                        {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_BestFitMappingAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
-                        }
-                    }
-                    else if (IsTargetAttribute(attrData, AttributeDescription.CoClassAttribute))
-                    {
-                        if (attrData.CommonConstructorArguments.Length == 1)
-                        {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_CoClassAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
-                        }
-                    }
-                    else if (IsTargetAttribute(attrData, AttributeDescription.FlagsAttribute))
-                    {
-                        if (attrData.CommonConstructorArguments.Length == 0 && UnderlyingNamedType.IsEnum)
-                        {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_FlagsAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
-                        }
-                    }
-                    else if (IsTargetAttribute(attrData, AttributeDescription.DefaultMemberAttribute))
-                    {
-                        if (attrData.CommonConstructorArguments.Length == 1)
-                        {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
-
-                            // Embed members matching default member name.
-                            string defaultMember = attrData.CommonConstructorArguments[0].Value as string;
-                            if (defaultMember != null)
+                            Debug.Assert(signatureIndex == 0 || signatureIndex == 1);
+                            if (attrData.CommonConstructorArguments.Length == 1)
                             {
-                                EmbedDefaultMembers(defaultMember, syntaxNodeOpt, diagnostics);
+                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(signatureIndex == 0 ? WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorInt16 :
+                                    WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorComInterfaceType,
+                                    attrData, syntaxNodeOpt, diagnostics));
                             }
                         }
-                    }
-                    else if (IsTargetAttribute(attrData, AttributeDescription.UnmanagedFunctionPointerAttribute))
-                    {
-                        if (attrData.CommonConstructorArguments.Length == 1)
+                        else if (IsTargetAttribute(attrData, AttributeDescription.BestFitMappingAttribute))
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_UnmanagedFunctionPointerAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
+                            if (attrData.CommonConstructorArguments.Length == 1)
+                            {
+                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_BestFitMappingAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
+                            }
+                        }
+                        else if (IsTargetAttribute(attrData, AttributeDescription.CoClassAttribute))
+                        {
+                            if (attrData.CommonConstructorArguments.Length == 1)
+                            {
+                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_CoClassAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
+                            }
+                        }
+                        else if (IsTargetAttribute(attrData, AttributeDescription.FlagsAttribute))
+                        {
+                            if (attrData.CommonConstructorArguments.Length == 0 && UnderlyingNamedType.IsEnum)
+                            {
+                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_FlagsAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
+                            }
+                        }
+                        else if (IsTargetAttribute(attrData, AttributeDescription.DefaultMemberAttribute))
+                        {
+                            if (attrData.CommonConstructorArguments.Length == 1)
+                            {
+                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
+
+                                // Embed members matching default member name.
+                                string defaultMember = attrData.CommonConstructorArguments[0].Value as string;
+                                if (defaultMember != null)
+                                {
+                                    EmbedDefaultMembers(defaultMember, syntaxNodeOpt, diagnostics);
+                                }
+                            }
+                        }
+                        else if (IsTargetAttribute(attrData, AttributeDescription.UnmanagedFunctionPointerAttribute))
+                        {
+                            if (attrData.CommonConstructorArguments.Length == 1)
+                            {
+                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_UnmanagedFunctionPointerAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
+                            }
                         }
                     }
                 }
@@ -403,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get
                 {
                     var layout = GetTypeLayoutIfStruct();
-                    return layout != null ? layout.Value.Kind : System.Runtime.InteropServices.LayoutKind.Auto;
+                    return layout?.Kind ?? System.Runtime.InteropServices.LayoutKind.Auto;
                 }
             }
 
@@ -412,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get
                 {
                     var layout = GetTypeLayoutIfStruct();
-                    return (ushort)(layout != null ? layout.Value.Alignment : 0);
+                    return (ushort)(layout?.Alignment ?? 0);
                 }
             }
 
@@ -421,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get
                 {
                     var layout = GetTypeLayoutIfStruct();
-                    return (uint)(layout != null ? layout.Value.Size : 0);
+                    return (uint)(layout?.Size ?? 0);
                 }
             }
 
@@ -446,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                             {
                                 if (gapSize > 0)
                                 {
-                                    builder.Add(new VtblGap(this, Microsoft.CodeAnalysis.ModuleExtensions.GetVTableGapName(gapIndex, gapSize)));
+                                    builder.Add(new VtblGap(this, ModuleExtensions.GetVTableGapName(gapIndex, gapSize)));
                                     gapIndex++;
                                     gapSize = 0;
                                 }

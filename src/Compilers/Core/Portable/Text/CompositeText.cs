@@ -117,26 +117,22 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Validates the arguments passed to CopyTo against the published contract.
+        /// Validates the arguments passed to <see cref="CopyTo"/> against the published contract.
         /// </summary>
-        /// <param name="sourceIndex"></param>
-        /// <param name="destination"></param>
-        /// <param name="destinationIndex"></param>
-        /// <param name="count"></param>
         /// <returns>True if should bother to proceed with copying.</returns>
         private bool CheckCopyToArguments(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
             if (destination == null)
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
 
             if (sourceIndex < 0)
-                throw new ArgumentOutOfRangeException("sourceIndex");
+                throw new ArgumentOutOfRangeException(nameof(sourceIndex));
 
             if (destinationIndex < 0)
-                throw new ArgumentOutOfRangeException("destinationIndex");
+                throw new ArgumentOutOfRangeException(nameof(destinationIndex));
 
             if (count < 0 || count > this.Length - sourceIndex || count > destination.Length - destinationIndex)
-                throw new ArgumentOutOfRangeException("count");
+                throw new ArgumentOutOfRangeException(nameof(count));
 
             return count > 0;
         }

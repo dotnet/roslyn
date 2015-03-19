@@ -64,17 +64,15 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (span.End > this.Source.Length)
             {
-                throw new ArgumentOutOfRangeException("span");
+                throw new ArgumentOutOfRangeException(nameof(span));
             }
 
             if (span.Start == 0 && span.Length == this.Length)
             {
                 return this.Source;
             }
-            else
-            {
-                return this.Source.Substring(span.Start, span.Length);
-            }
+
+            return this.Source.Substring(span.Start, span.Length);
         }
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)

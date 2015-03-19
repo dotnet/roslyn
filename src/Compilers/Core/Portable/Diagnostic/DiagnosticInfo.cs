@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteInt32((int)_effectiveSeverity);
             writer.WriteInt32((int)_defaultSeverity);
 
-            int count = (_arguments != null) ? _arguments.Length : 0;
+            int count = _arguments?.Length ?? 0;
             writer.WriteCompressedUInt((uint)count);
 
             if (count > 0)

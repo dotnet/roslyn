@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (location == null)
             {
-                throw new ArgumentNullException("location");
+                throw new ArgumentNullException(nameof(location));
             }
 
             if (location != _location)
