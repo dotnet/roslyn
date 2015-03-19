@@ -7,6 +7,7 @@
 
 Imports System.IO
 Imports System.Reflection
+Imports System.Runtime.InteropServices
 Imports System.Xml
 Imports System.Xml.Schema
 Imports <xmlns="http://schemas.microsoft.com/VisualStudio/Roslyn/Compiler">
@@ -15,8 +16,9 @@ Public Module ReadTree
     Dim currentFile As String
 
     ' Read an XML file and return the resulting ParseTree object.
-    Public Function TryReadTheTree(fileName As String, ByRef tree As ParseTree) As Boolean
+    Public Function TryReadTheTree(fileName As String, <Out> ByRef tree As ParseTree) As Boolean
 
+        tree = Nothing
         Console.WriteLine("Reading input file ""{0}""...", fileName)
 
         Dim validationError As Boolean = False
@@ -67,7 +69,7 @@ Public Module ReadTree
 
     ' Open the input XML file as an XDocument, using the reading options that we want.
     ' We use a schema to validate the input.
-    Private Function GetXDocument(fileName As String, ByRef validationError As Boolean) As XDocument
+    Private Function GetXDocument(fileName As String, <Out> ByRef validationError As Boolean) As XDocument
         currentFile = fileName
 
         Dim hadError = False

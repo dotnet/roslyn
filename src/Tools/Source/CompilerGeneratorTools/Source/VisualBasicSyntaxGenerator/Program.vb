@@ -2,6 +2,7 @@
 
 Imports System.IO
 Imports System.Console
+Imports System.Runtime.InteropServices
 
 ''' <summary>
 ''' Contains the startup code, command line argument processing, and driving the execution of the tool.
@@ -56,7 +57,7 @@ Module Program
 
     End Function
 
-    Function TryReadDefinition(inputFile As String, ByRef definition As ParseTree) As Boolean
+    Function TryReadDefinition(inputFile As String, <Out> ByRef definition As ParseTree) As Boolean
         If Not TryReadTheTree(inputFile, definition) Then
             Return False
         End If
