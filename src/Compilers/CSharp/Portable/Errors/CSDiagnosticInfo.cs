@@ -44,6 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal new ErrorCode Code => (ErrorCode)base.Code;
 
-        public static bool IsEmpty(DiagnosticInfo info) => (object)info == EmptyErrorInfo;
+        internal static bool IsEmpty(DiagnosticInfo info) => (object)info == EmptyErrorInfo;
     }
 }

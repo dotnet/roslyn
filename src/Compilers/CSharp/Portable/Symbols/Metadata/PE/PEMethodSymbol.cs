@@ -143,27 +143,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
-            public void InitializeIsObsoleteAttributePopulated()
+            public void SetIsObsoleteAttributePopulated()
             {
                 ThreadSafeFlagOperations.Set(ref _bits, IsObsoleteAttributePopulatedBit);
             }
 
-            public void InitializeIsCustomAttributesPopulated()
+            public void SetIsCustomAttributesPopulated()
             {
                 ThreadSafeFlagOperations.Set(ref _bits, IsCustomAttributesPopulatedBit);
             }
 
-            public void InitializeIsUseSiteDiagnosticPopulated()
+            public void SetIsUseSiteDiagnosticPopulated()
             {
                 ThreadSafeFlagOperations.Set(ref _bits, IsUseSiteDiagnosticPopulatedBit);
             }
 
-            public void InitializeIsConditionalAttributePopulated()
+            public void SetIsConditionalAttributePopulated()
             {
                 ThreadSafeFlagOperations.Set(ref _bits, IsConditionalPopulatedBit);
             }
 
-            public void InitializeIsOverriddenOrHiddenMembersPopulated()
+            public void SetIsOverriddenOrHiddenMembersPopulated()
             {
                 ThreadSafeFlagOperations.Set(ref _bits, IsOverriddenOrHiddenMembersPopulatedBit);
             }
@@ -568,18 +568,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (count > 0)
             {
-                ParameterSymbol[] parameterCreation = new ParameterSymbol[count];
-
+                var builder = ImmutableArray.CreateBuilder<ParameterSymbol>(count);
                 for (int i = 0; i < count; i++)
                 {
-                    parameterCreation[i] = new PEParameterSymbol(moduleSymbol, this, i, paramInfo[i + 1], out isBadParameter);
+                    builder.Add(new PEParameterSymbol(moduleSymbol, this, i, paramInfo[i + 1], out isBadParameter));
                     if (isBadParameter)
                     {
                         makeBad = true;
                     }
                 }
 
-                @params = parameterCreation.AsImmutableOrNull();
+                @params = builder.ToImmutable();
             }
             else
             {
@@ -730,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     attributeData = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyCustomAttributes, attributeData);
                 }
 
-                _packedFlags.InitializeIsCustomAttributesPopulated();
+                _packedFlags.SetIsCustomAttributesPopulated();
                 return attributeData;
             }
 
@@ -1005,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 diagnostic = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnostic, CSDiagnosticInfo.EmptyErrorInfo);
             }
 
-            _packedFlags.InitializeIsUseSiteDiagnosticPopulated();
+            _packedFlags.SetIsUseSiteDiagnosticPopulated();
             return diagnostic;
         }
 
@@ -1020,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyConditionalAttributeSymbols, result);
                 }
 
-                _packedFlags.InitializeIsConditionalAttributePopulated();
+                _packedFlags.SetIsConditionalAttributePopulated();
                 return result;
             }
 
@@ -1055,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyObsoleteAttributeData, result, ObsoleteAttributeData.Uninitialized);
                     }
 
-                    _packedFlags.InitializeIsObsoleteAttributePopulated();
+                    _packedFlags.SetIsObsoleteAttributePopulated();
                     return result;
                 }
 
@@ -1089,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyOverriddenOrHiddenMembersResult, result);
                     }
 
-                    _packedFlags.InitializeIsOverriddenOrHiddenMembersPopulated();
+                    _packedFlags.SetIsOverriddenOrHiddenMembersPopulated();
                     return result;
                 }
 
