@@ -2233,6 +2233,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Imports statement is unnecessary..
+        '''</summary>
+        Friend ReadOnly Property RemoveUnnecessaryImportsDiagnosticTitle() As String
+            Get
+                Return ResourceManager.GetString("RemoveUnnecessaryImportsDiagnosticTitle", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &amp;Remove Unnecessary Imports.
         '''</summary>
         Friend ReadOnly Property RemoveUnnecessaryImportsWithAccelerator() As String

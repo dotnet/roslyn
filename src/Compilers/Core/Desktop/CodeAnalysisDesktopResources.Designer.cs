@@ -79,6 +79,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;/keepalive&apos; option is only valid with &apos;/shared&apos; option..
+        /// </summary>
+        internal static string KeepAliveWithoutShared {
+            get {
+                return ResourceManager.GetString("KeepAliveWithoutShared", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Roslyn compiler server reports different protocol version than build task..
         /// </summary>
         internal static string MismatchedVersion {

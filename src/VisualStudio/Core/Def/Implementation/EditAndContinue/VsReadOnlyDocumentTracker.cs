@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 
@@ -17,10 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private readonly IEditAndContinueWorkspaceService _encService;
         private readonly IVsEditorAdaptersFactoryService _adapters;
         private readonly Workspace _workspace;
+        private readonly AbstractProject _vsProject;
 
-        private bool _isDisposed;
+        private bool _isDisposed;        
 
-        public VsReadOnlyDocumentTracker(IEditAndContinueWorkspaceService encService, IVsEditorAdaptersFactoryService adapters)
+        public VsReadOnlyDocumentTracker(IEditAndContinueWorkspaceService encService, IVsEditorAdaptersFactoryService adapters, AbstractProject vsProject)
             : base(assertIsForeground: true)
         {
             Debug.Assert(encService.DebuggingSession != null);
@@ -28,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             _encService = encService;
             _adapters = adapters;
             _workspace = encService.DebuggingSession.InitialSolution.Workspace;
+            _vsProject = vsProject;
 
             _workspace.DocumentOpened += OnDocumentOpened;
             UpdateWorkspaceDocuments();
@@ -87,11 +90,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 SessionReadOnlyReason sessionReason;
                 ProjectReadOnlyReason projectReason;
-                SetReadOnly(document.Id, _encService.IsProjectReadOnly(document.Project.Name, out sessionReason, out projectReason));
+                SetReadOnly(document.Id, _encService.IsProjectReadOnly(document.Project.Id, out sessionReason, out projectReason) && AllowsReadOnly(document.Id));
             }
         }
 
-        private void SetReadOnly(DocumentId documentId, bool value)
+        private bool AllowsReadOnly(DocumentId documentId)
+        {
+            // All documents of regular running projects are read-only until the debugger breaks the app.
+            // However, ASP.NET doesn’t want its views (aspx, cshtml, or vbhtml) to be read-only, so they can be editable
+            // while the code is running and get refreshed next time the web page is hit.
+
+            // Note that Razor-like views are modelled as a ContainedDocument but normal code including code-behind are modelled as a StandradTextDocument.
+            var containedDocument = _vsProject.VisualStudioWorkspace.GetHostDocument(documentId) as ContainedDocument;
+            return containedDocument == null;
+        }
+
+        internal void SetReadOnly(DocumentId documentId, bool value)
         {
             AssertIsForeground();
             Debug.Assert(!_isDisposed);

@@ -360,14 +360,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 {
                     Contract.Requires(stateType != StateType.Project);
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    return new DiagnosticAnalyzerDriver(document, root.FullSpan, root, this.DiagnosticLogAggregator, this.Owner.HostDiagnosticUpdateSource, cancellationToken);
+                    return new DiagnosticAnalyzerDriver(document, root.FullSpan, root, this.Owner, cancellationToken);
                 }
 
                 var project = documentOrProject as Project;
                 if (project != null)
                 {
                     Contract.Requires(stateType == StateType.Project);
-                    return new DiagnosticAnalyzerDriver(project, this.DiagnosticLogAggregator, this.Owner.HostDiagnosticUpdateSource, cancellationToken);
+                    return new DiagnosticAnalyzerDriver(project, this.Owner, cancellationToken);
                 }
 
                 return Contract.FailWithReturn<DiagnosticAnalyzerDriver>("Can't reach here");
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             private DiagnosticLogAggregator DiagnosticLogAggregator
             {
-                get { return this.Owner._diagnosticLogAggregator; }
+                get { return this.Owner.DiagnosticLogAggregator; }
             }
         }
 

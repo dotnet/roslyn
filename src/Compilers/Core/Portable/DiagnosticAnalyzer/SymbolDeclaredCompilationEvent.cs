@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _semanticModel = semanticModel = _lazySemanticModel.Value;
                     _lazySemanticModel = null;
                 }
-                if (semanticModel == null && _weakModel != null)
+                if (semanticModel == null)
                 {
-                    _weakModel.TryGetTarget(out semanticModel);
+                    _weakModel?.TryGetTarget(out semanticModel);
                 }
                 if (semanticModel == null || semanticModel.SyntaxTree != reference.SyntaxTree)
                 {

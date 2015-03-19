@@ -203,10 +203,7 @@ namespace Microsoft.CodeAnalysis
 
             // Array.Clear(this.entries, 0, this.entries.Length);
 
-            if (pool != null)
-            {
-                pool.Free(this);
-            }
+            pool?.Free(this);
         }
     }
 

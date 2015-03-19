@@ -317,22 +317,51 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns an error message if any of the client arguments are invalid
-        /// and null otherwise.
+        /// Returns false if any of the client arguments are invalid and true otherwise.
         /// </summary>
-        internal static string CheckClientArgsForErrors(IEnumerable<string> args)
+        /// <param name="args">
+        /// The original args to the client.
+        /// </param>
+        /// <param name="parsedArgs">
+        /// The original args minus the client args, if no errors were encountered.
+        /// </param>
+        /// <param name="containsShared">
+        /// Only defined if no errors were encountered.
+        /// True if '/shared' was an argument, false otherwise.
+        /// </param>
+        /// <param name="keepAliveValue">
+        /// Only defined if no errors were encountered.
+        /// The value to the '/keepalive' argument if one was specified, null otherwise.
+        /// </param>
+        /// <param name="errorMessage">
+        /// Only defined if errors were encountered.
+        /// The error message for the encountered error.
+        /// </param>
+        internal static bool TryParseClientArgs(
+            IEnumerable<string> args,
+            out List<string> parsedArgs,
+            out bool containsShared,
+            out string keepAliveValue,
+            out string errorMessage)
         {
+            const string keepAlive = "/keepalive";
+            const string shared = "/shared";
+            containsShared = false;
+            keepAliveValue = null;
+            errorMessage = null;
+            parsedArgs = null;
+            var newArgs = new List<string>();
             foreach (var arg in args)
             {
-                const string keepAlive = "/keepalive";
                 var prefixLength = keepAlive.Length;
-                if (arg.StartsWith(keepAlive, StringComparison.Ordinal))
+                if (arg.StartsWith(keepAlive, StringComparison.OrdinalIgnoreCase))
                 {
                     if (arg.Length < prefixLength + 2 ||
                         arg[prefixLength] != ':' &&
                         arg[prefixLength] != '=')
                     {
-                        return CodeAnalysisDesktopResources.MissingKeepAlive;
+                        errorMessage = CodeAnalysisDesktopResources.MissingKeepAlive;
+                        return false;
                     }
 
                     var value = arg.Substring(prefixLength + 1).Trim('"');
@@ -341,16 +370,37 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (intValue < -1)
                         {
-                            return CodeAnalysisDesktopResources.KeepAliveIsTooSmall;
+                            errorMessage = CodeAnalysisDesktopResources.KeepAliveIsTooSmall;
+                            return false;
                         }
+                        keepAliveValue = value;
                     }
                     else
                     {
-                        return CodeAnalysisDesktopResources.KeepAliveIsNotAnInteger;
+                        errorMessage = CodeAnalysisDesktopResources.KeepAliveIsNotAnInteger;
+                        return false;
                     }
+                    continue;
                 }
+
+                if (string.Equals(arg, shared, StringComparison.OrdinalIgnoreCase))
+                {
+                    containsShared = true;
+                    continue;
+                }
+                newArgs.Add(arg);
             }
-            return null;
+
+            if (keepAliveValue != null && !containsShared)
+            {
+                errorMessage = CodeAnalysisDesktopResources.KeepAliveWithoutShared;
+                return false;
+            }
+            else
+            {
+                parsedArgs = newArgs;
+                return true;
+            }
         }
 
         internal static string MismatchedVersionErrorText => CodeAnalysisDesktopResources.MismatchedVersion;

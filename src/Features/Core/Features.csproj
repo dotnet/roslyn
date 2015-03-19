@@ -205,7 +205,6 @@
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateType.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService_IncrementalAnalyzer.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService_UpdateSource.cs" />
-    <Compile Include="Diagnostics\DiagnosticAnalyzerService_Test.cs" />
     <Compile Include="Diagnostics\IAnalyzerDriverService.cs" />
     <Compile Include="Diagnostics\IBuiltInAnalyzer.cs" />
     <Compile Include="Diagnostics\IDiagnosticAnalyzerService.cs" />
@@ -215,6 +214,7 @@
     <Compile Include="Diagnostics\IWorkspaceDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
     <Compile Include="Diagnostics\PredefinedDiagnosticProviderNames.cs" />
+    <Compile Include="Diagnostics\UpdateArgsId.cs" />
     <Compile Include="Diagnostics\WorkspaceAnalyzerOptions.cs" />
     <Compile Include="EditAndContinue\EncDebuggingSessionInfo.cs" />
     <Compile Include="EditAndContinue\EncEditSessionInfo.cs" />

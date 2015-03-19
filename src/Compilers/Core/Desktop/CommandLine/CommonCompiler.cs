@@ -51,16 +51,18 @@ namespace Microsoft.CodeAnalysis
             return Path.Combine(GetResponseFileDirectory(), responseFileName);
         }
 
-        private readonly ObjectPool<MemoryStream> _memoryStreamPool = new ObjectPool<MemoryStream>(() => new MemoryStream(), 4);
-
         public CommonMessageProvider MessageProvider { get; private set; }
         public CommandLineArguments Arguments { get; private set; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
 
-        protected abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger);
+        protected abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger);
         protected abstract void PrintLogo(TextWriter consoleOutput);
         protected abstract void PrintHelp(TextWriter consoleOutput);
+        internal abstract string GetToolName();
+        internal abstract Version GetAssemblyVersion();
+        internal abstract string GetAssemblyFileVersion();
+
         protected abstract uint GetSqmAppID();
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
         protected abstract void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession);
@@ -189,7 +191,7 @@ namespace Microsoft.CodeAnalysis
             return diagnosticInfo;
         }
 
-        internal bool PrintErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput)
+        protected bool ReportErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, ErrorLogger errorLogger)
         {
             bool hasErrors = false;
             foreach (var diag in diagnostics)
@@ -212,16 +214,8 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                // Catch exceptions from diagnostic formatter as diagnostic descriptors for analyzer diagnostics can throw an exception while formatting diagnostic message.
-                try
-                {
-                    consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
-                }
-                catch (Exception ex)
-                {
-                    var exceptionDiagnostic = AnalyzerExecutor.GetDescriptorDiagnostic(diag.Id, ex);
-                    consoleOutput.WriteLine(DiagnosticFormatter.Format(exceptionDiagnostic, this.Culture));
-                }
+                consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
+                ErrorLogger.LogDiagnostic(diag, this.Culture, errorLogger);
 
                 if (diag.Severity == DiagnosticSeverity.Error)
                 {
@@ -234,7 +228,7 @@ namespace Microsoft.CodeAnalysis
             return hasErrors;
         }
 
-        internal bool PrintErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput)
+        protected bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLogger)
         {
             bool hasErrors = false;
             if (diagnostics != null && diagnostics.Any())
@@ -248,6 +242,8 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     PrintError(diagnostic, consoleOutput);
+                    ErrorLogger.LogDiagnostic(Diagnostic.Create(diagnostic), this.Culture, errorLogger);
+
                     if (diagnostic.Severity == DiagnosticSeverity.Error)
                     {
                         hasErrors = true;
@@ -258,17 +254,31 @@ namespace Microsoft.CodeAnalysis
             return hasErrors;
         }
 
-        internal virtual void PrintError(DiagnosticInfo diagnostic, TextWriter consoleOutput)
+        protected virtual void PrintError(DiagnosticInfo diagnostic, TextWriter consoleOutput)
         {
             consoleOutput.WriteLine(diagnostic.ToString(Culture));
+        }
+
+        private ErrorLogger GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)
+        {
+            Debug.Assert(Arguments.ErrorLogPath != null);
+
+            var errorLog = OpenFile(Arguments.ErrorLogPath, consoleOutput, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+            if (errorLog == null)
+            {
+                return null;
+            }
+
+            return new ErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion());
         }
 
         /// <summary>
         /// csc.exe and vbc.exe entry point.
         /// </summary>
-        public virtual int Run(TextWriter consoleOutput, CancellationToken cancellationToken)
+        public virtual int Run(TextWriter consoleOutput, CancellationToken cancellationToken = default(CancellationToken))
         {
             var saveUICulture = Thread.CurrentThread.CurrentUICulture;
+            ErrorLogger errorLogger = null;
 
             try
             {
@@ -280,15 +290,36 @@ namespace Microsoft.CodeAnalysis
                     Thread.CurrentThread.CurrentUICulture = culture;
                 }
 
-                return RunCore(consoleOutput, cancellationToken);
+                if (Arguments.ErrorLogPath != null)
+                {
+                    errorLogger = GetErrorLogger(consoleOutput, cancellationToken);
+                    if (errorLogger == null)
+                    {
+                        return Failed;
+                    }
+                }
+
+                return RunCore(consoleOutput, errorLogger, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                var errorCode = MessageProvider.ERR_CompileCancelled;
+                if (errorCode > 0)
+                {
+                    var diag = new DiagnosticInfo(MessageProvider, errorCode);
+                    ReportErrors(new[] { diag }, consoleOutput, errorLogger);
+                }
+
+                return Failed;
             }
             finally
             {
                 Thread.CurrentThread.CurrentUICulture = saveUICulture;
+                errorLogger?.Dispose();
             }
         }
 
-        private int RunCore(TextWriter consoleOutput, CancellationToken cancellationToken)
+        private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
             Debug.Assert(!Arguments.IsInteractive);
 
@@ -305,14 +336,14 @@ namespace Microsoft.CodeAnalysis
                 return Succeeded;
             }
 
-            if (PrintErrors(Arguments.Errors, consoleOutput))
+            if (ReportErrors(Arguments.Errors, consoleOutput, errorLogger))
             {
                 return Failed;
             }
 
             var touchedFilesLogger = (Arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
 
-            Compilation compilation = CreateCompilation(consoleOutput, touchedFilesLogger);
+            Compilation compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger);
             if (compilation == null)
             {
                 return Failed;
@@ -321,7 +352,7 @@ namespace Microsoft.CodeAnalysis
             var diagnostics = new List<DiagnosticInfo>();
             var analyzers = ResolveAnalyzersFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
-            if (PrintErrors(diagnostics, consoleOutput))
+            if (ReportErrors(diagnostics, consoleOutput, errorLogger))
             {
                 return Failed;
             }
@@ -349,12 +380,12 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Print the diagnostics produced during the parsing stage and exit if there were any errors.
-                if (PrintErrors(compilation.GetParseDiagnostics(), consoleOutput))
+                if (ReportErrors(compilation.GetParseDiagnostics(), consoleOutput, errorLogger))
                 {
                     return Failed;
                 }
 
-                if (PrintErrors(compilation.GetDeclarationDiagnostics(), consoleOutput))
+                if (ReportErrors(compilation.GetDeclarationDiagnostics(), consoleOutput, errorLogger))
                 {
                     return Failed;
                 }
@@ -390,7 +421,7 @@ namespace Microsoft.CodeAnalysis
                 using (var win32Res = GetWin32Resources(Arguments, compilation, out errors))
                 using (xml)
                 {
-                    if (PrintErrors(errors, consoleOutput))
+                    if (ReportErrors(errors, consoleOutput, errorLogger))
                     {
                         return Failed;
                     }
@@ -432,7 +463,7 @@ namespace Microsoft.CodeAnalysis
 
                 GenerateSqmData(Arguments.CompilationOptions, emitResult.Diagnostics);
 
-                if (PrintErrors(emitResult.Diagnostics, consoleOutput))
+                if (ReportErrors(emitResult.Diagnostics, consoleOutput, errorLogger))
                 {
                     return Failed;
                 }
@@ -442,7 +473,7 @@ namespace Microsoft.CodeAnalysis
                 bool errorsReadingAdditionalFiles = false;
                 foreach (var additionalFile in additionalTextFiles)
                 {
-                    if (PrintErrors(additionalFile.Diagnostics, consoleOutput))
+                    if (ReportErrors(additionalFile.Diagnostics, consoleOutput, errorLogger))
                     {
                         errorsReadingAdditionalFiles = true;
                     }
@@ -731,6 +762,27 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal int RunInteractive(TextWriter consoleOutput)
         {
+            ErrorLogger errorLogger = null;
+            if (Arguments.ErrorLogPath != null)
+            {
+                errorLogger = GetErrorLogger(consoleOutput, CancellationToken.None);
+                if (errorLogger == null)
+                {
+                    return Failed;
+                }
+            }
+
+            using (errorLogger)
+            {
+                return RunInteractiveCore(consoleOutput, errorLogger);
+            }
+        }
+
+        /// <summary>
+        /// csi.exe and vbi.exe entry point.
+        /// </summary>
+        private int RunInteractiveCore(TextWriter consoleOutput, ErrorLogger errorLogger)
+        {
             Debug.Assert(Arguments.IsInteractive);
 
             var hasScriptFiles = Arguments.SourceFiles.Any(file => file.IsScript);
@@ -754,7 +806,7 @@ namespace Microsoft.CodeAnalysis
                 errors = errors.Concat(new[] { Diagnostic.Create(MessageProvider, MessageProvider.ERR_NoScriptsSpecified) });
             }
 
-            if (PrintErrors(errors, consoleOutput))
+            if (ReportErrors(errors, consoleOutput, errorLogger))
             {
                 return Failed;
             }
@@ -762,7 +814,7 @@ namespace Microsoft.CodeAnalysis
             // arguments are always available when executing script code:
             Debug.Assert(Arguments.ScriptArguments != null);
 
-            var compilation = CreateCompilation(consoleOutput, touchedFilesLogger: null);
+            var compilation = CreateCompilation(consoleOutput, touchedFilesLogger: null, errorLogger: errorLogger);
             if (compilation == null)
             {
                 return Failed;
@@ -772,7 +824,7 @@ namespace Microsoft.CodeAnalysis
             using (MemoryStream output = new MemoryStream())
             {
                 EmitResult emitResult = compilation.Emit(output);
-                if (PrintErrors(emitResult.Diagnostics, consoleOutput))
+                if (ReportErrors(emitResult.Diagnostics, consoleOutput, errorLogger))
                 {
                     return Failed;
                 }

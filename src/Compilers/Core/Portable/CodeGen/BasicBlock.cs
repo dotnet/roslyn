@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 if (this.EnclosingHandler == null)
                 {
                     // Cannot branch into a handler.
-                    Debug.Assert((BranchBlock == null) || (BranchBlock.EnclosingHandler == null));
+                    Debug.Assert(BranchBlock?.EnclosingHandler == null);
                 }
 
                 var branchBlock = BranchBlock;
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// 2) lead to unconditional control transfer (no fall through)
             /// 3) branch with the same instruction to the same label
             /// </summary>
-            private bool AreIdentical(BasicBlock one, BasicBlock another)
+            private static bool AreIdentical(BasicBlock one, BasicBlock another)
             {
                 if (one._branchCode == another._branchCode &&
                      !one._branchCode.CanFallThrough() &&

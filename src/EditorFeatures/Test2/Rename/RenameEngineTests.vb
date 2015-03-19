@@ -2723,7 +2723,7 @@ End Class
 
         <WorkItem(866094)>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug866094_DaveTest()
+        Public Sub Bug866094()
             Using result = RenameEngineResult.Create(
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -6770,6 +6770,28 @@ class C
             End Using
         End Sub
 
+        <WorkItem(446, "https://github.com/dotnet/roslyn/issues/446")>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameWithNameOfInAttribute()
+            Using result = RenameEngineResult.Create(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    // Rename F to Fail
+    static void [|F|]$$(int x) { }
+
+    [System.Obsolete(nameof({|conflict:Fail|}))]
+    static void Fail() { }
+}
+                            </Document>
+                       </Project>
+                   </Workspace>, renameTo:="Fail")
+                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
 #End Region
 
     End Class

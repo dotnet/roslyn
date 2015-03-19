@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation;
-using Microsoft.VisualStudio.SymReaderInterop;
+using Microsoft.DiaSymReader;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(MetadataTokens.Handle(typeToken).Kind == HandleKind.TypeDefinition);
 
             // Re-use the previous compilation if possible.
-            var compilation = metadataBlocks.HaveNotChanged(previous) ?
+            var compilation = previous.Matches(metadataBlocks) ?
                 previous.Compilation :
                 metadataBlocks.ToCompilation();
 
@@ -123,13 +123,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // Re-use the previous compilation if possible.
             CSharpCompilation compilation;
-            if (metadataBlocks.HaveNotChanged(previous))
+            if (previous.Matches(metadataBlocks))
             {
                 // Re-use entire context if method scope has not changed.
                 var previousContext = previous.EvaluationContext;
                 if (previousContext != null &&
                     previousContext.MethodContextReuseConstraints.HasValue &&
-                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(methodToken, methodVersion, ilOffset))
+                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, ilOffset))
                 {
                     return previousContext;
                 }
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var allScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
             var containingScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
             typedSymReader.GetScopes(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes);
-            var methodContextReuseConstraints = allScopes.GetReuseConstraints(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive);
+            var methodContextReuseConstraints = allScopes.GetReuseConstraints(moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive);
             allScopes.Free();
 
             var localNames = containingScopes.GetLocalNames();

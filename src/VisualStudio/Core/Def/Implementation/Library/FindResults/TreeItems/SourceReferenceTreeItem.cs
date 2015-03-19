@@ -8,27 +8,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 {
     internal class SourceReferenceTreeItem : AbstractSourceTreeItem, IComparable<SourceReferenceTreeItem>
     {
-        public SourceReferenceTreeItem(Location location, Solution solution, ushort glyphIndex)
-            : this(solution.GetDocument(location.SourceTree), location.SourceSpan, glyphIndex)
-        {
-        }
-
-        public SourceReferenceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex)
-            : this(document, sourceSpan, glyphIndex, includeProjectNameDisambiguator: false)
-        {
-        }
-
-        public SourceReferenceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex, bool includeProjectNameDisambiguator)
+        public SourceReferenceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex, string displayText = null)
             : base(document, sourceSpan, glyphIndex)
         {
-            SetDisplayProperties(
-                _filePath,
-                _mappedLineNumber,
-                _mappedOffset,
-                _offset,
-                _textLineString,
-                sourceSpan.Length,
-                projectNameDisambiguator: string.Empty);
+            if (displayText != null)
+            {
+                this.DisplayText = displayText;
+            }
+            else
+            {
+                SetDisplayProperties(
+                    _filePath,
+                    _mappedLineNumber,
+                    _mappedOffset,
+                    _offset,
+                    _textLineString,
+                    sourceSpan.Length,
+                    projectNameDisambiguator: string.Empty);
+            }
         }
 
         public override bool UseGrayText

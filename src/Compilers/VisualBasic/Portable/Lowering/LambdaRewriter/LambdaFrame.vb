@@ -66,7 +66,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _scopeSyntaxOpt = scopeSyntaxOpt
             End If
 
-            AssertIsLambdaScopeSyntax(_scopeSyntaxOpt)
+            If Not isDelegateRelaxationFrame Then
+                AssertIsClosureScopeSyntax(_scopeSyntaxOpt)
+            End If
 
             Me._typeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(topLevelMethod.TypeParameters, Me, CreateTypeParameter)
             Me.TypeMap = TypeSubstitution.Create(topLevelMethod, topLevelMethod.TypeParameters, Me.TypeArgumentsNoUseSiteDiagnostics)
@@ -106,8 +108,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Conditional("DEBUG")>
-        Private Shared Sub AssertIsLambdaScopeSyntax(syntaxOpt As VisualBasicSyntaxNode)
-            'TODO: Add checks for possible syntax
+        Private Shared Sub AssertIsClosureScopeSyntax(syntaxOpt As VisualBasicSyntaxNode)
+            ' static lambdas technically have the class scope so the scope syntax is nothing
+            If syntaxOpt Is Nothing Then
+                Return
+            End If
+
+            If LambdaUtilities.IsClosureScope(syntaxOpt) Then
+                Return
+            End If
+
+            Select Case syntaxOpt.Kind()
+                Case SyntaxKind.ObjectMemberInitializer
+                    ' TODO: Closure capturing a synthesized "with" variable
+                    Return
+            End Select
+
+            ExceptionUtilities.UnexpectedValue(syntaxOpt.Kind())
         End Sub
 
         Public ReadOnly Property ScopeSyntax As VisualBasicSyntaxNode

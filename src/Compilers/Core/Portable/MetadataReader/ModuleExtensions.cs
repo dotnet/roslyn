@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis
             // _VtblGap<SequenceNumber><_CountOfSlots>
             // where <SequenceNumber> and <CountOfSlots> are decimal numbers
             // ----------------------
-            string prefix = VTableGapMethodNamePrefix;
+            const string prefix = VTableGapMethodNamePrefix;
 
             if (emittedMethodName.StartsWith(prefix, StringComparison.Ordinal))
             {

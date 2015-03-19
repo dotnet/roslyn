@@ -280,10 +280,19 @@ End Class
 
             ' This Char is not printable, so we expect the EditableValue to be the "ChrW" representation.
             quotedChar = "ChrW(&H7)"
-            value = CreateDkmClrValue(ChrW(&H0007), GetType(Char))
+            value = CreateDkmClrValue(ChrW(&H0007))
             result = FormatResult("c", value, inspectionContext:=CreateDkmInspectionContext(radix:=16))
             Verify(result,
                 EvalResult("c", quotedChar, "Char", "c", editableValue:=quotedChar))
+        End Sub
+
+        <Fact>
+        Public Sub UnicodeString()
+            Const quotedString = """" & ChrW(&H1234) & """ & ChrW(7)"
+            Dim value = CreateDkmClrValue(New String({ChrW(&H1234), ChrW(&H0007)}))
+            Dim result = FormatResult("s", value)
+            Verify(result,
+                EvalResult("s", quotedString, "String", "s", editableValue:=quotedString, flags:=DkmEvaluationResultFlags.RawString))
         End Sub
 
         <Fact, WorkItem(1002381)>

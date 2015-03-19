@@ -32,9 +32,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             moduleVersionId As Guid,
             typeToken As Integer) As EvaluationContextBase
 
-            Dim previous = appDomain.GetDataItem(Of VisualBasicMetadataContext)()
+            Dim previous = appDomain.GetDataItem(Of MetadataContextItem(Of VisualBasicMetadataContext))()
             Dim context = EvaluationContext.CreateTypeContext(
-                previous,
+                previous.MetadataContext,
                 metadataBlocks,
                 moduleVersionId,
                 typeToken)
@@ -43,9 +43,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ' re-usable than the previous attached method context. (We could hold
             ' on to it if we don't have a previous method context but it's unlikely
             ' that we evaluated a type-level expression before a method-level.)
-            Debug.Assert(previous Is Nothing OrElse context IsNot previous.EvaluationContext)
+            Debug.Assert(previous Is Nothing OrElse context IsNot previous.MetadataContext.EvaluationContext)
 
-			Return context
+            Return context
         End Function
 
         Friend Overrides Function CreateMethodContext(
@@ -59,9 +59,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ilOffset As Integer,
             localSignatureToken As Integer) As EvaluationContextBase
 
-            Dim previous = appDomain.GetDataItem(Of VisualBasicMetadataContext)()
+            Dim previous = appDomain.GetDataItem(Of MetadataContextItem(Of VisualBasicMetadataContext))()
             Dim context = EvaluationContext.CreateMethodContext(
-                previous,
+                previous.MetadataContext,
                 metadataBlocks,
                 lazyAssemblyReaders,
                 symReader,
@@ -71,15 +71,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 ilOffset,
                 localSignatureToken)
 
-			If (previous Is Nothing OrElse context IsNot previous.EvaluationContext) Then
-				appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, New VisualBasicMetadataContext(context))
-			End If
+            If (previous Is Nothing OrElse context IsNot previous.MetadataContext.EvaluationContext) Then
+                appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, New MetadataContextItem(Of VisualBasicMetadataContext)(New VisualBasicMetadataContext(context)))
+            End If
 
-			Return context
+            Return context
         End Function
 
         Friend Overrides Function RemoveDataItem(appDomain As DkmClrAppDomain) As Boolean
-            Return appDomain.RemoveDataItem(Of VisualBasicMetadataContext)()
+            Return appDomain.RemoveDataItem(Of MetadataContextItem(Of VisualBasicMetadataContext))()
         End Function
 
     End Class

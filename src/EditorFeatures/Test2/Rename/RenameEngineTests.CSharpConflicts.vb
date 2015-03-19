@@ -2901,5 +2901,107 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : IReferenceFin
                 result.AssertLabeledSpansAre("unresolved2", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
+
+        <WorkItem(1193, "https://github.com/dotnet/roslyn/issues/1193")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub MemberQualificationInNameOfUsesTypeName_StaticReferencingInstance()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class C
+{
+    static void F(int [|$$z|])
+    {
+        string x = nameof({|ref:zoo|});
+    }
+
+    int zoo;
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="zoo")
+
+                result.AssertLabeledSpansAre("ref", "string x = nameof(C.zoo);", RelatedLocationType.ResolvedNonReferenceConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1193, "https://github.com/dotnet/roslyn/issues/1193")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub MemberQualificationInNameOfUsesTypeName_InstanceReferencingStatic()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class C
+{
+    void F(int [|$$z|])
+    {
+        string x = nameof({|ref:zoo|});
+    }
+
+    static int zoo;
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="zoo")
+
+                result.AssertLabeledSpansAre("ref", "string x = nameof(C.zoo);", RelatedLocationType.ResolvedNonReferenceConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1193, "https://github.com/dotnet/roslyn/issues/1193")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub MemberQualificationInNameOfUsesTypeName_InstanceReferencingInstance()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class C
+{
+    void F(int [|$$z|])
+    {
+        string x = nameof({|ref:zoo|});
+    }
+
+    int zoo;
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="zoo")
+
+                result.AssertLabeledSpansAre("ref", "string x = nameof(C.zoo);", RelatedLocationType.ResolvedNonReferenceConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1193, "https://github.com/dotnet/roslyn/issues/1193")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub MemberQualificationInNameOfMethodInvocationUsesThisDot()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class C
+{
+    int zoo;
+
+    void F(int [|$$z|])
+    {
+        string x = nameof({|ref:zoo|});
+    }
+
+    void nameof(int x) { }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="zoo")
+
+                result.AssertLabeledSpansAre("ref", "string x = nameof(this.zoo);", RelatedLocationType.ResolvedNonReferenceConflict)
+            End Using
+        End Sub
     End Class
 End Namespace

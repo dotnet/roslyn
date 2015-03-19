@@ -52,35 +52,41 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             RequestLanguage language,
             Func<string[], int> fallbackCompiler)
         {
-            var errorMessage = CommandLineParser.CheckClientArgsForErrors(args);
+            args = args.Select(arg => arg.Trim()).ToArray();
 
-            if (errorMessage != null)
+            bool hasShared;
+            string keepAlive;
+            string errorMessage;
+            List<string> parsedArgs;
+            if (!CommandLineParser.TryParseClientArgs(
+                    args,
+                    out parsedArgs,
+                    out hasShared,
+                    out keepAlive,
+                    out errorMessage))
             {
                 Console.Out.WriteLine(errorMessage);
                 return CommonCompiler.Failed;
             }
 
-            var responseTask = TryRunServerCompilation(
-                language,
-                Environment.CurrentDirectory,
-                args,
-                default(CancellationToken),
-                libEnvVariable: Environment.GetEnvironmentVariable("LIB"));
-
-            responseTask.Wait();
-
-            int exitCode;
-            var response = responseTask.Result;
-            if (response != null)
+            if (hasShared)
             {
-                exitCode = HandleResponse(response);
-            }
-            else
-            {
-                exitCode = fallbackCompiler(args.Where(arg => !arg.StartsWith("/keepalive", StringComparison.Ordinal)).ToArray());
+                var responseTask = TryRunServerCompilation(
+                    language,
+                    Environment.CurrentDirectory,
+                    parsedArgs,
+                    default(CancellationToken),
+                    keepAlive: keepAlive,
+                    libEnvVariable: Environment.GetEnvironmentVariable("LIB"));
+
+                var response = responseTask.Result;
+                if (response != null)
+                {
+                    return HandleResponse(response);
+                }
             }
 
-            return exitCode;
+            return fallbackCompiler(parsedArgs.ToArray());
         }
 
         private static int HandleResponse(BuildResponse response)
@@ -126,6 +132,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             string workingDir,
             IList<string> arguments,
             CancellationToken cancellationToken,
+            string keepAlive = null,
             string libEnvVariable = null)
         {
             try
@@ -157,7 +164,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                         if (holdsMutex)
                         {
-                            var request = BuildRequest.Create(language, workingDir, arguments, libEnvVariable);
+                            var request = BuildRequest.Create(language, workingDir, arguments, keepAlive, libEnvVariable);
                             // Check for already running processes in case someone came in before us
                             pipe = TryExistingProcesses(expectedServerExePath, cancellationToken);
                             if (pipe != null)

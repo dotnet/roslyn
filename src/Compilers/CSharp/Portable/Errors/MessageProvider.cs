@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int WRN_UnableToLoadAnalyzer { get { return (int)ErrorCode.WRN_UnableToLoadAnalyzer; } }
         public override int INF_UnableToLoadSomeTypesInAnalyzer { get { return (int)ErrorCode.INF_UnableToLoadSomeTypesInAnalyzer; } }
         public override int ERR_CantReadRulesetFile { get { return (int)ErrorCode.ERR_CantReadRulesetFile; } }
+        public override int ERR_CompileCancelled { get { return (int)ErrorCode.ERR_CompileCancelled; } }
 
         // compilation options:
         public override int ERR_BadCompilationOptionValue { get { return (int)ErrorCode.ERR_BadCompilationOptionValue; } }

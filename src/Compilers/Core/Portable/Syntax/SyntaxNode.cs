@@ -21,18 +21,16 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public abstract partial class SyntaxNode
     {
-        private readonly GreenNode _green;
         private readonly SyntaxNode _parent;
         internal SyntaxTree _syntaxTree;
-        private readonly int _position;
 
         internal SyntaxNode(GreenNode green, SyntaxNode parent, int position)
         {
             Debug.Assert(position >= 0, "position cannot be negative");
             Debug.Assert(parent?.Green.IsList != true, "list cannot be a parent");
 
-            _position = position;
-            _green = green;
+            Position = position;
+            Green = green;
             _parent = parent;
         }
 
@@ -56,10 +54,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// An integer representing the language specific kind of this node.
         /// </summary>
-        public int RawKind
-        {
-            get { return _green.RawKind; }
-        }
+        public int RawKind => Green.RawKind;
 
         protected abstract string KindText { get; }
 
@@ -68,59 +63,26 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract string Language { get; }
 
-        internal GreenNode Green
-        {
-            get { return _green; }
-        }
+        internal GreenNode Green { get; }
 
-        internal int Position
-        {
-            get { return _position; }
-        }
+        internal int Position { get; }
 
-        internal int EndPosition
-        {
-            get { return _position + _green.FullWidth; }
-        }
+        internal int EndPosition => Position + Green.FullWidth;
 
         /// <summary>
         /// Returns SyntaxTree that owns the node or null if node does not belong to a
         /// SyntaxTree
         /// </summary>
-        public SyntaxTree SyntaxTree
-        {
-            get
-            {
-                return this.SyntaxTreeCore;
-            }
-        }
+        public SyntaxTree SyntaxTree => this.SyntaxTreeCore;
 
-        internal bool IsList
-        {
-            get
-            {
-                return this.Green.IsList;
-            }
-        }
+        internal bool IsList => this.Green.IsList;
 
         /// <summary>
         /// The absolute span of this node in characters, including its leading and trailing trivia.
         /// </summary>
-        public TextSpan FullSpan
-        {
-            get
-            {
-                return new TextSpan(this.Position, this.Green.FullWidth);
-            }
-        }
+        public TextSpan FullSpan => new TextSpan(this.Position, this.Green.FullWidth);
 
-        internal int SlotCount
-        {
-            get
-            {
-                return this.Green.SlotCount;
-            }
-        }
+        internal int SlotCount => this.Green.SlotCount;
 
         /// <summary>
         /// The absolute span of this node in characters, not including its leading and trailing trivia.
@@ -152,13 +114,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Slight performance improvement.
         /// </remarks>
-        public int SpanStart
-        {
-            get
-            {
-                return Position + Green.GetLeadingTriviaWidth();
-            }
-        }
+        public int SpanStart => Position + Green.GetLeadingTriviaWidth();
 
         /// <summary>
         /// The width of the node in characters, not including leading and trailing trivia.
@@ -166,26 +122,14 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// The Width property returns the same value as Span.Length, but is somewhat more efficient.
         /// </remarks>
-        internal int Width
-        {
-            get
-            {
-                return this.Green.Width;
-            }
-        }
+        internal int Width => this.Green.Width;
 
         /// <summary>
         /// The complete width of the node in characters, including leading and trailing trivia.
         /// </summary>
         /// <remarks>The FullWidth property returns the same value as FullSpan.Length, but is
         /// somewhat more efficient.</remarks>
-        internal int FullWidth
-        {
-            get
-            {
-                return this.Green.FullWidth;
-            }
-        }
+        internal int FullWidth => this.Green.FullWidth;
 
         // this is used in cases where we know that a child is a node of particular type.
         internal SyntaxNode GetRed(ref SyntaxNode field, int slot)
@@ -621,6 +565,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract SyntaxNode GetCorrespondingLambdaBody(SyntaxNode body);
 
+        internal abstract SyntaxNode GetLambda();
+
         #region Node Lookup
 
         /// <summary>
@@ -832,14 +778,14 @@ namespace Microsoft.CodeAnalysis
         {
             if (!this.FullSpan.Contains(span))
             {
-                throw new ArgumentOutOfRangeException("span");
+                throw new ArgumentOutOfRangeException(nameof(span));
             }
 
             var node = FindToken(span.Start, findInsideTrivia)
                 .Parent
                 .FirstAncestorOrSelf<SyntaxNode>(a => a.FullSpan.Contains(span));
 
-            var cuRoot = node.SyntaxTree != null ? node.SyntaxTree.GetRoot() : null;
+            var cuRoot = node.SyntaxTree?.GetRoot();
 
             // Tie-breaking.
             if (!getInnermostNodeForTie)

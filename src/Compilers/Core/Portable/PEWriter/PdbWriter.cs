@@ -313,7 +313,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private IImportScope GetLastScope(IImportScope scope)
+        private static IImportScope GetLastScope(IImportScope scope)
         {
             while (true)
             {
@@ -368,7 +368,8 @@ namespace Microsoft.Cci
                         return (isProjectLevel ? "@PT:" : "@FT:") + typeName;
                     }
                 }
-                else if (import.TargetNamespaceOpt != null)
+
+                if (import.TargetNamespaceOpt != null)
                 {
                     string namespaceName = GetOrCreateSerializedNamespaceName(import.TargetNamespaceOpt);
 
@@ -381,53 +382,48 @@ namespace Microsoft.Cci
                         return (isProjectLevel ? "@PA:" : "@FA:") + import.AliasOpt + "=" + namespaceName;
                     }
                 }
-                else
-                {
-                    Debug.Assert(import.AliasOpt != null);
-                    Debug.Assert(import.TargetXmlNamespaceOpt != null);
 
-                    return (isProjectLevel ? "@PX:" : "@FX:") + import.AliasOpt + "=" + import.TargetXmlNamespaceOpt;
-                }
+                Debug.Assert(import.AliasOpt != null);
+                Debug.Assert(import.TargetXmlNamespaceOpt != null);
+
+                return (isProjectLevel ? "@PX:" : "@FX:") + import.AliasOpt + "=" + import.TargetXmlNamespaceOpt;
             }
-            else
+
+            Debug.Assert(import.TargetXmlNamespaceOpt == null);
+
+            if (import.TargetTypeOpt != null)
             {
-                Debug.Assert(import.TargetXmlNamespaceOpt == null);
+                Debug.Assert(import.TargetNamespaceOpt == null);
+                Debug.Assert(import.TargetAssemblyOpt == null);
 
-                if (import.TargetTypeOpt != null)
+                string typeName = GetOrCreateSerializedTypeName(import.TargetTypeOpt);
+
+                return (import.AliasOpt != null) ?
+                    "A" + import.AliasOpt + " T" + typeName :
+                    "T" + typeName;
+            }
+
+            if (import.TargetNamespaceOpt != null)
+            {
+                string namespaceName = GetOrCreateSerializedNamespaceName(import.TargetNamespaceOpt);
+
+                if (import.AliasOpt != null)
                 {
-                    Debug.Assert(import.TargetNamespaceOpt == null);
-                    Debug.Assert(import.TargetAssemblyOpt == null);
-
-                    string typeName = GetOrCreateSerializedTypeName(import.TargetTypeOpt);
-
-                    return (import.AliasOpt != null) ?
-                        "A" + import.AliasOpt + " T" + typeName :
-                        "T" + typeName;
-                }
-                else if (import.TargetNamespaceOpt != null)
-                {
-                    string namespaceName = GetOrCreateSerializedNamespaceName(import.TargetNamespaceOpt);
-
-                    if (import.AliasOpt != null)
-                    {
-                        return (import.TargetAssemblyOpt != null) ?
-                            "A" + import.AliasOpt + " E" + namespaceName + " " + GetAssemblyReferenceAlias(import.TargetAssemblyOpt, declaredExternAliasesOpt) :
-                            "A" + import.AliasOpt + " U" + namespaceName;
-                    }
-                    else
-                    {
-                        return (import.TargetAssemblyOpt != null) ?
-                            "E" + namespaceName + " " + GetAssemblyReferenceAlias(import.TargetAssemblyOpt, declaredExternAliasesOpt) :
-                            "U" + namespaceName;
-                    }
+                    return (import.TargetAssemblyOpt != null) ?
+                        "A" + import.AliasOpt + " E" + namespaceName + " " + GetAssemblyReferenceAlias(import.TargetAssemblyOpt, declaredExternAliasesOpt) :
+                        "A" + import.AliasOpt + " U" + namespaceName;
                 }
                 else
                 {
-                    Debug.Assert(import.AliasOpt != null);
-                    Debug.Assert(import.TargetAssemblyOpt == null);
-                    return "X" + import.AliasOpt;
+                    return (import.TargetAssemblyOpt != null) ?
+                        "E" + namespaceName + " " + GetAssemblyReferenceAlias(import.TargetAssemblyOpt, declaredExternAliasesOpt) :
+                        "U" + namespaceName;
                 }
             }
+
+            Debug.Assert(import.AliasOpt != null);
+            Debug.Assert(import.TargetAssemblyOpt == null);
+            return "X" + import.AliasOpt;
         }
 
         internal string GetOrCreateSerializedNamespaceName(INamespace @namespace)
@@ -453,7 +449,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    result = TypeNameSerializer.GetSerializedTypeName(typeReference, Context);
+                    result = typeReference.GetSerializedTypeName(Context);
                 }
 
                 _qualifiedNameCache.Add(typeReference, result);
@@ -464,9 +460,9 @@ namespace Microsoft.Cci
 
         private string SerializeVisualBasicImportTypeReference(ITypeReference typeReference)
         {
-            Debug.Assert(typeReference as IArrayTypeReference == null);
-            Debug.Assert(typeReference as IPointerTypeReference == null);
-            Debug.Assert(typeReference as IManagedPointerTypeReference == null);
+            Debug.Assert(!(typeReference is IArrayTypeReference));
+            Debug.Assert(!(typeReference is IPointerTypeReference));
+            Debug.Assert(!(typeReference is IManagedPointerTypeReference));
             Debug.Assert(!typeReference.IsTypeSpecification());
 
             var result = PooledStringBuilder.GetInstance();
@@ -637,7 +633,7 @@ namespace Microsoft.Cci
         public unsafe PeDebugDirectory GetDebugDirectory()
         {
             ImageDebugDirectory debugDir = new ImageDebugDirectory();
-            uint dataCount = 0;
+            uint dataCount;
 
             try
             {
@@ -1005,7 +1001,7 @@ namespace Microsoft.Cci
                     {
                         yields[i] = (uint)yieldOffsets[i];
                         resumes[i] = (uint)resumeOffsets[i];
-                        methods[i] = (uint)thisMethodToken;
+                        methods[i] = thisMethodToken;
                     }
 
                     try
