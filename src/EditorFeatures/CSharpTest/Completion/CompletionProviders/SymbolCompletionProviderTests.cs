@@ -7919,5 +7919,31 @@ class Program
 ";
             VerifyItemExists(markup, "i");
         }
+
+        [WorkItem(1277, "https://github.com/dotnet/roslyn/issues/1277")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void NoInstanceMembersInPropertyInitializer()
+        {
+            var markup = @"
+class A {
+    int abc;
+    int B { get; } = $$
+}
+";
+            VerifyItemIsAbsent(markup, "abc");
+        }
+
+        [WorkItem(1277, "https://github.com/dotnet/roslyn/issues/1277")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void StaticMembersInPropertyInitializer()
+        {
+            var markup = @"
+class A {
+    static int s_abc;
+    int B { get; } = $$
+}
+";
+            VerifyItemExists(markup, "s_abc");
+        }
     }
 }
