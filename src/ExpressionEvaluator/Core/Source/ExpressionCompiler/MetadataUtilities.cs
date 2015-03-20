@@ -9,6 +9,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using Microsoft.DiaSymReader;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -80,24 +81,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             // Build assembly references from modules in primary module manifests.
             var referencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
-            var identities = ArrayBuilder<AssemblyIdentity>.GetInstance();
+            var identitiesBuilder = ArrayBuilder<AssemblyIdentity>.GetInstance();
             foreach (var metadata in metadataBuilder)
             {
-                var identity = metadata.MetadataReader.ReadAssemblyIdentityOrThrow();
-                int index = FindOtherReference(identities, identity);
-                if (index >= 0)
-                {
-                    continue;
-                }
-                identities.Add(identity);
                 if (!IsPrimaryModule(metadata))
                 {
                     continue;
                 }
+                var identity = metadata.MetadataReader.ReadAssemblyIdentityOrThrow();
+                identitiesBuilder.Add(identity);
                 var reference = MakeAssemblyMetadata(metadata, modulesByName);
                 referencesBuilder.Add(reference);
             }
-            identities.Free();
+
+            // Remove any strong-name duplicates. (Non-strong-named duplicates
+            // are not handled since those are less likely, and references to types within
+            // those duplicates will simply result in ambiguity errors when compiling.)
+            RemoveStrongNamedDuplicates(referencesBuilder, identitiesBuilder);
+            identitiesBuilder.Free();
 
             // Any runtime winmd modules were separated out initially. Now add
             // those to a placeholder for the missing compile time module since
@@ -112,26 +113,69 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return referencesBuilder.ToImmutableAndFree();
         }
 
-        private static int FindOtherReference(ArrayBuilder<AssemblyIdentity> identities, AssemblyIdentity identity)
+        private static void RemoveStrongNamedDuplicates(ArrayBuilder<MetadataReference> references, ArrayBuilder<AssemblyIdentity> identities)
         {
-            // Only compare strong names.
-            if (identity.IsStrongName)
+            Debug.Assert(references.Count == identities.Count);
+            Debug.Assert(identities.All(i => i != null));
+
+            // Null out any identities that are duplicates. Note, this is O(n^2).
+            int n = references.Count;
+            for (int i = 0; i < n; i++)
             {
-                for (int i = 0; i < identities.Count; i++)
+                if (!IsNonNullAndStrongNamed(identities[i]))
                 {
-                    var reference = identities[i];
-                    if (!reference.IsStrongName)
+                    continue;
+                }
+                var bestIndex = i;
+                for (int j = i + 1; j < n; j++)
+                {
+                    if (!IsNonNullAndStrongNamed(identities[j]))
                     {
                         continue;
                     }
-                    var compareResult = AssemblyIdentityComparer.Default.Compare(reference, identity);
-                    if (compareResult != AssemblyIdentityComparer.ComparisonResult.NotEquivalent)
+                    var compareResult = AssemblyIdentityComparer.Default.Compare(identities[bestIndex], identities[j]);
+                    switch (compareResult)
                     {
-                        return i;
+                        case AssemblyIdentityComparer.ComparisonResult.Equivalent:
+                            break;
+                        case AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion:
+                            if (identities[bestIndex].Version < identities[j].Version)
+                            {
+                                identities[bestIndex] = null;
+                                bestIndex = j;
+                                continue;
+                            }
+                            break;
+                        case AssemblyIdentityComparer.ComparisonResult.NotEquivalent:
+                            continue;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(compareResult);
                     }
+                    Debug.Assert(identities[bestIndex].Version >= identities[j].Version);
+                    identities[j] = null;
                 }
             }
-            return -1;
+
+            // Remove references marked as duplicates.
+            int index = 0;
+            for (int i = 0; i < n; i++)
+            {
+                if (identities[i] == null)
+                {
+                    continue;
+                }
+                if (index < i)
+                {
+                    references[index] = references[i];
+                }
+                index++;
+            }
+            references.Clip(index);
+        }
+
+        private static bool IsNonNullAndStrongNamed(AssemblyIdentity identity)
+        {
+            return (identity != null) && identity.IsStrongName;
         }
 
         private static PortableExecutableReference MakeAssemblyMetadata(ModuleMetadata metadata, Dictionary<string, ModuleMetadata> modulesByName)
