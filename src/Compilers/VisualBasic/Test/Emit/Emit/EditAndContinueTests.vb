@@ -3314,9 +3314,7 @@ Namespace M
 End Namespace
 ]]></file>
                            </compilation>
-            ' Compile must be non-concurrent to ensure types are created in fixed order.
-            Dim compOptions = TestOptions.DebugDll.WithConcurrentBuild(False)
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, compOptions)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
 
             Dim testData0 = New CompilationTestData()
@@ -3698,9 +3696,7 @@ Class C
 End Class
 ]]></file>
                            </compilation>
-            ' Compile must be non-concurrent to ensure types are created in fixed order.
-            Dim compOptions = TestOptions.DebugDll.WithConcurrentBuild(False)
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, compOptions)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -3712,8 +3708,8 @@ End Class
                 CheckNames(reader0, reader0.GetTypeDefNames(),
                     "<Module>",
                     "VB$AnonymousType_0`2",
-                    "VB$AnonymousType_2`2",
                     "VB$AnonymousType_1`2",
+                    "VB$AnonymousType_2`2",
                     "C")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
                 Dim diff1 = compilation1.EmitDifference(

@@ -2834,7 +2834,8 @@ class C6
         /// Ordering of synthesized delegates in
         /// metadata should be deterministic.
         /// </summary>
-        [Fact]
+        [WorkItem(1440, "https://github.com/dotnet/roslyn/issues/1440")]
+        [Fact(Skip = "1440")]
         public void SynthesizedDelegateMetadataOrder()
         {
             var source =
