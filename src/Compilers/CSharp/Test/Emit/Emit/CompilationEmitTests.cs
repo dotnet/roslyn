@@ -2814,11 +2814,11 @@ class C6
                 var expectedNames = new[]
                     {
                         "<Module>",
-                        "<>f__AnonymousType1`2",
-                        "<>f__AnonymousType3`2",
                         "<>f__AnonymousType0`2",
-                        "<>f__AnonymousType4`1",
+                        "<>f__AnonymousType1`2",
                         "<>f__AnonymousType2`1",
+                        "<>f__AnonymousType3`2",
+                        "<>f__AnonymousType4`1",
                         "C1",
                         "C2",
                         "C3",

@@ -272,15 +272,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Get all anonymous types owned by this manager
             var builder = ArrayBuilder<AnonymousTypeTemplateSymbol>.GetInstance();
-            builder.AddRange(GetOwnedAnonymousTypeTemplates());
+            GetCreatedAnonymousTypeTemplates(builder);
 
             // If the collection is not sealed yet we should assign 
             // new indexes to the created anonymous type templates
             if (!this.AreTemplatesSealed)
             {
-                // Sort type templates using smallest location
-                builder.Sort(new AnonymousTypeComparer(this.Compilation));
-
                 // If we are emitting .NET module, include module's name into type's name to ensure
                 // uniqueness across added modules.
                 string moduleId;
@@ -338,38 +335,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             builder.Free();
 
-            foreach (var synthesizedDelegate in GetOwnedSynthesizedDelegates())
+            var synthesizedDelegates = ArrayBuilder<SynthesizedDelegateSymbol>.GetInstance();
+            GetCreatedSynthesizedDelegates(synthesizedDelegates);
+            foreach (var synthesizedDelegate in synthesizedDelegates)
             {
                 compiler.Visit(synthesizedDelegate, null);
             }
+            synthesizedDelegates.Free();
         }
 
         /// <summary>
-        /// The set of anonymous type templates owned by
-        /// this AnonymousTypeManager, ordered by key.
+        /// The set of anonymous type templates created by
+        /// this AnonymousTypeManager, in fixed order.
         /// </summary>
-        private IEnumerable<AnonymousTypeTemplateSymbol> GetOwnedAnonymousTypeTemplates()
+        private void GetCreatedAnonymousTypeTemplates(ArrayBuilder<AnonymousTypeTemplateSymbol> builder)
         {
+            Debug.Assert(!builder.Any());
             var anonymousTypes = _lazyAnonymousTypeTemplates;
-            if (anonymousTypes == null)
+            if (anonymousTypes != null)
             {
-                return SpecializedCollections.EmptyEnumerable<AnonymousTypeTemplateSymbol>();
+                foreach (var template in anonymousTypes.Values)
+                {
+                    if (ReferenceEquals(template.Manager, this))
+                    {
+                        builder.Add(template);
+                    }
+                }
+                // Sort type templates using smallest location
+                builder.Sort(new AnonymousTypeComparer(this.Compilation));
             }
-            return anonymousTypes.Where(kv => ReferenceEquals(kv.Value.Manager, this)).OrderBy(kv => kv.Key).Select(kv => kv.Value);
         }
 
         /// <summary>
-        /// The set of synthesized delegates owned by
+        /// The set of synthesized delegates created by
         /// this AnonymousTypeManager.
         /// </summary>
-        private IEnumerable<SynthesizedDelegateSymbol> GetOwnedSynthesizedDelegates()
+        private void GetCreatedSynthesizedDelegates(ArrayBuilder<SynthesizedDelegateSymbol> builder)
         {
+            Debug.Assert(!builder.Any());
             var delegates = _lazySynthesizedDelegates;
-            if (delegates == null)
+            if (delegates != null)
             {
-                return SpecializedCollections.EmptyEnumerable<SynthesizedDelegateSymbol>();
+                foreach (var template in delegates.Values)
+                {
+                    if (ReferenceEquals(template.Manager, this))
+                    {
+                        builder.Add(template.Delegate);
+                    }
+                }
+                // Should be sorted, same as AnonymousTypeTemplates. See VB.
             }
-            return delegates.Where(kv => ReferenceEquals(kv.Value.Manager, this)).Select(kv => kv.Value.Delegate);
         }
 
         internal static Microsoft.CodeAnalysis.Emit.AnonymousTypeKey GetAnonymousTypeKey(NamedTypeSymbol type)
@@ -399,8 +414,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: templates may not be sealed in case metadata is being emitted without IL
 
             var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            builder.AddRange(GetOwnedAnonymousTypeTemplates());
-            builder.AddRange(GetOwnedSynthesizedDelegates());
+
+            var anonymousTypes = ArrayBuilder<AnonymousTypeTemplateSymbol>.GetInstance();
+            GetCreatedAnonymousTypeTemplates(anonymousTypes);
+            builder.AddRange(anonymousTypes);
+            anonymousTypes.Free();
+
+            var synthesizedDelegates = ArrayBuilder<SynthesizedDelegateSymbol>.GetInstance();
+            GetCreatedSynthesizedDelegates(synthesizedDelegates);
+            builder.AddRange(synthesizedDelegates);
+            synthesizedDelegates.Free();
+
             return builder.ToImmutableAndFree();
         }
 

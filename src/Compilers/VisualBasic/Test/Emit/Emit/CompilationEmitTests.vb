@@ -2857,9 +2857,9 @@ End Class
                 Dim actualNames = reader.GetTypeDefNames().Select(Function(h) reader.GetString(h))
                 Dim expectedNames = {
                     "<Module>",
+                    "VB$AnonymousType_0`2",
                     "VB$AnonymousType_1`2",
                     "VB$AnonymousType_2`1",
-                    "VB$AnonymousType_0`2",
                     "VB$AnonymousType_3`2",
                     "C1",
                     "C2",
