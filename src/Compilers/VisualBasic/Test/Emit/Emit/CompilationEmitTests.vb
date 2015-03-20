@@ -2820,5 +2820,57 @@ End interface
             Assert.NotEqual(0, P1RVA)
             Assert.Equal(P2RVA, P1RVA)
         End Sub
+
+        ''' <summary>
+        ''' Ordering of anonymous type definitions
+        ''' in metadata should be deterministic.
+        ''' </summary>
+        <Fact>
+        Public Sub AnonymousTypeMetadataOrder()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Class C1
+    Private F As Object = New With {.C = 1, .D = 2}
+End Class
+Class C2
+    Private F As Object = New With {.A = 3, .B = 4}
+End Class
+Class C3
+    Private F As Object = New With {.AB = 5}
+End Class
+Class C4
+    Private F As Object = New With {.E = 6, .F = 2}
+End Class
+Class C5
+    Private F As Object = New With {.E = 7, .F = 8}
+End Class
+Class C6
+    Private F As Object = New With {.AB = 9}
+End Class
+    </file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
+            Dim bytes = compilation.EmitToArray()
+            Using metadata = ModuleMetadata.CreateFromImage(bytes)
+                Dim reader = metadata.MetadataReader
+                Dim actualNames = reader.GetTypeDefNames().Select(Function(h) reader.GetString(h))
+                Dim expectedNames = {
+                    "<Module>",
+                    "VB$AnonymousType_1`2",
+                    "VB$AnonymousType_2`1",
+                    "VB$AnonymousType_0`2",
+                    "VB$AnonymousType_3`2",
+                    "C1",
+                    "C2",
+                    "C3",
+                    "C4",
+                    "C5",
+                    "C6"
+                    }
+                AssertEx.Equal(expectedNames, actualNames)
+            End Using
+        End Sub
+
     End Class
 End Namespace

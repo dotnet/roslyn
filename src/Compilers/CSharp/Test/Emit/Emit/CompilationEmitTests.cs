@@ -2840,30 +2840,30 @@ class C6
             var source =
 @"class C1
 {
-    static void M(dynamic d, object o)
-    {
-        d(ref o);
-    }
-}
-class C2
-{
     static void M(dynamic d, object x, int y)
     {
         d(1, ref x, out y);
     }
 }
-class C3
+class C2
 {
-    static int M(dynamic d, object o)
+    static object M(dynamic d, object o)
     {
-        return d(ref o, 2);
+        return d(o, ref o);
     }
 }
-class C4
+class C3
 {
     static void M(dynamic d, object o)
     {
         d(ref o);
+    }
+}
+class C4
+{
+    static int M(dynamic d, object o)
+    {
+        return d(ref o, 2);
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, references: new[] { SystemCoreRef, CSharpRef });
@@ -2877,6 +2877,7 @@ class C4
                         "<Module>",
                         "<>A{00000004}`3",
                         "<>F{00000004}`5",
+                        "<>F{00000008}`5",
                         "<>A{00000018}`5",
                         "C1",
                         "C2",
