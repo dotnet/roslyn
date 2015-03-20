@@ -974,7 +974,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 #End Region
 
-        Private Function _Unified_(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), ch As Char, fullWidth As Boolean) As SyntaxToken
+        Private Function ScanTokenCommon(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), ch As Char, fullWidth As Boolean) As SyntaxToken
             Dim lengthWithMaybeEquals = 1
             Select Case ch
                 Case CARRIAGE_RETURN, LINE_FEED
@@ -982,123 +982,96 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case NEXT_LINE, LINE_SEPARATOR, PARAGRAPH_SEPARATOR
                     If fullWidth Then Exit Select
                     Return ScanNewlineAsStatementTerminator(ch, precedingTrivia)
-
                 Case " "c, CHARACTER_TABULATION, "'"c
                     Debug.Assert(False, String.Format("Unexpected char: &H{0:x}", AscW(ch)))
                     Return Nothing ' trivia cannot start a token
-
                 Case "@"c
                     Return MakeAtToken(precedingTrivia, fullWidth)
-
                 Case "("c
                     Return MakeOpenParenToken(precedingTrivia, fullWidth)
-
                 Case ")"c
                     Return MakeCloseParenToken(precedingTrivia, fullWidth)
-
                 Case "{"c
                     Return MakeOpenBraceToken(precedingTrivia, fullWidth)
-
                 Case "}"c
                     Return MakeCloseBraceToken(precedingTrivia, fullWidth)
-
                 Case ","c
                     Return MakeCommaToken(precedingTrivia, fullWidth)
-
                 Case "#"c
                     Dim dl = ScanDateLiteral(precedingTrivia)
                     Return If(dl, MakeHashToken(precedingTrivia, fullWidth))
-
-
                 Case "&"c
                     If CanGetCharAtOffset(1) AndAlso BeginsBaseLiteral(PeekAheadChar(1)) Then
                         Return ScanNumericLiteral(precedingTrivia)
                     End If
-
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakeAmpersandEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
                         Return MakeAmpersandToken(precedingTrivia, fullWidth)
                     End If
-
                 Case "="c
                     Return MakeEqualsToken(precedingTrivia, fullWidth)
-
                 Case "<"c
                     Return ScanLeftAngleBracket(precedingTrivia, fullWidth, _scanSingleLineTriviaFunc)
-
                 Case ">"c
                     Return ScanRightAngleBracket(precedingTrivia, fullWidth)
-
                 Case ":"c
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakeColonEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
                         Return ScanColonAsStatementTerminator(precedingTrivia, fullWidth)
                     End If
-
                 Case "+"c
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakePlusEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
                         Return MakePlusToken(precedingTrivia, fullWidth)
                     End If
-
                 Case "-"c
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakeMinusEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
                         Return MakeMinusToken(precedingTrivia, fullWidth)
                     End If
-
                 Case "*"c
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakeAsteriskEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
                         Return MakeAsteriskToken(precedingTrivia, fullWidth)
                     End If
-
                 Case "/"c
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakeSlashEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
                         Return MakeSlashToken(precedingTrivia, fullWidth)
                     End If
-
                 Case "\"c
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakeBackSlashEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
                         Return MakeBackslashToken(precedingTrivia, fullWidth)
                     End If
-
                 Case "^"c
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakeCaretEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
                         Return MakeCaretToken(precedingTrivia, fullWidth)
                     End If
-
                 Case "!"c
                     Return MakeExclamationToken(precedingTrivia, fullWidth)
-
                 Case "."c
                     If CanGetCharAtOffset(1) AndAlso IsDecimalDigit(PeekAheadChar(1)) Then
                         Return ScanNumericLiteral(precedingTrivia)
                     Else
                         Return MakeDotToken(precedingTrivia, fullWidth)
                     End If
-
                 Case "0"c, "1"c, "2"c, "3"c, "4"c,
                      "5"c, "6"c, "7"c, "8"c, "9"c
                     Return ScanNumericLiteral(precedingTrivia)
-
                 Case """"c
                     Return ScanStringLiteral(precedingTrivia)
-
                 Case "A"c
                     If NextAre(1, "s ") Then
-
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = "As"
                         If fullWidth Then spelling = GetText(2) Else AdvanceChar(2)
@@ -1106,10 +1079,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Else
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
-
                 Case "E"c
                     If NextAre(1, "nd ") Then
-
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = "End"
                         If fullWidth Then spelling = GetText(3) Else AdvanceChar(3)
@@ -1117,10 +1088,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Else
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
-
                 Case "I"c
                     If NextAre(1, "f ") Then
-
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = "If"
                         If fullWidth Then spelling = GetText(2) Else AdvanceChar(2)
@@ -1128,67 +1097,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Else
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
-
                 Case "a"c, "b"c, "c"c, "d"c, "e"c, "f"c, "g"c, "h"c, "i"c, "j"c, "k"c, "l"c, "m"c,
                      "n"c, "o"c, "p"c, "q"c, "r"c, "s"c, "t"c, "u"c, "v"c, "w"c, "x"c, "y"c, "z"c
                     Return ScanIdentifierOrKeyword(precedingTrivia)
-
                 Case "B"c, "C"c, "D"c, "F"c, "G"c, "H"c, "J"c, "K"c, "L"c, "M"c, "N"c, "O"c, "P"c, "Q"c,
                      "R"c, "S"c, "T"c, "U"c, "V"c, "W"c, "X"c, "Y"c, "Z"c
                     Return ScanIdentifierOrKeyword(precedingTrivia)
-
                 Case "_"c
                     If CanGetCharAtOffset(1) AndAlso IsIdentifierPartCharacter(PeekAheadChar(1)) Then
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
-
                     Dim err As ERRID = ERRID.ERR_ExpectedIdentifier
                     Dim len = GetWhitespaceLength(1)
                     If Not CanGetCharAtOffset(len) OrElse IsNewLine(PeekAheadChar(len)) OrElse PeekStartComment(len) > 0 Then
                         err = ERRID.ERR_LineContWithCommentOrNoPrecSpace
                     End If
-
                     ' not a line continuation and cannot start identifier.
                     Return MakeBadToken(precedingTrivia, 1, err)
-
                 Case "["c
                     Return ScanBracketedIdentifier(precedingTrivia)
-
                 Case "?"c
                     Return MakeQuestionToken(precedingTrivia, fullWidth)
-
                 Case "%"c
                     If CanGetCharAtOffset(1) AndAlso PeekAheadChar(1) = ">"c Then
                         Return XmlMakeEndEmbeddedToken(precedingTrivia, _scanSingleLineTriviaFunc)
                     End If
-
                 Case "$"c, FULLWIDTH_DOLLAR_SIGN
                     If fullWidth Then Exit Select
                     If CanGetCharAtOffset(1) AndAlso IsDoubleQuote(PeekAheadChar(1)) Then
                         Return MakePunctuationToken(precedingTrivia, 2, SyntaxKind.DollarSignDoubleQuoteToken)
                     End If
-
             End Select
-
             If IsIdentifierStartCharacter(ch) Then
                 Return ScanIdentifierOrKeyword(precedingTrivia)
             End If
-
             Debug.Assert(Not IsNewLine(ch))
             If fullWidth Then
                 Debug.Assert(Not IsDoubleQuote(ch))
-
             Else
                 If IsDoubleQuote(ch) Then
                     Return ScanStringLiteral(precedingTrivia)
                 End If
-
                 If IsFullWidth(ch) Then
                     ch = MakeHalfWidth(ch)
                     Return ScanTokenFullWidth(precedingTrivia, ch)
-                End If                
+                End If
             End If
-
             Return Nothing
         End Function
 
@@ -1199,17 +1153,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return MakeEofToken(precedingTrivia)
             End If
             Dim ch As Char = PeekChar()
-            Return _Unified_(precedingTrivia,ch,False)
+            Return ScanTokenCommon(precedingTrivia, ch, False)
         End Function
-
-
-
 
         Private Function ScanTokenFullWidth(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), ch As Char) As SyntaxToken
-            Return _Unified_(precedingTrivia,ch,True)
+            Return ScanTokenCommon(precedingTrivia, ch, True)
         End Function
-  
- 
 
         ' // Allow whitespace between the characters of a two-character token.
         Private Function TrySkipFollowingEquals(ByRef Index As Integer) As Boolean
