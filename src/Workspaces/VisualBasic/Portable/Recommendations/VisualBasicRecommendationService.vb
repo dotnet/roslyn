@@ -224,9 +224,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
                 Dim firstSymbol = leftHandBinding.Symbol
 
-
-
-
                 Select Case firstSymbol.Kind
                     Case SymbolKind.TypeParameter
                         ' 884060: We don't allow invocations off type parameters.
