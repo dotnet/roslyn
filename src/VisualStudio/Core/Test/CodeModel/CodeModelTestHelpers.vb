@@ -97,7 +97,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
             ' Here we use vsCMElementOther to mean "Figure out the scope from the type parameter".
             Dim candidateScopes = If(scope = EnvDTE.vsCMElement.vsCMElementOther,
-                                     map(GetType(T)),
+                                     s_map(GetType(T)),
                                      {scope})
 
             Dim result As EnvDTE.CodeElement = Nothing
@@ -131,7 +131,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return XElement.Parse(xml)
         End Function
 
-        Dim map As New Dictionary(Of Type, EnvDTE.vsCMElement()) From
+        Private s_map As New Dictionary(Of Type, EnvDTE.vsCMElement()) From
             {{GetType(EnvDTE.CodeAttribute), {EnvDTE.vsCMElement.vsCMElementAttribute}},
              {GetType(EnvDTE80.CodeAttribute2), {EnvDTE.vsCMElement.vsCMElementAttribute}},
              {GetType(EnvDTE.CodeClass), {EnvDTE.vsCMElement.vsCMElementClass, EnvDTE.vsCMElement.vsCMElementModule}},

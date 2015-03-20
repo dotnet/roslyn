@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.VisualStudio.Language.CallHierarchy
 
@@ -267,8 +268,8 @@ class D : C
             testState.Navigate(root, EditorFeaturesResources.Overrides, "D.foo()")
 
             Dim mockNavigationService = DirectCast(testState.Workspace.Services.GetService(Of ISymbolNavigationService)(), MockSymbolNavigationServiceProvider.MockSymbolNavigationService)
-            Assert.NotNull(mockNavigationService.Symbol)
-            Assert.NotNull(mockNavigationService.Project)
+            Assert.NotNull(mockNavigationService.TryNavigateToSymbolProvidedSymbol)
+            Assert.NotNull(mockNavigationService.TryNavigateToSymbolProvidedProject)
         End Sub
 
         <WorkItem(1022864)>
@@ -306,8 +307,8 @@ namespace N
             testState.Navigate(root, String.Format(EditorFeaturesResources.CallsTo, "Foo"), "N.G.Main()")
 
             Dim navigationService = DirectCast(testState.Workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationServiceProvider.MockDocumentNavigationService)
-            Assert.NotEqual(navigationService.DocumentId, Nothing)
-            Assert.NotEqual(navigationService.TextSpan, Nothing)
+            Assert.NotEqual(navigationService.ProvidedDocumentId, Nothing)
+            Assert.NotEqual(navigationService.ProvidedTextSpan, Nothing)
         End Sub
     End Class
 

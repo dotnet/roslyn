@@ -3149,7 +3149,7 @@ End Enum
         End Sub
 
         <Fact, WorkItem(544367, "DevDiv")>
-        Sub AttributeOnPropertyParameter()
+        Public Sub AttributeOnPropertyParameter()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -3201,7 +3201,7 @@ param index in Void set_Item(Int32, System.String) has 1 attributes
         End Sub
 
         <Fact, WorkItem(544367, "DevDiv")>
-        Sub AttributeOnPropertyParameterWithError()
+        Public Sub AttributeOnPropertyParameterWithError()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -3236,7 +3236,7 @@ BC31504: 'MyAttr' cannot be used as an attribute because it does not inherit fro
         End Sub
 
         <Fact, WorkItem(543810, "DevDiv")>
-        Sub AttributeNamedArgumentWithEvent()
+        Public Sub AttributeNamedArgumentWithEvent()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -3281,7 +3281,7 @@ BC30369: Cannot refer to an instance member of a class from within a shared meth
         End Sub
 
         <Fact, WorkItem(543955, "DevDiv")>
-        Sub StringParametersInDeclareMethods_1()
+        Public Sub StringParametersInDeclareMethods_1()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -3481,7 +3481,7 @@ buffer As System.Int32
         End Sub
 
         <Fact, WorkItem(543955, "DevDiv")>
-        Sub StringParametersInDeclareMethods_3()
+        Public Sub StringParametersInDeclareMethods_3()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">

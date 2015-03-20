@@ -41,14 +41,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _onAnalyzerException = onAnalyzerException;
         }
 
-        internal override Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(Project project, DiagnosticLogAggregator diagnosticLogAggregator)
+        internal override Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId, DiagnosticLogAggregator diagnosticLogAggregator)
         {
-            return _onAnalyzerException ?? base.GetOnAnalyzerException(project, diagnosticLogAggregator);
+            return _onAnalyzerException ?? base.GetOnAnalyzerException(projectId, diagnosticLogAggregator);
         }
 
-        internal override Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException_NoTelemetryLogging(Project project)
+        internal override Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException_NoTelemetryLogging(ProjectId projectId)
         {
-            return _onAnalyzerException ?? base.GetOnAnalyzerException_NoTelemetryLogging(project);
+            return _onAnalyzerException ?? base.GetOnAnalyzerException_NoTelemetryLogging(projectId);
         }
 
         private class TestAnalyzerReferenceByLanguage : AnalyzerReference

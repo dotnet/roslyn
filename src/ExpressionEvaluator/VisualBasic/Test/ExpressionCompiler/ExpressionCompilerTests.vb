@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class ExpressionCompilerTests
         Inherits ExpressionCompilerTestBase
 
-        Const SimpleSource = "
+        Private Const s_simpleSource = "
 Class C
     Shared Sub M()
     End Sub
@@ -33,7 +33,7 @@ End Class
         <WorkItem(1029280)>
         <Fact>
         Public Sub UniqueModuleVersionId()
-            Dim comp = CreateCompilationWithMscorlib({SimpleSource}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, compOptions:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "C.M")
 
@@ -54,7 +54,7 @@ End Class
 
         <Fact>
         Public Sub ParseError()
-            Dim comp = CreateCompilationWithMscorlib({SimpleSource}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, compOptions:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "C.M")
 
@@ -75,7 +75,7 @@ End Class
             Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("fr-FR")
             Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("de-DE")
             Try
-                Dim comp = CreateCompilationWithMscorlib({SimpleSource}, compOptions:=TestOptions.DebugDll)
+                Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, compOptions:=TestOptions.DebugDll)
                 Dim runtime = CreateRuntimeInstance(comp)
                 Dim context = CreateMethodContext(
                     runtime,
@@ -1348,7 +1348,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = Evaluate(
-                SimpleSource,
+                s_simpleSource,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName:="C.M",
                 expr:="Nothing",
@@ -1606,7 +1606,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = Evaluate(
-                SimpleSource,
+                s_simpleSource,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName:="C.M",
                 expr:="C.M()",
@@ -1631,7 +1631,7 @@ End Class
             Dim errorMessage As String = Nothing
 
             Dim testData = Evaluate(
-                SimpleSource,
+                s_simpleSource,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName:="C.M",
                 expr:="AddressOf C.M",
@@ -1818,7 +1818,7 @@ End Namespace
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = Evaluate(
-                SimpleSource,
+                s_simpleSource,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName:="C.M",
                 expr:="C",
@@ -3852,7 +3852,7 @@ End Sub)",
 
         <WorkItem(1115543)>
         <Fact>
-        Sub MethodTypeParameterInLambda()
+        Public Sub MethodTypeParameterInLambda()
             Const source = "
 Class C(Of T)
     Sub M(Of U)()
@@ -3907,7 +3907,7 @@ End Class"
 
         <WorkItem(1112496)>
         <Fact(Skip:="1112496")>
-        Sub EvaluateLocalInAsyncLambda()
+        Public Sub EvaluateLocalInAsyncLambda()
             Const source = "
 Imports System.Threading.Tasks
 Module Module1
@@ -3939,6 +3939,33 @@ End Module"
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""Module1._Closure$__.VB$StateMachine___Lambda$__0-1.$VB$ResumableLocal_i$0 As Integer""
   IL_0006:  ret
+}")
+        End Sub
+
+        <Fact>
+        Public Sub GetTypeOpenGenericType()
+            Dim source = "
+Imports System
+
+Class C
+    Sub M()
+    End Sub
+End Class"
+            Dim compilation = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(compilation)
+            Dim context = CreateMethodContext(runtime, "C.M")
+
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("GetType(Action(Of ))", errorMessage, testData)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL("
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""System.Action(Of T)""
+  IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+  IL_000a:  ret
 }")
         End Sub
 

@@ -704,7 +704,7 @@ Public MustInherit Class WriteUtils
         GenerateXmlComment(writer, descriptionText, remarksText, indent)
     End Sub
 
-    Private VBKeywords As String() = {
+    Private _VBKeywords As String() = {
         "ADDHANDLER",
         "ADDRESSOF",
         "ALIAS",
@@ -860,7 +860,7 @@ Public MustInherit Class WriteUtils
 
     ' If the string is a keyword, escape it. Otherwise just return it.
     Protected Function Ident(id As String) As String
-        If VBKeywords.Contains(id.ToUpperInvariant()) Then
+        If _VBKeywords.Contains(id.ToUpperInvariant()) Then
             Return "[" + id + "]"
         Else
             Return id

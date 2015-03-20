@@ -136,14 +136,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Return False
         End Function
 
-        Private Shared ReadOnly _definitionAnnotation As New SyntaxAnnotation
-        Private Shared ReadOnly _referenceAnnotation As New SyntaxAnnotation
-        Private Shared ReadOnly _initializerAnnotation As New SyntaxAnnotation
-        Private Shared ReadOnly _expressionToInlineAnnotation As New SyntaxAnnotation
+        Private Shared ReadOnly s_definitionAnnotation As New SyntaxAnnotation
+        Private Shared ReadOnly s_referenceAnnotation As New SyntaxAnnotation
+        Private Shared ReadOnly s_initializerAnnotation As New SyntaxAnnotation
+        Private Shared ReadOnly s_expressionToInlineAnnotation As New SyntaxAnnotation
 
         Private Async Function InlineTemporaryAsync(document As Document, modifiedIdentifier As ModifiedIdentifierSyntax, cancellationToken As CancellationToken) As Task(Of Document)
             ' First, annotate the modified identifier so that we can get back to it later.
-            Dim updatedDocument = Await document.ReplaceNodeAsync(modifiedIdentifier, modifiedIdentifier.WithAdditionalAnnotations(_definitionAnnotation), cancellationToken).ConfigureAwait(False)
+            Dim updatedDocument = Await document.ReplaceNodeAsync(modifiedIdentifier, modifiedIdentifier.WithAdditionalAnnotations(s_definitionAnnotation), cancellationToken).ConfigureAwait(False)
             Dim semanticModel = Await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             modifiedIdentifier = Await FindDefinitionAsync(updatedDocument, cancellationToken).ConfigureAwait(False)
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             ' Add referenceAnnotions to identifier nodes being replaced.
             updatedDocument = Await updatedDocument.ReplaceNodesAsync(
                 nonConflictingIdentifierNodes,
-                Function(o, n) n.WithAdditionalAnnotations(_referenceAnnotation),
+                Function(o, n) n.WithAdditionalAnnotations(s_referenceAnnotation),
                 cancellationToken).ConfigureAwait(False)
 
             semanticModel = Await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
         Private Shared Async Function FindDefinitionAsync(document As Document, cancellationToken As CancellationToken) As Task(Of ModifiedIdentifierSyntax)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim result = root _
-                .GetAnnotatedNodesAndTokens(_definitionAnnotation) _
+                .GetAnnotatedNodesAndTokens(s_definitionAnnotation) _
                 .Single() _
                 .AsNode()
 
@@ -264,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
         End Function
 
         Private Shared Iterator Function FindReferenceAnnotatedNodesAsync(root As SyntaxNode) As IEnumerable(Of IdentifierNameSyntax)
-            Dim annotatedNodesAndTokens = root.GetAnnotatedNodesAndTokens(_referenceAnnotation)
+            Dim annotatedNodesAndTokens = root.GetAnnotatedNodesAndTokens(s_referenceAnnotation)
             For Each nodeOrToken In annotatedNodesAndTokens
                 If nodeOrToken.IsNode AndAlso nodeOrToken.AsNode.IsKind(SyntaxKind.IdentifierName) Then
                     Yield DirectCast(nodeOrToken.AsNode, IdentifierNameSyntax)
@@ -398,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Dim modifiedIdentifier = Await FindDefinitionAsync(document, cancellationToken).ConfigureAwait(False)
             Dim initializer = DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax).GetInitializer()
             Dim newInitializer = AddExplicitArgumentListIfNeeded(initializer, semanticModel) _
-                                 .WithAdditionalAnnotations(_initializerAnnotation)
+                                 .WithAdditionalAnnotations(s_initializerAnnotation)
 
             Dim updatedDocument = Await document.ReplaceNodeAsync(initializer, newInitializer, cancellationToken).ConfigureAwait(False)
 
@@ -423,7 +423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                                                                      DirectCast(semanticModel, SemanticModel),
                                                                      wasCastAdded)
 
-            Return explicitInitializer.WithAdditionalAnnotations(_expressionToInlineAnnotation)
+            Return explicitInitializer.WithAdditionalAnnotations(s_expressionToInlineAnnotation)
         End Function
 
         Private Shared Function GetTopMostStatementForExpression(expression As ExpressionSyntax) As StatementSyntax
@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
             ' Get all the inlined expression nodes.
             Dim syntaxRootAfterInline = Await inlinedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim inlinedExprNodes = syntaxRootAfterInline.GetAnnotatedNodesAndTokens(_expressionToInlineAnnotation)
+            Dim inlinedExprNodes = syntaxRootAfterInline.GetAnnotatedNodesAndTokens(s_expressionToInlineAnnotation)
             Debug.Assert(originalIdentifierNodes.Count() = inlinedExprNodes.Count())
 
             Dim originalNodesEnum = originalIdentifierNodes.GetEnumerator()
@@ -473,7 +473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 ' inlinedNode is the expanded form of the actual initializer expression in the original document.
                 ' We have annotated the inner initializer with a special syntax annotation "_initializerAnnotation".
                 ' Get this annotated node and compute the symbol info for this node in the inlined document.
-                Dim innerInitializerInInlineNode = DirectCast(inlinedNode.GetAnnotatedNodesAndTokens(_initializerAnnotation).Single().AsNode, ExpressionSyntax)
+                Dim innerInitializerInInlineNode = DirectCast(inlinedNode.GetAnnotatedNodesAndTokens(s_initializerAnnotation).Single().AsNode, ExpressionSyntax)
                 Dim newInializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(innerInitializerInInlineNode, cancellationToken)
 
                 ' Verification: The symbol info associated with any of the inlined expressions does not match the symbol info for original initializer expression prior to inline.

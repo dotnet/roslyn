@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-    Class DelegateDeclarationOutliner
+    Friend Class DelegateDeclarationOutliner
         Inherits AbstractSyntaxNodeOutliner(Of DelegateStatementSyntax)
 
         Protected Overrides Sub CollectOutliningSpans(delegateDeclaration As DelegateStatementSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)

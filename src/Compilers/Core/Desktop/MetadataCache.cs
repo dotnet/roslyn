@@ -2,12 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -20,8 +17,6 @@ namespace Microsoft.CodeAnalysis
     ///     2) A list of weak references to instances of VB/CS AssemblySymbols based on the PEAssembly object.
     ///
     /// For modules - a map from file name and timestamp to a weak reference to the corresponding PEModule object
-    /// 
-    /// For analyzer assemblies - a map from file name and timestamp to a weak reference to the diagnostic analyzers defined in the assembly.
     /// </summary>
     [Obsolete("To be removed", error: false)]
     internal static class MetadataCache
@@ -41,14 +36,6 @@ namespace Microsoft.CodeAnalysis
             new Dictionary<FileKey, CachedModule>();
 
         private static List<FileKey> s_moduleKeys = new List<FileKey>();
-
-        /// <summary>
-        /// Global cache for diagnostic analyzers imported from analyzer assembly files.
-        /// </summary>
-        private static Dictionary<FileKey, CachedAnalyzers> s_analyzersFromFiles =
-            new Dictionary<FileKey, CachedAnalyzers>();
-
-        private static List<FileKey> s_analyzerAssemblyKeys = new List<FileKey>();
 
         /// <summary>
         /// Timer triggering compact operation for metadata cache.
@@ -113,22 +100,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal struct CachedAnalyzers
-        {
-            // Save a reference to the cached analyzers so that they don't get collected 
-            // if the metadata object gets collected.
-            public readonly WeakReference Analyzers;
-            public readonly string Language;
-
-            public CachedAnalyzers(object analyzers, string language)
-            {
-                Debug.Assert(analyzers != null);
-
-                this.Analyzers = new WeakReference(analyzers);
-                this.Language = language;
-            }
-        }
-
         /// <summary>
         /// Lock that must be acquired for the duration of read/write operations on MetadataCache.
         /// 
@@ -182,13 +153,12 @@ namespace Microsoft.CodeAnalysis
 
                 CompactCacheOfAssemblies();
                 CompactCacheOfModules();
-                CompactCacheOfAnalyzers();
 
                 s_compactCollectionCount = currentCollectionCount;
 
                 lock (Guard)
                 {
-                    if (!(AnyAssembliesCached() || AnyModulesCached() || AnyAnalyzerAssembliesCached()))
+                    if (!(AnyAssembliesCached() || AnyModulesCached()))
                     {
                         // Stop the timer
                         s_compactTimerIsOn = no;
@@ -393,71 +363,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Called by compactTimer.
-        /// </summary>
-        private static void CompactCacheOfAnalyzers()
-        {
-            // Do one pass through the analyzerAssemblyKeys list    
-            int originalCount = -1;
-
-            for (int current = 0; ; current++)
-            {
-                // Compact analyzer assemblies, one assembly per lock
-
-                // Lock our cache
-                lock (Guard)
-                {
-                    if (originalCount == -1)
-                    {
-                        originalCount = s_analyzerAssemblyKeys.Count;
-                    }
-
-                    if (s_analyzerAssemblyKeys.Count > current)
-                    {
-                        CachedAnalyzers cahedAnalyzers;
-                        FileKey key = s_analyzerAssemblyKeys[current];
-
-                        if (s_analyzersFromFiles.TryGetValue(key, out cahedAnalyzers))
-                        {
-                            if (!cahedAnalyzers.Analyzers.IsAlive)
-                            {
-                                // Analyzers has been collected
-                                s_analyzersFromFiles.Remove(key);
-                                s_analyzerAssemblyKeys.RemoveAt(current);
-                                current--;
-                            }
-                        }
-                        else
-                        {
-                            // Key is not found. Shouldn't ever get here!
-                            System.Diagnostics.Debug.Assert(false);
-                            s_analyzerAssemblyKeys.RemoveAt(current);
-                            current--;
-                        }
-                    }
-
-                    if (s_analyzerAssemblyKeys.Count <= current + 1)
-                    {
-                        // no more assemblies to process
-                        if (originalCount > s_analyzerAssemblyKeys.Count)
-                        {
-                            s_analyzerAssemblyKeys.TrimExcess();
-                        }
-
-                        return;
-                    }
-                }
-
-                Thread.Yield();
-            }
-        }
-
-        private static bool AnyAnalyzerAssembliesCached()
-        {
-            return s_analyzerAssemblyKeys.Count > 0;
-        }
-
-        /// <summary>
         /// Global cache for assemblies imported from files.
         /// Internal accessibility is for test purpose only.
         /// </summary>
@@ -504,29 +409,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// Global cache for analyzers imported from files.
-        /// Internal accessibility is for test purpose only.
-        /// </summary>
-        internal static Dictionary<FileKey, CachedAnalyzers> AnalyzersFromFiles
-        {
-            get
-            {
-                return s_analyzersFromFiles;
-            }
-        }
-
-        /// <summary>
-        /// For test purposes only.
-        /// </summary>
-        internal static List<FileKey> AnalyzerAssemblyKeys
-        {
-            get
-            {
-                return s_analyzerAssemblyKeys;
-            }
-        }
-
         // for testing
         internal static CleaningCacheLock LockAndClean()
         {
@@ -545,8 +427,6 @@ namespace Microsoft.CodeAnalysis
             private List<FileKey> _saveAssemblyKeys;
             private Dictionary<FileKey, CachedModule> _saveModulesFromFiles;
             private List<FileKey> _saveModuleKeys;
-            private Dictionary<FileKey, CachedAnalyzers> _saveAnalyzersFromFiles;
-            private List<FileKey> _saveAnalyzerAssemblyKeys;
 
             private bool _cacheIsLocked;
 
@@ -571,22 +451,16 @@ namespace Microsoft.CodeAnalysis
                     result._saveAssemblyKeys = s_assemblyKeys;
                     result._saveModulesFromFiles = s_modulesFromFiles;
                     result._saveModuleKeys = s_moduleKeys;
-                    result._saveAnalyzersFromFiles = s_analyzersFromFiles;
-                    result._saveAnalyzerAssemblyKeys = s_analyzerAssemblyKeys;
 
                     var newAssembliesFromFiles = new Dictionary<FileKey, CachedAssembly>();
                     var newAssemblyKeys = new List<FileKey>();
                     var newModulesFromFiles = new Dictionary<FileKey, CachedModule>();
                     var newModuleKeys = new List<FileKey>();
-                    var newAnalyzersFromFiles = new Dictionary<FileKey, CachedAnalyzers>();
-                    var newAnalyzerAssemblyKeys = new List<FileKey>();
 
                     s_assembliesFromFiles = newAssembliesFromFiles;
                     s_assemblyKeys = newAssemblyKeys;
                     s_modulesFromFiles = newModulesFromFiles;
                     s_moduleKeys = newModuleKeys;
-                    s_analyzersFromFiles = newAnalyzersFromFiles;
-                    s_analyzerAssemblyKeys = newAnalyzerAssemblyKeys;
 
                     result._threadId = Thread.CurrentThread.ManagedThreadId;
                     result._stackTrace = Environment.StackTrace;
@@ -632,8 +506,6 @@ namespace Microsoft.CodeAnalysis
                 s_assemblyKeys.Clear();
                 s_modulesFromFiles.Clear();
                 s_moduleKeys.Clear();
-                s_analyzersFromFiles.Clear();
-                s_analyzerAssemblyKeys.Clear();
             }
 
             public void Dispose()
@@ -646,8 +518,6 @@ namespace Microsoft.CodeAnalysis
                     s_assemblyKeys = _saveAssemblyKeys;
                     s_modulesFromFiles = _saveModulesFromFiles;
                     s_moduleKeys = _saveModuleKeys;
-                    s_analyzersFromFiles = _saveAnalyzersFromFiles;
-                    s_analyzerAssemblyKeys = _saveAnalyzerAssemblyKeys;
 
                     Debug.Assert(ReferenceEquals(s_last, this));
                     Debug.Assert(_threadId == Thread.CurrentThread.ManagedThreadId);
@@ -697,97 +567,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
-
-        internal static ImmutableArray<DiagnosticAnalyzer> GetOrCreateAnalyzersFromFile(AnalyzerFileReference analyzerReference, string langauge = null)
-        {
-            string fullPath = analyzerReference.FullPath;
-            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-
-            lock (Guard)
-            {
-                // may throw:
-                FileKey key = FileKey.Create(fullPath);
-
-                CachedAnalyzers cachedAnalyzers;
-                if (s_analyzersFromFiles.TryGetValue(key, out cachedAnalyzers))
-                {
-                    if (cachedAnalyzers.Analyzers.IsAlive && cachedAnalyzers.Language == langauge)
-                    {
-                        return (ImmutableArray<DiagnosticAnalyzer>)cachedAnalyzers.Analyzers.Target;
-                    }
-                    else
-                    {
-                        s_analyzersFromFiles.Remove(key);
-                        var removed = s_analyzerAssemblyKeys.Remove(key);
-                        Debug.Assert(removed);
-                        Debug.Assert(!s_analyzerAssemblyKeys.Contains(key));
-                    }
-                }
-
-                if (langauge == null)
-                {
-                    return CreateAnalyzersFromFile(analyzerReference);
-                }
-
-                return CreateAnalyzersFromFile(analyzerReference, langauge);
-            }
-        }
-
-        private static ImmutableArray<DiagnosticAnalyzer> CreateAnalyzersFromFile(AnalyzerFileReference reference)
-        {
-            Debug.Assert(PathUtilities.IsAbsolute(reference.FullPath));
-
-            // get all analyzers in the assembly;
-            var map = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();
-            reference.AddAnalyzers(map);
-
-            // TODO: fix the cache mechanism. I don't understand how the cache is supposed to work
-            // so I am leaving it as it is for now. (does weak reference things currently actually work?)
-            // also, current one looks like assume a file can have analzyers for only one language.
-            // is this assumption right?
-            //
-            // foreach (var kv in mapBuilder)
-            // {
-            //     CacheAnalyzers(kv.Key, fullPath, kv.Value);
-            // }
-            //
-            // EnableCompactTimer();
-
-            var array = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            foreach (var analyzers in map.Values)
-            {
-                array.AddRange(analyzers);
-            }
-
-            return array.ToImmutable();
-        }
-
-        private static ImmutableArray<DiagnosticAnalyzer> CreateAnalyzersFromFile(AnalyzerFileReference reference, string langauge)
-        {
-            Debug.Assert(PathUtilities.IsAbsolute(reference.FullPath));
-
-            // get all analyzers in the assembly for the given language;
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            reference.AddAnalyzers(builder, langauge);
-            var analyzers = builder.ToImmutable();
-
-            CacheAnalyzers(langauge, reference.FullPath, analyzers);
-            EnableCompactTimer();
-
-            return analyzers;
-        }
-
-        private static void CacheAnalyzers(string langauge, string fullPath, ImmutableArray<DiagnosticAnalyzer> analyzers)
-        {
-            // refresh the timestamp (the file may have changed just before we memory-mapped it):
-            var key = FileKey.Create(fullPath);
-
-            s_analyzersFromFiles[key] = new CachedAnalyzers(analyzers, langauge);
-            Debug.Assert(!s_analyzerAssemblyKeys.Contains(key));
-
-            s_analyzerAssemblyKeys.Add(key);
-        }
-
 
         /// <exception cref="IOException"/>
         private static AssemblyMetadata GetOrCreateAssemblyFromFile(string fullPath)

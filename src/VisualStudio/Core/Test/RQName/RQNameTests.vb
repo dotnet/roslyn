@@ -234,11 +234,11 @@ class G<T>
             TestWorker(markup, LanguageNames.CSharp, expectedRQName)
         End Sub
 
-        Sub TestWorker(markup As XElement, languageName As String, expectedRQName As String)
+        Public Sub TestWorker(markup As XElement, languageName As String, expectedRQName As String)
             TestWorker(markup.NormalizedValue, languageName, expectedRQName)
         End Sub
 
-        Sub TestWorker(markup As String, languageName As String, expectedRQName As String)
+        Public Sub TestWorker(markup As String, languageName As String, expectedRQName As String)
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= languageName %> CommonReferences="true">

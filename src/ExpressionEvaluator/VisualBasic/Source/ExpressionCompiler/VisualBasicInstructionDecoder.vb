@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         ' These strings were not localized in the old EE.  We'll keep them that way
         ' so as not to break consumers who may have been parsing frame names...
-        Private Const ClosureDisplayName As String = "<closure>"
-        Private Const LambdaDisplayName As String = "<lambda{0}>"
+        Private Const s_closureDisplayName As String = "<closure>"
+        Private Const s_lambdaDisplayName As String = "<lambda{0}>"
 
         ''' <summary>
         ''' Singleton instance of <see cref="VisualBasicInstructionDecoder"/> (created using default constructor).
@@ -44,12 +44,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
                     Case SymbolDisplayPartKind.MethodName
                         If displayString.StartsWith(StringConstants.LambdaMethodNamePrefix, StringComparison.Ordinal) Then
-                            builder.Append(ClosureDisplayName)
+                            builder.Append(s_closureDisplayName)
                             builder.Append("."c)
                             ' NOTE: The old implementation only appended the first ordinal number.  Since this is not useful
                             ' in uniquely identifying the lambda, we'll append the entire ordinal suffix (which may contain
                             ' multiple numbers, as well as '-' or '_').
-                            builder.AppendFormat(LambdaDisplayName, displayString.Substring(StringConstants.LambdaMethodNamePrefix.Length))
+                            builder.AppendFormat(s_lambdaDisplayName, displayString.Substring(StringConstants.LambdaMethodNamePrefix.Length))
                         Else
                             builder.Append(displayString)
                         End If

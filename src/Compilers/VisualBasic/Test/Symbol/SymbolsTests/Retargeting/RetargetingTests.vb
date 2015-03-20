@@ -1367,7 +1367,7 @@ End Namespace
         End Sub
 
         <Fact>
-        Sub Retarget_Scoping()
+        Public Sub Retarget_Scoping()
             'Retargeting symbols occurs for types even if inaccessible 
             'Diagnostics are checked to verify Semnatic behaviour
 
@@ -2412,7 +2412,7 @@ test
 
 
         <Fact>
-        Sub RetargetTest_NoChangeInDiagnostics_CleanCompile()
+        Public Sub RetargetTest_NoChangeInDiagnostics_CleanCompile()
             'This test should also result in clean compilation after retargeting
             Dim sourceLibV1 =
 <compilation name="Lib">
@@ -2690,7 +2690,7 @@ End Class
 
 
         <Fact>
-        Sub RetargetTest_NoChangeInDiagnostics_Errors()
+        Public Sub RetargetTest_NoChangeInDiagnostics_Errors()
             ' Ensure that same errors occur in retargeting for constraint compilation errors
             Dim sourceLibV1 =
 <compilation name="Lib">

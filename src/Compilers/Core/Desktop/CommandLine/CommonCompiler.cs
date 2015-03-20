@@ -360,13 +360,14 @@ namespace Microsoft.CodeAnalysis
             cancellationToken.ThrowIfCancellationRequested();
 
             CancellationTokenSource analyzerCts = null;
+            AnalyzerManager analyzerManager = null;
             try
             {
                 Func<ImmutableArray<Diagnostic>> getAnalyzerDiagnostics = null;
                 if (!analyzers.IsDefaultOrEmpty)
                 {
                     analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    var analyzerManager = new AnalyzerManager();
+                    analyzerManager = new AnalyzerManager();
                     var analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
                     Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText, AdditionalTextFile>(additionalTextFiles));
@@ -527,6 +528,9 @@ namespace Microsoft.CodeAnalysis
                 if (analyzerCts != null)
                 {
                     analyzerCts.Cancel();
+
+                    // Clear cached analyzer descriptors and unregister exception handlers hooked up to the LocalizableString fields of the associated descriptors.
+                    analyzerManager.ClearAnalyzerState(analyzers);
                 }
             }
 

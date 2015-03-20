@@ -4,11 +4,11 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 
-Interface IMockSymbol
+Friend Interface IMockSymbol
     Sub SetContainer(container As Symbol)
 End Interface
 
-Class MockNamespaceSymbol
+Friend Class MockNamespaceSymbol
     Inherits NamespaceSymbol
     Implements IMockSymbol
 
@@ -113,7 +113,7 @@ Class MockNamespaceSymbol
     End Property
 End Class
 
-Class MockNamedTypeSymbol
+Friend Class MockNamedTypeSymbol
     Inherits InstanceTypeSymbol
     Implements IMockSymbol
 
@@ -372,7 +372,7 @@ Class MockNamedTypeSymbol
     End Sub
 End Class
 
-Class MockMethodSymbol
+Friend Class MockMethodSymbol
     Inherits MethodSymbol
 
     Private _name As String
@@ -613,7 +613,7 @@ Class MockMethodSymbol
     End Function
 End Class
 
-Class MockModuleSymbol
+Friend Class MockModuleSymbol
     Inherits NonMissingModuleSymbol
 
     Private _name As String
@@ -707,7 +707,7 @@ Class MockModuleSymbol
     End Property
 End Class
 
-Class MockAssemblySymbol
+Friend Class MockAssemblySymbol
     Inherits NonMissingAssemblySymbol
 
     Private _name As String

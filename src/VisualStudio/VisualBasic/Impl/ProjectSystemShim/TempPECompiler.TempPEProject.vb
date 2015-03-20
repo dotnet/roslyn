@@ -22,12 +22,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
             Private _compilerOptions As ConvertedVisualBasicProjectOptions
 
-            Sub New(tempPECompiler As TempPECompiler, compilerHost As IVbCompilerHost)
+            Public Sub New(tempPECompiler As TempPECompiler, compilerHost As IVbCompilerHost)
                 _tempPECompiler = tempPECompiler
                 _compilerHost = compilerHost
             End Sub
 
-            Function CompileAndGetErrorCount(metadataService As IMetadataService) As Integer
+            Public Function CompileAndGetErrorCount(metadataService As IMetadataService) As Integer
                 Dim trees = _files.Select(Function(path)
                                               Using stream = FileUtilities.OpenRead(path)
                                                   Return SyntaxFactory.ParseSyntaxTree(SourceText.From(stream), options:=_compilerOptions.ParseOptions, path:=path)

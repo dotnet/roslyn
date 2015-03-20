@@ -989,7 +989,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub WarnOnRecursiveAccess(node As BoundExpression, accessKind As PropertyAccessKind, diagnostics As DiagnosticBag)
             Select Case node.Kind
                 Case BoundKind.XmlMemberAccess
-                ' Nothing to do 
+                    ' Nothing to do 
 
                 Case BoundKind.PropertyAccess
                     WarnOnRecursiveAccess(DirectCast(node, BoundPropertyAccess), accessKind, diagnostics)

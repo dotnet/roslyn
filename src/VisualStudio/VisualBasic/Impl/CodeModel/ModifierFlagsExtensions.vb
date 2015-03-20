@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
     Friend Module ModifierFlagsExtensions
-        Private modifierDefinitions As New SortedList(Of ModifierFlags, SyntaxKind) From {
+        Private s_modifierDefinitions As New SortedList(Of ModifierFlags, SyntaxKind) From {
             {ModifierFlags.Partial, SyntaxKind.PartialKeyword},
             {ModifierFlags.Default, SyntaxKind.DefaultKeyword},
             {ModifierFlags.Private, SyntaxKind.PrivateKeyword},
@@ -126,7 +126,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             member = member.WithoutLeadingTrivia()
 
             Dim newModifierList = New List(Of SyntaxToken)
-            For Each modifierDefinition In modifierDefinitions
+            For Each modifierDefinition In s_modifierDefinitions
                 If (flags And modifierDefinition.Key) <> 0 Then
                     newModifierList.Add(SyntaxFactory.Token(modifierDefinition.Value))
                 End If
@@ -147,7 +147,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             parameter = parameter.WithoutLeadingTrivia()
 
             Dim newModifierList = New List(Of SyntaxToken)
-            For Each modifierDefinition In modifierDefinitions
+            For Each modifierDefinition In s_modifierDefinitions
                 If (flags And modifierDefinition.Key) <> 0 Then
                     newModifierList.Add(SyntaxFactory.Token(modifierDefinition.Value))
                 End If

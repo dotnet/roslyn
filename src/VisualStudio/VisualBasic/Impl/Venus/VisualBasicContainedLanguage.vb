@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
         Inherits ContainedLanguage(Of VisualBasicPackage, VisualBasicLanguageService, VisualBasicProject)
         Implements IVsContainedLanguageStaticEventBinding
 
-        Sub New(bufferCoordinator As IVsTextBufferCoordinator,
+        Public Sub New(bufferCoordinator As IVsTextBufferCoordinator,
                 componentModel As IComponentModel,
                 project As VisualBasicProject,
                 hierarchy As IVsHierarchy,

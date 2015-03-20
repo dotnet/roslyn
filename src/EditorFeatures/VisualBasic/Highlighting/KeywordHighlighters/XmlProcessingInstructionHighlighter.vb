@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             With xmlDocumentPrologue
                 If Not .ContainsDiagnostics AndAlso
                    Not .HasAncestor(Of DocumentationCommentTriviaSyntax)() Then
-                    highlights.Add( .LessThanQuestionToken.Span)
-                    highlights.Add( .QuestionGreaterThanToken.Span)
+                    highlights.Add(.LessThanQuestionToken.Span)
+                    highlights.Add(.QuestionGreaterThanToken.Span)
                 End If
             End With
 

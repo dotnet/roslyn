@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             TestWorkspace.ResetThreadAffinity()
         End Sub
 
-        Class Model
+        Public Class Model
         End Class
 
         <Fact>

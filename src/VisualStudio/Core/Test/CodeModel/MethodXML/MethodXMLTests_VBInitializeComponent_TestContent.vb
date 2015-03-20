@@ -3,7 +3,7 @@
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
-        Private Shared InitializeComponentXML1 As XElement =
+        Private Shared s_initializeComponentXML1 As XElement =
 <Block>
     <ExpressionStatement line="24">
         <Expression>
@@ -69,7 +69,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     </ExpressionStatement>
 </Block>
 
-        Private Shared InitializeComponentXML2 As XElement =
+        Private Shared s_initializeComponentXML2 As XElement =
 <Block>
     <ExpressionStatement line="24">
         <Expression>

@@ -13,14 +13,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
     Friend Class MockCompletionProvider
         Implements ICompletionProvider
 
-        Private ReadOnly span As TextSpan
+        Private ReadOnly _span As TextSpan
 
         Public Sub New(span As TextSpan)
-            Me.span = span
+            Me._span = span
         End Sub
 
         Public Function GetGroupAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, Optional cancellationToken As CancellationToken = Nothing) As Task(Of CompletionItemGroup) Implements ICompletionProvider.GetGroupAsync
-            Dim item = New CompletionItem(Me, "DisplayText", span)
+            Dim item = New CompletionItem(Me, "DisplayText", _span)
             Return Task.FromResult(New CompletionItemGroup(SpecializedCollections.SingletonEnumerable(item)))
         End Function
 

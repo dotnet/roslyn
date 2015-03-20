@@ -3644,7 +3644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ReportDiagnostic(diagnostics, outerKey.Syntax, errorInfo)
 
                     Case JoinConditionSideDeterminationVisitor.Result.Outer
-                    ' This side is good.
+                        ' This side is good.
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(outerSide)
                 End Select
@@ -3659,7 +3659,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ReportDiagnostic(diagnostics, innerKey.Syntax, errorInfo)
 
                     Case JoinConditionSideDeterminationVisitor.Result.Inner
-                    ' This side is good.
+                        ' This side is good.
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(innerSide)
                 End Select
