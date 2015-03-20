@@ -48,17 +48,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private struct TypeNameConfig
         {
-            public int nestingLevel;
-            public TypeNameConfig[] genericParamsConfig;
-            public ArrayKind arrayKind;
-            public bool assemblyQualified;
+            public int NestingLevel;
+            public TypeNameConfig[] GenericParamsConfig;
+            public ArrayKind ArrayKind;
+            public bool AssemblyQualified;
 
             public TypeNameConfig(int nestingLevel, TypeNameConfig[] genericParamsConfig, ArrayKind arrayKind, bool assemblyQualified)
             {
-                this.nestingLevel = nestingLevel;
-                this.genericParamsConfig = genericParamsConfig;
-                this.arrayKind = arrayKind;
-                this.assemblyQualified = assemblyQualified;
+                this.NestingLevel = nestingLevel;
+                this.GenericParamsConfig = genericParamsConfig;
+                this.ArrayKind = arrayKind;
+                this.AssemblyQualified = assemblyQualified;
             }
         }
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static string[] GenerateTypeNamesToDecode(TypeNameConfig[] typeNameConfigs, out MetadataHelpers.AssemblyQualifiedTypeName[] expectedDecodeNames)
         {
             var pooledStrBuilder = PooledStringBuilder.GetInstance();
-            StringBuilder typeNamebuilder = pooledStrBuilder.Builder;
+            StringBuilder typeNameBuilder = pooledStrBuilder.Builder;
 
             var typeNamesToDecode = new string[typeNameConfigs.Length];
             expectedDecodeNames = new MetadataHelpers.AssemblyQualifiedTypeName[typeNameConfigs.Length];
@@ -101,97 +101,97 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 TypeNameConfig typeNameConfig = typeNameConfigs[index];
 
                 string expectedTopLevelTypeName = "X";
-                typeNamebuilder.Append("X");
+                typeNameBuilder.Append("X");
 
                 string[] expectedNestedTypes = null;
-                if (typeNameConfig.nestingLevel > 0)
+                if (typeNameConfig.NestingLevel > 0)
                 {
-                    expectedNestedTypes = new string[typeNameConfig.nestingLevel];
-                    for (int i = 0; i < typeNameConfig.nestingLevel; i++)
+                    expectedNestedTypes = new string[typeNameConfig.NestingLevel];
+                    for (int i = 0; i < typeNameConfig.NestingLevel; i++)
                     {
                         expectedNestedTypes[i] = "Y" + i;
-                        typeNamebuilder.Append("+" + expectedNestedTypes[i]);
+                        typeNameBuilder.Append("+" + expectedNestedTypes[i]);
                     }
                 }
 
                 MetadataHelpers.AssemblyQualifiedTypeName[] expectedTypeArguments;
-                if (typeNameConfig.genericParamsConfig == null)
+                if (typeNameConfig.GenericParamsConfig == null)
                 {
                     expectedTypeArguments = null;
                 }
                 else
                 {
-                    string[] genericParamsToDecode = GenerateTypeNamesToDecode(typeNameConfig.genericParamsConfig, out expectedTypeArguments);
+                    string[] genericParamsToDecode = GenerateTypeNamesToDecode(typeNameConfig.GenericParamsConfig, out expectedTypeArguments);
 
                     var genericArityStr = "`" + genericParamsToDecode.Length.ToString();
-                    typeNamebuilder.Append(genericArityStr);
-                    if (typeNameConfig.nestingLevel == 0)
+                    typeNameBuilder.Append(genericArityStr);
+                    if (typeNameConfig.NestingLevel == 0)
                     {
                         expectedTopLevelTypeName += genericArityStr;
                     }
                     else
                     {
-                        expectedNestedTypes[typeNameConfig.nestingLevel - 1] += genericArityStr;
+                        expectedNestedTypes[typeNameConfig.NestingLevel - 1] += genericArityStr;
                     }
 
-                    typeNamebuilder.Append("[");
+                    typeNameBuilder.Append("[");
 
                     for (int i = 0; i < genericParamsToDecode.Length; i++)
                     {
                         if (i > 0)
                         {
-                            typeNamebuilder.Append(", ");
+                            typeNameBuilder.Append(", ");
                         }
 
-                        if (typeNameConfig.genericParamsConfig[i].assemblyQualified)
+                        if (typeNameConfig.GenericParamsConfig[i].AssemblyQualified)
                         {
-                            typeNamebuilder.Append("[");
-                            typeNamebuilder.Append(genericParamsToDecode[i]);
-                            typeNamebuilder.Append("]");
+                            typeNameBuilder.Append("[");
+                            typeNameBuilder.Append(genericParamsToDecode[i]);
+                            typeNameBuilder.Append("]");
                         }
                         else
                         {
-                            typeNamebuilder.Append(genericParamsToDecode[i]);
+                            typeNameBuilder.Append(genericParamsToDecode[i]);
                         }
                     }
 
-                    typeNamebuilder.Append("]");
+                    typeNameBuilder.Append("]");
                 }
 
                 int[] expectedArrayRanks = null;
-                switch (typeNameConfig.arrayKind)
+                switch (typeNameConfig.ArrayKind)
                 {
                     case ArrayKind.SingleDimensional:
-                        typeNamebuilder.Append("[]");
+                        typeNameBuilder.Append("[]");
                         expectedArrayRanks = new[] { 1 };
                         break;
 
                     case ArrayKind.MultiDimensional:
-                        typeNamebuilder.Append("[,]");
+                        typeNameBuilder.Append("[,]");
                         expectedArrayRanks = new[] { 2 };
                         break;
 
                     case ArrayKind.Jagged:
-                        typeNamebuilder.Append("[,][]");
+                        typeNameBuilder.Append("[,][]");
                         expectedArrayRanks = new[] { 1, 2 };
                         break;
                 }
 
                 string expectedAssemblyName;
-                if (typeNameConfig.assemblyQualified)
+                if (typeNameConfig.AssemblyQualified)
                 {
                     expectedAssemblyName = "Assembly, Version=0.0.0.0, Culture=neutral, null";
-                    typeNamebuilder.Append(", " + expectedAssemblyName);
+                    typeNameBuilder.Append(", " + expectedAssemblyName);
                 }
                 else
                 {
                     expectedAssemblyName = null;
                 }
 
-                typeNamesToDecode[index] = typeNamebuilder.ToString();
+                typeNamesToDecode[index] = typeNameBuilder.ToString();
                 expectedDecodeNames[index] = new MetadataHelpers.AssemblyQualifiedTypeName(expectedTopLevelTypeName, expectedNestedTypes, expectedTypeArguments, expectedArrayRanks, expectedAssemblyName);
 
-                typeNamebuilder.Clear();
+                typeNameBuilder.Clear();
             }
 
             pooledStrBuilder.Free();
