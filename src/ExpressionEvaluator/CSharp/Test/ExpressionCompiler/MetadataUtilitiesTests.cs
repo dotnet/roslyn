@@ -12,10 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class MetadataUtilitiesTests : CSharpTestBase
     {
         /// <summary>
-        /// The same assembly loaded multiple times.
+        /// MakeAssemblyReferences should only drop duplicate
+        /// assemblies if the assemblies are strong-named.
         /// </summary>
+        [WorkItem(1141029)]
         [Fact]
-        public void AssemblyDuplicateReferences()
+        public void DuplicateAssemblyReferences()
         {
             var sourceA =
 @"public class A
@@ -30,52 +32,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var referenceA = AssemblyMetadata.CreateFromImage(compilationA.EmitToArray()).GetReference();
+            var identityA = referenceA.GetAssemblyIdentity();
+
             var compilationB = CreateCompilationWithMscorlib(
                 sourceB,
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
                 references: new MetadataReference[] { referenceA });
             var referenceB = AssemblyMetadata.CreateFromImage(compilationB.EmitToArray()).GetReference();
-            var references = ImmutableArray.Create(
-                    MscorlibRef,
-                    referenceA,
-                    referenceB,
-                    referenceB,
-                    referenceA,
-                    referenceA);
-            using (var runtime = CreateRuntime(references))
-            {
-                var blocks = GetMetadataBlocks(runtime);
-                var actualReferences = blocks.MakeAssemblyReferences();
-                var expectedReferences = ImmutableArray.Create(
-                    MscorlibRef,
-                    referenceA,
-                    referenceB);
-                AssertEx.Equal(expectedReferences, actualReferences);
-            }
+            var identityB = referenceB.GetAssemblyIdentity();
+
+            var mscorlibIdentity = MscorlibRef.GetAssemblyIdentity();
+            var systemRefIdentity = SystemRef.GetAssemblyIdentity();
+            var systemRef20Identity = SystemRef_v20.GetAssemblyIdentity();
+
+            // Non-strong-named duplicates.
+            VerifyAssemblyReferences(
+                ImmutableArray.Create(MscorlibRef, referenceA, referenceB, referenceB, referenceA, referenceA),
+                ImmutableArray.Create(mscorlibIdentity, identityA, identityB, identityB, identityA, identityA));
+            // Strong-named duplicate, same version.
+            VerifyAssemblyReferences(
+                ImmutableArray.Create(SystemRef, MscorlibRef, SystemRef),
+                ImmutableArray.Create(systemRefIdentity, mscorlibIdentity));
+            // Strong-named duplicate, lower version first.
+            VerifyAssemblyReferences(
+                ImmutableArray.Create(SystemRef_v20, SystemRef, SystemRef_v20),
+                ImmutableArray.Create(systemRefIdentity));
+            // Strong-named duplicate, higher version first.
+            VerifyAssemblyReferences(
+                ImmutableArray.Create(SystemRef, SystemRef_v20, SystemRef_v20),
+                ImmutableArray.Create(systemRefIdentity));
+            // Strong-named and non-strong named duplicates.
+            VerifyAssemblyReferences(
+                ImmutableArray.Create(referenceA, SystemRef, MscorlibRef, SystemRef, referenceA),
+                ImmutableArray.Create(identityA, systemRefIdentity, mscorlibIdentity, identityA));
         }
 
-        private static RuntimeInstance CreateRuntime(ImmutableArray<MetadataReference> references)
+        private static void VerifyAssemblyReferences(ImmutableArray<MetadataReference> references, ImmutableArray<AssemblyIdentity> expectedIdentities)
         {
             var modules = references.SelectAsArray(r => r.ToModuleInstance(fullImage: null, symReader: null, includeLocalSignatures: false));
-            return new RuntimeInstance(modules);
-        }
-
-        private static ImmutableArray<MetadataBlock> GetMetadataBlocks(RuntimeInstance runtime)
-        {
-            return runtime.Modules.SelectAsArray(m => m.MetadataBlock);
-        }
-
-        private static ImmutableArray<string> GetNames(ImmutableArray<MetadataBlock> blocks)
-        {
-            return blocks.SelectAsArray(GetName);
-        }
-
-        private static string GetName(MetadataBlock block)
-        {
-            var metadata = ModuleMetadata.CreateFromMetadata(block.Pointer, block.Size, includeEmbeddedInteropTypes: true);
-            var identity = metadata.MetadataReader.ReadAssemblyIdentityOrThrow();
-            return identity.GetDisplayName();
+            using (var runtime = new RuntimeInstance(modules))
+            {
+                var blocks = runtime.Modules.SelectAsArray(m => m.MetadataBlock);
+                var actualReferences = blocks.MakeAssemblyReferences();
+                var actualIdentities = actualReferences.SelectAsArray(r => r.GetAssemblyIdentity());
+                AssertEx.Equal(expectedIdentities, actualIdentities);
+            }
         }
     }
 }
