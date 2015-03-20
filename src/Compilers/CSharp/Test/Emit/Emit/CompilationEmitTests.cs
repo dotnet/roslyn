@@ -2814,17 +2814,78 @@ class C6
                 var expectedNames = new[]
                     {
                         "<Module>",
-                        "<>f__AnonymousType0`2",
-                        "<>f__AnonymousType3`2",
                         "<>f__AnonymousType1`2",
-                        "<>f__AnonymousType2`1",
+                        "<>f__AnonymousType3`2",
+                        "<>f__AnonymousType0`2",
                         "<>f__AnonymousType4`1",
+                        "<>f__AnonymousType2`1",
                         "C1",
                         "C2",
                         "C3",
                         "C4",
                         "C5",
                         "C6",
+                    };
+                AssertEx.Equal(expectedNames, actualNames);
+            }
+        }
+
+        /// <summary>
+        /// Ordering of synthesized delegates in
+        /// metadata should be deterministic.
+        /// </summary>
+        [Fact]
+        public void SynthesizedDelegateMetadataOrder()
+        {
+            var source =
+@"class C1
+{
+    static void M(dynamic d, object o)
+    {
+        d(ref o);
+    }
+}
+class C2
+{
+    static void M(dynamic d, object x, int y)
+    {
+        d(1, ref x, out y);
+    }
+}
+class C3
+{
+    static void M(dynamic d, object o)
+    {
+        d(ref o, 2);
+    }
+}
+class C4
+{
+    static void M(dynamic d, object o)
+    {
+        d(ref o);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, references: new[] { SystemCoreRef, CSharpRef });
+            var bytes = compilation.EmitToArray();
+            using (var metadata = ModuleMetadata.CreateFromImage(bytes))
+            {
+                var reader = metadata.MetadataReader;
+                var actualNames = reader.GetTypeDefNames().Select(h => reader.GetString(h));
+                var expectedNames = new[]
+                    {
+                        "<Module>",
+                        "<>A{00000004}`3",
+                        "<>A{00000004}`4",
+                        "<>A{00000018}`5",
+                        "C1",
+                        "C2",
+                        "C3",
+                        "C4",
+                        "<>o__0",
+                        "<>o__0",
+                        "<>o__0",
+                        "<>o__0",
                     };
                 AssertEx.Equal(expectedNames, actualNames);
             }
