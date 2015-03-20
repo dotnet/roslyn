@@ -7945,5 +7945,45 @@ class A {
 ";
             VerifyItemExists(markup, "s_abc");
         }
+
+        [WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void NoConditionalAccessCompletionOnTypes1()
+        {
+            var markup = @"
+using A = System
+class C
+{
+    A?.$$
+}
+";
+            VerifyNoItemsExist(markup);
+        }
+
+        [WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void NoConditionalAccessCompletionOnTypes2()
+        {
+            var markup = @"
+class C
+{
+    System?.$$
+}
+";
+            VerifyNoItemsExist(markup);
+        }
+
+        [WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void NoConditionalAccessCompletionOnTypes3()
+        {
+            var markup = @"
+class C
+{
+    System.Console?.$$
+}
+";
+            VerifyNoItemsExist(markup);
+        }
     }
 }

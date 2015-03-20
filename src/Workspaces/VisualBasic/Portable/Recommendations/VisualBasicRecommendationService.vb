@@ -224,6 +224,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
                 Dim firstSymbol = leftHandBinding.Symbol
 
+
+
+
                 Select Case firstSymbol.Kind
                     Case SymbolKind.TypeParameter
                         ' 884060: We don't allow invocations off type parameters.
@@ -276,6 +279,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 If type?.ConstructedFrom.SpecialType = SpecialType.System_Nullable_T Then
                     container = type.GetTypeArguments().First()
                 End If
+            End If
+
+            ' No completion on types/namespace after conditional access
+            If leftExpression.Parent.IsKind(SyntaxKind.ConditionalAccessExpression) AndAlso
+                (couldBeMergedNamespace OrElse leftHandBinding.GetBestOrAllSymbols().FirstOrDefault().MatchesKind(SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Alias)) Then
+                Return SpecializedCollections.EmptyCollection(Of ISymbol)()
             End If
 
             Dim position = node.SpanStart

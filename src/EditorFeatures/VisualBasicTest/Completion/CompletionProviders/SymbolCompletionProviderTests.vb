@@ -5289,7 +5289,7 @@ End Class
 
         <WorkItem(1041269)>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub UnwrapNullableForConditionalAccess()
+        Public Sub NullableForConditionalAccess()
             Dim text =
 <code><![CDATA[
 Class C
@@ -5390,24 +5390,6 @@ End Module
 ]]></code>.Value
 
             VerifyItemExists(text, "ToString")
-        End Sub
-
-        <WorkItem(1079716)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub DontThrowForNullPropagatingOperatorAfterNamespace()
-            Dim text =
-<code><![CDATA[
-Option Strict On
-Module Program
-    Sub Main()
-        System?.$$
-    End Sub
-End Module
-]]></code>.Value
-
-            ' NOTE: The current behavior is that we'll still show types for a namespace after ?.
-            ' While the code is not correct, it seems reasonable to allow the user to continue typing.
-            VerifyItemExists(text, "Action")
         End Sub
 
         <WorkItem(1079723)>
@@ -5833,6 +5815,52 @@ End Class
 ]]></code>.Value
 
             VerifyItemExists(text, "M", usePreviousCharAsTrigger:=True)
+        End Sub
+
+        <WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
+<Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoCompletionForConditionalAccessOnTypes1()
+            Dim text =
+<code><![CDATA[
+Module Program
+    Sub Main(args As String())
+        System?.$$
+    End Sub
+End Module
+]]></code>.Value
+
+            VerifyNoItemsExist(text)
+        End Sub
+
+        <WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoCompletionForConditionalAccessOnTypes2()
+            Dim text =
+<code><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Console?.$$
+    End Sub
+End Module
+]]></code>.Value
+
+            VerifyNoItemsExist(text)
+        End Sub
+
+        <WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoCompletionForConditionalAccessOnTypes3()
+            Dim text =
+<code><![CDATA[
+Imports a = System
+Module Program
+    Sub Main(args As String())
+        a?.$$
+    End Sub
+End Module
+]]></code>.Value
+
+            VerifyNoItemsExist(text)
         End Sub
 
     End Class
