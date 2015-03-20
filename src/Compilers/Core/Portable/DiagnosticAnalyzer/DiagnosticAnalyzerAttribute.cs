@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -25,15 +24,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (firstLanguage == null)
             {
-                throw new ArgumentNullException("firstLanguage");
+                throw new ArgumentNullException(nameof(firstLanguage));
             }
 
             if (additionalLanguages == null)
             {
-                throw new ArgumentNullException("additionalLanguages");
+                throw new ArgumentNullException(nameof(additionalLanguages));
             }
 
-            string[] languages = new string[additionalLanguages.Length + 1];
+            var languages = new string[additionalLanguages.Length + 1];
             languages[0] = firstLanguage;
             for (int index = 0; index < additionalLanguages.Length; index++)
             {

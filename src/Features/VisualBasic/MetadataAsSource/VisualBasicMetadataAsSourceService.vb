@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
     Friend Class VisualBasicMetadataAsSourceService
         Inherits AbstractMetadataAsSourceService
 
-        Private ReadOnly MemberSeparationRule As IFormattingRule = New FormattingRule()
+        Private ReadOnly _memberSeparationRule As IFormattingRule = New FormattingRule()
 
         Public Sub New(languageServices As HostLanguageServices)
             MyBase.New(languageServices.GetService(Of ICodeGenerationService)())
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
         End Function
 
         Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of IFormattingRule)
-            Return MemberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document))
+            Return _memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document))
         End Function
 
         Protected Overrides Iterator Function GetReducers() As IEnumerable(Of AbstractReducer)
@@ -130,13 +130,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
         Private Class DocCommentConverter
             Inherits VisualBasicSyntaxRewriter
 
-            Private ReadOnly formattingService As IDocumentationCommentFormattingService
-            Private ReadOnly cancellationToken As CancellationToken
+            Private ReadOnly _formattingService As IDocumentationCommentFormattingService
+            Private ReadOnly _cancellationToken As CancellationToken
 
             Public Sub New(formattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken)
                 MyBase.New(visitIntoStructuredTrivia:=False)
-                Me.formattingService = formattingService
-                Me.cancellationToken = cancellationToken
+                Me._formattingService = formattingService
+                Me._cancellationToken = cancellationToken
             End Sub
 
             Public Shared Function ConvertToRegularComments(node As SyntaxNode, formattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As SyntaxNode
@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
             End Function
 
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
-                Me.cancellationToken.ThrowIfCancellationRequested()
+                Me._cancellationToken.ThrowIfCancellationRequested()
 
                 If node Is Nothing Then
                     Return node
@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
 
                 Dim docComment = DocumentationComment.FromXmlFragment(xmlFragment)
 
-                Dim commentLines = AbstractMetadataAsSourceService.DocCommentFormatter.Format(Me.formattingService, docComment)
+                Dim commentLines = AbstractMetadataAsSourceService.DocCommentFormatter.Format(Me._formattingService, docComment)
 
                 For Each line In commentLines
                     If Not String.IsNullOrWhiteSpace(line) Then

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -59,7 +58,7 @@ namespace Microsoft.Cci
             EmitContext context,
             CommonMessageProvider messageProvider,
             Func<Stream> getPeStream,
-            Func<Stream> getPdbStreamOpt,
+            Func<Stream> getPortablePdbStreamOpt,
             PdbWriter nativePdbWriterOpt,
             bool allowMissingMethodBodies,
             bool deterministic,
@@ -69,13 +68,10 @@ namespace Microsoft.Cci
 
             var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
 
-            if (nativePdbWriterOpt != null)
-            {
-                nativePdbWriterOpt.SetMetadataEmitter(mdWriter);
-            }
+            nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
 
             uint entryPointToken;
-            if (!peWriter.Write(mdWriter, getPeStream, getPdbStreamOpt, nativePdbWriterOpt, out entryPointToken))
+            if (!peWriter.Write(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt, out entryPointToken))
             {
                 return false;
             }
@@ -147,7 +143,6 @@ namespace Microsoft.Cci
             var corHeader = CreateCorHeader(metadataSizes, entryPointToken);
 
             // write to streams
-
 
             if (getPdbStreamOpt != null)
             {
@@ -731,11 +726,11 @@ namespace Microsoft.Cci
 
         private class Directory
         {
-            internal string Name;
-            internal int ID;
+            internal readonly string Name;
+            internal readonly int ID;
             internal ushort NumberOfNamedEntries;
             internal ushort NumberOfIdEntries;
-            internal List<object> Entries;
+            internal readonly List<object> Entries;
 
             internal Directory(string name, int id)
             {
@@ -894,8 +889,8 @@ namespace Microsoft.Cci
             uint k = offset + 16 + n * 8;
             for (int i = 0; i < n; i++)
             {
-                int id = int.MinValue;
-                string name = null;
+                int id;
+                string name;
                 uint nameOffset = dataWriter.BaseStream.Position + sizeOfDirectoryTree;
                 uint directoryOffset = k;
                 Directory subDir = directory.Entries[i] as Directory;
@@ -1004,7 +999,7 @@ namespace Microsoft.Cci
             var savedPosition = _win32ResourceWriter.BaseStream.Position;
 
             var readStream = new System.IO.MemoryStream(resourceSections.SectionBytes);
-            var reader = new System.IO.BinaryReader(readStream);
+            var reader = new BinaryReader(readStream);
 
             foreach (int addressToFixup in resourceSections.Relocations)
             {
@@ -1066,7 +1061,7 @@ namespace Microsoft.Cci
 
             // COFF Header 20 bytes
             writer.WriteUshort((ushort)module.Machine);
-            writer.WriteUshort((ushort)ntHeader.NumberOfSections);
+            writer.WriteUshort(ntHeader.NumberOfSections);
             timestampOffset = (uint)(writer.BaseStream.Position + peStream.Position);
             writer.WriteUint(ntHeader.TimeDateStamp);
             writer.WriteUint(ntHeader.PointerToSymbolTable);
@@ -1263,14 +1258,14 @@ namespace Microsoft.Cci
             startOfMetadata = peStream.Position;
             WriteMetadata(peStream, metadataStream);
 
-            this.WriteManagedResources(peStream, managedResourceStream);
+            WriteManagedResources(peStream, managedResourceStream);
             WriteSpaceForHash(peStream, (int)corHeader.StrongNameSignature.Size);
             this.WriteDebugTable(peStream, out positionOfTimestamp);
 
             if (_emitRuntimeStartupStub)
             {
                 this.WriteImportTable(peStream);
-                this.WriteNameTable(peStream);
+                WriteNameTable(peStream);
                 this.WriteRuntimeStartupStub(peStream);
             }
 
@@ -1346,7 +1341,7 @@ namespace Microsoft.Cci
             writer.BaseStream.WriteTo(peStream);
         }
 
-        private void WriteNameTable(Stream peStream)
+        private static void WriteNameTable(Stream peStream)
         {
             BinaryWriter writer = new BinaryWriter(new MemoryStream(14));
             foreach (char ch in "mscoree.dll")
@@ -1419,7 +1414,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void WriteManagedResources(Stream peStream, MemoryStream managedResourceStream)
+        private static void WriteManagedResources(Stream peStream, MemoryStream managedResourceStream)
         {
             managedResourceStream.WriteTo(peStream);
             while (peStream.Position % 4 != 0)

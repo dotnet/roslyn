@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal ImmutableArray<string> Features { get; protected set; }
 
-        private Lazy<ImmutableArray<Diagnostic>> _lazyErrors = null;
+        private readonly Lazy<ImmutableArray<Diagnostic>> _lazyErrors;
 
         // Expects correct arguments.
         internal CompilationOptions(

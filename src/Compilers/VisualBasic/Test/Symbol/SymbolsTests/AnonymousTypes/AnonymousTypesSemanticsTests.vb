@@ -2037,7 +2037,7 @@ End Module
 
 #Region "Extensions"
 
-    Module TestExtensions
+    Friend Module TestExtensions
 
         <Extension()>
         Public Function TheOnlyConstructor(type As ITypeSymbol) As MethodSymbol

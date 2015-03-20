@@ -67,6 +67,11 @@ namespace Roslyn.Diagnostics.Analyzers
                 context.CancellationToken.ThrowIfCancellationRequested();
 
                 var info = context.SemanticModel.GetSymbolInfo(context.Node, context.CancellationToken);
+                if (info.Symbol?.Kind == SymbolKind.Namespace)
+                {
+                    // Avoid getting Locations for namespaces. That can be very expensive.
+                    return;
+                }
 
                 var hasLocations = info.Symbol?.OriginalDefinition?.Locations.Length > 0;
                 if (!hasLocations)

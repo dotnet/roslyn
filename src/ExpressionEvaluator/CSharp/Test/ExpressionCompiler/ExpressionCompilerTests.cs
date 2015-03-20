@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             compilationB.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
             const int methodVersion = 1;
 
-            CSharpMetadataContext previous = null;
+            CSharpMetadataContext previous = default(CSharpMetadataContext);
             int startOffset;
             int endOffset;
             var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, new SymReader(pdbBytes));
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // At start of outer scope.
             var context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, startOffset, localSignatureToken);
-            Assert.Null(previous);
+            Assert.Equal(default(CSharpMetadataContext), previous);
             previous = new CSharpMetadataContext(context);
 
             // At end of outer scope - not reused because of the nested scope.
@@ -5914,6 +5914,53 @@ public class C<T>
   IL_000a:  ret
 }
 ");
+        }
+
+        [WorkItem(1136085, "DevDiv")]
+        [Fact]
+        public void TypeofOpenGenericType()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public void M()
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            var runtime = CreateRuntimeInstance(compilation);
+            var context = CreateMethodContext(runtime, "C.M");
+
+            string error;
+            var expectedIL = @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""System.Action<T>""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ret
+}";
+
+            var testData = new CompilationTestData();
+            context.CompileExpression("typeof(Action<>)", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(expectedIL);
+
+            testData = new CompilationTestData();
+            context.CompileExpression("typeof(Action<>  )", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(expectedIL);
+
+            context.CompileExpression("typeof(Action<Action<>>)", out error, testData);
+            Assert.Equal("error CS7003: Unexpected use of an unbound generic name", error);
+
+            context.CompileExpression("typeof(Action<Action< > > )", out error);
+            Assert.Equal("error CS7003: Unexpected use of an unbound generic name", error);
+
+            context.CompileExpression("typeof(Action<>a)", out error);
+            Assert.Equal("(1,16): error CS1026: ) expected", error);
         }
     }
 }

@@ -14,12 +14,12 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     Friend Class FixIncorrectTokensCodeCleanupProvider
         Inherits AbstractTokensCodeCleanupProvider
 
-        Private Const ASCII_LSMART_Q As Char = ChrW(&H91S)          '// ASCII left single smart quote
-        Private Const ASCII_RSMART_Q As Char = ChrW(&H92S)          '// ASCII right single smart quote
-        Private Const UNICODE_LSMART_Q As Char = ChrW(&H2018S)      '// UNICODE left single smart quote
-        Private Const UNICODE_RSMART_Q As Char = ChrW(&H2019S)      '// UNICODE right single smart quote
-        Private Const CH_STRGHT_Q As Char = ChrW(&H27S)             '// UNICODE straight quote
-        Private Shared ReadOnly _smartSingleQuotes As Char() = New Char() {ASCII_LSMART_Q, ASCII_RSMART_Q, UNICODE_LSMART_Q, UNICODE_RSMART_Q}
+        Private Const s_ASCII_LSMART_Q As Char = ChrW(&H91S)          '// ASCII left single smart quote
+        Private Const s_ASCII_RSMART_Q As Char = ChrW(&H92S)          '// ASCII right single smart quote
+        Private Const s_UNICODE_LSMART_Q As Char = ChrW(&H2018S)      '// UNICODE left single smart quote
+        Private Const s_UNICODE_RSMART_Q As Char = ChrW(&H2019S)      '// UNICODE right single smart quote
+        Private Const s_CH_STRGHT_Q As Char = ChrW(&H27S)             '// UNICODE straight quote
+        Private Shared ReadOnly s_smartSingleQuotes As Char() = New Char() {s_ASCII_LSMART_Q, s_ASCII_RSMART_Q, s_UNICODE_LSMART_Q, s_UNICODE_RSMART_Q}
 
         Public Overrides ReadOnly Property Name As String
             Get
@@ -34,32 +34,32 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Private Class FixIncorrectTokensRewriter
             Inherits AbstractTokensCodeCleanupProvider.Rewriter
 
-            Private ReadOnly document As Document
-            Private ReadOnly modifiedSpan As TextSpan
+            Private ReadOnly _document As Document
+            Private ReadOnly _modifiedSpan As TextSpan
 
-            Private model As SemanticModel = Nothing
+            Private _model As SemanticModel = Nothing
 
             Public Sub New(document As Document, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken)
                 MyBase.New(spans, cancellationToken)
 
-                Me.document = document
-                Me.modifiedSpan = spans.Collapse()
+                Me._document = document
+                Me._modifiedSpan = spans.Collapse()
             End Sub
 
             Private ReadOnly Property SemanticModel As SemanticModel
                 Get
-                    If document Is Nothing Then
+                    If _document Is Nothing Then
                         Return Nothing
                     End If
 
-                    If model Is Nothing Then
+                    If _model Is Nothing Then
                         ' don't want to create semantic model when it is not needed. so get it synchronously when needed
                         ' most of cases, this will run on UI thread, so it shouldn't matter
-                        model = document.GetSemanticModelForSpanAsync(modifiedSpan, Me._cancellationToken).WaitAndGetResult(Me._cancellationToken)
+                        _model = _document.GetSemanticModelForSpanAsync(_modifiedSpan, Me._cancellationToken).WaitAndGetResult(Me._cancellationToken)
                     End If
 
-                    Contract.Requires(model IsNot Nothing)
-                    Return model
+                    Contract.Requires(_model IsNot Nothing)
+                    Return _model
                 End Get
             End Property
 
@@ -69,8 +69,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 ' convert fullwidth single quotes into halfwidth single quotes.
                 If newTrivia.Kind = SyntaxKind.CommentTrivia Then
                     Dim triviaText = newTrivia.ToString()
-                    If triviaText.Length > 0 AndAlso _smartSingleQuotes.Contains(triviaText(0)) Then
-                        triviaText = CH_STRGHT_Q + triviaText.Substring(1)
+                    If triviaText.Length > 0 AndAlso s_smartSingleQuotes.Contains(triviaText(0)) Then
+                        triviaText = s_CH_STRGHT_Q + triviaText.Substring(1)
                         Return SyntaxFactory.CommentTrivia(triviaText)
                     End If
                 End If

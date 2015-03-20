@@ -23,26 +23,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             Dim highlights As New List(Of TextSpan)
 
             With tryBlock
-                highlights.Add( .TryStatement.TryKeyword.Span)
+                highlights.Add(.TryStatement.TryKeyword.Span)
 
                 HighlightRelatedStatements(tryBlock, highlights)
 
                 For Each catchBlock In .CatchBlocks
                     With catchBlock.CatchStatement
-                        highlights.Add( .CatchKeyword.Span)
+                        highlights.Add(.CatchKeyword.Span)
 
                         If .WhenClause IsNot Nothing Then
-                            highlights.Add( .WhenClause.WhenKeyword.Span)
+                            highlights.Add(.WhenClause.WhenKeyword.Span)
                         End If
                     End With
                     HighlightRelatedStatements(catchBlock, highlights)
                 Next
 
                 If .FinallyBlock IsNot Nothing Then
-                    highlights.Add( .FinallyBlock.FinallyStatement.FinallyKeyword.Span)
+                    highlights.Add(.FinallyBlock.FinallyStatement.FinallyKeyword.Span)
                 End If
 
-                highlights.Add( .EndTryStatement.Span)
+                highlights.Add(.EndTryStatement.Span)
 
                 Return highlights
             End With

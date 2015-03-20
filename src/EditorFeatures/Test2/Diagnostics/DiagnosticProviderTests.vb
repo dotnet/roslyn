@@ -17,17 +17,17 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
     ''' Tests for Error List. Since it is language agnostic there are no C# or VB Specific tests
     ''' </summary>
     Public Class DiagnosticProviderTests
-        Private Const ErrorElementName As String = "Error"
-        Private Const ProjectAttributeName As String = "Project"
-        Private Const CodeAttributeName As String = "Code"
-        Private Const MappedLineAttributeName As String = "MappedLine"
-        Private Const MappedColumnAttributeName As String = "MappedColumn"
-        Private Const OriginalLineAttributeName As String = "OriginalLine"
-        Private Const OriginalColumnAttributeName As String = "OriginalColumn"
-        Private Const IdAttributeName As String = "Id"
-        Private Const MessageAttributeName As String = "Message"
-        Private Const OriginalFileAttributeName As String = "OriginalFile"
-        Private Const MappedFileAttributeName As String = "MappedFile"
+        Private Const s_errorElementName As String = "Error"
+        Private Const s_projectAttributeName As String = "Project"
+        Private Const s_codeAttributeName As String = "Code"
+        Private Const s_mappedLineAttributeName As String = "MappedLine"
+        Private Const s_mappedColumnAttributeName As String = "MappedColumn"
+        Private Const s_originalLineAttributeName As String = "OriginalLine"
+        Private Const s_originalColumnAttributeName As String = "OriginalColumn"
+        Private Const s_idAttributeName As String = "Id"
+        Private Const s_messageAttributeName As String = "Message"
+        Private Const s_originalFileAttributeName As String = "OriginalFile"
+        Private Const s_mappedFileAttributeName As String = "MappedFile"
 
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestNoErrors()
@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim notificationServie = New TestForegroundNotificationService()
 
             Dim compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()
-            Dim analyzerService = New DiagnosticAnalyzerService(compilerAnalyzersMap)
+            Dim analyzerService = New TestDiagnosticAnalyzerService(compilerAnalyzersMap)
 
             ' CollectErrors generates interleaved background and foreground tasks.
             Dim service = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)(), SolutionCrawlerRegistrationService)
@@ -308,19 +308,19 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
             For Each diagnostic As XElement In diagnostics.Elements()
 
-                code = Integer.Parse(diagnostic.Attribute(CodeAttributeName).Value)
-                mappedLine = Integer.Parse(diagnostic.Attribute(MappedLineAttributeName).Value)
-                mappedColumn = Integer.Parse(diagnostic.Attribute(MappedColumnAttributeName).Value)
-                originalLine = Integer.Parse(diagnostic.Attribute(OriginalLineAttributeName).Value)
-                originalColumn = Integer.Parse(diagnostic.Attribute(OriginalColumnAttributeName).Value)
+                code = Integer.Parse(diagnostic.Attribute(s_codeAttributeName).Value)
+                mappedLine = Integer.Parse(diagnostic.Attribute(s_mappedLineAttributeName).Value)
+                mappedColumn = Integer.Parse(diagnostic.Attribute(s_mappedColumnAttributeName).Value)
+                originalLine = Integer.Parse(diagnostic.Attribute(s_originalLineAttributeName).Value)
+                originalColumn = Integer.Parse(diagnostic.Attribute(s_originalColumnAttributeName).Value)
 
-                Id = diagnostic.Attribute(IdAttributeName).Value
-                message = diagnostic.Attribute(MessageAttributeName).Value
-                originalFile = diagnostic.Attribute(OriginalFileAttributeName).Value
-                mappedFile = diagnostic.Attribute(MappedFileAttributeName).Value
+                Id = diagnostic.Attribute(s_idAttributeName).Value
+                message = diagnostic.Attribute(s_messageAttributeName).Value
+                originalFile = diagnostic.Attribute(s_originalFileAttributeName).Value
+                mappedFile = diagnostic.Attribute(s_mappedFileAttributeName).Value
                 documentId = GetDocumentId(workspace, originalFile)
 
-                If diagnostic.Name.LocalName.Equals(ErrorElementName) Then
+                If diagnostic.Name.LocalName.Equals(s_errorElementName) Then
                     result.Add(SourceError(Id, message, workspace, documentId, documentId.ProjectId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile))
                 Else
                     result.Add(SourceWarning(Id, message, workspace, documentId, documentId.ProjectId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile))

@@ -2,6 +2,7 @@
 
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -410,6 +411,53 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 // prove constructing text did not introduce a new version
                 Assert.Equal(currentVersion, actualVersion);
             }
+        }
+
+        private AdhocWorkspace CreateWorkspaceWithRecoverableTrees()
+        {
+            var ws = new AdhocWorkspace(TestHost.Services, workspaceKind: "NotKeptAlive");
+            ws.Options = ws.Options.WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0);
+            return ws;
+        }
+
+        [Fact]
+        public void TestUpdatedDocumentTextIsObservablyConstant()
+        {
+            CheckUpdatedDocumentTextIsObservablyConstant(new AdhocWorkspace());
+            CheckUpdatedDocumentTextIsObservablyConstant(CreateWorkspaceWithRecoverableTrees());
+        }
+
+        public void CheckUpdatedDocumentTextIsObservablyConstant(AdhocWorkspace ws)
+        {
+            var pid = ProjectId.CreateNewId();
+            var text = SourceText.From("public class C { }");
+            var version = VersionStamp.Create();
+            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "c.cs", loader: TextLoader.From(TextAndVersion.Create(text, version)));
+            var projInfo = ProjectInfo.Create(
+                pid,
+                version: VersionStamp.Default,
+                name: "TestProject",
+                assemblyName: "TestProject.dll",
+                language: LanguageNames.CSharp,
+                documents: new[] { docInfo });
+
+            ws.AddProject(projInfo);
+            var doc = ws.CurrentSolution.GetDocument(docInfo.Id);
+
+            // change document
+            var root = doc.GetSyntaxRootAsync().Result;
+            var newRoot = root.WithAdditionalAnnotations(new SyntaxAnnotation());
+            Assert.NotSame(root, newRoot);
+            var newDoc = doc.Project.Solution.WithDocumentSyntaxRoot(doc.Id, newRoot).GetDocument(doc.Id);
+            Assert.NotSame(doc, newDoc);
+
+            var newDocText = newDoc.GetTextAsync().Result;
+            var sameText = newDoc.GetTextAsync().Result;
+            Assert.Same(newDocText, sameText);
+
+            var newDocTree = newDoc.GetSyntaxTreeAsync().Result;
+            var treeText = newDocTree.GetText();
+            Assert.Same(newDocText, treeText);
         }
     }
 }

@@ -24,11 +24,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Inherits AbstractCompletionProvider
         Implements ISnippetCompletionProvider
 
-        Private ReadOnly EditorAdaptersFactoryService As IVsEditorAdaptersFactoryService
+        Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
 
         <ImportingConstructor>
-        Sub New(editorAdaptersFactoryService As IVsEditorAdaptersFactoryService)
-            Me.EditorAdaptersFactoryService = editorAdaptersFactoryService
+        Public Sub New(editorAdaptersFactoryService As IVsEditorAdaptersFactoryService)
+            Me._editorAdaptersFactoryService = editorAdaptersFactoryService
         End Sub
 
         Protected Overrides Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
@@ -78,7 +78,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         End Function
 
         Public Sub Commit(completionItem As CompletionItem, textView As ITextView, subjectBuffer As ITextBuffer, triggerSnapshot As ITextSnapshot, commitChar As Char?) Implements ICustomCommitCompletionProvider.Commit
-            Dim snippetClient = SnippetExpansionClient.GetSnippetExpansionClient(textView, subjectBuffer, EditorAdaptersFactoryService)
+            Dim snippetClient = SnippetExpansionClient.GetSnippetExpansionClient(textView, subjectBuffer, _editorAdaptersFactoryService)
 
             Dim caretPoint = textView.GetCaretPoint(subjectBuffer)
 

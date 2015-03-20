@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public MiscellaneousTodoListTable(MiscellaneousFilesWorkspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider) :
             base(workspace, todoListProvider, Identifier, provider)
         {
-            AddTableSource();
+            ConnectWorkspaceEvents();
         }
 
         // only for test

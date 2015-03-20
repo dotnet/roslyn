@@ -116,6 +116,7 @@
   <ItemGroup>
     <Compile Include="AssertEx.cs" />
     <Compile Include="CLRHelpers.cs" />
+    <Compile Include="CommonDiagnosticAnalyzers.cs" />
     <Compile Include="CommonTestBase.CompilationVerifier.cs" />
     <Compile Include="CommonTestBase.cs" />
     <Compile Include="CompilationDifference.cs" />

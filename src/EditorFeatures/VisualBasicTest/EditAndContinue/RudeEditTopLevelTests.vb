@@ -4698,6 +4698,37 @@ End Class
 
             edits.VerifyRudeDiagnostics()
         End Sub
+
+        <Fact>
+        Public Sub ConstField_Update()
+            Dim src1 = "Class C : Const x = 0 : End Class"
+            Dim src2 = "Class C : Const x = 1 : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Update, "x = 1", "const field"))
+        End Sub
+
+        <Fact>
+        Public Sub ConstField_Delete()
+            Dim src1 = "Class C : Const x = 0 : End Class"
+            Dim src2 = "Class C : Dim x = 0 : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Dim x = 0", "field"))
+        End Sub
+
+        <Fact>
+        Public Sub ConstField_Add()
+            Dim src1 = "Class C : Dim x = 0 : End Class"
+            Dim src2 = "Class C : Const x = 0 : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Const x = 0", "const field"))
+        End Sub
+
 #End Region
 
 #Region "Events"

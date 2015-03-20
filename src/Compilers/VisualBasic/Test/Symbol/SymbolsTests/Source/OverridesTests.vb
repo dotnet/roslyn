@@ -2560,7 +2560,7 @@ End Class     ]]></file>
 
         <WorkItem(608228, "DevDiv")>
         <Fact>
-        Sub OverridePropertyWithByRefParameter()
+        Public Sub OverridePropertyWithByRefParameter()
             Dim il = <![CDATA[
 .class public auto ansi Base
        extends [mscorlib]System.Object
@@ -6826,7 +6826,7 @@ BC31417: 'Friend Overrides Property Set r(Value As Object)' cannot override 'Fri
 
         <WorkItem(1067044, "DevDiv")>
         <Fact>
-        Sub Bug1067044()
+        Public Sub Bug1067044()
             Dim il = <![CDATA[
 .class public abstract auto ansi beforefieldinit C1
        extends [mscorlib]System.Object

@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -16,33 +14,47 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private class TreeTextSource : ValueSource<TextAndVersion>, ITextVersionable
         {
-            private readonly ValueSource<TextAndVersion> _lazyTextAndVersion;
-            private readonly VersionStamp _textVersion;
+            private readonly ValueSource<SourceText> _lazyText;
+            private readonly VersionStamp _version;
+            private readonly string _filePath;
 
-            public TreeTextSource(ValueSource<TextAndVersion> textAndVersion, VersionStamp textVersion)
+            public TreeTextSource(ValueSource<SourceText> text, VersionStamp version, string filePath)
             {
-                _lazyTextAndVersion = textAndVersion;
-                _textVersion = textVersion;
+                _lazyText = text;
+                _version = version;
+                _filePath = filePath;
             }
 
-            public override Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default(CancellationToken))
+            public override async Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default(CancellationToken))
             {
-                return _lazyTextAndVersion.GetValueAsync(cancellationToken);
+                var text = await _lazyText.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return TextAndVersion.Create(text, _version, _filePath);
             }
 
             public override TextAndVersion GetValue(CancellationToken cancellationToken = default(CancellationToken))
             {
-                return _lazyTextAndVersion.GetValue(cancellationToken);
+                var text = _lazyText.GetValue(cancellationToken);
+                return TextAndVersion.Create(text, _version, _filePath);
             }
 
             public override bool TryGetValue(out TextAndVersion value)
             {
-                return _lazyTextAndVersion.TryGetValue(out value);
+                SourceText text;
+                if (_lazyText.TryGetValue(out text))
+                {
+                    value = TextAndVersion.Create(text, _version, _filePath);
+                    return true;
+                }
+                else
+                {
+                    value = null;
+                    return false;
+                }
             }
 
             public bool TryGetTextVersion(out VersionStamp version)
             {
-                version = _textVersion;
+                version = _version;
                 return version != default(VersionStamp);
             }
         }

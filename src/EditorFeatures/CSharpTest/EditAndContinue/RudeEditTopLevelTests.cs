@@ -2465,7 +2465,7 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "await", "await expression"));
+                Diagnostic(RudeEditKind.Delete, "await", CSharpFeaturesResources.AwaitExpression));
         }
 
         [Fact]
@@ -5775,6 +5775,49 @@ class SampleCollection<T>
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "public T this[int i]", "indexer setter"));
+        }
+
+        [WorkItem(1120407)]
+        [Fact]
+        public void ConstField_Update()
+        {
+            var src1 = "class C { const int x = 0; }";
+            var src2 = "class C { const int x = 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [x = 0]@20 -> [x = 1]@20");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Update, "x = 1", "const field"));
+        }
+
+        [Fact]
+        public void ConstField_Delete()
+        {
+            var src1 = "class C { const int x = 0; }";
+            var src2 = "class C { int x = 0; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [const int x = 0;]@10 -> [int x = 0;]@10");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "int x = 0", "field"));
+        }
+
+        [Fact]
+        public void ConstField_Add()
+        {
+            var src1 = "class C { int x = 0; }";
+            var src2 = "class C { const int x = 0; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [int x = 0;]@10 -> [const int x = 0;]@10");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int x = 0", "const field"));
         }
 
         #endregion

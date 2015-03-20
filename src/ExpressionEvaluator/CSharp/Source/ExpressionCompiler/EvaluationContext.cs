@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(MetadataTokens.Handle(typeToken).Kind == HandleKind.TypeDefinition);
 
             // Re-use the previous compilation if possible.
-            var compilation = metadataBlocks.HaveNotChanged(previous) ?
+            var compilation = previous.Matches(metadataBlocks) ?
                 previous.Compilation :
                 metadataBlocks.ToCompilation();
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // Re-use the previous compilation if possible.
             CSharpCompilation compilation;
-            if (metadataBlocks.HaveNotChanged(previous))
+            if (previous.Matches(metadataBlocks))
             {
                 // Re-use entire context if method scope has not changed.
                 var previousContext = previous.EvaluationContext;
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
                         context.MessageProvider,
                         () => stream,
-                        getPdbStreamOpt: null,
+                        getPortablePdbStreamOpt: null,
                         nativePdbWriterOpt: null,
                         allowMissingMethodBodies: false,
                         deterministic: false,
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
                         context.MessageProvider,
                         () => stream,
-                        getPdbStreamOpt: null,
+                        getPortablePdbStreamOpt: null,
                         nativePdbWriterOpt: null,
                         allowMissingMethodBodies: false,
                         deterministic: false,
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
                         context.MessageProvider,
                         () => stream,
-                        getPdbStreamOpt: null,
+                        getPortablePdbStreamOpt: null,
                         nativePdbWriterOpt: null,
                         allowMissingMethodBodies: false,
                         deterministic: false,

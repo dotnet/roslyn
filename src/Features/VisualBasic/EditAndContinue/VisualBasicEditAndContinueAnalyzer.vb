@@ -1341,7 +1341,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.FieldDeclaration
                     Dim declaration = DirectCast(node, FieldDeclarationSyntax)
-                    Return If(declaration.Modifiers.Any(SyntaxKind.WithEventsKeyword), "WithEvents field", "field")
+                    Return If(declaration.Modifiers.Any(SyntaxKind.WithEventsKeyword), "WithEvents field",
+                           If(declaration.Modifiers.Any(SyntaxKind.ConstKeyword), "const field", "field"))
 
                 Case SyntaxKind.VariableDeclarator,
                      SyntaxKind.ModifiedIdentifier
@@ -1526,13 +1527,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #Region "Top-level Syntaxtic Rude Edits"
         Private Structure EditClassifier
 
-            Private ReadOnly analyzer As VisualBasicEditAndContinueAnalyzer
-            Private ReadOnly diagnostics As List(Of RudeEditDiagnostic)
-            Private ReadOnly match As Match(Of SyntaxNode)
-            Private ReadOnly oldNode As SyntaxNode
-            Private ReadOnly newNode As SyntaxNode
-            Private ReadOnly kind As EditKind
-            Private ReadOnly span As TextSpan?
+            Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer
+            Private ReadOnly _diagnostics As List(Of RudeEditDiagnostic)
+            Private ReadOnly _match As Match(Of SyntaxNode)
+            Private ReadOnly _oldNode As SyntaxNode
+            Private ReadOnly _newNode As SyntaxNode
+            Private ReadOnly _kind As EditKind
+            Private ReadOnly _span As TextSpan?
 
             Public Sub New(analyzer As VisualBasicEditAndContinueAnalyzer,
                            diagnostics As List(Of RudeEditDiagnostic),
@@ -1542,13 +1543,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                            Optional match As Match(Of SyntaxNode) = Nothing,
                            Optional span As TextSpan? = Nothing)
 
-                Me.analyzer = analyzer
-                Me.diagnostics = diagnostics
-                Me.oldNode = oldNode
-                Me.newNode = newNode
-                Me.kind = kind
-                Me.span = span
-                Me.match = match
+                Me._analyzer = analyzer
+                Me._diagnostics = diagnostics
+                Me._oldNode = oldNode
+                Me._newNode = newNode
+                Me._kind = kind
+                Me._span = span
+                Me._match = match
             End Sub
 
             Private Sub ReportError(kind As RudeEditKind)
@@ -1556,49 +1557,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Sub ReportError(kind As RudeEditKind, args As String())
-                diagnostics.Add(New RudeEditDiagnostic(kind, GetSpan(), If(newNode, oldNode), args))
+                _diagnostics.Add(New RudeEditDiagnostic(kind, GetSpan(), If(_newNode, _oldNode), args))
             End Sub
 
             Private Sub ReportError(kind As RudeEditKind, spanNode As SyntaxNode, displayNode As SyntaxNode)
-                diagnostics.Add(New RudeEditDiagnostic(kind, GetDiagnosticSpanImpl(spanNode, Me.kind), displayNode, {GetTopLevelDisplayNameImpl(displayNode)}))
+                _diagnostics.Add(New RudeEditDiagnostic(kind, GetDiagnosticSpanImpl(spanNode, Me._kind), displayNode, {GetTopLevelDisplayNameImpl(displayNode)}))
             End Sub
 
             Private Function GetSpan() As TextSpan
-                If span.HasValue Then
-                    Return span.Value
+                If _span.HasValue Then
+                    Return _span.Value
                 End If
 
-                If newNode Is Nothing Then
-                    Return analyzer.GetDeletedNodeDiagnosticSpan(match.Matches, oldNode)
+                If _newNode Is Nothing Then
+                    Return _analyzer.GetDeletedNodeDiagnosticSpan(_match.Matches, _oldNode)
                 Else
-                    Return GetDiagnosticSpanImpl(newNode, kind)
+                    Return GetDiagnosticSpanImpl(_newNode, _kind)
                 End If
             End Function
 
             Private Function GetDisplayName() As String
-                Return GetTopLevelDisplayNameImpl(If(newNode, oldNode))
+                Return GetTopLevelDisplayNameImpl(If(_newNode, _oldNode))
             End Function
 
             Public Sub ClassifyEdit()
-                Select Case kind
+                Select Case _kind
                     Case EditKind.Delete
-                        ClassifyDelete(oldNode)
+                        ClassifyDelete(_oldNode)
                         Return
 
                     Case EditKind.Update
-                        ClassifyUpdate(oldNode, newNode)
+                        ClassifyUpdate(_oldNode, _newNode)
                         Return
 
                     Case EditKind.Move
-                        ClassifyMove(oldNode, newNode)
+                        ClassifyMove(_oldNode, _newNode)
                         Return
 
                     Case EditKind.Insert
-                        ClassifyInsert(newNode)
+                        ClassifyInsert(_newNode)
                         Return
 
                     Case EditKind.Reorder
-                        ClassifyReorder(oldNode, newNode)
+                        ClassifyReorder(_oldNode, _newNode)
                         Return
 
                     Case Else
@@ -2269,10 +2270,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                ClassifyTypeAndInitializerUpdates(oldNode.Initializer,
+                If ClassifyTypeAndInitializerUpdates(oldNode.Initializer,
                                                   oldNode.AsClause,
                                                   newNode.Initializer,
-                                                  newNode.AsClause)
+                                                  newNode.AsClause) Then
+                    ' Check if a constant field is updated:
+                    Dim fieldDeclaration = DirectCast(oldNode.Parent, FieldDeclarationSyntax)
+                    If fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) Then
+                        ReportError(RudeEditKind.Update)
+                        Return
+                    End If
+                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As PropertyStatementSyntax, newNode As PropertyStatementSyntax)
@@ -2597,14 +2605,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                              SyntaxKind.SingleLineSubLambdaExpression
                             ' TODO:
                             If Not allowLambdas Then
-                                ReportError(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, node, Me.newNode)
+                                ReportError(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, node, Me._newNode)
                                 Return
                             End If
 
                         Case SyntaxKind.QueryExpression
                             ' TODO:
                             If Not allowLambdas Then
-                                ReportError(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, node, Me.newNode)
+                                ReportError(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, node, Me._newNode)
                                 Return
                             End If
 
@@ -2612,7 +2620,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                              SyntaxKind.GroupByClause,
                              SyntaxKind.SimpleJoinClause,
                              SyntaxKind.GroupJoinClause
-                            ReportError(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, node, Me.newNode)
+                            ReportError(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, node, Me._newNode)
                             Return
                     End Select
                 Next

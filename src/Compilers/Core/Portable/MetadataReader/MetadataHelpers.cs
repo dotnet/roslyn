@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private struct SerializedTypeDecoder
         {
-            private static readonly char[] s_typeNameDelimiters = new char[] { '+', ',', '[', ']' };
+            private static readonly char[] s_typeNameDelimiters = { '+', ',', '[', ']' };
             private readonly string _input;
             private int _offset;
 
@@ -244,9 +244,9 @@ namespace Microsoft.CodeAnalysis
 
                 return new AssemblyQualifiedTypeName(
                     topLevelType,
-                    nestedTypesbuilder != null ? nestedTypesbuilder.ToArrayAndFree() : null,
+                    nestedTypesbuilder?.ToArrayAndFree(),
                     typeArguments,
-                    arrayRanksBuilder != null ? arrayRanksBuilder.ToArrayAndFree() : null,
+                    arrayRanksBuilder?.ToArrayAndFree(),
                     assemblyName);
             }
 
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis
                     return null;
                 }
 
-                int i = -1;
+                int i;
                 if (isTypeArgumentWithAssemblyName)
                 {
                     i = _input.IndexOf(']', _offset);
@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(name != null);
 
-            if (qualifier != null && qualifier.Length > 0)
+            if (!string.IsNullOrEmpty(qualifier))
             {
                 return String.Concat(qualifier, DotDelimiterString, name);
             }
@@ -789,7 +789,6 @@ namespace Microsoft.CodeAnalysis
         /// Simple name of a top level child namespace, the left-most name following parent namespace name 
         /// in the fully qualified name.
         /// </returns>
-        /// <remarks></remarks>
         private static string ExtractSimpleNameOfChildNamespace(
             int parentNamespaceNameLength,
             string fullName)
@@ -983,7 +982,7 @@ namespace Microsoft.CodeAnalysis
             private static uint ToUInt32(ImmutableArray<byte> bytes, int offset)
             {
                 Debug.Assert((bytes.Length - offset) > sizeof(int));
-                return (uint)((int)bytes[offset] | ((int)bytes[offset + 1] << 8) | ((int)bytes[offset + 2] << 16) | ((int)bytes[offset + 3] << 24));
+                return (uint)(bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24));
             }
 
             // From StrongNameInternal.cpp

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 if (position < 0 || position >= _builder.Length)
                 {
-                    throw new ArgumentOutOfRangeException("position");
+                    throw new ArgumentOutOfRangeException(nameof(position));
                 }
 
                 return _builder[position];
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (span.End > _builder.Length)
             {
-                throw new ArgumentOutOfRangeException("span");
+                throw new ArgumentOutOfRangeException(nameof(span));
             }
 
             return _builder.ToString(span.Start, span.Length);

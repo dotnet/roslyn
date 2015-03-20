@@ -55,25 +55,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             args = args.Select(arg => arg.Trim()).ToArray();
 
             bool hasShared;
-            var errorMessage = CommandLineParser.CheckArgsForClientErrors(args, out hasShared);
-            if (errorMessage != null)
+            string keepAlive;
+            string errorMessage;
+            List<string> parsedArgs;
+            if (!CommandLineParser.TryParseClientArgs(
+                    args,
+                    out parsedArgs,
+                    out hasShared,
+                    out keepAlive,
+                    out errorMessage))
             {
                 Console.Out.WriteLine(errorMessage);
                 return CommonCompiler.Failed;
             }
 
-            IEnumerable<string> validatedArgs = args;
             if (hasShared)
             {
-                validatedArgs = validatedArgs
-                    .Where(arg => !string.Equals(arg,
-                                                 "/shared",
-                                                 StringComparison.OrdinalIgnoreCase));
                 var responseTask = TryRunServerCompilation(
                     language,
                     Environment.CurrentDirectory,
-                    validatedArgs.ToArray(),
+                    parsedArgs,
                     default(CancellationToken),
+                    keepAlive: keepAlive,
                     libEnvVariable: Environment.GetEnvironmentVariable("LIB"));
 
                 var response = responseTask.Result;
@@ -83,10 +86,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            validatedArgs = validatedArgs
-                .Where(arg => !arg.StartsWith("/keepalive", StringComparison.OrdinalIgnoreCase));
-
-            return fallbackCompiler(validatedArgs.ToArray());
+            return fallbackCompiler(parsedArgs.ToArray());
         }
 
         private static int HandleResponse(BuildResponse response)
@@ -132,6 +132,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             string workingDir,
             IList<string> arguments,
             CancellationToken cancellationToken,
+            string keepAlive = null,
             string libEnvVariable = null)
         {
             try
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                         if (holdsMutex)
                         {
-                            var request = BuildRequest.Create(language, workingDir, arguments, libEnvVariable);
+                            var request = BuildRequest.Create(language, workingDir, arguments, keepAlive, libEnvVariable);
                             // Check for already running processes in case someone came in before us
                             pipe = TryExistingProcesses(expectedServerExePath, cancellationToken);
                             if (pipe != null)

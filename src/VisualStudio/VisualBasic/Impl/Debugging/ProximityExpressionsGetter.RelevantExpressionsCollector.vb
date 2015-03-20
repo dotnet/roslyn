@@ -6,8 +6,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
-    Partial Class VisualBasicProximityExpressionsService
-        Class RelevantExpressionsCollector
+    Friend Partial Class VisualBasicProximityExpressionsService
+        Public Class RelevantExpressionsCollector
             Inherits VisualBasicSyntaxWalker
 
             Private ReadOnly _includeDeclarations As Boolean

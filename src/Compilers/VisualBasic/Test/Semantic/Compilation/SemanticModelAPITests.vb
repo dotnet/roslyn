@@ -3965,7 +3965,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub Test_SemanticLanguage_VB()
+        Public Sub Test_SemanticLanguage_VB()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -3983,7 +3983,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub DiagnosticsInStages()
+        Public Sub DiagnosticsInStages()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4011,7 +4011,7 @@ End Class
 
         <WorkItem(859721, "DevDiv")>
         <Fact()>
-        Sub TestMethodBodyDiagnostics()
+        Public Sub TestMethodBodyDiagnostics()
             ' Even with a root namespace, we should still have these diagnostics with or without root namespace specified
             Dim sourceExplicitGlobalNamespace = <compilation>
                                                     <file name="a.vb"><![CDATA[
@@ -4243,7 +4243,7 @@ BC30002: Type 'A' is not defined.
         End Sub
 
         <Fact>
-        Sub PartialMethodImplementationDiagnostics()
+        Public Sub PartialMethodImplementationDiagnostics()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[

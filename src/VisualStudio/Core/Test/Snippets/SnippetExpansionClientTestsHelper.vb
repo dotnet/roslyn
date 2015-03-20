@@ -6,8 +6,8 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.TextManager.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
-    Class SnippetExpansionClientTestsHelper
-        Shared Sub Test(snippetExpansionClient As AbstractSnippetExpansionClient,
+    Friend Class SnippetExpansionClientTestsHelper
+        Public Shared Sub Test(snippetExpansionClient As AbstractSnippetExpansionClient,
                  subjectBufferDocument As TestHostDocument,
                  surfaceBufferDocument As TestHostDocument,
                  expectedSurfaceBuffer As XElement)

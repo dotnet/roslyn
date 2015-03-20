@@ -205,7 +205,6 @@
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateType.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService_IncrementalAnalyzer.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService_UpdateSource.cs" />
-    <Compile Include="Diagnostics\DiagnosticAnalyzerService_Test.cs" />
     <Compile Include="Diagnostics\IAnalyzerDriverService.cs" />
     <Compile Include="Diagnostics\IBuiltInAnalyzer.cs" />
     <Compile Include="Diagnostics\IDiagnosticAnalyzerService.cs" />

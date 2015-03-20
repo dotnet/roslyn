@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     highlights.Add(
                         TextSpan.FromBounds(
                             .SelectKeyword.SpanStart,
-                            If( .CaseKeyword.Kind <> SyntaxKind.None, .CaseKeyword, .SelectKeyword).Span.End))
+                            If(.CaseKeyword.Kind <> SyntaxKind.None, .CaseKeyword, .SelectKeyword).Span.End))
                 End With
 
                 For Each caseBlock In .CaseBlocks
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                             blockKind:=SyntaxKind.SelectKeyword))
                 Next
 
-                highlights.Add( .EndSelectStatement.Span)
+                highlights.Add(.EndSelectStatement.Span)
             End With
 
             Return highlights
