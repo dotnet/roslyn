@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim notificationServie = New TestForegroundNotificationService()
 
             Dim compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()
-            Dim analyzerService = New DiagnosticAnalyzerService(compilerAnalyzersMap)
+            Dim analyzerService = New TestDiagnosticAnalyzerService(compilerAnalyzersMap)
 
             ' CollectErrors generates interleaved background and foreground tasks.
             Dim service = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)(), SolutionCrawlerRegistrationService)

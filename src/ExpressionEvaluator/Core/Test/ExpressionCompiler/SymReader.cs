@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal SymReader(byte[] pdbBytes, ImmutableDictionary<string, byte[]> constantSignaturesOpt = null)
         {
-            _reader = SymUnmanagedReaderExtensions.CreateReader(
+            _reader = SymUnmanagedReaderTestExtensions.CreateReader(
                 new MemoryStream(pdbBytes),
                 PDB::Roslyn.Test.PdbUtilities.DummyMetadataImport.Instance);
 

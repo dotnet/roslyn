@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             Diagnostic diagnostic,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            Project projectOpt = null)
+            ProjectId projectOpt = null)
         {
             if (diagnostic != null)
             {

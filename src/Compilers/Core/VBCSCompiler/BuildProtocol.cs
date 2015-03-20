@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public static BuildRequest Create(RequestLanguage language,
                                           string workingDirectory,
                                           IList<string> args,
+                                          string keepAlive = null,
                                           string libDirectory = null)
         {
             Log("Creating BuildRequest");
@@ -83,6 +84,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var requestArgs = ImmutableArray.CreateBuilder<Argument>(requestLength);
 
             requestArgs.Add(new Argument(ArgumentId.CurrentDirectory, 0, workingDirectory));
+
+            if (keepAlive != null)
+                requestArgs.Add(new Argument(ArgumentId.KeepAlive, 0, keepAlive));
 
             if (libDirectory != null)
                 requestArgs.Add(new Argument(ArgumentId.LibEnvVariable, 0, libDirectory));

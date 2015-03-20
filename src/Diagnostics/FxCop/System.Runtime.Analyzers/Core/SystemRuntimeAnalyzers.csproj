@@ -50,6 +50,10 @@
     <InternalsVisibleToTest Include="System.Runtime.Analyzers.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="System.Runtime.Analyzers.Common.props">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

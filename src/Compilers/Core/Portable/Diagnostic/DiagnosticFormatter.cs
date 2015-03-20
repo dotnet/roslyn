@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (diagnostic == null)
             {
-                throw new ArgumentNullException("diagnostic");
+                throw new ArgumentNullException(nameof(diagnostic));
             }
 
             var culture = formatter as CultureInfo;

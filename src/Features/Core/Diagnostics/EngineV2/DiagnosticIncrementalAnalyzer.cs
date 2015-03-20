@@ -14,15 +14,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     internal class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
     {
         private readonly int _correlationId;
-        private readonly DiagnosticAnalyzerService _owner;
-        private readonly HostAnalyzerManager _hostAnalyzerManager;
-
+        
         public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
-            : base(workspace, hostDiagnosticUpdateSource)
+            : base(owner, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource)
         {
             _correlationId = correlationId;
-            _owner = owner;
-            _hostAnalyzerManager = hostAnalyzerManager;
         }
 
         #region IIncrementalAnalyzer
@@ -60,13 +56,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public override void RemoveDocument(DocumentId documentId)
         {
-            _owner.RaiseDiagnosticsUpdated(
+            Owner.RaiseDiagnosticsUpdated(
                 this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, documentId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
 
         public override void RemoveProject(ProjectId projectId)
         {
-            _owner.RaiseDiagnosticsUpdated(
+            Owner.RaiseDiagnosticsUpdated(
                 this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, projectId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
         #endregion
@@ -154,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            var analyzers = _hostAnalyzerManager.CreateDiagnosticAnalyzers(project);
+            var analyzers = HostAnalyzerManager.CreateDiagnosticAnalyzers(project);
 
             var compilationWithAnalyzer = compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, cancellationToken);
 
@@ -196,13 +192,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 if (kv.Key == null)
                 {
-                    _owner.RaiseDiagnosticsUpdated(
+                    Owner.RaiseDiagnosticsUpdated(
                         this, new DiagnosticsUpdatedArgs(
                             ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, kv.ToImmutableArrayOrEmpty()));
                     continue;
                 }
 
-                _owner.RaiseDiagnosticsUpdated(
+                Owner.RaiseDiagnosticsUpdated(
                     this, new DiagnosticsUpdatedArgs(
                         ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty()));
             }

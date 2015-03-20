@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             Diagnostic firstError = GetErrorAndMissingAssemblyIdentities(diagnostics, out missingAssemblyIdentities);
             Debug.Assert(firstError != null);
-            return formatter.Format(firstError, preferredUICulture ?? Thread.CurrentThread.CurrentUICulture);
+            return formatter.Format(firstError, preferredUICulture ?? CultureInfo.CurrentUICulture);
         }
 
         internal Diagnostic GetErrorAndMissingAssemblyIdentities(DiagnosticBag diagnostics, out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)

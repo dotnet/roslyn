@@ -2,10 +2,9 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Navigation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
 {
@@ -16,9 +15,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             var sourceListItems =
                 from item in items
                 where IsValidSourceLocation(item.Document, item.SourceSpan)
-                select (AbstractTreeItem)new SourceReferenceTreeItem(item.Document, item.SourceSpan, item.Glyph.GetGlyphIndex());
+                select CreateTreeItem(item);
 
             return sourceListItems.ToList();
+        }
+
+        private AbstractTreeItem CreateTreeItem(INavigableItem item)
+        {
+            var displayText = !item.ChildItems.IsEmpty ? item.DisplayName : null;
+            var result = new SourceReferenceTreeItem(item.Document, item.SourceSpan, item.Glyph.GetGlyphIndex(), displayText);
+
+            if (!item.ChildItems.IsEmpty)
+            {
+                var childItems = CreateGoToDefinitionItems(item.ChildItems);
+                result.Children.AddRange(childItems);
+                result.SetReferenceCount(childItems.Count);
+            }
+
+            return result;
         }
 
         public void PresentNavigableItems(string title, IEnumerable<INavigableItem> items)

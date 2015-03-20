@@ -27,7 +27,7 @@ namespace Roslyn.Test.PdbUtilities
 
         internal static ISymUnmanagedReader CreateReader(Stream pdb)
         {
-            return SymUnmanagedReaderExtensions.CreateReader(pdb, DummyMetadataImport.Instance);
+            return SymUnmanagedReaderTestExtensions.CreateReader(pdb, DummyMetadataImport.Instance);
         }
 
         public void Dispose()

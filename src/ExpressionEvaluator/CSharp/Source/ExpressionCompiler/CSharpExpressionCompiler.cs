@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Guid moduleVersionId,
             int typeToken)
         {
-            var previous = appDomain.GetDataItem<CSharpMetadataContext>();
+            var previous = appDomain.GetDataItem<MetadataContextItem<CSharpMetadataContext>>();
             var context = EvaluationContext.CreateTypeContext(
-                appDomain.GetDataItem<CSharpMetadataContext>(),
+                previous == null ? default(CSharpMetadataContext) : previous.MetadataContext,
                 metadataBlocks,
                 moduleVersionId,
                 typeToken);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // re-usable than the previous attached method context. (We could hold
             // on to it if we don't have a previous method context but it's unlikely
             // that we evaluated a type-level expression before a method-level.)
-            Debug.Assert(previous == null || context != previous.EvaluationContext);
+            Debug.Assert(previous == null || context != previous.MetadataContext.EvaluationContext);
 
             return context;
         }
@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             int ilOffset,
             int localSignatureToken)
         {
-            var previous = appDomain.GetDataItem<CSharpMetadataContext>();
+            var previous = appDomain.GetDataItem<MetadataContextItem<CSharpMetadataContext>>();
             var context = EvaluationContext.CreateMethodContext(
-                previous,
+                previous == null ? default(CSharpMetadataContext) : previous.MetadataContext,
                 metadataBlocks,
                 symReader,
                 moduleVersionId,
@@ -69,9 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 ilOffset,
                 localSignatureToken);
 
-            if (previous == null || context != previous.EvaluationContext)
+            if (previous == null || context != previous.MetadataContext.EvaluationContext)
             {
-                appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, new CSharpMetadataContext(context));
+                appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, new MetadataContextItem<CSharpMetadataContext>(new CSharpMetadataContext(context)));
             }
 
             return context;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool RemoveDataItem(DkmClrAppDomain appDomain)
         {
-            return appDomain.RemoveDataItem<CSharpMetadataContext>();
+            return appDomain.RemoveDataItem<MetadataContextItem<CSharpMetadataContext>>();
         }
     }
 }

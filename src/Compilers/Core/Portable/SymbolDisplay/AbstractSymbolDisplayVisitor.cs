@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             }
         }
 
-        private void GetSortedEnumFields(
+        private static void GetSortedEnumFields(
             INamedTypeSymbol enumType,
             ArrayBuilder<EnumField> enumFields)
         {
