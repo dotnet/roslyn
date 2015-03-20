@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class VisualBasicProjectTests
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        Sub RenameProjectUpdatesWorkspace()
+        Public Sub RenameProjectUpdatesWorkspace()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
                 Dim hierarchy = DirectCast(project.Hierarchy, MockHierarchy)

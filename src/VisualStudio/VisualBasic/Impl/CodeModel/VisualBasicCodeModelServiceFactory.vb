@@ -14,21 +14,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
     Partial Friend Class VisualBasicCodeModelServiceFactory
         Implements ILanguageServiceFactory
 
-        Private ReadOnly editorOptionsFactoryService As IEditorOptionsFactoryService
-        Private ReadOnly refactorNotifyServices As IEnumerable(Of IRefactorNotifyService)
-        Private ReadOnly commitBufferManagerFactory As CommitBufferManagerFactory
+        Private ReadOnly _editorOptionsFactoryService As IEditorOptionsFactoryService
+        Private ReadOnly _refactorNotifyServices As IEnumerable(Of IRefactorNotifyService)
+        Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
 
         <ImportingConstructor>
         Private Sub New(editorOptionsFactoryService As IEditorOptionsFactoryService,
                         <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService),
                         commitBufferManagerFactory As CommitBufferManagerFactory)
-            Me.editorOptionsFactoryService = editorOptionsFactoryService
-            Me.refactorNotifyServices = refactorNotifyServices
-            Me.commitBufferManagerFactory = commitBufferManagerFactory
+            Me._editorOptionsFactoryService = editorOptionsFactoryService
+            Me._refactorNotifyServices = refactorNotifyServices
+            Me._commitBufferManagerFactory = commitBufferManagerFactory
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicCodeModelService(provider, Me.editorOptionsFactoryService, refactorNotifyServices, commitBufferManagerFactory)
+            Return New VisualBasicCodeModelService(provider, Me._editorOptionsFactoryService, _refactorNotifyServices, _commitBufferManagerFactory)
         End Function
     End Class
 End Namespace

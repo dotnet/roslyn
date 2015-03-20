@@ -9,7 +9,7 @@
 Imports System.IO
 
 ' Class to write out the code for the code tree.
-Class GreenNodeWriter
+Friend Class GreenNodeWriter
     Inherits WriteUtils
 
     Private _writer As TextWriter    'output is sent here.

@@ -7,14 +7,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     Friend Class EntryPointFinder
         Inherits AbstractEntryPointFinder
 
-        Private ReadOnly findFormsOnly As Boolean
+        Private ReadOnly _findFormsOnly As Boolean
 
         Public Sub New(findFormsOnly As Boolean)
-            Me.findFormsOnly = findFormsOnly
+            Me._findFormsOnly = findFormsOnly
         End Sub
 
         Protected Overrides Function MatchesMainMethodName(name As String) As Boolean
-            If findFormsOnly Then
+            If _findFormsOnly Then
                 Return False
             End If
 

@@ -4,7 +4,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-    MustInherit Class AbstractSyntaxNodeOutliner(Of TSyntaxNode As SyntaxNode)
+    Friend MustInherit Class AbstractSyntaxNodeOutliner(Of TSyntaxNode As SyntaxNode)
         Inherits AbstractSyntaxNodeOutliner
 
         Public Overrides Sub CollectOutliningSpans(document As Document, node As SyntaxNode, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)

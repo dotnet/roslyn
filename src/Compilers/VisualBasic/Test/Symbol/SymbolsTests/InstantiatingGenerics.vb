@@ -12,7 +12,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 
-    Module InstantiatingGenericsExtensions
+    Friend Module InstantiatingGenericsExtensions
 
         ' Check generic instantiation invariants.
         <Extension()>

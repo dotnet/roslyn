@@ -14,30 +14,30 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
     Friend Class EncapsulateFieldTestState
         Implements IDisposable
 
-        Private testDocument As TestHostDocument
+        Private _testDocument As TestHostDocument
         Public Workspace As TestWorkspace
         Public TargetDocument As Document
 
-        Private Shared ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
+        Private Shared ReadOnly s_exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                 GetType(VisualBasicEncapsulateFieldService),
                 GetType(DefaultDocumentSupportsSuggestionService)))
 
         Public Sub New(markup As String)
-            Workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(markup, exportProvider:=ExportProvider)
-            testDocument = Workspace.Documents.Single(Function(d) d.CursorPosition.HasValue OrElse d.SelectedSpans.Any())
-            TargetDocument = Workspace.CurrentSolution.GetDocument(testDocument.Id)
+            Workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(markup, exportProvider:=s_exportProvider)
+            _testDocument = Workspace.Documents.Single(Function(d) d.CursorPosition.HasValue OrElse d.SelectedSpans.Any())
+            TargetDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id)
         End Sub
 
         Public Sub Encapsulate()
-            Dim args = New EncapsulateFieldCommandArgs(testDocument.GetTextView(), testDocument.GetTextBuffer())
+            Dim args = New EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer())
             Dim commandHandler = New EncapsulateFieldCommandHandler(TestWaitIndicator.Default, Workspace.GetService(Of ITextBufferUndoManagerProvider)())
             commandHandler.ExecuteCommand(args, Nothing)
         End Sub
 
         Public Sub AssertEncapsulateAs(expected As String)
             Encapsulate()
-            Assert.Equal(expected, testDocument.GetTextBuffer().CurrentSnapshot.GetText().ToString())
+            Assert.Equal(expected, _testDocument.GetTextBuffer().CurrentSnapshot.GetText().ToString())
         End Sub
 
         Public Sub Dispose() Implements IDisposable.Dispose

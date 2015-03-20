@@ -782,7 +782,7 @@ End Namespace
 #Region "Type tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Type1()
+        Public Sub Type1()
             Dim code =
 <Code>
 Class C
@@ -800,7 +800,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Type2()
+        Public Sub Type2()
             Dim code =
 <Code>
 Class C
@@ -818,7 +818,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Type3()
+        Public Sub Type3()
             Dim code =
 <Code>
 Class C
@@ -2001,7 +2001,7 @@ End Enum
 #Region "Set Name tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName1()
+        Public Sub SetName1()
             Dim code =
 <Code>
 Class C
@@ -2020,7 +2020,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName2()
+        Public Sub SetName2()
             Dim code =
 <Code>
 Class C
@@ -2093,7 +2093,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetType3()
+        Public Sub SetType3()
             Dim code =
 <Code>
 Class C
@@ -2112,7 +2112,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetType4()
+        Public Sub SetType4()
             Dim code =
 <Code>
 Class C
@@ -2131,7 +2131,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetType5()
+        Public Sub SetType5()
             Dim code =
 <Code>
 Class C

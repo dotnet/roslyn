@@ -9,8 +9,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
-    Partial Class VisualBasicProximityExpressionsService
-        Class Worker
+    Friend Partial Class VisualBasicProximityExpressionsService
+        Public Class Worker
 
             Private ReadOnly _syntaxTree As SyntaxTree
             Private ReadOnly _position As Integer
@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
             Private ReadOnly _additionalTerms As New List(Of String)()
             Private ReadOnly _expressions As New List(Of ExpressionSyntax)()
 
-            Sub New(syntaxTree As SyntaxTree, position As Integer)
+            Public Sub New(syntaxTree As SyntaxTree, position As Integer)
                 _syntaxTree = syntaxTree
                 _position = position
             End Sub

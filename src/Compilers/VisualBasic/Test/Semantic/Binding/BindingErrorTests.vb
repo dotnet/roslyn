@@ -14035,7 +14035,7 @@ End Class
 
         End Sub
 
-        Private Shared ReadOnly BadAttributeIl As String = <![CDATA[
+        Private Shared ReadOnly s_badAttributeIl As String = <![CDATA[
 .class public auto ansi beforefieldinit BaseAttribute
        extends [mscorlib]System.Attribute
 {
@@ -14114,7 +14114,7 @@ Class Test
 
 End Class
     ]]></file>
-    </compilation>, BadAttributeIl).VerifyDiagnostics(Diagnostic(ERRID.ERR_BadAttributeReadOnlyProperty1, "PROP").WithArguments("PROP"))
+    </compilation>, s_badAttributeIl).VerifyDiagnostics(Diagnostic(ERRID.ERR_BadAttributeReadOnlyProperty1, "PROP").WithArguments("PROP"))
 
         End Sub
 

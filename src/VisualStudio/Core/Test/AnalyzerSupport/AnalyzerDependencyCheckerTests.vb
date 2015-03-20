@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             End Get
         End Property
 
-        Private Shared CSharpCompilerExecutable As String = Path.Combine(MSBuildDirectory, "csc.exe")
+        Private Shared s_CSharpCompilerExecutable As String = Path.Combine(MSBuildDirectory, "csc.exe")
 
         <Fact, WorkItem(1064914)>
         Public Sub Test1()
@@ -736,7 +736,7 @@ public class D
 
             Dim references = sb.ToString()
 
-            Dim arguments = $"/C ""{CSharpCompilerExecutable}"" /nologo /t:library /out:{libraryOut} {references} {sourceFile} > {tempOut}"
+            Dim arguments = $"/C ""{s_CSharpCompilerExecutable}"" /nologo /t:library /out:{libraryOut} {references} {sourceFile} > {tempOut}"
 
             Dim output = RunAndGetOutput("cmd", arguments, expectedRetCode:=0)
 
