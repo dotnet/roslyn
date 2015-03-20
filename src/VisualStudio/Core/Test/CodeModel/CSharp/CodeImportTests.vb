@@ -12,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "FullName tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub FullName1()
+        Public Sub FullName1()
             Dim code =
 <Code>
 using $$Foo;
@@ -31,7 +31,7 @@ using $$Foo;
 #Region "Name tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Name1()
+        Public Sub Name1()
             Dim code =
 <Code>
 using $$Foo;
@@ -50,7 +50,7 @@ using $$Foo;
 #Region "Namespace tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Namespace1()
+        Public Sub Namespace1()
             Dim code =
 <Code>
 using $$Foo;
@@ -60,7 +60,7 @@ using $$Foo;
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Namespace2()
+        Public Sub Namespace2()
             Dim code =
 <Code>
 namespace Bar

@@ -211,7 +211,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(701158, "DevDiv")>
-        Sub FindTokenOnStartOfContinuedLine()
+        Public Sub FindTokenOnStartOfContinuedLine()
             Dim code =
                 <code>
                 Namespace a

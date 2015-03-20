@@ -18,7 +18,7 @@ Public Class MetadataFileReferenceCompilationTests
         Dim ref = MetadataReference.CreateFromImage({}, filePath:="Foo.dll")
         Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BadRefLib1">
-<file name="a.vb">
+    <file name="a.vb">
 Class C1
 End Class
     </file>
@@ -36,7 +36,7 @@ BC31519: 'Foo.dll' cannot be referenced because it is not a valid assembly.
         Dim ref = ModuleMetadata.CreateFromImage({}).GetReference(filePath:="Foo.dll")
         Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BadRefLib1">
-<file name="a.vb">
+    <file name="a.vb">
 Class C1
 End Class
     </file>
@@ -83,7 +83,7 @@ BC31007: Unable to load module file 'Foo.dll': Image is too small.
 
         Dim b = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
 <compilation name="b">
-<file name="b.vb">
+    <file name="b.vb">
 Public Class B
     Public Shared Function Main() As Integer
         Return C.Main()
@@ -98,7 +98,7 @@ End Class
 
         Dim a = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
 <compilation name="a">
-<file name="a.vb">
+    <file name="a.vb">
 Class A
         Public Shared Sub Main()
             B.Main()

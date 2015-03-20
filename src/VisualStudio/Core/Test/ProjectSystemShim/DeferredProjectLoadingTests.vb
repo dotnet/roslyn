@@ -14,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class DeferredProjectLoadingTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        Sub SimpleDeferredLoading()
+        Public Sub SimpleDeferredLoading()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
                 CreateVisualBasicProject(testEnvironment, "TestProject")
 
@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <Fact, WorkItem(1094112)>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        Sub DoNotDeferLoadIfInNonBackgroundBatch()
+        Public Sub DoNotDeferLoadIfInNonBackgroundBatch()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
                 testEnvironment.GetSolutionLoadEvents().OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
                 CreateVisualBasicProject(testEnvironment, "TestProject")
@@ -47,7 +47,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <Fact, WorkItem(1094112)>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        Sub AddingProjectInBatchDoesntAddAllProjects()
+        Public Sub AddingProjectInBatchDoesntAddAllProjects()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
                 CreateVisualBasicProject(testEnvironment, "TestProject1")
 
@@ -67,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <Fact, WorkItem(1094112)>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        Sub AddingProjectReferenceInBatchMayPushOtherProjects()
+        Public Sub AddingProjectReferenceInBatchMayPushOtherProjects()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
                 Dim project1 = CreateVisualBasicProject(testEnvironment, "TestProject1")
 
@@ -84,7 +84,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <Fact, WorkItem(1094112)>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        Sub AddingProjectReferenceAfterBatchMayPushOtherProjects()
+        Public Sub AddingProjectReferenceAfterBatchMayPushOtherProjects()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
                 Dim project1 = CreateVisualBasicProject(testEnvironment, "TestProject1")
 

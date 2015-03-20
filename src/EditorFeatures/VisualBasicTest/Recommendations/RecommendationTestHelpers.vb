@@ -9,11 +9,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
     Public Module RecommendationTestHelpers
-        Private _parts As IEnumerable(Of AbstractKeywordRecommender)
+        Private s_parts As IEnumerable(Of AbstractKeywordRecommender)
 
         Private Function GetRecommendedKeywords(source As String, position As Integer) As IEnumerable(Of RecommendedKeyword)
-            If _parts Is Nothing Then
-                _parts = GetType(AbstractKeywordRecommender).Assembly.
+            If s_parts Is Nothing Then
+                s_parts = GetType(AbstractKeywordRecommender).Assembly.
                     GetTypes().
                     Where(Function(t) t.IsSubclassOf(GetType(AbstractKeywordRecommender))).
                     Select(Function(t) Activator.CreateInstance(t)).
@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             Dim semanticModel = comp.GetSemanticModel(tree)
 
             Dim context = VisualBasicSyntaxContext.CreateContext_Test(semanticModel, position, CancellationToken.None)
-            Return _parts.SelectMany(Function(part) part.RecommendKeywords_Test(context))
+            Return s_parts.SelectMany(Function(part) part.RecommendKeywords_Test(context))
         End Function
 
         Private Function GetRecommendedKeywordStrings(source As String, position As Integer) As IEnumerable(Of String)

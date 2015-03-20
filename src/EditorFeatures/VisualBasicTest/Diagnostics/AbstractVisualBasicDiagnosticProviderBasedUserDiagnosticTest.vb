@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
     Public MustInherit Class AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
         Inherits AbstractDiagnosticProviderBasedUserDiagnosticTest
 
-        Private ReadOnly compilationOptions As CompilationOptions =
+        Private ReadOnly _compilationOptions As CompilationOptions =
             New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True)
 
         Protected Overrides Function GetScriptOptions() As ParseOptions
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
             Dim expectedStr = expected.ConvertTestSourceTag()
 
-            MyBase.Test(initialMarkupStr, expectedStr, parseOptions:=Nothing, compilationOptions:=compilationOptions, index:=index, compareTokens:=compareTokens)
+            MyBase.Test(initialMarkupStr, expectedStr, parseOptions:=Nothing, compilationOptions:=_compilationOptions, index:=index, compareTokens:=compareTokens)
         End Sub
 
         Protected Overloads Sub TestMissingWithWorkspaceXml(initialMarkup As XElement)
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
         Protected Overloads Sub TestMissing(initialMarkup As XElement)
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
 
-            MyBase.TestMissing(initialMarkupStr, parseOptions:=Nothing, compilationOptions:=compilationOptions)
+            MyBase.TestMissing(initialMarkupStr, parseOptions:=Nothing, compilationOptions:=_compilationOptions)
         End Sub
 
         Protected Overrides Function GetLanguage() As String

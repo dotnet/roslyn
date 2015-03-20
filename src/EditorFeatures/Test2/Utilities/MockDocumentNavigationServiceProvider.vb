@@ -13,10 +13,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     Public Class MockDocumentNavigationServiceProvider
         Implements IWorkspaceServiceFactory
 
-        Private instance As MockDocumentNavigationService = New MockDocumentNavigationService()
+        Private _instance As MockDocumentNavigationService = New MockDocumentNavigationService()
 
         Public Function CreateService(workspaceServices As HostWorkspaceServices) As IWorkspaceService Implements IWorkspaceServiceFactory.CreateService
-            Return instance
+            Return _instance
         End Function
 
         Friend Class MockDocumentNavigationService

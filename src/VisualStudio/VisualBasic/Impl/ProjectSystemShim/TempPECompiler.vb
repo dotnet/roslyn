@@ -12,21 +12,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     Partial Friend Class TempPECompiler
         Implements IVbCompiler
 
-        Private ReadOnly workspace As VisualStudioWorkspace
-        Private ReadOnly projects As New List(Of TempPEProject)
+        Private ReadOnly _workspace As VisualStudioWorkspace
+        Private ReadOnly _projects As New List(Of TempPEProject)
 
         Public Sub New(workspace As VisualStudioWorkspace)
-            Me.workspace = workspace
+            Me._workspace = workspace
         End Sub
 
         Public Function Compile(ByVal pcWarnings As IntPtr, ByVal pcErrors As IntPtr, ByVal ppErrors As IntPtr) As Integer Implements IVbCompiler.Compile
             ' The CVbTempPECompiler never wants errors and simply passes in NULL.
             Contract.ThrowIfFalse(ppErrors = IntPtr.Zero)
 
-            Dim metadataService = workspace.Services.GetService(Of IMetadataService)
+            Dim metadataService = _workspace.Services.GetService(Of IMetadataService)
             Dim errors As Integer = 0
 
-            For Each project In projects
+            For Each project In _projects
                 errors += project.CompileAndGetErrorCount(metadataService)
             Next
 
@@ -43,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                                       pVbCompilerHost As IVbCompilerHost) As IVbCompilerProject Implements IVbCompiler.CreateProject
             Dim project = New TempPEProject(Me, pVbCompilerHost)
 
-            projects.Add(project)
+            _projects.Add(project)
 
             Return project
         End Function

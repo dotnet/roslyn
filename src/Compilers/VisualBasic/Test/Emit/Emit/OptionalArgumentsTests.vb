@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
     Public Class OptionalArgumentsTests
         Inherits BasicTestBase
 
-        Dim librarySource As XElement =
+        Private _librarySource As XElement =
             <compilation>
                 <file name="library.vb">
                     <![CDATA[
@@ -154,9 +154,9 @@ End Module
 ]]></file>
             </compilation>
 
-        Dim classLibrary As MetadataReference = CreateHelperLibrary(librarySource.Value)
+        Private _classLibrary As MetadataReference = CreateHelperLibrary(_librarySource.Value)
 
-        Function CreateHelperLibrary(source As String) As MetadataReference
+        Public Function CreateHelperLibrary(source As String) As MetadataReference
             Dim libraryCompilation = VisualBasicCompilation.Create("library",
                                                         {VisualBasicSyntaxTree.ParseText(source)},
                                                         {MsvbRef, MscorlibRef, SystemCoreRef},
@@ -192,7 +192,7 @@ End Module
 ]]></file>
 </compilation>
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 i = 1
 Member: OptionalArg
@@ -228,7 +228,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 Member: OptionalArg
 Parameter: Type=System.Int32, Name=i, Optional=True, DefaultValue=System.Reflection.Missing
@@ -265,7 +265,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 i = hello world
 Member: OptionalArg
@@ -303,7 +303,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 i = 1/26/2012 12:00:00 AM
 Member: OptionalArg
@@ -342,7 +342,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 i = 999.99
 Member: OptionalArg
@@ -387,7 +387,7 @@ End Class
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:="Nothing;Nothing;C1;")
         End Sub
 
@@ -421,7 +421,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 Member: OptionalArg
 Parameter: Type=System.DateTime, Name=i, Optional=False, DefaultValue=1/26/2012 12:00:00 AM
@@ -458,7 +458,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 Member: OptionalArg
 Parameter: Type=System.DateTime, Name=i, Optional=True, DefaultValue=1/26/2012 12:00:00 AM
@@ -481,7 +481,7 @@ End Module
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={classLibrary})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "DateTimeUsingConstantAttribute").WithArguments("i", "Public Sub DateTimeUsingConstantAttribute(i As Date)"))
         End Sub
 
@@ -507,7 +507,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
    1/26/2012 12:00:00 AM
 ]]>)
@@ -538,7 +538,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
    999.99
 ]]>)
@@ -566,7 +566,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 1/1/0001 12:00:00 AM
 ]]>)
@@ -651,7 +651,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 True
 True
@@ -684,7 +684,7 @@ End Module
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={classLibrary})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_NameNotDeclared1, "p").WithArguments("p"))
         End Sub
 
@@ -1186,9 +1186,9 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={classLibrary})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
             CompileAndVerify(source,
-                 additionalRefs:={classLibrary},
+                 additionalRefs:={_classLibrary},
                  expectedOutput:=<![CDATA[
    0
 False
@@ -1215,7 +1215,7 @@ End Module
 ]]></file>
 </compilation>
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 Member: get_PropertyIntegerOptionalDouble
 Parameter: Type=System.Int32, Name=i, Optional=False, DefaultValue=
@@ -1239,7 +1239,7 @@ End Module
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={classLibrary})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeMismatch2, "IntegerWithDateTimeOptionalValue()").WithArguments("Date", "Integer"))
         End Sub
 
@@ -1267,7 +1267,7 @@ End Module
                         </file>
                     </compilation>
 
-                Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={classLibrary})
+                Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
                 Dim diag = expectedDiagnostics(i)
                 If diag IsNot Nothing Then
                     comp.VerifyDiagnostics(diag)
@@ -1298,10 +1298,10 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={classLibrary})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
             comp.VerifyDiagnostics()
             CompileAndVerify(source,
-                 additionalRefs:={classLibrary},
+                 additionalRefs:={_classLibrary},
                  expectedOutput:=<![CDATA[
 ]]>)
         End Sub
@@ -1322,10 +1322,10 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={classLibrary})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
             comp.VerifyDiagnostics()
             CompileAndVerify(source,
-                 additionalRefs:={classLibrary},
+                 additionalRefs:={_classLibrary},
                  expectedOutput:=<![CDATA[
 Member: TestWithMultipleOptionalEnumValues
 Parameter: Type=Library+Animal, Name=e1, Optional=True, DefaultValue=Dog

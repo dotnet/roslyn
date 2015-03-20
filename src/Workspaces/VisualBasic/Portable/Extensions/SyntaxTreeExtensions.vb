@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
-    Module SyntaxTreeExtensions
+    Friend Module SyntaxTreeExtensions
         ''' <summary>
         ''' Finds the token being touched by this position. Unlike the normal FindTrivia helper, this helper will prefer
         ''' trivia to the left rather than the right if the position is on the border.

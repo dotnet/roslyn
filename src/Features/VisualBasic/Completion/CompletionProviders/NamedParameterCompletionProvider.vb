@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class NamedParameterCompletionProvider
         Inherits AbstractCompletionProvider
 
-        Private Const ColonEquals As String = ":="
+        Private Const s_colonEquals As String = ":="
 
         Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
             Return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar)
@@ -32,10 +32,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim symbolItem = DirectCast(selectedItem, SymbolCompletionItem)
             If ch.HasValue AndAlso ch.Value = ":"c Then
                 Return New TextChange(symbolItem.FilterSpan,
-                                                     symbolItem.InsertionText.Substring(0, symbolItem.InsertionText.Length - ColonEquals.Length))
+                                                     symbolItem.InsertionText.Substring(0, symbolItem.InsertionText.Length - s_colonEquals.Length))
             ElseIf ch.HasValue AndAlso ch.Value = "="c Then
                 Return New TextChange(selectedItem.FilterSpan,
-                                                     symbolItem.InsertionText.Substring(0, symbolItem.InsertionText.Length - (ColonEquals.Length - 1)))
+                                                     symbolItem.InsertionText.Substring(0, symbolItem.InsertionText.Length - (s_colonEquals.Length - 1)))
             Else
                 Return New TextChange(symbolItem.FilterSpan, symbolItem.InsertionText)
             End If
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return unspecifiedParameters.Select(
                 Function(p) New SymbolCompletionItem(
-                    Me, p.Name & ColonEquals, p.Name.ToIdentifierToken().ToString() & ColonEquals,
+                    Me, p.Name & s_colonEquals, p.Name.ToIdentifierToken().ToString() & s_colonEquals,
                     CompletionUtilities.GetTextChangeSpan(text, position), position, SpecializedCollections.SingletonEnumerable(p).ToList(), context))
         End Function
 

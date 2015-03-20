@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Text
 
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class DiagnosticAnalyzer
+Friend Class DiagnosticAnalyzer
     ' Implementing syntax node analyzer because the make const diagnostics in one method body are not dependent on the contents of other method bodies.
     Inherits Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer
 

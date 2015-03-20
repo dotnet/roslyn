@@ -21,13 +21,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
                     With .StartTag
                         If .Attributes.Count = 0 Then
-                            highlights.Add( .Span)
+                            highlights.Add(.Span)
                         Else
-                            highlights.Add(TextSpan.FromBounds( .LessThanToken.SpanStart, .Name.Span.End))
-                            highlights.Add( .GreaterThanToken.Span)
+                            highlights.Add(TextSpan.FromBounds(.LessThanToken.SpanStart, .Name.Span.End))
+                            highlights.Add(.GreaterThanToken.Span)
                         End If
                     End With
-                    highlights.Add( .EndTag.Span)
+                    highlights.Add(.EndTag.Span)
                 End If
 
             End With

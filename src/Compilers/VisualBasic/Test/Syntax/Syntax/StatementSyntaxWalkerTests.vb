@@ -103,15 +103,15 @@ End Namespace
     Friend Class TestWalker
         Inherits StatementSyntaxWalker
 
-        Dim arg As TextWriter
+        Private _arg As TextWriter
 
         Public Sub New(arg As TextWriter)
-            Me.arg = arg
+            Me._arg = arg
         End Sub
 
         Public Overrides Sub DefaultVisit(node As SyntaxNode)
             If TypeOf node Is StatementSyntax Then
-                arg.WriteLine(node.ToString())
+                _arg.WriteLine(node.ToString())
             End If
 
             MyBase.DefaultVisit(node)

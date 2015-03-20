@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             With xmlComment
                 If Not .ContainsDiagnostics AndAlso
                    Not .HasAncestor(Of DocumentationCommentTriviaSyntax)() Then
-                    highlights.Add( .LessThanExclamationMinusMinusToken.Span)
-                    highlights.Add( .MinusMinusGreaterThanToken.Span)
+                    highlights.Add(.LessThanExclamationMinusMinusToken.Span)
+                    highlights.Add(.MinusMinusGreaterThanToken.Span)
                 End If
             End With
 
