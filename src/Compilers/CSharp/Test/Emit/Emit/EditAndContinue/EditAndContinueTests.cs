@@ -4541,9 +4541,7 @@ class B
         var y = new { Ab = 5 };
     }
 }";
-            // Compile must be non-concurrent to ensure types are created in fixed order.
-            var compOptions = TestOptions.DebugDll.WithConcurrentBuild(false);
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: compOptions);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
 

@@ -3779,9 +3779,7 @@ Class C
 End Class
 ]]></file>
                            </compilation>
-            ' Compile must be non-concurrent to ensure types are created in fixed order.
-            Dim compOptions = TestOptions.DebugDll.WithConcurrentBuild(False)
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, compOptions)
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim compilation2 = compilation1.WithSource(sources2)
             Dim testData0 = New CompilationTestData()
