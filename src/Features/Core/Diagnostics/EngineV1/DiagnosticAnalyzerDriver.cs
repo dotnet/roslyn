@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _generatedCodeService = project.Solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
             _analyzerDriverService = project.LanguageServices.GetService<IAnalyzerDriverService>();
             _analyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Workspace);
-            _onAnalyzerException = owner.GetOnAnalyzerException(project);
-            _onAnalyzerException_NoTelemetryLogging = owner.GetOnAnalyzerException_NoTelemetryLogging(project);
+            _onAnalyzerException = owner.GetOnAnalyzerException(project.Id);
+            _onAnalyzerException_NoTelemetryLogging = owner.GetOnAnalyzerException_NoTelemetryLogging(project.Id);
         }
 
         public Document Document
