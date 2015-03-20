@@ -4553,7 +4553,7 @@ class B
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, testData0.GetMethodData("C.M").EncDebugInfoProvider());
                 var method0 = compilation0.GetMember<MethodSymbol>("C.M");
                 var reader0 = md0.MetadataReader;
-                CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousType1`2", "<>f__AnonymousType0`2", "C");
+                CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousType0`2", "<>f__AnonymousType1`2", "C");
 
                 var method1 = compilation1.GetMember<MethodSymbol>("C.M");
                 var diff1 = compilation1.EmitDifference(
