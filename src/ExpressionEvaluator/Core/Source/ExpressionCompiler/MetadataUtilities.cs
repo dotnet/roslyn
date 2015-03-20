@@ -8,7 +8,6 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.DiaSymReader;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -79,26 +78,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 modulesByName[name] = modulesByName.ContainsKey(name) ? null : metadata;
             }
 
-            // Build assembly references from modules in primary module
-            // manifests. There will be duplicate assemblies if the process has
-            // multiple app domains and those duplicates need to be dropped.
+            // Build assembly references from modules in primary module manifests.
             var referencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
-            var moduleIds = PooledHashSet<Guid>.GetInstance();
+            var identities = ArrayBuilder<AssemblyIdentity>.GetInstance();
             foreach (var metadata in metadataBuilder)
             {
+                var identity = metadata.MetadataReader.ReadAssemblyIdentityOrThrow();
+                int index = FindOtherReference(identities, identity);
+                if (index >= 0)
+                {
+                    continue;
+                }
+                identities.Add(identity);
                 if (!IsPrimaryModule(metadata))
                 {
                     continue;
                 }
-                var mvid = metadata.GetModuleVersionId();
-                if (moduleIds.Contains(mvid))
-                {
-                    continue;
-                }
-                moduleIds.Add(mvid);
-                referencesBuilder.Add(MakeAssemblyMetadata(metadata, modulesByName));
+                var reference = MakeAssemblyMetadata(metadata, modulesByName);
+                referencesBuilder.Add(reference);
             }
-            moduleIds.Free();
+            identities.Free();
 
             // Any runtime winmd modules were separated out initially. Now add
             // those to a placeholder for the missing compile time module since
@@ -111,6 +110,28 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             runtimeWinMdBuilder.Free();
             metadataBuilder.Free();
             return referencesBuilder.ToImmutableAndFree();
+        }
+
+        private static int FindOtherReference(ArrayBuilder<AssemblyIdentity> identities, AssemblyIdentity identity)
+        {
+            // Only compare strong names.
+            if (identity.IsStrongName)
+            {
+                for (int i = 0; i < identities.Count; i++)
+                {
+                    var reference = identities[i];
+                    if (!reference.IsStrongName)
+                    {
+                        continue;
+                    }
+                    var compareResult = AssemblyIdentityComparer.Default.Compare(reference, identity);
+                    if (compareResult != AssemblyIdentityComparer.ComparisonResult.NotEquivalent)
+                    {
+                        return i;
+                    }
+                }
+            }
+            return -1;
         }
 
         private static PortableExecutableReference MakeAssemblyMetadata(ModuleMetadata metadata, Dictionary<string, ModuleMetadata> modulesByName)
