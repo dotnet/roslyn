@@ -2854,9 +2854,9 @@ class C2
 }
 class C3
 {
-    static void M(dynamic d, object o)
+    static int M(dynamic d, object o)
     {
-        d(ref o, 2);
+        return d(ref o, 2);
     }
 }
 class C4
@@ -2876,7 +2876,7 @@ class C4
                     {
                         "<Module>",
                         "<>A{00000004}`3",
-                        "<>A{00000004}`4",
+                        "<>F{00000004}`5",
                         "<>A{00000018}`5",
                         "C1",
                         "C2",
