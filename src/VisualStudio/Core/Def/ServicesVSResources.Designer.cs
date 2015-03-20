@@ -850,7 +850,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} reference.
+        ///   Looks up a localized string similar to 1 reference.
         /// </summary>
         internal static string ReferenceCountSingular {
             get {

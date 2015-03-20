@@ -129,19 +129,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override CSharpCompilation GetCompilation(DkmClrModuleInstance moduleInstance)
         {
             var appDomain = moduleInstance.AppDomain;
-            var previous = appDomain.GetDataItem<CSharpMetadataContext>();
+            var previous = appDomain.GetDataItem<MetadataContextItem<CSharpMetadataContext>>();
             var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain);
 
             CSharpCompilation compilation;
-            if (metadataBlocks.HaveNotChanged(previous))
+            if (previous != null && previous.MetadataContext.Matches(metadataBlocks))
             {
-                compilation = previous.Compilation;
+                compilation = previous.MetadataContext.Compilation;
             }
             else
             {
-                var dataItem = new CSharpMetadataContext(metadataBlocks);
+                var dataItem = new MetadataContextItem<CSharpMetadataContext>(new CSharpMetadataContext(metadataBlocks));
                 appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, dataItem);
-                compilation = dataItem.Compilation;
+                compilation = dataItem.MetadataContext.Compilation;
             }
 
             return compilation;

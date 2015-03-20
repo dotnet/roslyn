@@ -1498,13 +1498,13 @@ End Class
         Private Class EvolvingTestReference
             Inherits PortableExecutableReference
 
-            Private ReadOnly metadataSequence As IEnumerator(Of Metadata)
+            Private ReadOnly _metadataSequence As IEnumerator(Of Metadata)
 
             Public QueryCount As Integer
 
             Public Sub New(metadataSequence As IEnumerable(Of Metadata))
                 MyBase.New(MetadataReferenceProperties.Assembly)
-                Me.metadataSequence = metadataSequence.GetEnumerator()
+                Me._metadataSequence = metadataSequence.GetEnumerator()
             End Sub
 
             Protected Overrides Function CreateDocumentationProvider() As DocumentationProvider
@@ -1513,8 +1513,8 @@ End Class
 
             Protected Overrides Function GetMetadataImpl() As Metadata
                 QueryCount = QueryCount + 1
-                metadataSequence.MoveNext()
-                Return metadataSequence.Current
+                _metadataSequence.MoveNext()
+                Return _metadataSequence.Current
             End Function
 
             Protected Overrides Function WithPropertiesImpl(properties As MetadataReferenceProperties) As PortableExecutableReference
@@ -1556,9 +1556,9 @@ End Class
                     Dim c = VisualBasicCompilation.Create("Foo", references:={MscorlibRef, mdModule.GetReference(display:="ModuleCS00")}, options:=TestOptions.ReleaseDll)
                     c.VerifyDiagnostics(Diagnostic(ERRID.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage).WithArguments("ModuleCS00").WithLocation(1, 1))
                 End Using
-                Finally
+            Finally
                 pinnedPEImage.Free()
-                End Try
+            End Try
         End Sub
 
         <Fact>

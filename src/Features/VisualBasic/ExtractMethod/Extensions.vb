@@ -400,11 +400,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                             End If
 
                             expressionStatements.Add(identifier.CreateAssignmentExpressionStatementWithValue(variableDeclarator.Initializer.Value))
-                                Continue For
-                            End If
+                            Continue For
+                        End If
 
-                            ' we don't remove trivia around tokens we remove
-                            triviaList.AddRange(variable.GetLeadingTrivia())
+                        ' we don't remove trivia around tokens we remove
+                        triviaList.AddRange(variable.GetLeadingTrivia())
                         triviaList.AddRange(variable.GetTrailingTrivia())
                         Continue For
                     End If

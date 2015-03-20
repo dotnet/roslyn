@@ -6222,7 +6222,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub Resume_in_Do_Loop_Until_1_Debug()
+        Public Sub Resume_in_Do_Loop_Until_1_Debug()
             Dim source =
 <compilation name="ErrorHandling">
     <file name="a.vb">
@@ -15118,7 +15118,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Multi_OnError_In_Single_Method_1()
+        Public Sub Multi_OnError_In_Single_Method_1()
             'This will work because of the correct reset of event handler and using Throw rather than Error 
             'statement to trigger the Errors
             Dim source =
@@ -15169,7 +15169,7 @@ EndSection]]>)
         End Sub
 
         <Fact()>
-        Sub Multi_OnError_In_Single_Method_2()
+        Public Sub Multi_OnError_In_Single_Method_2()
             'This will fail at 2nd call as handler has not been reset correctly
             ' So we will only IL Baseline this 
             Dim source =
@@ -15293,7 +15293,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Multi_OnError_In_Single_Method_3()
+        Public Sub Multi_OnError_In_Single_Method_3()
             'This will fail at 2nd call as handler has not been reset correctly
             Dim source =
     <compilation name="ErrorHandling">
@@ -15406,7 +15406,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub OnError_With_Explicit_Throw()
+        Public Sub OnError_With_Explicit_Throw()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -15433,7 +15433,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub OnError_With_Explicit_Error()
+        Public Sub OnError_With_Explicit_Error()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -15460,7 +15460,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub OnError_Resume_Next_With_Explicit_Error()
+        Public Sub OnError_Resume_Next_With_Explicit_Error()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -15487,7 +15487,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub OnError_Resume_Next_With_Explicit_Exception()
+        Public Sub OnError_Resume_Next_With_Explicit_Exception()
             'This ensures that the Handler is not called
             Dim source =
     <compilation name="ErrorHandling">
@@ -15590,7 +15590,7 @@ End Module
 
 
         <Fact()>
-        Sub OnError_Resume_Next_With_Explicit_Exception_AndLabel_Next()
+        Public Sub OnError_Resume_Next_With_Explicit_Exception_AndLabel_Next()
             'This ensures that the Handler is not called
             Dim source =
     <compilation name="ErrorHandling">
@@ -15693,7 +15693,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub OnError_Resume_Next_With_Explicit_Exception_2()
+        Public Sub OnError_Resume_Next_With_Explicit_Exception_2()
             'This ensures that the Handler is not called as the current handler should be the last one
             Dim source =
     <compilation name="ErrorHandling">
@@ -15802,7 +15802,7 @@ End Module
 
         <WorkItem(737273, "DevDiv")>
         <Fact, WorkItem(1005639)>
-        Sub OnError_WithLoopingConstructs()
+        Public Sub OnError_WithLoopingConstructs()
             'Various Looping constructs with Errors and capturing the behaviour of Resume Next as going into the loop rather
             ' then skipping to the next statement outstide of the loop
             Dim source =
@@ -16357,7 +16357,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub OnError_GotoZeroBaselineInMainBlock()
+        Public Sub OnError_GotoZeroBaselineInMainBlock()
             'This will reset the handler and the 2nd error will result in
             'an unhandled exception.   Will IL Baseline  the test
             Dim source =
@@ -16483,7 +16483,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub OnError_GotoZeroBaselineInHandler()
+        Public Sub OnError_GotoZeroBaselineInHandler()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -16606,7 +16606,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub OnError_GotoMinusBaselineInhandler()
+        Public Sub OnError_GotoMinusBaselineInhandler()
             'The difference on the resetting the error in the handler and the resume is important as this one
             'will resume in the Handler and hence the 2nd error will not be generated
             Dim source =
@@ -16796,7 +16796,7 @@ Foo
         End Sub
 
         <Fact()>
-        Sub OnError_GotoMinusBaselineInMainBlock()
+        Public Sub OnError_GotoMinusBaselineInMainBlock()
             'The difference on the resetting the error in the handler and the resume is important as this one
             'will resume in the Handler and hence the 2nd error will not be generated
             Dim source =
@@ -16985,7 +16985,7 @@ Foo]]>)
         End Sub
 
         <Fact()>
-        Sub OnError_GotoMinusBaselineInMainBlock_ThrowException()
+        Public Sub OnError_GotoMinusBaselineInMainBlock_ThrowException()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -17142,7 +17142,7 @@ After 2 Exception]]>)
         End Sub
 
         <Fact, WorkItem(1005639)>
-        Sub OnError_WithSyncLock_1()
+        Public Sub OnError_WithSyncLock_1()
             'This is the typical scenario documented in the spec to ensure that infinite
             'recursion does not occur
             Dim source =
@@ -17320,7 +17320,7 @@ End Module
 
 
         <Fact()>
-        Sub OnError_WithSyncLock_2()
+        Public Sub OnError_WithSyncLock_2()
             'This needs to baseline only because of infinite recursion issue
             Dim source =
     <compilation name="ErrorHandling">
@@ -17467,7 +17467,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub OnError_WithSyncLock_3()
+        Public Sub OnError_WithSyncLock_3()
             'This verifies that resume next will resume outside the sync block
             Dim source =
     <compilation name="ErrorHandling">
@@ -17609,7 +17609,7 @@ End Module
         End Sub
 
         <Fact, WorkItem(1005639)>
-        Sub OnError_ResumeWithConditionBlocks()
+        Public Sub OnError_ResumeWithConditionBlocks()
             'This verifies that resume next will resume inside the IF block when an error occurs in the
             'IF statement / ELSEIF and also and multiple condition IF With ANDALSO
             Dim source =
@@ -18025,7 +18025,7 @@ End]]>)
         End Sub
 
         <Fact()>
-        Sub OnError_ResumeWithSelectCase()
+        Public Sub OnError_ResumeWithSelectCase()
             'This verifies that resume next will resumes outside the select caser block rather than at the next case statement or within the block            
             Dim source =
     <compilation name="ErrorHandling">
@@ -18200,7 +18200,7 @@ After Case]]>)
         End Sub
 
         <Fact()>
-        Sub OnError_ResumeWithSelectCase_Error_On_Case()
+        Public Sub OnError_ResumeWithSelectCase_Error_On_Case()
             'This verifies that resume next will resumes 
             Dim source =
     <compilation name="ErrorHandling">
@@ -18247,7 +18247,7 @@ After Case]]>)
         End Sub
 
         <Fact()>
-        Sub OnError_ResumeWithSelectCase_Error_On_Case_Condition()
+        Public Sub OnError_ResumeWithSelectCase_Error_On_Case_Condition()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -18292,7 +18292,7 @@ After Case]]>)
         End Sub
 
         <Fact()>
-        Sub OnError_ResumeWithSelectCase_Error_On_Case_Condition_Multiple()
+        Public Sub OnError_ResumeWithSelectCase_Error_On_Case_Condition_Multiple()
 
             Dim source =
     <compilation name="ErrorHandling">
@@ -18339,7 +18339,7 @@ After Case]]>)
         End Sub
 
         <Fact()>
-        Sub ErrorOject()
+        Public Sub ErrorOject()
             'We are causing the error by throwing an exception or by using the Error or Err.Raise
             Dim source =
     <compilation name="ErrorHandling">
@@ -18407,7 +18407,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub ErrorHandler_ResumeNext_ErrorObjectFunctionality()
+        Public Sub ErrorHandler_ResumeNext_ErrorObjectFunctionality()
             Dim compilationDef =
     <compilation name="ErrorHandlerTest">
         <file name="a.vb">
@@ -18464,7 +18464,7 @@ Procedure call or argument is not valid.
         End Sub
 
         <Fact()>
-        Sub ErrorHandler_InCollectionInitializer()
+        Public Sub ErrorHandler_InCollectionInitializer()
 
 
             'As we are handling the error in the Add, we should handle two items to the collection
@@ -18506,13 +18506,13 @@ End Module
         </file>
         </compilation>
 
-                    Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
-                    CompileAndVerify(compilation, expectedOutput:="2")
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="2")
 
         End Sub
 
         <Fact()>
-        Sub ErrorHandler_InCollectionInitializer_2()
+        Public Sub ErrorHandler_InCollectionInitializer_2()
             'As we are handling the error in the Add, we should handle two items to the collection
             'This should result in Nothing - All or nothing 
             Dim compilationDef =
@@ -18539,7 +18539,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub ErrorHandler_InCollectionInitializer_3()
+        Public Sub ErrorHandler_InCollectionInitializer_3()
             'As we are handling the error in the Add, we should handle two items to the collection
             'This should result in Nothing - All or nothing 
             Dim compilationDef =
@@ -18569,7 +18569,7 @@ End Module
 
         'As we are handling the error in the Add, we should handle two items to the collection
         'This should result in Nothing - All or nothing 
-        Sub ErrorObjectResetAfterExitXXX_statement()
+        Public Sub ErrorObjectResetAfterExitXXX_statement()
             'Error Object is reset after Exit Sub/Exit Function/Exit Property or Resume Next in the handler
             Dim source =
     <compilation name="ErrorHandling">
@@ -18712,7 +18712,7 @@ GetException:Nothing]]>)
         End Sub
 
         <Fact()>
-        Sub ErrorObject_Properties()
+        Public Sub ErrorObject_Properties()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -18799,7 +18799,7 @@ GetException:Nothing]]>)
         End Sub
 
         <Fact()>
-        Sub ErrorObject_Properties_AfterGeneratedInDifferentWays()
+        Public Sub ErrorObject_Properties_AfterGeneratedInDifferentWays()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -18929,7 +18929,7 @@ GetException:Nothing]]>)
         End Sub
 
         <Fact()>
-        Sub ErrorObject_Properties__DLLLastError()
+        Public Sub ErrorObject_Properties__DLLLastError()
             'The Err.LastDllError is reset without having to call the Err.Clear
             'Unsure why...
             Dim source =

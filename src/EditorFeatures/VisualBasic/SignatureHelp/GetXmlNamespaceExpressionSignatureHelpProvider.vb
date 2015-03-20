@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
     <ExportSignatureHelpProvider("GetXmlNamespaceExpressionSignatureHelpProvider", LanguageNames.VisualBasic)>
-    Partial Class GetXmlNamespaceExpressionSignatureHelpProvider
+    Friend Partial Class GetXmlNamespaceExpressionSignatureHelpProvider
         Inherits AbstractIntrinsicOperatorSignatureHelpProvider(Of GetXmlNamespaceExpressionSyntax)
 
         Protected Overrides Function GetIntrinsicOperatorDocumentation(node As GetXmlNamespaceExpressionSyntax, document As Document, cancellationToken As CancellationToken) As IEnumerable(Of AbstractIntrinsicOperatorDocumentation)

@@ -18,7 +18,7 @@ Friend NotInheritable Class Vbi
         MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, baseDirectory, Nothing) ' TODO: what to pass as additionalReferencePaths?
     End Sub
 
-    Shared Function Main(args As String()) As Integer
+    Public Shared Function Main(args As String()) As Integer
         Try
             Dim responseFile = CommonCompiler.GetResponseFileFullPath(InteractiveResponseFileName)
             Return New Vbi(responseFile, Directory.GetCurrentDirectory(), args).RunInteractive(Console.Out)

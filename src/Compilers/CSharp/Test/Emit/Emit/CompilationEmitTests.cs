@@ -2772,5 +2772,125 @@ public class Program
             comp3.VerifyDiagnostics();
             CompileAndVerify(comp3, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "Hello, world!");
         }
+
+        /// <summary>
+        /// Ordering of anonymous type definitions
+        /// in metadata should be deterministic.
+        /// </summary>
+        [Fact]
+        public void AnonymousTypeMetadataOrder()
+        {
+            var source =
+@"class C1
+{
+    object F = new { A = 1, B = 2 };
+}
+class C2
+{
+    object F = new { a = 3, b = 4 };
+}
+class C3
+{
+    object F = new { AB = 3 };
+}
+class C4
+{
+    object F = new { a = 1, B = 2 };
+}
+class C5
+{
+    object F = new { a = 1, B = 2 };
+}
+class C6
+{
+    object F = new { Ab = 5 };
+}";
+            var compilation = CreateCompilationWithMscorlib(source, options:TestOptions.ReleaseDll);
+            var bytes = compilation.EmitToArray();
+            using (var metadata = ModuleMetadata.CreateFromImage(bytes))
+            {
+                var reader = metadata.MetadataReader;
+                var actualNames = reader.GetTypeDefNames().Select(h => reader.GetString(h));
+                var expectedNames = new[]
+                    {
+                        "<Module>",
+                        "<>f__AnonymousType0`2",
+                        "<>f__AnonymousType1`2",
+                        "<>f__AnonymousType2`1",
+                        "<>f__AnonymousType3`2",
+                        "<>f__AnonymousType4`1",
+                        "C1",
+                        "C2",
+                        "C3",
+                        "C4",
+                        "C5",
+                        "C6",
+                    };
+                AssertEx.Equal(expectedNames, actualNames);
+            }
+        }
+
+        /// <summary>
+        /// Ordering of synthesized delegates in
+        /// metadata should be deterministic.
+        /// </summary>
+        [WorkItem(1440, "https://github.com/dotnet/roslyn/issues/1440")]
+        [Fact(Skip = "1440")]
+        public void SynthesizedDelegateMetadataOrder()
+        {
+            var source =
+@"class C1
+{
+    static void M(dynamic d, object x, int y)
+    {
+        d(1, ref x, out y);
+    }
+}
+class C2
+{
+    static object M(dynamic d, object o)
+    {
+        return d(o, ref o);
+    }
+}
+class C3
+{
+    static void M(dynamic d, object o)
+    {
+        d(ref o);
+    }
+}
+class C4
+{
+    static int M(dynamic d, object o)
+    {
+        return d(ref o, 2);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, references: new[] { SystemCoreRef, CSharpRef });
+            var bytes = compilation.EmitToArray();
+            using (var metadata = ModuleMetadata.CreateFromImage(bytes))
+            {
+                var reader = metadata.MetadataReader;
+                var actualNames = reader.GetTypeDefNames().Select(h => reader.GetString(h));
+                var expectedNames = new[]
+                    {
+                        "<Module>",
+                        "<>A{00000004}`3",
+                        "<>F{00000004}`5",
+                        "<>F{00000008}`5",
+                        "<>A{00000018}`5",
+                        "C1",
+                        "C2",
+                        "C3",
+                        "C4",
+                        "<>o__0",
+                        "<>o__0",
+                        "<>o__0",
+                        "<>o__0",
+                    };
+                AssertEx.Equal(expectedNames, actualNames);
+            }
+        }
     }
 }

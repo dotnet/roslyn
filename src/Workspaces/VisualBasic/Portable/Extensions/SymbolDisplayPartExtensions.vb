@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
-    Module SymbolDisplayPartExtensions
+    Friend Module SymbolDisplayPartExtensions
         <Extension()>
         Public Function MassageErrorTypeNames(p As SymbolDisplayPart, Optional replacement As String = Nothing) As SymbolDisplayPart
             If p.Kind = SymbolDisplayPartKind.ErrorTypeName Then

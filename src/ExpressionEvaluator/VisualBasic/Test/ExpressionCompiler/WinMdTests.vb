@@ -198,23 +198,23 @@ End Class"
                 ImmutableArray.Create(MscorlibRef).Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections")))
             Dim context = CreateMethodContext(runtime, "C.M")
             Dim resultProperties As ResultProperties = Nothing
-			Dim errorMessage As String = Nothing
-			Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
-			Dim testData = New CompilationTestData()
-			context.CompileExpression(
-				InspectionContextFactory.Empty.
-					Add("s", "Windows.Storage.StorageFolder, Windows.Storage, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime").
-					Add("d", "Windows.Foundation.DateTime, Windows.Foundation, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"),
-				"If(DirectCast(s.Attributes, Object), d.UniversalTime)",
-				DkmEvaluationFlags.TreatAsExpression,
-				DiagnosticFormatter.Instance,
-				resultProperties,
-				errorMessage,
-				missingAssemblyIdentities,
-				EnsureEnglishUICulture.PreferredOrNull,
-				testData)
-			Assert.Empty(missingAssemblyIdentities)
-			testData.GetMethodData("<>x.<>m0").VerifyIL(
+            Dim errorMessage As String = Nothing
+            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression(
+                InspectionContextFactory.Empty.
+                    Add("s", "Windows.Storage.StorageFolder, Windows.Storage, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime").
+                    Add("d", "Windows.Foundation.DateTime, Windows.Foundation, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"),
+                "If(DirectCast(s.Attributes, Object), d.UniversalTime)",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                resultProperties,
+                errorMessage,
+                missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData)
+            Assert.Empty(missingAssemblyIdentities)
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       55 (0x37)
   .maxstack  2

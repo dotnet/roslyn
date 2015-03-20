@@ -170,22 +170,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         // virtual for testing purposes.
-        internal virtual Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(Project project, DiagnosticLogAggregator diagnosticLogAggregator)
+        internal virtual Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId, DiagnosticLogAggregator diagnosticLogAggregator)
         {
             return (ex, analyzer, diagnostic) =>
             {
                 // Log telemetry, if analyzer supports telemetry.
                 DiagnosticAnalyzerLogger.LogAnalyzerCrashCount(analyzer, ex, diagnosticLogAggregator);
 
-                AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, analyzer, diagnostic, _hostDiagnosticUpdateSource, project);
+                AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, analyzer, diagnostic, _hostDiagnosticUpdateSource, projectId);
             };
         }
 
         // virtual for testing purposes.
-        internal virtual Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException_NoTelemetryLogging(Project project)
+        internal virtual Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException_NoTelemetryLogging(ProjectId projectId)
         {
             return (ex, analyzer, diagnostic) =>
-                AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, analyzer, diagnostic, _hostDiagnosticUpdateSource, project);
+                AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, analyzer, diagnostic, _hostDiagnosticUpdateSource, projectId);
         }
     }
 }

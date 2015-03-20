@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             SVsServiceProvider serviceProvider, MiscellaneousFilesWorkspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
             base(serviceProvider, workspace, diagnosticService, Identifier, provider)
         {
-            AddTableSource();
+            ConnectWorkspaceEvents();
         }
 
         /// this is for test only

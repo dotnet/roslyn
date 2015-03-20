@@ -10,10 +10,10 @@ Public Class TestOptions
     Public Shared ReadOnly ReleaseDll As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=OptimizationLevel.Release).WithExtendedCustomDebugInformation(True)
     Public Shared ReadOnly ReleaseExe As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=OptimizationLevel.Release).WithExtendedCustomDebugInformation(True)
 
-    Private Shared ReadOnly Features As New Dictionary(Of String, String) ' No experimental features to enable at this time
+    Private Shared ReadOnly s_features As New Dictionary(Of String, String) ' No experimental features to enable at this time
     Public Shared ReadOnly ExperimentalReleaseExe As New VisualBasicCompilationOptions(OutputKind.ConsoleApplication,
                                                                                        optimizationLevel:=OptimizationLevel.Release,
-                                                                                       parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Regular).WithFeatures(Features))
+                                                                                       parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Regular).WithFeatures(s_features))
 
     Public Shared ReadOnly DebugDll As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=OptimizationLevel.Debug).WithExtendedCustomDebugInformation(True)
     Public Shared ReadOnly DebugExe As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=OptimizationLevel.Debug).WithExtendedCustomDebugInformation(True)
@@ -22,7 +22,7 @@ Public Class TestOptions
     Public Shared ReadOnly ReleaseWinMD As New VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata, optimizationLevel:=OptimizationLevel.Release)
 End Class
 
-Module TestOptionExtensions
+Friend Module TestOptionExtensions
     <Extension()>
     Public Function WithStrictMode(options As VisualBasicCompilationOptions) As VisualBasicCompilationOptions
         Return options.WithFeatures(options.Features.Add("strict"))

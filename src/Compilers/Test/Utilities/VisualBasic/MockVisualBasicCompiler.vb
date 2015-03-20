@@ -11,15 +11,15 @@ Friend Class MockVisualBasicCompiler
     Private ReadOnly _analyzers As ImmutableArray(Of DiagnosticAnalyzer)
     Public Compilation As Compilation
 
-    Sub New(baseDirectory As String, args As String(), Optional analyzer As DiagnosticAnalyzer = Nothing)
+    Public Sub New(baseDirectory As String, args As String(), Optional analyzer As DiagnosticAnalyzer = Nothing)
         MyClass.New(Nothing, baseDirectory, args, analyzer)
     End Sub
 
-    Sub New(responseFile As String, baseDirectory As String, args As String(), Optional analyzer As DiagnosticAnalyzer = Nothing)
+    Public Sub New(responseFile As String, baseDirectory As String, args As String(), Optional analyzer As DiagnosticAnalyzer = Nothing)
         MyClass.New(responseFile, baseDirectory, args, If(analyzer Is Nothing, ImmutableArray(Of DiagnosticAnalyzer).Empty, ImmutableArray.Create(analyzer)))
     End Sub
 
-    Sub New(responseFile As String, baseDirectory As String, args As String(), analyzers As ImmutableArray(Of DiagnosticAnalyzer))
+    Public Sub New(responseFile As String, baseDirectory As String, args As String(), analyzers As ImmutableArray(Of DiagnosticAnalyzer))
         MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
 
         _analyzers = analyzers

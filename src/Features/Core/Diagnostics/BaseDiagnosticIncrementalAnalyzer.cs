@@ -187,15 +187,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         // internal for testing purposes.
-        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(Project project)
+        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId)
         {
-            return Owner?.GetOnAnalyzerException(project, DiagnosticLogAggregator);
+            return Owner?.GetOnAnalyzerException(projectId, DiagnosticLogAggregator);
         }
 
         // internal for testing purposes.
-        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException_NoTelemetryLogging(Project project)
+        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException_NoTelemetryLogging(ProjectId projectId)
         {
-            return Owner?.GetOnAnalyzerException_NoTelemetryLogging(project);
+            return Owner?.GetOnAnalyzerException_NoTelemetryLogging(projectId);
         }
     }
 }

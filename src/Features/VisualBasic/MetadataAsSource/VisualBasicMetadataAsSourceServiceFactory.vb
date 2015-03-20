@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.MetadataAsSource
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
     <ExportLanguageServiceFactory(GetType(IMetadataAsSourceService), LanguageNames.VisualBasic), [Shared]>
-    Class VisualBasicMetadataAsSourceServiceFactory
+    Friend Class VisualBasicMetadataAsSourceServiceFactory
         Implements ILanguageServiceFactory
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService

@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
-    NotInheritable Class GetTypeExpressionDocumentation
+    Friend NotInheritable Class GetTypeExpressionDocumentation
         Inherits AbstractIntrinsicOperatorDocumentation
 
         Public Overrides Function GetParameterDocumentation(index As Integer) As String

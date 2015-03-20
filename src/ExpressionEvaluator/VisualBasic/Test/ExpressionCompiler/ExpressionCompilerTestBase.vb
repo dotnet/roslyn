@@ -23,15 +23,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
         Implements IDisposable
 
-        Private ReadOnly runtimeInstances As ArrayBuilder(Of IDisposable) = ArrayBuilder(Of IDisposable).GetInstance()
+        Private ReadOnly _runtimeInstances As ArrayBuilder(Of IDisposable) = ArrayBuilder(Of IDisposable).GetInstance()
 
         Public Overrides Sub Dispose()
             MyBase.Dispose()
 
-            For Each instance In runtimeInstances
+            For Each instance In _runtimeInstances
                 instance.Dispose()
             Next
-            runtimeInstances.Free()
+            _runtimeInstances.Free()
         End Sub
 
         Friend Function CreateRuntimeInstance(
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Friend Function CreateRuntimeInstance(modules As ImmutableArray(Of ModuleInstance)) As RuntimeInstance
             Dim instance = New RuntimeInstance(modules)
-            runtimeInstances.Add(instance)
+            _runtimeInstances.Add(instance)
             Return instance
         End Function
 

@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                         checkReturns:=True))
 
                 If isIterator Then
-                    highlights.AddRange( .GetRelatedYieldStatementHighlights())
+                    highlights.AddRange(.GetRelatedYieldStatementHighlights())
                 End If
 
                 If isAsync Then

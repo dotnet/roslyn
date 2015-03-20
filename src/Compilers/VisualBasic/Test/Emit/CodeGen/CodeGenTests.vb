@@ -9907,7 +9907,7 @@ End Class
 
         <WorkItem(542593, "DevDiv")>
         <Fact>
-        Sub InheritClassFromRetargetedAssemblyReference()
+        Public Sub InheritClassFromRetargetedAssemblyReference()
             Dim ref1 = New VisualBasicCompilationReference(CompilationUtils.CreateCompilationWithReferences(
                 <compilation>
                     <file name="a.vb">
@@ -9960,7 +9960,7 @@ End Class
 
         <WorkItem(542593, "DevDiv")>
         <Fact>
-        Sub InheritClassFromRetargetedAssemblyReferenceProperty()
+        Public Sub InheritClassFromRetargetedAssemblyReferenceProperty()
             Dim ref1 = New VisualBasicCompilationReference(CompilationUtils.CreateCompilationWithReferences(
                 <compilation>
                     <file name="a.vb">

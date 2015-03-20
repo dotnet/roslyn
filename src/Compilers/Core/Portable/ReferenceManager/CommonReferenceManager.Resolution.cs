@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(equivalent.Identity.IsStrongName);
 
-                // versions migth have been unified for a Framework assembly:
+                // versions might have been unified for a Framework assembly:
                 if (identity != equivalent.Identity)
                 {
                     // Dev12 C# reports an error

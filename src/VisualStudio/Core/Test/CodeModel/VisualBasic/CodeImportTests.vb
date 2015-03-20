@@ -200,7 +200,7 @@ Imports System, $$S = System.Linq
 #Region "FullName tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub FullName1()
+        Public Sub FullName1()
             Dim code =
 <Code>
 Imports $$System
@@ -217,7 +217,7 @@ Imports $$System
 #Region "Name tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Name1()
+        Public Sub Name1()
             Dim code =
 <Code>
 Imports $$Foo
@@ -227,7 +227,7 @@ Imports $$Foo
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Name2()
+        Public Sub Name2()
             Dim code =
 <Code>
 Imports System$$, System.Linq
@@ -237,7 +237,7 @@ Imports System$$, System.Linq
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Name3()
+        Public Sub Name3()
             Dim code =
 <Code>
 Imports System, System.Linq$$
@@ -247,7 +247,7 @@ Imports System, System.Linq$$
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Name4()
+        Public Sub Name4()
             Dim code =
 <Code>
 Imports System _
@@ -259,7 +259,7 @@ Imports System _
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Name5()
+        Public Sub Name5()
             Dim code =
 <Code>
 Imports System, S = System.Linq$$
@@ -273,7 +273,7 @@ Imports System, S = System.Linq$$
 #Region "Namespace tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Namespace1()
+        Public Sub Namespace1()
             Dim code =
 <Code>
 Imports $$Foo
@@ -283,7 +283,7 @@ Imports $$Foo
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Namespace2()
+        Public Sub Namespace2()
             Dim code =
 <Code>
 Imports System _

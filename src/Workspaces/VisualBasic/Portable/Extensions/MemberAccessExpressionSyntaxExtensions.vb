@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
-    Module MemberAccessExpressionSyntaxExtensions
+    Friend Module MemberAccessExpressionSyntaxExtensions
         <Extension()>
         Public Function IsConstructorInitializer(memberAccess As MemberAccessExpressionSyntax) As Boolean
             Return memberAccess.IsThisConstructorInitializer() OrElse memberAccess.IsBaseConstructorInitializer()

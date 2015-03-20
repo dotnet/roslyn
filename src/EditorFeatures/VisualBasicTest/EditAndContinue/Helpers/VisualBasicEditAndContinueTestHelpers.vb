@@ -15,11 +15,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 
         Friend Shared ReadOnly Instance As VisualBasicEditAndContinueTestHelpers = New VisualBasicEditAndContinueTestHelpers()
 
-        Private Shared ReadOnly m_analyzer As VisualBasicEditAndContinueAnalyzer = New VisualBasicEditAndContinueAnalyzer()
+        Private Shared ReadOnly s_analyzer As VisualBasicEditAndContinueAnalyzer = New VisualBasicEditAndContinueAnalyzer()
 
         Public Overrides ReadOnly Property Analyzer As AbstractEditAndContinueAnalyzer
             Get
-                Return m_analyzer
+                Return s_analyzer
             End Get
         End Property
 
