@@ -2275,8 +2275,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                                   newNode.Initializer,
                                                   newNode.AsClause) Then
                     ' Check if a constant field is updated:
-                    Dim fieldDeclaration = TryCast(oldNode.Parent, FieldDeclarationSyntax)
-                    If fieldDeclaration IsNot Nothing AndAlso fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) Then
+                    Dim fieldDeclaration = DirectCast(oldNode.Parent, FieldDeclarationSyntax)
+                    If fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) Then
                         ReportError(RudeEditKind.Update)
                         Return
                     End If
