@@ -399,27 +399,27 @@ namespace Microsoft.CodeAnalysis
                 string finalPdbFilePath;
                 string finalXmlFilePath;
 
-                FileStream xml = null;
+                FileStream xmlStreamOpt = null;
 
                 cancellationToken.ThrowIfCancellationRequested();
 
                 finalXmlFilePath = Arguments.DocumentationPath;
                 if (finalXmlFilePath != null)
                 {
-                    xml = OpenFile(finalXmlFilePath, consoleOutput, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
-                    if (xml == null)
+                    xmlStreamOpt = OpenFile(finalXmlFilePath, consoleOutput, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                    if (xmlStreamOpt == null)
                     {
                         return Failed;
                     }
 
-                    xml.SetLength(0);
+                    xmlStreamOpt.SetLength(0);
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
 
                 IEnumerable<DiagnosticInfo> errors;
-                using (var win32Res = GetWin32Resources(Arguments, compilation, out errors))
-                using (xml)
+                using (var win32ResourceStreamOpt = GetWin32Resources(Arguments, compilation, out errors))
+                using (xmlStreamOpt)
                 {
                     if (ReportErrors(errors, consoleOutput, errorLogger))
                     {
@@ -438,25 +438,27 @@ namespace Microsoft.CodeAnalysis
                         WithOutputNameOverride(outputName).
                         WithPdbFilePath(finalPdbFilePath);
 
-                    var pdbOutputInfo = Arguments.EmitPdb
-                        ? new Cci.PdbOutputInfo(finalPdbFilePath)
-                        : Cci.PdbOutputInfo.None;
-
-                    using (var peStreamProvider = new CompilerEmitStreamProvider(this, touchedFilesLogger, finalOutputPath))
+                    using (var peStreamProvider = new CompilerEmitStreamProvider(this, finalOutputPath, streamCreatedByNativePdbWriter: false))
+                    using (var pdbStreamProviderOpt = Arguments.EmitPdb ? new CompilerEmitStreamProvider(this, finalOutputPath, streamCreatedByNativePdbWriter: true) : null)
                     {
                         emitResult = compilation.Emit(
                             peStreamProvider,
-                            pdbOutputInfo,
-                            xml,
-                            win32Res,
+                            pdbStreamProviderOpt,
+                            (xmlStreamOpt != null) ? new Compilation.SimpleEmitStreamProvider(xmlStreamOpt) : null,
+                            (win32ResourceStreamOpt != null) ? new Compilation.SimpleEmitStreamProvider(win32ResourceStreamOpt) : null,
                             Arguments.ManifestResources,
                             emitOptions,
                             getAnalyzerDiagnostics,
                             cancellationToken);
 
-                        if (emitResult.Success && !pdbOutputInfo.IsNone && touchedFilesLogger != null)
+                        if (emitResult.Success && touchedFilesLogger != null)
                         {
-                            touchedFilesLogger.AddWritten(pdbOutputInfo.FileName);
+                            if (pdbStreamProviderOpt != null)
+                            {
+                                touchedFilesLogger.AddWritten(finalPdbFilePath);
+                            }
+
+                            touchedFilesLogger.AddWritten(finalOutputPath);
                         }
                     }
                 }
