@@ -7,9 +7,9 @@ Imports System.Runtime.InteropServices
 ''' <summary>
 ''' Contains the startup code, command line argument processing, and driving the execution of the tool.
 ''' </summary>
-Module Program
+Friend Module Program
 
-    Function Main(args As String()) As Integer
+    Public Function Main(args As String()) As Integer
 
         Const exitWithErrors = 1,
               exitWithoutErrors = 0
@@ -57,7 +57,7 @@ Module Program
 
     End Function
 
-    Function TryReadDefinition(inputFile As String, <Out> ByRef definition As ParseTree) As Boolean
+    Public Function TryReadDefinition(inputFile As String, <Out> ByRef definition As ParseTree) As Boolean
         If Not TryReadTheTree(inputFile, definition) Then
             Return False
         End If
@@ -67,7 +67,7 @@ Module Program
         Return True
     End Function
 
-    Sub WriteOutput(outputFile As String, definition As ParseTree, outputKind As String)
+    Public Sub WriteOutput(outputFile As String, definition As ParseTree, outputKind As String)
 
         Using output As New StreamWriter(outputFile)
             output.WriteLine("' Definition of syntax model.")

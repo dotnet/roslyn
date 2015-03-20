@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         Private _trackingSpan As ITrackingSpan
         Private _version As ITextVersion
 
-        Sub New(span As SnapshotSpan)
+        Public Sub New(span As SnapshotSpan)
             Contract.ThrowIfNull(span.Snapshot)
 
             Me._trackingSpan = span.Snapshot.CreateTrackingSpan(span.Span, SpanTrackingMode.EdgeInclusive, TrackingFidelityMode.Backward)

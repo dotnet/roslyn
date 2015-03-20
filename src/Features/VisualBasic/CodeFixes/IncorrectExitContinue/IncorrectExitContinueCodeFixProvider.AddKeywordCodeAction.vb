@@ -10,35 +10,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
         Private Class AddKeywordCodeAction
             Inherits CodeAction
 
-            Private ReadOnly node As SyntaxNode
-            Private ReadOnly containingBlock As SyntaxNode
-            Private ReadOnly document As Document
-            Private ReadOnly updateNode As Func(Of SyntaxNode, SyntaxNode, SyntaxKind, Document, CancellationToken, StatementSyntax)
-            Private ReadOnly createBlockKind As SyntaxKind
+            Private ReadOnly _node As SyntaxNode
+            Private ReadOnly _containingBlock As SyntaxNode
+            Private ReadOnly _document As Document
+            Private ReadOnly _updateNode As Func(Of SyntaxNode, SyntaxNode, SyntaxKind, Document, CancellationToken, StatementSyntax)
+            Private ReadOnly _createBlockKind As SyntaxKind
 
-            Sub New(node As SyntaxNode,
+            Public Sub New(node As SyntaxNode,
                     createBlockKind As SyntaxKind,
                     containingBlock As SyntaxNode,
                     document As Microsoft.CodeAnalysis.Document,
                     updateNode As Func(Of SyntaxNode, SyntaxNode, SyntaxKind, Document, CancellationToken, StatementSyntax))
-                Me.node = node
-                Me.createBlockKind = createBlockKind
-                Me.containingBlock = containingBlock
-                Me.document = document
-                Me.updateNode = updateNode
+                Me._node = node
+                Me._createBlockKind = createBlockKind
+                Me._containingBlock = containingBlock
+                Me._document = document
+                Me._updateNode = updateNode
             End Sub
 
             Public Overrides ReadOnly Property Title As String
                 Get
-                    Return String.Format(VBFeaturesResources.Insert, SyntaxFacts.GetText(BlockKindToKeywordKind(createBlockKind)))
+                    Return String.Format(VBFeaturesResources.Insert, SyntaxFacts.GetText(BlockKindToKeywordKind(_createBlockKind)))
                 End Get
             End Property
 
             Protected Overrides Async Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
-                Dim updatedStatement = updateNode(node, containingBlock, createBlockKind, document, cancellationToken)
-                Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-                Dim updatedRoot = root.ReplaceNode(node, updatedStatement)
-                Return document.WithSyntaxRoot(updatedRoot)
+                Dim updatedStatement = _updateNode(_node, _containingBlock, _createBlockKind, _document, cancellationToken)
+                Dim root = Await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+                Dim updatedRoot = root.ReplaceNode(_node, updatedStatement)
+                Return _document.WithSyntaxRoot(updatedRoot)
             End Function
         End Class
     End Class

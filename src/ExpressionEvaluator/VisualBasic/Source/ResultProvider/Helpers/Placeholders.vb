@@ -22,7 +22,7 @@ End Namespace
 Namespace System.Runtime.CompilerServices
 
     <AttributeUsage(AttributeTargets.Assembly Or AttributeTargets.Class Or AttributeTargets.Method, AllowMultiple:=False, Inherited:=False)>
-    Class ExtensionAttribute : Inherits Attribute
+    Friend Class ExtensionAttribute : Inherits Attribute
     End Class
 
 End Namespace

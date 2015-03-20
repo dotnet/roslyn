@@ -17,7 +17,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend NotInheritable Class CompilationContext
 
-        Private Shared ReadOnly FullNameFormat As New SymbolDisplayFormat(
+        Private Shared ReadOnly s_fullNameFormat As New SymbolDisplayFormat(
             globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
             typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,

@@ -653,7 +653,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.CrefOperatorReference,
                      SyntaxKind.CrefReference,
                      SyntaxKind.XmlString
-                ' fall through
+                    ' fall through
 
                 Case Else
                     Return False

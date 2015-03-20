@@ -12,10 +12,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     Public Class MockSymbolNavigationServiceProvider
         Implements IWorkspaceServiceFactory
 
-        Private instance As MockSymbolNavigationService = New MockSymbolNavigationService()
+        Private _instance As MockSymbolNavigationService = New MockSymbolNavigationService()
 
         Public Function CreateService(workspaceServices As HostWorkspaceServices) As IWorkspaceService Implements IWorkspaceServiceFactory.CreateService
-            Return instance
+            Return _instance
         End Function
 
         Friend Class MockSymbolNavigationService

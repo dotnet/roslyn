@@ -92,7 +92,7 @@ End Class"
                 EvalResult("F", "1", "Object {Integer}", "(New C()).s1.F"))
         End Sub
 
-        <Fact(Skip := "Issue #321")>
+        <Fact(Skip:="Issue #321")>
         Public Sub Pointers()
             Dim source =
 ".class private auto ansi beforefieldinit C

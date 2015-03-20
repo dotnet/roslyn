@@ -365,7 +365,7 @@ lAgain:
 
                 Case SyntaxKind.QualifiedName,
                      SyntaxKind.QualifiedCrefOperatorReference
-                ' Fall through
+                    ' Fall through
 
                 Case SyntaxKind.GlobalName
                     Return ImmutableArray.Create(Of Symbol)(Me.Compilation.GlobalNamespace)

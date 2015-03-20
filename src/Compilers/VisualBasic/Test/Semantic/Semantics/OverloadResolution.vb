@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Namespace OverloadResolutionTestHelpers
 
-        Module Extensions
+        Friend Module Extensions
 
             Public Function ResolveMethodOverloading(
                 instanceMethods As ImmutableArray(Of MethodSymbol),
@@ -4476,7 +4476,7 @@ BC30389: 'Module2.P2(x As Integer)' is not accessible in this context because it
         End Sub
 
         <Fact, WorkItem(545574, "DevDiv")>
-        Sub OverloadWithIntermediateDifferentMember1()
+        Public Sub OverloadWithIntermediateDifferentMember1()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4512,7 +4512,7 @@ BC40004: function 'Foo' conflicts with property 'Foo' in the base class 'B' and 
         End Sub
 
         <Fact, WorkItem(545574, "DevDiv")>
-        Sub OverloadWithIntermediateDifferentMember2()
+        Public Sub OverloadWithIntermediateDifferentMember2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4551,7 +4551,7 @@ BC40004: function 'Foo' conflicts with property 'Foo' in the base class 'B' and 
         End Sub
 
         <Fact, WorkItem(545574, "DevDiv")>
-        Sub OverloadWithIntermediateDifferentMember3()
+        Public Sub OverloadWithIntermediateDifferentMember3()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4588,7 +4588,7 @@ BC40004: function 'Foo' conflicts with property 'Foo' in the base interface 'B' 
         End Sub
 
         <Fact, WorkItem(545520, "DevDiv")>
-        Sub OverloadSameSigBetweenFunctionAndSub()
+        Public Sub OverloadSameSigBetweenFunctionAndSub()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4618,7 +4618,7 @@ BC32016: 'Public Shared Overloads Sub Foo()' has no parameters and its return ty
         End Sub
 
         <Fact, WorkItem(545520, "DevDiv")>
-        Sub OverloadSameSigBetweenFunctionAndSub2()
+        Public Sub OverloadSameSigBetweenFunctionAndSub2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4651,7 +4651,7 @@ BC30491: Expression does not produce a value.
         End Sub
 
         <Fact, WorkItem(545520, "DevDiv")>
-        Sub OverloadSameSigBetweenFunctionAndSub3()
+        Public Sub OverloadSameSigBetweenFunctionAndSub3()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4678,7 +4678,7 @@ End Class    ]]></file>
         End Sub
 
         <Fact, WorkItem(545520, "DevDiv")>
-        Sub OverloadSameSigBetweenFunctionAndSub4()
+        Public Sub OverloadSameSigBetweenFunctionAndSub4()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4714,7 +4714,7 @@ BC30516: Overload resolution failed because no accessible 'Foo' accepts this num
 
 
         <Fact, WorkItem(546129, "DevDiv")>
-        Sub SameMethodNameDifferentCase()
+        Public Sub SameMethodNameDifferentCase()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4774,7 +4774,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(544657, "DevDiv")>
-        Sub Regress14728Err()
+        Public Sub Regress14728Err()
             Dim compilationDef =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4810,7 +4810,7 @@ End Module
         End Sub
 
         <Fact, WorkItem(546747, "DevDiv")>
-        Sub Bug16716_1()
+        Public Sub Bug16716_1()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4850,7 +4850,7 @@ BC30519: Overload resolution failed because no accessible 'New' can be called wi
         End Sub
 
         <Fact, WorkItem(546747, "DevDiv")>
-        Sub Bug16716_2()
+        Public Sub Bug16716_2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4883,7 +4883,7 @@ BC30519: Overload resolution failed because no accessible 'New' can be called wi
         End Sub
 
         <Fact, WorkItem(546747, "DevDiv")>
-        Sub Bug16716_3()
+        Public Sub Bug16716_3()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4909,7 +4909,7 @@ BC30934: Conversion from 'Integer' to 'String' cannot occur in a constant expres
         End Sub
 
         <Fact, WorkItem(546875, "DevDiv"), WorkItem(530930, "DevDiv")>
-        Sub BigVisitor()
+        Public Sub BigVisitor()
             Dim source =
                 <compilation>
                     <file name="a.vb">
@@ -4931,7 +4931,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub CompareSymbolsOriginalDefinition()
+        Public Sub CompareSymbolsOriginalDefinition()
             Dim source =
                 <compilation>
                     <file name="a.vb">
@@ -4976,7 +4976,7 @@ BC30521: Overload resolution failed because no accessible 'Add' is most specific
         End Sub
 
         <Fact(), WorkItem(738688, "DevDiv")>
-        Sub Regress738688_1()
+        Public Sub Regress738688_1()
             Dim compilationDef =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5028,7 +5028,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(738688, "DevDiv")>
-        Sub Regress738688_2()
+        Public Sub Regress738688_2()
             Dim compilationDef =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5063,7 +5063,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(738688, "DevDiv")>
-        Sub Regress738688Err()
+        Public Sub Regress738688Err()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5126,7 +5126,7 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
         End Sub
 
         <Fact(), WorkItem(738688, "DevDiv")>
-        Sub Regress738688Err01()
+        Public Sub Regress738688Err01()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5172,7 +5172,7 @@ BC30521: Overload resolution failed because no accessible 'foo' is most specific
         End Sub
 
         <Fact(), WorkItem(32)>
-        Sub BugCodePlex_32()
+        Public Sub BugCodePlex_32()
             Dim compilationDef =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5208,7 +5208,7 @@ End Class
 
 
         <Fact(), WorkItem(918579, "DevDiv"), WorkItem(34, "CodePlex")>
-        Sub Bug918579_01()
+        Public Sub Bug918579_01()
             Dim compilationDef =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5268,7 +5268,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(918579, "DevDiv"), WorkItem(34, "CodePlex")>
-        Sub Bug918579_02()
+        Public Sub Bug918579_02()
             Dim compilationDef =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5333,7 +5333,7 @@ IDerived_X")
         End Sub
 
         <Fact(), WorkItem(918579, "DevDiv"), WorkItem(34, "CodePlex")>
-        Sub Bug918579_03()
+        Public Sub Bug918579_03()
             Dim compilationDef =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5376,7 +5376,7 @@ End Interface
         End Sub
 
         <Fact, WorkItem(1034429, "DevDiv")>
-        Sub Bug1034429()
+        Public Sub Bug1034429()
 
             Dim compilationDef =
 <compilation>

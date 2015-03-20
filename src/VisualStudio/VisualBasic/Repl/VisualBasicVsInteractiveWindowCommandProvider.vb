@@ -20,21 +20,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
     Friend NotInheritable Class VisualBasicVsInteractiveWindowCommandProvider
         Implements IVsInteractiveWindowOleCommandTargetProvider
 
-        Private ReadOnly editorAdaptersFactory As IVsEditorAdaptersFactoryService
-        Private ReadOnly commandHandlerServiceFactory As ICommandHandlerServiceFactory
-        Private ReadOnly serviceProvider As System.IServiceProvider
+        Private ReadOnly _editorAdaptersFactory As IVsEditorAdaptersFactoryService
+        Private ReadOnly _commandHandlerServiceFactory As ICommandHandlerServiceFactory
+        Private ReadOnly _serviceProvider As System.IServiceProvider
 
         <ImportingConstructor()>
         Public Sub New(commandHandlerServiceFactory As ICommandHandlerServiceFactory, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, serviceProvider As SVsServiceProvider)
-            Me.commandHandlerServiceFactory = commandHandlerServiceFactory
-            Me.editorAdaptersFactory = editorAdaptersFactoryService
-            Me.serviceProvider = serviceProvider
+            Me._commandHandlerServiceFactory = commandHandlerServiceFactory
+            Me._editorAdaptersFactory = editorAdaptersFactoryService
+            Me._serviceProvider = serviceProvider
         End Sub
 
         Public Function GetCommandTarget(textView As IWpfTextView, nextTarget As IOleCommandTarget) As IOleCommandTarget _
             Implements IVsInteractiveWindowOleCommandTargetProvider.GetCommandTarget
 
-            Dim target = New ScriptingOleCommandTarget(textView, commandHandlerServiceFactory, editorAdaptersFactory, serviceProvider)
+            Dim target = New ScriptingOleCommandTarget(textView, _commandHandlerServiceFactory, _editorAdaptersFactory, _serviceProvider)
             target.RefreshCommandFilters()
             target.NextCommandTarget = nextTarget
             Return target

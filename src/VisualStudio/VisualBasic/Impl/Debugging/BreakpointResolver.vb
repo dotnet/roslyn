@@ -14,16 +14,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
     Friend Class BreakpointResolver
         Inherits AbstractBreakpointResolver
 
-        Private Shared ReadOnly identifierComparer As IEqualityComparer(Of String) = CaseInsensitiveComparison.Comparer
+        Private Shared ReadOnly s_identifierComparer As IEqualityComparer(Of String) = CaseInsensitiveComparison.Comparer
 
-        Sub New(solution As Solution, text As String)
-            MyBase.New(solution, text, LanguageNames.VisualBasic, identifierComparer)
+        Public Sub New(solution As Solution, text As String)
+            MyBase.New(solution, text, LanguageNames.VisualBasic, s_identifierComparer)
         End Sub
 
         Protected Overrides Function GetMembers(type As INamedTypeSymbol, name As String) As IEnumerable(Of ISymbol)
             Dim members = type.GetMembers(name)
 
-            Return If(identifierComparer.Equals(name, SyntaxFacts.GetText(SyntaxKind.NewKeyword)),
+            Return If(s_identifierComparer.Equals(name, SyntaxFacts.GetText(SyntaxKind.NewKeyword)),
                       members.Concat(type.Constructors),
                       members)
         End Function

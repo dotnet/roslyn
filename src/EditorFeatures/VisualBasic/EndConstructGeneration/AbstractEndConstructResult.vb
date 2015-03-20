@@ -6,7 +6,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
     Friend MustInherit Class AbstractEndConstructResult
-        MustOverride Sub Apply(textView As ITextView,
+        Public MustOverride Sub Apply(textView As ITextView,
                   subjectBuffer As ITextBuffer,
                   caretPosition As Integer,
                   smartIndentationService As ISmartIndentationService,

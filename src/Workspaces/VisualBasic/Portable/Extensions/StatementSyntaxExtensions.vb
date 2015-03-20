@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
-    Module StatementSyntaxExtensions
+    Friend Module StatementSyntaxExtensions
 
         <Extension()>
         Public Function GetAttributes(member As StatementSyntax) As SyntaxList(Of AttributeListSyntax)

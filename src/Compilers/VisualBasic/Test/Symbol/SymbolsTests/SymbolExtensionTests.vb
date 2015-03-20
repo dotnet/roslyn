@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact>
-        Sub HasNameQualifier()
+        Public Sub HasNameQualifier()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
