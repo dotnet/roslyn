@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                     case ArrayKind.Jagged:
                         typeNameBuilder.Append("[,][]");
-                        expectedArrayRanks = new[] { 1, 2 };
+                        expectedArrayRanks = new[] { 2, 1 };
                         break;
                 }
 
@@ -224,6 +224,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         expectedTypeArgument.NestedTypes, expectedTypeArgument.TypeArguments, expectedTypeArgument.ArrayRanks);
                 }
             }
+
+            AssertEx.Equal(expectedArrayRanks, decodedName.ArrayRanks);
         }
 
         private static void DecodeTypeNameAndVerify(
