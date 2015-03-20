@@ -2781,17 +2781,29 @@ public class Program
         public void AnonymousTypeMetadataOrder()
         {
             var source =
-@"class C
+@"class C1
 {
-    static void M()
-    {
-        var _1 = new { A = 1, B = 2 };
-        var _2 = new { a = 3, b = 4 };
-        var _3 = new { a = 1, B = 2 };
-        var _4 = new { AB = 3 };
-        var _5 = new { a = 1, B = 2 };
-        var _6 = new { Ab = 5 };
-    }
+    object F = new { A = 1, B = 2 };
+}
+class C2
+{
+    object F = new { a = 3, b = 4 };
+}
+class C3
+{
+    object F = new { AB = 3 };
+}
+class C4
+{
+    object F = new { a = 1, B = 2 };
+}
+class C5
+{
+    object F = new { a = 1, B = 2 };
+}
+class C6
+{
+    object F = new { Ab = 5 };
 }";
             var compilation = CreateCompilationWithMscorlib(source, options:TestOptions.ReleaseDll);
             var bytes = compilation.EmitToArray();
@@ -2802,12 +2814,17 @@ public class Program
                 var expectedNames = new[]
                     {
                         "<Module>",
-                        "<>f__AnonymousType2`2",
-                        "<>f__AnonymousType1`2",
                         "<>f__AnonymousType0`2",
+                        "<>f__AnonymousType3`2",
+                        "<>f__AnonymousType1`2",
+                        "<>f__AnonymousType2`1",
                         "<>f__AnonymousType4`1",
-                        "<>f__AnonymousType3`1",
-                        "C",
+                        "C1",
+                        "C2",
+                        "C3",
+                        "C4",
+                        "C5",
+                        "C6",
                     };
                 AssertEx.Equal(expectedNames, actualNames);
             }
