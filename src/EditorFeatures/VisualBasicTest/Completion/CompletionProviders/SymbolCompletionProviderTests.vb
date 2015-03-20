@@ -5815,5 +5815,25 @@ End Class
             VerifyNoItemsExist(text)
         End Sub
 
+        <WorkItem(1293, "https://github.com/dotnet/roslyn/issues/1293")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub TriggeredAfterDotInWithAfterNumericLiteral()
+            Dim text =
+<code><![CDATA[
+Class Program
+    Public Property P As Long
+
+    Sub M()
+        With Me
+            .P = 122
+            .$$
+        End With
+    End Sub
+End Class
+]]></code>.Value
+
+            VerifyItemExists(text, "M", usePreviousCharAsTrigger:=True)
+        End Sub
+
     End Class
 End Namespace
