@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             return string.Join("|", _map.Select(kv => string.Format("{0}={1}", kv.Key, kv.Value)));
         }
 
-        public override void Free()
+        protected override void FreeCore()
         {
             if (_map != null)
             {
