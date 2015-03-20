@@ -2772,5 +2772,45 @@ public class Program
             comp3.VerifyDiagnostics();
             CompileAndVerify(comp3, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "Hello, world!");
         }
+
+        /// <summary>
+        /// Ordering of anonymous type definitions
+        /// in metadata should be deterministic.
+        /// </summary>
+        [Fact]
+        public void AnonymousTypeMetadataOrder()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+        var _1 = new { A = 1, B = 2 };
+        var _2 = new { a = 3, b = 4 };
+        var _3 = new { a = 1, B = 2 };
+        var _4 = new { AB = 3 };
+        var _5 = new { a = 1, B = 2 };
+        var _6 = new { Ab = 5 };
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var bytes = compilation.EmitToArray();
+            using (var metadata = ModuleMetadata.CreateFromImage(bytes))
+            {
+                var reader = metadata.MetadataReader;
+                var actualNames = reader.GetTypeDefNames().Select(h => reader.GetString(h));
+                var expectedNames = new[]
+                    {
+                        "<Module>",
+                        "<>f__AnonymousType2`2",
+                        "<>f__AnonymousType1`2",
+                        "<>f__AnonymousType0`2",
+                        "<>f__AnonymousType4`1",
+                        "<>f__AnonymousType3`1",
+                        "C",
+                    };
+                AssertEx.Equal(expectedNames, actualNames);
+            }
+        }
     }
 }
