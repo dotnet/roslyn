@@ -90,7 +90,7 @@ End Class"]]></Text>
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= languageName %> CommonReferences="true">
-                        <Document><%= markup.NormalizedValue %></Document>
+                        <Document><%= markup %></Document>
                     </Project>
                 </Workspace>
 
