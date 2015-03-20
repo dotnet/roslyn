@@ -3942,6 +3942,33 @@ End Module"
 }")
         End Sub
 
+        <Fact>
+        Public Sub GetTypeOpenGenericType()
+            Dim source = "
+Imports System
+
+Class C
+    Sub M()
+    End Sub
+End Class"
+            Dim compilation = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(compilation)
+            Dim context = CreateMethodContext(runtime, "C.M")
+
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("GetType(Action(Of ))", errorMessage, testData)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL("
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""System.Action(Of T)""
+  IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+  IL_000a:  ret
+}")
+        End Sub
+
     End Class
 
 End Namespace
