@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
 
                 var solutionSet = await _renameTrackingCommitter
-                    .RenameSymbolAsync(cancellationToken: cancellationToken)
+                    .RenameSymbolAsync(isPreview: true, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
 
                 return SpecializedCollections.SingletonEnumerable(
