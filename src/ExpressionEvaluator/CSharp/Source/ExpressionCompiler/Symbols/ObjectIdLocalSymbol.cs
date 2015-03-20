@@ -57,16 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var method = GetIntrinsicMethod(_compilation, ExpressionCompilerConstants.GetVariableValueMethodName);
                 var local = variable.LocalSymbol;
                 var expr = InvokeGetMethod(method, variable.Syntax, local.Name);
-                var localType = local.Type;
-                if (localType.IsPointerType())
-                {
-                    var temp = ConvertToLocalType(_compilation, expr, _compilation.GetSpecialType(SpecialType.System_IntPtr), diagnostics);
-                    return ConvertToLocalType(_compilation, temp, localType, diagnostics);
-                }
-                else
-                {
-                    return ConvertToLocalType(_compilation, expr, localType, diagnostics);
-                }
+                return ConvertToLocalType(_compilation, expr, local.Type, diagnostics);
             }
 
             internal override BoundExpression GetAddress(BoundPseudoVariable variable)
