@@ -573,8 +573,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ElseIf value.IsEmpty Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "debug", ":pdbonly|full")
                                 Else
-                                    AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, value, "debug")
-                                End If
+                                AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "debug", value)
+                            End If
 
                                 Continue For
 
