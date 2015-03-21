@@ -36,7 +36,7 @@ namespace Microsoft.Cci
 
         private static Type s_lazyCorSymWriterSxSType;
 
-        private readonly ComStreamWrapper _stream;
+        private readonly Func<Stream> _streamProvider;
         private readonly string _fileName;
         private readonly Func<object> _symWriterFactory;
         private MetadataWriter _metadataWriter;
@@ -54,9 +54,10 @@ namespace Microsoft.Cci
         private uint[] _sequencePointEndLines;
         private uint[] _sequencePointEndColumns;
 
-        public PdbWriter(string fileName, Stream stream, Func<object> symWriterFactory = null)
+        public PdbWriter(Func<Stream> streamProvider, string fileName, Func<object> symWriterFactory = null)
         {
-            _stream = new ComStreamWrapper(stream);
+            Debug.Assert(streamProvider != null);
+            _streamProvider = streamProvider;
             _fileName = fileName;
             _symWriterFactory = symWriterFactory;
             CreateSequencePointBuffers(capacity: 64);
@@ -64,16 +65,20 @@ namespace Microsoft.Cci
 
         public void Dispose()
         {
-            this.Close();
+            this.WritePdbToOutput();
             GC.SuppressFinalize(this);
         }
 
         ~PdbWriter()
         {
-            this.Close();
+            this.WritePdbToOutput();
         }
 
-        public void Close()
+        /// <summary>
+        /// Close the PDB writer and write the contents to the stream provided by <see cref="_streamProvider"/> 
+        /// or file name specified by <see cref="_fileName"/> value if no stream has been provided. 
+        /// </summary>
+        public void WritePdbToOutput()
         {
             try
             {
@@ -252,7 +257,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private IImportScope GetLastScope(IImportScope scope)
+        private static IImportScope GetLastScope(IImportScope scope)
         {
             while (true)
             {
@@ -307,7 +312,8 @@ namespace Microsoft.Cci
                         return (isProjectLevel ? "@PT:" : "@FT:") + typeName;
                     }
                 }
-                else if (import.TargetNamespaceOpt != null)
+
+                if (import.TargetNamespaceOpt != null)
                 {
                     string namespaceName = GetOrCreateSerializedNamespaceName(import.TargetNamespaceOpt);
 
@@ -320,53 +326,48 @@ namespace Microsoft.Cci
                         return (isProjectLevel ? "@PA:" : "@FA:") + import.AliasOpt + "=" + namespaceName;
                     }
                 }
-                else
-                {
-                    Debug.Assert(import.AliasOpt != null);
-                    Debug.Assert(import.TargetXmlNamespaceOpt != null);
 
-                    return (isProjectLevel ? "@PX:" : "@FX:") + import.AliasOpt + "=" + import.TargetXmlNamespaceOpt;
-                }
+                Debug.Assert(import.AliasOpt != null);
+                Debug.Assert(import.TargetXmlNamespaceOpt != null);
+
+                return (isProjectLevel ? "@PX:" : "@FX:") + import.AliasOpt + "=" + import.TargetXmlNamespaceOpt;
             }
-            else
+
+            Debug.Assert(import.TargetXmlNamespaceOpt == null);
+
+            if (import.TargetTypeOpt != null)
             {
-                Debug.Assert(import.TargetXmlNamespaceOpt == null);
+                Debug.Assert(import.TargetNamespaceOpt == null);
+                Debug.Assert(import.TargetAssemblyOpt == null);
 
-                if (import.TargetTypeOpt != null)
+                string typeName = GetOrCreateSerializedTypeName(import.TargetTypeOpt);
+
+                return (import.AliasOpt != null) ?
+                    "A" + import.AliasOpt + " T" + typeName :
+                    "T" + typeName;
+            }
+
+            if (import.TargetNamespaceOpt != null)
+            {
+                string namespaceName = GetOrCreateSerializedNamespaceName(import.TargetNamespaceOpt);
+
+                if (import.AliasOpt != null)
                 {
-                    Debug.Assert(import.TargetNamespaceOpt == null);
-                    Debug.Assert(import.TargetAssemblyOpt == null);
-
-                    string typeName = GetOrCreateSerializedTypeName(import.TargetTypeOpt);
-
-                    return (import.AliasOpt != null) ?
-                        "A" + import.AliasOpt + " T" + typeName :
-                        "T" + typeName;
-                }
-                else if (import.TargetNamespaceOpt != null)
-                {
-                    string namespaceName = GetOrCreateSerializedNamespaceName(import.TargetNamespaceOpt);
-
-                    if (import.AliasOpt != null)
-                    {
-                        return (import.TargetAssemblyOpt != null) ?
-                            "A" + import.AliasOpt + " E" + namespaceName + " " + GetAssemblyReferenceAlias(import.TargetAssemblyOpt, declaredExternAliasesOpt) :
-                            "A" + import.AliasOpt + " U" + namespaceName;
-                    }
-                    else
-                    {
-                        return (import.TargetAssemblyOpt != null) ?
-                            "E" + namespaceName + " " + GetAssemblyReferenceAlias(import.TargetAssemblyOpt, declaredExternAliasesOpt) :
-                            "U" + namespaceName;
-                    }
+                    return (import.TargetAssemblyOpt != null) ?
+                        "A" + import.AliasOpt + " E" + namespaceName + " " + GetAssemblyReferenceAlias(import.TargetAssemblyOpt, declaredExternAliasesOpt) :
+                        "A" + import.AliasOpt + " U" + namespaceName;
                 }
                 else
                 {
-                    Debug.Assert(import.AliasOpt != null);
-                    Debug.Assert(import.TargetAssemblyOpt == null);
-                    return "X" + import.AliasOpt;
+                    return (import.TargetAssemblyOpt != null) ?
+                        "E" + namespaceName + " " + GetAssemblyReferenceAlias(import.TargetAssemblyOpt, declaredExternAliasesOpt) :
+                        "U" + namespaceName;
                 }
             }
+
+            Debug.Assert(import.AliasOpt != null);
+            Debug.Assert(import.TargetAssemblyOpt == null);
+            return "X" + import.AliasOpt;
         }
 
         internal string GetOrCreateSerializedNamespaceName(INamespace @namespace)
@@ -392,7 +393,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    result = TypeNameSerializer.GetSerializedTypeName(typeReference, Context);
+                    result = typeReference.GetSerializedTypeName(Context);
                 }
 
                 _qualifiedNameCache.Add(typeReference, result);
@@ -403,9 +404,9 @@ namespace Microsoft.Cci
 
         private string SerializeVisualBasicImportTypeReference(ITypeReference typeReference)
         {
-            Debug.Assert(typeReference as IArrayTypeReference == null);
-            Debug.Assert(typeReference as IPointerTypeReference == null);
-            Debug.Assert(typeReference as IManagedPointerTypeReference == null);
+            Debug.Assert(!(typeReference is IArrayTypeReference));
+            Debug.Assert(!(typeReference is IPointerTypeReference));
+            Debug.Assert(!(typeReference is IManagedPointerTypeReference));
             Debug.Assert(!typeReference.IsTypeSpecification());
 
             var result = PooledStringBuilder.GetInstance();
@@ -558,10 +559,14 @@ namespace Microsoft.Cci
 
         public void SetMetadataEmitter(MetadataWriter metadataWriter)
         {
+            Stream streamOpt = _streamProvider();
+
             try
             {
                 var instance = (ISymUnmanagedWriter2)(_symWriterFactory != null ? _symWriterFactory() : Activator.CreateInstance(GetCorSymWriterSxSType()));
-                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _stream, true);
+                var comStream = (streamOpt != null) ? new ComStreamWrapper(streamOpt) : null;
+
+                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, comStream, fullBuild: true);
 
                 _metadataWriter = metadataWriter;
                 _symWriter = instance;
@@ -575,7 +580,7 @@ namespace Microsoft.Cci
         public unsafe PeDebugDirectory GetDebugDirectory()
         {
             ImageDebugDirectory debugDir = new ImageDebugDirectory();
-            uint dataCount = 0;
+            uint dataCount;
 
             try
             {
@@ -943,7 +948,7 @@ namespace Microsoft.Cci
                     {
                         yields[i] = (uint)yieldOffsets[i];
                         resumes[i] = (uint)resumeOffsets[i];
-                        methods[i] = (uint)thisMethodToken;
+                        methods[i] = thisMethodToken;
                     }
 
                     try

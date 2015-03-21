@@ -40,21 +40,14 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in context.Diagnostics)
             {
-                var location = diagnostic.Location;
+                string minimalSymbolName = diagnostic.Properties[DeclarePublicAPIAnalyzer.MinimalNamePropertyBagKey];
+                string publicSurfaceAreaSymbolName = diagnostic.Properties[DeclarePublicAPIAnalyzer.PublicApiNamePropertyBagKey];
 
-                var symbol = FindDeclaration(root, location, semanticModel, context.CancellationToken);
-
-                if (symbol != null)
-                {
-                    var minimalSymbolName = symbol.ToMinimalDisplayString(semanticModel, location.SourceSpan.Start, DeclarePublicAPIAnalyzer.ShortSymbolNameFormat);
-                    var publicSurfaceAreaSymbolName = DeclarePublicAPIAnalyzer.GetPublicApiName(symbol);
-
-                    context.RegisterCodeFix(
-                            new AdditionalDocumentChangeAction(
-                                $"Add {minimalSymbolName} to public API",
-                                c => GetFix(publicSurfaceAreaDocument, publicSurfaceAreaSymbolName, c)),
-                            diagnostic);
-                }
+                context.RegisterCodeFix(
+                        new AdditionalDocumentChangeAction(
+                            $"Add {minimalSymbolName} to public API",
+                            c => GetFix(publicSurfaceAreaDocument, publicSurfaceAreaSymbolName, c)),
+                        diagnostic);
             }
         }
 
@@ -191,18 +184,9 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
                         foreach (var diagnostic in grouping)
                         {
-                            var location = diagnostic.Location;
-                            var symbol = FindDeclaration(root, location, semanticModel, cancellationToken);
+                            string publicSurfaceAreaSymbolName = diagnostic.Properties[DeclarePublicAPIAnalyzer.PublicApiNamePropertyBagKey];
 
-                            if (symbol != null)
-                            {
-                                var publicSurfaceAreaSymbolName = DeclarePublicAPIAnalyzer.GetPublicApiName(symbol);
-
-                                if (symbol != null)
-                                {
-                                    newSymbolNames.Add(publicSurfaceAreaSymbolName);
-                                }
-                            }
+                            newSymbolNames.Add(publicSurfaceAreaSymbolName);
                         }
                     }
 

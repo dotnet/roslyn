@@ -233,8 +233,8 @@ public class Test : Class2
                 Cci.PeWriter.WritePeToStream(
                     context,
                     compilation.MessageProvider,
-                    stream,
-                    pdbStreamOpt: null,
+                    () => stream,
+                    getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
                     allowMissingMethodBodies: false,
                     deterministic: false,

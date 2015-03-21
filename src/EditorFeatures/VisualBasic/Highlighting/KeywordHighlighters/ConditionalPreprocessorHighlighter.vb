@@ -21,18 +21,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             For Each conditional In conditionals
                 If TypeOf conditional Is IfDirectiveTriviaSyntax Then
                     With DirectCast(conditional, IfDirectiveTriviaSyntax)
-                        highlights.Add(TextSpan.FromBounds( .HashToken.SpanStart, .IfOrElseIfKeyword.Span.End))
+                        highlights.Add(TextSpan.FromBounds(.HashToken.SpanStart, .IfOrElseIfKeyword.Span.End))
                         If .ThenKeyword.Kind <> SyntaxKind.None Then
-                            highlights.Add( .ThenKeyword.Span)
+                            highlights.Add(.ThenKeyword.Span)
                         End If
                     End With
                 ElseIf TypeOf conditional Is ElseDirectiveTriviaSyntax Then
                     With DirectCast(conditional, ElseDirectiveTriviaSyntax)
-                        highlights.Add(TextSpan.FromBounds( .HashToken.SpanStart, .ElseKeyword.Span.End))
+                        highlights.Add(TextSpan.FromBounds(.HashToken.SpanStart, .ElseKeyword.Span.End))
                     End With
                 ElseIf TypeOf conditional Is EndIfDirectiveTriviaSyntax Then
                     With DirectCast(conditional, EndIfDirectiveTriviaSyntax)
-                        highlights.Add(TextSpan.FromBounds( .HashToken.SpanStart, .IfKeyword.Span.End))
+                        highlights.Add(TextSpan.FromBounds(.HashToken.SpanStart, .IfKeyword.Span.End))
                     End With
                 End If
             Next

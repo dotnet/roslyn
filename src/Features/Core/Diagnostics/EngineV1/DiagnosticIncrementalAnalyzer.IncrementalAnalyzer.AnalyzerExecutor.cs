@@ -121,16 +121,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     var state = stateSet.GetState(StateType.Project);
                     var existingData = await GetExistingProjectAnalysisDataAsync(project, state, cancellationToken).ConfigureAwait(false);
 
-                    // TODO: 
-                    // if there is any document level result, we can't ever use cache since we can't track those changes in current design
-                    // hopely v2 engine, either don't care this at all, or can deal with this better
-                    if (CheckSemanticVersions(project, existingData, versions) && !existingData.Items.Any(d => d.DocumentId != null))
+                    if (CheckSemanticVersions(project, existingData, versions))
                     {
                         return existingData;
                     }
 
                     var diagnosticData = await GetProjectDiagnosticsAsync(analyzerDriver, stateSet.Analyzer, _owner.ForceAnalyzeAllDocuments).ConfigureAwait(false);
-                    return new AnalysisData(VersionStamp.Default, versions.DataVersion, GetExistingItems(existingData), diagnosticData.AsImmutableOrEmpty());
+                    return new AnalysisData(versions.TextVersion, versions.DataVersion, GetExistingItems(existingData), diagnosticData.AsImmutableOrEmpty());
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
@@ -140,19 +137,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             private async Task<AnalysisData> GetExistingProjectAnalysisDataAsync(Project project, DiagnosticState state, CancellationToken cancellationToken)
             {
+                // quick bail out
+                if (state.Count == 0)
+                {
+                    return null;
+                }
+
+                var textVersion = VersionStamp.Default;
                 var dataVersion = VersionStamp.Default;
                 var existingData = await state.TryGetExistingDataAsync(project, cancellationToken).ConfigureAwait(false);
-
-                // quick path.
-                if (existingData == null || existingData.Items.Length == 0)
-                {
-                    return existingData;
-                }
 
                 var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
                 if (existingData != null)
                 {
+                    textVersion = existingData.TextVersion;
                     dataVersion = existingData.DataVersion;
+
                     builder.AddRange(existingData.Items);
                 }
 
@@ -169,16 +169,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         continue;
                     }
 
+                    textVersion = existingData.TextVersion;
                     dataVersion = existingData.DataVersion;
+
                     builder.AddRange(existingData.Items);
                 }
 
                 if (dataVersion == VersionStamp.Default)
                 {
+                    Contract.Requires(textVersion == VersionStamp.Default);
                     return null;
                 }
 
-                return new AnalysisData(VersionStamp.Default, dataVersion, builder.ToImmutable());
+                Contract.Requires(textVersion != VersionStamp.Default);
+                return new AnalysisData(textVersion, dataVersion, builder.ToImmutable());
             }
 
             private bool CanUseDocumentState(AnalysisData existingData, VersionStamp textVersion, VersionStamp dataVersion)
@@ -206,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             private void ValidateMemberDiagnostics(DiagnosticAnalyzer analyzer, Document document, SyntaxNode root, ImmutableArray<DiagnosticData> diagnostics)
             {
 #if RANGE
-                var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, CancellationToken.None);
+                var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, this, CancellationToken.None);
                 var expected = GetSemanticDiagnosticsAsync(documentBasedDriver, analyzer).WaitAndGetResult(documentBasedDriver.CancellationToken) ?? SpecializedCollections.EmptyEnumerable<DiagnosticData>();
                 Contract.Requires(diagnostics.SetEquals(expected));
 #endif

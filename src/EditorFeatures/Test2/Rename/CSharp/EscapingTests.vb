@@ -63,7 +63,7 @@ class [|$$MainAttribute|] : System.Attribute
                     </Project>
                 </Workspace>, renameTo:="ifAttribute")
 
-                result.AssertLabeledSpecialSpansAre("resolved", "ifAttribute", RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpecialSpansAre("resolved", "ifAttribute()", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
@@ -92,7 +92,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
                 result.AssertLabeledSpecialSpansAre("escaped", "@if", RelatedLocationType.NoConflict)
             End Using
         End Sub
-        
+
         <WorkItem(527603)>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>

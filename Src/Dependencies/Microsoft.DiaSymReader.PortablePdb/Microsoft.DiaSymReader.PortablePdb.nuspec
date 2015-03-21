@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.DiaSymReader.PortablePdb</id>
+    <summary>Implementation of Microsoft DiaSymReader interfaces that reads debug information from Portable PDB format</summary>
+    <description>
+      Implementation of Microsoft DiaSymReader interfaces that reads debug information from Portable PDB format.
+Supported Platforms:
+- .NET Framework 4.5
+    </description>
+    <dependencies>
+      <dependency id="Microsoft.DiaSymReader" version="1.0.1-rc2" />
+      <dependency id="System.Reflection.Metadata" version="1.1.0-alpha-00001" />
+      <dependency id="System.Collections.Immutable" version="1.1.33-beta" />
+    </dependencies>
+    <language>en-US</language>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <version>$currentVersion$</version>
+    <authors>Microsoft</authors>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=394369</licenseUrl>
+    <projectUrl>http://msdn.com/roslyn</projectUrl>
+    <releaseNotes>Preview of DiaSymReader interop library</releaseNotes>
+    <tags>DiaSymReader ISymUnmanagedReader PortablePDB COM interop debugging</tags>
+  </metadata>
+  <files>
+    <file src="Microsoft.DiaSymReader.PortablePdb.dll" target="lib\net45" />
+    <file src="Microsoft.DiaSymReader.PortablePdb.xml" target="lib\net45" />
+  </files>
+</package>

@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Private Class CodeModelEventCollector
             Inherits AbstractCodeModelEventCollector
 
-            Sub New(codeModelService As AbstractCodeModelService)
+            Public Sub New(codeModelService As AbstractCodeModelService)
                 MyBase.New(codeModelService)
             End Sub
 

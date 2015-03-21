@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundCollectionInitializerExpression
+    Friend Partial Class BoundCollectionInitializerExpression
 
 #If DEBUG Then
         Private Sub Validate()

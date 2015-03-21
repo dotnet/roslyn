@@ -5,7 +5,6 @@ using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.VisualStudio.SymReaderInterop;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -21,6 +20,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public override ImportTargetKind TargetKind => _targetKind;
         public override string Alias => _alias;
         public override string TargetString => _targetNamespaceName;
+
+        private static string GetUtf8String(MetadataReader metadataReader, BlobHandle blobHandle)
+        {
+            var bytes = metadataReader.GetBlobBytes(blobHandle);
+            return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+        }
 
         private PortableImportRecord(
             ImportTargetKind targetKind,
@@ -44,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             record = null;
 
             var targetAssemblyHandle = importDefinition.TargetAssembly;
-            var alias = importDefinition.Alias.GetUtf8String(metadataReader);
+            var alias = GetUtf8String(metadataReader, importDefinition.Alias);
 
             var targetHandle = importDefinition.TargetType;
 
@@ -53,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (targetHandle.Kind == HandleKind.Blob)
             {
                 targetTypeHandle = default(Handle);
-                targetNamespaceName = ((BlobHandle)importDefinition.TargetType).GetUtf8String(metadataReader);
+                targetNamespaceName = GetUtf8String(metadataReader, ((BlobHandle)importDefinition.TargetType));
             }
             else
             {

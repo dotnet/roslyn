@@ -6,11 +6,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
-    Partial Class MemberDeclarationsOrganizer
-        Class Comparer
+    Friend Partial Class MemberDeclarationsOrganizer
+        Public Class Comparer
             Implements IComparer(Of StatementSyntax)
             ' TODO(cyrusn): Allow users to specify the ordering they want
-            Enum OuterOrdering
+            Public Enum OuterOrdering
                 Fields
                 EventFields
                 Constructors
@@ -25,13 +25,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
                 Remaining
             End Enum
 
-            Enum InnerOrdering
+            Public Enum InnerOrdering
                 StaticInstance
                 Accessibility
                 Name
             End Enum
 
-            Enum Accessibility
+            Public Enum Accessibility
                 [Public]
                 [Protected]
                 [Friend]

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.TableControl;
 using Microsoft.VisualStudio.TableManager;
 using Roslyn.Utilities;
 

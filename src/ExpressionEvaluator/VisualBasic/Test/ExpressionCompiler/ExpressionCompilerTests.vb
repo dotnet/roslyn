@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
-Imports Microsoft.VisualStudio.SymReaderInterop
+Imports Microsoft.DiaSymReader
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class ExpressionCompilerTests
         Inherits ExpressionCompilerTestBase
 
-        Const SimpleSource = "
+        Private Const s_simpleSource = "
 Class C
     Shared Sub M()
     End Sub
@@ -33,7 +33,7 @@ End Class
         <WorkItem(1029280)>
         <Fact>
         Public Sub UniqueModuleVersionId()
-            Dim comp = CreateCompilationWithMscorlib({SimpleSource}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, compOptions:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "C.M")
 
@@ -54,7 +54,7 @@ End Class
 
         <Fact>
         Public Sub ParseError()
-            Dim comp = CreateCompilationWithMscorlib({SimpleSource}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, compOptions:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "C.M")
 
@@ -75,7 +75,7 @@ End Class
             Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("fr-FR")
             Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("de-DE")
             Try
-                Dim comp = CreateCompilationWithMscorlib({SimpleSource}, compOptions:=TestOptions.DebugDll)
+                Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, compOptions:=TestOptions.DebugDll)
                 Dim runtime = CreateRuntimeInstance(comp)
                 Dim context = CreateMethodContext(
                     runtime,
@@ -255,17 +255,17 @@ End Class"
 
             ' At start of outer scope.
             Dim context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, startOffset, localSignatureToken)
-            Assert.Null(previous)
+            Assert.Equal(Nothing, previous)
             previous = new VisualBasicMetadataContext(context)
 
-            ' At end of outer scope.
+            ' At end of outer scope - not reused because of the nested scope.
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken)
-            Assert.Equal(context, previous.EvaluationContext)
+            Assert.NotEqual(context, previous.EvaluationContext) ' Not required, just documentary.
 
             ' At type context.
             context = EvaluationContext.CreateTypeContext(previous, methodBlocks, moduleVersionId, typeToken)
             Assert.NotEqual(context, previous.EvaluationContext)
-            Assert.NotEqual(context.MethodScope, previous.EvaluationContext.MethodScope)
+            Assert.Null(context.MethodContextReuseConstraints)
             Assert.Equal(context.Compilation, previous.Compilation)
 
             ' Step through entire method.
@@ -273,14 +273,19 @@ End Class"
             previous = new VisualBasicMetadataContext(context)
             For offset = startOffset To endOffset - 1
                 Dim scope = scopes.GetInnermostScope(offset)
+                Dim constraints = previous.EvaluationContext.MethodContextReuseConstraints
+                If constraints.HasValue Then
+                    Assert.Equal(scope Is previousScope, constraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset))
+                End If
+
                 context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, offset, localSignatureToken)
                 If scope Is previousScope Then
                     Assert.Equal(context, previous.EvaluationContext)
                 Else
                     ' Different scope. Should reuse compilation.
                     Assert.NotEqual(context, previous.EvaluationContext)
-                    If previous IsNot Nothing Then
-                        Assert.NotEqual(context.MethodScope, previous.EvaluationContext.MethodScope)
+                    If previous.EvaluationContext IsNot Nothing Then
+                        Assert.NotEqual(context.MethodContextReuseConstraints, previous.EvaluationContext.MethodContextReuseConstraints)
                         Assert.Equal(context.Compilation, previous.Compilation)
                     End If
                 End If
@@ -300,9 +305,9 @@ End Class"
             GetContextState(runtime, "C.F", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
             ' Different references. No reuse.
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken)
+            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset - 1, localSignatureToken)
             Assert.NotEqual(context, previous.EvaluationContext)
-            Assert.Equal(context.MethodScope, previous.EvaluationContext.MethodScope)
+            Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset - 1))
             Assert.NotEqual(context.Compilation, previous.Compilation)
             previous = new VisualBasicMetadataContext(context)
 
@@ -310,7 +315,7 @@ End Class"
             GetContextState(runtime, "C.G", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken)
             Assert.NotEqual(context, previous.EvaluationContext)
-            Assert.NotEqual(context.MethodScope, previous.EvaluationContext.MethodScope)
+            Assert.False(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, 0))
             Assert.Equal(context.Compilation, previous.Compilation)
 
             ' No EvaluationContext. Should reuse Compilation
@@ -1343,7 +1348,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = Evaluate(
-                SimpleSource,
+                s_simpleSource,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName:="C.M",
                 expr:="Nothing",
@@ -1601,7 +1606,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = Evaluate(
-                SimpleSource,
+                s_simpleSource,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName:="C.M",
                 expr:="C.M()",
@@ -1626,7 +1631,7 @@ End Class
             Dim errorMessage As String = Nothing
 
             Dim testData = Evaluate(
-                SimpleSource,
+                s_simpleSource,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName:="C.M",
                 expr:="AddressOf C.M",
@@ -1813,7 +1818,7 @@ End Namespace
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = Evaluate(
-                SimpleSource,
+                s_simpleSource,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName:="C.M",
                 expr:="C",
@@ -2074,6 +2079,45 @@ End Class"
   IL_000c:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
   IL_0011:  call       ""Function A.F(Object) As Object""
   IL_0016:  ret
+}")
+        End Sub
+
+        ''' <summary>
+        ''' Generate PrivateImplementationDetails class
+        ''' for initializer expressions.
+        ''' </summary>
+        <Fact>
+        Public Sub EvaluateInitializerExpression()
+            Const source =
+"Class C
+    Shared Sub M()
+    End Sub
+End Class"
+            Dim compilation0 = CreateCompilationWithMscorlib(
+                {source},
+                references:={SystemCoreRef},
+                compOptions:=TestOptions.DebugDll.WithModuleName("MODULE"),
+                assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim runtime = CreateRuntimeInstance(compilation0)
+            Dim context = CreateMethodContext(
+                runtime,
+                methodName:="C.M")
+            Dim resultProperties As ResultProperties = Nothing
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("{ 1, 2, 3, 4, 5 }", resultProperties, errorMessage, testData)
+            Dim methodData = testData.GetMethodData("<>x.<>m0")
+            Assert.Equal(methodData.Method.ReturnType.ToDisplayString(), "Integer()")
+            methodData.VerifyIL(
+"{
+  // Code size       18 (0x12)
+  .maxstack  3
+  IL_0000:  ldc.i4.5
+  IL_0001:  newarr     ""Integer""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails><{#Module#}.dll>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails><{#Module#}.dll>.1036C5F8EF306104BD582D73E555F4DAE8EECB24""
+  IL_000c:  call       ""Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  ret
 }")
         End Sub
 
@@ -3808,7 +3852,7 @@ End Sub)",
 
         <WorkItem(1115543)>
         <Fact>
-        Sub MethodTypeParameterInLambda()
+        Public Sub MethodTypeParameterInLambda()
             Const source = "
 Class C(Of T)
     Sub M(Of U)()
@@ -3863,7 +3907,7 @@ End Class"
 
         <WorkItem(1112496)>
         <Fact(Skip:="1112496")>
-        Sub EvaluateLocalInAsyncLambda()
+        Public Sub EvaluateLocalInAsyncLambda()
             Const source = "
 Imports System.Threading.Tasks
 Module Module1
@@ -3895,6 +3939,33 @@ End Module"
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""Module1._Closure$__.VB$StateMachine___Lambda$__0-1.$VB$ResumableLocal_i$0 As Integer""
   IL_0006:  ret
+}")
+        End Sub
+
+        <Fact>
+        Public Sub GetTypeOpenGenericType()
+            Dim source = "
+Imports System
+
+Class C
+    Sub M()
+    End Sub
+End Class"
+            Dim compilation = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(compilation)
+            Dim context = CreateMethodContext(runtime, "C.M")
+
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("GetType(Action(Of ))", errorMessage, testData)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL("
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""System.Action(Of T)""
+  IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+  IL_000a:  ret
 }")
         End Sub
 

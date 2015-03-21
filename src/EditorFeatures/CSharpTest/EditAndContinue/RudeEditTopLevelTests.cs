@@ -2465,7 +2465,7 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "await", "await expression"));
+                Diagnostic(RudeEditKind.Delete, "await", CSharpFeaturesResources.AwaitExpression));
         }
 
         [Fact]
@@ -3083,22 +3083,18 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "method"));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
         public void MethodWithExpressionBody_Update_AnonymousType()
         {
-            var src1 = "class C { void M() => new { A = 1, B = 2 }; }";
-            var src2 = "class C { void M() => new { A = 10, B = 20 }; }";
+            var src1 = "class C { void M() => F(new { A = 1, B = 2 }); }";
+            var src2 = "class C { void M() => F(new { A = 10, B = 20 }); }";
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "method"));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -3543,7 +3539,7 @@ class B
                 Diagnostic(RudeEditKind.Delete, "class B", "destructor"));
         }
 
-        [Fact(Skip = "789577")]
+        [Fact]
         [WorkItem(789577)]
         public void ConstructorUpdate_AnonymousTypeInFieldInitializer()
         {
@@ -3552,9 +3548,7 @@ class B
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "constructor"));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -4529,9 +4523,7 @@ class B
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "constructor"));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -4542,9 +4534,7 @@ class B
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "constructor"));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -4687,9 +4677,7 @@ class B
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "field"));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -4700,9 +4688,7 @@ class B
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "auto-property"));
+            edits.VerifyRudeDiagnostics();
         }
 
         #endregion
@@ -5789,6 +5775,49 @@ class SampleCollection<T>
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "public T this[int i]", "indexer setter"));
+        }
+
+        [WorkItem(1120407)]
+        [Fact]
+        public void ConstField_Update()
+        {
+            var src1 = "class C { const int x = 0; }";
+            var src2 = "class C { const int x = 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [x = 0]@20 -> [x = 1]@20");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Update, "x = 1", "const field"));
+        }
+
+        [Fact]
+        public void ConstField_Delete()
+        {
+            var src1 = "class C { const int x = 0; }";
+            var src2 = "class C { int x = 0; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [const int x = 0;]@10 -> [int x = 0;]@10");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "int x = 0", "field"));
+        }
+
+        [Fact]
+        public void ConstField_Add()
+        {
+            var src1 = "class C { int x = 0; }";
+            var src2 = "class C { const int x = 0; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [int x = 0;]@10 -> [const int x = 0;]@10");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int x = 0", "const field"));
         }
 
         #endregion

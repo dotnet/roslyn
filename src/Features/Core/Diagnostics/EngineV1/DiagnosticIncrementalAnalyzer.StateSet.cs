@@ -36,11 +36,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return _state[(int)stateType];
             }
 
-            public void Remove(object key)
+            public void Remove(object documentOrProjectId)
             {
                 for (var stateType = 0; stateType < s_stateTypeCount; stateType++)
                 {
-                    _state[stateType].Remove(key);
+                    _state[stateType].Remove(documentOrProjectId);
                 }
             }
 

@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceModuleSymbol(
             SourceAssemblySymbol assemblySymbol,
             DeclarationTable declarations,
-            string nameWithExtension)
+            string moduleName)
         {
             Debug.Assert((object)assemblySymbol != null);
 
             _assemblySymbol = assemblySymbol;
             _sources = declarations;
-            _name = nameWithExtension;
+            _name = moduleName;
         }
 
         internal override int Ordinal

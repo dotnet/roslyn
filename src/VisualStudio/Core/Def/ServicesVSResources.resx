@@ -451,6 +451,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
     <value>{0} references</value>
   </data>
   <data name="ReferenceCountSingular" xml:space="preserve">
-    <value>{0} reference</value>
+    <value>1 reference</value>
   </data>
 </root>

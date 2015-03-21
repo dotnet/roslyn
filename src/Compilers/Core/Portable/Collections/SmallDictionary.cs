@@ -1,39 +1,36 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    // Dictionary designed to hold small number of items.
-    // Compared to the regular Dictionary, average overhead per-item is roughly the same, but 
-    // unlike regular dictionary, this one is based on an AVL tree and as such does not require 
-    // rehashing when items are added.
-    // It does require rebalancing, but that is allocation-free.
-    //
-    // Major caveats:
-    //  1) There is no Remove method. (can be added, but we do not seem to use Remove that much)
-    //  2) foreach [keys|values|pairs] may allocate a small array.
-    //  3) Performance is no longer O(1). At a certain count it becomes slower than regular Dictionary.
-    //     In comparison to regular Dictionary on my machine:
-    //        On trivial number of elements (5 or so) it is more than 2x faster.
-    //        The break even count is about 120 elements for read and 55 for write operations (with unknown initial size).
-    //        At UShort.MaxValue elements, this dictionary is 6x slower to read and 4x slower to write
-    //
-    // Generally, this dictionary is a win if number of elements is small, not known beforehand or both.
-    //
-    // If the size of the dictionary is known at creation and it is likely to contain more than 10 elements, 
-    // then regular Dictionary is a better choice.
-    //
+    /// <summary>
+    /// Dictionary designed to hold small number of items.
+    /// Compared to the regular Dictionary, average overhead per-item is roughly the same, but 
+    /// unlike regular dictionary, this one is based on an AVL tree and as such does not require 
+    /// rehashing when items are added.
+    /// It does require rebalancing, but that is allocation-free.
+    ///
+    /// Major caveats:
+    ///  1) There is no Remove method. (can be added, but we do not seem to use Remove that much)
+    ///  2) foreach [keys|values|pairs] may allocate a small array.
+    ///  3) Performance is no longer O(1). At a certain count it becomes slower than regular Dictionary.
+    ///     In comparison to regular Dictionary on my machine:
+    ///        On trivial number of elements (5 or so) it is more than 2x faster.
+    ///        The break even count is about 120 elements for read and 55 for write operations (with unknown initial size).
+    ///        At UShort.MaxValue elements, this dictionary is 6x slower to read and 4x slower to write
+    ///
+    /// Generally, this dictionary is a win if number of elements is small, not known beforehand or both.
+    ///
+    /// If the size of the dictionary is known at creation and it is likely to contain more than 10 elements, 
+    /// then regular Dictionary is a better choice.
+    /// </summary>
     internal sealed class SmallDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
     {
-        private AvlNode _root = null;
+        private AvlNode _root;
         private readonly IEqualityComparer<K> _comparer;
 
         public static readonly SmallDictionary<K, V> Empty = new SmallDictionary<K, V>(null);
@@ -69,8 +66,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (_root != null)
             {
-                int hash = GetHashCode(key);
-                return TryGetValue(hash, key, out value);
+                return TryGetValue(GetHashCode(key), key, out value);
             }
 
             value = default(V);
@@ -79,8 +75,7 @@ namespace Microsoft.CodeAnalysis
 
         public void Add(K key, V value)
         {
-            int hash = GetHashCode(key);
-            Insert(hash, key, value, add: true);
+            Insert(GetHashCode(key), key, value, add: true);
         }
 
         public V this[K key]
@@ -92,12 +87,13 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw new InvalidOperationException("key not found");
                 }
+
                 return value;
             }
+
             set
             {
-                int hash = GetHashCode(key);
-                this.Insert(hash, key, value, add: false);
+                this.Insert(GetHashCode(key), key, value, add: false);
             }
         }
 
@@ -115,46 +111,32 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
-        private class Node
+        private abstract class Node
         {
-            public readonly K key;
+            public readonly K Key;
             public V Value;
 
-            public Node(K key, V value)
+            protected Node(K key, V value)
             {
-                this.key = key;
+                this.Key = key;
                 this.Value = value;
             }
 
-            public virtual Node Next
-            {
-                get
-                {
-                    return null;
-                }
-            }
+            public virtual Node Next => null;
         }
 
-        private class NodeLinked : Node
+        private sealed class NodeLinked : Node
         {
-            public readonly Node next;
-
             public NodeLinked(K key, V value, Node next)
                 : base(key, value)
             {
-                this.next = next;
+                this.Next = next;
             }
 
-            public override Node Next
-            {
-                get
-                {
-                    return next;
-                }
-            }
+            public override Node Next { get; }
         }
 
-        private class AvlNodeHead : AvlNode
+        private sealed class AvlNodeHead : AvlNode
         {
             public Node next;
 
@@ -164,22 +146,16 @@ namespace Microsoft.CodeAnalysis
                 this.next = next;
             }
 
-            public override Node Next
-            {
-                get
-                {
-                    return next;
-                }
-            }
+            public override Node Next => next;
         }
 
         // separate class to ensure that HashCode field 
         // is layed out in ram  before other AvlNode fields
-        private class HashedNode : Node
+        private abstract class HashedNode : Node
         {
             public readonly int HashCode;
 
-            public HashedNode(int hashCode, K key, V value)
+            protected HashedNode(int hashCode, K key, V value)
                 : base(key, value)
             {
                 this.HashCode = hashCode;
@@ -204,7 +180,8 @@ namespace Microsoft.CodeAnalysis
                 int a = AssertBalanced(V.Left);
                 int b = AssertBalanced(V.Right);
 
-                if (((a - b) != V.Balance) || (Math.Abs(a - b) >= 2))
+                if (a - b != V.Balance ||
+                    Math.Abs(a - b) >= 2)
                 {
                     throw new InvalidOperationException();
                 }
@@ -238,7 +215,7 @@ namespace Microsoft.CodeAnalysis
             return false;
 
         hasBucket:
-            if (CompareKeys(b.key, key))
+            if (CompareKeys(b.Key, key))
             {
                 value = b.Value;
                 return true;
@@ -251,7 +228,7 @@ namespace Microsoft.CodeAnalysis
         {
             while (next != null)
             {
-                if (CompareKeys(key, next.key))
+                if (CompareKeys(key, next.Key))
                 {
                     value = next.Value;
                     return true;
@@ -301,6 +278,7 @@ namespace Microsoft.CodeAnalysis
                         currentNode.Left = currentNode = new AvlNode(hashCode, key, value);
                         break;
                     }
+
                     currentNodeParent = currentNode;
                     currentNode = currentNode.Left;
                 }
@@ -311,6 +289,7 @@ namespace Microsoft.CodeAnalysis
                         currentNode.Right = currentNode = new AvlNode(hashCode, key, value);
                         break;
                     }
+
                     currentNodeParent = currentNode;
                     currentNode = currentNode.Right;
                 }
@@ -343,7 +322,7 @@ namespace Microsoft.CodeAnalysis
             while (n != currentNode);
 
             // ====== rotate unbalanced node if needed
-            AvlNode rotated = null;
+            AvlNode rotated;
             var balance = unbalanced.Balance;
             if (balance == -2)
             {
@@ -377,7 +356,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private AvlNode LeftSimple(AvlNode unbalanced)
+        private static AvlNode LeftSimple(AvlNode unbalanced)
         {
             var right = unbalanced.Right;
             unbalanced.Right = right.Left;
@@ -388,7 +367,7 @@ namespace Microsoft.CodeAnalysis
             return right;
         }
 
-        private AvlNode RightSimple(AvlNode unbalanced)
+        private static AvlNode RightSimple(AvlNode unbalanced)
         {
             var left = unbalanced.Left;
             unbalanced.Left = left.Right;
@@ -399,7 +378,7 @@ namespace Microsoft.CodeAnalysis
             return left;
         }
 
-        private AvlNode LeftComplex(AvlNode unbalanced)
+        private static AvlNode LeftComplex(AvlNode unbalanced)
         {
             var right = unbalanced.Right;
             var rightLeft = right.Left;
@@ -425,7 +404,7 @@ namespace Microsoft.CodeAnalysis
             return rightLeft;
         }
 
-        private AvlNode RightComplex(AvlNode unbalanced)
+        private static AvlNode RightComplex(AvlNode unbalanced)
         {
             var left = unbalanced.Left;
             var leftRight = left.Right;
@@ -457,17 +436,15 @@ namespace Microsoft.CodeAnalysis
             Node currentNode = node;
             do
             {
-                if (CompareKeys(currentNode.key, key))
+                if (CompareKeys(currentNode.Key, key))
                 {
                     if (add)
                     {
                         throw new InvalidOperationException();
                     }
-                    else
-                    {
-                        currentNode.Value = value;
-                        return;
-                    }
+
+                    currentNode.Value = value;
+                    return;
                 }
 
                 currentNode = currentNode.Next;
@@ -483,39 +460,31 @@ namespace Microsoft.CodeAnalysis
             {
                 var newNext = new NodeLinked(key, value, head.next);
                 head.next = newNext;
+                return;
+            }
+
+            var newHead = new AvlNodeHead(node.HashCode, key, value, node);
+            newHead.Balance = node.Balance;
+            newHead.Left = node.Left;
+            newHead.Right = node.Right;
+
+            if (parent == null)
+            {
+                _root = newHead;
+                return;
+            }
+
+            if (node == parent.Left)
+            {
+                parent.Left = newHead;
             }
             else
             {
-                var newHead = new AvlNodeHead(node.HashCode, key, value, node);
-                newHead.Balance = node.Balance;
-                newHead.Left = node.Left;
-                newHead.Right = node.Right;
-
-                if (parent == null)
-                {
-                    _root = newHead;
-                }
-                else
-                {
-                    if (node == parent.Left)
-                    {
-                        parent.Left = newHead;
-                    }
-                    else
-                    {
-                        parent.Right = newHead;
-                    }
-                }
+                parent.Right = newHead;
             }
         }
 
-        public KeyCollection Keys
-        {
-            get
-            {
-                return new KeyCollection(this);
-            }
-        }
+        public KeyCollection Keys => new KeyCollection(this);
 
         internal struct KeyCollection : IEnumerable<K>
         {
@@ -551,13 +520,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                public K Current
-                {
-                    get
-                    {
-                        return _current.key;
-                    }
-                }
+                public K Current => _current.Key;
 
                 public bool MoveNext()
                 {
@@ -568,19 +531,19 @@ namespace Microsoft.CodeAnalysis
                         return true;
                     }
 
-                    if (_stack != null && _stack.Count != 0)
+                    if (_stack == null || _stack.Count == 0)
                     {
-                        var curr = _stack.Pop();
-                        _current = curr;
-                        _next = curr.Next;
-
-                        PushIfNotNull(curr.Left);
-                        PushIfNotNull(curr.Right);
-
-                        return true;
+                        return false;
                     }
 
-                    return false;
+                    var curr = _stack.Pop();
+                    _current = curr;
+                    _next = curr.Next;
+
+                    PushIfNotNull(curr.Left);
+                    PushIfNotNull(curr.Right);
+
+                    return true;
                 }
 
                 private void PushIfNotNull(AvlNode child)
@@ -606,26 +569,20 @@ namespace Microsoft.CodeAnalysis
                     _e = e;
                 }
 
-                K IEnumerator<K>.Current
-                {
-                    get { return _e.Current; }
-                }
+                K IEnumerator<K>.Current => _e.Current;
 
                 void IDisposable.Dispose()
                 {
                 }
 
-                object System.Collections.IEnumerator.Current
-                {
-                    get { return _e.Current; }
-                }
+                object IEnumerator.Current => _e.Current;
 
-                bool System.Collections.IEnumerator.MoveNext()
+                bool IEnumerator.MoveNext()
                 {
                     return _e.MoveNext();
                 }
 
-                void System.Collections.IEnumerator.Reset()
+                void IEnumerator.Reset()
                 {
                     throw new NotSupportedException();
                 }
@@ -636,19 +593,13 @@ namespace Microsoft.CodeAnalysis
                 return new EnumerableImpl(GetEnumerator());
             }
 
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            IEnumerator IEnumerable.GetEnumerator()
             {
                 throw new NotImplementedException();
             }
         }
 
-        public ValueCollection Values
-        {
-            get
-            {
-                return new ValueCollection(this);
-            }
-        }
+        public ValueCollection Values => new ValueCollection(this);
 
         internal struct ValueCollection : IEnumerable<V>
         {
@@ -669,28 +620,24 @@ namespace Microsoft.CodeAnalysis
                     : this()
                 {
                     var root = dict._root;
-                    if (root != null)
+                    if (root == null)
                     {
-                        // left == right only if both are nulls
-                        if (root.Left == root.Right)
-                        {
-                            _next = dict._root;
-                        }
-                        else
-                        {
-                            _stack = new Stack<AvlNode>(dict.HeightApprox());
-                            _stack.Push(dict._root);
-                        }
+                        return;
+                    }
+
+                    // left == right only if both are nulls
+                    if (root.Left == root.Right)
+                    {
+                        _next = dict._root;
+                    }
+                    else
+                    {
+                        _stack = new Stack<AvlNode>(dict.HeightApprox());
+                        _stack.Push(dict._root);
                     }
                 }
 
-                public V Current
-                {
-                    get
-                    {
-                        return _current.Value;
-                    }
-                }
+                public V Current => _current.Value;
 
                 public bool MoveNext()
                 {
@@ -701,19 +648,19 @@ namespace Microsoft.CodeAnalysis
                         return true;
                     }
 
-                    if (_stack != null && _stack.Count != 0)
+                    if (_stack == null || _stack.Count == 0)
                     {
-                        var curr = _stack.Pop();
-                        _current = curr;
-                        _next = curr.Next;
-
-                        PushIfNotNull(curr.Left);
-                        PushIfNotNull(curr.Right);
-
-                        return true;
+                        return false;
                     }
 
-                    return false;
+                    var curr = _stack.Pop();
+                    _current = curr;
+                    _next = curr.Next;
+
+                    PushIfNotNull(curr.Left);
+                    PushIfNotNull(curr.Right);
+
+                    return true;
                 }
 
                 private void PushIfNotNull(AvlNode child)
@@ -739,26 +686,20 @@ namespace Microsoft.CodeAnalysis
                     _e = e;
                 }
 
-                V IEnumerator<V>.Current
-                {
-                    get { return _e.Current; }
-                }
+                V IEnumerator<V>.Current => _e.Current;
 
                 void IDisposable.Dispose()
                 {
                 }
 
-                object System.Collections.IEnumerator.Current
-                {
-                    get { return _e.Current; }
-                }
+                object IEnumerator.Current => _e.Current;
 
-                bool System.Collections.IEnumerator.MoveNext()
+                bool IEnumerator.MoveNext()
                 {
                     return _e.MoveNext();
                 }
 
-                void System.Collections.IEnumerator.Reset()
+                void IEnumerator.Reset()
                 {
                     throw new NotImplementedException();
                 }
@@ -769,12 +710,11 @@ namespace Microsoft.CodeAnalysis
                 return new EnumerableImpl(GetEnumerator());
             }
 
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            IEnumerator IEnumerable.GetEnumerator()
             {
                 throw new NotImplementedException();
             }
         }
-
 
         public struct Enumerator
         {
@@ -786,28 +726,24 @@ namespace Microsoft.CodeAnalysis
                 : this()
             {
                 var root = dict._root;
-                if (root != null)
+                if (root == null)
                 {
-                    // left == right only if both are nulls
-                    if (root.Left == root.Right)
-                    {
-                        _next = dict._root;
-                    }
-                    else
-                    {
-                        _stack = new Stack<AvlNode>(dict.HeightApprox());
-                        _stack.Push(dict._root);
-                    }
+                    return;
+                }
+
+                // left == right only if both are nulls
+                if (root.Left == root.Right)
+                {
+                    _next = dict._root;
+                }
+                else
+                {
+                    _stack = new Stack<AvlNode>(dict.HeightApprox());
+                    _stack.Push(dict._root);
                 }
             }
 
-            public KeyValuePair<K, V> Current
-            {
-                get
-                {
-                    return new KeyValuePair<K, V>(_current.key, _current.Value);
-                }
-            }
+            public KeyValuePair<K, V> Current => new KeyValuePair<K, V>(_current.Key, _current.Value);
 
             public bool MoveNext()
             {
@@ -818,19 +754,19 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
-                if (_stack != null && _stack.Count != 0)
+                if (_stack == null || _stack.Count == 0)
                 {
-                    var curr = _stack.Pop();
-                    _current = curr;
-                    _next = curr.Next;
-
-                    PushIfNotNull(curr.Left);
-                    PushIfNotNull(curr.Right);
-
-                    return true;
+                    return false;
                 }
 
-                return false;
+                var curr = _stack.Pop();
+                _current = curr;
+                _next = curr.Next;
+
+                PushIfNotNull(curr.Left);
+                PushIfNotNull(curr.Right);
+
+                return true;
             }
 
             private void PushIfNotNull(AvlNode child)
@@ -856,26 +792,20 @@ namespace Microsoft.CodeAnalysis
                 _e = e;
             }
 
-            KeyValuePair<K, V> IEnumerator<KeyValuePair<K, V>>.Current
-            {
-                get { return _e.Current; }
-            }
+            KeyValuePair<K, V> IEnumerator<KeyValuePair<K, V>>.Current => _e.Current;
 
             void IDisposable.Dispose()
             {
             }
 
-            object System.Collections.IEnumerator.Current
-            {
-                get { return _e.Current; }
-            }
+            object IEnumerator.Current => _e.Current;
 
-            bool System.Collections.IEnumerator.MoveNext()
+            bool IEnumerator.MoveNext()
             {
                 return _e.MoveNext();
             }
 
-            void System.Collections.IEnumerator.Reset()
+            void IEnumerator.Reset()
             {
                 throw new NotImplementedException();
             }
@@ -886,7 +816,7 @@ namespace Microsoft.CodeAnalysis
             return new EnumerableImpl(GetEnumerator());
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
             throw new NotImplementedException();
         }

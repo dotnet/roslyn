@@ -12,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     Friend Class VisualBasicEditorFactory
         Inherits AbstractEditorFactory
 
-        Sub New(package As VisualBasicPackage)
+        Public Sub New(package As VisualBasicPackage)
             MyBase.New(package)
         End Sub
 

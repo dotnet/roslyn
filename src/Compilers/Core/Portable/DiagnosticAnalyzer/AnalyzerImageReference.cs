@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (analyzers.Any(a => a == null))
             {
-                throw new ArgumentException("Cannot have null-valued analyzer", "analyzers");
+                throw new ArgumentException("Cannot have null-valued analyzer", nameof(analyzers));
             }
 
             _analyzers = analyzers;

@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (text == null)
             {
-                throw new ArgumentNullException("text");
+                throw new ArgumentNullException(nameof(text));
             }
 
             if (span.Start > text.Length || span.Start < 0 || span.End > text.Length)
             {
-                throw new ArgumentOutOfRangeException("span");
+                throw new ArgumentOutOfRangeException(nameof(span));
             }
 
             if (text.Length > 0)
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Text
                 // check span is start of line
                 if (span.Start > 0 && !TextUtilities.IsAnyLineBreakCharacter(text[span.Start - 1]))
                 {
-                    throw new ArgumentOutOfRangeException(CodeAnalysisResources.SpanDoesNotIncludeStartOfLine);
+                    throw new ArgumentOutOfRangeException(nameof(span), CodeAnalysisResources.SpanDoesNotIncludeStartOfLine);
                 }
 
                 bool endIncludesLineBreak = false;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Text
                 // check end of span is at end of line
                 if (span.End < text.Length && !endIncludesLineBreak)
                 {
-                    throw new ArgumentOutOfRangeException(CodeAnalysisResources.SpanDoesNotIncludeEndOfLine);
+                    throw new ArgumentOutOfRangeException(nameof(span), CodeAnalysisResources.SpanDoesNotIncludeEndOfLine);
                 }
 
                 return new TextLine(text, span.Start, span.End);
@@ -95,14 +95,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             get
             {
-                if (_text != null)
-                {
-                    return _text.Lines.IndexOf(_start);
-                }
-                else
-                {
-                    return 0;
-                }
+                return _text?.Lines.IndexOf(_start) ?? 0;
             }
         }
 
@@ -130,13 +123,11 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                     return 0;
                 }
-                else
-                {
-                    int startLineBreak;
-                    int lineBreakLength;
-                    TextUtilities.GetStartAndLengthOfLineBreakEndingAt(_text, _endIncludingBreaks - 1, out startLineBreak, out lineBreakLength);
-                    return lineBreakLength;
-                }
+
+                int startLineBreak;
+                int lineBreakLength;
+                TextUtilities.GetStartAndLengthOfLineBreakEndingAt(_text, _endIncludingBreaks - 1, out startLineBreak, out lineBreakLength);
+                return lineBreakLength;
             }
         }
 

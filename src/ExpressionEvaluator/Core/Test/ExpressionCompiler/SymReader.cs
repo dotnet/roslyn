@@ -4,11 +4,10 @@ extern alias PDB;
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices.ComTypes;
-using Microsoft.VisualStudio.SymReaderInterop;
+using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal SymReader(byte[] pdbBytes, ImmutableDictionary<string, byte[]> constantSignaturesOpt = null)
         {
-            _reader = SymUnmanagedReaderExtensions.CreateReader(
+            _reader = SymUnmanagedReaderTestExtensions.CreateReader(
                 new MemoryStream(pdbBytes),
                 PDB::Roslyn.Test.PdbUtilities.DummyMetadataImport.Instance);
 
@@ -32,14 +31,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             throw new NotImplementedException();
         }
 
-        public int GetMethod(SymbolToken methodToken, out ISymUnmanagedMethod retVal)
+        public int GetMethod(int methodToken, out ISymUnmanagedMethod retVal)
         {
             // The EE should never be calling ISymUnmanagedReader.GetMethod.  In order to account
             // for EnC updates, it should always be calling GetMethodByVersion instead.
             throw ExceptionUtilities.Unreachable;
         }
 
-        public int GetMethodByVersion(SymbolToken methodToken, int version, out ISymUnmanagedMethod retVal)
+        public int GetMethodByVersion(int methodToken, int version, out ISymUnmanagedMethod retVal)
         {
             var hr = _reader.GetMethodByVersion(methodToken, version, out retVal);
             if (retVal != null)
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return hr;
         }
 
-        public int GetSymAttribute(SymbolToken token, string name, int sizeBuffer, out int lengthBuffer, byte[] buffer)
+        public int GetSymAttribute(int token, string name, int sizeBuffer, out int lengthBuffer, byte[] buffer)
         {
             return _reader.GetSymAttribute(token, name, sizeBuffer, out lengthBuffer, buffer);
         }
@@ -99,12 +98,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             throw new NotImplementedException();
         }
 
-        public int GetUserEntryPoint(out SymbolToken EntryPoint)
+        public int GetUserEntryPoint(out int EntryPoint)
         {
             throw new NotImplementedException();
         }
 
-        public int GetVariables(SymbolToken parent, int cVars, out int pcVars, ISymUnmanagedVariable[] vars)
+        public int GetVariables(int parent, int cVars, out int pcVars, ISymUnmanagedVariable[] vars)
         {
             throw new NotImplementedException();
         }
@@ -150,7 +149,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return _method.GetSequencePointCount(out retVal);
             }
 
-            public int GetToken(out SymbolToken token)
+            public int GetToken(out int token)
             {
                 throw new NotImplementedException();
             }

@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
-using Microsoft.VisualStudio.SymReaderInterop;
+using Microsoft.DiaSymReader;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             RuntimeInstance runtime,
             string methodName,
             int atLineNumber = -1,
-            CSharpMetadataContext previous = null)
+            CSharpMetadataContext previous = default(CSharpMetadataContext))
         {
             ImmutableArray<MetadataBlock> blocks;
             Guid moduleVersionId;
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int localSignatureToken;
             GetContextState(runtime, typeName, out blocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
             return EvaluationContext.CreateTypeContext(
-                null,
+                default(CSharpMetadataContext),
                 blocks,
                 moduleVersionId,
                 typeToken);

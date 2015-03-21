@@ -1752,7 +1752,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // NOTE: availability of well-known members is checked in BindEventAssignment because
                         // we don't have the context to determine whether addition or subtraction is being performed.
 
-                        if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
+                        if (receiver?.Kind == BoundKind.BaseReference && eventSymbol.IsAbstract)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, boundEvent.Syntax, eventSymbol);
+                            return false;
+                        }
+                        else if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
                         {
                             // NOTE: BindEventAssignment checks use site errors on the specific accessor 
                             // (since we don't know which is being used).

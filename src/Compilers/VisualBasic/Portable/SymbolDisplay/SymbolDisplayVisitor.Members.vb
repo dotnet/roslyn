@@ -366,7 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddParametersIfRequired(isExtensionMethod:=method.IsExtensionMethod AndAlso method.MethodKind <> MethodKind.ReducedExtension,
                                         parameters:=method.Parameters)
                 AddPunctuation(SyntaxKind.CloseParenToken)
-                End If
+            End If
         End Sub
 
         Private Sub AddMethodReturnType(method As IMethodSymbol)

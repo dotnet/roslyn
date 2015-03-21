@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             Dim highlights As New List(Of TextSpan)()
 
             With methodBlock
-                With DirectCast( .BlockStatement, SubNewStatementSyntax)
-                    Dim firstKeyword = If( .Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
+                With DirectCast(.BlockStatement, SubNewStatementSyntax)
+                    Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
                     highlights.Add(TextSpan.FromBounds(firstKeyword.SpanStart, .NewKeyword.Span.End))
                 End With
 
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                         blockKind:=SyntaxKind.SubKeyword,
                         checkReturns:=True))
 
-                highlights.Add( .EndBlockStatement.Span)
+                highlights.Add(.EndBlockStatement.Span)
             End With
 
             Return highlights

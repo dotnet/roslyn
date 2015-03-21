@@ -2617,7 +2617,7 @@ End Class
 
         <WorkItem(545199, "DevDiv")>
         <Fact>
-        Sub Serializable_NonSerialized_CustomEvents()
+        Public Sub Serializable_NonSerialized_CustomEvents()
             Dim source =
 <compilation>
     <file name="a.vb"><![CDATA[

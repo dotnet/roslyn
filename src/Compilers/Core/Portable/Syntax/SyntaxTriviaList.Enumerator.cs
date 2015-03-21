@@ -3,11 +3,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis
 {
     public partial struct SyntaxTriviaList
     {
+        [StructLayout(LayoutKind.Auto)]
         public struct Enumerator
         {
             private SyntaxToken _token;
@@ -21,14 +23,14 @@ namespace Microsoft.CodeAnalysis
 
             internal Enumerator(ref SyntaxTriviaList list)
             {
-                _token = list._token;
-                _singleNodeOrList = list._node;
-                _baseIndex = list._index;
+                _token = list.Token;
+                _singleNodeOrList = list.Node;
+                _baseIndex = list.Index;
                 _count = list.Count;
 
                 _index = -1;
                 _current = null;
-                _position = list._position;
+                _position = list.Position;
             }
 
             // PERF: Passing SyntaxToken by ref since it's a non-trivial struct
@@ -130,15 +132,9 @@ namespace Microsoft.CodeAnalysis
                 _enumerator = new Enumerator(ref list);
             }
 
-            public SyntaxTrivia Current
-            {
-                get { return _enumerator.Current; }
-            }
+            public SyntaxTrivia Current => _enumerator.Current;
 
-            object IEnumerator.Current
-            {
-                get { return _enumerator.Current; }
-            }
+            object IEnumerator.Current => _enumerator.Current;
 
             public bool MoveNext()
             {

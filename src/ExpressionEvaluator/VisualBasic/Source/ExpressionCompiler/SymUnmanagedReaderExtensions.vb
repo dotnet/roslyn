@@ -2,10 +2,8 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
-Imports Microsoft.VisualStudio.SymReaderInterop
-Imports ImportScope = Microsoft.VisualStudio.SymReaderInterop.ImportScope
+Imports Microsoft.DiaSymReader
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend Module SymUnmanagedReaderExtensions
@@ -74,9 +72,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 projectLevelImportRecords.ToImmutableAndFree(),
                 fileLevelImportRecords.ToImmutableAndFree())
 
-            Return New MethodDebugInfo(importRecordGroups, ImmutableArray(Of ExternAliasRecord).Empty, defaultNamespaceName)
+            ' TODO (https://github.com/dotnet/roslyn/issues/702): portable format overload
+            ' Somehow construct hoistedLocalScopeRecords.
+            Dim hoistedLocalScopeRecords = ImmutableArray(Of HoistedLocalScopeRecord).Empty
+
+            Return New MethodDebugInfo(
+                hoistedLocalScopeRecords,
+                importRecordGroups,
+                defaultNamespaceName:=defaultNamespaceName,
+                externAliasRecords:=ImmutableArray(Of ExternAliasRecord).Empty,
+                dynamicLocalMap:=ImmutableDictionary(Of Integer, ImmutableArray(Of Boolean)).Empty,
+                dynamicLocalConstantMap:=ImmutableDictionary(Of String, ImmutableArray(Of Boolean)).Empty)
         End Function
 
-        ' TODO (acasey): portable format overload (GH #702)
+        ' TODO (https://github.com/dotnet/roslyn/issues/702): portable format overload
     End Module
 End Namespace

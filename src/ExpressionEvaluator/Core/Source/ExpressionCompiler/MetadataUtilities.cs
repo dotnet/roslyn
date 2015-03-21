@@ -4,12 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.VisualStudio.SymReaderInterop;
+using Microsoft.DiaSymReader;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -17,11 +19,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         internal const uint COR_E_BADIMAGEFORMAT = 0x8007000b;
         internal const uint CORDBG_E_MISSING_METADATA = 0x80131c35;
-
-        internal static bool HaveNotChanged(this ImmutableArray<MetadataBlock> metadataBlocks, MetadataContext previous)
-        {
-            return ((previous != null) && metadataBlocks.SequenceEqual(previous.MetadataBlocks));
-        }
 
         /// <summary>
         /// Group module metadata into assemblies.
@@ -129,15 +126,23 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     foreach (var handle in reader.AssemblyFiles)
                     {
                         var assemblyFile = reader.GetAssemblyFile(handle);
-                        var name = reader.GetString(assemblyFile.Name);
-                        // Find the assembly file in the set of netmodules with that name.
-                        // The file may be missing if the file is not a module (say a resource)
-                        // or if the module has not been loaded yet. The value will be null
-                        // if the name was ambiguous.
-                        ModuleMetadata module;
-                        if (modulesByName.TryGetValue(name, out module) && (module != null))
+                        if (assemblyFile.ContainsMetadata)
                         {
-                            builder.Add(module);
+                            var name = reader.GetString(assemblyFile.Name);
+                            // Find the assembly file in the set of netmodules with that name.
+                            // The file may be missing if the file is not a module (say a resource)
+                            // or if the module has not been loaded yet. The value will be null
+                            // if the name was ambiguous.
+                            ModuleMetadata module;
+                            if (!modulesByName.TryGetValue(name, out module))
+                            {
+                                // AssemblyFile names may contain file information (".dll", etc).
+                                modulesByName.TryGetValue(GetFileNameWithoutExtension(name), out module);
+                            }
+                            if (module != null)
+                            {
+                                builder.Add(module);
+                            }
                         }
                     }
                 }
@@ -151,9 +156,42 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return assemblyMetadata.GetReference(embedInteropTypes: false, display: metadata.Name);
         }
 
+        internal static string GetFileNameWithoutExtension(string fileName)
+        {
+            var lastDotIndex = fileName.LastIndexOf('.');
+            var extensionStartIndex = lastDotIndex + 1;
+            if ((lastDotIndex > 0) && (extensionStartIndex < fileName.Length))
+            {
+                var extension = fileName.Substring(extensionStartIndex);
+                switch (extension)
+                {
+                    case "dll":
+                    case "exe":
+                    case "netmodule":
+                    case "winmd":
+                        return fileName.Substring(0, lastDotIndex);
+                }
+            }
+            return fileName;
+        }
+
+        private static byte[] GetWindowsProxyBytes()
+        {
+            var assembly = typeof(ExpressionCompiler).GetTypeInfo().Assembly;
+            using (var stream = assembly.GetManifestResourceStream("Microsoft.CodeAnalysis.ExpressionEvaluator.Resources.WindowsProxy.winmd"))
+            {
+                var bytes = new byte[stream.Length];
+                using (var memoryStream = new MemoryStream(bytes))
+                {
+                    stream.CopyTo(memoryStream);
+                }
+                return bytes;
+            }
+        }
+
         private static PortableExecutableReference MakeCompileTimeWinMdAssemblyMetadata(ArrayBuilder<ModuleMetadata> runtimeModules)
         {
-            var metadata = ModuleMetadata.CreateFromImage(Resources.WindowsProxy_winmd);
+            var metadata = ModuleMetadata.CreateFromImage(GetWindowsProxyBytes());
             var builder = ArrayBuilder<ModuleMetadata>.GetInstance();
             builder.Add(metadata);
             builder.AddRange(runtimeModules);
@@ -246,7 +284,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// Get the set of nested scopes containing the
         /// IL offset from outermost scope to innermost.
         /// </summary>
-        internal static void GetScopes(this ISymUnmanagedReader symReader, int methodToken, int methodVersion, int ilOffset, bool isScopeEndInclusive, ArrayBuilder<ISymUnmanagedScope> scopes)
+        internal static void GetScopes(
+            this ISymUnmanagedReader symReader, 
+            int methodToken, 
+            int methodVersion, 
+            int ilOffset, 
+            bool isScopeEndInclusive,
+            ArrayBuilder<ISymUnmanagedScope> allScopes,
+            ArrayBuilder<ISymUnmanagedScope> containingScopes)
         {
             if (symReader == null)
             {
@@ -259,17 +304,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return;
             }
 
-            symMethod.GetAllScopes(scopes, ilOffset, isScopeEndInclusive);
+            symMethod.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive);
         }
 
-        internal static MethodScope GetMethodScope(this ArrayBuilder<ISymUnmanagedScope> scopes, int methodToken, int methodVersion)
+        internal static MethodContextReuseConstraints GetReuseConstraints(this ArrayBuilder<ISymUnmanagedScope> scopes, Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset, bool isEndInclusive)
         {
-            if (scopes.Count == 0)
+            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset, isEndInclusive);
+            foreach (ISymUnmanagedScope scope in scopes)
             {
-                return null;
+                builder.AddRange((uint)scope.GetStartOffset(), (uint)scope.GetEndOffset());
             }
-            var scope = scopes.Last();
-            return new MethodScope(methodToken, methodVersion, scope.GetStartOffset(), scope.GetEndOffset());
+            return builder.Build();
         }
 
         internal static ImmutableArray<string> GetLocalNames(this ArrayBuilder<ISymUnmanagedScope> scopes)
@@ -416,11 +461,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private static uint GetHResult(Exception e)
         {
             return unchecked((uint)e.HResult);
-        }
-
-        internal static string GetUtf8String(this BlobHandle blobHandle, MetadataReader metadataReader)
-        {
-            return Encoding.UTF8.GetString(metadataReader.GetBlobBytes(blobHandle));
         }
     }
 }

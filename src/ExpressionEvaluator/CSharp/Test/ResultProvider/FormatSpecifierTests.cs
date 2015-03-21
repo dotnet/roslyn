@@ -40,6 +40,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Verify(evalResult,
                 EvalResult("s", "\"", "string", "s", editableValue: "\"\\\"\"", flags: DkmEvaluationResultFlags.RawString));
 
+            // "\\"
+            value = CreateDkmClrValue("\\", type: stringType);
+            evalResult = FormatResult("s", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("s", "\\", "string", "s", editableValue: "\"\\\\\"", flags: DkmEvaluationResultFlags.RawString));
+
+            // "a\r\n\t\v\b\u001eb"
+            value = CreateDkmClrValue("a\r\n\tb\v\b\u001ec", type: stringType);
+            evalResult = FormatResult("s", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("s", "a\r\n\tb\v\b\u001ec", "string", "s", editableValue: "\"a\\r\\n\\tb\\v\\b\\u001ec\"", flags: DkmEvaluationResultFlags.RawString));
+
+            // "a\0b"
+            value = CreateDkmClrValue("a\0b", type: stringType);
+            evalResult = FormatResult("s", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("s", "a\0b", "string", "s", editableValue: "\"a\\0b\"", flags: DkmEvaluationResultFlags.RawString));
+
+            // "\u007f\u009f"
+            value = CreateDkmClrValue("\u007f\u009f", type: stringType);
+            evalResult = FormatResult("s", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("s", "\u007f\u009f", "string", "s", editableValue: "\"\\u007f\\u009f\"", flags: DkmEvaluationResultFlags.RawString));
+
             // " " with alias
             value = CreateDkmClrValue(" ", type: stringType, alias: "1", evalFlags: DkmEvaluationResultFlags.HasObjectId);
             evalResult = FormatResult("s", value, inspectionContext: inspectionContext);
@@ -68,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var value = CreateDkmClrValue((char)0, type: charType);
             var evalResult = FormatResult("c", value, inspectionContext: inspectionContext);
             Verify(evalResult,
-                EvalResult("c", "0 \\0", "char", "c", editableValue: "'\\0'", flags: DkmEvaluationResultFlags.None));
+                EvalResult("c", "0 \0", "char", "c", editableValue: "'\\0'", flags: DkmEvaluationResultFlags.None));
 
             // '\''
             value = CreateDkmClrValue('\'', type: charType);
@@ -81,6 +105,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             evalResult = FormatResult("c", value, inspectionContext: inspectionContext);
             Verify(evalResult,
                 EvalResult("c", "34 \"", "char", "c", editableValue: "'\"'", flags: DkmEvaluationResultFlags.None));
+
+            // '\\'
+            value = CreateDkmClrValue('\\', type: charType);
+            evalResult = FormatResult("c", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("c", "92 \\", "char", "c", editableValue: "'\\\\'", flags: DkmEvaluationResultFlags.None));
+
+            // '\n'
+            value = CreateDkmClrValue('\n', type: charType);
+            evalResult = FormatResult("c", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("c", "10 \n", "char", "c", editableValue: "'\\n'", flags: DkmEvaluationResultFlags.None));
+
+            // '\u001e'
+            value = CreateDkmClrValue('\u001e', type: charType);
+            evalResult = FormatResult("c", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("c", "30 \u001e", "char", "c", editableValue: "'\\u001e'", flags: DkmEvaluationResultFlags.None));
+
+            // '\u007f'
+            value = CreateDkmClrValue('\u007f', type: charType);
+            evalResult = FormatResult("c", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("c", "127 \u007f", "char", "c", editableValue: "'\\u007f'", flags: DkmEvaluationResultFlags.None));
 
             // array
             value = CreateDkmClrValue(new char[] { '1' }, type: charType.MakeArrayType());

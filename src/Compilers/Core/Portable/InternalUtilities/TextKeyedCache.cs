@@ -76,7 +76,7 @@ namespace Roslyn.Utilities
         // slightly slower than local cache
         // we read this cache when having a miss in local cache
         // writes to local cache will update shared cache as well.
-        private static SharedEntry[] s_sharedTable = new SharedEntry[SharedSize];
+        private static readonly SharedEntry[] s_sharedTable = new SharedEntry[SharedSize];
 
         // store a reference to shared cache locally
         // accessing a static field of a generic type could be nontrivial

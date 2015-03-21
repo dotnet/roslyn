@@ -22,11 +22,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Friend Shared ReadOnly EmptyLocalsProvider As Func(Of MethodDefinitionHandle, EditAndContinueMethodDebugInformation) = Function(token) Nothing
 
         Friend Shared Function MarkedSource(source As XElement, Optional fileName As String = "", Optional options As VisualBasicParseOptions = Nothing) As SourceWithMarkedNodes
-            Return New SourceWithMarkedNodes(source.Value, Function(s) Parse(s, fileName, options), Function(s) DirectCast(GetType(SyntaxKind).GetField(s).GetValue(Nothing), Integer))
+            Return New SourceWithMarkedNodes(source.Value, Function(s) Parse(s, fileName, options), Function(s) CInt(GetType(SyntaxKind).GetField(s).GetValue(Nothing)))
         End Function
 
         Friend Shared Function MarkedSource(source As String, Optional fileName As String = "", Optional options As VisualBasicParseOptions = Nothing) As SourceWithMarkedNodes
-            Return New SourceWithMarkedNodes(source, Function(s) Parse(s, fileName, options), Function(s) DirectCast(GetType(SyntaxKind).GetField(s).GetValue(Nothing), Integer))
+            Return New SourceWithMarkedNodes(source, Function(s) Parse(s, fileName, options), Function(s) CInt(GetType(SyntaxKind).GetField(s).GetValue(Nothing)))
         End Function
 
         Friend Shared Function GetSyntaxMapFromMarkers(source0 As SourceWithMarkedNodes, source1 As SourceWithMarkedNodes) As Func(Of SyntaxNode, SyntaxNode)
@@ -253,17 +253,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Module EditAndContinueTestExtensions
         <Extension>
-        Function WithSource(compilation As VisualBasicCompilation, newSource As String) As VisualBasicCompilation
+        Public Function WithSource(compilation As VisualBasicCompilation, newSource As String) As VisualBasicCompilation
             Return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(VisualBasicSyntaxTree.ParseText(newSource))
         End Function
 
         <Extension>
-        Function WithSource(compilation As VisualBasicCompilation, newSource As XElement) As VisualBasicCompilation
+        Public Function WithSource(compilation As VisualBasicCompilation, newSource As XElement) As VisualBasicCompilation
             Return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(ToSourceTrees(newSource))
         End Function
 
         <Extension>
-        Function WithSource(compilation As VisualBasicCompilation, newTree As SyntaxTree) As VisualBasicCompilation
+        Public Function WithSource(compilation As VisualBasicCompilation, newTree As SyntaxTree) As VisualBasicCompilation
             Return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(newTree)
         End Function
     End Module

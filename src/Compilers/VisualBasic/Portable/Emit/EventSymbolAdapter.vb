@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Partial Class EventSymbol
+    Friend Partial Class EventSymbol
         Implements Cci.IEventDefinition
 
         Private ReadOnly Property IEventDefinitionAccessors As IEnumerable(Of Cci.IMethodReference) Implements Cci.IEventDefinition.Accessors

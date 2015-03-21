@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     rewritten = VisitExpressionNode(argument)
 
-                    If parameters(paramIdx).IsByRef AndAlso Not argument.IsLValue AndAlso Not inExpressionLambda Then
+                    If parameters(paramIdx).IsByRef AndAlso Not argument.IsLValue AndAlso Not _inExpressionLambda Then
                         rewritten = PassArgAsTempClone(argument, rewritten, tempsArray)
                     End If
 
@@ -227,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 tempsArray = ArrayBuilder(Of SynthesizedLocal).GetInstance()
             End If
 
-            Dim temp = New SynthesizedLocal(Me.currentMethodOrLambda, rewrittenArgument.Type, SynthesizedLocalKind.LoweringTemp)
+            Dim temp = New SynthesizedLocal(Me._currentMethodOrLambda, rewrittenArgument.Type, SynthesizedLocalKind.LoweringTemp)
             tempsArray.Add(temp)
 
             Dim boundTemp = New BoundLocal(rewrittenArgument.Syntax, temp, temp.Type)
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 originalArgument = originalArgument.SetLateBoundAccessKind(LateBoundAccessKind.Unknown)
             End If
 
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 If originalArgument.IsPropertyOrXmlPropertyAccess Then
                     Debug.Assert(originalArgument.GetAccessKind() = PropertyAccessKind.Unknown)
                     originalArgument = originalArgument.SetAccessKind(PropertyAccessKind.Get)
@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim firstUse As BoundExpression
             Dim secondUse As BoundExpression
 
-            Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me.currentMethodOrLambda, originalArgument, tempsArray)
+            Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, originalArgument, tempsArray)
 
             If originalArgument.IsPropertyOrXmlPropertyAccess Then
                 firstUse = useTwice.First.SetAccessKind(PropertyAccessKind.Get)
@@ -311,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim inputValue As BoundExpression = VisitAndGenerateObjectCloneIfNeeded(argument.InConversion)
             RemovePlaceholderReplacement(argument.InPlaceholder)
 
-            Dim temp = New SynthesizedLocal(Me.currentMethodOrLambda, argument.Type, SynthesizedLocalKind.LoweringTemp)
+            Dim temp = New SynthesizedLocal(Me._currentMethodOrLambda, argument.Type, SynthesizedLocalKind.LoweringTemp)
             tempsArray.Add(temp)
 
             Dim boundTemp = New BoundLocal(argument.Syntax, temp, temp.Type)

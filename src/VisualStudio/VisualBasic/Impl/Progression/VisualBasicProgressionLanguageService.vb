@@ -49,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
             Return result
         End Function
 
-        Private Shared ReadOnly DescriptionFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
+        Private Shared ReadOnly s_descriptionFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
             globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
             typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -58,17 +58,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
             miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
         Public Function GetDescriptionForSymbol(symbol As ISymbol, includeContainingSymbol As Boolean) As String Implements IProgressionLanguageService.GetDescriptionForSymbol
-            Return GetSymbolText(symbol, False, DescriptionFormat)
+            Return GetSymbolText(symbol, False, s_descriptionFormat)
         End Function
 
-        Private Shared ReadOnly LabelFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
+        Private Shared ReadOnly s_labelFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
             genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
             memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or SymbolDisplayMemberOptions.IncludeType,
             parameterOptions:=SymbolDisplayParameterOptions.IncludeType Or SymbolDisplayParameterOptions.IncludeParamsRefOut Or SymbolDisplayParameterOptions.IncludeOptionalBrackets,
             miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
         Public Function GetLabelForSymbol(symbol As ISymbol, includeContainingSymbol As Boolean) As String Implements IProgressionLanguageService.GetLabelForSymbol
-            Return GetSymbolText(symbol, includeContainingSymbol, LabelFormat)
+            Return GetSymbolText(symbol, includeContainingSymbol, s_labelFormat)
         End Function
 
         Private Function GetSymbolText(symbol As ISymbol, includeContainingSymbol As Boolean, displayFormat As SymbolDisplayFormat) As String

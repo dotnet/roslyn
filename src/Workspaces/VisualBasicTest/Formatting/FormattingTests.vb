@@ -1,4 +1,6 @@
-﻿Imports Microsoft.CodeAnalysis.Formatting
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -1677,8 +1679,7 @@ End Class</Code>
             {
                 {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
                 {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.UseTabOnlyForIndentation, LanguageNames.VisualBasic), True}
+                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
             }
 
             AssertFormat(code, expected, changedOptionSet:=optionSet)
@@ -1697,7 +1698,7 @@ End Class</Code>
 
             Dim expected =
                 "Class SomeClass" + vbCrLf +
-                vbTab + "Sub Foo()			' Comment" + vbCrLf +
+                vbTab + "Sub Foo()           ' Comment" + vbCrLf +
                 vbTab + vbTab + "Foo()" + vbCrLf +
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
@@ -1933,7 +1934,7 @@ End Class</Code>
 End Class</Code>
 
             Dim expected = <Code>Class Foo
-	Sub Foo()			' Comment
+	Sub Foo()           ' Comment
 		Foo()
 	End Sub
 End Class</Code>
@@ -3511,7 +3512,7 @@ End Module</code>
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Sub SpacingAroundXmlEntityLiterals()
+        Public Sub SpacingAroundXmlEntityLiterals()
             Dim code =
 <Code><![CDATA[Class C
     Sub Bar()
@@ -3551,7 +3552,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(17313, "DevDiv_Projects/Roslyn")>
-        Sub TestElseIfFormatting_Directive()
+        Public Sub TestElseIfFormatting_Directive()
             Dim code =
 <Code><![CDATA[
 #If True Then
@@ -3571,7 +3572,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(529899, "DevDiv_Projects/Roslyn")>
-        Sub IndentContinuedLineOfSingleLineLambdaToFunctionKeyword()
+        Public Sub IndentContinuedLineOfSingleLineLambdaToFunctionKeyword()
             Dim code =
 <Code><![CDATA[
 Module Program
@@ -3597,7 +3598,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(604032, "DevDiv_Projects/Roslyn")>
-        Sub TestSpaceBetweenEqualsAndDotOfXml()
+        Public Sub TestSpaceBetweenEqualsAndDotOfXml()
             Dim code =
 <Code><![CDATA[
 Module Program
@@ -3646,7 +3647,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(604092, "DevDiv_Projects/Roslyn")>
-        Sub AnchorIndentToTheFirstTokenOfXmlBlock()
+        Public Sub AnchorIndentToTheFirstTokenOfXmlBlock()
             Dim code =
 <Code><![CDATA[
 Module Program
@@ -3699,7 +3700,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(530366, "DevDiv_Projects/Roslyn")>
-        Sub ForcedSpaceBetweenXmlNameTokenAndPercentGreaterThanToken()
+        Public Sub ForcedSpaceBetweenXmlNameTokenAndPercentGreaterThanToken()
             Dim code =
 <Code><![CDATA[
 Module Module1
@@ -3724,7 +3725,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(531444, "DevDiv")>
-        Sub TestElseIfFormattingForNestedSingleLineIf()
+        Public Sub TestElseIfFormattingForNestedSingleLineIf()
             Dim code =
 <Code><![CDATA[
         If True Then Console.WriteLine(1) Else If True Then Return
@@ -3737,7 +3738,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Sub TestDontCrashOnMissingTokenWithComment()
+        Public Sub TestDontCrashOnMissingTokenWithComment()
             Dim code =
 <Code><![CDATA[
 Namespace NS
@@ -3750,7 +3751,7 @@ Namespace NS
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Sub TestBang()
+        Public Sub TestBang()
             Dim code =
 <Code><![CDATA[
 Imports System.Collections
@@ -3781,7 +3782,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(679864, "DevDiv")>
-        Sub InsertSpaceBetweenXMLMemberAttributeAccessAndEqualsToken()
+        Public Sub InsertSpaceBetweenXMLMemberAttributeAccessAndEqualsToken()
             Dim expected =
 <Code><![CDATA[
 Imports System
@@ -3812,7 +3813,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(923172, "DevDiv")>
-        Sub TestMemberAccessAfterOpenParen()
+        Public Sub TestMemberAccessAfterOpenParen()
             Dim expected =
 <Code><![CDATA[
 Imports System
@@ -3855,7 +3856,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(923180, "DevDiv")>
-        Sub TestXmlMemberAccessDot()
+        Public Sub TestXmlMemberAccessDot()
             Dim expected =
 <Code><![CDATA[
 Imports System
@@ -3896,7 +3897,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(530601, "DevDiv")>
-        Sub TestElasticFormattingPropertySetter()
+        Public Sub TestElasticFormattingPropertySetter()
             Dim parameterList = SyntaxFactory.ParseParameterList(String.Format("(value As {0})", "Integer"))
             Dim setter = SyntaxFactory.AccessorBlock(SyntaxKind.SetAccessorBlock,
                                                    SyntaxFactory.AccessorStatement(SyntaxKind.SetAccessorStatement, SyntaxFactory.Token(SyntaxKind.SetKeyword)).
@@ -4197,6 +4198,43 @@ End Class
 Class C
     Sub M()
         Dim s = $"{42,-4:x}"
+    End Sub
+End Class
+</Code>
+
+            AssertFormatLf2CrLf(text.Value, expected.Value)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub EmptyCaseBlockCommentGetsIndented()
+            Dim text = <Code>
+Class Program
+    Sub Main(args As String())
+        Dim s = 0
+        Select Case s
+            Case 0
+            ' Comment should be indented
+            Case 2
+                ' comment
+                Console.WriteLine(s)
+            Case 4
+        End Select
+    End Sub
+End Class
+</Code>
+
+            Dim expected = <Code>
+Class Program
+    Sub Main(args As String())
+        Dim s = 0
+        Select Case s
+            Case 0
+                ' Comment should be indented
+            Case 2
+                ' comment
+                Console.WriteLine(s)
+            Case 4
+        End Select
     End Sub
 End Class
 </Code>

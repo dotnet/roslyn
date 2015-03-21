@@ -3,7 +3,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio.SymReaderInterop;
+using Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Utilities;
 

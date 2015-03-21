@@ -357,7 +357,7 @@ C02}!")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_DollarSignMissingDoubleQuote()
+    Public Sub ErrorRecovery_DollarSignMissingDoubleQuote()
         Parse(
 "Module Program
     Sub Main()
@@ -367,7 +367,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingClosingDoubleQuote()
+    Public Sub ErrorRecovery_MissingClosingDoubleQuote()
         Parse(
 "Module Program
     Sub Main()
@@ -377,7 +377,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingCloseBrace()
+    Public Sub ErrorRecovery_MissingCloseBrace()
         Parse(
 "Module Program
     Sub Main()
@@ -387,7 +387,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingExpressionWithAlignment()
+    Public Sub ErrorRecovery_MissingExpressionWithAlignment()
         Parse(
 "Module Program
     Sub Main()
@@ -397,7 +397,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingExpressionWithFormatString()
+    Public Sub ErrorRecovery_MissingExpressionWithFormatString()
         Parse(
 "Module Program
     Sub Main()
@@ -407,7 +407,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingExpressionWithAlignmentAndFormatString()
+    Public Sub ErrorRecovery_MissingExpressionWithAlignmentAndFormatString()
         Parse(
 "Module Program
     Sub Main()
@@ -417,7 +417,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingExpressionAndAlignment()
+    Public Sub ErrorRecovery_MissingExpressionAndAlignment()
         Parse(
 "Module Program
     Sub Main()
@@ -427,7 +427,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingExpressionAndAlignmentAndFormatString()
+    Public Sub ErrorRecovery_MissingExpressionAndAlignmentAndFormatString()
         Parse(
 "Module Program
     Sub Main()
@@ -437,7 +437,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingExpression()
+    Public Sub ErrorRecovery_MissingExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -447,7 +447,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_NonExpressionKeyword()
+    Public Sub ErrorRecovery_NonExpressionKeyword()
         Parse(
 "Module Program
     Sub Main()
@@ -457,7 +457,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_NonExpressionCharacter()
+    Public Sub ErrorRecovery_NonExpressionCharacter()
         Parse(
 "Module Program
     Sub Main()
@@ -467,7 +467,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_IncompleteExpression()
+    Public Sub ErrorRecovery_IncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -477,7 +477,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingAlignment()
+    Public Sub ErrorRecovery_MissingAlignment()
         Parse(
 "Module Program
     Sub Main()
@@ -487,7 +487,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_BadAlignment()
+    Public Sub ErrorRecovery_BadAlignment()
         Parse(
 "Module Program
     Sub Main()
@@ -497,7 +497,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingFormatString()
+    Public Sub ErrorRecovery_MissingFormatString()
         Parse(
 "Module Program
     Sub Main()
@@ -507,7 +507,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_AlignmentWithMissingFormatString()
+    Public Sub ErrorRecovery_AlignmentWithMissingFormatString()
         Parse(
 "Module Program
     Sub Main()
@@ -517,7 +517,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder()
+    Public Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder()
         Parse(
 "Module Program
     Sub Main()
@@ -527,7 +527,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingOpenBrace()
+    Public Sub ErrorRecovery_MissingOpenBrace()
         Parse(
 "Module Program
     Sub Main()
@@ -537,7 +537,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_DollarSignMissingDoubleQuote_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_DollarSignMissingDoubleQuote_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -547,7 +547,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingClosingDoubleQuote_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_MissingClosingDoubleQuote_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -557,7 +557,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingCloseBrace_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_MissingCloseBrace_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -567,7 +567,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingExpression_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_MissingExpression_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -577,7 +577,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_NonExpressionKeyword_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_NonExpressionKeyword_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -587,7 +587,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_NonExpressionCharacter_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_NonExpressionCharacter_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -597,7 +597,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_IncompleteExpression_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_IncompleteExpression_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -607,7 +607,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingAlignment_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_MissingAlignment_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -617,7 +617,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_BadAlignment_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_BadAlignment_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -627,7 +627,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingFormatString_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_MissingFormatString_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -637,7 +637,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_AlignmentWithMissingFormatString_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_AlignmentWithMissingFormatString_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -647,7 +647,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -657,7 +657,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingOpenBrace_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_MissingOpenBrace_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -667,7 +667,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_NonExpressionKeyword_InUnclosedInterpolation()
+    Public Sub ErrorRecovery_NonExpressionKeyword_InUnclosedInterpolation()
         Parse(
 "Module Program
     Sub Main()
@@ -677,7 +677,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_NonExpressionCharacter_InUnclosedInterpolation()
+    Public Sub ErrorRecovery_NonExpressionCharacter_InUnclosedInterpolation()
         Parse(
 "Module Program
     Sub Main()
@@ -687,7 +687,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_IncompleteExpression_InUnclosedInterpolation()
+    Public Sub ErrorRecovery_IncompleteExpression_InUnclosedInterpolation()
         Parse(
 "Module Program
     Sub Main()
@@ -697,7 +697,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingAlignment_InUnclosedInterpolation()
+    Public Sub ErrorRecovery_MissingAlignment_InUnclosedInterpolation()
         Parse(
 "Module Program
     Sub Main()
@@ -707,7 +707,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_BadAlignment_InUnclosedInterpolation()
+    Public Sub ErrorRecovery_BadAlignment_InUnclosedInterpolation()
         Parse(
 "Module Program
     Sub Main()
@@ -717,7 +717,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingFormatString_InUnclosedInterpolation()
+    Public Sub ErrorRecovery_MissingFormatString_InUnclosedInterpolation()
         Parse(
 "Module Program
     Sub Main()
@@ -727,7 +727,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_AlignmentWithMissingFormatString_InUnclosedInterpolation()
+    Public Sub ErrorRecovery_AlignmentWithMissingFormatString_InUnclosedInterpolation()
         Parse(
 "Module Program
     Sub Main()
@@ -737,7 +737,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder_InUnclosedInterpolation()
+    Public Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder_InUnclosedInterpolation()
         Parse(
 "Module Program
     Sub Main()
@@ -747,7 +747,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_NonExpressionKeyword_InUnclosedInterpolation_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_NonExpressionKeyword_InUnclosedInterpolation_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -757,7 +757,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_NonExpressionCharacter_InUnclosedInterpolation_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_NonExpressionCharacter_InUnclosedInterpolation_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -767,7 +767,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_IncompleteExpression_InUnclosedInterpolation_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_IncompleteExpression_InUnclosedInterpolation_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -777,7 +777,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingAlignment_InUnclosedInterpolation_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_MissingAlignment_InUnclosedInterpolation_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -787,7 +787,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_BadAlignment_InUnclosedInterpolation_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_BadAlignment_InUnclosedInterpolation_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -797,7 +797,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_MissingFormatString_InUnclosedInterpolation_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_MissingFormatString_InUnclosedInterpolation_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -807,7 +807,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_AlignmentWithMissingFormatString_InUnclosedInterpolation_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_AlignmentWithMissingFormatString_InUnclosedInterpolation_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -817,7 +817,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder_InUnclosedInterpolation_NestedInIncompleteExpression()
+    Public Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder_InUnclosedInterpolation_NestedInIncompleteExpression()
         Parse(
 "Module Program
     Sub Main()
@@ -827,7 +827,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_IncompleteExpression_FollowedByAColon()
+    Public Sub ErrorRecovery_IncompleteExpression_FollowedByAColon()
         Parse(
 "Module Program
     Sub Main()
@@ -838,7 +838,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_IncompleteExpression_FollowedByATwoColons()
+    Public Sub ErrorRecovery_IncompleteExpression_FollowedByATwoColons()
         Parse(
 "Module Program
     Sub Main()
@@ -849,7 +849,7 @@ End Module")
     End Sub
 
     <Fact>
-    Sub ErrorRecovery_ExtraCloseBraceFollowingInterpolationWithNoFormatClause()
+    Public Sub ErrorRecovery_ExtraCloseBraceFollowingInterpolationWithNoFormatClause()
         Parse(
 "Module Program
     Sub Main()

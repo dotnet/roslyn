@@ -28,7 +28,7 @@ namespace Roslyn.Utilities
         {
             if (many.IsDefault)
             {
-                throw new ArgumentNullException("many");
+                throw new ArgumentNullException(nameof(many));
             }
 
             _one = default(T);

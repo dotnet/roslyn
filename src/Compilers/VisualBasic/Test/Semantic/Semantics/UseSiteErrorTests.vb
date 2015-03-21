@@ -510,7 +510,7 @@ BC30002: Type 'System.Int32' is not defined.
 
             ' the important bit here is, that there is no complaint about a missing CompilerGeneratedAttribute..ctor.
             For Each diag In compilation1.GetDiagnostics()
-                Assert.DoesNotContain("System.Runtime.CompilerServices.CompilerGeneratedAttribute", diag.GetMessage)
+                Assert.DoesNotContain("System.Runtime.CompilerServices.CompilerGeneratedAttribute", diag.GetMessage, StringComparison.Ordinal)
             Next
         End Sub
 

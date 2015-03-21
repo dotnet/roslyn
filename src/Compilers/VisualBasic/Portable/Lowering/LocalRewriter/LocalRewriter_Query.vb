@@ -37,14 +37,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Conveniently, we already know the lambda's symbol.
 
             ' BEGIN LAMBDA REWRITE
-            Dim originalMethodOrLambda = Me.currentMethodOrLambda
-            Me.currentMethodOrLambda = node.LambdaSymbol
+            Dim originalMethodOrLambda = Me._currentMethodOrLambda
+            Me._currentMethodOrLambda = node.LambdaSymbol
 
             Dim nodeRangeVariables As ImmutableArray(Of RangeVariableSymbol) = node.RangeVariables
 
             If nodeRangeVariables.Length > 0 Then
-                If rangeVariableMap Is Nothing Then
-                    rangeVariableMap = New Dictionary(Of RangeVariableSymbol, BoundExpression)()
+                If _rangeVariableMap Is Nothing Then
+                    _rangeVariableMap = New Dictionary(Of RangeVariableSymbol, BoundExpression)()
                 End If
 
                 Dim firstUnmappedRangeVariable As Integer = 0
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         ' Simple case, range variable is a lambda parameter.
                         Debug.Assert(IdentifierComparison.Equals(parameterName, nodeRangeVariables(firstUnmappedRangeVariable).Name))
-                        rangeVariableMap.Add(nodeRangeVariables(firstUnmappedRangeVariable), paramRef)
+                        _rangeVariableMap.Add(nodeRangeVariables(firstUnmappedRangeVariable), paramRef)
                         firstUnmappedRangeVariable += 1
                     End If
                 Next
@@ -79,15 +79,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(firstUnmappedRangeVariable = nodeRangeVariables.Length)
             End If
 
-            Dim save_createSequencePointsForTopLevelNonCompilerGeneratedExpressions = createSequencePointsForTopLevelNonCompilerGeneratedExpressions
+            Dim save_createSequencePointsForTopLevelNonCompilerGeneratedExpressions = _createSequencePointsForTopLevelNonCompilerGeneratedExpressions
             Dim createSequencePoint As VisualBasicSyntaxNode = Nothing
             Dim sequencePointSpan As TextSpan
 
 #If Not DEBUG Then
             If GenerateDebugInfo Then
 #End If
-                If node.Syntax.Kind = SyntaxKind.AggregateClause Then
-                    Dim aggregateClause = DirectCast(node.Syntax, AggregateClauseSyntax)
+
+            Select Case node.LambdaSymbol.SynthesizedKind
+                Case SynthesizedLambdaKind.AggregateQueryLambda
+                    Dim aggregateClause = DirectCast(node.Syntax.Parent.Parent, AggregateClauseSyntax)
 
                     If aggregateClause.AggregationVariables.Count = 1 Then
                         ' We are dealing with a simple case of an Aggregate clause - a single aggregate
@@ -98,39 +100,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         createSequencePoint = aggregateClause
                         sequencePointSpan = aggregateClause.Span
                     Else
-                        ' We are dealing with a complex case of an Aggregate clause - two or more aggregate
-                        ' functions in the Into clause. There will be two lambdas assosiated with an Aggregate
-                        ' clause like this: 
-                        '     - one that calculates and caches the group;
-                        '     - and the other that calculates aggregate functions.
-                        ' If we are dealing with the first kind of lambda, we should create sequence point 
-                        ' that spans from begining of the Aggregate clause to the begining of the Into clause
-                        ' because all that code is involved into group calculation.
-                        Dim haveAggregation As Boolean = False
+                        ' We should create sequence point that spans from begining of the Aggregate clause 
+                        ' to the begining of the Into clause because all that code is involved into group calculation.
 
-                        If node.Expression.Kind = BoundKind.AnonymousTypeCreationExpression Then
-                            For Each n In DirectCast(node.Expression, BoundAnonymousTypeCreationExpression).Arguments
-                                If n.Syntax.Kind = SyntaxKind.AggregationRangeVariable Then
-                                    haveAggregation = True
-                                    Exit For
-                                End If
-                            Next
-                        End If
-
-                        If Not haveAggregation Then
-                            createSequencePoint = aggregateClause
-                            If aggregateClause.AdditionalQueryOperators.Count = 0 Then
-                                sequencePointSpan = TextSpan.FromBounds(aggregateClause.SpanStart,
-                                                                            aggregateClause.Variables.Last.Span.End)
-                            Else
-                                sequencePointSpan = TextSpan.FromBounds(aggregateClause.SpanStart,
-                                                                            aggregateClause.AdditionalQueryOperators.Last.Span.End)
-                            End If
+                        createSequencePoint = aggregateClause
+                        If aggregateClause.AdditionalQueryOperators.Count = 0 Then
+                            sequencePointSpan = TextSpan.FromBounds(aggregateClause.SpanStart,
+                                                                    aggregateClause.Variables.Last.Span.End)
+                        Else
+                            sequencePointSpan = TextSpan.FromBounds(aggregateClause.SpanStart,
+                                                                    aggregateClause.AdditionalQueryOperators.Last.Span.End)
                         End If
                     End If
-                End If
 
-                createSequencePointsForTopLevelNonCompilerGeneratedExpressions = (createSequencePoint Is Nothing)
+                Case SynthesizedLambdaKind.LetVariableQueryLambda
+                    ' We will apply sequence points to synthesized return statements if they are contained in LetClause
+                    Debug.Assert(node.Syntax.Parent.IsKind(SyntaxKind.ExpressionRangeVariable))
+
+                    createSequencePoint = node.Syntax
+                    sequencePointSpan = TextSpan.FromBounds(node.Syntax.SpanStart, node.Syntax.Span.End)
+            End Select
+
+            _createSequencePointsForTopLevelNonCompilerGeneratedExpressions = (createSequencePoint Is Nothing)
 #If Not DEBUG Then
             End If
 #End If
@@ -144,10 +135,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 returnstmt = New BoundSequencePointWithSpan(createSequencePoint, returnstmt, sequencePointSpan)
             End If
 
-            createSequencePointsForTopLevelNonCompilerGeneratedExpressions = save_createSequencePointsForTopLevelNonCompilerGeneratedExpressions
+            _createSequencePointsForTopLevelNonCompilerGeneratedExpressions = save_createSequencePointsForTopLevelNonCompilerGeneratedExpressions
 
             For Each rangeVar As RangeVariableSymbol In nodeRangeVariables
-                rangeVariableMap.Remove(rangeVar)
+                _rangeVariableMap.Remove(rangeVar)
             Next
 
             Dim lambdaBody = New BoundBlock(node.Syntax,
@@ -155,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             ImmutableArray(Of LocalSymbol).Empty,
                                             ImmutableArray.Create(returnstmt))
 
-            Me.hasLambdas = True
+            Me._hasLambdas = True
 
             Dim result As BoundLambda = New BoundLambda(node.Syntax,
                                    node.LambdaSymbol,
@@ -169,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Done with lambda body rewrite, restore current lambda.
             ' END LAMBDA REWRITE
-            Me.currentMethodOrLambda = originalMethodOrLambda
+            Me._currentMethodOrLambda = originalMethodOrLambda
 
             Return result
         End Function
@@ -184,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For Each propertyDef As PropertySymbol In anonymousType.Properties
                 Dim getCallOrPropertyAccess As BoundExpression = Nothing
-                If inExpressionLambda Then
+                If _inExpressionLambda Then
                     ' NOTE: If we are in context of a lambda to be converted to an expression tree we need to use PropertyAccess.
                     getCallOrPropertyAccess = New BoundPropertyAccess(syntax,
                                                                       propertyDef,
@@ -214,14 +205,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Else
                     Debug.Assert(IdentifierComparison.Equals(propertyDefName, rangeVariables(firstUnmappedRangeVariable).Name))
-                    rangeVariableMap.Add(rangeVariables(firstUnmappedRangeVariable), getCallOrPropertyAccess)
+                    _rangeVariableMap.Add(rangeVariables(firstUnmappedRangeVariable), getCallOrPropertyAccess)
                     firstUnmappedRangeVariable += 1
                 End If
             Next
         End Sub
 
         Public Overrides Function VisitRangeVariable(node As BoundRangeVariable) As BoundNode
-            Return rangeVariableMap(node.RangeVariable)
+            Return _rangeVariableMap(node.RangeVariable)
         End Function
 
         Public Overrides Function VisitQueryableSource(node As BoundQueryableSource) As BoundNode
@@ -239,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitAggregateClause(node As BoundAggregateClause) As BoundNode
             If node.CapturedGroupOpt IsNot Nothing Then
                 Debug.Assert(node.GroupPlaceholderOpt IsNot Nothing)
-                Dim groupLocal = New SynthesizedLocal(Me.currentMethodOrLambda, node.CapturedGroupOpt.Type, SynthesizedLocalKind.LoweringTemp)
+                Dim groupLocal = New SynthesizedLocal(Me._currentMethodOrLambda, node.CapturedGroupOpt.Type, SynthesizedLocalKind.LoweringTemp)
 
                 AddPlaceholderReplacement(node.GroupPlaceholderOpt,
                                               New BoundLocal(node.Syntax, groupLocal, False, groupLocal.Type))

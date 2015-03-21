@@ -24,12 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
 
         ''' <remarks>See description in TryScanXmlDocComment(...)</remarks>
-        Private EndOfXmlInsteadOfLastDocCommentLineBreak As Boolean
+        Private _endOfXmlInsteadOfLastDocCommentLineBreak As Boolean
 
         ' bug 903247. First line should be treated in a special way.
-        Private IsStartingFirstXmlDocLine As Boolean = False
+        Private _isStartingFirstXmlDocLine As Boolean = False
 
-        Private DoNotRequireXmlDocCommentPrefix As Boolean = False
+        Private _doNotRequireXmlDocCommentPrefix As Boolean = False
 
         Private ReadOnly Property ShouldReportXmlError As Boolean
             Get
@@ -43,8 +43,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Friend Sub ForceScanningXmlDocMode()
             Me.IsScanningXmlDoc = True
-            Me.IsStartingFirstXmlDocLine = False
-            Me.DoNotRequireXmlDocCommentPrefix = True
+            Me._isStartingFirstXmlDocLine = False
+            Me._doNotRequireXmlDocCommentPrefix = True
         End Sub
 
         Private Function TryScanXmlDocComment(tList As SyntaxListBuilder) As Boolean
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim parser As New Parser(Me)
 
                 Me.IsScanningXmlDoc = True
-                Me.IsStartingFirstXmlDocLine = True
+                Me._isStartingFirstXmlDocLine = True
 
                 ' NOTE: Documentation comment syntax trivia must have at least one child xml node, because 
                 '       all the ['''] trivia are created as leading trivia for appropriate tokens.
@@ -100,18 +100,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 '       Then we merge the results and create resulting DocumentationCommentTrivia
 
                 ' The first phase
-                Me.EndOfXmlInsteadOfLastDocCommentLineBreak = True
+                Me._endOfXmlInsteadOfLastDocCommentLineBreak = True
                 Dim nodes = parser.ParseXmlContent(ScannerState.Content)
 
                 ' The second phase
-                Me.EndOfXmlInsteadOfLastDocCommentLineBreak = False
+                Me._endOfXmlInsteadOfLastDocCommentLineBreak = False
                 If nodes.Count = 0 AndAlso parser.CurrentToken.Kind = SyntaxKind.EndOfXmlToken Then
                     ' This must be an empty documentation comment, we need to reset scanner so 
                     ' that the doc comment exterior trivia ([''']) lands on the final XmlNode
 
                     ResetLineBufferOffset()
                     restorePoint.RestoreTokens(includeLookAhead:=False)
-                    Me.IsStartingFirstXmlDocLine = True
+                    Me._isStartingFirstXmlDocLine = True
                 End If
 
                 nodes = parser.ParseRestOfDocCommentContent(nodes)
@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' scans  (ws)'''
         Private Function ScanXmlDocTrivia() As VisualBasicSyntaxNode
-            Debug.Assert(IsAtNewLine() OrElse IsStartingFirstXmlDocLine)
+            Debug.Assert(IsAtNewLine() OrElse _isStartingFirstXmlDocLine)
 
             Dim len = 0
             If TrySkipXmlDocMarker(len) Then
@@ -229,9 +229,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' // [14]    CharData    ::=    [^<&]* - ([^<&]* ']]>' [^<&]*)
 
             Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
-            If IsAtNewLine() OrElse IsStartingFirstXmlDocLine Then
+            If IsAtNewLine() OrElse _isStartingFirstXmlDocLine Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
-                IsStartingFirstXmlDocLine = False           ' no longer starting
+                _isStartingFirstXmlDocLine = False           ' no longer starting
                 If xDocTrivia Is Nothing Then
                     Return MakeEofToken()  ' XmlDoc lines must start with XmlDocTrivia
                 End If
@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         Here = SkipLineBreak(c, Here)
 
-                        If EndOfXmlInsteadOfLastDocCommentLineBreak Then
+                        If _endOfXmlInsteadOfLastDocCommentLineBreak Then
                             Dim tempHere As Integer = Here
                             If Not TrySkipXmlDocMarker(tempHere) Then
                                 ' NOTE: we need to reset the buffer so that precedingTrivia 
@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                         Select Case (PeekAheadChar(2))
                                             Case "-"c
                                                 If CanGetCharAtOffset(3) AndAlso PeekAheadChar(3) = "-"c Then
-                                                    Return XmlMakeBeginCommentToken(precedingTrivia, _scanNoTriviaFunc)
+                                                    Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "["c
                                                 If CanGetCharAtOffset(8) AndAlso _
@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                                     PeekAheadChar(7) = "A"c AndAlso _
                                                     PeekAheadChar(8) = "["c Then
 
-                                                    Return XmlMakeBeginCDataToken(precedingTrivia, _scanNoTriviaFunc)
+                                                    Return XmlMakeBeginCDataToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
                                                 If CanGetCharAtOffset(8) AndAlso
@@ -316,9 +316,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                         End Select
                                     End If
                                 Case "?"c
-                                    Return XmlMakeBeginProcessingInstructionToken(precedingTrivia, _scanNoTriviaFunc)
+                                    Return XmlMakeBeginProcessingInstructionToken(precedingTrivia, s_scanNoTriviaFunc)
                                 Case "/"c
-                                    Return XmlMakeBeginEndElementToken(precedingTrivia, _scanNoTriviaFunc)
+                                    Return XmlMakeBeginEndElementToken(precedingTrivia, s_scanNoTriviaFunc)
                             End Select
                         End If
 
@@ -374,7 +374,7 @@ ScanChars:
             Debug.Assert(state = ScannerState.StartProcessingInstruction OrElse
                          state = ScannerState.ProcessingInstruction)
 
-            Dim precedingTrivia = triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
+            Dim precedingTrivia = _triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
             Dim result As SyntaxToken
 
             If IsAtNewLine() Then
@@ -453,7 +453,7 @@ ScanChars:
             End If
 
 CleanUp:
-            triviaListPool.Free(precedingTrivia)
+            _triviaListPool.Free(precedingTrivia)
             Return result
         End Function
 
@@ -469,7 +469,7 @@ CleanUp:
 
             Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
 
-            If IsAtNewLine() AndAlso Not Me.DoNotRequireXmlDocCommentPrefix Then
+            If IsAtNewLine() AndAlso Not Me._doNotRequireXmlDocCommentPrefix Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
                 If xDocTrivia Is Nothing Then
                     Return MakeEofToken()  ' XmlDoc lines must start with XmlDocTrivia
@@ -478,7 +478,7 @@ CleanUp:
             End If
 
             While CanGetChar()
-                If Not precedingTrivia.Any AndAlso IsAtNewLine() AndAlso Not Me.DoNotRequireXmlDocCommentPrefix Then
+                If Not precedingTrivia.Any AndAlso IsAtNewLine() AndAlso Not Me._doNotRequireXmlDocCommentPrefix Then
                     ' this would indicate that we looked at Trivia, but did not find
                     ' XmlDoc prefix (or we would not be at the line start)
                     ' must terminate XmlDoc scanning
@@ -494,10 +494,10 @@ CleanUp:
                         ' we should not visit this place twice
                         Debug.Assert(Not precedingTrivia.Any)
                         Dim offsets = CreateOffsetRestorePoint()
-                        Dim triviaList = triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
+                        Dim triviaList = _triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
                         Dim continueLine = ScanXmlTriviaInXmlDoc(c, triviaList)
                         precedingTrivia = triviaList.ToList()
-                        triviaListPool.Free(triviaList)
+                        _triviaListPool.Free(triviaList)
                         If Not continueLine Then
                             offsets.Restore()
                             Return SyntaxFactory.Token(precedingTrivia.Node, SyntaxKind.EndOfXmlToken, Nothing, String.Empty)
@@ -530,7 +530,7 @@ CleanUp:
                                         Select Case (PeekAheadChar(2))
                                             Case "-"c
                                                 If CanGetCharAtOffset(3) AndAlso PeekAheadChar(3) = "-"c Then
-                                                    Return XmlMakeBeginCommentToken(precedingTrivia, _scanNoTriviaFunc)
+                                                    Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "["c
                                                 If CanGetCharAtOffset(8) AndAlso
@@ -541,7 +541,7 @@ CleanUp:
                                                     PeekAheadChar(7) = "A"c AndAlso
                                                     PeekAheadChar(8) = "["c Then
 
-                                                    Return XmlMakeBeginCDataToken(precedingTrivia, _scanNoTriviaFunc)
+                                                    Return XmlMakeBeginCDataToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
                                                 If CanGetCharAtOffset(8) AndAlso
@@ -557,9 +557,9 @@ CleanUp:
                                     End If
                                     Return XmlLessThanExclamationToken(state, precedingTrivia)
                                 Case "?"c
-                                    Return XmlMakeBeginProcessingInstructionToken(precedingTrivia, _scanNoTriviaFunc)
+                                    Return XmlMakeBeginProcessingInstructionToken(precedingTrivia, s_scanNoTriviaFunc)
                                 Case "/"c
-                                    Return XmlMakeBeginEndElementToken(precedingTrivia, _scanNoTriviaFunc)
+                                    Return XmlMakeBeginEndElementToken(precedingTrivia, s_scanNoTriviaFunc)
                             End Select
                         End If
 

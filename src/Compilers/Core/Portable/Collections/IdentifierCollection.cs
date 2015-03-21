@@ -61,22 +61,20 @@ namespace Microsoft.CodeAnalysis
         {
             // Had a mapping for it.  It will either map to a single 
             // spelling, or to a set of spellings.
-            if (value is string)
+            var strValue = value as string;
+            if (strValue != null)
             {
-                if (!string.Equals(identifier, value as string, StringComparison.Ordinal))
+                if (!string.Equals(identifier, strValue, StringComparison.Ordinal))
                 {
                     // We now have two spellings.  Create a collection for
                     // that and map the name to it.
-                    var set = new HashSet<string>();
-                    set.Add(identifier);
-                    set.Add((string)value);
-                    _map[identifier] = set;
+                    _map[identifier] = new HashSet<string> { identifier, strValue };
                 }
             }
             else
             {
                 // We have multiple spellings already.
-                var spellings = value as HashSet<string>;
+                var spellings = (HashSet<string>) value;
 
                 // Note: the set will prevent duplicates.
                 spellings.Add(identifier);
@@ -117,15 +115,14 @@ namespace Microsoft.CodeAnalysis
             object spellings;
             if (_map.TryGetValue(identifier, out spellings))
             {
-                if (spellings is string)
+                var spelling = spellings as string;
+                if (spelling != null)
                 {
-                    return string.Equals(identifier, spellings as string, StringComparison.Ordinal);
+                    return string.Equals(identifier, spelling, StringComparison.Ordinal);
                 }
-                else
-                {
-                    var set = spellings as HashSet<string>;
-                    return set.Contains(identifier);
-                }
+
+                var set = (HashSet<string>) spellings;
+                return set.Contains(identifier);
             }
 
             return false;

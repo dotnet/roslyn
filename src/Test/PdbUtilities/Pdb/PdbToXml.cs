@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis;
+using Microsoft.DiaSymReader;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,11 +15,10 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Xml;
-using Microsoft.VisualStudio.SymReaderInterop;
-using CDI = Microsoft.VisualStudio.SymReaderInterop.CustomDebugInfoReader;
+using CDI = Microsoft.CodeAnalysis.CustomDebugInfoReader;
 using CDIC = Microsoft.Cci.CustomDebugInfoConstants;
 using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
-using ImportScope = Microsoft.VisualStudio.SymReaderInterop.ImportScope;
+using ImportScope = Microsoft.CodeAnalysis.ImportScope;
 
 namespace Roslyn.Test.PdbUtilities
 {
@@ -1100,7 +1101,7 @@ namespace Roslyn.Test.PdbUtilities
                 _writer.WriteAttributeString("languageVendor", doc.GetLanguageVendor().ToString());
                 _writer.WriteAttributeString("documentType", doc.GetDocumentType().ToString());
 
-                var checkSum = string.Concat(doc.GetCheckSum().Select(b => string.Format("{0,2:X}", b) + ", "));
+                var checkSum = string.Concat(doc.GetChecksum().Select(b => string.Format("{0,2:X}", b) + ", "));
 
                 if (!string.IsNullOrEmpty(checkSum))
                 {

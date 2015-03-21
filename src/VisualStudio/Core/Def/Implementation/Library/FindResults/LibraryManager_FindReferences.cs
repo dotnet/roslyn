@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -34,7 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             PresentObjectList(title, new ObjectList(CreateFindReferencesItems(solution, items), this));
         }
 
-        private IList<AbstractTreeItem> CreateFindReferencesItems(Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
+        // internal for test purposes
+        internal IList<AbstractTreeItem> CreateFindReferencesItems(Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
             var definitions = new List<AbstractTreeItem>();
             var uniqueLocations = new HashSet<ValueTuple<Document, TextSpan>>();
@@ -42,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
             referencedSymbols = referencedSymbols.FilterUnreferencedSyntheticDefinitions().ToList();
 
-            foreach (var referencedSymbol in referencedSymbols)
+            foreach (var referencedSymbol in referencedSymbols.OrderBy(GetDefinitionPrecedence))
             {
                 if (!IncludeDefinition(referencedSymbol))
                 {
@@ -54,13 +56,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
                 foreach (var definitionLocation in definition.Locations)
                 {
-                    var definitionItem = ConvertToDefinitionItem(solution, referencedSymbol, uniqueLocations, definitionLocation, definition.GetGlyph());
+                    var definitionItem = ConvertToDefinitionItem(solution, referencedSymbol, definitionLocation, definition.GetGlyph());
                     if (definitionItem != null)
                     {
                         definitions.Add(definitionItem);
-                        var referenceItems = CreateReferenceItems(solution, uniqueLocations, referencedSymbol.Locations.Select(loc => loc.Location), Glyph.Reference);
+                        var referenceItems = CreateReferenceItems(solution, uniqueLocations, referencedSymbol.Locations.Select(loc => loc.Location));
                         definitionItem.Children.AddRange(referenceItems);
-                        (definitionItem as ITreeItemWithReferenceCount)?.SetReferenceCount(referenceItems.Count);
+                        definitionItem.SetReferenceCount(referenceItems.Count);
                     }
                 }
 
@@ -76,10 +78,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             return definitions;
         }
 
+        /// <summary>
+        /// Reference locations are deduplicated across the entire find references result set
+        /// Order the definitions so that references to multiple definitions appear under the
+        /// desired definition (e.g. constructor references should prefer the constructor method
+        /// over the type definition). Note that this does not change the order in which
+        /// definitions are displayed in Find Symbol Results, it only changes which definition
+        /// a given reference should appear under when its location is a reference to multiple
+        /// definitions.
+        /// </summary>
+        private int GetDefinitionPrecedence(ReferencedSymbol referencedSymbol)
+        {
+            switch (referencedSymbol.Definition.Kind)
+            {
+                case SymbolKind.Event:
+                case SymbolKind.Field:
+                case SymbolKind.Label:
+                case SymbolKind.Local:
+                case SymbolKind.Method:
+                case SymbolKind.Parameter:
+                case SymbolKind.Property:
+                case SymbolKind.RangeVariable:
+                    return 0;
+
+                case SymbolKind.ArrayType:
+                case SymbolKind.DynamicType:
+                case SymbolKind.ErrorType:
+                case SymbolKind.NamedType:
+                case SymbolKind.PointerType:
+                    return 1;
+
+                default:
+                    return 2;
+            }
+        }
+
         private AbstractTreeItem ConvertToDefinitionItem(
             Solution solution,
             ReferencedSymbol referencedSymbol,
-            HashSet<ValueTuple<Document, TextSpan>> uniqueLocations,
             Location location,
             Glyph glyph)
         {
@@ -96,8 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
             var document = solution.GetDocument(location.SourceTree);
             var sourceSpan = location.SourceSpan;
-            if (!IsValidSourceLocation(document, sourceSpan) ||
-                !uniqueLocations.Add(new ValueTuple<Document, TextSpan>(document, sourceSpan)))
+            if (!IsValidSourceLocation(document, sourceSpan))
             {
                 return null;
             }
@@ -105,10 +140,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             return new SourceDefinitionTreeItem(document, sourceSpan, referencedSymbol.Definition, glyph.GetGlyphIndex());
         }
 
-        private IList<SourceReferenceTreeItem> CreateReferenceItems(Solution solution, HashSet<ValueTuple<Document, TextSpan>> uniqueLocations, IEnumerable<Location> locations, Glyph glyph)
+        private IList<SourceReferenceTreeItem> CreateReferenceItems(Solution solution, HashSet<ValueTuple<Document, TextSpan>> uniqueLocations, IEnumerable<Location> locations)
         {
             var referenceItems = new List<SourceReferenceTreeItem>();
-
             foreach (var location in locations)
             {
                 if (!location.IsInSource)
@@ -125,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
                 if (uniqueLocations.Add(new ValueTuple<Document, TextSpan>(document, sourceSpan)))
                 {
-                    referenceItems.Add(new SourceReferenceTreeItem(document, sourceSpan, glyph.GetGlyphIndex()));
+                    referenceItems.Add(new SourceReferenceTreeItem(document, sourceSpan, Glyph.Reference.GetGlyphIndex()));
                 }
             }
 

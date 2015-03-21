@@ -127,10 +127,7 @@ namespace Microsoft.CodeAnalysis
         {
             _isDisposed = true;
 
-            if (_peReaderOpt != null)
-            {
-                _peReaderOpt.Dispose();
-            }
+            _peReaderOpt?.Dispose();
         }
 
         // for testing
@@ -438,7 +435,6 @@ namespace Microsoft.CodeAnalysis
         #region AssemblyDef helpers
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal AssemblyIdentity ReadAssemblyIdentityOrThrow()
         {
             if (!MetadataReader.IsAssembly)
@@ -474,32 +470,49 @@ namespace Microsoft.CodeAnalysis
                 throw new BadImageFormatException(string.Format(CodeAnalysisResources.InvalidAssemblyName, nameStr));
             }
 
-            string cultureName = (!culture.IsNil) ? reader.GetString(culture) : null;
+            string cultureName = culture.IsNil ? null : reader.GetString(culture);
             if (cultureName != null && !MetadataHelpers.IsValidMetadataIdentifier(cultureName))
             {
                 throw new BadImageFormatException(string.Format(CodeAnalysisResources.InvalidCultureName, cultureName));
             }
 
-            var hasPublicKey = (flags & AssemblyFlags.PublicKey) != 0;
-            var publicKeyOrToken = !publicKey.IsNil ? reader.GetBlobBytes(publicKey).AsImmutableOrNull() : default(ImmutableArray<byte>);
-            if (hasPublicKey)
+            ImmutableArray<byte> publicKeyOrToken = reader.GetBlobContent(publicKey);
+            bool hasPublicKey;
+
+            if (isReference)
             {
-                if (!MetadataHelpers.IsValidPublicKey(publicKeyOrToken))
+                hasPublicKey = (flags & AssemblyFlags.PublicKey) != 0;
+                if (hasPublicKey)
                 {
-                    throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKey);
+                    if (!MetadataHelpers.IsValidPublicKey(publicKeyOrToken))
+                    {
+                        throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKey);
+                    }
                 }
-            }
-            else if (isReference)
-            {
-                if (!publicKeyOrToken.IsDefaultOrEmpty && publicKeyOrToken.Length != AssemblyIdentity.PublicKeyTokenSize)
+                else
                 {
-                    throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKeyToken);
+                    if (!publicKeyOrToken.IsEmpty &&
+                        publicKeyOrToken.Length != AssemblyIdentity.PublicKeyTokenSize)
+                    {
+                        throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKeyToken);
+                    }
                 }
             }
             else
             {
-                // Assembly definitions do not contain public key tokens, but they may contain public key
-                // data without being marked as strong name signed (e.g. delay-signed assemblies).
+                // Assembly definitions never contain a public key token, they only can have a full key or nothing,
+                // so the flag AssemblyFlags.PublicKey does not make sense for them and is ignored.
+                // See Ecma-335, Partition II Metadata, 22.2 "Assembly : 0x20".
+                // This also corresponds to the behavior of the native C# compiler and sn.exe tool.
+                hasPublicKey = !publicKeyOrToken.IsEmpty;
+                if (hasPublicKey && !MetadataHelpers.IsValidPublicKey(publicKeyOrToken))
+                {
+                    throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKey);
+                }
+            }
+
+            if (publicKeyOrToken.IsEmpty)
+            {
                 publicKeyOrToken = default(ImmutableArray<byte>);
             }
 
@@ -1070,7 +1083,7 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, description).Handle;
         }
 
-        private static readonly ImmutableArray<bool> s_simpleDynamicTransforms = ImmutableArray.Create<bool>(true);
+        private static readonly ImmutableArray<bool> s_simpleDynamicTransforms = ImmutableArray.Create(true);
 
         internal bool HasDynamicAttribute(Handle token, out ImmutableArray<bool> dynamicTransforms)
         {
@@ -1175,25 +1188,14 @@ namespace Microsoft.CodeAnalysis
         {
             List<AttributeInfo> attrInfos = FindTargetAttributes(token, AttributeDescription.InternalsVisibleToAttribute);
             ArrayBuilder<string> result = ExtractStringValuesFromAttributes(attrInfos);
-            return result != null ? result.ToImmutableAndFree() : ImmutableArray<string>.Empty;
+            return result?.ToImmutableAndFree() ?? ImmutableArray<string>.Empty;
         }
 
         internal ImmutableArray<string> GetConditionalAttributeValues(Handle token)
         {
             List<AttributeInfo> attrInfos = FindTargetAttributes(token, AttributeDescription.ConditionalAttribute);
             ArrayBuilder<string> result = ExtractStringValuesFromAttributes(attrInfos);
-
-            ImmutableArray<string> list;
-            if (result != null)
-            {
-                list = result.ToImmutableAndFree();
-            }
-            else
-            {
-                list = ImmutableArray<string>.Empty;
-            }
-
-            return list;
+            return result?.ToImmutableAndFree() ?? ImmutableArray<string>.Empty;
         }
 
         // This method extracts all the non-null string values from the given attributes.
@@ -1243,7 +1245,7 @@ namespace Microsoft.CodeAnalysis
 
                 case 2:
                     // ObsoleteAttribute(string, bool)
-                    return TryExtractValueFromAttribute<ObsoleteAttributeData>(attributeInfo.Handle, out obsoleteData, s_attributeObsoleteDataExtractor);
+                    return TryExtractValueFromAttribute(attributeInfo.Handle, out obsoleteData, s_attributeObsoleteDataExtractor);
 
                 default:
                     Debug.Assert(false, "unexpected ObsoleteAttribute signature");
@@ -1261,7 +1263,7 @@ namespace Microsoft.CodeAnalysis
                 case 0: // DeprecatedAttribute(String, DeprecationType, UInt32) 
                 case 1: // DeprecatedAttribute(String, DeprecationType, UInt32, Platform) 
                 case 2: // DeprecatedAttribute(String, DeprecationType, UInt32, Type) 
-                    return TryExtractValueFromAttribute<ObsoleteAttributeData>(attributeInfo.Handle, out obsoleteData, s_attributeDeprecatedDataExtractor);
+                    return TryExtractValueFromAttribute(attributeInfo.Handle, out obsoleteData, s_attributeDeprecatedDataExtractor);
 
                 default:
                     Debug.Assert(false, "unexpected DeprecatedAttribute signature");
@@ -1279,7 +1281,7 @@ namespace Microsoft.CodeAnalysis
                 case 0:
                     // InterfaceTypeAttribute(Int16)
                     short shortValue;
-                    if (TryExtractValueFromAttribute<short>(attributeInfo.Handle, out shortValue, s_attributeShortValueExtractor) &&
+                    if (TryExtractValueFromAttribute(attributeInfo.Handle, out shortValue, s_attributeShortValueExtractor) &&
                         IsValidComInterfaceType(shortValue))
                     {
                         interfaceType = (ComInterfaceType)shortValue;
@@ -1290,7 +1292,7 @@ namespace Microsoft.CodeAnalysis
                 case 1:
                     // InterfaceTypeAttribute(ComInterfaceType)
                     int intValue;
-                    if (TryExtractValueFromAttribute<int>(attributeInfo.Handle, out intValue, s_attributeIntValueExtractor) &&
+                    if (TryExtractValueFromAttribute(attributeInfo.Handle, out intValue, s_attributeIntValueExtractor) &&
                         IsValidComInterfaceType(intValue))
                     {
                         interfaceType = (ComInterfaceType)intValue;
@@ -1308,7 +1310,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        private bool IsValidComInterfaceType(int comInterfaceType)
+        private static bool IsValidComInterfaceType(int comInterfaceType)
         {
             switch (comInterfaceType)
             {
@@ -1332,7 +1334,7 @@ namespace Microsoft.CodeAnalysis
                 case 0:
                     // TypeLibTypeAttribute(Int16)
                     short shortValue;
-                    if (TryExtractValueFromAttribute<short>(info.Handle, out shortValue, s_attributeShortValueExtractor))
+                    if (TryExtractValueFromAttribute(info.Handle, out shortValue, s_attributeShortValueExtractor))
                     {
                         flags = (Cci.TypeLibTypeFlags)shortValue;
                         return true;
@@ -1342,7 +1344,7 @@ namespace Microsoft.CodeAnalysis
                 case 1:
                     // TypeLibTypeAttribute(TypeLibTypeFlags)
                     int intValue;
-                    if (TryExtractValueFromAttribute<int>(info.Handle, out intValue, s_attributeIntValueExtractor))
+                    if (TryExtractValueFromAttribute(info.Handle, out intValue, s_attributeIntValueExtractor))
                     {
                         flags = (Cci.TypeLibTypeFlags)intValue;
                         return true;
@@ -1361,18 +1363,18 @@ namespace Microsoft.CodeAnalysis
 
         private bool TryExtractStringValueFromAttribute(CustomAttributeHandle handle, out string value)
         {
-            return TryExtractValueFromAttribute<string>(handle, out value, s_attributeStringValueExtractor);
+            return TryExtractValueFromAttribute(handle, out value, s_attributeStringValueExtractor);
         }
 
         private bool TryExtractLongValueFromAttribute(CustomAttributeHandle handle, out long value)
         {
-            return TryExtractValueFromAttribute<long>(handle, out value, s_attributeLongValueExtractor);
+            return TryExtractValueFromAttribute(handle, out value, s_attributeLongValueExtractor);
         }
 
         // Note: not a general purpose helper
         private bool TryExtractDecimalValueFromDecimalConstantAttribute(CustomAttributeHandle handle, out decimal value)
         {
-            return TryExtractValueFromAttribute<decimal>(handle, out value, s_decimalValueInDecimalConstantAttributeExtractor);
+            return TryExtractValueFromAttribute(handle, out value, s_decimalValueInDecimalConstantAttributeExtractor);
         }
 
         private struct StringAndInt
@@ -1384,7 +1386,7 @@ namespace Microsoft.CodeAnalysis
         private bool TryExtractStringAndIntValueFromAttribute(CustomAttributeHandle handle, out string stringValue, out int intValue)
         {
             StringAndInt data;
-            var result = TryExtractValueFromAttribute<StringAndInt>(handle, out data, s_attributeStringAndIntValueExtractor);
+            var result = TryExtractValueFromAttribute(handle, out data, s_attributeStringAndIntValueExtractor);
             stringValue = data.StringValue;
             intValue = data.IntValue;
             return result;
@@ -1392,7 +1394,7 @@ namespace Microsoft.CodeAnalysis
 
         private bool TryExtractBoolArrayValueFromAttribute(CustomAttributeHandle handle, out ImmutableArray<bool> value)
         {
-            return TryExtractValueFromAttribute<ImmutableArray<bool>>(handle, out value, s_attributeBoolArrayValueExtractor);
+            return TryExtractValueFromAttribute(handle, out value, s_attributeBoolArrayValueExtractor);
         }
 
         private bool TryExtractValueFromAttribute<T>(CustomAttributeHandle handle, out T value, AttributeValueExtractor<T> valueExtractor)
@@ -1579,21 +1581,18 @@ namespace Microsoft.CodeAnalysis
             if (sig.RemainingBytes >= 4)
             {
                 uint arrayLen = sig.ReadUInt32();
-                if (arrayLen >= 0)
+                var stringArray = new string[arrayLen];
+                for (int i = 0; i < arrayLen; i++)
                 {
-                    var stringArray = new string[arrayLen];
-                    for (int i = 0; i < arrayLen; i++)
+                    if (!CrackStringInAttributeValue(out stringArray[i], ref sig))
                     {
-                        if (!CrackStringInAttributeValue(out stringArray[i], ref sig))
-                        {
-                            value = stringArray.AsImmutableOrNull();
-                            return false;
-                        }
+                        value = stringArray.AsImmutableOrNull();
+                        return false;
                     }
-
-                    value = stringArray.AsImmutableOrNull();
-                    return true;
                 }
+
+                value = stringArray.AsImmutableOrNull();
+                return true;
             }
 
             value = default(ImmutableArray<string>);
@@ -1676,7 +1675,7 @@ namespace Microsoft.CodeAnalysis
             if (sig.RemainingBytes >= 4)
             {
                 uint arrayLen = sig.ReadUInt32();
-                if (arrayLen >= 0 && sig.RemainingBytes >= arrayLen)
+                if (sig.RemainingBytes >= arrayLen)
                 {
                     var boolArray = new bool[arrayLen];
                     for (int i = 0; i < arrayLen; i++)
@@ -3109,7 +3108,7 @@ namespace Microsoft.CodeAnalysis
         {
             public static readonly StringTableDecoder Instance = new StringTableDecoder();
 
-            public StringTableDecoder() : base(System.Text.Encoding.UTF8) { }
+            private StringTableDecoder() : base(System.Text.Encoding.UTF8) { }
 
             public unsafe override string GetString(byte* bytes, int byteCount)
             {

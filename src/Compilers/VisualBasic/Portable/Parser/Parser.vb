@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private _hadImplicitLineContinuation As Boolean = False
         Private _possibleFirstStatementOnLine As PossibleFirstStatementKind = PossibleFirstStatementKind.Yes
         Private _recursionDepth As Integer
-        Private m_EvaluatingConditionCompilationExpression As Boolean
+        Private _evaluatingConditionCompilationExpression As Boolean
         Private ReadOnly _scanner As Scanner
         Private ReadOnly _cancellationToken As CancellationToken
         Friend ReadOnly _pool As New SyntaxListPool
@@ -119,13 +119,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Function
 
-        ReadOnly Property IsWithinAsyncMethodOrLambda As Boolean Implements ISyntaxFactoryContext.IsWithinAsyncMethodOrLambda
+        Public ReadOnly Property IsWithinAsyncMethodOrLambda As Boolean Implements ISyntaxFactoryContext.IsWithinAsyncMethodOrLambda
             Get
                 Return If(Not _isInMethodDeclarationHeader, Context.IsWithinAsyncMethodOrLambda, _isInAsyncMethodDeclarationHeader)
             End Get
         End Property
 
-        ReadOnly Property IsWithinIteratorContext As Boolean Implements ISyntaxFactoryContext.IsWithinIteratorContext
+        Public ReadOnly Property IsWithinIteratorContext As Boolean Implements ISyntaxFactoryContext.IsWithinIteratorContext
             Get
                 Return If(Not _isInMethodDeclarationHeader, Context.IsWithinIteratorMethodOrLambdaOrProperty, _isInIteratorMethodDeclarationHeader)
             End Get
@@ -1927,25 +1927,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                          SyntaxKind.ProtectedKeyword,
                          SyntaxKind.FriendKeyword
 
-                    ' Storage category
+                        ' Storage category
                     Case SyntaxKind.SharedKeyword,
                          SyntaxKind.ShadowsKeyword
 
-                    ' Inheritance category
+                        ' Inheritance category
                     Case SyntaxKind.MustInheritKeyword,
                          SyntaxKind.OverloadsKeyword,
                          SyntaxKind.NotInheritableKeyword,
                          SyntaxKind.OverridesKeyword
 
-                    ' Partial types category
+                        ' Partial types category
                     Case SyntaxKind.PartialKeyword
 
-                    ' Modifier category
+                        ' Modifier category
                     Case SyntaxKind.NotOverridableKeyword,
                          SyntaxKind.OverridableKeyword,
                          SyntaxKind.MustOverrideKeyword
 
-                    ' Writeability category
+                        ' Writeability category
                     Case SyntaxKind.ReadOnlyKeyword,
                          SyntaxKind.WriteOnlyKeyword
 
@@ -1955,7 +1955,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                          SyntaxKind.DefaultKeyword,
                          SyntaxKind.WithEventsKeyword
 
-                    ' Conversion category
+                        ' Conversion category
                     Case SyntaxKind.WideningKeyword,
                          SyntaxKind.NarrowingKeyword
 
@@ -2847,7 +2847,7 @@ checkNullable:
             End If
 
             If SyntaxKind.QuestionToken = CurrentToken.Kind Then
-                If m_EvaluatingConditionCompilationExpression Then
+                If _evaluatingConditionCompilationExpression Then
 
                     typeName = typeName.AddTrailingSyntax(CurrentToken, ERRID.ERR_BadNullTypeInCCExpression)
                     GetNextToken()
@@ -2918,7 +2918,7 @@ checkNullable:
             Dim start As SyntaxToken = CurrentToken
             Dim result As TypeSyntax
 
-            If m_EvaluatingConditionCompilationExpression AndAlso Not SyntaxFacts.IsPredefinedTypeOrVariant(start.Kind) Then
+            If _evaluatingConditionCompilationExpression AndAlso Not SyntaxFacts.IsPredefinedTypeOrVariant(start.Kind) Then
 
                 'TODO - 
                 ' 1. Dev10 code does NOT consume any tokens here.
@@ -5959,7 +5959,7 @@ checkNullable:
             Return Scanner.TryTokenAsKeyword(t, kind)
         End Function
 
-        Private Shared ReadOnly IsTokenOrKeywordFunc As Func(Of SyntaxToken, SyntaxKind(), Boolean) = AddressOf IsTokenOrKeyword
+        Private Shared ReadOnly s_isTokenOrKeywordFunc As Func(Of SyntaxToken, SyntaxKind(), Boolean) = AddressOf IsTokenOrKeyword
 
         Private Shared Function IsTokenOrKeyword(token As SyntaxToken, kinds As SyntaxKind()) As Boolean
             Debug.Assert(Not kinds.Contains(SyntaxKind.IdentifierToken))

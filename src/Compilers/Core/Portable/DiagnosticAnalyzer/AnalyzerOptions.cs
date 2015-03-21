@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var other = obj as AnalyzerOptions;
             return other != null && 
                 (this.AdditionalFiles == other.AdditionalFiles ||
-                this.AdditionalFiles.SequenceEqual(other.AdditionalFiles, (a, b) => ReferenceEquals(a, b)));
+                this.AdditionalFiles.SequenceEqual(other.AdditionalFiles, ReferenceEquals));
         }
 
         public override int GetHashCode()

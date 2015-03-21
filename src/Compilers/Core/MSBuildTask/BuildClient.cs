@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
@@ -42,6 +43,87 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
+        /// Run a compilation through the compiler server and print the output
+        /// to the console. If the compiler server fails, run the fallback
+        /// compiler.
+        /// </summary>
+        public static int RunWithConsoleOutput(
+            string[] args,
+            RequestLanguage language,
+            Func<string[], int> fallbackCompiler)
+        {
+            args = args.Select(arg => arg.Trim()).ToArray();
+
+            bool hasShared;
+            string keepAlive;
+            string errorMessage;
+            List<string> parsedArgs;
+            if (!CommandLineParser.TryParseClientArgs(
+                    args,
+                    out parsedArgs,
+                    out hasShared,
+                    out keepAlive,
+                    out errorMessage))
+            {
+                Console.Out.WriteLine(errorMessage);
+                return CommonCompiler.Failed;
+            }
+
+            if (hasShared)
+            {
+                var responseTask = TryRunServerCompilation(
+                    language,
+                    Environment.CurrentDirectory,
+                    parsedArgs,
+                    default(CancellationToken),
+                    keepAlive: keepAlive,
+                    libEnvVariable: Environment.GetEnvironmentVariable("LIB"));
+
+                var response = responseTask.Result;
+                if (response != null)
+                {
+                    return HandleResponse(response);
+                }
+            }
+
+            return fallbackCompiler(parsedArgs.ToArray());
+        }
+
+        private static int HandleResponse(BuildResponse response)
+        {
+            if (response.Type == BuildResponse.ResponseType.Completed)
+            {
+                var completedResponse = (CompletedBuildResponse)response;
+                var origEncoding = Console.OutputEncoding;
+                try
+                {
+                    if (completedResponse.Utf8Output && Console.IsOutputRedirected)
+                    {
+                        Console.OutputEncoding = Encoding.UTF8;
+                    }
+                    Console.Out.Write(completedResponse.Output);
+                    Console.Error.Write(completedResponse.ErrorOutput);
+                }
+                finally
+                {
+                    try
+                    {
+                        Console.OutputEncoding = origEncoding;
+                    }
+                    catch
+                    { // Try to reset the output encoding, ignore if we can't
+                    }
+                }
+                return completedResponse.ReturnCode;
+            }
+            else
+            {
+                Console.Error.WriteLine(CommandLineParser.MismatchedVersionErrorText);
+                return CommonCompiler.Failed;
+            }
+        }
+
+        /// <summary>
         /// Returns a Task with a null BuildResponse if no server
         /// response was received.
         /// </summary>
@@ -50,67 +132,76 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             string workingDir,
             IList<string> arguments,
             CancellationToken cancellationToken,
+            string keepAlive = null,
             string libEnvVariable = null)
         {
-            NamedPipeClientStream pipe;
-
-            var expectedServerExePath = Path.Combine(GetExpectedServerExeDir(), s_serverName);
-            var mutexName = expectedServerExePath.Replace('\\', '/');
-            bool holdsMutex;
-            using (var mutex = new Mutex(initiallyOwned: true,
-                                         name: mutexName,
-                                         createdNew: out holdsMutex))
+            try
             {
-                try
+                NamedPipeClientStream pipe;
+
+                var expectedServerExePath = Path.Combine(GetExpectedServerExeDir(), s_serverName);
+                var mutexName = expectedServerExePath.Replace('\\', '/');
+                bool holdsMutex;
+                using (var mutex = new Mutex(initiallyOwned: true,
+                                             name: mutexName,
+                                             createdNew: out holdsMutex))
                 {
-
-                    if (!holdsMutex)
+                    try
                     {
-                        try
-                        {
-                            holdsMutex = mutex.WaitOne(TimeOutMsNewProcess,
-                                exitContext: false);
-                        }
-                        catch (AbandonedMutexException)
-                        {
-                            holdsMutex = true;
-                        }
-                    }
 
-                    if (holdsMutex)
-                    {
-                        var request = BuildRequest.Create(language, workingDir, Path.GetTempPath(), arguments, libEnvVariable);
-                        // Check for already running processes in case someone came in before us
-                        pipe = TryExistingProcesses(expectedServerExePath, cancellationToken);
-                        if (pipe != null)
+                        if (!holdsMutex)
                         {
-                            return TryCompile(pipe, request, cancellationToken);
-                        }
-                        else
-                        {
-                            int processId = TryCreateServerProcess(expectedServerExePath);
-                            if (processId != 0 &&
-                                null != (pipe = TryConnectToProcess(processId,
-                                                                    TimeOutMsNewProcess,
-                                                                    cancellationToken)))
+                            try
                             {
-                                // Let everyone else access our process
-                                mutex.ReleaseMutex();
-                                holdsMutex = false;
+                                holdsMutex = mutex.WaitOne(TimeOutMsNewProcess,
+                                    exitContext: false);
+                            }
+                            catch (AbandonedMutexException)
+                            {
+                                holdsMutex = true;
+                            }
+                        }
 
+                        if (holdsMutex)
+                        {
+                            var request = BuildRequest.Create(language, workingDir, arguments, keepAlive, libEnvVariable);
+                            // Check for already running processes in case someone came in before us
+                            pipe = TryExistingProcesses(expectedServerExePath, cancellationToken);
+                            if (pipe != null)
+                            {
                                 return TryCompile(pipe, request, cancellationToken);
+                            }
+                            else
+                            {
+                                int processId = TryCreateServerProcess(expectedServerExePath);
+                                if (processId != 0 &&
+                                    null != (pipe = TryConnectToProcess(processId,
+                                                                        TimeOutMsNewProcess,
+                                                                        cancellationToken)))
+                                {
+                                    // Let everyone else access our process
+                                    mutex.ReleaseMutex();
+                                    holdsMutex = false;
+
+                                    return TryCompile(pipe, request, cancellationToken);
+                                }
                             }
                         }
                     }
-                }
-                finally
-                {
-                    if (holdsMutex)
-                        mutex.ReleaseMutex();
+                    finally
+                    {
+                        if (holdsMutex)
+                            mutex.ReleaseMutex();
+                    }
                 }
             }
-
-            return null;
+            // Swallow all unhandled exceptions from server compilation. If
+            // they are show-stoppers then they will crash the in-proc
+            // compilation as well
+            // TODO: Put in non-fatal Watson code so we still get info
+            // when things unexpectedely fail
+            catch { }
+            return Task.FromResult<BuildResponse>(null);
         }
 
         /// <summary>

@@ -6,21 +6,13 @@ using Microsoft.CodeAnalysis.Navigation;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
 {
-    internal class MetadataDefinitionTreeItem : AbstractTreeItem, ITreeItemWithReferenceCount
+    internal class MetadataDefinitionTreeItem : AbstractTreeItem
     {
         private readonly string _assemblyName;
         private readonly string _symbolDefinition;
         private readonly SymbolKey _symbolKey;
         private readonly Workspace _workspace;
         private readonly ProjectId _referencingProjectId;
-
-        public override bool UseGrayText
-        {
-            get
-            {
-                return true;
-            }
-        }
 
         public MetadataDefinitionTreeItem(Workspace workspace, ISymbol definition, ProjectId referencingProjectId, ushort glyphIndex)
             : base(glyphIndex)
@@ -48,16 +40,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             return VSConstants.E_FAIL;
         }
 
-        public void SetReferenceCount(int referenceCount)
+        internal override void SetReferenceCount(int referenceCount)
         {
-            if (referenceCount > 0)
-            {
-                var referenceCountDisplay = referenceCount == 1
-                    ? string.Format(ServicesVSResources.ReferenceCountSingular, referenceCount)
-                    : string.Format(ServicesVSResources.ReferenceCountPlural, referenceCount);
+            var referenceCountDisplay = referenceCount == 1
+                ? ServicesVSResources.ReferenceCountSingular
+                : string.Format(ServicesVSResources.ReferenceCountPlural, referenceCount);
 
-                this.DisplayText = $"[{_assemblyName}] {_symbolDefinition} ({referenceCountDisplay})";
-            }
+            this.DisplayText = $"[{_assemblyName}] {_symbolDefinition} ({referenceCountDisplay})";
         }
     }
 }

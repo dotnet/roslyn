@@ -2502,7 +2502,7 @@ class C
         System.Console.WriteLine(a[1]);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll.WithModuleName("MODULE"));
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
 
@@ -2519,7 +2519,7 @@ class C
   IL_0001:  ldc.i4.3
   IL_0002:  newarr     ""int""
   IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.$$method0x6000001-E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails><MODULE>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails><MODULE>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
   IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0012:  stloc.0
   IL_0013:  ldloc.0
@@ -2817,7 +2817,7 @@ class C
         }
     }
 }";
-            const string ComputeStringHashName = "$$method0x6000001-ComputeStringHash";
+            const string ComputeStringHashName = "ComputeStringHash";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
@@ -2828,7 +2828,7 @@ class C
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             // Should have generated call to ComputeStringHash and
-            // added the method to <PrivateImplementationDetails>.
+            // added the method to <PrivateImplementationDetails><MODULE>.
             var actualIL0 = methodData0.GetMethodIL();
             Assert.True(actualIL0.Contains(ComputeStringHashName));
 
@@ -2843,7 +2843,7 @@ class C
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
                 // Should not have generated call to ComputeStringHash nor
-                // added the method to <PrivateImplementationDetails>.
+                // added the method to <PrivateImplementationDetails><MODULE>.
                 var actualIL1 = diff1.GetMethodIL("C.F");
                 Assert.False(actualIL1.Contains(ComputeStringHashName));
 
@@ -3775,6 +3775,7 @@ class C
         /// Reuse existing anonymous types.
         /// </summary>
         [WorkItem(825903, "DevDiv")]
+        [Fact]
         public void AnonymousTypes()
         {
             var source0 =
@@ -3817,9 +3818,7 @@ namespace M
         }
     }
 }";
-            // Compile must be non-concurrent to ensure types are created in fixed order.
-            var compOptions = TestOptions.DebugDll.WithConcurrentBuild(false);
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: compOptions);
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var testData0 = new CompilationTestData();

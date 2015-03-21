@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.NetF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.Portable", "Microsoft.DiaSymReader\Portable\Microsoft.DiaSymReader.Portable.csproj", "{316FD2AD-8514-41BD-98D5-61A821F3320E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.PortablePdb", "Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj", "{F83343BA-B4EA-451C-B6DB-5D645E6171BC}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Microsoft.DiaSymReader\Microsoft.DiaSymReader.projitems*{fa2c8969-bd1f-457a-a6e3-ca772135ff73}*SharedItemsImports = 4
@@ -48,6 +50,14 @@ Global
 		{316FD2AD-8514-41BD-98D5-61A821F3320E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{316FD2AD-8514-41BD-98D5-61A821F3320E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{316FD2AD-8514-41BD-98D5-61A821F3320E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

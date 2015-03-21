@@ -20,13 +20,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         {
             get
             {
-                return false;
+                return this.Children == null || this.Children.Count == 0; 
             }
         }
 
         protected static readonly SymbolDisplayFormat definitionDisplayFormat =
             new SymbolDisplayFormat(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType,
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
@@ -34,7 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                 kindOptions: SymbolDisplayKindOptions.IncludeMemberKeyword | SymbolDisplayKindOptions.IncludeNamespaceKeyword | SymbolDisplayKindOptions.IncludeTypeKeyword,
                 localOptions: SymbolDisplayLocalOptions.IncludeType,
                 memberOptions:
-                    SymbolDisplayMemberOptions.IncludeAccessibility |
                     SymbolDisplayMemberOptions.IncludeContainingType |
                     SymbolDisplayMemberOptions.IncludeExplicitInterface |
                     SymbolDisplayMemberOptions.IncludeModifiers |
@@ -96,6 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             }
 
             return string.Empty;
+        }
+
+        internal virtual void SetReferenceCount(int referenceCount)
+        {
         }
     }
 }

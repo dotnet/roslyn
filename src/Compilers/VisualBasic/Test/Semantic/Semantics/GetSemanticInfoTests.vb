@@ -2371,7 +2371,7 @@ End Class
 #End Region
 
         <Fact(), WorkItem(544083, "DevDiv")>
-        Sub PropertySpeculativeBinding()
+        Public Sub PropertySpeculativeBinding()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
             <compilation>
                 <file name="a.vb">
@@ -2400,7 +2400,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(544083, "DevDiv")>
-        Sub WriteOnlyPropertySpeculativeBinding()
+        Public Sub WriteOnlyPropertySpeculativeBinding()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
             <compilation>
                 <file name="a.vb">
@@ -3635,7 +3635,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(545976, "DevDiv")>
-        Sub ArrayLiteralSpeculativeBinding()
+        Public Sub ArrayLiteralSpeculativeBinding()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
             <compilation>
                 <file name="a.vb">
@@ -3660,7 +3660,7 @@ End Module
 
         <WorkItem(545346, "DevDiv")>
         <Fact()>
-        Sub Bug13693()
+        Public Sub Bug13693()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
             <compilation>
                 <file name="a.vb">
@@ -3738,7 +3738,7 @@ BC30526: Property 'P' is 'ReadOnly'.
         End Sub
 
         <Fact()>
-        Sub SpeculativeConstantValueForGroupAggregationSyntax()
+        Public Sub SpeculativeConstantValueForGroupAggregationSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
             <compilation>
                 <file name="a.vb">
@@ -3764,7 +3764,7 @@ End Module
 
         <WorkItem(546270, "DevDiv")>
         <Fact()>
-        Sub SpeculativeConstantValueForLabelSyntax()
+        Public Sub SpeculativeConstantValueForLabelSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
             <compilation>
                 <file name="a.vb">

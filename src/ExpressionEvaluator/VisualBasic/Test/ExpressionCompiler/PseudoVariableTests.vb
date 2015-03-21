@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class PseudoVariableTests
         Inherits ExpressionCompilerTestBase
 
-        Private Const SimpleSource = "
+        Private Const s_simpleSource = "
 Class C
     Sub M()
     End Sub
@@ -38,7 +38,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim actualErrorMessage As String = Nothing
             Dim testData = Evaluate(
-                            SimpleSource,
+                            s_simpleSource,
                             OutputKind.DynamicallyLinkedLibrary,
                             methodName:="C.M",
                             expr:=expr,
@@ -49,7 +49,7 @@ End Class
 
         <Fact>
         Public Sub Exception()
-            Dim comp = CreateCompilationWithMscorlib({SimpleSource}, compOptions:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, compOptions:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "C.M")
 
@@ -92,7 +92,7 @@ End Class
 
         <Fact>
         Public Sub ReturnValue()
-            Dim comp = CreateCompilationWithMscorlib({SimpleSource}, compOptions:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, compOptions:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "C.M")
 
@@ -219,7 +219,7 @@ End Class"
 
         <Fact>
         Public Sub PlaceholderMethodNameNormalization()
-            Dim comp = CreateCompilationWithMscorlib({SimpleSource}, compOptions:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, compOptions:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "C.M")
 
@@ -432,7 +432,7 @@ End Class"
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = Evaluate(
-                SimpleSource,
+                s_simpleSource,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName:="C.M",
                 expr:=variableName,
@@ -456,13 +456,13 @@ End Class"
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = Evaluate(
-                SimpleSource,
+                s_simpleSource,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName:="C.M",
                 expr:="$ReturnValue(Of Object)",
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
-            ' TODO (acasey): don't canonicalize name (GH #878)
+            ' TODO (https://github.com/dotnet/roslyn/issues/878): don't canonicalize name
             Assert.Equal("(1) : error BC32045: '$returnvalue' has no type parameters and so cannot have type arguments.", errorMessage)
 
             Const source = "
@@ -566,7 +566,7 @@ End Class
 
         <Fact>
         Public Sub AssignToException()
-            Dim comp = CreateCompilationWithMscorlib({SimpleSource}, compOptions:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, compOptions:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "C.M")
             Dim errorMessage As String = Nothing
@@ -859,8 +859,8 @@ End Class"
             ' GetType(Exception), GetType(A(Of B(Of Object))), GetType(B(Of A(Of Object)()))
             context.CompileExpression(
                 InspectionContextFactory.Empty.Add("$exception", "System.Exception, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").
-                    Add("1", "A`1[[B`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], 397300B1-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null]], 397300B1-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=null").
-                    Add("2", "B`1[[A`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]][], 397300B1-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=null]], 397300B1-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null"),
+                    Add("1", "A`1[[B`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], 397300B1-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null]], 397300B1-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=1f8a32457d187bf3").
+                    Add("2", "B`1[[A`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]][], 397300B1-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=1f8a32457d187bf3]], 397300B1-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null"),
                 "If(If($exception, $1), $2)",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,

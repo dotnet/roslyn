@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
                         var action = (Cci.SecurityAction)_lazySecurityActions[i];
                         Cci.ICustomAttribute attribute = customAttributes[i];
 
-                        if (_lazyPathsForPermissionSetFixup != null && _lazyPathsForPermissionSetFixup[i] != null)
+                        if (_lazyPathsForPermissionSetFixup?[i] != null)
                         {
                             attribute = new PermissionSetAttributeWithFileReference(attribute, _lazyPathsForPermissionSetFixup[i]);
                         }

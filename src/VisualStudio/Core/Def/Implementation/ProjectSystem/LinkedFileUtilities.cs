@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -82,12 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// If the project is in a Shared Code project, this returns its 
         /// SharedItemContextHierarchy. Otherwise, it returns null.
         /// </summary>
-        public static IVsHierarchy GetSharedItemContextHierarchy(IVsHierarchy hierarchy)
-        {
-            return s_singleton.GetSharedItemContextHierarchyInternal(hierarchy);
-        }
-
-        private IVsHierarchy GetSharedItemContextHierarchyInternal(IVsHierarchy hierarchy)
+        private IVsHierarchy GetSharedItemContextHierarchy(IVsHierarchy hierarchy)
         {
             object contextHierarchy;
             if (hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID7.VSHPROPID_SharedItemContextHierarchy, out contextHierarchy) != VSConstants.S_OK)
@@ -120,6 +116,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             object sharedHierarchy;
             return headProjectHierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_SharedProjectHierarchy, out sharedHierarchy) == VSConstants.S_OK
                 ? sharedHierarchy as IVsHierarchy
+                : null;
+        }
+
+        public static IVisualStudioHostProject GetContextHostProject(IVsHierarchy sharedHierarchy, IVisualStudioHostProjectContainer hostProjectContainer)
+        {
+            return s_singleton.GetContextHostProjectInternal(sharedHierarchy, hostProjectContainer);
+        }
+
+        private IVisualStudioHostProject GetContextHostProjectInternal(IVsHierarchy hierarchy, IVisualStudioHostProjectContainer hostProjectContainer)
+        {
+            hierarchy = GetSharedItemContextHierarchy(hierarchy) ?? hierarchy;
+            var projectName = GetActiveIntellisenseProjectContextInternal(hierarchy);
+
+            if (projectName != null)
+            {
+                return hostProjectContainer.GetProjects().FirstOrDefault(p => p.ProjectSystemName == projectName);
+            }
+            else
+            {
+                return hostProjectContainer.GetProjects().FirstOrDefault(p => p.Hierarchy == hierarchy);
+            }
+        }
+
+        private string GetActiveIntellisenseProjectContextInternal(IVsHierarchy hierarchy)
+        {
+            AssertIsForeground();
+
+            hierarchy = GetSharedItemContextHierarchy(hierarchy) ?? hierarchy;
+
+            object intellisenseProjectName;
+            return hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out intellisenseProjectName) == VSConstants.S_OK
+                ? intellisenseProjectName as string
                 : null;
         }
     }

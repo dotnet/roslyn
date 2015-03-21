@@ -1375,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     while (index >= hoistedVariables.Count)
                     {
                         // Empty slots may be present if variables were deleted during EnC.
-                        hoistedVariables.Add(new EncHoistedLocalInfo());
+                        hoistedVariables.Add(new EncHoistedLocalInfo(true));
                     }
 
                     hoistedVariables[index] = new EncHoistedLocalInfo(field.SlotDebugInfo, (Cci.ITypeReference)field.Type);

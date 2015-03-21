@@ -1946,7 +1946,7 @@ class Program
             var comp = CreateCompilationWithMscorlib45(parsed);
             var verifier = this.CompileAndVerify(comp);
             var il = verifier.VisualizeIL("Program.<Foo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
-            Assert.Contains("System.Environment.CurrentManagedThreadId.get", il);
+            Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -1979,7 +1979,7 @@ namespace System
             comp.MakeMemberMissing(WellKnownMember.System_Threading_Thread__ManagedThreadId);
             var verifier = this.CompileAndVerify(comp);
             var il = verifier.VisualizeIL("Program.<Foo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
-            Assert.Contains("System.Environment.CurrentManagedThreadId.get", il);
+            Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);
         }
 
         [Fact]

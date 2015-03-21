@@ -49,6 +49,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AdditionalTextFile.cs" />
+    <Compile Include="AnalyzerFileReference.AssemblyPathHelper.cs" />
     <Compile Include="AnalyzerLoadFailureEventArgs.cs" />
     <Compile Include="AssemblyReferenceResolver.cs" />
     <Compile Include="CodeAnalysisDesktopResources.Designer.cs">
@@ -69,10 +70,14 @@
     <Compile Include="CommandLine\CommonCompiler.LoggingXmlFileResolver.cs" />
     <Compile Include="CommandLine\CommonCompiler.LoggingMetadataFileResolver.cs" />
     <Compile Include="CommandLine\CommonCompiler.ExistingReferencesResolver.cs" />
+    <Compile Include="CommandLine\ErrorLogger.Issue.cs" />
+    <Compile Include="CommandLine\ErrorLogger.Value.cs" />
+    <Compile Include="CommandLine\ErrorLogger.WellKnownStrings.cs" />
     <Compile Include="CommandLine\RuleSet\InvalidRuleSetException.cs" />
     <Compile Include="CommandLine\RuleSet\RuleSet.cs" />
     <Compile Include="CommandLine\RuleSet\RuleSetInclude.cs" />
     <Compile Include="CommandLine\RuleSet\RuleSetProcessor.cs" />
+    <Compile Include="CommandLine\ErrorLogger.cs" />
     <Compile Include="CommandLine\TouchedFileLogger.cs" />
     <Compile Include="CompilerPathUtilities.cs" />
     <Compile Include="FileSystemExtensions.cs" />
@@ -120,12 +125,15 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="csc" />
     <InternalsVisibleTo Include="csi" />
+    <InternalsVisibleTo Include="csc2" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
     <InternalsVisibleTo Include="vbc" />
     <InternalsVisibleTo Include="vbi" />
+    <InternalsVisibleTo Include="vbc2" />
     <InternalsVisibleTo Include="VBCSCompiler" />
+    <InternalsVisibleTo Include="Microsoft.Build.Tasks.Roslyn" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CompilerServer.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
@@ -177,6 +185,7 @@
     <None Include="..\CodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
     </None>
+    <Compile Include="CommandLine\CommonCompiler.CompilerEmitStreamProvider.cs" />
     <None Include="packages.config" />
     <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>

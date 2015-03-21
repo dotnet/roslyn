@@ -8150,7 +8150,7 @@ End Module
                 Sub(method)
                     Select Case method.Name
                         Case ".ctor"
-                        ' This is an auto-generated constructor, ignore it
+                            ' This is an auto-generated constructor, ignore it
 
                         Case "System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine"
                             Assert.Equal(Accessibility.Private, method.DeclaredAccessibility)

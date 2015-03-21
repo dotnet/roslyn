@@ -15,10 +15,10 @@ Friend NotInheritable Class Vbi
     Friend Const InteractiveResponseFileName As String = "vbi.rsp"
 
     Friend Sub New(responseFile As String, baseDirectory As String, args As String())
-        MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, baseDirectory, Nothing, Path.GetTempPath()) ' TODO: what to pass as additionalReferencePaths?
+        MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, baseDirectory, Nothing) ' TODO: what to pass as additionalReferencePaths?
     End Sub
 
-    Shared Function Main(args As String()) As Integer
+    Public Shared Function Main(args As String()) As Integer
         Try
             Dim responseFile = CommonCompiler.GetResponseFileFullPath(InteractiveResponseFileName)
             Return New Vbi(responseFile, Directory.GetCurrentDirectory(), args).RunInteractive(Console.Out)

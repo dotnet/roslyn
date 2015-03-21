@@ -5,6 +5,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
@@ -110,8 +111,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestExternalBuildErrorCustomTags()
-            Assert.Equal(2, ProjectExternalErrorReporter.CustomTags.Count)
-            Assert.Equal(WellKnownDiagnosticTags.Build, ProjectExternalErrorReporter.CustomTags(0))
+            Assert.Equal(1, ProjectExternalErrorReporter.CustomTags.Count)
+            Assert.Equal(WellKnownDiagnosticTags.Telemetry, ProjectExternalErrorReporter.CustomTags(0))
+        End Sub
+
+        <Fact>
+        Public Sub TestExternalBuildErrorProperties()
+            Assert.Equal(1, ProjectExternalErrorReporter.Properties.Count)
+
+            Dim value As String = Nothing
+            Assert.True(ProjectExternalErrorReporter.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, value))
+            Assert.Equal(WellKnownDiagnosticTags.Build, value)
         End Sub
 
         Private Function GetDiagnosticData(workspace As Workspace, projectId As ProjectId) As DiagnosticData
@@ -126,13 +136,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Private Class TestDiagnosticAnalyzerService
             Implements IDiagnosticAnalyzerService, IDiagnosticUpdateSource
 
-            Private ReadOnly data As ImmutableArray(Of DiagnosticData)
+            Private ReadOnly _data As ImmutableArray(Of DiagnosticData)
 
             Public Sub New()
             End Sub
 
             Public Sub New(data As ImmutableArray(Of DiagnosticData))
-                Me.data = data
+                Me._data = data
             End Sub
 
             Public ReadOnly Property SupportGetDiagnostics As Boolean Implements IDiagnosticUpdateSource.SupportGetDiagnostics
@@ -144,7 +154,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticUpdateSource.DiagnosticsUpdated
 
             Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticUpdateSource.GetDiagnostics
-                Return data
+                Return _data
             End Function
 
             Public Sub Reanalyze(workspace As Workspace, Optional projectIds As IEnumerable(Of ProjectId) = Nothing, Optional documentIds As IEnumerable(Of DocumentId) = Nothing) Implements IDiagnosticAnalyzerService.Reanalyze
@@ -184,6 +194,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Function GetProjectDiagnosticsForIdsAsync(solution As Solution, Optional projectId As ProjectId = Nothing, Optional diagnosticIds As ImmutableHashSet(Of String) = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
+            End Function
+
+            Public Function GetDiagnosticDescriptors(analyzer As DiagnosticAnalyzer) As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzerService.GetDiagnosticDescriptors
+                Return ImmutableArray(Of DiagnosticDescriptor).Empty
             End Function
         End Class
     End Class

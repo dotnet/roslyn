@@ -9,12 +9,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class LocationTests
         Inherits TestBase
 
-        Private Shared ReadOnly _resolver As New TestSourceResolver()
+        Private Shared ReadOnly s_resolver As New TestSourceResolver()
 
         Private Class TestSourceResolver
             Inherits SourceFileResolver
 
-            Sub New()
+            Public Sub New()
                 MyBase.New(ImmutableArray(Of String).Empty, Nothing)
             End Sub
 
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Dim span = GetSpanIn(syntaxTree, sourceText)
             Dim mappedSpan = syntaxTree.GetMappedLineSpan(span)
-            Dim actualDisplayPath = syntaxTree.GetDisplayPath(span, _resolver)
+            Dim actualDisplayPath = syntaxTree.GetDisplayPath(span, s_resolver)
 
             Assert.Equal(expectedPath, mappedSpan.Path)
             If expectedPath.IsEmpty Then

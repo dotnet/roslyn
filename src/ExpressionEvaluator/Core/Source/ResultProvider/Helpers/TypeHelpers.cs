@@ -8,10 +8,9 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
 using Roslyn.Utilities;
-using BindingFlags = System.Reflection.BindingFlags;
-using MemberTypes = System.Reflection.MemberTypes;
 using MethodAttributes = System.Reflection.MethodAttributes;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
+using TypeCode = Microsoft.VisualStudio.Debugger.Metadata.TypeCode;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class HoistedStateMachineLocalTests
         Inherits ExpressionCompilerTestBase
 
-        Private Const asyncLambdaSourceTemplate = "
+        Private Const s_asyncLambdaSourceTemplate = "
 Imports System
 Imports System.Threading.Tasks
 
@@ -25,7 +25,7 @@ Public Class D
 End Class
 "
 
-        Private Const genericAsyncLambdaSourceTemplate = "
+        Private Const s_genericAsyncLambdaSourceTemplate = "
 Imports System
 Imports System.Threading.Tasks
 
@@ -315,7 +315,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureNothing()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "", "1")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "1")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__.VB$StateMachine___Lambda$__2-0.MoveNext")
@@ -354,7 +354,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureLocal()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "", "x")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "x")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
@@ -408,7 +408,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureParameter()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "", "u1.GetHashCode()")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "u1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
@@ -462,7 +462,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureLambdaParameter()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "", "ch.GetHashCode()")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "ch.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__.VB$StateMachine___Lambda$__2-0.MoveNext")
@@ -501,7 +501,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureThis()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "", "t1.GetHashCode()")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "t1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D.VB$StateMachine___Lambda$__2-0.MoveNext")
@@ -555,7 +555,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureThisAndLocal()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "", "x + t1.GetHashCode()")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "x + t1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
@@ -625,7 +625,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Static_CaptureNothing()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "Shared", "1")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "1")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__.VB$StateMachine___Lambda$__2-0.MoveNext")
@@ -664,7 +664,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Static_CaptureLocal()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "Shared", "x")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "x")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
@@ -718,7 +718,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Static_CaptureParameter()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "Shared", "u1.GetHashCode()")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "u1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
@@ -772,7 +772,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Static_CaptureLambdaParameter()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "Shared", "ch.GetHashCode()")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "ch.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__.VB$StateMachine___Lambda$__2-0.MoveNext")
@@ -811,7 +811,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureNothing()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "", "1")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "1")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__2.VB$StateMachine___Lambda$__2-0.MoveNext")
@@ -856,7 +856,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureLocal()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "", "x")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "x")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
@@ -916,7 +916,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureParameter()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "", "u1.GetHashCode()")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "u1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
@@ -976,7 +976,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureLambdaParameter()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "", "ch.GetHashCode()")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "ch.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__2.VB$StateMachine___Lambda$__2-0.MoveNext")
@@ -1021,7 +1021,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureThis()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "", "t1.GetHashCode()")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "t1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D.VB$StateMachine___Lambda$__2-0.MoveNext")
@@ -1081,7 +1081,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureThisAndLocal()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "", "x + t1.GetHashCode()")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "x + t1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
@@ -1157,7 +1157,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Static_CaptureNothing()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "Shared", "1")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "1")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__2.VB$StateMachine___Lambda$__2-0.MoveNext")
@@ -1202,7 +1202,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Static_CaptureLocal()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "Shared", "x")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "x")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
@@ -1262,7 +1262,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Static_CaptureParameter()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "Shared", "u1.GetHashCode()")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "u1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
@@ -1322,7 +1322,7 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Static_CaptureLambdaParameter()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "Shared", "ch.GetHashCode()")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "ch.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "D._Closure$__2.VB$StateMachine___Lambda$__2-0.MoveNext")
@@ -1362,6 +1362,51 @@ End Class
             Assert.Equal("(1,10): error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
 
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables")
+        End Sub
+
+        <WorkItem(1134746, "DevDiv")>
+        <Fact>
+        Public Sub CacheInvalidation()
+            Const source = "
+Imports System.Collections.Generic
+
+Class C
+    Shared Iterator Function M() As IEnumerable(Of Integer)
+#ExternalSource(""Test"", 100)
+        Dim x As Integer = 1
+        Yield x
+#End ExternalSource
+
+        If True Then
+#ExternalSource(""Test"", 200)
+            Dim y As Integer = x + 1
+            Yield y
+#End ExternalSource
+        End If
+    End Function
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(
+                runtime,
+                methodName:="C.VB$StateMachine_1_M.MoveNext",
+                atLineNumber:=100)
+            Dim errorMessage As String = Nothing
+            context.CompileExpression("x", errorMessage)
+            Assert.Null(errorMessage)
+            context.CompileExpression("y", errorMessage)
+            Assert.Equal("(1,2): error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+
+            context = CreateMethodContext(
+                runtime,
+                methodName:="C.VB$StateMachine_1_M.MoveNext",
+                atLineNumber:=200,
+                previous:=New VisualBasicMetadataContext(context))
+            context.CompileExpression("x", errorMessage)
+            Assert.Null(errorMessage)
+            context.CompileExpression("y", errorMessage)
+            Assert.Null(errorMessage)
         End Sub
 
         Private Shared Function GetLocalNames(context As EvaluationContext) As String()

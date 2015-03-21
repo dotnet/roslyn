@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Structure BoundTypeOrValueData
+    Friend Structure BoundTypeOrValueData
         Implements IEquatable(Of BoundTypeOrValueData)
 
         Private ReadOnly _valueExpression As BoundExpression
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(valueDiagnostics IsNot Nothing, "Field 'valueDiagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(typeExpression IsNot Nothing, "Field 'typeExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(typeDiagnostics IsNot Nothing, "Field 'typeDiagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-           
+
             Me._valueExpression = valueExpression
             Me._valueDiagnostics = valueDiagnostics
             Me._typeExpression = typeExpression
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Hash.Combine(TypeExpression.GetHashCode(), TypeDiagnostics.GetHashCode())))
         End Function
 
-        Private Overloads Function Equals(b As BoundTypeOrValueData) As Boolean Implements IEquatable(Of BoundTypeOrValueData).Equals            
+        Private Overloads Function Equals(b As BoundTypeOrValueData) As Boolean Implements IEquatable(Of BoundTypeOrValueData).Equals
             Return b = Me
         End Function
     End Structure

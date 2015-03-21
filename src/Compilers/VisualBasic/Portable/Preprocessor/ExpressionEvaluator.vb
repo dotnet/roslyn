@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' PERF: Using Byte instead of SpecialType because we want the compiler to use array literal initialization.
         '       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-        Private Shared ReadOnly _dominantType(,) As Byte
+        Private Shared ReadOnly s_dominantType(,) As Byte
 
         Shared Sub New()
 
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Const ___Object = CType(SpecialType.System_Object, Byte)
 
             '    _____Byte, ____SByte, ____Int16, ___UInt16, ____Int32, ___UInt32, ____Int64, ___UInt64, ___Single, ___Double, __Decimal, _DateTime, _____Char, __Boolean, ___String, ___Object
-            _dominantType =
+            s_dominantType =
             {
                 {_____Byte, ___Object, ____Int16, ___UInt16, ____Int32, ___UInt32, ____Int64, ___UInt64, ___Single, ___Double, __Decimal, ___Object, ___Object, ___Object, ___Object, ___Object}, ' Byte
                 {___Object, ____SByte, ____Int16, ___Object, ____Int32, ___Object, ____Int64, ___Object, ___Single, ___Double, __Decimal, ___Object, ___Object, ___Object, ___Object, ___Object}, ' SByte
@@ -59,10 +59,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             }
 
 #If DEBUG Then
-            Debug.Assert(_dominantType.GetLength(0) = _dominantType.GetLength(1)) ' 2d array must be square
-            For i As Integer = 0 To _dominantType.GetLength(0) - 1
-                For j As Integer = i + 1 To _dominantType.GetLength(1) - 1
-                    Debug.Assert(_dominantType(i, j) = _dominantType(j, i))
+            Debug.Assert(s_dominantType.GetLength(0) = s_dominantType.GetLength(1)) ' 2d array must be square
+            For i As Integer = 0 To s_dominantType.GetLength(0) - 1
+                For j As Integer = i + 1 To s_dominantType.GetLength(1) - 1
+                    Debug.Assert(s_dominantType(i, j) = s_dominantType(j, i))
                 Next
             Next
 #End If
@@ -576,7 +576,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             whenFalse = Convert(whenFalse, whenTrue.SpecialType, expr.WhenFalse)
                         End If
                     Else
-                        Dim dominantType As SpecialType = CType(_dominantType(TypeCodeToDominantTypeIndex(whenTrue.SpecialType), TypeCodeToDominantTypeIndex(whenFalse.SpecialType)), SpecialType)
+                        Dim dominantType As SpecialType = CType(s_dominantType(TypeCodeToDominantTypeIndex(whenTrue.SpecialType), TypeCodeToDominantTypeIndex(whenFalse.SpecialType)), SpecialType)
 
                         If dominantType <> whenTrue.SpecialType Then
                             whenTrue = Convert(whenTrue, dominantType, expr.WhenTrue)
@@ -1554,7 +1554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Case SyntaxKind.NotEqualsExpression
                         OperationSucceeds = LeftValue <> RightValue
 
-                        ' // Amazingly, False > True.
+                    ' // Amazingly, False > True.
 
                     Case SyntaxKind.GreaterThanExpression
                         OperationSucceeds = LeftValue = False AndAlso RightValue <> False

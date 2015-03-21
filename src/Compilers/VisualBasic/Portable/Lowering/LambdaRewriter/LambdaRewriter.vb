@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' the returned bound node.  For example, the caller will typically perform iterator method and
     ''' asynchronous method transformations, and emit IL instructions into an assembly.
     ''' </summary>
-    Partial Class LambdaRewriter
+    Friend Partial Class LambdaRewriter
         Inherits MethodToClassRewriter(Of FieldSymbol)
 
         Private ReadOnly _analysis As Analysis
@@ -923,30 +923,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim lambdaOrLambdaBodySyntax As SyntaxNode
             Dim isLambdaBody As Boolean ' indicates whether a node needs mapping for lambda or its bodies
-            Dim syntaxNode = TryCast(syntax, LambdaExpressionSyntax)
-            If syntaxNode IsNot Nothing Then
-                ' lambda
+
+            Dim lambdaExpression = TryCast(syntax, LambdaExpressionSyntax)
+            If lambdaExpression IsNot Nothing Then
+                lambdaOrLambdaBodySyntax = LambdaUtilities.GetLambdaExpressionLambdaBody(lambdaExpression)
                 isLambdaBody = True
-                lambdaOrLambdaBodySyntax = syntaxNode.SubOrFunctionHeader
             ElseIf syntax.IsKind(SyntaxKind.AddressOfExpression) Then
-                ' Late-bound AddressOf operator creates real closure, unlike delegate relaxations.
-                isLambdaBody = False
+                ' Late-bound AddressOf operator creates a display class, unlike delegate relaxations.
+                ' EnC is not supported in this case.
                 lambdaOrLambdaBodySyntax = syntax
+                isLambdaBody = False
+            ElseIf LambdaUtilities.IsNonUserCodeQueryLambda(syntax)
+                lambdaOrLambdaBodySyntax = syntax
+                isLambdaBody = False
             Else
                 ' query lambdas
-                Debug.Assert(syntax.AncestorsAndSelf().OfType(Of QueryExpressionSyntax)().Any())
-                Select Case syntax.Kind
-                    Case SyntaxKind.GroupByClause,
-                         SyntaxKind.GroupJoinClause,
-                         SyntaxKind.FromClause,
-                         SyntaxKind.SimpleJoinClause,
-                         SyntaxKind.SelectClause
-                        isLambdaBody = False
-                    Case Else
-                        isLambdaBody = True
-                End Select
                 lambdaOrLambdaBodySyntax = syntax
+                isLambdaBody = True
             End If
+
+            Debug.Assert(Not isLambdaBody OrElse LambdaUtilities.IsLambdaBody(lambdaOrLambdaBodySyntax))
 
             ' determine lambda ordinal and calculate syntax offset
             lambdaOrdinal = _lambdaDebugInfoBuilder.Count

@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
                 Dim workspaceCodeFixProvider = New WorkspaceCodeFixProvider()
 
-                Dim diagnosticService = New DiagnosticAnalyzerService(LanguageNames.CSharp, workspaceDiagnosticAnalyzer)
+                Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.CSharp, workspaceDiagnosticAnalyzer)
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim codefixService = New CodeFixService(
                                         diagnosticService,
@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
                 Dim workspaceCodeFixProvider = New WorkspaceCodeFixProvider()
 
-                Dim diagnosticService = New DiagnosticAnalyzerService(LanguageNames.VisualBasic, workspaceDiagnosticAnalyzer)
+                Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.VisualBasic, workspaceDiagnosticAnalyzer)
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
                 Dim codefixService = New CodeFixService(

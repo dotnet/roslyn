@@ -202,15 +202,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                       Nothing)
         End Function
 
-        Private Shared ReadOnly IsNamespacePredicate As Predicate(Of Declaration) = Function(d) d.Kind = DeclarationKind.Namespace
-        Private Shared ReadOnly IsTypePredicate As Predicate(Of Declaration) = Function(d) d.Kind <> DeclarationKind.Namespace
+        Private Shared ReadOnly s_isNamespacePredicate As Predicate(Of Declaration) = Function(d) d.Kind = DeclarationKind.Namespace
+        Private Shared ReadOnly s_isTypePredicate As Predicate(Of Declaration) = Function(d) d.Kind <> DeclarationKind.Namespace
 
         Private Shared Function GetTypeNames(declaration As Declaration) As ICollection(Of String)
-            Return GetNames(declaration, IsTypePredicate)
+            Return GetNames(declaration, s_isTypePredicate)
         End Function
 
         Private Shared Function GetNamespaceNames(declaration As Declaration) As ICollection(Of String)
-            Return GetNames(declaration, IsNamespacePredicate)
+            Return GetNames(declaration, s_isNamespacePredicate)
         End Function
 
         Private Shared Function GetNames(declaration As Declaration, predicate As Predicate(Of Declaration)) As ICollection(Of String)

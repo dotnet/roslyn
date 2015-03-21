@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class Symbol
+    Friend Partial Class Symbol
         Implements Cci.IReference
 
         Friend Overridable Function IReferenceAsDefinition(context As EmitContext) As Cci.IDefinition _
