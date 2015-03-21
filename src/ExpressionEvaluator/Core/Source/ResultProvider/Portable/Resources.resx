@@ -161,6 +161,14 @@
     <value>Expanding the Results View will enumerate the IEnumerable</value>
     <comment>Warning reported in Results View value</comment>
   </data>
+  <data name="SharedMembers" xml:space="preserve"> 
+    <value>Shared Members</value> 
+    <comment>Shared type members (VB only)</comment> 
+  </data> 
+  <data name="StaticMembers" xml:space="preserve"> 
+    <value>Static Members</value> 
+    <comment>Static type members (C# only)</comment> 
+  </data> 
   <data name="TypeVariablesName" xml:space="preserve">
     <value>Type variables</value>
     <comment>Type variables result name</comment>
