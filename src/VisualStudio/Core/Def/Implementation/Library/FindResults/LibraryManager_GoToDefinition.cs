@@ -21,9 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                 return new List<AbstractTreeItem>();
             }
 
-            // Find out how many different projects are referenced by these items.  If it's more than
-            // one, then we should present results that disambiguate the projects.  If it's only one,
-            // then we don't have to present the information.
+            // Collect all the documents in the list of items we're presenting.  Then determine
+            // what number of common path elements they have in common.  We can avoid showing
+            // these common locations, thus presenting a much cleaner result view to the user.
             var documents = new HashSet<Document>();
             CollectDocuments(itemsList, documents);
 
