@@ -77,12 +77,6 @@
     <Compile Include="..\..\..\..\Compilers\VisualBasic\Portable\SymbolDisplay\ObjectDisplay.vb">
       <Link>Compiler\SymbolDisplay\ObjectDisplay.vb</Link>
     </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Portable\Resources.Designer.vb">
-      <Link>Resources.Designer.vb</Link>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="ArrayExpansionTests.vb" />
     <Compile Include="DebuggerTypeProxyAttributeTests.vb" />
     <Compile Include="ExpansionTests.vb" />
@@ -95,14 +89,6 @@
     <Compile Include="TypeVariablesExpansionTests.vb" />
     <Compile Include="ValueFormatterTests.vb" />
     <Compile Include="VisualBasicResultProviderTestBase.vb" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="..\..\Source\ResultProvider\Portable\Resources.resx">
-      <Link>Resources.resx</Link>
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
-      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator</CustomToolNamespace>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

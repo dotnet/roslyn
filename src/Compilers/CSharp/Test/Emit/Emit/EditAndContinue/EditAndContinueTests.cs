@@ -4511,6 +4511,109 @@ class B
             }
         }
 
+        [Fact]
+        public void AnonymousTypes_DifferentCase()
+        {
+            var source0 =
+@"class C
+{
+    static void M()
+    {
+        var x = new { A = 1, B = 2 };
+        var y = new { a = 3, b = 4 };
+    }
+}";
+            var source1 =
+@"class C
+{
+    static void M()
+    {
+        var x = new { a = 1, B = 2 };
+        var y = new { AB = 3 };
+    }
+}";
+            var source2 =
+@"class C
+{
+    static void M()
+    {
+        var x = new { a = 1, B = 2 };
+        var y = new { Ab = 5 };
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
+
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, testData0.GetMethodData("C.M").EncDebugInfoProvider());
+                var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+                var reader0 = md0.MetadataReader;
+                CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousType0`2", "<>f__AnonymousType1`2", "C");
+
+                var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+                using (var md1 = diff1.GetMetadata())
+                {
+                    var reader1 = md1.Reader;
+                    CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>f__AnonymousType2`2", "<>f__AnonymousType3`1");
+                    diff1.VerifyIL("C.M",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init ([unchanged] V_0,
+                [unchanged] V_1,
+                <>f__AnonymousType2<int, int> V_2, //x
+                <>f__AnonymousType3<int> V_3) //y
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  ldc.i4.2
+  IL_0003:  newobj     ""<>f__AnonymousType2<int, int>..ctor(int, int)""
+  IL_0008:  stloc.2
+  IL_0009:  ldc.i4.3
+  IL_000a:  newobj     ""<>f__AnonymousType3<int>..ctor(int)""
+  IL_000f:  stloc.3
+  IL_0010:  ret
+}");
+
+                    var method2 = compilation2.GetMember<MethodSymbol>("C.M");
+                    var diff2 = compilation2.EmitDifference(
+                        diff1.NextGeneration,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables: true)));
+                    using (var md2 = diff2.GetMetadata())
+                    {
+                        var reader2 = md2.Reader;
+                        CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>f__AnonymousType4`1");
+                        diff2.VerifyIL("C.M",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init ([unchanged] V_0,
+                [unchanged] V_1,
+                <>f__AnonymousType2<int, int> V_2, //x
+                [unchanged] V_3,
+                <>f__AnonymousType4<int> V_4) //y
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  ldc.i4.2
+  IL_0003:  newobj     ""<>f__AnonymousType2<int, int>..ctor(int, int)""
+  IL_0008:  stloc.2
+  IL_0009:  ldc.i4.5
+  IL_000a:  newobj     ""<>f__AnonymousType4<int>..ctor(int)""
+  IL_000f:  stloc.s    V_4
+  IL_0011:  ret
+}");
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Should not re-use locals if the method metadata
         /// signature is unsupported.
