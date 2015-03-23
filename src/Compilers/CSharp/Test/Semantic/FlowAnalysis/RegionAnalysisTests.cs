@@ -4580,11 +4580,13 @@ public class Test
             var f2 = from a in data select a + y;
             var f3 = from a in data where x > 0 select a;
             var f4 = from a in data let b = 1 select /*<bind>*/a + b/*</bind>*/;
+            var f5 = from c in data where M(() => c) select c;
         }
     }
+    private static bool M(Func<int> f) => true;
 }");
             var dataFlowAnalysisResults = analysisResults;
-            Assert.Equal("y, x", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal("y, x, c", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
         }
 
         #endregion query expressions
