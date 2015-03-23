@@ -131,18 +131,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var appDomain = moduleInstance.AppDomain;
             var previous = appDomain.GetDataItem<MetadataContextItem<CSharpMetadataContext>>();
             var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain);
-            var moduleVersionId = moduleInstance.Mvid;
 
             CSharpCompilation compilation;
-            if (previous != null && previous.MetadataContext.Matches(metadataBlocks, moduleVersionId))
+            if (previous != null && previous.MetadataContext.Matches(metadataBlocks))
             {
                 compilation = previous.MetadataContext.Compilation;
             }
             else
             {
-                ImmutableDictionary<AssemblyIdentity, string> externAliases;
-                compilation = metadataBlocks.ToCompilation(out externAliases);
-                var dataItem = new MetadataContextItem<CSharpMetadataContext>(new CSharpMetadataContext(metadataBlocks, compilation, moduleVersionId));
+                compilation = metadataBlocks.ToCompilation();
+                var dataItem = new MetadataContextItem<CSharpMetadataContext>(new CSharpMetadataContext(metadataBlocks, compilation));
                 appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, dataItem);
             }
 

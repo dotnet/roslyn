@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal readonly ImmutableArray<MetadataBlock> MetadataBlocks;
         internal readonly MethodContextReuseConstraints? MethodContextReuseConstraints;
         internal readonly CSharpCompilation Compilation;
-        internal readonly ImmutableDictionary<AssemblyIdentity, string> ExternAliases;
-        internal readonly Guid ModuleVersionId;
 
         private readonly MetadataDecoder _metadataDecoder;
         private readonly MethodSymbol _currentFrame;
@@ -42,21 +40,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MethodContextReuseConstraints? methodContextReuseConstraints,
             CSharpCompilation compilation,
             MetadataDecoder metadataDecoder,
-            Guid moduleVersionId,
-            ImmutableDictionary<AssemblyIdentity, string> externAliases,
             MethodSymbol currentFrame,
             ImmutableArray<LocalSymbol> locals,
             InScopeHoistedLocals inScopeHoistedLocals,
             MethodDebugInfo methodDebugInfo)
         {
-            Debug.Assert(moduleVersionId != Guid.Empty);
-            Debug.Assert(externAliases != null);
             Debug.Assert(inScopeHoistedLocals != null);
 
             this.MetadataBlocks = metadataBlocks;
             this.MethodContextReuseConstraints = methodContextReuseConstraints;
             this.Compilation = compilation;
-            this.ExternAliases = externAliases;
             _metadataDecoder = metadataDecoder;
             _currentFrame = currentFrame;
             _locals = locals;
@@ -85,15 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // Re-use the previous compilation if possible.
             CSharpCompilation compilation;
-            ImmutableDictionary<AssemblyIdentity, string> externAliases;
-            if (previous.Matches(metadataBlocks, moduleVersionId))
+            if (previous.Matches(metadataBlocks))
             {
                 compilation = previous.Compilation;
-                externAliases = previous.EvaluationContext.ExternAliases;
             }
             else
             {
-                compilation = metadataBlocks.ToCompilation(out externAliases);
+                compilation = metadataBlocks.ToCompilation();
             }
 
             MetadataDecoder metadataDecoder;
@@ -106,8 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 null,
                 compilation,
                 metadataDecoder,
-                moduleVersionId,
-                externAliases,
                 currentFrame,
                 default(ImmutableArray<LocalSymbol>),
                 InScopeHoistedLocals.Empty,
@@ -140,8 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // Re-use the previous compilation if possible.
             CSharpCompilation compilation;
-            ImmutableDictionary<AssemblyIdentity, string> externAliases;
-            if (previous.Matches(metadataBlocks, moduleVersionId))
+            if (previous.Matches(metadataBlocks))
             {
                 // Re-use entire context if method scope has not changed.
                 var previousContext = previous.EvaluationContext;
@@ -152,11 +140,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return previousContext;
                 }
                 compilation = previous.Compilation;
-                externAliases = previous.EvaluationContext.ExternAliases;
             }
             else
             {
-                compilation = metadataBlocks.ToCompilation(out externAliases);
+                compilation = metadataBlocks.ToCompilation();
             }
 
             var typedSymReader = (ISymUnmanagedReader)symReader;
@@ -204,8 +191,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 methodContextReuseConstraints,
                 compilation,
                 metadataDecoder,
-                moduleVersionId,
-                externAliases,
                 currentFrame,
                 locals,
                 inScopeHoistedLocals,

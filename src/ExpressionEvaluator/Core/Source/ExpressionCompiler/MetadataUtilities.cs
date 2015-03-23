@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.DiaSymReader;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -18,14 +19,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal const uint CORDBG_E_MISSING_METADATA = 0x80131c35;
 
         /// <summary>
-        /// Group module metadata into assemblies, and generate any
-        /// extern aliases that should be used by the caller to hide
-        /// duplicate assemblies from the compiler.
+        /// Group module metadata into assemblies.
         /// </summary>
-        internal static ImmutableArray<MetadataReference> MakeAssemblyReferences(
-            this ImmutableArray<MetadataBlock> metadataBlocks,
-            AssemblyIdentityComparer identityComparer,
-            out ImmutableDictionary<AssemblyIdentity, string> externAliases)
+        internal static ImmutableArray<MetadataReference> MakeAssemblyReferences(this ImmutableArray<MetadataBlock> metadataBlocks, AssemblyIdentityComparer identityComparer)
         {
             // Get metadata for each module.
             var metadataBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
@@ -93,10 +89,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 referencesBuilder.Add(reference);
             }
 
-            // Remove any strong-name duplicates. (Non-strong-named duplicates
-            // are not handled since those are less likely, and references to types within
-            // those duplicates will simply result in ambiguity errors when compiling.)
-            externAliases = FindStrongNamedDuplicates(identitiesBuilder, identityComparer);
+            AddExternAliasesForDuplicateAssemblies(referencesBuilder, identitiesBuilder, identityComparer);
             identitiesBuilder.Free();
 
             // Any runtime winmd modules were separated out initially. Now add
@@ -116,11 +109,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// Generate extern aliases for any strong-named duplicate
         /// assemblies that differ by version.
         /// </summary>
-        private static ImmutableDictionary<AssemblyIdentity, string> FindStrongNamedDuplicates(ArrayBuilder<AssemblyIdentity> identities, AssemblyIdentityComparer identityComparer)
+        private static void AddExternAliasesForDuplicateAssemblies(ArrayBuilder<MetadataReference> references, ArrayBuilder<AssemblyIdentity> identities, AssemblyIdentityComparer identityComparer)
         {
-            var externAliases = ImmutableDictionary<AssemblyIdentity, string>.Empty;
+            var duplicateIdentities = PooledDictionary<AssemblyIdentity, string>.GetInstance();
 
-            // Generate extern alias string for each duplicate with lower version. Note, this is O(n^2).
+            // Find duplicate pairs. Note, this is O(n^2).
             int n = identities.Count;
             for (int i = 0; i < n; i++)
             {
@@ -152,15 +145,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         worseIndex = j;
                     }
-                    var worseIdentity = identities[worseIndex];
-                    if (!externAliases.ContainsKey(worseIdentity))
+                    duplicateIdentities[identities[worseIndex]] = Guid.NewGuid().ToString();
+                }
+            }
+
+            Debug.Assert(references.All(r => r.Properties.Aliases.IsEmpty));
+
+            // Add any extern aliases to references.
+            if (duplicateIdentities.Count > 0)
+            {
+                for (int i = 0; i < n; i++)
+                {
+                    string externAlias;
+                    if (duplicateIdentities.TryGetValue(identities[i], out externAlias))
                     {
-                        externAliases = externAliases.Add(worseIdentity, Guid.NewGuid().ToString());
+                        references[i] = references[i].WithAliases(ImmutableArray.Create(externAlias));
                     }
                 }
             }
 
-            return externAliases;
+            duplicateIdentities.Free();
         }
 
         private static bool IsNonNullAndStrongNamed(AssemblyIdentity identity)

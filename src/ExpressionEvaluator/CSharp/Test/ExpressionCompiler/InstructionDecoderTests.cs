@@ -425,8 +425,7 @@ class C
             var runtime = CreateRuntimeInstance(compilation);
             var moduleInstances = runtime.Modules;
             var blocks = moduleInstances.SelectAsArray(m => m.MetadataBlock);
-            ImmutableDictionary< AssemblyIdentity, string> externAliases;
-            compilation = blocks.ToCompilation(out externAliases);
+            compilation = blocks.ToCompilation();
             var frame = (PEMethodSymbol)GetMethodOrTypeBySignature(compilation, methodName);
 
             // Once we have the method token, we want to look up the method (again)

@@ -84,11 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var moduleInstances = runtime.Modules;
             blocks = moduleInstances.SelectAsArray(m => m.MetadataBlock);
 
-            ImmutableDictionary<AssemblyIdentity, string> externAliases;
-            var compilation = blocks.ToCompilation(out externAliases);
-
+            var compilation = blocks.ToCompilation();
             var methodOrType = GetMethodOrTypeBySignature(compilation, methodOrTypeName);
-
             var module = (PEModuleSymbol)methodOrType.ContainingModule;
             var id = module.Module.GetModuleVersionIdOrThrow();
             var moduleInstance = moduleInstances.First(m => m.ModuleVersionId == id);

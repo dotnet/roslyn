@@ -7,15 +7,16 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Microsoft.DiaSymReader;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
@@ -416,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(context.Compilation, previous.Compilation);
 
             // No EvaluationContext. Should reuse Compilation
-            previous = new CSharpMetadataContext(previous.MetadataBlocks, previous.Compilation, moduleVersionId);
+            previous = new CSharpMetadataContext(previous.MetadataBlocks, previous.Compilation);
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken);
             Assert.Null(previous.EvaluationContext);
             Assert.NotNull(context);
@@ -3824,7 +3825,7 @@ class C
             var sourceB =
 @"public class B
 {
-    private A F = new A();
+    public A F = new A();
 }";
             var sourceC =
 @"class C
@@ -3894,19 +3895,19 @@ class C
             // No duplicates.
             VerifyAssemblyReferences(
                 ImmutableArray.Create(MscorlibRef, referenceAS1, referenceBN1),
-                ImmutableArray<AssemblyIdentity>.Empty);
+                ImmutableArray<int>.Empty);
             // Strong-named, non-strong-named, and framework duplicates, same version (no aliases).
             VerifyAssemblyReferences(
                 ImmutableArray.Create(MscorlibRef, referenceAS1, MscorlibRef, referenceBN2, referenceBN2, referenceAS1, referenceAS1),
-                ImmutableArray<AssemblyIdentity>.Empty);
+                ImmutableArray<int>.Empty);
             // Strong-named, non-strong-named, and framework duplicates, different versions.
             VerifyAssemblyReferences(
                 ImmutableArray.Create(MscorlibRef, referenceAS1, MscorlibRef_v20, referenceAS2, referenceBN2, referenceBN1, referenceAS2, referenceAS1, referenceBN1),
-                ImmutableArray.Create(identityAS1));
+                ImmutableArray.Create(1, 7));
             // Strong-named, different versions.
             VerifyAssemblyReferences(
                 ImmutableArray.Create(MscorlibRef, referenceAS1, referenceAS2, referenceBS2, referenceBS1, referenceAS2, referenceAS1, referenceBS1),
-                ImmutableArray.Create(identityAS1, identityBS1));
+                ImmutableArray.Create(1, 4, 6, 7));
 
             // Assembly C, multiple versions, not strong name.
             var assemblyNameC = ExpressionCompilerUtilities.GenerateUniqueName();
@@ -3939,7 +3940,7 @@ class C
                 var context = CreateTypeContext(runtime, "C");
                 string error;
                 var testData = new CompilationTestData();
-                context.CompileExpression("(object)new A() ?? new B() ?? new C()", out error, testData);
+                context.CompileExpression("(object)new A() ?? (object)new B() ?? new C()", out error, testData);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        6 (0x6)
@@ -3949,39 +3950,85 @@ class C
 }");
 
                 // Compile expression with method context.
-                context = CreateMethodContext(runtime, methodName: "C.M");
+                context = CreateMethodContext(runtime, methodName: "C.M", previous: new CSharpMetadataContext(context));
                 testData = new CompilationTestData();
-                context.CompileExpression("(object)new A() ?? new B() ?? new C()", out error, testData);
-                testData.GetMethodData("<>x.<>m0").VerifyIL(
+                context.CompileExpression("new A()", out error, testData);
+                var methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
 @"{
   // Code size        6 (0x6)
   .maxstack  1
-  IL_0000:  ldc.i4     0x80000000
+  IL_0000:  newobj     ""A..ctor()""
   IL_0005:  ret
 }");
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityAS2.GetDisplayName());
+                testData = new CompilationTestData();
+                context.CompileExpression("(new B()).F", out error, testData);
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  newobj     ""B..ctor()""
+  IL_0005:  ldfld      ""A B.F""
+  IL_000a:  ret
+}");
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityAS1.GetDisplayName());
             }
+
+            // Verify EvaluationContext.Compilation was reused.
+            Assert.False(true);
+
+            // Duplicate assembly A, target module referencing AS1.
+            Assert.False(true);
+
+            // Test VB expression compilation.
+            Assert.False(true);
         }
 
         private static void VerifyAssemblyReferences(
             ImmutableArray<MetadataReference> references,
-            ImmutableArray<AssemblyIdentity> expectedExternAliases)
+            ImmutableArray<int> expectedExternAliases)
         {
             var modules = references.SelectAsArray(r => r.ToModuleInstance(fullImage: null, symReader: null, includeLocalSignatures: false));
             using (var runtime = new RuntimeInstance(modules))
             {
+                var identityComparer = DesktopAssemblyIdentityComparer.Default;
                 var blocks = runtime.Modules.SelectAsArray(m => m.MetadataBlock);
-                ImmutableDictionary<AssemblyIdentity, string> actualExternAliases;
-                var actualReferences = blocks.MakeAssemblyReferences(DesktopAssemblyIdentityComparer.Default, out actualExternAliases);
+                var actualReferences = blocks.MakeAssemblyReferences(identityComparer);
                 // Verify identities.
                 var expectedIdentities = references.SelectAsArray(r => r.GetAssemblyIdentity());
                 var actualIdentities = actualReferences.SelectAsArray(r => r.GetAssemblyIdentity());
                 AssertEx.Equal(expectedIdentities, actualIdentities);
-                // Verify extern aliases are unique.
-                var uniqueAliases = actualExternAliases.Values.Distinct().ToArray();
-                Assert.Equal(actualExternAliases.Count, uniqueAliases.Length);
                 // Verify extern alias assemblies.
-                Assert.Equal(actualExternAliases.Count, expectedExternAliases.Length);
-                Assert.True(expectedExternAliases.All(i => actualExternAliases.ContainsKey(i)));
+                var assemblyToExternAlias = PooledDictionary<AssemblyIdentity, string>.GetInstance();
+                for (int i = 0; i < actualReferences.Length; i++)
+                {
+                    var actualAliases = actualReferences[i].Properties.Aliases;
+                    if (expectedExternAliases.Contains(i))
+                    {
+                        Assert.Equal(1, actualAliases.Length);
+                        var identity = actualIdentities[i];
+                        var expectedAlias = actualAliases[0];
+                        string actualAlias;
+                        if (assemblyToExternAlias.TryGetValue(identity, out actualAlias))
+                        {
+                            Assert.Equal(expectedAlias, actualAlias);
+                        }
+                        else
+                        {
+                            assemblyToExternAlias.Add(identity, expectedAlias);
+                        }
+                    }
+                    else
+                    {
+                        Assert.Equal(0, actualAliases.Length);
+                    }
+                }
+                // Verify extern aliases are unique.
+                var uniqueAliases = assemblyToExternAlias.Values.Distinct().ToArray();
+                Assert.Equal(assemblyToExternAlias.Count, uniqueAliases.Length);
+                assemblyToExternAlias.Free();
             }
         }
 

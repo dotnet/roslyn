@@ -31,8 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend ReadOnly MetadataBlocks As ImmutableArray(Of MetadataBlock)
         Friend ReadOnly MethodContextReuseConstraints As MethodContextReuseConstraints?
         Friend ReadOnly Compilation As VisualBasicCompilation
-        Friend ReadOnly ModuleVersionId As Guid
-        Friend ReadOnly ExternAliases As ImmutableDictionary(Of AssemblyIdentity, String)
 
         Private ReadOnly _metadataDecoder As MetadataDecoder
         Private ReadOnly _currentFrame As MethodSymbol
@@ -45,21 +43,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             methodContextReuseConstraints As MethodContextReuseConstraints?,
             compilation As VisualBasicCompilation,
             metadataDecoder As MetadataDecoder,
-            moduleVersionId As Guid,
-            externAliases As ImmutableDictionary(Of AssemblyIdentity, String),
             currentFrame As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
             inScopeHoistedLocals As InScopeHoistedLocals,
             methodDebugInfo As MethodDebugInfo)
 
-            Debug.Assert(moduleVersionId <> Guid.Empty)
-            Debug.Assert(externAliases IsNot Nothing)
-
             Me.MetadataBlocks = metadataBlocks
             Me.MethodContextReuseConstraints = methodContextReuseConstraints
             Me.Compilation = compilation
-            Me.ModuleVersionId = moduleVersionId
-            Me.ExternAliases = externAliases
             _metadataDecoder = metadataDecoder
             _currentFrame = currentFrame
             _locals = locals
@@ -88,12 +79,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             ' Re-use the previous compilation if possible.
             Dim compilation As VisualBasicCompilation
-            Dim externAliases As ImmutableDictionary(Of AssemblyIdentity, String) = Nothing
-            If previous.Matches(metadataBlocks, moduleVersionId) Then
+            If previous.Matches(metadataBlocks) Then
                 compilation = previous.Compilation
-                externAliases = previous.EvaluationContext.ExternAliases
             Else
-                compilation = metadataBlocks.ToCompilation(externAliases)
+                compilation = metadataBlocks.ToCompilation()
             End If
 
             Dim metadataDecoder As MetadataDecoder = Nothing
@@ -106,8 +95,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Nothing,
                 compilation,
                 metadataDecoder,
-                moduleVersionId,
-                externAliases,
                 currentFrame,
                 locals:=Nothing,
                 inScopeHoistedLocals:=Nothing,
@@ -141,8 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             ' Re-use the previous compilation if possible.
             Dim compilation As VisualBasicCompilation
-            Dim externAliases As ImmutableDictionary(Of AssemblyIdentity, String) = Nothing
-            If previous.Matches(metadataBlocks, moduleVersionId) Then
+            If previous.Matches(metadataBlocks) Then
                 ' Re-use entire context if method scope has not changed.
                 Dim previousContext = previous.EvaluationContext
                 If previousContext IsNot Nothing AndAlso
@@ -151,9 +137,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Return previousContext
                 End If
                 compilation = previous.Compilation
-                externAliases = previous.EvaluationContext.ExternAliases
             Else
-                compilation = metadataBlocks.ToCompilation(externAliases)
+                compilation = metadataBlocks.ToCompilation()
             End If
 
             Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader)
@@ -197,11 +182,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 reuseConstraints,
                 compilation,
                 metadataDecoder,
-                moduleVersionId,
-                externAliases,
                 currentFrame,
                 locals,
-                InScopeHoistedLocals,
+                inScopeHoistedLocals,
                 methodDebugInfo)
         End Function
 
