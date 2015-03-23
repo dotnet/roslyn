@@ -3,13 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using static Microsoft.CodeAnalysis.CompilerServer.CompilerServerLogger;
 using static Microsoft.CodeAnalysis.CompilerServer.BuildProtocolConstants;
+using System.Security.Cryptography;
 
 // This file describes data structures about the protocol from client program to server that is 
 // used. The basic protocol is this.
@@ -427,11 +427,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public const uint ProtocolVersion = 2;
 
-        /// <summary>
-        /// The name of the named pipe. A process id is appended to the end.
-        /// </summary>
-        public const string PipeName = "VBCSCompiler";
-
         // The id numbers below are just random. It's useful to use id numbers
         // that won't occur accidentally for debugging.
         public enum RequestLanguage
@@ -451,6 +446,20 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             LibEnvVariable,
             // Request a longer keep alive time for the server
             KeepAlive,
+        }
+
+        /// <summary>
+        /// Given the full path to the directory containing the compiler exes,
+        /// retrieves the name of the pipe for client/server communication on
+        /// that instance of the compiler.
+        /// </summary>
+        internal static string GetPipeName(string compilerExeDirectory)
+        {
+            using (var sha = SHA1.Create())
+            {
+                var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(compilerExeDirectory));
+                return BitConverter.ToString(bytes).Replace("-", string.Empty);
+            }
         }
 
         /// <summary>
