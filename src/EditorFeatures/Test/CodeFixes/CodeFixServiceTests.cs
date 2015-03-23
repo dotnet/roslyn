@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -26,16 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var diagnosticService = new TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
 
             var fixers = CreateFixers();
-            var fixService = new CodeFixService(
-                    diagnosticService, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
-
             var code = @"
     a
 ";
-
-            using (var workspace =
-                CSharpWorkspaceFactory.CreateWorkspaceFromFile(code))
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code))
             {
+                var fixService = new CodeFixService(
+                    diagnosticService, workspace, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
+
                 var incrementalAnalzyer = (IIncrementalAnalyzerProvider)diagnosticService;
 
                 // register diagnostic engine to solution crawler
@@ -55,13 +54,94 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
         }
 
+        [Fact]
+        public void TestGetCodeFixWithExceptionInRegisterMethod()
+        {
+            GetFirstDiagnosticWithFix(new ErrorCases.ExceptionInRegisterMethod());
+        }
+
+        [Fact]
+        public void TestGetCodeFixWithExceptionInRegisterMethodAsync()
+        {
+            GetFirstDiagnosticWithFix(new ErrorCases.ExceptionInRegisterMethodAsync());
+        }
+
+        [Fact]
+        public void TestGetCodeFixWithExceptionInFixableDiagnosticIds()
+        {
+            GetFixes(new ErrorCases.ExceptionInFixableDiagnosticIds());
+        }
+
+        [Fact]
+        public void TestGetCodeFixWithExceptionInGetFixAllProvider()
+        {
+            GetFixes(new ErrorCases.ExceptionInGetFixAllProvider());
+        }
+
+        public void GetFixes(CodeFixProvider codefix)
+        {
+            TestDiagnosticAnalyzerService diagnosticService;
+            CodeFixService fixService;
+            using (var workspace = ServiceSetup(codefix, out diagnosticService, out fixService))
+            {
+                Document document;
+                EditorLayerExtensionManager.ExtensionManager extensionManager;
+                GetDocumentAndExtensionManager(diagnosticService, workspace, out document, out extensionManager);
+                var fixes = fixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None).Result;
+                Assert.True(extensionManager.IsDisabled(codefix));
+                Assert.False(extensionManager.IsIgnored(codefix));
+            }
+        }
+
+        public void GetFirstDiagnosticWithFix(CodeFixProvider codefix)
+        {
+            TestDiagnosticAnalyzerService diagnosticService;
+            CodeFixService fixService;
+            using (var workspace = ServiceSetup(codefix, out diagnosticService, out fixService))
+            {
+                Document document;
+                EditorLayerExtensionManager.ExtensionManager extensionManager;
+                GetDocumentAndExtensionManager(diagnosticService, workspace, out document, out extensionManager);
+                var unused = fixService.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None).Result;
+                Assert.True(extensionManager.IsDisabled(codefix));
+                Assert.False(extensionManager.IsIgnored(codefix));
+            }
+        }
+
+        private static TestWorkspace ServiceSetup(CodeFixProvider codefix, out TestDiagnosticAnalyzerService diagnosticService, out CodeFixService fixService)
+        {
+            diagnosticService = new TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
+            var fixers = SpecializedCollections.SingletonEnumerable(
+                new Lazy<CodeFixProvider, CodeChangeProviderMetadata>(
+                () => codefix,
+                new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
+            var code = @"class Program { }";
+            var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code);
+            fixService = new CodeFixService(
+                    diagnosticService, workspace, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
+            return workspace;
+        }
+
+        private static void GetDocumentAndExtensionManager(TestDiagnosticAnalyzerService diagnosticService, TestWorkspace workspace, out Document document, out EditorLayerExtensionManager.ExtensionManager extensionManager)
+        {
+            var incrementalAnalzyer = (IIncrementalAnalyzerProvider)diagnosticService;
+
+            // register diagnostic engine to solution crawler
+            var analyzer = incrementalAnalzyer.CreateIncrementalAnalyzer(workspace);
+
+            var reference = new MockAnalyzerReference();
+            var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
+            document = project.Documents.Single();
+            extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>() as EditorLayerExtensionManager.ExtensionManager;
+        }
+
         private IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> CreateFixers()
         {
             return SpecializedCollections.SingletonEnumerable(
                 new Lazy<CodeFixProvider, CodeChangeProviderMetadata>(() => new MockFixer(), new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
         }
 
-        private class MockFixer : CodeFixProvider
+        internal class MockFixer : CodeFixProvider
         {
             public const string Id = "MyDiagnostic";
             public bool Called = false;
