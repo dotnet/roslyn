@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
     Public Class MetadataMemberTests
         Inherits BasicTestBase
 
-        Private VTableGapClassIL As String = <![CDATA[
+        Private _VTableGapClassIL As String = <![CDATA[
 .class public auto ansi beforefieldinit Class
        extends [mscorlib]System.Object
 {
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 } // end of class Class
 ]]>.Value
 
-        Private VTableGapInterfaceIL As String = <![CDATA[
+        Private _VTableGapInterfaceIL As String = <![CDATA[
 .class interface public abstract auto ansi Interface
 {
   .method public hidebysig newslot specialname rtspecialname abstract virtual 
@@ -744,7 +744,7 @@ End Class
                          <file name="a.vb">
                          </file>
                      </compilation>
-            Dim comp = CreateCompilationWithCustomILSource(vb, VTableGapClassIL, includeVbRuntime:=True)
+            Dim comp = CreateCompilationWithCustomILSource(vb, _VTableGapClassIL, includeVbRuntime:=True)
             comp.VerifyDiagnostics()
 
             Dim type = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Class")
@@ -793,7 +793,7 @@ End Module
                      </compilation>
 
             ' BREAK: Dev11 produces no diagnostics, but the emitted code does not peverify.
-            Dim comp = CreateCompilationWithCustomILSource(vb, VTableGapClassIL, includeVbRuntime:=True)
+            Dim comp = CreateCompilationWithCustomILSource(vb, _VTableGapClassIL, includeVbRuntime:=True)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_NameNotMember2, "c._VtblGap1_1").WithArguments("_VtblGap1_1", "[Class]"),
                 Diagnostic(ERRID.ERR_NameNotMember2, "c.BothAccessorsAreGaps").WithArguments("BothAccessorsAreGaps", "[Class]"),
@@ -846,7 +846,7 @@ End Class
 
             ' BREAK: Dev11 produces errors for the vtable gaps that Empty does not implement and not for the 
             ' vtable gaps that Full does implement.
-            Dim comp = CreateCompilationWithCustomILSource(vb, VTableGapInterfaceIL, includeVbRuntime:=True)
+            Dim comp = CreateCompilationWithCustomILSource(vb, _VTableGapInterfaceIL, includeVbRuntime:=True)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_UnimplementedMember3, "[Interface]").WithArguments("Class", "Empty", "WriteOnly Property GetterIsGap As Integer", "[Interface]"),
                 Diagnostic(ERRID.ERR_UnimplementedMember3, "[Interface]").WithArguments("Class", "Empty", "ReadOnly Property SetterIsGap As Integer", "[Interface]"),

@@ -589,7 +589,7 @@ Class A
     End Function 
 End Class
           </file>
-      </compilation>, customIL)
+      </compilation>, s_customIL)
 
             Assert.True(analysis.Succeeded)
             Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.DataFlowsIn))
@@ -2569,7 +2569,7 @@ class C
     end sub
 end class
 </file>
-      </compilation>, customIL)
+      </compilation>, s_customIL)
             Assert.Equal("a, c", GetSymbolNamesJoined(analysis.AlwaysAssigned))
         End Sub
 
@@ -2586,7 +2586,7 @@ class C
     end sub
 end class
 </file>
-      </compilation>, customIL)
+      </compilation>, s_customIL)
             Assert.Equal("a, c", GetSymbolNamesJoined(analysis.AlwaysAssigned))
         End Sub
 
@@ -2637,7 +2637,7 @@ class C
     end sub
 end class
             </file>
-      </compilation>, customIL)
+      </compilation>, s_customIL)
             Dim controlFlowAnalysisResults = analysisResults.Item1
             Dim dataFlowAnalysisResults = analysisResults.Item2
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count())
@@ -2720,7 +2720,7 @@ class C
     end sub
 end class
             </file>
-      </compilation>, customIL)
+      </compilation>, s_customIL)
 
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
@@ -2745,7 +2745,7 @@ class C
     end sub
 end class
             </file>
-      </compilation>, customIL)
+      </compilation>, s_customIL)
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
@@ -2765,7 +2765,7 @@ class C
     end sub
 end class
             </file>
-      </compilation>, customIL)
+      </compilation>, s_customIL)
 
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
@@ -2786,7 +2786,7 @@ class C
     end sub
 end class
             </file>
-      </compilation>, customIL)
+      </compilation>, s_customIL)
             Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
@@ -2806,7 +2806,7 @@ class C
     end sub
 end class
             </file>
-      </compilation>, customIL)
+      </compilation>, s_customIL)
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
@@ -2826,7 +2826,7 @@ class C
     end sub
 end class
             </file>
-      </compilation>, customIL)
+      </compilation>, s_customIL)
 
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
@@ -3751,7 +3751,7 @@ End Class
             Assert.Equal("Me, t, t1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        Private Shared customIL As XCData = <![CDATA[
+        Private Shared s_customIL As XCData = <![CDATA[
 .class public auto ansi beforefieldinit External
        extends [mscorlib]System.Object
 {
@@ -3800,7 +3800,7 @@ class C
     end sub
 end class
             </file>
-      </compilation>, customIL)
+      </compilation>, s_customIL)
 
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
             Assert.Equal("b", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))  ' NOTE: always assigned
@@ -3825,7 +3825,7 @@ Class A
     End Function
 End Class
             </file>
-</compilation>, customIL)
+</compilation>, s_customIL)
 
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
@@ -3846,7 +3846,7 @@ Class A
     End Function
 End Class
             </file>
-</compilation>, customIL)
+</compilation>, s_customIL)
 
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
@@ -3867,7 +3867,7 @@ Class A
     End Function
 End Class
             </file>
-</compilation>, customIL)
+</compilation>, s_customIL)
 
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
@@ -3889,7 +3889,7 @@ Class A
     End Function
 End Class
             </file>
-</compilation>, customIL)
+</compilation>, s_customIL)
 
             Assert.Equal("xx", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
@@ -3911,7 +3911,7 @@ Class A
     End Function
 End Class
             </file>
-</compilation>, customIL)
+</compilation>, s_customIL)
 
             Assert.Equal("xx", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
@@ -3932,7 +3932,7 @@ Class A
     End Sub
 End Class
             </file>
-</compilation>, customIL)
+</compilation>, s_customIL)
 
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
@@ -4015,7 +4015,7 @@ End Class
             </file>
 </compilation>
 
-            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, customIL)
+            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, s_customIL)
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
@@ -4041,7 +4041,7 @@ End Class
             </file>
 </compilation>
 
-            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, customIL)
+            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, s_customIL)
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
@@ -4067,7 +4067,7 @@ End Class
             </file>
 </compilation>
 
-            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, customIL)
+            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, s_customIL)
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
@@ -4093,7 +4093,7 @@ End Class
             </file>
 </compilation>
 
-            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, customIL)
+            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, s_customIL)
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
@@ -4167,7 +4167,7 @@ End Class
             </file>
 </compilation>
 
-            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, customIL)
+            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, s_customIL)
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
@@ -4193,7 +4193,7 @@ End Class
             </file>
 </compilation>
 
-            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, customIL)
+            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, s_customIL)
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
@@ -4219,7 +4219,7 @@ End Class
             </file>
 </compilation>
 
-            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, customIL)
+            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, s_customIL)
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
@@ -4245,7 +4245,7 @@ End Class
             </file>
 </compilation>
 
-            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, customIL)
+            Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(source, s_customIL)
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Equal("ext", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
@@ -6710,7 +6710,7 @@ End Module
 
         <WorkItem(545249, "DevDiv")>
         <Fact()>
-        Sub TestWithEventsInitializer()
+        Public Sub TestWithEventsInitializer()
             Dim comp = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -6724,7 +6724,7 @@ End Class
 
         <WorkItem(545249, "DevDiv")>
         <Fact()>
-        Sub TestWithEventsInitializer2()
+        Public Sub TestWithEventsInitializer2()
             Dim comp = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -6739,7 +6739,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub TestWithEventsInitializer3()
+        Public Sub TestWithEventsInitializer3()
             Dim comp = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -6754,7 +6754,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub TestWithEventsInitializer4()
+        Public Sub TestWithEventsInitializer4()
             Dim comp = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -6770,7 +6770,7 @@ End Class
 
         <WorkItem(545480, "DevDiv")>
         <Fact()>
-        Sub ReturnStatementInElseInsideIncompleteFunction()
+        Public Sub ReturnStatementInElseInsideIncompleteFunction()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
@@ -6792,7 +6792,7 @@ Public Class vbPartialCls002
 
         <WorkItem(545900, "DevDiv")>
         <Fact()>
-        Sub AnonymousObjectCreationExprInsideOptionalParamDecl()
+        Public Sub AnonymousObjectCreationExprInsideOptionalParamDecl()
             Dim comp = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -6807,7 +6807,7 @@ End Module
 
         <WorkItem(545900, "DevDiv")>
         <Fact()>
-        Sub AnonymousObjectCreationExprInsideOptionalParamDecl2()
+        Public Sub AnonymousObjectCreationExprInsideOptionalParamDecl2()
             Dim comp = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -6824,7 +6824,7 @@ End Class
 
         <WorkItem(545900, "DevDiv")>
         <Fact()>
-        Sub LambdaExprInsideOptionalParamDecl2()
+        Public Sub LambdaExprInsideOptionalParamDecl2()
             Dim comp = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">

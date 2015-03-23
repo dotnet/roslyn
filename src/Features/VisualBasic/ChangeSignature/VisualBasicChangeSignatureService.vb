@@ -21,9 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             Dim token = tree.GetRoot(cancellationToken).FindToken(If(position <> tree.Length, position, Math.Max(0, position - 1)))
 
-            Dim matchingNode = token.Parent.AncestorsAndSelf().FirstOrDefault(Function(n) invokableAncestorKinds.Contains(n.Kind))
+            Dim matchingNode = token.Parent.AncestorsAndSelf().FirstOrDefault(Function(n) _invokableAncestorKinds.Contains(n.Kind))
 
-            If matchingNode Is Nothing OrElse (restrictToDeclarations AndAlso nonDeclarationKinds.Contains(matchingNode.Kind)) Then
+            If matchingNode Is Nothing OrElse (restrictToDeclarations AndAlso _nonDeclarationKinds.Contains(matchingNode.Kind)) Then
                 Return Nothing
             End If
 
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault())
         End Function
 
-        Private nonDeclarationKinds As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
+        Private _nonDeclarationKinds As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
             {
                 SyntaxKind.SubBlock,
                 SyntaxKind.FunctionBlock,
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 SyntaxKind.ConstructorBlock
             }.ToImmutableArray()
 
-        Private invokableAncestorKinds As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
+        Private _invokableAncestorKinds As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
             {
                 SyntaxKind.SubBlock,
                 SyntaxKind.SubStatement,
@@ -92,12 +92,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 SyntaxKind.ObjectCreationExpression
             }.ToImmutableArray()
 
-        Private nodeKindsToIgnore As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
+        Private _nodeKindsToIgnore As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
             {
                 SyntaxKind.ImplementsClause
             }.ToImmutableArray()
 
-        Private updatableNodeKinds As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
+        Private _updatableNodeKinds As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
             {
                 SyntaxKind.CrefReference,
                 SyntaxKind.ImplementsClause,
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 SyntaxKind.MultiLineFunctionLambdaExpression
             }.ToImmutableArray()
 
-        Private updatableAncestorKinds As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
+        Private _updatableAncestorKinds As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
             {
                 SyntaxKind.CrefReference,
                 SyntaxKind.ImplementsClause,
@@ -142,11 +142,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         Public Overrides Function FindNodeToUpdate(document As Document, node As SyntaxNode) As SyntaxNode
             Dim vbnode = DirectCast(node, VisualBasicSyntaxNode)
 
-            If updatableNodeKinds.Contains(node.Kind()) Then
+            If _updatableNodeKinds.Contains(node.Kind()) Then
                 Return GetUpdatableNode(node)
             End If
 
-            Dim matchingNode = node.AncestorsAndSelf().FirstOrDefault(Function(a) updatableAncestorKinds.Contains(a.Kind()))
+            Dim matchingNode = node.AncestorsAndSelf().FirstOrDefault(Function(a) _updatableAncestorKinds.Contains(a.Kind()))
             If matchingNode Is Nothing Then
                 Return Nothing
             End If
@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         End Function
 
         Private Function GetUpdatableNode(matchingNode As SyntaxNode) As SyntaxNode
-            If nodeKindsToIgnore.Contains(matchingNode.Kind()) Then
+            If _nodeKindsToIgnore.Contains(matchingNode.Kind()) Then
                 Return Nothing
             End If
 

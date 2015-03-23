@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         Private Class DocumentationCommentClassifier
             Private _worker As Worker
 
-            Sub New(worker As Worker)
+            Public Sub New(worker As Worker)
                 _worker = worker
             End Sub
 

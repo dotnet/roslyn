@@ -21,7 +21,17 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         internal readonly bool IsKey;
 
-        internal AnonymousTypeKeyField(string name, bool isKey = false)
+        internal static AnonymousTypeKeyField CreateField(string name)
+        {
+            return new AnonymousTypeKeyField(name, isKey: false);
+        }
+
+        internal static AnonymousTypeKeyField CreateField(string name, bool isKey)
+        {
+            return new AnonymousTypeKeyField(name.ToLowerInvariant(), isKey);
+        }
+
+        private AnonymousTypeKeyField(string name, bool isKey)
         {
             this.Name = name;
             this.IsKey = isKey;

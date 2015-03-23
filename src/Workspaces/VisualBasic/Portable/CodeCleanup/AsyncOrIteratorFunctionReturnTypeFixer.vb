@@ -6,9 +6,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.CodeCleanup
     Friend Module AsyncOrIteratorFunctionReturnTypeFixer
-        Private Const _system_Threading_Tasks_Task_Name As String = "System.Threading.Tasks.Task"
-        Private Const _system_Threading_Tasks_Task_Of_T_Name As String = "System.Threading.Tasks.Task`1"
-        Private Const _system_Collections_IEnumerable_Name As String = "System.Collections.IEnumerable"
+        Private Const s_system_Threading_Tasks_Task_Name As String = "System.Threading.Tasks.Task"
+        Private Const s_system_Threading_Tasks_Task_Of_T_Name As String = "System.Threading.Tasks.Task`1"
+        Private Const s_system_Collections_IEnumerable_Name As String = "System.Collections.IEnumerable"
 
         Public Function RewriteMethodStatement(func As MethodStatementSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As MethodStatementSyntax
             Return RewriteMethodStatement(func, semanticModel, oldFunc:=func, cancellationToken:=cancellationToken)
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
                 Return False
             End If
 
-            Dim taskType = semanticModel.Compilation.GetTypeByMetadataName(_system_Threading_Tasks_Task_Name)
+            Dim taskType = semanticModel.Compilation.GetTypeByMetadataName(s_system_Threading_Tasks_Task_Name)
             If asClauseOpt Is Nothing Then
                 ' Without an AsClause: Async functions are pretty listed to return Task.
                 If taskType IsNot Nothing AndAlso parameterListOpt IsNot Nothing Then
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
             Else
                 '   2) With an AsClause: If the return type R is a valid non-error type, pretty list as follows:
                 '       (a) Async functions: If R is not Task or Task(Of T) or an instantiation of Task(Of T), pretty list return type to Task(Of R).
-                Dim taskOfT = semanticModel.Compilation.GetTypeByMetadataName(_system_Threading_Tasks_Task_Of_T_Name)
+                Dim taskOfT = semanticModel.Compilation.GetTypeByMetadataName(s_system_Threading_Tasks_Task_Of_T_Name)
                 Dim returnType = semanticModel.GetTypeInfo(oldAsClauseOpt.Type, cancellationToken).Type
                 If returnType IsNot Nothing AndAlso Not returnType.IsErrorType() AndAlso
                     taskType IsNot Nothing AndAlso taskOfT IsNot Nothing AndAlso
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
 
             If asClauseOpt Is Nothing Then
                 ' Without an AsClause: Iterator functions are pretty listed to return IEnumerable.
-                Dim iEnumerableType = semanticModel.Compilation.GetTypeByMetadataName(_system_Collections_IEnumerable_Name)
+                Dim iEnumerableType = semanticModel.Compilation.GetTypeByMetadataName(s_system_Collections_IEnumerable_Name)
                 If iEnumerableType IsNot Nothing Then
                     GenerateFunctionAsClause(iEnumerableType, parameterListOpt, asClauseOpt, semanticModel, position)
                     Return True

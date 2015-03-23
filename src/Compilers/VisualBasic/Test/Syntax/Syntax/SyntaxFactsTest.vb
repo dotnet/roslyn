@@ -1001,7 +1001,7 @@ End Namespace
     End Sub
 
     <Fact>
-    Sub AllowsLeadingOrTrailingImplicitLineContinuation()
+    Public Sub AllowsLeadingOrTrailingImplicitLineContinuation()
 
         Dim cu = SyntaxFactory.ParseCompilationUnit(My.Resources.Resource.VBAllInOne)
 
@@ -1099,7 +1099,7 @@ End Namespace
     End Sub
 
     <Fact>
-    Sub AllowsLeadingOrTrailingImplicitLineContinuationNegativeTests()
+    Public Sub AllowsLeadingOrTrailingImplicitLineContinuationNegativeTests()
 
         Dim cu = SyntaxFactory.ParseCompilationUnit(My.Resources.Resource.VBAllInOne)
 

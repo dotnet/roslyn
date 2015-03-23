@@ -4128,7 +4128,7 @@ End Module
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Sub TestWithEventsInitializer()
+        Public Sub TestWithEventsInitializer()
             Dim comp = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">

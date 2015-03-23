@@ -523,7 +523,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                             Me._lastExpressionCnt += 1
 
                         Case ExprContext.Sideeffects
-                        ' do nothing
+                            ' do nothing
 
                         Case ExprContext.Value,
                             ExprContext.Box

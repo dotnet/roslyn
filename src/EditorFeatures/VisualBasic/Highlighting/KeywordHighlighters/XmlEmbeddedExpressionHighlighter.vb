@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             With xmlEmbeddExpression
                 If Not .ContainsDiagnostics AndAlso
                    Not .HasAncestor(Of DocumentationCommentTriviaSyntax)() Then
-                    highlights.Add( .LessThanPercentEqualsToken.Span)
-                    highlights.Add( .PercentGreaterThanToken.Span)
+                    highlights.Add(.LessThanPercentEqualsToken.Span)
+                    highlights.Add(.PercentGreaterThanToken.Span)
                 End If
             End With
 

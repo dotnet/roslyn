@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     return false;
                 }
-                builder.Add(new AnonymousTypeKeyField(fieldName));
+                builder.Add(AnonymousTypeKeyField.CreateField(fieldName));
             }
             return true;
         }

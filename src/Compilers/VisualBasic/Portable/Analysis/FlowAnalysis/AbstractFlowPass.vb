@@ -697,7 +697,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                 Case BoundKind.Parameter, BoundKind.MeReference, BoundKind.MyClassReference, BoundKind.MyBaseReference
-                ' no need for it to be previously assigned: it is on the left.
+                    ' no need for it to be previously assigned: it is on the left.
 
                 Case BoundKind.FieldAccess
                     VisitFieldAccessInternal(DirectCast(node, BoundFieldAccess))

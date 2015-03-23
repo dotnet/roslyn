@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageService(GetType(ICommandLineArgumentsFactoryService), LanguageNames.VisualBasic), [Shared]>
-    Class VisualBasicCommandLineArgumentsFactoryService
+    Friend Class VisualBasicCommandLineArgumentsFactoryService
         Implements ICommandLineArgumentsFactoryService
 
         Public Function CreateCommandLineArguments(arguments As IEnumerable(Of String), baseDirectory As String, isInteractive As Boolean) As CommandLineArguments Implements ICommandLineArgumentsFactoryService.CreateCommandLineArguments

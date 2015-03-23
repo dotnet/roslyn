@@ -59,65 +59,65 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Private _bits As Integer
 
-            Private Const MethodKindOffset As Integer = 0
-            Private Const MethodKindMask As Integer = &H1F
-            Private Const MethodKindIsPopulatedBit As Integer = 1 << 5
-            Private Const IsExtensionMethodBit As Integer = 1 << 6
-            Private Const IsExtensionMethodIsPopulatedBit As Integer = 1 << 7
-            Private Const IsObsoleteAttributePopulatedBit As Integer = 1 << 8
-            Private Const IsCustomAttributesPopulatedBit As Integer = 1 << 9
-            Private Const IsUseSiteDiagnosticPopulatedBit As Integer = 1 << 10
-            Private Const IsConditionalAttributePopulatedBit As Integer = 1 << 11
+            Private Const s_methodKindOffset As Integer = 0
+            Private Const s_methodKindMask As Integer = &H1F
+            Private Const s_methodKindIsPopulatedBit As Integer = 1 << 5
+            Private Const s_isExtensionMethodBit As Integer = 1 << 6
+            Private Const s_isExtensionMethodIsPopulatedBit As Integer = 1 << 7
+            Private Const s_isObsoleteAttributePopulatedBit As Integer = 1 << 8
+            Private Const s_isCustomAttributesPopulatedBit As Integer = 1 << 9
+            Private Const s_isUseSiteDiagnosticPopulatedBit As Integer = 1 << 10
+            Private Const s_isConditionalAttributePopulatedBit As Integer = 1 << 11
 
             Public Property MethodKind As MethodKind
                 Get
-                    Return CType((_bits >> MethodKindOffset) And MethodKindMask, MethodKind)
+                    Return CType((_bits >> s_methodKindOffset) And s_methodKindMask, MethodKind)
                 End Get
                 Set(value As MethodKind)
-                    Debug.Assert(value = (value And MethodKindMask))
-                    _bits = (_bits And Not (MethodKindMask << MethodKindOffset)) Or (value << MethodKindOffset) Or MethodKindIsPopulatedBit
+                    Debug.Assert(value = (value And s_methodKindMask))
+                    _bits = (_bits And Not (s_methodKindMask << s_methodKindOffset)) Or (value << s_methodKindOffset) Or s_methodKindIsPopulatedBit
                 End Set
             End Property
 
             Public ReadOnly Property MethodKindIsPopulated As Boolean
                 Get
-                    Return (_bits And MethodKindIsPopulatedBit) <> 0
+                    Return (_bits And s_methodKindIsPopulatedBit) <> 0
                 End Get
             End Property
 
             Public ReadOnly Property IsExtensionMethod As Boolean
                 Get
-                    Return (_bits And IsExtensionMethodBit) <> 0
+                    Return (_bits And s_isExtensionMethodBit) <> 0
                 End Get
             End Property
 
             Public ReadOnly Property IsExtensionMethodPopulated As Boolean
                 Get
-                    Return (_bits And IsExtensionMethodIsPopulatedBit) <> 0
+                    Return (_bits And s_isExtensionMethodIsPopulatedBit) <> 0
                 End Get
             End Property
 
             Public ReadOnly Property IsObsoleteAttributePopulated As Boolean
                 Get
-                    Return (_bits And IsObsoleteAttributePopulatedBit) <> 0
+                    Return (_bits And s_isObsoleteAttributePopulatedBit) <> 0
                 End Get
             End Property
 
             Public ReadOnly Property IsCustomAttributesPopulated As Boolean
                 Get
-                    Return (_bits And IsCustomAttributesPopulatedBit) <> 0
+                    Return (_bits And s_isCustomAttributesPopulatedBit) <> 0
                 End Get
             End Property
 
             Public ReadOnly Property IsUseSiteDiagnoticPopulated As Boolean
                 Get
-                    Return (_bits And IsUseSiteDiagnosticPopulatedBit) <> 0
+                    Return (_bits And s_isUseSiteDiagnosticPopulatedBit) <> 0
                 End Get
             End Property
 
             Public ReadOnly Property IsConditionalPopulated As Boolean
                 Get
-                    Return (_bits And IsConditionalAttributePopulatedBit) <> 0
+                    Return (_bits And s_isConditionalAttributePopulatedBit) <> 0
                 End Get
             End Property
 
@@ -126,32 +126,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Function
 
             Public Sub InitializeMethodKind(methodKind As MethodKind)
-                Debug.Assert(methodKind = (methodKind And MethodKindMask))
-                Dim bitsToSet = ((methodKind And MethodKindMask) << MethodKindOffset) Or MethodKindIsPopulatedBit
+                Debug.Assert(methodKind = (methodKind And s_methodKindMask))
+                Dim bitsToSet = ((methodKind And s_methodKindMask) << s_methodKindOffset) Or s_methodKindIsPopulatedBit
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet))
                 ThreadSafeFlagOperations.Set(_bits, bitsToSet)
             End Sub
 
             Public Sub InitializeIsExtensionMethod(isExtensionMethod As Boolean)
-                Dim bitsToSet = If(isExtensionMethod, IsExtensionMethodBit, 0) Or IsExtensionMethodIsPopulatedBit
+                Dim bitsToSet = If(isExtensionMethod, s_isExtensionMethodBit, 0) Or s_isExtensionMethodIsPopulatedBit
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet))
                 ThreadSafeFlagOperations.Set(_bits, bitsToSet)
             End Sub
 
             Public Sub SetIsObsoleteAttributePopulated()
-                ThreadSafeFlagOperations.Set(_bits, IsObsoleteAttributePopulatedBit)
+                ThreadSafeFlagOperations.Set(_bits, s_isObsoleteAttributePopulatedBit)
             End Sub
 
             Public Sub SetIsCustomAttributesPopulated()
-                ThreadSafeFlagOperations.Set(_bits, IsCustomAttributesPopulatedBit)
+                ThreadSafeFlagOperations.Set(_bits, s_isCustomAttributesPopulatedBit)
             End Sub
 
             Public Sub SetIsUseSiteDiagnosticPopulated()
-                ThreadSafeFlagOperations.Set(_bits, IsUseSiteDiagnosticPopulatedBit)
+                ThreadSafeFlagOperations.Set(_bits, s_isUseSiteDiagnosticPopulatedBit)
             End Sub
 
             Public Sub SetIsConditionalAttributePopulated()
-                ThreadSafeFlagOperations.Set(_bits, IsConditionalAttributePopulatedBit)
+                ThreadSafeFlagOperations.Set(_bits, s_isConditionalAttributePopulatedBit)
             End Sub
         End Structure
 
@@ -490,7 +490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     If contender._packedFlags.MethodKindIsPopulated Then
                         Select Case contender._packedFlags.MethodKind
                             Case MethodKind.Ordinary
-                            ' Need to check against our method
+                                ' Need to check against our method
                             Case potentialMethodKind
                                 If i = 0 OrElse adjustContendersOfAdditionalName Then
                                     ' Contender was already cleared, so it cannot conflict with this operator.

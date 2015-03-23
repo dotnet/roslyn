@@ -27,13 +27,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             Dim highlights As New List(Of TextSpan)
 
             With whileBlock
-                highlights.Add( .WhileStatement.WhileKeyword.Span)
+                highlights.Add(.WhileStatement.WhileKeyword.Span)
 
                 highlights.AddRange(
                     whileBlock.GetRelatedStatementHighlights(
                         blockKind:=SyntaxKind.WhileKeyword))
 
-                highlights.Add( .EndWhileStatement.Span)
+                highlights.Add(.EndWhileStatement.Span)
             End With
 
             Return highlights

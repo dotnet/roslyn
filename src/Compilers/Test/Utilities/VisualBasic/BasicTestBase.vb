@@ -453,8 +453,8 @@ Public MustInherit Class BasicTestBaseBase
         End Get
     End Property
 
-    Dim _lazyDefaultReferences As MetadataReference()
-    Dim _lazyLatestReferences As MetadataReference()
+    Private _lazyDefaultReferences As MetadataReference()
+    Private _lazyLatestReferences As MetadataReference()
 
     Protected ReadOnly Property DefaultReferences As MetadataReference()
         Get

@@ -95,16 +95,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.TodoComments
         End Function
 
         ' TODO: remove this if SyntaxFacts.IsSingleQuote become public
-        Private Const DWCH_SQ As Char = ChrW(&HFF07)      '// DW single quote
-        Private Const DWCH_LSMART_Q As Char = ChrW(&H2018S)      '// DW left single smart quote
-        Private Const DWCH_RSMART_Q As Char = ChrW(&H2019S)      '// DW right single smart quote
+        Private Const s_DWCH_SQ As Char = ChrW(&HFF07)      '// DW single quote
+        Private Const s_DWCH_LSMART_Q As Char = ChrW(&H2018S)      '// DW left single smart quote
+        Private Const s_DWCH_RSMART_Q As Char = ChrW(&H2019S)      '// DW right single smart quote
 
         Private Shared Function IsSingleQuote(c As Char) As Boolean
             ' // Besides the half width and full width ', we also check for Unicode
             ' // LEFT SINGLE QUOTATION MARK and RIGHT SINGLE QUOTATION MARK because
             ' // IME editors paste them in. This isn't really technically correct
             ' // because we ignore the left-ness or right-ness, but see VS 170991
-            Return c = "'"c OrElse (c >= DWCH_LSMART_Q AndAlso (c = DWCH_SQ Or c = DWCH_LSMART_Q Or c = DWCH_RSMART_Q))
+            Return c = "'"c OrElse (c >= s_DWCH_LSMART_Q AndAlso (c = s_DWCH_SQ Or c = s_DWCH_LSMART_Q Or c = s_DWCH_RSMART_Q))
         End Function
     End Class
 End Namespace

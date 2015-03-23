@@ -686,11 +686,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 End Function
 
-                Private Shared ReadOnly warningSeparators As Char() = {";"c, ","c}
+                Private Shared ReadOnly s_warningSeparators As Char() = {";"c, ","c}
 
                 Private Sub SetWarnings(warnings As String, reportStyle As ReportDiagnostic)
                     If Not String.IsNullOrEmpty(warnings) Then
-                        For Each warning In warnings.Split(warningSeparators, StringSplitOptions.None)
+                        For Each warning In warnings.Split(s_warningSeparators, StringSplitOptions.None)
                             Dim warningId As Integer
                             If Int32.TryParse(warning, warningId) Then
                                 Me._warnings("BC" + warningId.ToString("0000")) = reportStyle

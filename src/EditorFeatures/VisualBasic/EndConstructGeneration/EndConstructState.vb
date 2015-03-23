@@ -2,14 +2,14 @@
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
-    Class EndConstructState
+    Friend Class EndConstructState
         Private ReadOnly _caretPosition As Integer
         Private ReadOnly _semanticModel As Lazy(Of SemanticModel)
         Private ReadOnly _tree As SyntaxTree
         Private ReadOnly _tokenToLeft As SyntaxToken
         Private ReadOnly _newLineCharacter As String
 
-        Sub New(caretPosition As Integer, semanticModel As Lazy(Of SemanticModel), syntaxTree As SyntaxTree, tokenToLeft As SyntaxToken, newLineCharacter As String)
+        Public Sub New(caretPosition As Integer, semanticModel As Lazy(Of SemanticModel), syntaxTree As SyntaxTree, tokenToLeft As SyntaxToken, newLineCharacter As String)
             ThrowIfNull(syntaxTree)
 
             _caretPosition = caretPosition

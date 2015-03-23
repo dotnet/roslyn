@@ -81,7 +81,7 @@ End Class"]]></Text>
             Verify(markup, LanguageNames.VisualBasic, expectedResults)
         End Sub
 
-        Private Shared ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
+        Private Shared ReadOnly s_exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                 GetType(MockDocumentNavigationServiceProvider),
                 GetType(MockSymbolNavigationServiceProvider)))
@@ -90,11 +90,11 @@ End Class"]]></Text>
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= languageName %> CommonReferences="true">
-                        <Document><%= markup.NormalizedValue %></Document>
+                        <Document><%= markup %></Document>
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml, exportProvider:=ExportProvider)
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml, exportProvider:=s_exportProvider)
                 Dim doc = workspace.Documents.Single()
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
                 If Not doc.CursorPosition.HasValue Then
