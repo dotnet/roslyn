@@ -152,7 +152,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         worseIndex = j;
                     }
-                    externAliases = externAliases.Add(identities[worseIndex], Guid.NewGuid().ToString());
+                    var worseIdentity = identities[worseIndex];
+                    if (!externAliases.ContainsKey(worseIdentity))
+                    {
+                        externAliases = externAliases.Add(worseIdentity, Guid.NewGuid().ToString());
+                    }
                 }
             }
 
