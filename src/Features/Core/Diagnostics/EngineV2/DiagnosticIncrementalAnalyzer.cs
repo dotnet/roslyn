@@ -19,9 +19,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private readonly DiagnosticAnalyzerService _owner;
         private readonly HostAnalyzerManager _hostAnalyzerManager;
 
-        private Dictionary<VersionStamp, ImmutableArray<Diagnostic>> _oldDocumentDiagnostics = new Dictionary<VersionStamp, ImmutableArray<Diagnostic>>();
-        private Dictionary<VersionStamp, ImmutableArray<Diagnostic>> _oldProjectDiagnostics = new Dictionary<VersionStamp, ImmutableArray<Diagnostic>>();
-
         private readonly ConcurrentDictionary<ProjectId, CompilationDescriptors> _compilationDescriptors = new ConcurrentDictionary<ProjectId, CompilationDescriptors>();
 
         public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
@@ -47,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             if (!compilationDescriptor.DocumentAnalyzed(documentVersion) && !compilationDescriptor.IsComplete)
             {
-                ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.CompilationWithAnalyzers.GetAllDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
+                ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.CompilationWithAnalyzers.GetDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
                 DistributeDiagnostics(project, compilationDescriptor, diagnostics);
 
                 compilationDescriptor.MarkDocumentAnalyzed(documentVersion);

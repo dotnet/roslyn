@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             _cancellationToken = cancellationToken;
             _exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
-            _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Instance, AddExceptionDiagnostic, out _compilation, _cancellationToken);
+            _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Instance, AddExceptionDiagnostic, false, out _compilation, _cancellationToken);
         }
 
         private void AddExceptionDiagnostic(Diagnostic diagnostic)
@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync()
         {
+            _driver.StartCompleteAnalysis(_cancellationToken);
+
             // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
             // Discard the returned diagnostics.
             _compilation.GetDiagnostics(_cancellationToken);
@@ -57,6 +59,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync()
         {
+            _driver.StartCompleteAnalysis(_cancellationToken);
+
             // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
             ImmutableArray<Diagnostic> compilerDiagnostics = _compilation.GetDiagnostics(_cancellationToken);
 
@@ -68,12 +72,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Returns diagnostics produced by compilation and by diagnostic analyzers from analyzing a single document.
         /// <param name="model">Semantic model for the document.</param>
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsFromDocumentAsync(SemanticModel model)
+        public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsFromDocumentAsync(SemanticModel model)
         {
             // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
             ImmutableArray<Diagnostic> compilerDiagnostics = model.GetDiagnostics(null, _cancellationToken);
 
-            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
+            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetPartialDiagnosticsAsync(_cancellationToken).ConfigureAwait(false);
             return compilerDiagnostics.AddRange(analyzerDiagnostics).AddRange(_exceptionDiagnostics);
         }
 
