@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     ' Note: by default, TestWorkspace produces a composition from all assemblies except EditorServicesTest2.
     ' This type has to be defined here until we get that cleaned up. Otherwise, other tests may import it.
     <ExportWorkspaceServiceFactory(GetType(ISymbolNavigationService), ServiceLayer.Host), [Shared]>
@@ -21,22 +21,44 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         Friend Class MockSymbolNavigationService
             Implements ISymbolNavigationService
 
-            Public Symbol As ISymbol
-            Public Project As Project
+            Public TryNavigateToSymbolProvidedSymbol As ISymbol
+            Public TryNavigateToSymbolProvidedProject As Project
+            Public TryNavigateToSymbolProvidedUsePreviewTab As Boolean
 
+            Public TrySymbolNavigationNotifyProvidedSymbol As ISymbol
+            Public TrySymbolNavigationNotifyProvidedSolution As Solution
+            Public TrySymbolNavigationNotifyReturnValue As Boolean = False
+
+            Public WouldNavigateToSymbolProvidedSymbol As ISymbol
+            Public WouldNavigateToSymbolProvidedSolution As Solution
+            Public WouldNavigateToSymbolReturnValue As Boolean = False
+            Public NavigationFilePathReturnValue As String = String.Empty
+            Public NavigationLineNumberReturnValue As Integer = 0
+            Public NavigationCharOffsetReturnValue As Integer = 0
 
             Public Function TryNavigateToSymbol(symbol As ISymbol, project As Project, Optional usePreviewTab As Boolean = False) As Boolean Implements ISymbolNavigationService.TryNavigateToSymbol
-                Me.Symbol = symbol
-                Me.Project = project
+                Me.TryNavigateToSymbolProvidedSymbol = symbol
+                Me.TryNavigateToSymbolProvidedProject = project
+                Me.TryNavigateToSymbolProvidedUsePreviewTab = usePreviewTab
                 Return True
             End Function
 
             Public Function TrySymbolNavigationNotify(symbol As ISymbol, solution As Solution) As Boolean Implements ISymbolNavigationService.TrySymbolNavigationNotify
-                Throw New NotImplementedException()
+                Me.TrySymbolNavigationNotifyProvidedSymbol = symbol
+                Me.TrySymbolNavigationNotifyProvidedSolution = solution
+
+                Return TrySymbolNavigationNotifyReturnValue
             End Function
 
             Public Function WouldNavigateToSymbol(symbol As ISymbol, solution As Solution, ByRef filePath As String, ByRef lineNumber As Integer, ByRef charOffset As Integer) As Boolean Implements ISymbolNavigationService.WouldNavigateToSymbol
-                Throw New NotImplementedException()
+                Me.WouldNavigateToSymbolProvidedSymbol = symbol
+                Me.WouldNavigateToSymbolProvidedSolution = solution
+
+                filePath = Me.NavigationFilePathReturnValue
+                lineNumber = Me.NavigationLineNumberReturnValue
+                charOffset = Me.NavigationCharOffsetReturnValue
+
+                Return WouldNavigateToSymbolReturnValue
             End Function
         End Class
     End Class

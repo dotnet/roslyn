@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         public void SetReferenceCount(int referenceCount)
         {
             var referenceCountDisplay = referenceCount == 1
-                ? string.Format(ServicesVSResources.ReferenceCountSingular, referenceCount)
+                ? ServicesVSResources.ReferenceCountSingular
                 : string.Format(ServicesVSResources.ReferenceCountPlural, referenceCount);
 
             this.DisplayText = $"[{_assemblyName}] {_symbolDefinition} ({referenceCountDisplay})";
