@@ -92,7 +92,6 @@
     <Compile Include="Compilation\GetSemanticInfoTests.cs" />
     <Compile Include="Compilation\GetUnusedImportDirectivesTests.cs" />
     <Compile Include="Compilation\IndexedProperties_BindingTests.cs" />
-    <Compile Include="Compilation\MetadataFileReferenceCompilationTests.cs" />
     <Compile Include="Compilation\QueryClauseInfoTests.cs" />
     <Compile Include="Compilation\ReferenceManagerTests.cs" />
     <Compile Include="Compilation\SemanticModelAPITests.cs" />
@@ -139,7 +138,6 @@
     <Compile Include="Symbols\InterfaceImplementationTests.cs" />
     <Compile Include="Symbols\InterfaceOverriddenOrHiddenMembersTests.cs" />
     <Compile Include="Symbols\LookupSymbolsInfoTests.cs" />
-    <Compile Include="Symbols\MetadataCacheTests.cs" />
     <Compile Include="Symbols\Metadata\MetadataMemberTests.cs" />
     <Compile Include="Symbols\Metadata\MetadataTypeTests.cs" />
     <Compile Include="Symbols\Metadata\PE\BaseTypeResolution.cs" />
