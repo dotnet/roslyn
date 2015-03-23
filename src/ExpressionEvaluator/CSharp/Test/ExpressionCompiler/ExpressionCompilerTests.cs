@@ -3940,18 +3940,6 @@ class C
                 var context = CreateTypeContext(runtime, "C");
                 string error;
                 var testData = new CompilationTestData();
-                context.CompileExpression("(object)new A() ?? (object)new B() ?? new C()", out error, testData);
-                testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
-  // Code size        6 (0x6)
-  .maxstack  1
-  IL_0000:  ldc.i4     0x80000000
-  IL_0005:  ret
-}");
-
-                // Compile expression with method context.
-                context = CreateMethodContext(runtime, methodName: "C.M", previous: new CSharpMetadataContext(context));
-                testData = new CompilationTestData();
                 context.CompileExpression("new A()", out error, testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
                 methodData.VerifyIL(
@@ -3974,16 +3962,33 @@ class C
   IL_000a:  ret
 }");
                 Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityAS1.GetDisplayName());
+
+                // Compile expression with method context.
+                context = CreateMethodContext(runtime, methodName: "C.M", previous: new CSharpMetadataContext(context));
+                testData = new CompilationTestData();
+                context.CompileExpression("new A()", out error, testData);
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""A..ctor()""
+  IL_0005:  ret
+}");
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityAS2.GetDisplayName());
+                testData = new CompilationTestData();
+                context.CompileExpression("(new B()).F", out error, testData);
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  newobj     ""B..ctor()""
+  IL_0005:  ldfld      ""A B.F""
+  IL_000a:  ret
+}");
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityAS1.GetDisplayName());
             }
-
-            // Verify EvaluationContext.Compilation was reused.
-            Assert.False(true);
-
-            // Duplicate assembly A, target module referencing AS1.
-            Assert.False(true);
-
-            // Test VB expression compilation.
-            Assert.False(true);
         }
 
         private static void VerifyAssemblyReferences(
