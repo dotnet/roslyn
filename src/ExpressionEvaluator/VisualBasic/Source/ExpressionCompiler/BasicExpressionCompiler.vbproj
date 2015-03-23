@@ -78,6 +78,7 @@
     <Compile Include="Binders\SuppressObsoleteDiagnosticsBinder.vb" />
     <Compile Include="CompilationContext.vb" />
     <Compile Include="CompilationExtensions.vb" />
+    <Compile Include="VisualBasicInScopeHoistedLocalsByName.vb" />
     <Compile Include="EETypeNameDecoder.vb" />
     <Compile Include="SymUnmanagedReaderExtensions.vb" />
     <Compile Include="InternalsVisibleTo.vb" />
