@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim previousToken = token.GetPreviousToken()
             If previousToken.Kind = SyntaxKind.IntegerLiteralToken Then
-                Return token.Parent.Kind <> SyntaxKind.SimpleMemberAccessExpression OrElse DirectCast(token.Parent, MemberAccessExpressionSyntax).Name.Kind() <> SyntaxKind.NumericLiteralExpression
+                Return token.Parent.Kind <> SyntaxKind.SimpleMemberAccessExpression OrElse Not DirectCast(token.Parent, MemberAccessExpressionSyntax).Expression.IsKind(SyntaxKind.NumericLiteralExpression)
             End If
 
             Return True
