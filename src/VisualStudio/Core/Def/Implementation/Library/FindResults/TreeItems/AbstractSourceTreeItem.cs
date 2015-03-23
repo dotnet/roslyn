@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
         private static readonly ObjectPool<StringBuilder> s_filePathBuilderPool = new ObjectPool<StringBuilder>(() => new StringBuilder());
 
-        public AbstractSourceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex)
+        public AbstractSourceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex, int commonPathElements = 0)
             : base(glyphIndex)
         {
             // We store the document ID, line and offset for navigation so that we
@@ -37,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             _workspace = document.Project.Solution.Workspace;
             _documentId = document.Id;
             _projectName = document.Project.Name;
-            _filePath = GetFilePath(document);
+            _filePath = GetFilePath(document, commonPathElements);
             _sourceSpan = sourceSpan;
 
             var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
@@ -64,18 +65,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             return VSConstants.S_OK;
         }
 
-        private static string GetFilePath(Document document)
+        private static string GetFilePath(Document document, int commonPathElements)
         {
             var builder = s_filePathBuilderPool.Allocate();
             try
             {
-                builder.Append(document.Project.Name);
-                builder.Append('\\');
+                if (commonPathElements <= 0)
+                {
+                    builder.Append(document.Project.Name);
+                    builder.Append('\\');
+                }
 
+                commonPathElements--;
                 foreach (var folder in document.Folders)
                 {
-                    builder.Append(folder);
-                    builder.Append('\\');
+                    if (commonPathElements <= 0)
+                    {
+                        builder.Append(folder);
+                        builder.Append('\\');
+                    }
+
+                    commonPathElements--;
                 }
 
                 builder.Append(Path.GetFileName(document.FilePath));
