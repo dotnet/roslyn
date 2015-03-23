@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.Serialization
+Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -728,6 +729,53 @@ End Class
                     AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z As Integer]]>),
                     AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim x2 = 0, y2 = 0]]>),
                     AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z2 = 0]]>))
+        End Sub
+
+        <Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")>
+        Public Sub TestReportingNotConfigurableDiagnostic()
+            Dim analyzer = New NotConfigurableDiagnosticAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[]]>
+                              </file>
+                          </compilation>
+
+            ' Verify, not configurable enabled diagnostic is always reported and disabled diagnostic is never reported..
+            Dim options = TestOptions.ReleaseDll
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=options)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                    AnalyzerDiagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id))
+
+            ' Verify not configurable enabled diagnostic cannot be suppressed.
+            Dim specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)
+            specificDiagOptions.Add(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id, ReportDiagnostic.Suppress)
+            options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
+
+            compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=options)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                    AnalyzerDiagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id))
+
+
+            ' Verify not configurable disabled diagnostic cannot be enabled.
+            specificDiagOptions.Clear()
+            specificDiagOptions.Add(NotConfigurableDiagnosticAnalyzer.DisabledRule.Id, ReportDiagnostic.Warn)
+            options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
+
+            compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=options)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                    AnalyzerDiagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id))
         End Sub
     End Class
 End Namespace
