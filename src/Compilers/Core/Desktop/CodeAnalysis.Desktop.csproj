@@ -96,9 +96,7 @@
     <Compile Include="Interop\IClrStrongName.cs" />
     <Compile Include="Interop\SuppressUnmanagedCodeSecurityAttribute.cs" />
     <Compile Include="IVsSQM.cs" />
-    <Compile Include="MetadataCache.cs" />
     <Compile Include="AnalyzerFileReference.cs" />
-    <Compile Include="MetadataFileReference.cs" />
     <Compile Include="MetadataFileReferenceResolver.cs" />
     <Compile Include="PathKind.cs" />
     <Compile Include="PathUtilities.cs" />

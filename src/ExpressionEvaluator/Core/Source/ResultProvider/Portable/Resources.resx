@@ -162,11 +162,11 @@
     <comment>Warning reported in Results View value</comment>
   </data>
   <data name="SharedMembers" xml:space="preserve"> 
-    <value>Shared Members</value> 
+    <value>Shared members</value> 
     <comment>Shared type members (VB only)</comment> 
   </data> 
   <data name="StaticMembers" xml:space="preserve"> 
-    <value>Static Members</value> 
+    <value>Static members</value> 
     <comment>Static type members (C# only)</comment> 
   </data> 
   <data name="TypeVariablesName" xml:space="preserve">
