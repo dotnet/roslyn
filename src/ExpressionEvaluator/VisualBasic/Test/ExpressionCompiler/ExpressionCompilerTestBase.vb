@@ -87,7 +87,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim moduleInstances = runtime.Modules
             blocks = moduleInstances.SelectAsArray(Function(m) m.MetadataBlock)
 
-            Dim compilation = blocks.ToCompilation()
+            Dim externAliases As ImmutableDictionary(Of AssemblyIdentity, String) = Nothing
+            Dim compilation = blocks.ToCompilation(externAliases)
             Dim methodOrType = GetMethodOrTypeBySignature(Compilation, methodOrTypeName)
             Dim [module] = DirectCast(methodOrType.ContainingModule, PEModuleSymbol)
             Dim id = [module].Module.GetModuleVersionIdOrThrow()

@@ -98,11 +98,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        internal static CSharpCompilation ToCompilation(this ImmutableArray<MetadataBlock> metadataBlocks)
+        internal static CSharpCompilation ToCompilation(this ImmutableArray<MetadataBlock> metadataBlocks, out ImmutableDictionary<AssemblyIdentity, string> externAliases)
         {
+            var references = metadataBlocks.MakeAssemblyReferences(s_compilationOptions.AssemblyIdentityComparer, out externAliases);
             return CSharpCompilation.Create(
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
-                references: metadataBlocks.MakeAssemblyReferences(),
+                references: references,
                 options: s_compilationOptions);
         }
 

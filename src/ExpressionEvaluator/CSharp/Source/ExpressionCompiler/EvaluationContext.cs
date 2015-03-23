@@ -14,8 +14,8 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.DiaSymReader;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal readonly ImmutableArray<MetadataBlock> MetadataBlocks;
         internal readonly MethodContextReuseConstraints? MethodContextReuseConstraints;
         internal readonly CSharpCompilation Compilation;
+        internal readonly ImmutableDictionary<AssemblyIdentity, string> ExternAliases;
+        internal readonly Guid ModuleVersionId;
 
         private readonly MetadataDecoder _metadataDecoder;
         private readonly MethodSymbol _currentFrame;
@@ -40,16 +42,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MethodContextReuseConstraints? methodContextReuseConstraints,
             CSharpCompilation compilation,
             MetadataDecoder metadataDecoder,
+            Guid moduleVersionId,
+            ImmutableDictionary<AssemblyIdentity, string> externAliases,
             MethodSymbol currentFrame,
             ImmutableArray<LocalSymbol> locals,
             ImmutableSortedSet<int> inScopeHoistedLocalIndices,
             MethodDebugInfo methodDebugInfo)
         {
+            Debug.Assert(moduleVersionId != Guid.Empty);
+            Debug.Assert(externAliases != null);
             Debug.Assert(inScopeHoistedLocalIndices != null);
 
             this.MetadataBlocks = metadataBlocks;
             this.MethodContextReuseConstraints = methodContextReuseConstraints;
             this.Compilation = compilation;
+            this.ExternAliases = externAliases;
             _metadataDecoder = metadataDecoder;
             _currentFrame = currentFrame;
             _locals = locals;
@@ -77,9 +84,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(MetadataTokens.Handle(typeToken).Kind == HandleKind.TypeDefinition);
 
             // Re-use the previous compilation if possible.
-            var compilation = previous.Matches(metadataBlocks) ?
-                previous.Compilation :
-                metadataBlocks.ToCompilation();
+            CSharpCompilation compilation;
+            ImmutableDictionary<AssemblyIdentity, string> externAliases;
+            if (previous.Matches(metadataBlocks, moduleVersionId))
+            {
+                compilation = previous.Compilation;
+                externAliases = previous.EvaluationContext.ExternAliases;
+            }
+            else
+            {
+                compilation = metadataBlocks.ToCompilation(out externAliases);
+            }
 
             MetadataDecoder metadataDecoder;
             var currentType = compilation.GetType(moduleVersionId, typeToken, out metadataDecoder);
@@ -91,6 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 null,
                 compilation,
                 metadataDecoder,
+                moduleVersionId,
+                externAliases,
                 currentFrame,
                 default(ImmutableArray<LocalSymbol>),
                 ImmutableSortedSet<int>.Empty,
@@ -123,7 +140,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // Re-use the previous compilation if possible.
             CSharpCompilation compilation;
-            if (previous.Matches(metadataBlocks))
+            ImmutableDictionary<AssemblyIdentity, string> externAliases;
+            if (previous.Matches(metadataBlocks, moduleVersionId))
             {
                 // Re-use entire context if method scope has not changed.
                 var previousContext = previous.EvaluationContext;
@@ -134,10 +152,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return previousContext;
                 }
                 compilation = previous.Compilation;
+                externAliases = previous.EvaluationContext.ExternAliases;
             }
             else
             {
-                compilation = metadataBlocks.ToCompilation();
+                compilation = metadataBlocks.ToCompilation(out externAliases);
             }
 
             var typedSymReader = (ISymUnmanagedReader)symReader;
@@ -184,6 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 methodContextReuseConstraints,
                 compilation,
                 metadataDecoder,
+                moduleVersionId,
+                externAliases,
                 currentFrame,
                 locals,
                 inScopeHoistedLocalIndices,

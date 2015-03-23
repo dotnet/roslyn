@@ -488,7 +488,8 @@ End Class"
             Dim runtime = CreateRuntimeInstance(compilation)
             Dim moduleInstances = runtime.Modules
             Dim blocks = moduleInstances.SelectAsArray(Function(m) m.MetadataBlock)
-            compilation = blocks.ToCompilation()
+            Dim externAliases As ImmutableDictionary(Of AssemblyIdentity, String) = Nothing
+            compilation = blocks.ToCompilation(externAliases)
             Dim frame = DirectCast(GetMethodOrTypeBySignature(compilation, methodName), PEMethodSymbol)
 
             ' Once we have the method token, we want to look up the method (again)

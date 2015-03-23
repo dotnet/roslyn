@@ -5,13 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Text;
 using Microsoft.DiaSymReader;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -21,9 +18,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal const uint CORDBG_E_MISSING_METADATA = 0x80131c35;
 
         /// <summary>
-        /// Group module metadata into assemblies.
+        /// Group module metadata into assemblies, and generate any
+        /// extern aliases that should be used by the caller to hide
+        /// duplicate assemblies from the compiler.
         /// </summary>
-        internal static ImmutableArray<MetadataReference> MakeAssemblyReferences(this ImmutableArray<MetadataBlock> metadataBlocks)
+        internal static ImmutableArray<MetadataReference> MakeAssemblyReferences(
+            this ImmutableArray<MetadataBlock> metadataBlocks,
+            AssemblyIdentityComparer identityComparer,
+            out ImmutableDictionary<AssemblyIdentity, string> externAliases)
         {
             // Get metadata for each module.
             var metadataBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // Remove any strong-name duplicates. (Non-strong-named duplicates
             // are not handled since those are less likely, and references to types within
             // those duplicates will simply result in ambiguity errors when compiling.)
-            RemoveStrongNamedDuplicates(referencesBuilder, identitiesBuilder);
+            externAliases = FindStrongNamedDuplicates(identitiesBuilder, identityComparer);
             identitiesBuilder.Free();
 
             // Any runtime winmd modules were separated out initially. Now add
@@ -110,13 +112,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return referencesBuilder.ToImmutableAndFree();
         }
 
-        private static void RemoveStrongNamedDuplicates(ArrayBuilder<MetadataReference> references, ArrayBuilder<AssemblyIdentity> identities)
+        /// <summary>
+        /// Generate extern aliases for any strong-named duplicate
+        /// assemblies that differ by version.
+        /// </summary>
+        private static ImmutableDictionary<AssemblyIdentity, string> FindStrongNamedDuplicates(ArrayBuilder<AssemblyIdentity> identities, AssemblyIdentityComparer identityComparer)
         {
-            Debug.Assert(references.Count == identities.Count);
-            Debug.Assert(identities.All(i => i != null));
+            var externAliases = ImmutableDictionary<AssemblyIdentity, string>.Empty;
 
-            // Null out any identities that are duplicates. Note, this is O(n^2).
-            int n = references.Count;
+            // Generate extern alias string for each duplicate with lower version. Note, this is O(n^2).
+            int n = identities.Count;
             for (int i = 0; i < n; i++)
             {
                 if (!IsNonNullAndStrongNamed(identities[i]))
@@ -130,44 +135,28 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         continue;
                     }
-                    var compareResult = AssemblyIdentityComparer.Default.Compare(identities[bestIndex], identities[j]);
-                    switch (compareResult)
+                    var compareResult = identityComparer.Compare(identities[bestIndex], identities[j]);
+                    // Only need to handle assemblies that differ by version since
+                    // ReferenceManager will drop equivalent assemblies.
+                    if (compareResult != AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion)
                     {
-                        case AssemblyIdentityComparer.ComparisonResult.Equivalent:
-                            break;
-                        case AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion:
-                            if (identities[bestIndex].Version < identities[j].Version)
-                            {
-                                identities[bestIndex] = null;
-                                bestIndex = j;
-                                continue;
-                            }
-                            break;
-                        case AssemblyIdentityComparer.ComparisonResult.NotEquivalent:
-                            continue;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(compareResult);
+                        continue;
                     }
-                    Debug.Assert(identities[bestIndex].Version >= identities[j].Version);
-                    identities[j] = null;
+                    int worseIndex;
+                    if (identities[bestIndex].Version < identities[j].Version)
+                    {
+                        worseIndex = bestIndex;
+                        bestIndex = j;
+                    }
+                    else
+                    {
+                        worseIndex = j;
+                    }
+                    externAliases = externAliases.Add(identities[worseIndex], Guid.NewGuid().ToString());
                 }
             }
 
-            // Remove references marked as duplicates.
-            int index = 0;
-            for (int i = 0; i < n; i++)
-            {
-                if (identities[i] == null)
-                {
-                    continue;
-                }
-                if (index < i)
-                {
-                    references[index] = references[i];
-                }
-                index++;
-            }
-            references.Clip(index);
+            return externAliases;
         }
 
         private static bool IsNonNullAndStrongNamed(AssemblyIdentity identity)

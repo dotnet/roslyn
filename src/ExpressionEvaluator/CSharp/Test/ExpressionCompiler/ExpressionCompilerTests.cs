@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.DiaSymReader;
-using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
@@ -417,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(context.Compilation, previous.Compilation);
 
             // No EvaluationContext. Should reuse Compilation
-            previous = new CSharpMetadataContext(previous.MetadataBlocks);
+            previous = new CSharpMetadataContext(previous.MetadataBlocks, previous.Compilation, moduleVersionId);
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken);
             Assert.Null(previous.EvaluationContext);
             Assert.NotNull(context);
@@ -3845,37 +3844,58 @@ class C
             var systemRefIdentity = SystemRef.GetAssemblyIdentity();
             var systemRef20Identity = SystemRef_v20.GetAssemblyIdentity();
 
+            // No duplicates.
+            VerifyAssemblyReferences(
+                ImmutableArray.Create(MscorlibRef, referenceA, referenceB),
+                ImmutableArray.Create(mscorlibIdentity, identityA, identityB),
+                ImmutableArray<AssemblyIdentity>.Empty);
             // Non-strong-named duplicates.
             VerifyAssemblyReferences(
                 ImmutableArray.Create(MscorlibRef, referenceA, referenceB, referenceB, referenceA, referenceA),
-                ImmutableArray.Create(mscorlibIdentity, identityA, identityB, identityB, identityA, identityA));
+                ImmutableArray.Create(mscorlibIdentity, identityA, identityB, identityB, identityA, identityA),
+                ImmutableArray<AssemblyIdentity>.Empty);
             // Strong-named duplicate, same version.
             VerifyAssemblyReferences(
                 ImmutableArray.Create(SystemRef, MscorlibRef, SystemRef),
-                ImmutableArray.Create(systemRefIdentity, mscorlibIdentity));
+                ImmutableArray.Create(systemRefIdentity, mscorlibIdentity, systemRefIdentity),
+                ImmutableArray<AssemblyIdentity>.Empty);
             // Strong-named duplicate, lower version first.
             VerifyAssemblyReferences(
                 ImmutableArray.Create(SystemRef_v20, SystemRef, SystemRef_v20),
-                ImmutableArray.Create(systemRefIdentity));
+                ImmutableArray.Create(systemRefIdentity),
+                ImmutableArray.Create(systemRef20Identity));
             // Strong-named duplicate, higher version first.
             VerifyAssemblyReferences(
                 ImmutableArray.Create(SystemRef, SystemRef_v20, SystemRef_v20),
-                ImmutableArray.Create(systemRefIdentity));
-            // Strong-named and non-strong named duplicates.
+                ImmutableArray.Create(systemRefIdentity),
+                ImmutableArray.Create(systemRef20Identity));
+            // Strong-named and non-strong-named duplicates.
             VerifyAssemblyReferences(
                 ImmutableArray.Create(referenceA, SystemRef, MscorlibRef, SystemRef, referenceA),
-                ImmutableArray.Create(identityA, systemRefIdentity, mscorlibIdentity, identityA));
+                ImmutableArray.Create(identityA, systemRefIdentity, mscorlibIdentity, identityA),
+                ImmutableArray<AssemblyIdentity>.Empty);
         }
 
-        private static void VerifyAssemblyReferences(ImmutableArray<MetadataReference> references, ImmutableArray<AssemblyIdentity> expectedIdentities)
+        private static void VerifyAssemblyReferences(
+            ImmutableArray<MetadataReference> references,
+            ImmutableArray<AssemblyIdentity> expectedIdentities,
+            ImmutableArray<AssemblyIdentity> expectedExternAliases)
         {
             var modules = references.SelectAsArray(r => r.ToModuleInstance(fullImage: null, symReader: null, includeLocalSignatures: false));
             using (var runtime = new RuntimeInstance(modules))
             {
                 var blocks = runtime.Modules.SelectAsArray(m => m.MetadataBlock);
-                var actualReferences = blocks.MakeAssemblyReferences();
+                ImmutableDictionary<AssemblyIdentity, string> actualExternAliases;
+                var actualReferences = blocks.MakeAssemblyReferences(DesktopAssemblyIdentityComparer.Default, out actualExternAliases);
+                // Verify identities.
                 var actualIdentities = actualReferences.SelectAsArray(r => r.GetAssemblyIdentity());
                 AssertEx.Equal(expectedIdentities, actualIdentities);
+                // Verify extern aliases are unique.
+                var uniqueAliases = actualExternAliases.Values.Distinct().ToArray();
+                Assert.Equal(actualExternAliases.Count, uniqueAliases.Length);
+                // Verify extern alias assemblies.
+                Assert.Equal(actualExternAliases.Count, expectedExternAliases.Length);
+                Assert.True(expectedExternAliases.All(i => actualExternAliases.ContainsKey(i)));
             }
         }
 

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -131,17 +131,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var appDomain = moduleInstance.AppDomain;
             var previous = appDomain.GetDataItem<MetadataContextItem<CSharpMetadataContext>>();
             var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain);
+            var moduleVersionId = moduleInstance.Mvid;
 
             CSharpCompilation compilation;
-            if (previous != null && previous.MetadataContext.Matches(metadataBlocks))
+            if (previous != null && previous.MetadataContext.Matches(metadataBlocks, moduleVersionId))
             {
                 compilation = previous.MetadataContext.Compilation;
             }
             else
             {
-                var dataItem = new MetadataContextItem<CSharpMetadataContext>(new CSharpMetadataContext(metadataBlocks));
+                ImmutableDictionary<AssemblyIdentity, string> externAliases;
+                compilation = metadataBlocks.ToCompilation(out externAliases);
+                var dataItem = new MetadataContextItem<CSharpMetadataContext>(new CSharpMetadataContext(metadataBlocks, compilation, moduleVersionId));
                 appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, dataItem);
-                compilation = dataItem.MetadataContext.Compilation;
             }
 
             return compilation;

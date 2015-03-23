@@ -89,10 +89,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Sub
 
         <Extension>
-        Friend Function ToCompilation(metadataBlocks As ImmutableArray(Of MetadataBlock)) As VisualBasicCompilation
+        Friend Function ToCompilation(metadataBlocks As ImmutableArray(Of MetadataBlock), <Out> ByRef externAliases As ImmutableDictionary(Of AssemblyIdentity, String)) As VisualBasicCompilation
+            Dim references = metadataBlocks.MakeAssemblyReferences(s_compilationOptions.AssemblyIdentityComparer, externAliases)
             Return VisualBasicCompilation.Create(
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
-                references:=metadataBlocks.MakeAssemblyReferences(),
+                references:=references,
                 options:=s_compilationOptions)
         End Function
 
