@@ -78,11 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.EnterRegion();
         }
 
-        protected override void NoteRead(Symbol variable)
+        protected override void NoteRead(Symbol variable, Symbol underlyingVariable = null)
         {
             if ((object)variable == null) return;
             if (variable.Kind != SymbolKind.Field) (IsInside ? _readInside : _readOutside).Add(variable);
-            base.NoteRead(variable);
+            base.NoteRead(variable, underlyingVariable);
         }
 
         protected override void NoteWrite(Symbol variable, BoundExpression value, bool read)
@@ -220,7 +220,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitRangeVariable(BoundRangeVariable node)
         {
-            NoteRead(node.RangeVariableSymbol);
+            // Compute the "underlying symbol" for a read of the range variable
+            Symbol underlyingSymbol = GetUnderlyingVariable(node.Value);
+            NoteRead(node.RangeVariableSymbol, underlyingSymbol);
+            return null;
+        }
+
+        private Symbol GetUnderlyingVariable(BoundNode underlying)
+        {
+            while (underlying != null)
+            {
+                switch (underlying.Kind)
+                {
+                    case BoundKind.Parameter:
+                        return ((BoundParameter)underlying).ParameterSymbol;
+                    case BoundKind.PropertyAccess:
+                        underlying = ((BoundPropertyAccess)underlying).ReceiverOpt;
+                        continue;
+                    default:
+                        return null;
+                }
+            }
+
             return null;
         }
 

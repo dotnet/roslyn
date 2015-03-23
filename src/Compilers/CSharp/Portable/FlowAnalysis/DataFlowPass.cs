@@ -334,16 +334,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void CheckCaptured(Symbol variable)
+        private void CheckCaptured(Symbol variable, Symbol underlyingVariable = null)
         {
             switch (variable.Kind)
             {
                 case SymbolKind.Local:
                     if (((LocalSymbol)variable).IsConst) break;
-                    goto case SymbolKind.RangeVariable;
+                    goto case SymbolKind.Parameter;
                 case SymbolKind.Parameter:
-                case SymbolKind.RangeVariable:
                     if (currentMethodOrLambda != variable.ContainingSymbol)
+                    {
+                        _capturedVariables.Add(variable);
+                    }
+                    break;
+                case SymbolKind.RangeVariable:
+                    if (underlyingVariable != null && currentMethodOrLambda != underlyingVariable.ContainingSymbol)
                     {
                         _capturedVariables.Add(variable);
                     }
@@ -365,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Tracking reads/writes of variables for warnings
 
-        protected virtual void NoteRead(Symbol variable)
+        protected virtual void NoteRead(Symbol variable, Symbol underlyingVariable = null)
         {
             var local = variable as LocalSymbol;
             if ((object)local != null)
@@ -380,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _sourceAssembly.NoteFieldAccess((FieldSymbol)variable.OriginalDefinition, read: true, write: false);
                 }
 
-                CheckCaptured(variable);
+                CheckCaptured(variable, underlyingVariable);
             }
         }
 
