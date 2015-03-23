@@ -78,12 +78,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Debug.Assert(MetadataTokens.Handle(typeToken).Kind = HandleKind.TypeDefinition)
 
             ' Re-use the previous compilation if possible.
-            Dim compilation As VisualBasicCompilation
-            If previous.Matches(metadataBlocks) Then
-                compilation = previous.Compilation
-            Else
-                compilation = metadataBlocks.ToCompilation()
-            End If
+            Dim compilation = If(previous.Matches(metadataBlocks),
+                previous.Compilation,
+                metadataBlocks.ToCompilation())
 
             Dim metadataDecoder As MetadataDecoder = Nothing
             Dim currentType = compilation.GetType(moduleVersionId, typeToken, metadataDecoder)
