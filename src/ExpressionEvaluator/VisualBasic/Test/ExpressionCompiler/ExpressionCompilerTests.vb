@@ -15,6 +15,7 @@ Imports Microsoft.DiaSymReader
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources
+Imports Roslyn.Test.PdbUtilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class ExpressionCompilerTests
@@ -256,7 +257,7 @@ End Class"
             ' At start of outer scope.
             Dim context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, startOffset, localSignatureToken)
             Assert.Equal(Nothing, previous)
-            previous = new VisualBasicMetadataContext(context)
+            previous = New VisualBasicMetadataContext(context)
 
             ' At end of outer scope - not reused because of the nested scope.
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken)
@@ -270,7 +271,7 @@ End Class"
 
             ' Step through entire method.
             Dim previousScope As Scope = Nothing
-            previous = new VisualBasicMetadataContext(context)
+            previous = New VisualBasicMetadataContext(context)
             For offset = startOffset To endOffset - 1
                 Dim scope = scopes.GetInnermostScope(offset)
                 Dim constraints = previous.EvaluationContext.MethodContextReuseConstraints
@@ -290,7 +291,7 @@ End Class"
                     End If
                 End If
                 previousScope = scope
-                previous = new VisualBasicMetadataContext(context)
+                previous = New VisualBasicMetadataContext(context)
             Next
 
             ' With different references.
@@ -309,7 +310,7 @@ End Class"
             Assert.NotEqual(context, previous.EvaluationContext)
             Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset - 1))
             Assert.NotEqual(context.Compilation, previous.Compilation)
-            previous = new VisualBasicMetadataContext(context)
+            previous = New VisualBasicMetadataContext(context)
 
             ' Different method. Should reuse Compilation.
             GetContextState(runtime, "C.G", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)

@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -127,13 +128,13 @@ End Class
   </methods>
 </symbols>
 ")
-            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
+            Dim symReader = v0.CreateSymReader()
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
             Dim methodData0 = testData0.GetMethodData("C.M")
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), Function(handle) symReader.GetEncMethodDebugInfo(handle))
 
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
             Dim diff1 = compilation1.EmitDifference(
@@ -191,7 +192,7 @@ End Class
   IL_0039:  ret
 }
 ")
-            debugInfoProvider.Dispose()
+            DirectCast(symReader, IDisposable).Dispose()
 
         End Sub
 

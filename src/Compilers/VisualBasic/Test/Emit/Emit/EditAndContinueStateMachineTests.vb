@@ -1497,13 +1497,13 @@ End Class
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
-            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
+            Dim symReader = v0.CreateSymReader()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
@@ -1616,13 +1616,13 @@ End Class
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
-            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
+            Dim symReader = v0.CreateSymReader()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
@@ -1740,13 +1740,13 @@ End Class
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
-            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
+            Dim symReader = v0.CreateSymReader()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
@@ -1860,13 +1860,13 @@ End Class
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
-            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
+            Dim symReader = v0.CreateSymReader()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
@@ -2008,13 +2008,13 @@ End Class
                                                                                       }, [module].GetFieldNamesAndTypes("C.VB$StateMachine_1_F"))
                                                                                   End Sub)
 
-            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
+            Dim symReader = v0.CreateSymReader()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapByKind(method0, SyntaxKind.ForEachStatement), preserveLocalVariables:=True)))
@@ -2167,13 +2167,13 @@ End Class
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
-            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
+            Dim symReader = v0.CreateSymReader()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
@@ -2335,13 +2335,13 @@ End Class
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
-            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
+            Dim symReader = v0.CreateSymReader()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
@@ -2508,13 +2508,13 @@ End Class
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
-            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
+            Dim symReader = v0.CreateSymReader()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
@@ -2677,13 +2677,13 @@ End Class
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
-            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
+            Dim symReader = v0.CreateSymReader()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
@@ -2972,7 +2972,7 @@ End Class
 
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
@@ -3489,7 +3489,7 @@ End Class
 
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
@@ -3968,7 +3968,7 @@ End Class
             Dim v0 = CompileAndVerify(compilation:=compilation0)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,

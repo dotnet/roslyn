@@ -20,6 +20,7 @@ using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
+using Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

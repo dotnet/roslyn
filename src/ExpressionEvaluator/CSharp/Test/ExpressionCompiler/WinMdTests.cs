@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using Xunit;
 using Resources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
+using Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

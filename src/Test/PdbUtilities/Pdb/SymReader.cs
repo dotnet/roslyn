@@ -1,34 +1,37 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-extern alias PDB;
-
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices.ComTypes;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+namespace Roslyn.Test.PdbUtilities
 {
-    internal sealed class SymReader : ISymUnmanagedReader
+    public sealed class SymReader : ISymUnmanagedReader, IDisposable
     {
-        private readonly ISymUnmanagedReader _reader;
+        private ISymUnmanagedReader _reader;
         private readonly ImmutableDictionary<string, byte[]> _constantSignaturesOpt;
 
-        internal SymReader(byte[] pdbBytes, ImmutableDictionary<string, byte[]> constantSignaturesOpt = null)
-        {
-            _reader = SymUnmanagedReaderTestExtensions.CreateReader(
-                new MemoryStream(pdbBytes),
-                PDB::Roslyn.Test.PdbUtilities.DummyMetadataImport.Instance);
+        private bool _isDisposed;
 
+        public SymReader(byte[] pdbBytes, ImmutableDictionary<string, byte[]> constantSignaturesOpt = null)
+            : this(new MemoryStream(pdbBytes), constantSignaturesOpt)
+        {
+        }
+
+        public SymReader(Stream pdbStream, ImmutableDictionary<string, byte[]> constantSignaturesOpt = null)
+        {
+            _reader = SymUnmanagedReaderTestExtensions.CreateReader(pdbStream, DummyMetadataImport.Instance);
             _constantSignaturesOpt = constantSignaturesOpt;
         }
 
         public int GetDocuments(int cDocs, out int pcDocs, ISymUnmanagedDocument[] pDocs)
         {
-            throw new NotImplementedException();
+            return _reader.GetDocuments(cDocs, out pcDocs, pDocs);
         }
 
         public int GetMethod(int methodToken, out ISymUnmanagedMethod retVal)
@@ -43,7 +46,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var hr = _reader.GetMethodByVersion(methodToken, version, out retVal);
             if (retVal != null)
             {
-                retVal = new SymMethod(this, retVal);
+                var asyncMethod = retVal as ISymUnmanagedAsyncMethod;
+                retVal = asyncMethod == null 
+                    ? (ISymUnmanagedMethod)new SymMethod(this, retVal)
+                    : new SymAsyncMethod(this, asyncMethod);
             }
             return hr;
         }
@@ -53,69 +59,81 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return _reader.GetSymAttribute(token, name, sizeBuffer, out lengthBuffer, buffer);
         }
 
-        public int Initialize(object importer, string filename, string searchPath, IStream stream)
+        public int GetUserEntryPoint(out int entryPoint)
         {
-            throw new NotImplementedException();
+            return _reader.GetUserEntryPoint(out entryPoint);
         }
 
-        public int GetDocument(string url, Guid language, Guid languageVendor, Guid documentType, out ISymUnmanagedDocument retVal)
+        void IDisposable.Dispose()
         {
-            throw new NotImplementedException();
+            if (!_isDisposed)
+            {
+                int hr = (_reader as ISymUnmanagedDispose).Destroy();
+                SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
+                _reader = null;
+
+                _isDisposed = true;
+            }
         }
 
-        public int GetDocumentVersion(ISymUnmanagedDocument pDoc, out int version, out bool pbCurrent)
+        public int GetDocument(string url, Guid language, Guid languageVendor, Guid documentType, out ISymUnmanagedDocument document)
         {
-            throw new NotImplementedException();
+            return _reader.GetDocument(url, language, languageVendor, documentType, out document);
         }
 
-        public int GetGlobalVariables(int cVars, out int pcVars, ISymUnmanagedVariable[] vars)
+        public int GetVariables(int methodToken, int bufferLength, out int count, ISymUnmanagedVariable[] variables)
         {
-            throw new NotImplementedException();
+            return _reader.GetVariables(methodToken, bufferLength, out count, variables);
         }
 
-        public int GetMethodFromDocumentPosition(ISymUnmanagedDocument document, int line, int column, out ISymUnmanagedMethod retVal)
+        public int GetGlobalVariables(int bufferLength, out int count, ISymUnmanagedVariable[] variables)
         {
-            throw new NotImplementedException();
+            return _reader.GetGlobalVariables(bufferLength, out count, variables);
         }
 
-        public int GetMethodsFromDocumentPosition(ISymUnmanagedDocument document, int line, int column, int cMethod, out int pcMethod, ISymUnmanagedMethod[] pRetVal)
+        public int GetMethodFromDocumentPosition(ISymUnmanagedDocument document, int line, int column, out ISymUnmanagedMethod method)
         {
-            throw new NotImplementedException();
+            return _reader.GetMethodFromDocumentPosition(document, line, column, out method);
         }
 
-        public int GetMethodVersion(ISymUnmanagedMethod pMethod, out int version)
+        public int GetNamespaces(int bufferLength, out int count, ISymUnmanagedNamespace[] namespaces)
         {
-            throw new NotImplementedException();
+            return _reader.GetNamespaces(bufferLength, out count, namespaces);
         }
 
-        public int GetNamespaces(int cNameSpaces, out int pcNameSpaces, ISymUnmanagedNamespace[] namespaces)
+        public int Initialize(object metadataImporter, string fileName, string searchPath, IStream stream)
         {
-            throw new NotImplementedException();
+            return _reader.Initialize(metadataImporter, fileName, searchPath, stream);
         }
 
-        public int GetSymbolStoreFileName(int cchName, out int pcchName, char[] szName)
+        public int UpdateSymbolStore(string fileName, IStream stream)
         {
-            throw new NotImplementedException();
+            return _reader.UpdateSymbolStore(fileName, stream);
         }
 
-        public int GetUserEntryPoint(out int EntryPoint)
+        public int ReplaceSymbolStore(string fileName, IStream stream)
         {
-            throw new NotImplementedException();
+            return _reader.ReplaceSymbolStore(fileName, stream);
         }
 
-        public int GetVariables(int parent, int cVars, out int pcVars, ISymUnmanagedVariable[] vars)
+        public int GetSymbolStoreFileName(int bufferLength, out int count, char[] name)
         {
-            throw new NotImplementedException();
+            return _reader.GetSymbolStoreFileName(bufferLength, out count, name);
         }
 
-        public int ReplaceSymbolStore(string filename, IStream stream)
+        public int GetMethodsFromDocumentPosition(ISymUnmanagedDocument document, int line, int column, int bufferLength, out int count, ISymUnmanagedMethod[] methods)
         {
-            throw new NotImplementedException();
+            return _reader.GetMethodsFromDocumentPosition(document, line, column, bufferLength, out count, methods);
         }
 
-        public int UpdateSymbolStore(string filename, IStream stream)
+        public int GetDocumentVersion(ISymUnmanagedDocument document, out int version, out bool isCurrent)
         {
-            throw new NotImplementedException();
+            return _reader.GetDocumentVersion(document, out version, out isCurrent);
+        }
+
+        public int GetMethodVersion(ISymUnmanagedMethod method, out int version)
+        {
+            return _reader.GetMethodVersion(method, out version);
         }
 
         private sealed class SymMethod : ISymUnmanagedMethod
@@ -125,6 +143,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             internal SymMethod(SymReader reader, ISymUnmanagedMethod method)
             {
+                Debug.Assert(!(method is ISymUnmanagedAsyncMethod), "Use SymAsyncMethod.");
                 _reader = reader;
                 _method = method;
             }
@@ -191,6 +210,112 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             public int GetSourceStartEnd(ISymUnmanagedDocument[] docs, int[] lines, int[] columns, out bool retVal)
             {
                 throw new NotImplementedException();
+            }
+        }
+
+        private sealed class SymAsyncMethod : ISymUnmanagedMethod, ISymUnmanagedAsyncMethod
+        {
+            private readonly SymReader _reader;
+            private readonly ISymUnmanagedAsyncMethod _method;
+
+            internal SymAsyncMethod(SymReader reader, ISymUnmanagedAsyncMethod method)
+            {
+                _reader = reader;
+                _method = method;
+            }
+
+            public int GetRootScope(out ISymUnmanagedScope retVal)
+            {
+                ((ISymUnmanagedMethod)_method).GetRootScope(out retVal);
+                if (retVal != null)
+                {
+                    retVal = new SymScope(_reader, retVal);
+                }
+                return SymUnmanagedReaderExtensions.S_OK;
+            }
+
+            public int GetScopeFromOffset(int offset, out ISymUnmanagedScope retVal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int GetSequencePointCount(out int retVal)
+            {
+                return ((ISymUnmanagedMethod)_method).GetSequencePointCount(out retVal);
+            }
+
+            public int GetToken(out int token)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int GetNamespace(out ISymUnmanagedNamespace retVal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int GetOffset(ISymUnmanagedDocument document, int line, int column, out int retVal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int GetParameters(int cParams, out int pcParams, ISymUnmanagedVariable[] parms)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int GetRanges(ISymUnmanagedDocument document, int line, int column, int cRanges, out int pcRanges, int[] ranges)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int GetSequencePoints(
+                int cPoints,
+                out int pcPoints,
+                int[] offsets,
+                ISymUnmanagedDocument[] documents,
+                int[] lines,
+                int[] columns,
+                int[] endLines,
+                int[] endColumns)
+            {
+                ((ISymUnmanagedMethod)_method).GetSequencePoints(cPoints, out pcPoints, offsets, documents, lines, columns, endLines, endColumns);
+                return SymUnmanagedReaderExtensions.S_OK;
+            }
+
+            public int GetSourceStartEnd(ISymUnmanagedDocument[] docs, int[] lines, int[] columns, out bool retVal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int IsAsyncMethod(out bool value)
+            {
+                return _method.IsAsyncMethod(out value);
+            }
+
+            public int GetKickoffMethod(out int kickoffMethodToken)
+            {
+                return _method.GetKickoffMethod(out kickoffMethodToken);
+            }
+
+            public int HasCatchHandlerILOffset(out bool offset)
+            {
+                return _method.HasCatchHandlerILOffset(out offset);
+            }
+
+            public int GetCatchHandlerILOffset(out int offset)
+            {
+                return _method.GetCatchHandlerILOffset(out offset);
+            }
+
+            public int GetAsyncStepInfoCount(out int count)
+            {
+                return _method.GetAsyncStepInfoCount(out count);
+            }
+
+            public int GetAsyncStepInfo(int bufferLength, out int count, int[] yieldOffsets, int[] breakpointOffset, int[] breakpointMethod)
+            {
+                return _method.GetAsyncStepInfo(bufferLength, out count, yieldOffsets, breakpointOffset, breakpointMethod);
             }
         }
 

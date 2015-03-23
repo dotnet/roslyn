@@ -128,9 +128,9 @@ End Namespace
                         Dim methodToken = metadataReader.GetToken(methodHandle)
 
                         pdbbits.Position = 0
-                        Dim reader = DirectCast(TempPdbReader.CreateUnmanagedReader(pdbbits), ISymUnmanagedReader)
-
-                        Return reader.GetVisualBasicImportStrings(methodToken, methodVersion:=1)
+                        Using reader As New SymReader(pdbbits)
+                            Return reader.GetVisualBasicImportStrings(methodToken, methodVersion:=1)
+                        End Using
                     End Using
                 End Using
             End Using
