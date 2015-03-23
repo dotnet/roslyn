@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-    Class NamespaceDeclarationOutliner
+    Friend Class NamespaceDeclarationOutliner
         Inherits AbstractSyntaxNodeOutliner(Of NamespaceStatementSyntax)
 
         Protected Overrides Sub CollectOutliningSpans(namespaceDeclaration As NamespaceStatementSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)

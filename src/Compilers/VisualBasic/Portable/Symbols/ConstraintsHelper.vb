@@ -208,8 +208,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     TypeKind.Error
 
                                 Case TypeKind.Module
-                                ' No error reported for Module. If the type reference was in source, BC30371
-                                ' ERR_ModuleAsType1 will have been reported binding the type reference.
+                                    ' No error reported for Module. If the type reference was in source, BC30371
+                                    ' ERR_ModuleAsType1 will have been reported binding the type reference.
 
                                 Case TypeKind.TypeParameter
                                     Dim constraintTypeParameter = DirectCast(constraintType, TypeParameterSymbol)

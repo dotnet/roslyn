@@ -1292,7 +1292,7 @@ End Class
 "}
             };
 
-        [Fact()]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1445")]
         public void SimpleMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 HelloSolution.sln");

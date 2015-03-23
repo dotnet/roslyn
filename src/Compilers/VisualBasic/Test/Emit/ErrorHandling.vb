@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        Sub ErrorHandler_WithValidLabel_No_Resume()
+        Public Sub ErrorHandler_WithValidLabel_No_Resume()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -41,7 +41,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub ErrorHandler_WithGotoMinus1andMatchingLabel()
+        Public Sub ErrorHandler_WithGotoMinus1andMatchingLabel()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -64,7 +64,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Error_ErrorHandler_WithGoto0andNoMatchingLabel()
+        Public Sub Error_ErrorHandler_WithGoto0andNoMatchingLabel()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -88,7 +88,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Error_ErrorHandler_WithResumeNext()
+        Public Sub Error_ErrorHandler_WithResumeNext()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -110,7 +110,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub ErrorHandler_WithValidLabelMatchingKeywordsEscaped()
+        Public Sub ErrorHandler_WithValidLabelMatchingKeywordsEscaped()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -142,7 +142,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Error_ErrorHandler_WithValidLabelMatchingKeywordsNotEscaped()
+        Public Sub Error_ErrorHandler_WithValidLabelMatchingKeywordsNotEscaped()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -177,7 +177,7 @@ End Module
 
 
         <Fact()>
-        Sub Error_ErrorHandler_WithInValidLabelMatchingKeywordsEscaped()
+        Public Sub Error_ErrorHandler_WithInValidLabelMatchingKeywordsEscaped()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -219,7 +219,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Error_ErrorHandler_WithGoto0andMatchingLabel()
+        Public Sub Error_ErrorHandler_WithGoto0andMatchingLabel()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -326,7 +326,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Error_ErrorHandler_WithGoto1andMatchingLabel()
+        Public Sub Error_ErrorHandler_WithGoto1andMatchingLabel()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -355,7 +355,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Error_ErrorHandler_WithMissingOrIncorrectLabels()
+        Public Sub Error_ErrorHandler_WithMissingOrIncorrectLabels()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -401,7 +401,7 @@ End Module
 
 
         <Fact()>
-        Sub Error_ErrorHandler_BothTypesOfErrorHandling()
+        Public Sub Error_ErrorHandler_BothTypesOfErrorHandling()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -454,7 +454,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Error_ErrorHandler_InVBCore()
+        Public Sub Error_ErrorHandler_InVBCore()
             'Old Style handling not supported in VBCore
             Dim compilationDef =
     <compilation>
@@ -482,7 +482,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Error_ErrorHandler_InVBCore_LateBound1()
+        Public Sub Error_ErrorHandler_InVBCore_LateBound1()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -515,7 +515,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub Error_ErrorHandler_InVBCore_LikeOperator()
+        Public Sub Error_ErrorHandler_InVBCore_LikeOperator()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -539,7 +539,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Error_ErrorHandler_InVBCore_ErrObject()
+        Public Sub Error_ErrorHandler_InVBCore_ErrObject()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -560,7 +560,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Error_ErrorHandler_InVBCore_AnonymousType()
+        Public Sub Error_ErrorHandler_InVBCore_AnonymousType()
             Dim source =
     <compilation>
         <file name="a.vb">
@@ -606,7 +606,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Error_ErrorHandler_OutsideOfMethodBody()
+        Public Sub Error_ErrorHandler_OutsideOfMethodBody()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -629,7 +629,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub ErrorHandler_In_Different_Types()
+        Public Sub ErrorHandler_In_Different_Types()
             'Basic Validation that this is permissible in Class/Structure/(Module Tested elsewhere)
             'Generic
             Dim compilationDef =
@@ -719,7 +719,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub ErrorHandler_Other_Constructor_Dispose()
+        Public Sub ErrorHandler_Other_Constructor_Dispose()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -795,7 +795,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Error_InvalidTypes_ImplicitConversions()
+        Public Sub Error_InvalidTypes_ImplicitConversions()
 
             Dim compilationDef =
     <compilation>
@@ -819,7 +819,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Error_InvalidTypes_InvalidTypes_StrictOn()
+        Public Sub Error_InvalidTypes_InvalidTypes_StrictOn()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -843,7 +843,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub ErrorHandler_Error_InSyncLockBlock()
+        Public Sub ErrorHandler_Error_InSyncLockBlock()
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -874,7 +874,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub ErrorHandler_Error_InMethodWithSyncLockBlock()
+        Public Sub ErrorHandler_Error_InMethodWithSyncLockBlock()
             'Method has a Error Handler and Error Occurs within SyncLock
             'resume next will occur outside of the SyncLock Block
             Dim compilationDef =

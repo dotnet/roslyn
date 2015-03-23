@@ -30,11 +30,6 @@
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\SymbolDisplay\ObjectDisplay.cs">
       <Link>Compiler\SymbolDisplay\ObjectDisplay.cs</Link>
     </Compile>
-    <Compile Include="Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
@@ -52,13 +47,6 @@
       <Project>{fa0e905d-ec46-466d-b7b2-3b5557f9428c}</Project>
       <Name>ResultProvider.Portable</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator</CustomToolNamespace>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="..\CSharpResultProvider.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

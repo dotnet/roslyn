@@ -4,14 +4,14 @@ Imports System.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-    Class BannerTextBuilder
-        Dim _builder As StringBuilder
+    Friend Class BannerTextBuilder
+        Private _builder As StringBuilder
 
-        Sub New()
+        Public Sub New()
             _builder = New StringBuilder()
         End Sub
 
-        Sub New(capacity As Integer)
+        Public Sub New(capacity As Integer)
             _builder = New StringBuilder(capacity)
         End Sub
 

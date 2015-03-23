@@ -1633,7 +1633,7 @@ End Module
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Sub semanticInfo_StaticDimOnly_IsStatic()
+        Public Sub semanticInfo_StaticDimOnly_IsStatic()
             Dim source =
     <compilation>
         <file name="a.vb">

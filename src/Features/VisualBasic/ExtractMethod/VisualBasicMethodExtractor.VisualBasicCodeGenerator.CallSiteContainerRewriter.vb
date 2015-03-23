@@ -9,13 +9,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Partial Private MustInherit Class VisualBasicCodeGenerator
             Private Class CallSiteContainerRewriter
                 Inherits VisualBasicSyntaxRewriter
-                Private ReadOnly outmostCallSiteContainer As SyntaxNode
-                Private ReadOnly statementsOrFieldToInsert As IEnumerable(Of StatementSyntax)
-                Private ReadOnly variableToRemoveMap As HashSet(Of SyntaxAnnotation)
-                Private ReadOnly firstStatementOrFieldToReplace As StatementSyntax
-                Private ReadOnly lastStatementOrFieldToReplace As StatementSyntax
+                Private ReadOnly _outmostCallSiteContainer As SyntaxNode
+                Private ReadOnly _statementsOrFieldToInsert As IEnumerable(Of StatementSyntax)
+                Private ReadOnly _variableToRemoveMap As HashSet(Of SyntaxAnnotation)
+                Private ReadOnly _firstStatementOrFieldToReplace As StatementSyntax
+                Private ReadOnly _lastStatementOrFieldToReplace As StatementSyntax
 
-                Private Shared ReadOnly removeAnnotation As SyntaxAnnotation = New SyntaxAnnotation()
+                Private Shared ReadOnly s_removeAnnotation As SyntaxAnnotation = New SyntaxAnnotation()
 
                 Public Sub New(outmostCallSiteContainer As SyntaxNode,
                                variableToRemoveMap As HashSet(Of SyntaxAnnotation),
@@ -28,23 +28,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Contract.ThrowIfNull(lastStatementOrFieldToReplace)
                     Contract.ThrowIfTrue(statementsOrFieldToInsert.IsEmpty())
 
-                    Me.outmostCallSiteContainer = outmostCallSiteContainer
+                    Me._outmostCallSiteContainer = outmostCallSiteContainer
 
-                    Me.variableToRemoveMap = variableToRemoveMap
-                    Me.statementsOrFieldToInsert = statementsOrFieldToInsert
+                    Me._variableToRemoveMap = variableToRemoveMap
+                    Me._statementsOrFieldToInsert = statementsOrFieldToInsert
 
-                    Me.firstStatementOrFieldToReplace = firstStatementOrFieldToReplace
-                    Me.lastStatementOrFieldToReplace = lastStatementOrFieldToReplace
+                    Me._firstStatementOrFieldToReplace = firstStatementOrFieldToReplace
+                    Me._lastStatementOrFieldToReplace = lastStatementOrFieldToReplace
 
-                    Contract.ThrowIfFalse(Me.firstStatementOrFieldToReplace.Parent Is Me.lastStatementOrFieldToReplace.Parent)
+                    Contract.ThrowIfFalse(Me._firstStatementOrFieldToReplace.Parent Is Me._lastStatementOrFieldToReplace.Parent)
                 End Sub
 
                 Public Function Generate() As SyntaxNode
-                    Dim result = Visit(Me.outmostCallSiteContainer)
+                    Dim result = Visit(Me._outmostCallSiteContainer)
 
                     ' remove any nodes annotated for removal
                     If result.ContainsAnnotations Then
-                        Dim nodesToRemove = result.DescendantNodes(Function(n) n.ContainsAnnotations).Where(Function(n) n.HasAnnotation(removeAnnotation))
+                        Dim nodesToRemove = result.DescendantNodes(Function(n) n.ContainsAnnotations).Where(Function(n) n.HasAnnotation(s_removeAnnotation))
                         result = result.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia)
                     End If
 
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 Private ReadOnly Property ContainerOfStatementsOrFieldToReplace() As SyntaxNode
                     Get
-                        Return Me.firstStatementOrFieldToReplace.Parent
+                        Return Me._firstStatementOrFieldToReplace.Parent
                     End Get
                 End Property
 
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Dim variableDeclarators = New List(Of VariableDeclaratorSyntax)()
                     Dim triviaList = New List(Of SyntaxTrivia)()
 
-                    If Not Me.variableToRemoveMap.ProcessLocalDeclarationStatement(node, expressionStatements, variableDeclarators, triviaList) Then
+                    If Not Me._variableToRemoveMap.ProcessLocalDeclarationStatement(node, expressionStatements, variableDeclarators, triviaList) Then
                         Contract.ThrowIfFalse(expressionStatements.Count = 0)
                         Return node
                     End If
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                     SyntaxFactory.SeparatedList(variableDeclarators)).WithPrependedLeadingTrivia(triviaList)
                     End If
 
-                    Return node.WithAdditionalAnnotations(removeAnnotation)
+                    Return node.WithAdditionalAnnotations(s_removeAnnotation)
                 End Function
 
                 Public Overrides Function VisitMethodBlock(node As MethodBlockSyntax) As SyntaxNode
@@ -308,25 +308,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Contract.ThrowIfNull(statement)
 
                     ' if all three same
-                    If (statement IsNot firstStatementOrFieldToReplace) OrElse (Me.firstStatementOrFieldToReplace IsNot Me.lastStatementOrFieldToReplace) Then
+                    If (statement IsNot _firstStatementOrFieldToReplace) OrElse (Me._firstStatementOrFieldToReplace IsNot Me._lastStatementOrFieldToReplace) Then
                         Return statement
                     End If
 
-                    Contract.ThrowIfFalse(Me.statementsOrFieldToInsert.Count() = 1)
-                    Return CType(Me.statementsOrFieldToInsert.Single(), T)
+                    Contract.ThrowIfFalse(Me._statementsOrFieldToInsert.Count() = 1)
+                    Return CType(Me._statementsOrFieldToInsert.Single(), T)
                 End Function
 
                 Private Function ReplaceStatementsIfNeeded(statements As SyntaxList(Of StatementSyntax), Optional colon As Boolean = False) As SyntaxList(Of StatementSyntax)
                     Dim newStatements = New List(Of StatementSyntax)(statements)
-                    Dim firstStatementIndex = newStatements.FindIndex(Function(s) s Is Me.firstStatementOrFieldToReplace)
+                    Dim firstStatementIndex = newStatements.FindIndex(Function(s) s Is Me._firstStatementOrFieldToReplace)
 
                     ' looks like statements belong to parent's Begin statement. there is nothing we need to do here.
                     If firstStatementIndex < 0 Then
-                        Contract.ThrowIfFalse(Me.firstStatementOrFieldToReplace Is Me.lastStatementOrFieldToReplace)
+                        Contract.ThrowIfFalse(Me._firstStatementOrFieldToReplace Is Me._lastStatementOrFieldToReplace)
                         Return statements
                     End If
 
-                    Dim lastStatementIndex = newStatements.FindIndex(Function(s) s Is Me.lastStatementOrFieldToReplace)
+                    Dim lastStatementIndex = newStatements.FindIndex(Function(s) s Is Me._lastStatementOrFieldToReplace)
                     Contract.ThrowIfFalse(lastStatementIndex >= 0)
 
                     Contract.ThrowIfFalse(firstStatementIndex <= lastStatementIndex)
@@ -337,7 +337,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     statements = statements.RemoveRange(firstStatementIndex, lastStatementIndex - firstStatementIndex + 1)
 
                     ' insert new statements
-                    Return statements.InsertRange(firstStatementIndex, Join(Me.statementsOrFieldToInsert, colon).ToArray())
+                    Return statements.InsertRange(firstStatementIndex, Join(Me._statementsOrFieldToInsert, colon).ToArray())
                 End Function
 
                 Private Function Join(statements As IEnumerable(Of StatementSyntax), colon As Boolean) As IEnumerable(Of StatementSyntax)

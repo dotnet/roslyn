@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        Sub CollectionInitializerAsRefTypeEqualsNew()
+        Public Sub CollectionInitializerAsRefTypeEqualsNew()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -57,7 +57,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerAsNewRefType()
+        Public Sub CollectionInitializerAsNewRefType()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -103,7 +103,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerAsValueTypeEqualsNewNoParamConstructor()
+        Public Sub CollectionInitializerAsValueTypeEqualsNewNoParamConstructor()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -188,7 +188,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerAsValueTypeEqualsNewOneParamConstructor()
+        Public Sub CollectionInitializerAsValueTypeEqualsNewOneParamConstructor()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -280,7 +280,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerAsNewValueTypeOneParamConstructor()
+        Public Sub CollectionInitializerAsNewValueTypeOneParamConstructor()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -371,7 +371,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerForTypeParameter()
+        Public Sub CollectionInitializerForTypeParameter()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -496,7 +496,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerAsRefTypeEqualsNewNested()
+        Public Sub CollectionInitializerAsRefTypeEqualsNewNested()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -562,7 +562,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerWithLambdasAndLifting()
+        Public Sub CollectionInitializerWithLambdasAndLifting()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -633,7 +633,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerWithLambdasAndLifting_2()
+        Public Sub CollectionInitializerWithLambdasAndLifting_2()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -686,7 +686,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerWithByRefExtensionMethod()
+        Public Sub CollectionInitializerWithByRefExtensionMethod()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -751,7 +751,7 @@ End Namespace
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerPropertyInitializer()
+        Public Sub CollectionInitializerPropertyInitializer()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -797,7 +797,7 @@ End Class
 
         <WorkItem(544125, "DevDiv")>
         <Fact()>
-        Sub CollectionInitializerFieldInitializer()
+        Public Sub CollectionInitializerFieldInitializer()
             Dim source =
 <compilation>
     <file name="a.vb">

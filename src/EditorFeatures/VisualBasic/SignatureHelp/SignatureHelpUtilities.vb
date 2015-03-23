@@ -7,10 +7,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
 
     Friend Module SignatureHelpUtilities
-        Private ReadOnly GetArgumentListOpenToken As Func(Of ArgumentListSyntax, SyntaxToken) = Function(list) list.OpenParenToken
-        Private ReadOnly GetTypeArgumentListOpenToken As Func(Of TypeArgumentListSyntax, SyntaxToken) = Function(list) list.OpenParenToken
+        Private ReadOnly s_getArgumentListOpenToken As Func(Of ArgumentListSyntax, SyntaxToken) = Function(list) list.OpenParenToken
+        Private ReadOnly s_getTypeArgumentListOpenToken As Func(Of TypeArgumentListSyntax, SyntaxToken) = Function(list) list.OpenParenToken
 
-        Private ReadOnly GetArgumentListCloseToken As Func(Of ArgumentListSyntax, SyntaxToken) =
+        Private ReadOnly s_getArgumentListCloseToken As Func(Of ArgumentListSyntax, SyntaxToken) =
             Function(list)
                 ' In the case where the user has typed "Foo(bar:" then the parser doesn't consider
                 ' the colon part of the signature.  However, we want to as it is clearly part of a
@@ -26,12 +26,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                 Return list.CloseParenToken()
             End Function
 
-        Private ReadOnly GetTypeArgumentListCloseToken As Func(Of TypeArgumentListSyntax, SyntaxToken) = Function(list) list.CloseParenToken
+        Private ReadOnly s_getTypeArgumentListCloseToken As Func(Of TypeArgumentListSyntax, SyntaxToken) = Function(list) list.CloseParenToken
 
-        Private ReadOnly GetArgumentListArgumentsWithSeparators As Func(Of ArgumentListSyntax, IEnumerable(Of SyntaxNodeOrToken)) = Function(list) list.Arguments.GetWithSeparators().AsEnumerable().[Select](Function(t) CType(t, SyntaxNodeOrToken))
-        Private ReadOnly GetTypeArgumentListArgumentsWithSeparators As Func(Of TypeArgumentListSyntax, IEnumerable(Of SyntaxNodeOrToken)) = Function(list) list.Arguments.GetWithSeparators().AsEnumerable().[Select](Function(t) CType(t, SyntaxNodeOrToken))
+        Private ReadOnly s_getArgumentListArgumentsWithSeparators As Func(Of ArgumentListSyntax, IEnumerable(Of SyntaxNodeOrToken)) = Function(list) list.Arguments.GetWithSeparators().AsEnumerable().[Select](Function(t) CType(t, SyntaxNodeOrToken))
+        Private ReadOnly s_getTypeArgumentListArgumentsWithSeparators As Func(Of TypeArgumentListSyntax, IEnumerable(Of SyntaxNodeOrToken)) = Function(list) list.Arguments.GetWithSeparators().AsEnumerable().[Select](Function(t) CType(t, SyntaxNodeOrToken))
 
-        Private ReadOnly GetArgumentListNames As Func(Of ArgumentListSyntax, IEnumerable(Of String)) =
+        Private ReadOnly s_getArgumentListNames As Func(Of ArgumentListSyntax, IEnumerable(Of String)) =
             Function(list) list.Arguments.Select(Function(a)
                                                      Dim simpleArgument = TryCast(a, SimpleArgumentSyntax)
                                                      Dim value = If(simpleArgument IsNot Nothing AndAlso simpleArgument.NameColonEquals IsNot Nothing,
@@ -40,18 +40,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                                                      Return If(String.IsNullOrEmpty(value), Nothing, value)
                                                  End Function)
 
-        Private ReadOnly GetTypeArgumentListNames As Func(Of TypeArgumentListSyntax, IEnumerable(Of String)) = Function(list) list.Arguments.Select(Function(a) DirectCast(Nothing, String))
+        Private ReadOnly s_getTypeArgumentListNames As Func(Of TypeArgumentListSyntax, IEnumerable(Of String)) = Function(list) list.Arguments.Select(Function(a) DirectCast(Nothing, String))
 
         Friend Function GetSignatureHelpSpan(argumentList As ArgumentListSyntax) As TextSpan
-            Return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, GetArgumentListCloseToken)
+            Return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getArgumentListCloseToken)
         End Function
 
         Friend Function GetSignatureHelpSpan(argumentList As ArgumentListSyntax, start As Integer) As TextSpan
-            Return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, start, GetArgumentListCloseToken)
+            Return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, start, s_getArgumentListCloseToken)
         End Function
 
         Friend Function GetSignatureHelpSpan(argumentList As TypeArgumentListSyntax) As TextSpan
-            Return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, GetTypeArgumentListCloseToken)
+            Return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getTypeArgumentListCloseToken)
         End Function
 
         Friend Function GetSignatureHelpState(argumentList As ArgumentListSyntax, position As Integer) As SignatureHelpState
@@ -59,20 +59,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
             Return CommonSignatureHelpUtilities.GetSignatureHelpState(
                 argumentList,
                 position,
-                GetArgumentListOpenToken,
-                GetArgumentListCloseToken,
-                GetArgumentListArgumentsWithSeparators,
-                GetArgumentListNames)
+                s_getArgumentListOpenToken,
+                s_getArgumentListCloseToken,
+                s_getArgumentListArgumentsWithSeparators,
+                s_getArgumentListNames)
         End Function
 
         Friend Function GetSignatureHelpState(typeArgumentList As TypeArgumentListSyntax, position As Integer) As SignatureHelpState
             Return CommonSignatureHelpUtilities.GetSignatureHelpState(
                 typeArgumentList,
                 position,
-                GetTypeArgumentListOpenToken,
-                GetTypeArgumentListCloseToken,
-                GetTypeArgumentListArgumentsWithSeparators,
-                GetTypeArgumentListNames)
+                s_getTypeArgumentListOpenToken,
+                s_getTypeArgumentListCloseToken,
+                s_getTypeArgumentListArgumentsWithSeparators,
+                s_getTypeArgumentListNames)
         End Function
 
     End Module

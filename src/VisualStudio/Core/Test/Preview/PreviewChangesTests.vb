@@ -12,7 +12,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
     Public Class PreviewChangesTests
 
-        Dim exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
+        Private _exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(GetType(StubVsEditorAdaptersFactoryService)))
 
         <Fact>
@@ -24,7 +24,7 @@ Class C
     {
         $$
     }
-}</text>.Value, exportProvider:=exportProvider)
+}</text>.Value, exportProvider:=_exportProvider)
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -73,7 +73,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml, exportProvider:=exportProvider)
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml, exportProvider:=_exportProvider)
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -124,7 +124,7 @@ Class C
     {
         $$
     }
-}</text>.Value, exportProvider:=exportProvider)
+}</text>.Value, exportProvider:=_exportProvider)
                 Dim expectedItems = New List(Of String) From {"topLevelItemName", "*test1.cs", "**insertion!"}
 
                 Dim documentId = workspace.Documents.First().Id
@@ -177,7 +177,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml, exportProvider:=exportProvider)
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml, exportProvider:=_exportProvider)
                 Dim docId = workspace.Documents.First().Id
                 Dim document = workspace.CurrentSolution.GetDocument(docId)
 
@@ -259,7 +259,7 @@ End Class
                                    </Project>
                                </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml, , exportProvider:=exportProvider)
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml, , exportProvider:=_exportProvider)
                 Dim documentId1 = workspace.Documents.Where(Function(d) d.Project.Name = "VBProj1").Single().Id
                 Dim document1 = workspace.CurrentSolution.GetDocument(documentId1)
 

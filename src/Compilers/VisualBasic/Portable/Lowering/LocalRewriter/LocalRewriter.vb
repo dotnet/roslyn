@@ -312,8 +312,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          BoundKind.RValuePlaceholder,
                          BoundKind.WithLValueExpressionPlaceholder,
                          BoundKind.WithRValueExpressionPlaceholder
-                    ' do not clone these as they have special semantics and may 
-                    ' be used for identity search after local rewriter is finished
+                        ' do not clone these as they have special semantics and may 
+                        ' be used for identity search after local rewriter is finished
 
                     Case Else
                         result = result.MemberwiseClone(Of BoundExpression)()

@@ -21,15 +21,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             With eventBlock
                 With .EventStatement
                     ' This span calculation should also capture the Custom keyword
-                    Dim firstKeyword = If( .Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
+                    Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
                     highlights.Add(TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End))
 
                     If .ImplementsClause IsNot Nothing Then
-                        highlights.Add( .ImplementsClause.ImplementsKeyword.Span)
+                        highlights.Add(.ImplementsClause.ImplementsKeyword.Span)
                     End If
                 End With
 
-                highlights.Add( .EndEventStatement.Span)
+                highlights.Add(.EndEventStatement.Span)
             End With
 
             Return highlights

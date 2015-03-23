@@ -1658,7 +1658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case SyntaxKind.ArgumentList,
                              SyntaxKind.SimpleArgument,
                              SyntaxKind.ObjectMemberInitializer
-                        ' proceed to the upper-level node
+                            ' proceed to the upper-level node
 
                         Case SyntaxKind.GoToStatement
                             Return False

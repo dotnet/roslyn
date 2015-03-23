@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             Return key.Option.Feature = SimplificationOptions.PerLanguageFeatureName
         End Function
 
-        Dim mePreviewTrue As String = <a><![CDATA[
+        Private _mePreviewTrue As String = <a><![CDATA[
 Class C
     Private x as Integer
     Private Sub S()
@@ -23,7 +23,7 @@ Class C
     End Sub
 ]]></a>.Value
 
-        Dim mePreviewFalse As String = <a><![CDATA[
+        Private _mePreviewFalse As String = <a><![CDATA[
 Class C
     Private x as Integer
     Private Sub S()
@@ -33,7 +33,7 @@ Class C
     End Sub
 ]]></a>.Value
 
-        Dim intrinsicDeclarationPreviewTrue As String = <a><![CDATA[
+        Private _intrinsicDeclarationPreviewTrue As String = <a><![CDATA[
 Class Program
     '//[
     Private _member As Integer
@@ -44,7 +44,7 @@ Class Program
 End Class
 ]]></a>.Value
 
-        Dim intrinsicDeclarationPreviewFalse As String = <a><![CDATA[
+        Private _intrinsicDeclarationPreviewFalse As String = <a><![CDATA[
 Class Program
     '//[
     Private _member As Int32
@@ -55,7 +55,7 @@ Class Program
 End Class
 ]]></a>.Value
 
-        Dim intrinsicMemberAccessPreviewTrue As String = <a><![CDATA[
+        Private _intrinsicMemberAccessPreviewTrue As String = <a><![CDATA[
 Imports System
 Class Program
     '//[
@@ -66,7 +66,7 @@ Class Program
 End Class
 ]]></a>.Value
 
-        Dim intrinsicMemberAccessPreviewFalse As String = <a><![CDATA[
+        Private _intrinsicMemberAccessPreviewFalse As String = <a><![CDATA[
 Imports System
 Class Program
     '//[
@@ -80,9 +80,9 @@ End Class
         Public Sub New(optionSet As OptionSet, serviceProvider As IServiceProvider)
             MyBase.New(optionSet, serviceProvider, LanguageNames.VisualBasic)
 
-            Me.Items.Add(New CheckBoxOptionViewModel(SimplificationOptions.QualifyMemberAccessWithThisOrMe, BasicVSResources.QualifyMemberAccessWithMe, mePreviewTrue, mePreviewFalse, Me, optionSet))
-            Me.Items.Add(New CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, BasicVSResources.PreferIntrinsicPredefinedTypeKeywordInDeclaration, intrinsicDeclarationPreviewTrue, intrinsicDeclarationPreviewFalse, Me, optionSet))
-            Me.Items.Add(New CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, BasicVSResources.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, intrinsicMemberAccessPreviewTrue, intrinsicMemberAccessPreviewFalse, Me, optionSet))
+            Me.Items.Add(New CheckBoxOptionViewModel(SimplificationOptions.QualifyMemberAccessWithThisOrMe, BasicVSResources.QualifyMemberAccessWithMe, _mePreviewTrue, _mePreviewFalse, Me, optionSet))
+            Me.Items.Add(New CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, BasicVSResources.PreferIntrinsicPredefinedTypeKeywordInDeclaration, _intrinsicDeclarationPreviewTrue, _intrinsicDeclarationPreviewFalse, Me, optionSet))
+            Me.Items.Add(New CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, BasicVSResources.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, _intrinsicMemberAccessPreviewTrue, _intrinsicMemberAccessPreviewFalse, Me, optionSet))
         End Sub
     End Class
 End Namespace

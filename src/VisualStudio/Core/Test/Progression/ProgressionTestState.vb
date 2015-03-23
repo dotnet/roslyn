@@ -62,7 +62,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             _workspace.Dispose()
         End Sub
 
-        Sub AssertMarkedSymbolLabelIs(graphCommandId As String, label As String, description As String)
+        Public Sub AssertMarkedSymbolLabelIs(graphCommandId As String, label As String, description As String)
             Dim graphNode = GetGraphWithMarkedSymbolNode().Nodes.Single()
             Dim formattedLabelExtension As New GraphFormattedLabelExtension()
 
