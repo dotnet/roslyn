@@ -22,10 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private Dictionary<VersionStamp, ImmutableArray<Diagnostic>> _oldDocumentDiagnostics = new Dictionary<VersionStamp, ImmutableArray<Diagnostic>>();
         private Dictionary<VersionStamp, ImmutableArray<Diagnostic>> _oldProjectDiagnostics = new Dictionary<VersionStamp, ImmutableArray<Diagnostic>>();
 
-        private CompilationDescriptor _oldCompilation = new CompilationDescriptor(VersionStamp.Default, null);
-        private CompilationDescriptor _newCompilation = new CompilationDescriptor(VersionStamp.Default, null);
-
-        private readonly object _getCompilationLock = new object();
+        private readonly ConcurrentDictionary<ProjectId, CompilationDescriptors> _compilationDescriptors = new ConcurrentDictionary<ProjectId, CompilationDescriptors>();
 
         public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
             : base(workspace, hostDiagnosticUpdateSource)
@@ -42,13 +39,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             Project project = document.Project;
             VersionStamp projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+            VersionStamp documentVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
 
             SemanticModel documentModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             Compilation compilation = documentModel.Compilation;
             CompilationDescriptor compilationDescriptor = GetCompilationDescriptor(compilation, project, projectVersion, cancellationToken);
 
-            ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.CompilationWithAnalyzers.GetAllDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
-            DistributeDiagnostics(project, compilationDescriptor, diagnostics);
+            if (!compilationDescriptor.DocumentAnalyzed(documentVersion) && !compilationDescriptor.IsComplete)
+            {
+                ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.CompilationWithAnalyzers.GetAllDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
+                DistributeDiagnostics(project, compilationDescriptor, diagnostics);
+
+                compilationDescriptor.MarkDocumentAnalyzed(documentVersion);
+            }
+        }
+
+        public async override Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+        {
+            Project project = document.Project;
+            VersionStamp projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+            VersionStamp documentVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
+
+            // Come up with a way to run syntax tree analyzers exactly once, not duplicating analysis done for the project.
         }
 
         public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
@@ -58,8 +70,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             CompilationDescriptor compilationDescriptor = GetCompilationDescriptor(compilation, project, projectVersion, cancellationToken);
 
-            ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.CompilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
-            DistributeDiagnostics(project, compilationDescriptor, diagnostics);
+            if (!compilationDescriptor.IsComplete)
+            {
+                ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.CompilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
+                DistributeDiagnostics(project, compilationDescriptor, diagnostics);
+
+                MarkComplete(project, compilationDescriptor);
+            }
         }
 
         private void DistributeDiagnostics(Project project, CompilationDescriptor compilationDescriptor, ImmutableArray<Diagnostic> diagnostics)
@@ -68,12 +85,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             RaiseEvents(project, diagnostics);
         }
 
-        // New above here.
-
-        public override Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+        public override Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }
+
+        // New above here.
 
         public override Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
@@ -81,11 +98,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyTask;
-        }
-
-        public override Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }
@@ -243,28 +255,48 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         // New below here.
 
+        private class CompilationDescriptors
+        {
+            public CompilationDescriptor OldCompilation = new CompilationDescriptor(VersionStamp.Default, null);
+            public CompilationDescriptor NewCompilation = new CompilationDescriptor(VersionStamp.Default, null);
+        }
+
         private CompilationDescriptor GetCompilationDescriptor(Compilation compilation, Project project, VersionStamp projectVersion, CancellationToken cancellationToken)
         {
-            lock (_getCompilationLock)
+            lock (_compilationDescriptors)
             {
-                CompilationDescriptor oldCompilation = _oldCompilation;
+                CompilationDescriptors descriptors;
+                if (!_compilationDescriptors.TryGetValue(project.Id, out descriptors))
+                {
+                    descriptors = new CompilationDescriptors();
+                    _compilationDescriptors[project.Id] = descriptors;
+                }
+
+                CompilationDescriptor oldCompilation = descriptors.OldCompilation;
                 if (oldCompilation.ProjectVersion == projectVersion)
                 {
                     return oldCompilation;
                 }
 
-                CompilationDescriptor newCompilation = _newCompilation;
+                CompilationDescriptor newCompilation = descriptors.NewCompilation;
                 if (newCompilation.ProjectVersion != projectVersion)
                 {
-                    CompilationWithAnalyzers newCompilationWithAnalyzers = compilation.WithAnalyzers(Flatten(_hostAnalyzerManager.GetHostDiagnosticAnalyzersPerReference(project.Language).Values), project.AnalyzerOptions, cancellationToken);
-                    CompilationDescriptor newerCompilation = new CompilationDescriptor(projectVersion, newCompilationWithAnalyzers);
-                    newCompilation = newerCompilation;
-
-                    _oldCompilation = newCompilation;
-                    _newCompilation = newerCompilation;
+                    CompilationWithAnalyzers newerCompilationWithAnalyzers = compilation.WithAnalyzers(Flatten(_hostAnalyzerManager.GetHostDiagnosticAnalyzersPerReference(project.Language).Values), project.AnalyzerOptions, cancellationToken);
+                    CompilationDescriptor newerCompilation = new CompilationDescriptor(projectVersion, newerCompilationWithAnalyzers);
+                    
+                    descriptors.NewCompilation = newerCompilation;
                 }
 
                 return newCompilation;
+            }
+        }
+
+        private void MarkComplete(Project project, CompilationDescriptor compilationDescriptor)
+        {
+            lock (_compilationDescriptors)
+            {
+                compilationDescriptor.MarkComplete();
+                _compilationDescriptors[project.Id].OldCompilation = compilationDescriptor;
             }
         }
 
@@ -298,6 +330,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public VersionStamp ProjectVersion { get; private set; }
             public CompilationWithAnalyzers CompilationWithAnalyzers { get; private set; }
             public ConcurrentDictionary<string, ImmutableArray<Diagnostic>> DiagnosticsPerPaths { get; private set; }
+            public bool IsComplete { get; private set; }
+            private readonly ConcurrentDictionary<VersionStamp, bool> _analyzedDocuments = new ConcurrentDictionary<VersionStamp, bool>();
             private readonly object UpdateDiagnosticsLock = new object();
 
             public CompilationDescriptor(VersionStamp projectVersion, CompilationWithAnalyzers compilation)
@@ -305,6 +339,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 this.CompilationWithAnalyzers = compilation;
                 this.ProjectVersion = projectVersion;
                 this.DiagnosticsPerPaths = new ConcurrentDictionary<string, ImmutableArray<Diagnostic>>();
+            }
+
+            public bool DocumentAnalyzed(VersionStamp documentVersion)
+            {
+                return _analyzedDocuments.ContainsKey(documentVersion);
+            }
+
+            public void MarkDocumentAnalyzed(VersionStamp documentVersion)
+            {
+                _analyzedDocuments[documentVersion] = true;
             }
 
             public void DistributeDiagnostics(ImmutableArray<Diagnostic> diagnostics)
@@ -328,6 +372,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         diagnosticMap[diagnosticPath] = diagnosticsPerPath;
                     }
                 }
+            }
+
+            public void MarkComplete()
+            {
+                IsComplete = true;
+                this.CompilationWithAnalyzers = null;
             }
         }
     }
