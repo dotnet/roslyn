@@ -149,6 +149,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
              MainDescription("Class System.String"))
         End Sub
 
+        <WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Sub TestStringLiteral()
+            TestInClass("Dim i = ""cat""$$",
+             MainDescription("Class System.String"))
+        End Sub
+
+        <WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Sub TestInterpolatedStringLiteral()
+            TestInClass("Dim i = $""cat""$$", MainDescription("Class System.String"))
+            TestInClass("Dim i = $""c$$at""", MainDescription("Class System.String"))
+            TestInClass("Dim i = $""$$cat""", MainDescription("Class System.String"))
+            TestInClass("Dim i = $""cat {1$$ + 2} dog""", MainDescription("Structure System.Int32"))
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestListOfString()
             TestInClass("Dim l As $$List(Of String)",
