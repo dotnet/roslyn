@@ -5844,5 +5844,36 @@ public class C
             CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>o__0#1");
             CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>o__0#2");
         }
+
+        [WorkItem(918650)]
+        [Fact]
+        public void OutofMemoryDuringEditAndContinue()
+        {
+            var source =
+@"class C
+{{
+    static int F() {{ return {0}; }}
+}}";
+
+            var compilation0 = CreateCompilationWithMscorlib(String.Format(source, 1), options: TestOptions.DebugDll);
+
+            var bytes0 = compilation0.EmitToArray();
+            var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+
+            for (int i = 2; i <= 50; i++)
+            {
+                var compilation1 = compilation0.WithSource(String.Format(source, i));
+                var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
+
+                compilation0 = compilation1;
+                method0 = method1;
+                generation0 = diff1.NextGeneration;
+            }
+        }
     }
 }
