@@ -3829,6 +3829,7 @@ class C
             var sourceC =
 @"class C
 {
+    private B F = new B();
     static void M()
     {
     }
@@ -3906,6 +3907,59 @@ class C
             VerifyAssemblyReferences(
                 ImmutableArray.Create(MscorlibRef, referenceAS1, referenceAS2, referenceBS2, referenceBS1, referenceAS2, referenceAS1, referenceBS1),
                 ImmutableArray.Create(identityAS1, identityBS1));
+
+            // Assembly C, multiple versions, not strong name.
+            var assemblyNameC = ExpressionCompilerUtilities.GenerateUniqueName();
+            var compilationCN1 = CreateCompilation(
+                new AssemblyIdentity(assemblyNameC, new Version(1, 1, 1, 1)),
+                new[] { sourceC },
+                references: new[] { MscorlibRef, referenceAS1, referenceBS1 },
+                options: TestOptions.DebugDll);
+            byte[] exeBytesC1;
+            byte[] pdbBytesC1;
+            ImmutableArray<MetadataReference> references;
+            compilationCN1.EmitAndGetReferences(out exeBytesC1, out pdbBytesC1, out references);
+            var compilationCN2 = CreateCompilation(
+                new AssemblyIdentity(assemblyNameC, new Version(2, 1, 1, 1)),
+                new[] { sourceC },
+                references: new[] { MscorlibRef, referenceAS2, referenceBS1 },
+                options: TestOptions.DebugDll);
+            byte[] exeBytesC2;
+            byte[] pdbBytesC2;
+            compilationCN1.EmitAndGetReferences(out exeBytesC2, out pdbBytesC2, out references);
+
+            // Duplicate assembly A, target module referencing AS2.
+            using (var runtime = CreateRuntimeInstance(
+                assemblyNameC,
+                ImmutableArray.Create(MscorlibRef, referenceAS1, referenceAS2, referenceBS1),
+                exeBytesC1,
+                new SymReader(pdbBytesC1)))
+            {
+                // Compile expression with type context.
+                var context = CreateTypeContext(runtime, "C");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("(object)new A() ?? new B() ?? new C()", out error, testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  ldc.i4     0x80000000
+  IL_0005:  ret
+}");
+
+                // Compile expression with method context.
+                context = CreateMethodContext(runtime, methodName: "C.M");
+                testData = new CompilationTestData();
+                context.CompileExpression("(object)new A() ?? new B() ?? new C()", out error, testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  ldc.i4     0x80000000
+  IL_0005:  ret
+}");
+            }
         }
 
         private static void VerifyAssemblyReferences(
