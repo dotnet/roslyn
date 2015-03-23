@@ -1252,6 +1252,25 @@ Program.number}"";
                 expectedIndentation: 8);
         }
 
+        [Fact]
+        [WorkItem(1339, "https://github.com/dotnet/roslyn/issues/1339")]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void IndentAutoPropertyInitializerAsPartOfTheDeclaration()
+        {
+            var code = @"class Program
+{
+    public int d { get; } 
+= 3;
+    static void Main(string[] args)
+    {
+    }
+}";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 3,
+                expectedIndentation: 8);
+        }
+
         private void AssertIndentUsingSmartTokenFormatter(
             string code,
             char ch,
