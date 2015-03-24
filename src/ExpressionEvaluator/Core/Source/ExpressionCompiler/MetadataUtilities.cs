@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var referencedModules = ArrayBuilder<AssemblyIdentity>.GetInstance();
                 referencedModules.Add(module.MetadataReader.ReadAssemblyIdentityOrThrow());
                 referencedModules.AddRange(module.MetadataReader.GetReferencedAssembliesOrThrow());
-                AddExternAliasesToDuplicateAssemblies(referencesBuilder, identitiesBuilder, identityComparer, referencedModules);
+                AddAliasesToDuplicateAssemblies(referencesBuilder, identitiesBuilder, identityComparer, referencedModules);
                 referencedModules.Free();
             }
             identitiesBuilder.Free();
@@ -122,10 +122,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Add extern aliases to any strong-named duplicate assemblies that differ
+        /// Add aliases to any strong-named duplicate assemblies that differ
         /// by version, preferring the version referenced from the target module.
         /// </summary>
-        private static void AddExternAliasesToDuplicateAssemblies(
+        private static void AddAliasesToDuplicateAssemblies(
             ArrayBuilder<MetadataReference> references,
             ArrayBuilder<AssemblyIdentity> identities,
             AssemblyIdentityComparer identityComparer,
@@ -159,15 +159,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             Debug.Assert(references.All(r => r.Properties.Aliases.IsEmpty));
 
-            // Add extern aliases to duplicate references.
+            // Add aliases to duplicate references.
             if (duplicateIdentities.Count > 0)
             {
                 for (int i = 0; i < n; i++)
                 {
-                    string externAlias;
-                    if (duplicateIdentities.TryGetValue(identities[i], out externAlias))
+                    string alias;
+                    if (duplicateIdentities.TryGetValue(identities[i], out alias))
                     {
-                        references[i] = references[i].WithAliases(ImmutableArray.Create(externAlias));
+                        references[i] = references[i].WithAliases(ImmutableArray.Create(alias));
                     }
                 }
             }

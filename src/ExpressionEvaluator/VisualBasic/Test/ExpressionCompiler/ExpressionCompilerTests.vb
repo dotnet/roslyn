@@ -2252,9 +2252,9 @@ End Class"
         End Sub
 
         ''' <summary>
-        ''' MakeAssemblyReferences should generate extern aliases for
+        ''' MakeAssemblyReferences should generate aliases for
         ''' strong-named, non-framework assemblies that differ by version,
-        ''' but unlike C#, there is no language support in VB for extern aliases
+        ''' but unlike C#, there is no language support in VB for aliases
         ''' so module aliases do not hide the types from the EE. In short,
         ''' duplicate assemblies result in ambiguous types in the VB EE.
         ''' </summary>

@@ -3811,7 +3811,7 @@ class C
         }
 
         /// <summary>
-        /// MakeAssemblyReferences should generate extern aliases for
+        /// MakeAssemblyReferences should generate aliases for
         /// strong-named, non-framework assemblies that differ by version.
         /// </summary>
         [WorkItem(1141029)]
@@ -4017,7 +4017,7 @@ class C
         private static void VerifyAssemblyReferences(
             MetadataReference target,
             ImmutableArray<MetadataReference> references,
-            ImmutableArray<int> expectedExternAliases)
+            ImmutableArray<int> expectedAliases)
         {
             Assert.True(references.Contains(target));
             var modules = references.SelectAsArray(r => r.ToModuleInstance(fullImage: null, symReader: null, includeLocalSignatures: false));
@@ -4031,24 +4031,24 @@ class C
                 var expectedIdentities = references.SelectAsArray(r => r.GetAssemblyIdentity());
                 var actualIdentities = actualReferences.SelectAsArray(r => r.GetAssemblyIdentity());
                 AssertEx.Equal(expectedIdentities, actualIdentities);
-                // Verify extern alias assemblies.
-                var assemblyToExternAlias = PooledDictionary<AssemblyIdentity, string>.GetInstance();
+                // Verify aliases.
+                var assemblyToAlias = PooledDictionary<AssemblyIdentity, string>.GetInstance();
                 for (int i = 0; i < actualReferences.Length; i++)
                 {
                     var actualAliases = actualReferences[i].Properties.Aliases;
-                    if (expectedExternAliases.Contains(i))
+                    if (expectedAliases.Contains(i))
                     {
                         Assert.Equal(1, actualAliases.Length);
                         var identity = actualIdentities[i];
                         var expectedAlias = actualAliases[0];
                         string actualAlias;
-                        if (assemblyToExternAlias.TryGetValue(identity, out actualAlias))
+                        if (assemblyToAlias.TryGetValue(identity, out actualAlias))
                         {
                             Assert.Equal(expectedAlias, actualAlias);
                         }
                         else
                         {
-                            assemblyToExternAlias.Add(identity, expectedAlias);
+                            assemblyToAlias.Add(identity, expectedAlias);
                         }
                     }
                     else
@@ -4056,10 +4056,10 @@ class C
                         Assert.Equal(0, actualAliases.Length);
                     }
                 }
-                // Verify extern aliases are unique.
-                var uniqueAliases = assemblyToExternAlias.Values.Distinct().ToArray();
-                Assert.Equal(assemblyToExternAlias.Count, uniqueAliases.Length);
-                assemblyToExternAlias.Free();
+                // Verify aliases are unique.
+                var uniqueAliases = assemblyToAlias.Values.Distinct().ToArray();
+                Assert.Equal(assemblyToAlias.Count, uniqueAliases.Length);
+                assemblyToAlias.Free();
             }
         }
 
