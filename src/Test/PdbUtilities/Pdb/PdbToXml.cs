@@ -30,16 +30,16 @@ namespace Roslyn.Test.PdbUtilities
         private const string IntHexFormat = "0x{0:X}";
 
         private readonly MetadataReader _metadataReader;
-        private readonly TempPdbReader _pdbReader;
+        private readonly ISymUnmanagedReader _symReader;
         private readonly PdbToXmlOptions _options;
         private readonly XmlWriter _writer;
 
         // Maps files to ids. 
         private readonly Dictionary<string, int> _fileMapping = new Dictionary<string, int>();
 
-        private PdbToXmlConverter(XmlWriter writer, TempPdbReader pdbReader, MetadataReader metadataReader, PdbToXmlOptions options)
+        private PdbToXmlConverter(XmlWriter writer, ISymUnmanagedReader symReader, MetadataReader metadataReader, PdbToXmlOptions options)
         {
-            _pdbReader = pdbReader;
+            _symReader = symReader;
             _metadataReader = metadataReader;
             _writer = writer;
             _options = options;
@@ -132,15 +132,9 @@ namespace Roslyn.Test.PdbUtilities
             XmlDocument doc = new XmlDocument();
             XmlWriter writer = doc.CreateNavigator().AppendChild();
 
-            using (TempPdbReader pdbReader = TempPdbReader.Create(pdbStream))
+            using (SymReader symReader = new SymReader(pdbStream))
             {
-                if (pdbReader == null)
-                {
-                    Console.WriteLine("Error: No Symbol Reader could be initialized.");
-                    return;
-                }
-
-                var converter = new PdbToXmlConverter(writer, pdbReader, metadataReaderOpt, options);
+                var converter = new PdbToXmlConverter(writer, symReader, metadataReaderOpt, options);
 
                 converter.WriteRoot(methodHandles ?? metadataReaderOpt.MethodDefinitions);
             }
@@ -199,8 +193,8 @@ namespace Roslyn.Test.PdbUtilities
         {
             int token = _metadataReader.GetToken(methodHandle);
 
-            byte[] cdi = _pdbReader.SymbolReader.GetCustomDebugInfoBytes(token, methodVersion: 0);
-            ISymUnmanagedMethod method = _pdbReader.SymbolReader.GetMethod(token);
+            byte[] cdi = _symReader.GetCustomDebugInfoBytes(token, methodVersion: 1);
+            ISymUnmanagedMethod method = _symReader.GetMethod(token);
             if (cdi == null && method == null)
             {
                 // no debug info for the method
@@ -1070,7 +1064,7 @@ namespace Roslyn.Test.PdbUtilities
         // Other references to docs will then just refer to this list.
         private void WriteDocList()
         {
-            var documents = _pdbReader.SymbolReader.GetDocuments();
+            var documents = _symReader.GetDocuments();
             if (documents.Length == 0)
             {
                 return;
@@ -1117,9 +1111,9 @@ namespace Roslyn.Test.PdbUtilities
         {
             _writer.WriteStartElement("method-spans");
 
-            foreach (ISymUnmanagedDocument doc in _pdbReader.SymbolReader.GetDocuments())
+            foreach (ISymUnmanagedDocument doc in _symReader.GetDocuments())
             {
-                foreach (ISymUnmanagedMethod method in _pdbReader.SymbolReader.GetMethodsInDocument(doc))
+                foreach (ISymUnmanagedMethod method in _symReader.GetMethodsInDocument(doc))
                 {
                     _writer.WriteStartElement("method");
 
@@ -1148,7 +1142,7 @@ namespace Roslyn.Test.PdbUtilities
         // Write out a reference to the entry point method (if one exists)
         private void WriteEntryPoint()
         {
-            int token = _pdbReader.SymbolReader.GetUserEntryPoint();
+            int token = _symReader.GetUserEntryPoint();
             if (token != 0)
             {
                 _writer.WriteStartElement("entryPoint");

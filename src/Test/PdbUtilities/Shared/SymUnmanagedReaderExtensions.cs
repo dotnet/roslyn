@@ -55,6 +55,8 @@ namespace Microsoft.DiaSymReader
 
         #region Interop Helpers
 
+        // PERF: The purpose of all this code duplication is to avoid allocating any display class instances.
+        // Effectively, we will use the stack frames themselves as display classes.
         private delegate int CountGetter<TEntity>(TEntity entity, out int count);
         private delegate int ItemsGetter<TEntity, TItem>(TEntity entity, int bufferLength, out int count, TItem[] buffer);
         private delegate int ItemsGetter<TEntity, TArg1, TItem>(TEntity entity, TArg1 arg1, int bufferLength, out int count, TItem[] buffer);
@@ -151,12 +153,15 @@ namespace Microsoft.DiaSymReader
 
         /// <summary>
         /// Get the blob of binary custom debug info for a given method.
-        /// TODO: consume <paramref name="methodVersion"/> (DevDiv #1068138).
         /// </summary>
         public static byte[] GetCustomDebugInfoBytes(this ISymUnmanagedReader reader, int methodToken, int methodVersion)
         {
-            return GetItems(reader, methodToken, CdiAttributeName,
-                (ISymUnmanagedReader a, int b, string c, int d, out int e, byte[] f) => a.GetSymAttribute(b, c, d, out e, f));
+            return GetItems(
+                (ISymUnmanagedReader3)reader,
+                methodToken,
+                methodVersion,
+                (ISymUnmanagedReader3 pReader, int pMethodToken, int pMethodVersion, int pBufferLength, out int pCount, byte[] pCustomDebugInfo) =>
+                    pReader.GetSymAttributeByVersion(pMethodToken, pMethodVersion, CdiAttributeName, pBufferLength, out pCount, pCustomDebugInfo));
         }
 
         public static int GetUserEntryPoint(this ISymUnmanagedReader symReader)
