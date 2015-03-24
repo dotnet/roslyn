@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private void Default_OnAnalyzerException_NoTelemetryLogging(Exception e, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
         {
-            AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(e, analyzer, diagnostic, _hostDiagnosticUpdateSource, _project);
+            AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(e, analyzer, diagnostic, _hostDiagnosticUpdateSource, _project.Id);
         }
 
         private void Default_OnAnalyzerException(Exception e, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)

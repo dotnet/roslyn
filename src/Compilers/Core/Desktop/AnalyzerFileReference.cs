@@ -85,11 +85,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (_lazyAllAnalyzers.IsDefault)
             {
-                var allAnalyzers = MetadataCache.GetOrCreateAnalyzersFromFile(this);
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyAllAnalyzers, allAnalyzers);
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyAllAnalyzers, CreateAnalyzersForAllLanguages(this));
             }
 
             return _lazyAllAnalyzers;
+        }
+
+        private static ImmutableArray<DiagnosticAnalyzer> CreateAnalyzersForAllLanguages(AnalyzerFileReference reference)
+        {
+            // Get all analyzers in the assembly.
+            var map = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();
+            reference.AddAnalyzers(map);
+
+            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            foreach (var analyzers in map.Values)
+            {
+                builder.AddRange(analyzers);
+            }
+
+            return builder.ToImmutable();
         }
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
@@ -102,9 +116,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return ImmutableInterlocked.GetOrAdd(ref _lazyAnalyzersPerLanguage, language, CreateLanguageSpecificAnalyzers, this);
         }
 
-        private static ImmutableArray<DiagnosticAnalyzer> CreateLanguageSpecificAnalyzers(string language, AnalyzerFileReference @this)
+        private static ImmutableArray<DiagnosticAnalyzer> CreateLanguageSpecificAnalyzers(string langauge, AnalyzerFileReference reference)
         {
-            return MetadataCache.GetOrCreateAnalyzersFromFile(@this, language);
+            // Get all analyzers in the assembly for the given language.
+            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            reference.AddAnalyzers(builder, langauge);
+            return builder.ToImmutable();
         }
 
         public override string FullPath
