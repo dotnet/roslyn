@@ -2519,7 +2519,7 @@ class C
   IL_0001:  ldc.i4.3
   IL_0002:  newarr     ""int""
   IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails><MODULE>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails><MODULE>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
   IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0012:  stloc.0
   IL_0013:  ldloc.0
@@ -2828,7 +2828,7 @@ class C
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             // Should have generated call to ComputeStringHash and
-            // added the method to <PrivateImplementationDetails><MODULE>.
+            // added the method to <PrivateImplementationDetails>.
             var actualIL0 = methodData0.GetMethodIL();
             Assert.True(actualIL0.Contains(ComputeStringHashName));
 
@@ -2843,7 +2843,7 @@ class C
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
                 // Should not have generated call to ComputeStringHash nor
-                // added the method to <PrivateImplementationDetails><MODULE>.
+                // added the method to <PrivateImplementationDetails>.
                 var actualIL1 = diff1.GetMethodIL("C.F");
                 Assert.False(actualIL1.Contains(ComputeStringHashName));
 

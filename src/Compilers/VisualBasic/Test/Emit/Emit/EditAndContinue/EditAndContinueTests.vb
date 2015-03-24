@@ -459,7 +459,7 @@ End Class
   IL_0001:  ldc.i4.3
   IL_0002:  newarr     ""Integer""
   IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails><MODULE>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails><MODULE>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
   IL_000d:  call       ""Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0012:  stloc.0
   IL_0013:  ldloc.0
@@ -554,7 +554,7 @@ End Class
             Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider)
 
             ' Should have generated call to ComputeStringHash and
-            ' added the method to <PrivateImplementationDetails><MODULE>.
+            ' added the method to <PrivateImplementationDetails>.
             Dim actualIL0 = methodData0.GetMethodIL()
             Assert.True(actualIL0.Contains(ComputeStringHashName))
 
@@ -570,7 +570,7 @@ End Class
                 ImmutableArray.Create(edit))
 
                 ' Should not have generated call to ComputeStringHash nor
-                ' added the method to <PrivateImplementationDetails><MODULE>.
+                ' added the method to <PrivateImplementationDetails>.
                 Dim actualIL1 = diff1.GetMethodIL("C.F")
                 Assert.False(actualIL1.Contains(ComputeStringHashName))
 
