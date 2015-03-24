@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             blocks = moduleInstances.SelectAsArray(m => m.MetadataBlock);
 
             // Assume target module is the last module.
-            moduleVersionId = runtime.Modules.Last().MetadataReference.GetModuleVersionId();
+            moduleVersionId = runtime.GetLastModuleVersionId();
 
             var compilation = blocks.ToCompilation(moduleVersionId);
             var methodOrType = GetMethodOrTypeBySignature(compilation, methodOrTypeName);

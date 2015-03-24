@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 module.Dispose();
             }
         }
+
+        internal Guid GetLastModuleVersionId()
+        {
+            return this.Modules[this.Modules.Length - 1].MetadataReference.GetModuleVersionId();
+        }
     }
 
     internal sealed class ModuleInstance : IDisposable

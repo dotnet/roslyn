@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Globalization
-Imports System.Reflection.Metadata
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -256,7 +255,7 @@ End Class"
             ' At start of outer scope.
             Dim context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, startOffset, localSignatureToken)
             Assert.Equal(Nothing, previous)
-            previous = new VisualBasicMetadataContext(context)
+            previous = New VisualBasicMetadataContext(context)
 
             ' At end of outer scope - not reused because of the nested scope.
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken)
@@ -270,7 +269,7 @@ End Class"
 
             ' Step through entire method.
             Dim previousScope As Scope = Nothing
-            previous = new VisualBasicMetadataContext(context)
+            previous = New VisualBasicMetadataContext(context)
             For offset = startOffset To endOffset - 1
                 Dim scope = scopes.GetInnermostScope(offset)
                 Dim constraints = previous.EvaluationContext.MethodContextReuseConstraints
@@ -290,7 +289,7 @@ End Class"
                     End If
                 End If
                 previousScope = scope
-                previous = new VisualBasicMetadataContext(context)
+                previous = New VisualBasicMetadataContext(context)
             Next
 
             ' With different references.
@@ -309,7 +308,7 @@ End Class"
             Assert.NotEqual(context, previous.EvaluationContext)
             Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset - 1))
             Assert.NotEqual(context.Compilation, previous.Compilation)
-            previous = new VisualBasicMetadataContext(context)
+            previous = New VisualBasicMetadataContext(context)
 
             ' Different method. Should reuse Compilation.
             GetContextState(runtime, "C.G", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
@@ -2253,6 +2252,154 @@ End Class"
         End Sub
 
         ''' <summary>
+        ''' MakeAssemblyReferences should generate extern aliases for
+        ''' strong-named, non-framework assemblies that differ by version.
+        ''' </summary>
+        <WorkItem(1141029)>
+        <Fact>
+        Public Sub AssemblyDuplicateReferences()
+            Const sourceA =
+"Public Class A
+End Class"
+            Const sourceB =
+"Public Class B
+    Public F As New A()
+End Class"
+            Const sourceC =
+"Class C
+    Public F As New B()
+    Shared Sub M()
+    End Sub
+End Class"
+            ' Assembly A, multiple versions, strong name.
+            Dim assemblyNameA = ExpressionCompilerUtilities.GenerateUniqueName()
+            Dim publicKeyA = ImmutableArray.CreateRange(Of Byte)({&H00, &H24, &H00, &H00, &H04, &H80, &H00, &H00, &H94, &H00, &H00, &H00, &H06, &H02, &H00, &H00, &H00, &H24, &H00, &H00, &H52, &H53, &H41, &H31, &H00, &H04, &H00, &H00, &H01, &H00, &H01, &H00, &HED, &HD3, &H22, &HCB, &H6B, &HF8, &HD4, &HA2, &HFC, &HCC, &H87, &H37, &H04, &H06, &H04, &HCE, &HE7, &HB2, &HA6, &HF8, &H4A, &HEE, &HF3, &H19, &HDF, &H5B, &H95, &HE3, &H7A, &H6A, &H28, &H24, &HA4, &H0A, &H83, &H83, &HBD, &HBA, &HF2, &HF2, &H52, &H20, &HE9, &HAA, &H3B, &HD1, &HDD, &HE4, &H9A, &H9A, &H9C, &HC0, &H30, &H8F, &H01, &H40, &H06, &HE0, &H2B, &H95, &H62, &H89, &H2A, &H34, &H75, &H22, &H68, &H64, &H6E, &H7C, &H2E, &H83, &H50, &H5A, &HCE, &H7B, &H0B, &HE8, &HF8, &H71, &HE6, &HF7, &H73, &H8E, &HEB, &H84, &HD2, &H73, &H5D, &H9D, &HBE, &H5E, &HF5, &H90, &HF9, &HAB, &H0A, &H10, &H7E, &H23, &H48, &HF4, &HAD, &H70, &H2E, &HF7, &HD4, &H51, &HD5, &H8B, &H3A, &HF7, &HCA, &H90, &H4C, &HDC, &H80, &H19, &H26, &H65, &HC9, &H37, &HBD, &H52, &H81, &HF1, &H8B, &HCD})
+            Dim compilationAS1 = CreateCompilation(
+                New AssemblyIdentity(assemblyNameA, New Version(1, 1, 1, 1), cultureName:="", publicKeyOrToken:=publicKeyA, hasPublicKey:=True),
+                {sourceA},
+                references:={MscorlibRef},
+                options:=TestOptions.DebugDll.WithDelaySign(True))
+            Dim referenceAS1 = compilationAS1.EmitToImageReference()
+            Dim identityAS1 = referenceAS1.GetAssemblyIdentity()
+            Dim compilationAS2 = CreateCompilation(
+                New AssemblyIdentity(assemblyNameA, New Version(2, 1, 1, 1), cultureName:="", publicKeyOrToken:=publicKeyA, hasPublicKey:=True),
+                {sourceA},
+                references:={MscorlibRef},
+                options:=TestOptions.DebugDll.WithDelaySign(True))
+            Dim referenceAS2 = compilationAS2.EmitToImageReference()
+            Dim identityAS2 = referenceAS2.GetAssemblyIdentity()
+
+            ' Assembly B, multiple versions, strong name.
+            Dim assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName()
+            Dim publicKeyB = ImmutableArray.CreateRange(Of Byte)({&H00, &H24, &H00, &H00, &H04, &H80, &H00, &H00, &H94, &H00, &H00, &H00, &H06, &H02, &H00, &H00, &H00, &H24, &H00, &H00, &H53, &H52, &H41, &H31, &H00, &H04, &H00, &H00, &H01, &H00, &H01, &H00, &HED, &HD3, &H22, &HCB, &H6B, &HF8, &HD4, &HA2, &HFC, &HCC, &H87, &H37, &H04, &H06, &H04, &HCE, &HE7, &HB2, &HA6, &HF8, &H4A, &HEE, &HF3, &H19, &HDF, &H5B, &H95, &HE3, &H7A, &H6A, &H28, &H24, &HA4, &H0A, &H83, &H83, &HBD, &HBA, &HF2, &HF2, &H52, &H20, &HE9, &HAA, &H3B, &HD1, &HDD, &HE4, &H9A, &H9A, &H9C, &HC0, &H30, &H8F, &H01, &H40, &H06, &HE0, &H2B, &H95, &H62, &H89, &H2A, &H34, &H75, &H22, &H68, &H64, &H6E, &H7C, &H2E, &H83, &H50, &H5A, &HCE, &H7B, &H0B, &HE8, &HF8, &H71, &HE6, &HF7, &H73, &H8E, &HEB, &H84, &HD2, &H73, &H5D, &H9D, &HBE, &H5E, &HF5, &H90, &HF9, &HAB, &H0A, &H10, &H7E, &H23, &H48, &HF4, &HAD, &H70, &H2E, &HF7, &HD4, &H51, &HD5, &H8B, &H3A, &HF7, &HCA, &H90, &H4C, &HDC, &H80, &H19, &H26, &H65, &HC9, &H37, &HBD, &H52, &H81, &HF1, &H8B, &HCD})
+            Dim compilationBS1 = CreateCompilation(
+                New AssemblyIdentity(assemblyNameB, New Version(1, 1, 1, 1), cultureName:="", publicKeyOrToken:=publicKeyB, hasPublicKey:=True),
+                {sourceB},
+                references:={MscorlibRef, referenceAS1},
+                options:=TestOptions.DebugDll.WithDelaySign(True))
+            Dim referenceBS1 = compilationBS1.EmitToImageReference()
+            Dim identityBS1 = referenceBS1.GetAssemblyIdentity()
+            Dim compilationBS2 = CreateCompilation(
+                New AssemblyIdentity(assemblyNameB, New Version(2, 2, 2, 1), cultureName:="", publicKeyOrToken:=publicKeyB, hasPublicKey:=True),
+                {sourceB},
+                references:={MscorlibRef, referenceAS2},
+                options:=TestOptions.DebugDll.WithDelaySign(True))
+            Dim referenceBS2 = compilationBS2.EmitToImageReference()
+            Dim identityBS2 = referenceBS2.GetAssemblyIdentity()
+
+            ' Assembly C, multiple versions, not strong name.
+            Dim assemblyNameC = ExpressionCompilerUtilities.GenerateUniqueName()
+            Dim compilationCN1 = CreateCompilation(
+                New AssemblyIdentity(assemblyNameC, New Version(1, 1, 1, 1)),
+                {sourceC},
+                references:={MscorlibRef, referenceBS1},
+                options:=TestOptions.DebugDll)
+            Dim exeBytesC1 As Byte() = Nothing
+            Dim pdbBytesC1 As Byte() = Nothing
+            Dim references As ImmutableArray(Of MetadataReference) = Nothing
+            compilationCN1.EmitAndGetReferences(exeBytesC1, pdbBytesC1, references)
+            Dim compilationCN2 = CreateCompilation(
+                New AssemblyIdentity(assemblyNameC, New Version(2, 1, 1, 1)),
+                {sourceC},
+                references:={MscorlibRef, referenceBS2},
+                options:=TestOptions.DebugDll)
+            Dim exeBytesC2 As Byte() = Nothing
+            Dim pdbBytesC2 As Byte() = Nothing
+            compilationCN1.EmitAndGetReferences(exeBytesC2, pdbBytesC2, references)
+
+            ' Duplicate assemblies, target module referencing BS1.
+            Using runtime = CreateRuntimeInstance(
+                assemblyNameC,
+                ImmutableArray.Create(MscorlibRef, referenceAS1, referenceAS2, referenceBS1, referenceBS2),
+                exeBytesC1,
+                New SymReader(pdbBytesC1))
+                ' Compile expression with type context.
+                Dim context = CreateTypeContext(runtime, "C")
+                Dim errorMessage As String = Nothing
+                ' A is ambiguous since there were no explicit references to AS1 or AS2.
+                Dim testData = New CompilationTestData()
+                context.CompileExpression("New A()", errorMessage, testData)
+                Assert.Equal(errorMessage, "(1,6): error BC30554: 'A' is ambiguous.")
+                testData = New CompilationTestData()
+                ' B should be resolved to BS1.
+                context.CompileExpression("New B()", errorMessage, testData)
+                Dim methodData = testData.GetMethodData("<>x.<>m0")
+                methodData.VerifyIL(
+"{
+  ' Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:= newobj     ""B..ctor()""
+  IL_0005:= ret
+}")
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityBS1.GetDisplayName())
+                ' B.F should be resolved to AS1.
+                testData = New CompilationTestData()
+                context.CompileExpression("(New B()).F", errorMessage, testData)
+                methodData = testData.GetMethodData("<>x.<>m0")
+                methodData.VerifyIL(
+"{
+  ' Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:= newobj     ""B..ctor()""
+  IL_0005:= ldfld      ""A B.F""
+  IL_000a:= ret
+}")
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityAS1.GetDisplayName())
+
+                ' Compile expression with method context.
+                Dim previous = New VisualBasicMetadataContext(context)
+                context = CreateMethodContext(runtime, methodName:="C.M", previous:=previous)
+                Assert.Equal(previous.Compilation, context.Compilation) ' re-use type context compilation
+                testData = New CompilationTestData()
+                context.CompileExpression("New A()", errorMessage, testData)
+                Assert.Equal(errorMessage, "(1,6): error BC30554: 'A' is ambiguous.")
+                testData = New CompilationTestData()
+                context.CompileExpression("New B()", errorMessage, testData)
+                methodData = testData.GetMethodData("<>x.<>m0")
+                methodData.VerifyIL(
+"{
+  ' Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:= newobj     ""B..ctor()""
+  IL_0005:= ret
+}")
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityBS1.GetDisplayName())
+                testData = New CompilationTestData()
+                context.CompileExpression("(New B()).F", errorMessage, testData)
+                methodData = testData.GetMethodData("<>x.<>m0")
+                methodData.VerifyIL(
+"{
+  ' Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:= newobj     ""B..ctor()""
+  IL_0005:= ldfld      ""A B.F""
+  IL_000a:= ret
+}")
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityAS1.GetDisplayName())
+            End Using
+        End Sub
+
+        ''' <summary>
         ''' Unnamed temporaries at the end of the local
         ''' signature should be preserved.
         ''' </summary>
@@ -2292,7 +2439,7 @@ End Class"
         End Sub
 
         <WorkItem(958448)>
-        <Fact>
+                                                                                      <Fact>
         Public Sub ConditionalAttribute()
             Const source =
 "Imports System.Diagnostics
@@ -2322,7 +2469,7 @@ End Class"
         End Sub
 
         <WorkItem(958448)>
-        <Fact>
+                                                                                                          <Fact>
         Public Sub ConditionalAttribute_CollectionInitializer()
             Const source =
 "Imports System.Collections
@@ -2364,7 +2511,7 @@ End Class"
         End Sub
 
         <WorkItem(994485)>
-        <Fact>
+                                                                                                                              <Fact>
         Public Sub Repro994485()
             Const source = "
 Imports System
@@ -2490,7 +2637,7 @@ End Class
         End Sub
 
         <WorkItem(1000946)>
-        <Fact>
+                                                                                                                                                                      <Fact>
         Public Sub MyBaseExpression()
             Const source = "
 Class Base
@@ -2787,7 +2934,7 @@ End Module
         End Sub
 
         <WorkItem(1010922)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                              <Fact>
         Public Sub IntegerOverflow()
             Const source = "
 Class C
@@ -2817,7 +2964,7 @@ End Class
         End Sub
 
         <WorkItem(1012956)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                      <Fact>
         Public Sub AssignmentConversion()
             Const source = "
 Class C
@@ -2837,7 +2984,7 @@ End Class
         End Sub
 
         <WorkItem(1016530)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                              <Fact>
         Public Sub EvaluateStatement()
             Dim source = "
 Class C
@@ -2859,7 +3006,7 @@ End Class
         End Sub
 
         <WorkItem(1015887)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
         Public Sub DateTimeFieldConstant()
             Dim source = "
 Class C
@@ -2892,7 +3039,7 @@ End Class
         End Sub
 
         <WorkItem(1015887)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
         Public Sub DecimalFieldConstant()
             Dim source = "
 Class C
@@ -2929,7 +3076,7 @@ End Class
         End Sub
 
         <WorkItem(1028808)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
         Public Sub StaticLambdaInDisplayClass()
             ' Note:  I don't think the VB compiler ever generated code like this, but
             '        it doesn't hurt to make sure we do the right thing if it did...
@@ -2998,7 +3145,7 @@ End Class
         End Sub
 
         <WorkItem(1030236)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                          <Fact>
         Public Sub ExtensionMethodInContainingType()
             Dim source = "
 Imports System.Runtime.CompilerServices
@@ -3038,7 +3185,7 @@ End Module
         End Sub
 
         <WorkItem(1030236)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                              <Fact>
         Public Sub ExtensionMethodInContainingNamespace()
             Dim source = "
 Imports System.Runtime.CompilerServices
@@ -3080,7 +3227,7 @@ End Module
         End Sub
 
         <WorkItem(1030236)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  <Fact>
         Public Sub ExtensionMethodInImportedNamespace()
             Dim source = "
 Imports System.Runtime.CompilerServices
@@ -3125,7 +3272,7 @@ End Namespace
         End Sub
 
         <WorkItem(1030236)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
         Public Sub InaccessibleExtensionMethod() ' EE will be able to access this extension method anyway...
             Dim source = "
 Imports System.Runtime.CompilerServices
@@ -3165,8 +3312,8 @@ End Module
         End Sub
 
         <WorkItem(1042918)>
-        <WorkItem(964, "GitHub")>
-        <Fact(Skip:="964")>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <WorkItem(964, "GitHub")>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              <Fact(Skip:="964")>
         Public Sub ConditionalAccessExpressionType()
             Dim source =
 "Class C
@@ -3280,7 +3427,7 @@ End Class"
         End Sub
 
         <WorkItem(1024137)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
         Public Sub IteratorParameters()
             Const source = "
 Class C
@@ -3313,7 +3460,7 @@ End Class
         End Sub
 
         <WorkItem(1024137)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
         Public Sub IteratorGenericLocal()
             Const source = "
 Class C(Of T)
@@ -3418,7 +3565,7 @@ End Structure
         End Sub
 
         <WorkItem(1079749)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              <Fact>
         Public Sub RangeVariableError()
             Const source =
 "Class C
@@ -3438,7 +3585,7 @@ End Class"
         End Sub
 
         <WorkItem(1079762)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
         Public Sub Bug1079762()
             Const source = "
 Class C
@@ -3474,7 +3621,7 @@ End Class
         End Sub
 
         <WorkItem(1014763)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
         Public Sub NonStateMachineTypeParameter()
             Const source = "
 Imports System.Collections.Generic
@@ -3506,7 +3653,7 @@ End Class
         End Sub
 
         <WorkItem(1014763)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
         Public Sub StateMachineTypeParameter()
             Const source = "
 Imports System.Collections.Generic
@@ -3542,7 +3689,7 @@ End Class
         End Sub
 
         <WorkItem(1085642)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
         Public Sub ModuleWithBadImageFormat()
             Dim source = "
 Class C
@@ -3593,7 +3740,7 @@ End Class"
         End Sub
 
         <WorkItem(1089688)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
         Public Sub MissingType()
             Const libSource = "
 Public Class Missing
@@ -3659,7 +3806,7 @@ End Class
         End Sub
 
         <WorkItem(1090458)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              <Fact>
         Public Sub ObsoleteAttribute()
             Const source = "
 Imports System
@@ -3684,7 +3831,7 @@ End Class
         End Sub
 
         <WorkItem(1090458)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <Fact>
         Public Sub DeprecatedAttribute()
             Const source = "
 Imports System
@@ -3735,7 +3882,7 @@ End Namespace
         End Sub
 
         <WorkItem(1089591)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <Fact>
         Public Sub BadPdb_MissingMethod()
             Const source = "
 Public Class C
@@ -3771,7 +3918,7 @@ End Class
         End Sub
 
         <WorkItem(1108133)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <Fact>
         Public Sub SymUnmanagedReaderNotImplemented()
             Const source = "
 Public Class C
@@ -3805,7 +3952,7 @@ End Class
         End Sub
 
         <WorkItem(1105859)>
-        <Fact(Skip:="1105859")>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <Fact(Skip:="1105859")>
         Public Sub WithExpression()
             Const source =
 "Structure S
@@ -3851,7 +3998,7 @@ End Sub)",
         End Sub
 
         <WorkItem(1115543)>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
         Public Sub MethodTypeParameterInLambda()
             Const source = "
 Class C(Of T)
@@ -3906,7 +4053,7 @@ End Class"
         End Sub
 
         <WorkItem(1112496)>
-        <Fact(Skip:="1112496")>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              <Fact(Skip:="1112496")>
         Public Sub EvaluateLocalInAsyncLambda()
             Const source = "
 Imports System.Threading.Tasks
