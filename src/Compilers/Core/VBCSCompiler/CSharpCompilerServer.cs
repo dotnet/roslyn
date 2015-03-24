@@ -5,13 +5,20 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.Shell.Interop;
+using System;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class CSharpCompilerServer : CSharpCompiler
     {
+        public override Func<string, Assembly> AnalyzerLoadFunc
+        {
+            get { return InMemoryAssemblyProvider.GetAssembly; }
+        }
+
         internal CSharpCompilerServer(string responseFile, string[] args, string baseDirectory, string libDirectory)
             : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, libDirectory)
         {

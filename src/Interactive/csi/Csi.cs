@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.CodeAnalysis.Scripting;
@@ -15,6 +16,11 @@ namespace CSharpInteractive
     internal sealed class Csi : CSharpCompiler
     {
         private const string InteractiveResponseFileName = "csi.rsp";
+
+        public override Func<string, Assembly> AnalyzerLoadFunc
+        {
+            get { return InMemoryAssemblyProvider.GetAssembly; }
+        }
 
         internal Csi(string responseFile, string baseDirectory, string[] args)
             : base(CSharpCommandLineParser.Interactive, responseFile, args, baseDirectory, null /* TODO: what to pass as additionalReferencePaths? */)

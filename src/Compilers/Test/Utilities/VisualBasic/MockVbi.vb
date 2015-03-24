@@ -1,10 +1,17 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Reflection
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Friend Class MockVbi
     Inherits VisualBasicCompiler
+
+    Public Overrides ReadOnly Property AnalyzerLoadFunc As Func(Of String, Assembly)
+        Get
+            Throw New NotImplementedException()
+        End Get
+    End Property
 
     Public Sub New(responseFile As String, baseDirectory As String, args As String())
         MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, baseDirectory, Nothing)

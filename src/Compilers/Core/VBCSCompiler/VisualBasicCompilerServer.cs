@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -12,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class VisualBasicCompilerServer : VisualBasicCompiler
     {
+        public override Func<string, Assembly> AnalyzerLoadFunc
+        {
+            get { return InMemoryAssemblyProvider.GetAssembly; }
+        }
+
         internal VisualBasicCompilerServer(string responseFile, string[] args, string baseDirectory, string libDirectory)
             : base(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, libDirectory)
         {

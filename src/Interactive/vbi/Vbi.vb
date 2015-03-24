@@ -4,6 +4,7 @@ Imports System.Globalization
 Imports System.IO
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.CodeAnalysis.Scripting
@@ -13,6 +14,12 @@ Friend NotInheritable Class Vbi
     Inherits VisualBasicCompiler
 
     Friend Const InteractiveResponseFileName As String = "vbi.rsp"
+
+    Public Overrides ReadOnly Property AnalyzerLoadFunc As Func(Of String, Assembly)
+        Get
+            Return AddressOf InMemoryAssemblyProvider.GetAssembly
+        End Get
+    End Property
 
     Friend Sub New(responseFile As String, baseDirectory As String, args As String())
         MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, baseDirectory, Nothing) ' TODO: what to pass as additionalReferencePaths?

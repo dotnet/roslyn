@@ -5,8 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
+using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -36,6 +35,7 @@ namespace Microsoft.CodeAnalysis
             // TODO (tomat): to match csc.exe/vbc.exe we should use CommonCommandLineCompiler.ExistingReferencesResolver to deal with #r's
             var referenceResolver = new MetadataFileReferenceResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
             var referenceProvider = tmpWorkspace.Services.GetRequiredService<IMetadataService>().GetProvider();
+            var analyzerService = tmpWorkspace.Services.GetRequiredService<IAnalyzerService>();
             var xmlFileResolver = new XmlFileResolver(commandLineArguments.BaseDirectory);
             var strongNameProvider = new DesktopStrongNameProvider(commandLineArguments.KeyFileSearchPaths);
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // resolve all analyzer references.
-            var boundAnalyzerReferences = commandLineArguments.ResolveAnalyzerReferences();
+            var boundAnalyzerReferences = commandLineArguments.ResolveAnalyzerReferences(analyzerService.GetAnalyzer);
             var unresolvedAnalyzerReferences = boundAnalyzerReferences.FirstOrDefault(r => r is UnresolvedAnalyzerReference);
             if (unresolvedAnalyzerReferences != null)
             {

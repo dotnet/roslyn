@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -11,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     internal class MockCsi : CSharpCompiler
     {
+        public override Func<string, Assembly> AnalyzerLoadFunc
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         public MockCsi(string responseFIle, string baseDirectory, string[] args)
             : base(CSharpCommandLineParser.Interactive, responseFIle, args, baseDirectory, null)
         {

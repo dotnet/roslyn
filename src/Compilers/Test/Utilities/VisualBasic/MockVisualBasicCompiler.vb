@@ -2,11 +2,18 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Friend Class MockVisualBasicCompiler
     Inherits VisualBasicCompiler
+
+    Public Overrides ReadOnly Property AnalyzerLoadFunc As Func(Of String, Assembly)
+        Get
+            Return AddressOf InMemoryAssemblyProvider.GetAssembly
+        End Get
+    End Property
 
     Private ReadOnly _analyzers As ImmutableArray(Of DiagnosticAnalyzer)
     Public Compilation As Compilation

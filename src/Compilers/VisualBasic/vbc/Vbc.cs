@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -11,6 +12,11 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {
     internal sealed class Vbc : VisualBasicCompiler
     {
+        public override Func<string, Assembly> AnalyzerLoadFunc
+        {
+            get { return (string p) => Assembly.Load(p); }
+        }
+
         internal Vbc(string responseFile, string baseDirectory, string[] args)
             : base(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
         {

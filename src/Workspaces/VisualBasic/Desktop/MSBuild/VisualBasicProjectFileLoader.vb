@@ -26,17 +26,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function CreateProjectFile(loadedProject As MSB.Evaluation.Project) As ProjectFile
-            Return New VisualBasicProjectFile(Me, loadedProject, Me._workspaceServices.GetService(Of IMetadataService))
+            Return New VisualBasicProjectFile(Me, loadedProject, Me._workspaceServices.GetService(Of IMetadataService), Me._workspaceServices.GetService(Of IAnalyzerService))
         End Function
 
         Friend Class VisualBasicProjectFile
             Inherits ProjectFile
 
-            Private _metadataService As IMetadataService
+            Private ReadOnly _metadataService As IMetadataService
+            Private ReadOnly _analyzerService As IAnalyzerService
 
-            Public Sub New(loader As VisualBasicProjectFileLoader, loadedProject As MSB.Evaluation.Project, metadataService As IMetadataService)
+            Public Sub New(loader As VisualBasicProjectFileLoader, loadedProject As MSB.Evaluation.Project, metadataService As IMetadataService, analyzerService As IAnalyzerService)
                 MyBase.New(loader, loadedProject)
                 Me._metadataService = metadataService
+                Me._analyzerService = analyzerService
             End Sub
 
             Public Overrides Function GetSourceCodeKind(documentFileName As String) As SourceCodeKind
@@ -141,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim commandLineArgs = commandLineParser.Parse(args, executedProject.Directory)
                 Dim resolver = New MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)
                 metadataReferences = commandLineArgs.ResolveMetadataReferences(New AssemblyReferenceResolver(resolver, Me._metadataService.GetProvider()))
-                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences()
+                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(AddressOf _analyzerService.GetAnalyzer)
 
             End Sub
 

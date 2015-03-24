@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -10,6 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 {
     internal sealed class Csc : CSharpCompiler
     {
+        public override Func<string, Assembly> AnalyzerLoadFunc
+        {
+            get { return (string p) => Assembly.Load(p); }
+        }
+
         internal Csc(string responseFile, string baseDirectory, string[] args)
             : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
         {
