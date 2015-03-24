@@ -3374,102 +3374,97 @@ End Namespace
         ''' </summary>
         <Fact>
         Public Sub AnonymousTypes_SkipGeneration()
-            Dim sources0 = <compilation>
-                               <file name="a.vb"><![CDATA[
+            Dim source0 = MarkedSource("
 Class A
 End Class
 Class B
-    Shared Function F() As Object
-        Dim x As New With {.A = 1}
+    <N:3>Shared Function F() As Object</N:3>
+        Dim <N:0>x</N:0> As New With {.A = 1}
         Return x.A
     End Function
-    Shared Function G() As Object
-        Dim x As Integer = 1
+
+    <N:4>Shared Function G() As Object</N:4>
+        Dim <N:1>x</N:1> As Integer = 1
         Return x
     End Function
 End Class
-]]></file>
-                           </compilation>
-            Dim sources1 = <compilation>
-                               <file name="a.vb"><![CDATA[
+")
+
+            Dim source1 = MarkedSource("
 Class A
 End Class
 Class B
-    Shared Function F() As Object
-        Dim x As New With {.A = 1}
+    <N:3>Shared Function F() As Object</N:3>
+        Dim <N:0>x</N:0> As New With {.A = 1}
         Return x.A
     End Function
-    Shared Function G() As Object
-        Dim x As Integer = 1
+
+    <N:4>Shared Function G() As Object</N:4>
+        Dim <N:1>x</N:1> As Integer = 1
         Return x + 1
     End Function
 End Class
-]]></file>
-                           </compilation>
-            Dim sources2 = <compilation>
-                               <file name="a.vb"><![CDATA[
+")
+            Dim source2 = MarkedSource("
 Class A
 End Class
 Class B
-    Shared Function F() As Object
-        Dim x As New With {.A = 1}
+    <N:3>Shared Function F() As Object</N:3>
+        Dim <N:0>x</N:0> As New With {.A = 1}
         Return x.A
     End Function
-    Shared Function G() As Object
-        Dim x As New With {.A = New A()}
-        Dim y As New With {.B = 2}
+
+    <N:4>Shared Function G() As Object</N:4>
+        Dim <N:1>x</N:1> As New With {.A = New A()}
+        Dim <N:2>y</N:2> As New With {.B = 2}
         Return x.A
     End Function
 End Class
-]]></file>
-                           </compilation>
-            Dim sources3 = <compilation>
-                               <file name="a.vb"><![CDATA[
+")
+            Dim source3 = MarkedSource("
 Class A
 End Class
 Class B
-    Shared Function F() As Object
-        Dim x As New With {.A = 1}
+    <N:3>Shared Function F() As Object</N:3>
+        Dim <N:0>x</N:0> As New With {.A = 1}
         Return x.A
     End Function
-    Shared Function G() As Object
-        Dim x As New With {.A = New A()}
-        Dim y As New With {.B = 3}
+
+    <N:4>Shared Function G() As Object</N:4>
+        Dim <N:1>x</N:1> As New With {.A = New A()}
+        Dim <N:2>y</N:2> As New With {.B = 3}
         Return y.B
     End Function
 End Class
-]]></file>
-                           </compilation>
+")
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = compilation0.WithSource(sources1)
-            Dim compilation2 = compilation1.WithSource(sources2)
-            Dim compilation3 = compilation2.WithSource(sources3)
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+            Dim compilation3 = compilation2.WithSource(source3.Tree)
 
-            Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
-            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(
-                    ModuleMetadata.CreateFromImage(bytes0),
-                    Function(m)
-                        Select Case md0.MetadataReader.GetString(md0.MetadataReader.GetMethodDefinition(m).Name)
-                            Case "F" : Return testData0.GetMethodData("B.F").GetEncDebugInfo()
-                            Case "G" : Return testData0.GetMethodData("B.G").GetEncDebugInfo()
-                        End Select
-                        Return Nothing
-                    End Function)
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-                Dim method0 = compilation0.GetMember(Of MethodSymbol)("B.G")
-                Dim reader0 = md0.MetadataReader
-                CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "VB$AnonymousType_0`1", "A", "B")
-                Dim method1 = compilation1.GetMember(Of MethodSymbol)("B.G")
-                Dim diff1 = compilation1.EmitDifference(
-                    generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
-                Using md1 = diff1.GetMetadata()
-                    Dim reader1 = md1.Reader
-                    CheckNames({reader0, reader1}, reader1.GetTypeDefNames()) ' no additional types
-                    diff1.VerifyIL("B.G", "
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreatePdbInfoProvider().GetEncMethodDebugInfo)
+
+            Dim method0 = compilation0.GetMember(Of MethodSymbol)("B.G")
+            Dim method1 = compilation1.GetMember(Of MethodSymbol)("B.G")
+            Dim method2 = compilation2.GetMember(Of MethodSymbol)("B.G")
+            Dim method3 = compilation3.GetMember(Of MethodSymbol)("B.G")
+
+            Dim reader0 = md0.MetadataReader
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "VB$AnonymousType_0`1", "A", "B")
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+            CheckNames({reader0, reader1}, reader1.GetTypeDefNames()) ' no additional types
+
+            diff1.VerifyIL("B.G", "
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -3488,16 +3483,15 @@ End Class
   IL_000f:  ret
 }
 ")
+            Dim diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
 
-                    Dim method2 = compilation2.GetMember(Of MethodSymbol)("B.G")
-                    Dim diff2 = compilation2.EmitDifference(
-                        diff1.NextGeneration,
-                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables:=True)))
+            Dim md2 = diff2.GetMetadata()
+            Dim reader2 = md2.Reader
+            CheckNames({reader0, reader1, reader2}, reader2.GetTypeDefNames(), "VB$AnonymousType_1`1") ' one additional type
 
-                    Using md2 = diff2.GetMetadata()
-                        Dim reader2 = md2.Reader
-                        CheckNames({reader0, reader1, reader2}, reader2.GetTypeDefNames(), "VB$AnonymousType_1`1") ' one additional type
-                        diff2.VerifyIL("B.G", "
+            diff2.VerifyIL("B.G", "
 {
   // Code size       30 (0x1e)
   .maxstack  1
@@ -3521,14 +3515,14 @@ End Class
 }
 ")
 
-                        Dim method3 = compilation3.GetMember(Of MethodSymbol)("B.G")
-                        Dim diff3 = compilation3.EmitDifference(
-                        diff2.NextGeneration,
-                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method2, method3, GetEquivalentNodesMap(method3, method2), preserveLocalVariables:=True)))
-                        Using md3 = diff3.GetMetadata()
-                            Dim reader3 = md3.Reader
-                            CheckNames({reader0, reader1, reader2, reader3}, reader3.GetTypeDefNames()) ' no additional types
-                            diff3.VerifyIL("B.G", "
+            Dim diff3 = compilation3.EmitDifference(
+                diff2.NextGeneration,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method2, method3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables:=True)))
+
+            Dim md3 = diff3.GetMetadata()
+            Dim reader3 = md3.Reader
+            CheckNames({reader0, reader1, reader2, reader3}, reader3.GetTypeDefNames()) ' no additional types
+            diff3.VerifyIL("B.G", "
 {
   // Code size       35 (0x23)
   .maxstack  1
@@ -3552,10 +3546,6 @@ End Class
   IL_0022:  ret
 }
 ")
-                        End Using
-                    End Using
-                End Using
-            End Using
         End Sub
 
         ''' <summary>
