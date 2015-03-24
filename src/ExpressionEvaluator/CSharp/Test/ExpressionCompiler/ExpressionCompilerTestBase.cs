@@ -85,16 +85,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var moduleInstances = runtime.Modules;
             blocks = moduleInstances.SelectAsArray(m => m.MetadataBlock);
 
-            // Assume target module is the last module.
-            moduleVersionId = runtime.GetLastModuleVersionId();
-
-            var compilation = blocks.ToCompilation(moduleVersionId);
+            var compilation = blocks.ToCompilation(runtime.GetLastModuleVersionId()); // Assume target module is the last module.
             var methodOrType = GetMethodOrTypeBySignature(compilation, methodOrTypeName);
             var module = (PEModuleSymbol)methodOrType.ContainingModule;
             var id = module.Module.GetModuleVersionIdOrThrow();
             var moduleInstance = moduleInstances.First(m => m.ModuleVersionId == id);
 
-            Debug.Assert(moduleVersionId == id);
+            moduleVersionId = id;
             symReader = (ISymUnmanagedReader)moduleInstance.SymReader;
 
             Handle methodOrTypeHandle;
