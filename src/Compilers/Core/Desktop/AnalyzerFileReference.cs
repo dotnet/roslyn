@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Creates an AnalyzerFileReference with the given <paramref name="fullPath"/>.
         /// </summary>
         /// <param name="fullPath">Full path of the analyzer assembly.</param>
-        /// <param name="getAssembly">An optional assembly loader to override the default assembly load mechanism.</param>
+        /// <param name="getAssembly">Function for loading the analyzer assembly</param>
         public AnalyzerFileReference(string fullPath, Func<string, Assembly> getAssembly)
         {
             if (fullPath == null)
