@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes.ErrorCases
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ExceptionInRegisterMethodAsync)), Shared]
     public class ExceptionInRegisterMethodAsync : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
