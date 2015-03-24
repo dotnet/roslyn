@@ -1,3 +1,7 @@
+Microsoft.CodeAnalysis.AnalyzerAssemblyLoadEventArgs
+Microsoft.CodeAnalysis.AnalyzerAssemblyLoadEventArgs.AnalyzerAssemblyLoadEventArgs(string path, System.Reflection.Assembly loadedAssembly) -> void
+Microsoft.CodeAnalysis.AnalyzerAssemblyLoadEventArgs.LoadedAssembly.get -> System.Reflection.Assembly
+Microsoft.CodeAnalysis.AnalyzerAssemblyLoadEventArgs.Path.get -> string
 Microsoft.CodeAnalysis.AssemblyIdentityExtensions
 Microsoft.CodeAnalysis.CommandLineAnalyzerReference
 Microsoft.CodeAnalysis.CommandLineAnalyzerReference.CommandLineAnalyzerReference(string path) -> void
@@ -64,6 +68,7 @@ Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.None = 0 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer = 2 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer = 1 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
+Microsoft.CodeAnalysis.Diagnostics.InMemoryAssemblyProvider
 Microsoft.CodeAnalysis.FileSystemExtensions
 Microsoft.CodeAnalysis.RuleSet
 Microsoft.CodeAnalysis.RuleSet.FilePath.get -> string
@@ -124,6 +129,9 @@ readonly Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.TypeNam
 static Microsoft.CodeAnalysis.AssemblyIdentityExtensions.ToAssemblyName(this Microsoft.CodeAnalysis.AssemblyIdentity identity) -> System.Reflection.AssemblyName
 static Microsoft.CodeAnalysis.CommandLineParser.SplitCommandLineIntoArguments(string commandLine, bool removeHashComments) -> System.Collections.Generic.IEnumerable<string>
 static Microsoft.CodeAnalysis.DesktopAssemblyIdentityComparer.LoadFromXml(System.IO.Stream input) -> Microsoft.CodeAnalysis.DesktopAssemblyIdentityComparer
+static Microsoft.CodeAnalysis.Diagnostics.InMemoryAssemblyProvider.AssemblyLoad -> System.EventHandler<Microsoft.CodeAnalysis.AnalyzerAssemblyLoadEventArgs>
+static Microsoft.CodeAnalysis.Diagnostics.InMemoryAssemblyProvider.GetAssembly(string fullPath) -> System.Reflection.Assembly
+static Microsoft.CodeAnalysis.Diagnostics.InMemoryAssemblyProvider.TryGetRequestingAssembly(string fullPath) -> string
 static Microsoft.CodeAnalysis.FileSystemExtensions.Emit(this Microsoft.CodeAnalysis.Compilation compilation, string outputPath, string pdbPath = null, string xmlDocPath = null, string win32ResourcesPath = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription> manifestResources = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitResult
 static Microsoft.CodeAnalysis.RuleSet.GetDiagnosticOptionsFromRulesetFile(string rulesetFileFullPath, out System.Collections.Generic.Dictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> specificDiagnosticOptions) -> Microsoft.CodeAnalysis.ReportDiagnostic
 static Microsoft.CodeAnalysis.RuleSet.GetEffectiveIncludesFromFile(string filePath) -> System.Collections.Immutable.ImmutableArray<string>

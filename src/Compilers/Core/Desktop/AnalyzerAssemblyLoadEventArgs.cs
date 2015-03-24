@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class AnalyzerAssemblyLoadEventArgs : EventArgs
+    public sealed class AnalyzerAssemblyLoadEventArgs : EventArgs
     {
         private readonly string _path;
         private readonly Assembly _loadedAssembly;

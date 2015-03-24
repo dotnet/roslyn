@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// event and handle finding and loading dependencies ourselves. We also need to
     /// handle loading the dependencies' dependencies, and so on.
     /// </remarks>
-    internal static class InMemoryAssemblyProvider 
+    public static class InMemoryAssemblyProvider 
     {
         /// <summary>
         /// Maps from a full path to a file to a corresponding <see cref="Assembly"/>

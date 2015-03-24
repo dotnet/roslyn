@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (File.Exists(_fullPath))
                 {
-                    _analyzerReference = new AnalyzerFileReference(_fullPath);
+                    _analyzerReference = new AnalyzerFileReference(_fullPath, InMemoryAssemblyProvider.GetAssembly);
                     ((AnalyzerFileReference)_analyzerReference).AnalyzerLoadFailed += OnAnalyzerLoadError;
                 }
                 else
