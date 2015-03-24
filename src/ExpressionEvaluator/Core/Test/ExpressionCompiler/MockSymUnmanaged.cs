@@ -4,11 +4,12 @@ using System;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices.ComTypes;
 using Microsoft.DiaSymReader;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal sealed class MockSymUnmanagedReader : ISymUnmanagedReader
+    internal sealed class MockSymUnmanagedReader : ISymUnmanagedReader, ISymUnmanagedReader2, ISymUnmanagedReader3
     {
         private readonly ImmutableDictionary<int, MethodDebugInfoBytes> _methodDebugInfoMap;
 
@@ -35,6 +36,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public int GetSymAttribute(int methodToken, string name, int bufferLength, out int count, byte[] customDebugInformation)
         {
+            // The EE should never be calling ISymUnmanagedReader.GetSymAttribute.  
+            // In order to account for EnC updates, it should always be calling 
+            // ISymUnmanagedReader3.GetSymAttributeByVersion instead.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public int GetSymAttributeByVersion(int methodToken, int version, string name, int bufferLength, out int count, byte[] customDebugInformation)
+        {
+            Assert.Equal(1, version);
+
             Assert.Equal("MD2", name);
 
             MethodDebugInfoBytes info;
@@ -120,6 +131,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         public int GetMethodVersion(ISymUnmanagedMethod method, out int version)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int GetMethodByVersionPreRemap(int methodToken, int version, out ISymUnmanagedMethod method)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int GetSymAttributePreRemap(int methodToken, string name, int bufferLength, out int count, byte[] customDebugInformation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int GetMethodsInDocument(ISymUnmanagedDocument document, int bufferLength, out int count, ISymUnmanagedMethod[] methods)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int GetSymAttributeByVersionPreRemap(int methodToken, int version, string name, int bufferLength, out int count, byte[] customDebugInformation)
         {
             throw new NotImplementedException();
         }

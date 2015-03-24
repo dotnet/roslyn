@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices.ComTypes;
 using Microsoft.DiaSymReader;
@@ -11,27 +12,46 @@ using Roslyn.Utilities;
 
 namespace Roslyn.Test.PdbUtilities
 {
-    public sealed class SymReader : ISymUnmanagedReader, IDisposable
+    public sealed class SymReader : ISymUnmanagedReader, ISymUnmanagedReader2, ISymUnmanagedReader3, IDisposable
     {
-        private ISymUnmanagedReader _reader;
+        /// <summary>
+        /// Mock implementation: instead of a single reader with multiple versions, we'll use an array
+        /// of readers - each with a single version.  We do this so that we can implement 
+        /// <see cref="ISymUnmanagedReader3.GetSymAttributeByVersion"/> on top of 
+        /// <see cref="ISymUnmanagedReader.GetSymAttribute"/>.
+        /// </summary>
+        private readonly ISymUnmanagedReader[] _readerVersions;
         private readonly ImmutableDictionary<string, byte[]> _constantSignaturesOpt;
 
         private bool _isDisposed;
 
         public SymReader(byte[] pdbBytes, ImmutableDictionary<string, byte[]> constantSignaturesOpt = null)
-            : this(new MemoryStream(pdbBytes), constantSignaturesOpt)
+            : this(new[] { new MemoryStream(pdbBytes) }, constantSignaturesOpt)
         {
         }
 
         public SymReader(Stream pdbStream, ImmutableDictionary<string, byte[]> constantSignaturesOpt = null)
+            : this(new[] { pdbStream }, constantSignaturesOpt)
         {
-            _reader = SymUnmanagedReaderTestExtensions.CreateReader(pdbStream, DummyMetadataImport.Instance);
+        }
+
+        public SymReader(Stream[] pdbStreamsByVersion, ImmutableDictionary<string, byte[]> constantSignaturesOpt = null)
+        {
+            _readerVersions = pdbStreamsByVersion.Select(
+                pdbStream =>
+                    SymUnmanagedReaderTestExtensions.CreateReader(pdbStream, DummyMetadataImport.Instance)).ToArray();
+
+            // If ISymUnmanagedReader3 is available, then we shouldn't be passing in multiple byte streams - one should suffice.
+            Debug.Assert(!(UnversionedReader is ISymUnmanagedReader3) || _readerVersions.Length == 1);
+
             _constantSignaturesOpt = constantSignaturesOpt;
         }
 
+        private ISymUnmanagedReader UnversionedReader => _readerVersions[0];
+
         public int GetDocuments(int cDocs, out int pcDocs, ISymUnmanagedDocument[] pDocs)
         {
-            return _reader.GetDocuments(cDocs, out pcDocs, pDocs);
+            return UnversionedReader.GetDocuments(cDocs, out pcDocs, pDocs);
         }
 
         public int GetMethod(int methodToken, out ISymUnmanagedMethod retVal)
@@ -43,7 +63,11 @@ namespace Roslyn.Test.PdbUtilities
 
         public int GetMethodByVersion(int methodToken, int version, out ISymUnmanagedMethod retVal)
         {
-            var hr = _reader.GetMethodByVersion(methodToken, version, out retVal);
+            // Versions are 1-based.
+            Debug.Assert(version >= 1);
+            var reader = _readerVersions[version - 1];
+            version = _readerVersions.Length > 1 ? 1 : version;
+            var hr = reader.GetMethodByVersion(methodToken, version, out retVal);
             if (retVal != null)
             {
                 var asyncMethod = retVal as ISymUnmanagedAsyncMethod;
@@ -56,21 +80,34 @@ namespace Roslyn.Test.PdbUtilities
 
         public int GetSymAttribute(int token, string name, int sizeBuffer, out int lengthBuffer, byte[] buffer)
         {
-            return _reader.GetSymAttribute(token, name, sizeBuffer, out lengthBuffer, buffer);
+            // The EE should never be calling ISymUnmanagedReader.GetSymAttribute.  
+            // In order to account for EnC updates, it should always be calling 
+            // ISymUnmanagedReader3.GetSymAttributeByVersion instead.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public int GetSymAttributeByVersion(int methodToken, int version, string name, int bufferLength, out int count, byte[] customDebugInformation)
+        {
+            // Versions are 1-based.
+            Debug.Assert(version >= 1);
+            return _readerVersions[version - 1].GetSymAttribute(methodToken, name, bufferLength, out count, customDebugInformation);
         }
 
         public int GetUserEntryPoint(out int entryPoint)
         {
-            return _reader.GetUserEntryPoint(out entryPoint);
+            return UnversionedReader.GetUserEntryPoint(out entryPoint);
         }
 
         void IDisposable.Dispose()
         {
             if (!_isDisposed)
             {
-                int hr = (_reader as ISymUnmanagedDispose).Destroy();
-                SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
-                _reader = null;
+                for (int i = 0; i < _readerVersions.Length; i++)
+                {
+                    int hr = (_readerVersions[i] as ISymUnmanagedDispose).Destroy();
+                    SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
+                    _readerVersions[i] = null;
+                }
 
                 _isDisposed = true;
             }
@@ -78,62 +115,82 @@ namespace Roslyn.Test.PdbUtilities
 
         public int GetDocument(string url, Guid language, Guid languageVendor, Guid documentType, out ISymUnmanagedDocument document)
         {
-            return _reader.GetDocument(url, language, languageVendor, documentType, out document);
+            return UnversionedReader.GetDocument(url, language, languageVendor, documentType, out document);
         }
 
         public int GetVariables(int methodToken, int bufferLength, out int count, ISymUnmanagedVariable[] variables)
         {
-            return _reader.GetVariables(methodToken, bufferLength, out count, variables);
+            return UnversionedReader.GetVariables(methodToken, bufferLength, out count, variables);
         }
 
         public int GetGlobalVariables(int bufferLength, out int count, ISymUnmanagedVariable[] variables)
         {
-            return _reader.GetGlobalVariables(bufferLength, out count, variables);
+            return UnversionedReader.GetGlobalVariables(bufferLength, out count, variables);
         }
 
         public int GetMethodFromDocumentPosition(ISymUnmanagedDocument document, int line, int column, out ISymUnmanagedMethod method)
         {
-            return _reader.GetMethodFromDocumentPosition(document, line, column, out method);
+            return UnversionedReader.GetMethodFromDocumentPosition(document, line, column, out method);
         }
 
         public int GetNamespaces(int bufferLength, out int count, ISymUnmanagedNamespace[] namespaces)
         {
-            return _reader.GetNamespaces(bufferLength, out count, namespaces);
+            return UnversionedReader.GetNamespaces(bufferLength, out count, namespaces);
         }
 
         public int Initialize(object metadataImporter, string fileName, string searchPath, IStream stream)
         {
-            return _reader.Initialize(metadataImporter, fileName, searchPath, stream);
+            return UnversionedReader.Initialize(metadataImporter, fileName, searchPath, stream);
         }
 
         public int UpdateSymbolStore(string fileName, IStream stream)
         {
-            return _reader.UpdateSymbolStore(fileName, stream);
+            return UnversionedReader.UpdateSymbolStore(fileName, stream);
         }
 
         public int ReplaceSymbolStore(string fileName, IStream stream)
         {
-            return _reader.ReplaceSymbolStore(fileName, stream);
+            return UnversionedReader.ReplaceSymbolStore(fileName, stream);
         }
 
         public int GetSymbolStoreFileName(int bufferLength, out int count, char[] name)
         {
-            return _reader.GetSymbolStoreFileName(bufferLength, out count, name);
+            return UnversionedReader.GetSymbolStoreFileName(bufferLength, out count, name);
         }
 
         public int GetMethodsFromDocumentPosition(ISymUnmanagedDocument document, int line, int column, int bufferLength, out int count, ISymUnmanagedMethod[] methods)
         {
-            return _reader.GetMethodsFromDocumentPosition(document, line, column, bufferLength, out count, methods);
+            return UnversionedReader.GetMethodsFromDocumentPosition(document, line, column, bufferLength, out count, methods);
         }
 
         public int GetDocumentVersion(ISymUnmanagedDocument document, out int version, out bool isCurrent)
         {
-            return _reader.GetDocumentVersion(document, out version, out isCurrent);
+            return UnversionedReader.GetDocumentVersion(document, out version, out isCurrent);
         }
 
         public int GetMethodVersion(ISymUnmanagedMethod method, out int version)
         {
-            return _reader.GetMethodVersion(method, out version);
+            return UnversionedReader.GetMethodVersion(method, out version);
+        }
+
+        public int GetMethodByVersionPreRemap(int methodToken, int version, out ISymUnmanagedMethod method)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int GetSymAttributePreRemap(int methodToken, string name, int bufferLength, out int count, byte[] customDebugInformation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int GetMethodsInDocument(ISymUnmanagedDocument document, int bufferLength, out int count, ISymUnmanagedMethod[] methods)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int GetSymAttributeByVersionPreRemap(int methodToken, int version, string name, int bufferLength, out int count, byte[] customDebugInformation)
+        {
+            throw new NotImplementedException();
         }
 
         private sealed class SymMethod : ISymUnmanagedMethod
