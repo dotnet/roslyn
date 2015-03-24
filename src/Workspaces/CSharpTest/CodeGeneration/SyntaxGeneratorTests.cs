@@ -1842,6 +1842,27 @@ public class C { } // end").Members[0];
         }
 
         [Fact]
+        public void TestAccessorsOnSpecialIndexers()
+        {
+            var root = SyntaxFactory.ParseCompilationUnit(
+@"class C
+{
+   public int this[int p] { get { return p * 10; } set { } };
+   public int this[int p] => p * 10;
+}");
+            var x = _g.GetMembers(root.Members[0])[0];
+            var y = _g.GetMembers(root.Members[0])[1];
+
+            Assert.Equal(2, _g.GetAccessors(x).Count);
+            Assert.Equal(0, _g.GetAccessors(y).Count);
+
+            // adding accessors to expression value indexer will not succeed
+            var y2 = _g.AddAccessors(y, new[] { _g.GetAccessor(x, DeclarationKind.GetAccessor) });
+            Assert.NotNull(y2);
+            Assert.Equal(0, _g.GetAccessors(y2).Count);
+        }
+
+        [Fact]
         public void TestExpressionsOnSpecialProperties()
         {
             // you can get/set expression from both expression value property and initialized properties
@@ -1865,6 +1886,27 @@ public class C { } // end").Members[0];
             Assert.Equal("500", _g.GetExpression(_g.WithExpression(x, _g.LiteralExpression(500))).ToString());
             Assert.Equal("500", _g.GetExpression(_g.WithExpression(y, _g.LiteralExpression(500))).ToString());
             Assert.Equal("500", _g.GetExpression(_g.WithExpression(z, _g.LiteralExpression(500))).ToString());
+        }
+
+        [Fact]
+        public void TestExpressionsOnSpecialIndexers()
+        {
+            // you can get/set expression from both expression value property and initialized properties
+            var root = SyntaxFactory.ParseCompilationUnit(
+@"class C
+{
+   public int this[int p] { get { return p * 10; } set { } };
+   public int this[int p] => p * 10;
+}");
+            var x = _g.GetMembers(root.Members[0])[0];
+            var y = _g.GetMembers(root.Members[0])[1];
+
+            Assert.Null(_g.GetExpression(x));
+            Assert.NotNull(_g.GetExpression(y));
+            Assert.Equal("p * 10", _g.GetExpression(y).ToString());
+
+            Assert.Null(_g.GetExpression(_g.WithExpression(x, _g.LiteralExpression(500))));
+            Assert.Equal("500", _g.GetExpression(_g.WithExpression(y, _g.LiteralExpression(500))).ToString());
         }
 
         [Fact]

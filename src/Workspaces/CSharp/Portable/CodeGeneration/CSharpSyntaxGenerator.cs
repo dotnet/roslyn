@@ -2556,6 +2556,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     }
                     goto default;
 
+                case SyntaxKind.IndexerDeclaration:
+                    var id = (IndexerDeclarationSyntax)declaration;
+                    if (id.ExpressionBody != null)
+                    {
+                        return ReplaceWithTrivia(id, id.ExpressionBody.Expression, expr);
+                    }
+                    goto default;
+
                 default:
                     var eq = GetEqualsValue(declaration);
                     if (eq != null)
