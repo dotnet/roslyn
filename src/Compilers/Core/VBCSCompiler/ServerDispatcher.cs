@@ -2,12 +2,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Configuration;
+// using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.Security.AccessControl;
+// using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             CompilerServerLogger.Initialize("SRV");
             CompilerServerLogger.Log("Process started");
 
-            TimeSpan? keepAliveTimeout = null;
+            TimeSpan? keepAliveTimeout = s_defaultServerKeepAlive;
 
             // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
             // location of the response files.
@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             var pipeName = args[0].Substring(pipeArgPrefix.Length);
 
+            /*
             try
             {
                 int keepAliveValue;
@@ -112,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 keepAliveTimeout = s_defaultServerKeepAlive;
                 CompilerServerLogger.LogException(e, "Could not read AppSettings");
             }
+            */
 
             CompilerServerLogger.Log("Keep alive timeout is: {0} milliseconds.", keepAliveTimeout?.TotalMilliseconds ?? 0);
             FatalError.Handler = FailFast.OnFatalException;
@@ -434,10 +436,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             SecurityIdentifier identifier = WindowsIdentity.GetCurrent().Owner;
             PipeSecurity security = new PipeSecurity();
 
+            /*
             // Restrict access to just this account.  
             PipeAccessRule rule = new PipeAccessRule(identifier, PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow);
             security.AddAccessRule(rule);
             security.SetOwner(identifier);
+            */
 
             NamedPipeServerStream pipeStream = new NamedPipeServerStream(
                 pipeName,
@@ -447,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 PipeOptions.Asynchronous | PipeOptions.WriteThrough,
                 PipeBufferSize, // Default input buffer
                 PipeBufferSize, // Default output buffer
-                security,
+                // security,
                 HandleInheritability.None);
 
             CompilerServerLogger.Log("Successfully constructed pipe '{0}'.", pipeName);

@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 
         public override Assembly LoadAssembly(string fullPath)
         {
-            return Assembly.LoadFrom(fullPath);
+            throw new Exception();
+            // Need to figure this out for CoreCLR
+            // return Assembly.LoadFrom(fullPath);
         }
 
         protected override uint GetSqmAppID()

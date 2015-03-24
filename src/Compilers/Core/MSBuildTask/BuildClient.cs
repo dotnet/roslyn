@@ -331,6 +331,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 cancellationToken.ThrowIfCancellationRequested();
 
+                /*
+                    no security API on CoreCLR 
+
                 // Verify that we own the pipe.
                 SecurityIdentifier currentIdentity = WindowsIdentity.GetCurrent().Owner;
                 PipeSecurity remoteSecurity = pipeStream.GetAccessControl();
@@ -340,6 +343,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     Log("Owner of named pipe is incorrect");
                     return null;
                 }
+                */
 
                 return pipeStream;
             }

@@ -15,6 +15,10 @@
     <LargeAddressAware>true</LargeAddressAware>
     <Prefer32Bit>false</Prefer32Bit>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <ImplicitlyExpandTargetFramework>False</ImplicitlyExpandTargetFramework>
+    <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
@@ -26,6 +30,45 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Collections.Immutable, Version=1.1.34.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\System.Collections.Immutable.1.1.34-rc\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+
+    <Reference Include="..\..\..\..\packages\System.AppContext.4.0.0-beta-22807\ref\any\System.AppContext.dll" />
+    <Reference Include="..\..\..\..\packages\System.Collections.4.0.10-beta-22807\ref\any\System.Collections.dll" />
+    <Reference Include="..\..\..\..\packages\System.Console.4.0.0-beta-22807\ref\any\System.Console.dll" />
+    <Reference Include="..\..\..\..\packages\System.Diagnostics.Debug.4.0.10-beta-22807\ref\any\System.Diagnostics.Debug.dll" />
+    <Reference Include="..\..\..\..\packages\System.Diagnostics.FileVersionInfo.4.0.0-beta-22807\ref\any\System.Diagnostics.FileVersionInfo.dll" />
+    <Reference Include="..\..\..\..\packages\System.Diagnostics.Process.4.0.0-beta-22807\ref\any\System.Diagnostics.Process.dll" />
+    <Reference Include="..\..\..\..\packages\System.Diagnostics.Tools.4.0.0-beta-22807\ref\any\System.Diagnostics.Tools.dll" />
+    <Reference Include="..\..\..\..\packages\System.Globalization.4.0.10-beta-22807\ref\any\System.Globalization.dll" />
+    <Reference Include="..\..\..\..\packages\System.IO.4.0.10-beta-22807\ref\any\System.IO.dll" />
+    <Reference Include="..\..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22807\ref\any\System.IO.FileSystem.dll" />
+    <Reference Include="..\..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22807\ref\any\System.IO.FileSystem.Primitives.dll" />
+    <Reference Include="..\..\..\..\packages\System.IO.Pipes.4.0.0-beta-22807\ref\any\System.IO.Pipes.dll" />
+    <Reference Include="..\..\..\..\packages\System.Linq.4.0.0-beta-22807\ref\any\System.Linq.dll" />
+    <Reference Include="..\..\..\..\packages\System.Linq.Parallel.4.0.0-beta-22807\ref\any\System.Linq.Parallel.dll" />
+    <Reference Include="..\..\..\..\packages\System.Reflection.4.0.10-beta-22807\ref\any\System.Reflection.dll" />
+    <Reference Include="..\..\..\..\packages\System.Resources.ResourceManager.4.0.0-beta-22807\ref\any\System.Resources.ResourceManager.dll" />
+    <Reference Include="..\..\..\..\packages\System.Runtime.4.0.20-beta-22807\ref\any\System.Runtime.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\..\packages\System.Runtime.Handles.4.0.0-beta-22807\ref\any\System.Runtime.Handles.dll" />
+    <Reference Include="..\..\..\..\packages\System.Runtime.InteropServices.4.0.20-beta-22807\ref\any\System.Runtime.InteropServices.dll" />
+    <Reference Include="..\..\..\..\packages\System.Runtime.Extensions.4.0.10-beta-22807\ref\any\System.Runtime.Extensions.dll" />
+    <Reference Include="..\..\..\..\packages\System.Security.Cryptography.Hashing.4.0.0-beta-22807\ref\any\System.Security.Cryptography.Hashing.dll" />
+    <Reference Include="..\..\..\..\packages\System.Security.Cryptography.Hashing.Algorithms.4.0.0-beta-22807\ref\any\System.Security.Cryptography.Hashing.Algorithms.dll" />
+    <Reference Include="..\..\..\..\packages\System.Text.Encoding.4.0.10-beta-22807\ref\any\System.Text.Encoding.dll" />
+    <Reference Include="..\..\..\..\packages\System.Text.Encoding.Extensions.4.0.10-beta-22807\ref\any\System.Text.Encoding.Extensions.dll" />
+    <Reference Include="..\..\..\..\packages\System.Threading.4.0.10-beta-22807\ref\any\System.Threading.dll" />
+    <Reference Include="..\..\..\..\packages\System.Threading.Tasks.4.0.10-beta-22807\ref\any\System.Threading.Tasks.dll" />
+    <Reference Include="..\..\..\..\packages\System.Threading.Tasks.Parallel.4.0.0-beta-22807\ref\any\System.Threading.Tasks.Parallel.dll" />
+    <Reference Include="..\..\..\..\packages\System.Threading.Thread.4.0.0-beta-22807\ref\any\System.Threading.Thread.dll" />
+    <Reference Include="..\..\..\..\packages\System.Xml.ReaderWriter.4.0.10-beta-22807\ref\any\System.Xml.ReaderWriter.dll" />
+    <Reference Include="..\..\..\..\packages\System.Xml.XmlDocument.4.0.0-beta-22807\ref\any\System.Xml.XmlDocument.dll" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\vbc\vbc.csproj">

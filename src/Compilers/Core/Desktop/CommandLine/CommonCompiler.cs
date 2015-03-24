@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public virtual int Run(TextWriter consoleOutput, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var saveUICulture = Thread.CurrentThread.CurrentUICulture;
+            var saveUICulture = CultureInfo.CurrentUICulture;
             ErrorLogger errorLogger = null;
 
             try
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis
                 var culture = this.Culture;
                 if (culture != null)
                 {
-                    Thread.CurrentThread.CurrentUICulture = culture;
+                    CultureInfo.CurrentUICulture = culture;
                 }
 
                 if (Arguments.ErrorLogPath != null)
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
-                Thread.CurrentThread.CurrentUICulture = saveUICulture;
+                CultureInfo.CurrentUICulture = saveUICulture;
                 errorLogger?.Dispose();
             }
         }
@@ -560,6 +560,8 @@ namespace Microsoft.CodeAnalysis
                         sqm.BeginSession(this.GetSqmAppID(), false, out sqmSession);
                         sqm.SetGlobalSessionGuid(Arguments.SqmSessionGuid);
 
+                        /*
+                            Another place where Assembly usage is hurting us
                         // Build Version
                         sqm.SetStringDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_BUILDVERSION, GetAssemblyFileVersion());
 
@@ -613,6 +615,7 @@ namespace Microsoft.CodeAnalysis
                         }
                         sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_OUTPUTKIND, (uint)compilationOptions.OutputKind);
                         CompilerSpecificSqm(sqm, sqmSession);
+                        */
                     }
                 }
                 finally

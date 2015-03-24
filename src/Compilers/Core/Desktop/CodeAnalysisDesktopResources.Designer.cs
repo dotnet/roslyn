@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CodeAnalysisDesktopResources", typeof(CodeAnalysisDesktopResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CodeAnalysisDesktopResources", System.Reflection.IntrospectionExtensions.GetTypeInfo(typeof(CodeAnalysisDesktopResources)).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

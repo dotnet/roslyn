@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <param name="stream">The stream containing encoded text.</param>
         /// <param name="defaultEncoding">
         /// Specifies an encoding to be used if the actual encoding can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
-        /// If not specified auto-detect heuristics are used to determine the encoding. If these heuristics fail the decoding is assumed to be <see cref="Encoding.Default"/>.
+        /// If not specified auto-detect heuristics are used to determine the encoding. If these heuristics fail the decoding is assumed to be extended ASCII.
         /// Note that if the stream starts with Byte Order Mark the value of <paramref name="defaultEncoding"/> is ignored.
         /// </param>
         /// <param name="checksumAlgorithm">Hash algorithm used to calculate document checksum.</param>
@@ -135,16 +135,15 @@ namespace Microsoft.CodeAnalysis.Text
         {
             Debug.Assert(data.Position == 0);
 
-            try
+            ArraySegment<byte> segment;
+            if (data.TryGetBuffer(out segment) && segment.Offset == 0)
             {
-                buffer = data.GetBuffer();
+                buffer = segment.Array;
                 return true;
             }
-            catch (UnauthorizedAccessException)
-            {
-                buffer = null;
-                return false;
-            }
+
+            buffer = null;
+            return false;
         }
 
         /// <summary>

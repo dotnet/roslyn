@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
         public static int Main(string[] args)
             => BuildClient.RunWithConsoleOutput(
                 args,
-                clientDir: AppDomain.CurrentDomain.BaseDirectory,
+                clientDir: AppContext.BaseDirectory,
                 workingDir: Directory.GetCurrentDirectory(),
-                sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
+                sdkDir: @"C:\Windows\Microsoft.NET\Framework\v4.0.30319\mscorlib.dll",
                 language: RequestLanguage.VisualBasicCompile,
                 fallbackCompiler: Vbc.Run);
     }

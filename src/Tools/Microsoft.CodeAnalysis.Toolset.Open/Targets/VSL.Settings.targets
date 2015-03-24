@@ -20,9 +20,11 @@
     <SignAssembly Condition="'$(SignAssembly)' == ''">true</SignAssembly>
 
     <NuGetPackagesPath Condition="'$(NuGetPackagesPath)' == ''">$(MSBuildThisFileDirectory)..\..\..\..\packages</NuGetPackagesPath>
+    
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
     <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">1.0.0</RoslynSemanticVersion>
+
   </PropertyGroup>
 
   <Choose>
