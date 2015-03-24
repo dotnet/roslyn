@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return Task.FromResult(_actionSets);
             }
 
-            return Task.FromResult<IEnumerable<SuggestedActionSet>>(null);
+            return SpecializedTasks.Default<IEnumerable<SuggestedActionSet>>();
         }
 
         public override void Invoke(CancellationToken cancellationToken)
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             // The top-level action won't show any preview.
             // However, the nested sub-actions returned above will show preview.
-            return Task.FromResult<object>(null);
+            return SpecializedTasks.Default<object>();
         }
 
         public string GetDiagnosticID()
