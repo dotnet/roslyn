@@ -161,6 +161,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Shared Members.
+        /// </summary>
+        internal static string SharedMembers {
+            get {
+                return ResourceManager.GetString("SharedMembers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Static Members.
+        /// </summary>
+        internal static string StaticMembers {
+            get {
+                return ResourceManager.GetString("StaticMembers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type variables.
         /// </summary>
         internal static string TypeVariablesName {

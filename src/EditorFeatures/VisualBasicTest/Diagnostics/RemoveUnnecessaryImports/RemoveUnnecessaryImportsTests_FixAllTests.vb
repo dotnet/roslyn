@@ -51,7 +51,7 @@ End Class]]>
             Dim expected = <Workspace>
                                <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                    <Document>
-<![CDATA[Class Program
+                                       <![CDATA[Class Program
     Public x As Int32
 End Class]]>
                                    </Document>
@@ -119,12 +119,12 @@ End Class]]>
             Dim expected = <Workspace>
                                <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                    <Document>
-<![CDATA[Class Program
+                                       <![CDATA[Class Program
     Public x As Int32
 End Class]]>
                                    </Document>
                                    <Document>
-<![CDATA[Class Program2
+                                       <![CDATA[Class Program2
     Public x As Int32
 End Class]]>
                                    </Document>
@@ -184,12 +184,12 @@ End Class]]>
             Dim expected = <Workspace>
                                <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                    <Document>
-<![CDATA[Class Program
+                                       <![CDATA[Class Program
     Public x As Int32
 End Class]]>
                                    </Document>
                                    <Document>
-<![CDATA[Class Program2
+                                       <![CDATA[Class Program2
     Public x As Int32
 End Class]]>
                                    </Document>
@@ -197,7 +197,7 @@ End Class]]>
                                <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
                                    <ProjectReference>Assembly1</ProjectReference>
                                    <Document>
-<![CDATA[Class Program3
+                                       <![CDATA[Class Program3
     Public x As Int32
 End Class]]>
                                    </Document>

@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class VisualBasicTriviaFormatter
         Inherits AbstractTriviaFormatter(Of SyntaxTrivia)
 
-        Dim lineContinuationTrivia As SyntaxTrivia = SyntaxFactory.LineContinuationTrivia("_")
+        Private _lineContinuationTrivia As SyntaxTrivia = SyntaxFactory.LineContinuationTrivia("_")
 
         Private _succeeded As Boolean = True
 
@@ -190,8 +190,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Private Function FormatLineContinuationTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
-            If trivia.ToFullString() <> lineContinuationTrivia.ToFullString() Then
-                Return lineContinuationTrivia
+            If trivia.ToFullString() <> _lineContinuationTrivia.ToFullString() Then
+                Return _lineContinuationTrivia
             End If
 
             Return trivia

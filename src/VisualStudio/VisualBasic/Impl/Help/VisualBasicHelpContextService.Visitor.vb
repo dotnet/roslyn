@@ -13,16 +13,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             Inherits VisualBasicSyntaxVisitor
 
             Public result As String = Nothing
-            Dim span As TextSpan
-            Dim semanticModel As SemanticModel
-            Dim provider As VisualBasicHelpContextService
-            Private isNotMetadata As Boolean
+            Private _span As TextSpan
+            Private _semanticModel As SemanticModel
+            Private _provider As VisualBasicHelpContextService
+            Private _isNotMetadata As Boolean
 
             Public Sub New(span As TextSpan, semanticModel As SemanticModel, isNotMetadata As Boolean, provider As VisualBasicHelpContextService)
-                Me.span = span
-                Me.semanticModel = semanticModel
-                Me.isNotMetadata = isNotMetadata
-                Me.provider = provider
+                Me._span = span
+                Me._semanticModel = semanticModel
+                Me._isNotMetadata = isNotMetadata
+                Me._provider = provider
             End Sub
 
             Private Function Keyword(text As String) As String
@@ -160,7 +160,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitIfStatement(node As IfStatementSyntax)
-                If node.ThenKeyword.Span.IntersectsWith(span) Then
+                If node.ThenKeyword.Span.IntersectsWith(_span) Then
                     result = Keyword(node.ThenKeyword.Text)
                 Else
                     result = Keyword("If")
@@ -168,7 +168,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitElseIfStatement(node As ElseIfStatementSyntax)
-                If node.ThenKeyword.Span.IntersectsWith(span) Then
+                If node.ThenKeyword.Span.IntersectsWith(_span) Then
                     result = Keyword(node.ThenKeyword.Text)
                 Else
                     result = Keyword("ElseIf")
@@ -176,7 +176,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitSingleLineIfStatement(node As SingleLineIfStatementSyntax)
-                If node.ThenKeyword.Span.IntersectsWith(span) Then
+                If node.ThenKeyword.Span.IntersectsWith(_span) Then
                     result = Keyword(node.ThenKeyword.Text)
                 Else
                     result = Keyword("If")
@@ -240,7 +240,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitFieldDeclaration(node As FieldDeclarationSyntax)
-                Dim modifier = node.Modifiers.FirstOrDefault(Function(m) m.Span.IntersectsWith(span))
+                Dim modifier = node.Modifiers.FirstOrDefault(Function(m) m.Span.IntersectsWith(_span))
 
                 If modifier <> Nothing Then
                     result = Keyword(modifier.Text)
@@ -248,9 +248,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitForEachStatement(node As ForEachStatementSyntax)
-                If node.InKeyword.Span.IntersectsWith(span) Then
+                If node.InKeyword.Span.IntersectsWith(_span) Then
                     result = Keyword("In")
-                ElseIf node.EachKeyword.Span.IntersectsWith(span) Then
+                ElseIf node.EachKeyword.Span.IntersectsWith(_span) Then
                     result = Keyword("Each")
                 Else
                     result = HelpKeywords.ForEach
@@ -258,9 +258,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitForStatement(node As ForStatementSyntax)
-                If node.ToKeyword.Span.IntersectsWith(span) Then
+                If node.ToKeyword.Span.IntersectsWith(_span) Then
                     result = Keyword("To")
-                ElseIf node.StepClause.StepKeyword.Span.IntersectsWith(span) Then
+                ElseIf node.StepClause.StepKeyword.Span.IntersectsWith(_span) Then
                     result = Keyword("Step")
                 Else
                     result = Keyword("For")
@@ -272,7 +272,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitTypeParameter(node As TypeParameterSyntax)
-                If node.VarianceKeyword.Span.IntersectsWith(span) Then
+                If node.VarianceKeyword.Span.IntersectsWith(_span) Then
                     If node.VarianceKeyword.Kind() = SyntaxKind.OutKeyword Then
                         result = HelpKeywords.VarianceOut
                     Else
@@ -298,7 +298,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitGroupByClause(node As GroupByClauseSyntax)
-                If node.IntoKeyword.Span.IntersectsWith(span) Then
+                If node.IntoKeyword.Span.IntersectsWith(_span) Then
                     result = HelpKeywords.QueryGroupByInto
                 Else
                     result = HelpKeywords.QueryGroupBy
@@ -306,9 +306,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitGroupJoinClause(node As GroupJoinClauseSyntax)
-                If node.OnKeyword.Span.IntersectsWith(span) Then
+                If node.OnKeyword.Span.IntersectsWith(_span) Then
                     result = HelpKeywords.QueryGroupJoinOn
-                ElseIf node.IntoKeyword.Span.IntersectsWith(span) Then
+                ElseIf node.IntoKeyword.Span.IntersectsWith(_span) Then
                     result = HelpKeywords.QueryGroupJoinInto
                 Else
                     result = HelpKeywords.QueryGroupJoin
@@ -371,7 +371,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                         result = HelpKeywords.PartialMethod
                     End If
 
-                ElseIf node.Identifier.Span.IntersectsWith(span) AndAlso
+                ElseIf node.Identifier.Span.IntersectsWith(_span) AndAlso
                         node.Parent.Parent.Kind() = SyntaxKind.ModuleBlock AndAlso
                         node.Identifier.GetIdentifierText().Equals("Main", StringComparison.CurrentCultureIgnoreCase) Then
 
@@ -410,7 +410,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitNamedFieldInitializer(node As NamedFieldInitializerSyntax)
-                If node.KeyKeyword.Span.IntersectsWith(span) Then
+                If node.KeyKeyword.Span.IntersectsWith(_span) Then
                     result = HelpKeywords.AnonymousKey
                 End If
             End Sub
@@ -424,7 +424,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                         Return
                 End Select
 
-                If isNotMetadata Then
+                If _isNotMetadata Then
                     If Not TypeOf node.Parent Is InheritsOrImplementsStatementSyntax Then
                         If TypeOf node.Parent Is DeclarationStatementSyntax OrElse TypeOf node.Parent Is FieldDeclarationSyntax Then
                             Return
@@ -432,14 +432,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                     End If
                 End If
 
-                Dim symbol = semanticModel.GetSymbolInfo(node).Symbol
+                Dim symbol = _semanticModel.GetSymbolInfo(node).Symbol
 
                 If symbol Is Nothing Then
-                    symbol = semanticModel.GetMemberGroup(node).FirstOrDefault()
+                    symbol = _semanticModel.GetMemberGroup(node).FirstOrDefault()
                 End If
 
                 If symbol Is Nothing Then
-                    symbol = semanticModel.GetTypeInfo(node).Type
+                    symbol = _semanticModel.GetTypeInfo(node).Type
                 End If
 
                 If symbol IsNot Nothing Then
@@ -511,7 +511,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitRegionDirectiveTrivia(node As RegionDirectiveTriviaSyntax)
-                If node.Name.Span.IntersectsWith(span) Then
+                If node.Name.Span.IntersectsWith(_span) Then
                     result = Keyword(SyntaxKind.StringKeyword)
                 Else
                     result = HelpKeywords.Region
@@ -588,7 +588,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                 If node.Nullable.Kind() = SyntaxKind.QuestionToken Then
                     result = HelpKeywords.Nullable
                 Else
-                    Dim symbol = semanticModel.GetDeclaredSymbol(node)
+                    Dim symbol = _semanticModel.GetDeclaredSymbol(node)
 
                     If symbol IsNot Nothing Then
                         result = Format(symbol)
@@ -678,7 +678,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             Public Overrides Sub VisitLiteralExpression(node As LiteralExpressionSyntax)
                 Select Case node.Token.Kind()
                     Case SyntaxKind.IntegerLiteralToken
-                        Dim typeInfo = semanticModel.GetTypeInfo(node).Type
+                        Dim typeInfo = _semanticModel.GetTypeInfo(node).Type
 
                         If typeInfo IsNot Nothing Then
                             result = "vb." + typeInfo.ToDisplayString(TypeFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes))
@@ -760,7 +760,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Private Function SelectModifier(list As SyntaxTokenList) As Boolean
-                Dim modifier = list.FirstOrDefault(Function(t) t.Span.IntersectsWith(span))
+                Dim modifier = list.FirstOrDefault(Function(t) t.Span.IntersectsWith(_span))
                 If modifier <> Nothing Then
                     result = Keyword(modifier.Text)
                     Return True
@@ -770,13 +770,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Function
 
             Public Overrides Sub VisitVariableDeclarator(node As VariableDeclaratorSyntax)
-                Dim bestName = node.Names.FirstOrDefault(Function(n) n.Span.IntersectsWith(span))
+                Dim bestName = node.Names.FirstOrDefault(Function(n) n.Span.IntersectsWith(_span))
                 If bestName Is Nothing Then
                     bestName = node.Names.FirstOrDefault()
                 End If
 
                 If bestName IsNot Nothing Then
-                    Dim local = TryCast(semanticModel.GetDeclaredSymbol(bestName), ILocalSymbol)
+                    Dim local = TryCast(_semanticModel.GetDeclaredSymbol(bestName), ILocalSymbol)
                     If local IsNot Nothing Then
                         If local.Type.IsAnonymousType Then
                             result = HelpKeywords.AnonymousType
@@ -789,15 +789,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitTypeParameterList(node As TypeParameterListSyntax)
-                If node.OfKeyword.Span.IntersectsWith(span) Then
+                If node.OfKeyword.Span.IntersectsWith(_span) Then
                     result = Keyword(SyntaxKind.OfKeyword)
                 End If
             End Sub
 
             Public Overrides Sub VisitGenericName(node As GenericNameSyntax)
-                Dim symbol = semanticModel.GetSymbolInfo(node).Symbol
+                Dim symbol = _semanticModel.GetSymbolInfo(node).Symbol
                 If symbol Is Nothing Then
-                    symbol = semanticModel.GetTypeInfo(node).Type
+                    symbol = _semanticModel.GetTypeInfo(node).Type
                 End If
 
                 If symbol IsNot Nothing Then
@@ -808,9 +808,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
 
             Public Overrides Sub VisitQualifiedName(node As QualifiedNameSyntax)
                 ' Bind the thing on the right
-                Dim symbol = semanticModel.GetSymbolInfo(node.Right).Symbol
+                Dim symbol = _semanticModel.GetSymbolInfo(node.Right).Symbol
                 If symbol Is Nothing Then
-                    symbol = semanticModel.GetTypeInfo(node.Right).Type
+                    symbol = _semanticModel.GetTypeInfo(node.Right).Type
                 End If
 
                 If symbol IsNot Nothing Then
@@ -827,7 +827,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitInvocationExpression(node As InvocationExpressionSyntax)
-                Dim info = semanticModel.GetSymbolInfo(node.Expression)
+                Dim info = _semanticModel.GetSymbolInfo(node.Expression)
 
                 ' Array indexing
                 If info.Symbol IsNot Nothing Then
@@ -850,7 +850,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitMemberAccessExpression(node As MemberAccessExpressionSyntax)
-                If span.Start <= node.OperatorToken.Span.Start Then
+                If _span.Start <= node.OperatorToken.Span.Start Then
                     Visit(node.Expression)
                 Else
                     Visit(node.Name)
@@ -886,7 +886,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitCollectionRangeVariable(node As CollectionRangeVariableSyntax)
-                If node.InKeyword.Span.IntersectsWith(span) Then
+                If node.InKeyword.Span.IntersectsWith(_span) Then
                     If node.Parent.IsKind(SyntaxKind.GroupJoinClause) Then
                         result = HelpKeywords.QueryGroupJoinIn
                     End If
@@ -895,26 +895,26 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
 
             Public Overrides Sub VisitOperatorStatement(node As OperatorStatementSyntax)
                 If Not SelectModifier(node.Modifiers) Then
-                    If node.OperatorToken.Span.IntersectsWith(span) Then
+                    If node.OperatorToken.Span.IntersectsWith(_span) Then
                         result = Keyword(node.OperatorToken.ValueText)
                     End If
 
-                    If node.DeclarationKeyword.Span.IntersectsWith(span) Then
+                    If node.DeclarationKeyword.Span.IntersectsWith(_span) Then
                         result = Keyword(SyntaxKind.OperatorKeyword)
                     End If
                 End If
             End Sub
 
             Private Function TryGetDeclaredSymbol(token As SyntaxToken) As Boolean
-                If isNotMetadata Then
+                If _isNotMetadata Then
                     Return False
                 End If
 
-                If Not token.Span.IntersectsWith(span) Then
+                If Not token.Span.IntersectsWith(_span) Then
                     Return False
                 End If
 
-                Dim symbol = semanticModel.GetDeclaredSymbol(token.Parent)
+                Dim symbol = _semanticModel.GetDeclaredSymbol(token.Parent)
                 If symbol IsNot Nothing Then
                     result = Format(symbol)
                     Return True

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 #Region "ControlFlowPass and DataflowAnalysis"
 
         <Fact()>
-        Sub SyncLockInSelect()
+        Public Sub SyncLockInSelect()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation name="SyncLockInSelect">
     <file name="a.vb">
@@ -50,7 +50,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub UnreachableCode()
+        Public Sub UnreachableCode()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation name="UnreachableCode">
     <file name="a.vb">
@@ -84,7 +84,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub AssignmentInSyncLock()
+        Public Sub AssignmentInSyncLock()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation name="AssignmentInSyncLock">
     <file name="a.vb">
@@ -117,7 +117,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SyncLock_AssignmentInInLambda()
+        Public Sub SyncLock_AssignmentInInLambda()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation name="SyncLock_AssignmentInInLambda">
     <file name="a.vb">
@@ -152,7 +152,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub NestedSyncLock()
+        Public Sub NestedSyncLock()
             Dim analysisDataflow = CompileAndAnalyzeDataFlow(
 <compilation name="NestedSyncLock">
     <file name="a.vb">
@@ -183,7 +183,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DataflowOfInnerStatement()
+        Public Sub DataflowOfInnerStatement()
             Dim analysisDataflow = CompileAndAnalyzeDataFlow(
 <compilation name="DataflowOfInnerStatement">
     <file name="a.vb">
@@ -251,7 +251,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SyncLockQuery()
+        Public Sub SyncLockQuery()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="SyncLockQuery">
@@ -289,7 +289,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SyncLockGenericType()
+        Public Sub SyncLockGenericType()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="SyncLockGenericType">
     <file name="a.vb">
@@ -323,7 +323,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SyncLockAnonymous()
+        Public Sub SyncLockAnonymous()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="SyncLockAnonymous">
@@ -352,7 +352,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub SyncLockCreateObject()
+        Public Sub SyncLockCreateObject()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="SyncLockCreateObject">
@@ -383,7 +383,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockNothing()
+        Public Sub SimpleSyncLockNothing()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="SimpleSyncLockNothing">
     <file name="a.vb">
@@ -412,7 +412,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockDelegate()
+        Public Sub SimpleSyncLockDelegate()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="SimpleSyncLockDelegate">
     <file name="a.vb">
@@ -445,7 +445,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SyncLockMe()
+        Public Sub SyncLockMe()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="SyncLockMe">
     <file name="a.vb">

@@ -9,15 +9,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestSignatureHelpPresenter
         Implements IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)
 
-        Private ReadOnly testState As IIntelliSenseTestState
+        Private ReadOnly _testState As IIntelliSenseTestState
 
         Public Sub New(testState As IIntelliSenseTestState)
-            Me.testState = testState
+            Me._testState = testState
         End Sub
 
         Public Function CreateSession(textView As ITextView, subjectBuffer As ITextBuffer, sessionOpt As ISignatureHelpSession) As ISignatureHelpPresenterSession _
             Implements IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession).CreateSession
-            Return New TestSignatureHelpPresenterSession(testState)
+            Return New TestSignatureHelpPresenterSession(_testState)
         End Function
     End Class
 End Namespace

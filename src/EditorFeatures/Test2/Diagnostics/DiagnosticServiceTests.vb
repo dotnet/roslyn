@@ -834,7 +834,7 @@ public class B
         End Sub
 
         <Fact, WorkItem(1109105)>
-        Sub TestMethodSymbolAnalyzer_MustOverrideMethod()
+        Public Sub TestMethodSymbolAnalyzer_MustOverrideMethod()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -876,7 +876,7 @@ End Class
             End Using
         End Sub
 
-        Class MustOverrideMethodAnalyzer
+        Public Class MustOverrideMethodAnalyzer
             Inherits DiagnosticAnalyzer
 
             Public Shared Desriptor1 As New DiagnosticDescriptor("MustOverrideMethodDiagnostic", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
@@ -901,7 +901,7 @@ End Class
         End Class
 
         <Fact, WorkItem(565)>
-        Sub TestFieldDeclarationAnalyzer()
+        Public Sub TestFieldDeclarationAnalyzer()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document>
@@ -945,7 +945,7 @@ public class B
             End Using
         End Sub
 
-        Class FieldDeclarationAnalyzer
+        Public Class FieldDeclarationAnalyzer
             Inherits DiagnosticAnalyzer
 
             Public Shared Desriptor1 As New DiagnosticDescriptor("FieldDeclarationDiagnostic", "DummyDescription", "{0}", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
@@ -967,7 +967,7 @@ public class B
         End Class
 
         <Fact, WorkItem(530)>
-        Sub TestCompilationAnalyzerWithAnalyzerOptions()
+        Public Sub TestCompilationAnalyzerWithAnalyzerOptions()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document>
@@ -1078,11 +1078,11 @@ public class B
         Private Class ProjectDiagnosticAnalyzer
             Inherits AbstractDiagnosticAnalyzer
 
-            Private ReadOnly index As Integer
+            Private ReadOnly _index As Integer
             Public ReadOnly Descriptor As DiagnosticDescriptor
 
             Public Sub New(index As Integer)
-                Me.index = index
+                Me._index = index
                 Me.Descriptor = New DiagnosticDescriptor("XX000" + index.ToString,
                                                      "ProjectDiagnosticDescription",
                                                      "ProjectDiagnosticMessage",
@@ -1121,9 +1121,9 @@ public class B
         Private Class PartialTypeDiagnosticAnalyzer
             Inherits DiagnosticAnalyzer
 
-            Private ReadOnly indexOfDeclToReportDiagnostic As Integer
+            Private ReadOnly _indexOfDeclToReportDiagnostic As Integer
             Public Sub New(indexOfDeclToReportDiagnostic As Integer)
-                Me.indexOfDeclToReportDiagnostic = indexOfDeclToReportDiagnostic
+                Me._indexOfDeclToReportDiagnostic = indexOfDeclToReportDiagnostic
             End Sub
 
             Public Shared ReadOnly DiagDescriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic")
@@ -1139,7 +1139,7 @@ public class B
             End Sub
 
             Private Sub AnalyzeSymbol(context As SymbolAnalysisContext)
-                context.ReportDiagnostic(Diagnostic.Create(DiagDescriptor, context.Symbol.Locations.ElementAt(Me.indexOfDeclToReportDiagnostic)))
+                context.ReportDiagnostic(Diagnostic.Create(DiagDescriptor, context.Symbol.Locations.ElementAt(Me._indexOfDeclToReportDiagnostic)))
             End Sub
         End Class
 
@@ -1297,14 +1297,14 @@ public class B
             End Sub
 
             Private Class CompilationAnalyzer
-                Private ReadOnly symbolNames As New ConcurrentSet(Of String)
+                Private ReadOnly _symbolNames As New ConcurrentSet(Of String)
 
                 Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
-                    symbolNames.Add(context.Symbol.Name)
+                    _symbolNames.Add(context.Symbol.Name)
                 End Sub
 
                 Public Sub AnalyzeCompilation(context As CompilationAnalysisContext)
-                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None, symbolNames.Count))
+                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None, _symbolNames.Count))
                 End Sub
             End Class
         End Class

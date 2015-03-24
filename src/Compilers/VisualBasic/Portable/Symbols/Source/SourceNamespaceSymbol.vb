@@ -483,7 +483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Case SyntaxKind.GlobalName
                         ValidateNamespaceGlobalSyntax(DirectCast(node, GlobalNameSyntax), diagnostics)
                     Case SyntaxKind.CompilationUnit
-                    ' nothing to validate
+                        ' nothing to validate
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(node.Kind)
                 End Select
@@ -630,9 +630,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' just find the declaration that encloses the location (as opposed to recreating the name 
                 ' by walking the syntax)
                 Dim containingDecl = _declaration.Declarations.FirstOrDefault(Function(decl)
-                                                                                   Dim nsBlock As NamespaceBlockSyntax = decl.GetNamespaceBlockSyntax()
-                                                                                   Return nsBlock IsNot Nothing AndAlso nsBlock.SyntaxTree Is tree AndAlso nsBlock.Span.Contains(location)
-                                                                               End Function)
+                                                                                  Dim nsBlock As NamespaceBlockSyntax = decl.GetNamespaceBlockSyntax()
+                                                                                  Return nsBlock IsNot Nothing AndAlso nsBlock.SyntaxTree Is tree AndAlso nsBlock.Span.Contains(location)
+                                                                              End Function)
                 If containingDecl Is Nothing Then
                     ' Could be project namespace, which has no namespace block syntax.
                     containingDecl = _declaration.Declarations.FirstOrDefault(Function(decl) decl.GetNamespaceBlockSyntax() Is Nothing)

@@ -15,7 +15,7 @@ Imports Moq
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
-    Module TestHelpers
+    Friend Module TestHelpers
         Public Sub AssertItemsAre(workspaceElement As XElement, ParamArray expectedItems As ExpectedItem())
             AssertItemsAre(workspaceElement, True, expectedItems)
         End Sub

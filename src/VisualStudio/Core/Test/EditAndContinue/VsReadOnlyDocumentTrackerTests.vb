@@ -240,8 +240,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
         Public Class VsEditorAdaptersFactoryServiceMock
             Implements IVsEditorAdaptersFactoryService
 
-            Dim _buffer As IVsTextBuffer
-            Sub New(buffer As IVsTextBuffer)
+            Private _buffer As IVsTextBuffer
+            Public Sub New(buffer As IVsTextBuffer)
                 _buffer = buffer
             End Sub
 

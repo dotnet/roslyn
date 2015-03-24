@@ -6,7 +6,7 @@ Imports Microsoft.VisualStudio.TextManager.Interop
 Imports MSXML
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
-    Class TestExpansionSession
+    Friend Class TestExpansionSession
         Implements IVsExpansionSession, IVsExpansionSessionInternal
 
         Public snippetSpanInSurfaceBuffer As TextSpan

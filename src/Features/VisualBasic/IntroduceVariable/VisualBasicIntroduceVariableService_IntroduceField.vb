@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
-    Partial Class VisualBasicIntroduceVariableService
+    Friend Partial Class VisualBasicIntroduceVariableService
         Protected Overrides Async Function IntroduceFieldAsync(document As SemanticDocument,
                                                     expression As ExpressionSyntax,
                                                     allOccurrences As Boolean,

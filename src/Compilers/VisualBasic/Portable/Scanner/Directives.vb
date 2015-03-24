@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     SyntaxKind.EnableWarningDirectiveTrivia, 'TODO: Add support for processing #Enable and #Disable
                     SyntaxKind.DisableWarningDirectiveTrivia
 
-                ' These directives require no processing
+                    ' These directives require no processing
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(statement.Kind)

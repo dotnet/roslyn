@@ -163,14 +163,14 @@ End Class
 
 
 
-Class NameToUpdate
+Friend Class NameToUpdate
     Public kind As updateKind
     Public typeName As String
     Public memberName As String
     Public newName As String
 End Class
 
-Enum UpdateKind
+Friend Enum UpdateKind
     [Enum]
     Enumerator
     [Class]

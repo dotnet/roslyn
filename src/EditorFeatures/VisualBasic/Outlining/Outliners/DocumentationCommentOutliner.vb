@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-    Class DocumentationCommentOutliner
+    Friend Class DocumentationCommentOutliner
         Inherits AbstractSyntaxNodeOutliner(Of DocumentationCommentTriviaSyntax)
 
         Private Shared Function GetBannerText(documentationComment As DocumentationCommentTriviaSyntax, cancellationToken As CancellationToken) As String

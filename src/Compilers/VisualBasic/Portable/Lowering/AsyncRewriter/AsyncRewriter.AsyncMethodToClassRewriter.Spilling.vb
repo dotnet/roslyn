@@ -363,6 +363,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         _conditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled = True
                         Return expr
 
+                    Case BoundKind.ComplexConditionalAccessReceiver
+                        Throw ExceptionUtilities.Unreachable
+
                     Case Else
                         ' Create a field for a spill
                         Dim spillField As FieldSymbol = Me._spillFieldAllocator.AllocateField(expr.Type)

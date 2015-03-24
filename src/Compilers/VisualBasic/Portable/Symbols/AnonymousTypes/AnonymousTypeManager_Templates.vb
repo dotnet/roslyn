@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             cache As ConcurrentDictionary(Of String, T))
 
             If cache IsNot Nothing Then
-                For Each template In From kv In cache Order By kv.Key Select kv.Value
+                For Each template In cache.Values
                     If template.Manager Is Me Then
                         builder.Add(template)
                     End If
@@ -186,9 +186,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' If the collection is not sealed yet we should assign new indexes 
             ' to the created anonymous type and delegate templates
             If Not Me.AreTemplatesSealed Then
-
-                ' Sort types and delegates using smallest location
-                builder.Sort(New AnonymousTypeComparer(Me.Compilation))
 
                 ' If we are emitting .NET module, include module's name into type's name to ensure
                 ' uniqueness across added modules.
@@ -238,8 +235,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If builder.Count > 0 AndAlso Not Me.CheckAndReportMissingSymbols(builder, diagnostics) Then
 
                 ' Process all the templates
-                For newIndex = 0 To builder.Count - 1
-                    builder(newIndex).Accept(compiler)
+                For Each template In builder
+                    template.Accept(compiler)
                 Next
             End If
 
@@ -301,8 +298,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Sub GetAllCreatedTemplates(builder As ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol))
+            Debug.Assert(Not builder.Any())
+
             AddFromCache(builder, Me._concurrentTypesCache)
             AddFromCache(builder, Me._concurrentDelegatesCache)
+
+            If builder.Any() Then
+                ' Sort types and delegates using smallest location
+                builder.Sort(New AnonymousTypeComparer(Me.Compilation))
+            End If
         End Sub
 
         Private NotInheritable Class AnonymousTypeComparer

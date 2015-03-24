@@ -5,7 +5,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives
-    Module PreprocessorHelpers
+    Friend Module PreprocessorHelpers
         <Extension()>
         Public Function GetInnermostIfPreprocessorKind(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxKind?
             Dim kindStack = New IfDirectiveVisitor(syntaxTree, position, cancellationToken).GetStack()

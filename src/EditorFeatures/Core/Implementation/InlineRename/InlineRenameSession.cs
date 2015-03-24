@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 foreach (var buffer in openBuffers)
                 {
-                    CreateOpenTextBufferManagerForBuffer(buffer, buffer.AsTextContainer().GetRelatedDocuments());
+                    TryPopulateOpenTextBufferManagerForBuffer(buffer, buffer.AsTextContainer().GetRelatedDocuments());
                 }
             }
 
@@ -166,15 +167,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             RenameTrackingDismisser.DismissRenameTracking(_workspace, _workspace.GetOpenDocumentIds());
         }
 
-        private void CreateOpenTextBufferManagerForBuffer(ITextBuffer buffer, IEnumerable<Document> documents)
+        private bool TryPopulateOpenTextBufferManagerForBuffer(ITextBuffer buffer, IEnumerable<Document> documents)
         {
             AssertIsForeground();
             VerifyNotDismissed();
 
-            if (!_openTextBuffers.ContainsKey(buffer))
+            var documentSupportsRefactoringService = _workspace.Services.GetService<IDocumentSupportsSuggestionService>();
+
+            if (!_openTextBuffers.ContainsKey(buffer) && documents.All(d => documentSupportsRefactoringService.SupportsRename(d)))
             {
                 _openTextBuffers[buffer] = new OpenTextBufferManager(this, buffer, _workspace, documents, _textBufferFactoryService);
+                return true;
             }
+
+            return _openTextBuffers.ContainsKey(buffer);
         }
 
         private void OnSubjectBuffersConnected(object sender, SubjectBuffersConnectedEventArgs e)
@@ -185,9 +191,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 if (buffer.GetWorkspace() == _workspace)
                 {
                     var documents = buffer.AsTextContainer().GetRelatedDocuments();
-                    CreateOpenTextBufferManagerForBuffer(buffer, documents);
-
-                    _openTextBuffers[buffer].ConnectToView(e.TextView);
+                    if (TryPopulateOpenTextBufferManagerForBuffer(buffer, documents))
+                    {
+                        _openTextBuffers[buffer].ConnectToView(e.TextView);
+                    }
                 }
             }
         }

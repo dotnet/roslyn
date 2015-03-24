@@ -23,10 +23,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
     Friend Class VisualBasicNavigationBarItemService
         Inherits AbstractNavigationBarItemService
 
-        Private ReadOnly TypeFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
+        Private ReadOnly _typeFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
             genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance)
 
-        Private ReadOnly MemberFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
+        Private ReadOnly _memberFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
             genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
             memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or SymbolDisplayMemberOptions.IncludeType,
             parameterOptions:=SymbolDisplayParameterOptions.IncludeType,
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         Private ReadOnly _textUndoHistoryRegistry As ITextUndoHistoryRegistry
 
         <ImportingConstructor>
-        Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService, textUndoHistoryRegistry As ITextUndoHistoryRegistry)
+        Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService, textUndoHistoryRegistry As ITextUndoHistoryRegistry)
             _editorOperationsFactoryService = editorOperationsFactoryService
             _textUndoHistoryRegistry = textUndoHistoryRegistry
         End Sub
@@ -229,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 Next
             End If
 
-            Dim name = type.ToDisplayString(TypeFormat)
+            Dim name = type.ToDisplayString(_typeFormat)
 
             If type.ContainingType IsNot Nothing Then
                 name &= " (" & type.ContainingType.ToDisplayString() & ")"
@@ -394,7 +394,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             ' If there is exactly one member that has no type arguments, we will skip showing the
             ' parameters for it to maintain behavior with Dev11
-            Dim displayFormat = If(members.Count() = 1 AndAlso firstMember.GetArity() = 0, New SymbolDisplayFormat(), MemberFormat)
+            Dim displayFormat = If(members.Count() = 1 AndAlso firstMember.GetArity() = 0, New SymbolDisplayFormat(), _memberFormat)
 
             ' If we're doing operators, we want to include the keyword
             If firstMember.IsUserDefinedOperator OrElse firstMember.IsConversion Then
