@@ -312,7 +312,7 @@ End Class
             Assert.Equal("q, y, s1, z", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
             Assert.Equal("Me, args, q, y, q1, s1, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("y, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>

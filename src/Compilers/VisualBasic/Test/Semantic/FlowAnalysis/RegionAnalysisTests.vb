@@ -1192,16 +1192,16 @@ Class C
     Sub F()
         Dim result1 = From a In {1}
                     From b In {2}
-                    Where a+b > 0
+                    Where Z(Function() a+b)
                     Select a
         Dim result2 = From c In {1}
                     From d In {2}
-                    Where Z(Function() [|c+d|]) > 0
+                    Where Z(Function() [|c|]+d) > 0
                     Select c
     End Sub
 End Class</file>
       </compilation>)
-            Assert.Equal("Me, c, d", GetSymbolNamesJoined(analysis.Captured))
+            Assert.Equal("Me, c", GetSymbolNamesJoined(analysis.Captured))
         End Sub
 
         <WorkItem(543645, "DevDiv")>

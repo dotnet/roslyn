@@ -83,6 +83,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        Private Sub NoteCaptured(variable As Symbol)
+            If variable.Kind <> SymbolKind.RangeVariable Then
+                _captured.Add(variable)
+            Else
+                Select Case Me._regionPlace
+                    Case RegionPlace.Before, RegionPlace.After
+                        ' range variables are only returned in the captured set if inside the region
+                    Case RegionPlace.Inside
+                        _captured.Add(variable)
+                    Case Else
+                        Debug.Assert(False)
+                End Select
+            End If
+        End Sub
+
         Protected Overrides Sub NoteRead(fieldAccess As BoundFieldAccess)
             MyBase.NoteRead(fieldAccess)
             If (Me._regionPlace <> RegionPlace.Inside AndAlso fieldAccess.Syntax.Span.Contains(_region)) Then NoteReceiverRead(fieldAccess)
@@ -146,19 +161,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Case SymbolKind.RangeVariable
                     Dim range = DirectCast(variable, RangeVariableSymbol)
-                    If Me._currentMethodOrLambda = range.ContainingSymbol Then
-                        ' OK, defined in same method, so not captured
-                    ElseIf Me._currentQueryLambda Is Nothing Then
-                        ' Not in a query lambda, but defined and used in different methods, so captured.
-                        Throw New NullReferenceException()
-                        Me._captured.Add(range)
-                    Else
-                        ' If in a nested lambda, or
-                        ' Not one of the range variables of the current query, then captured
-                        If Me._currentMethodOrLambda <> Me._currentQueryLambda.LambdaSymbol OrElse
-                            Not Me._currentQueryLambda.RangeVariables.Contains(range) Then
-                            Me._captured.Add(range)
-                        End If
+                    If Me._currentMethodOrLambda <> range.ContainingSymbol AndAlso
+                        (Me._currentQueryLambda Is Nothing OrElse ' might be Nothing in error scenarios
+                         Me._currentMethodOrLambda <> Me._currentQueryLambda.LambdaSymbol OrElse
+                            Not Me._currentQueryLambda.RangeVariables.Contains(range)) Then
+                        Me.NoteCaptured(range) ' Range variables only captured if in region
                     End If
             End Select
         End Sub
