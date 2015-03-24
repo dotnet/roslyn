@@ -136,12 +136,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case variable.Kind
                 Case SymbolKind.Local
                     Dim local = DirectCast(variable, LocalSymbol)
-                    If Not (local.IsConst Or Me._currentMethodOrLambda = local.ContainingSymbol) Then
+                    If Not local.IsConst AndAlso Me._currentMethodOrLambda <> local.ContainingSymbol Then
                         Me._captured.Add(local)
                     End If
                 Case SymbolKind.Parameter
                     Dim param = DirectCast(variable, ParameterSymbol)
-                    If Not (Me._currentMethodOrLambda = param.ContainingSymbol) Then
+                    If Me._currentMethodOrLambda <> param.ContainingSymbol Then
                         Me._captured.Add(param)
                     End If
                 Case SymbolKind.RangeVariable
@@ -150,12 +150,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' OK, defined in same method, so not captured
                     ElseIf Me._currentQueryLambda Is Nothing Then
                         ' Not in a query lambda, but defined and used in different methods, so captured.
+                        Throw New NullReferenceException()
                         Me._captured.Add(range)
                     Else
                         ' If in a nested lambda, or
                         ' Not one of the range variables of the current query, then captured
-                        If Not (Me._currentMethodOrLambda = Me._currentQueryLambda.LambdaSymbol) OrElse
-                            Not (Me._currentQueryLambda.RangeVariables.Contains(range)) Then
+                        If Me._currentMethodOrLambda <> Me._currentQueryLambda.LambdaSymbol OrElse
+                            Not Me._currentQueryLambda.RangeVariables.Contains(range) Then
                             Me._captured.Add(range)
                         End If
                     End If
