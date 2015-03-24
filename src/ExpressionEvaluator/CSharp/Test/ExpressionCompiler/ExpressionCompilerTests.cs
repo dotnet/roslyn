@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var constraints = previous.EvaluationContext.MethodContextReuseConstraints;
                 if (constraints.HasValue)
                 {
-                    Assert.Equal(scope == previousScope, constraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset));
+                    Assert.Equal(scope == previousScope, constraints.GetValueOrDefault().AreSatisfied(methodToken, methodVersion, offset));
                 }
 
                 context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, offset, localSignatureToken);
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // Different references. No reuse.
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken);
             Assert.NotEqual(context, previous.EvaluationContext);
-            Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset));
+            Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(methodToken, methodVersion, endOffset));
             Assert.NotEqual(context.Compilation, previous.Compilation);
             previous = new CSharpMetadataContext(context);
 
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             GetContextState(runtime, "C.G", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken);
             Assert.NotEqual(context, previous.EvaluationContext);
-            Assert.False(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, 0));
+            Assert.False(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(methodToken, methodVersion, 0));
             Assert.Equal(context.Compilation, previous.Compilation);
 
             // No EvaluationContext. Should reuse Compilation
@@ -5716,8 +5716,8 @@ class C
                 includeLocalSignatures: false);
 
             modulesBuilder.Add(corruptMetadata);
-            modulesBuilder.Add(exeReference.ToModuleInstance(exeBytes, new SymReader(pdbBytes)));
             modulesBuilder.AddRange(references.Select(r => r.ToModuleInstance(fullImage: null, symReader: null)));
+            modulesBuilder.Add(exeReference.ToModuleInstance(exeBytes, new SymReader(pdbBytes)));
             var modules = modulesBuilder.ToImmutableAndFree();
 
             using (var runtime = new RuntimeInstance(modules))

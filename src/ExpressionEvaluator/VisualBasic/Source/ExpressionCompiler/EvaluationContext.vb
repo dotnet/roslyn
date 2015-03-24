@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim previousContext = previous.EvaluationContext
                 If previousContext IsNot Nothing AndAlso
                     previousContext.MethodContextReuseConstraints.HasValue AndAlso
-                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, ilOffset) Then
+                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(methodToken, methodVersion, ilOffset) Then
                     Return previousContext
                 End If
                 compilation = previous.Compilation

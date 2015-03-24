@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void AreSatisfied()
         {
-            var moduleVersionId = Guid.NewGuid();
             const int methodToken = 0x06000001;
             const int methodVersion = 1;
             const uint startOffset = 1;
@@ -23,14 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 startOffset, 
                 endOffsetExclusive);
 
-            Assert.True(constraints.AreSatisfied(moduleVersionId, methodToken, methodVersion, (int)startOffset));
-            Assert.True(constraints.AreSatisfied(moduleVersionId, methodToken, methodVersion, (int)endOffsetExclusive - 1));
+            Assert.True(constraints.AreSatisfied(methodToken, methodVersion, (int)startOffset));
+            Assert.True(constraints.AreSatisfied(methodToken, methodVersion, (int)endOffsetExclusive - 1));
 
-            Assert.False(constraints.AreSatisfied(Guid.NewGuid(), methodToken, methodVersion, (int)startOffset));
-            Assert.False(constraints.AreSatisfied(moduleVersionId, methodToken + 1, methodVersion, (int)startOffset));
-            Assert.False(constraints.AreSatisfied(moduleVersionId, methodToken, methodVersion + 1, (int)startOffset));
-            Assert.False(constraints.AreSatisfied(moduleVersionId, methodToken, methodVersion, (int)startOffset - 1));
-            Assert.False(constraints.AreSatisfied(moduleVersionId, methodToken, methodVersion, (int)endOffsetExclusive));
+            Assert.False(constraints.AreSatisfied(methodToken + 1, methodVersion, (int)startOffset));
+            Assert.False(constraints.AreSatisfied(methodToken, methodVersion + 1, (int)startOffset));
+            Assert.False(constraints.AreSatisfied(methodToken, methodVersion, (int)startOffset - 1));
+            Assert.False(constraints.AreSatisfied(methodToken, methodVersion, (int)endOffsetExclusive));
         }
 
         [Fact]

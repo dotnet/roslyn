@@ -274,7 +274,7 @@ End Class"
                 Dim scope = scopes.GetInnermostScope(offset)
                 Dim constraints = previous.EvaluationContext.MethodContextReuseConstraints
                 If constraints.HasValue Then
-                    Assert.Equal(scope Is previousScope, constraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset))
+                    Assert.Equal(scope Is previousScope, constraints.GetValueOrDefault().AreSatisfied(methodToken, methodVersion, offset))
                 End If
 
                 context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, offset, localSignatureToken)
@@ -306,7 +306,7 @@ End Class"
             ' Different references. No reuse.
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset - 1, localSignatureToken)
             Assert.NotEqual(context, previous.EvaluationContext)
-            Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset - 1))
+            Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(methodToken, methodVersion, endOffset - 1))
             Assert.NotEqual(context.Compilation, previous.Compilation)
             previous = New VisualBasicMetadataContext(context)
 
@@ -314,7 +314,7 @@ End Class"
             GetContextState(runtime, "C.G", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken)
             Assert.NotEqual(context, previous.EvaluationContext)
-            Assert.False(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, 0))
+            Assert.False(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(methodToken, methodVersion, 0))
             Assert.Equal(context.Compilation, previous.Compilation)
 
             ' No EvaluationContext. Should reuse Compilation

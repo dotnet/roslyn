@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             _endOffsetExclusive = endOffsetExclusive;
         }
 
-        public bool AreSatisfied(Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset)
+        public bool AreSatisfied(int methodToken, int methodVersion, int ilOffset)
         {
             return methodToken == _methodToken &&
                 methodVersion == _methodVersion &&
