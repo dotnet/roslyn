@@ -20,18 +20,10 @@ namespace Microsoft.Cci
         private readonly bool _deterministic;
 
         private readonly IModule _module;
-        private readonly PdbWriter _nativePdbWriter;
+        private readonly PdbWriter _nativePdbWriterOpt;
+        private readonly string _pdbPathOpt;
         private readonly bool _emitRuntimeStartupStub;
         private readonly uint _sizeOfImportAddressTable;
-
-        private PeWriter(IModule module, PdbWriter nativePdbWriter, bool deterministic)
-        {
-            _module = module;
-            _emitRuntimeStartupStub = module.RequiresStartupStub;
-            _nativePdbWriter = nativePdbWriter;
-            _deterministic = deterministic;
-            _sizeOfImportAddressTable = _emitRuntimeStartupStub ? (!_module.Requires64bits ? 8u : 16u) : 0;
-        }
 
         private PeDebugDirectory _debugDirectory;
         private MemoryStream _headerStream = new MemoryStream(1024);
@@ -54,16 +46,32 @@ namespace Microsoft.Cci
         private SectionHeader _textSection;
         private SectionHeader _tlsSection;
 
+        private PeWriter(IModule module, PdbWriter nativePdbWriterOpt, string pdbPathOpt, bool deterministic)
+        {
+            _module = module;
+            _emitRuntimeStartupStub = module.RequiresStartupStub;
+            _nativePdbWriterOpt = nativePdbWriterOpt;
+            _pdbPathOpt = pdbPathOpt;
+            _deterministic = deterministic;
+            _sizeOfImportAddressTable = _emitRuntimeStartupStub ? (!_module.Requires64bits ? 8u : 16u) : 0;
+        }
+
+        private bool EmitPdb => _pdbPathOpt != null;
+
         public static bool WritePeToStream(
             EmitContext context,
             CommonMessageProvider messageProvider,
             Func<Stream> getPeStream,
             PdbWriter nativePdbWriterOpt,
+            string pdbPathOpt,
             bool allowMissingMethodBodies,
             bool deterministic,
             CancellationToken cancellationToken)
         {
-            var peWriter = new PeWriter(context.Module, nativePdbWriterOpt, deterministic);
+            // If PDB writer is given, we have to have PDB path.
+            Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
+
+            var peWriter = new PeWriter(context.Module, nativePdbWriterOpt, pdbPathOpt, deterministic);
 
             var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
 
@@ -314,12 +322,15 @@ namespace Microsoft.Cci
 
         private uint ComputeSizeOfDebugTable(uint offsetToMetadata)
         {
-            if (_nativePdbWriter == null)
+            if (!EmitPdb)
             {
                 return 0;
             }
 
-            _debugDirectory = _nativePdbWriter.GetDebugDirectory();
+            // currently we only support native PDB:
+            Debug.Assert(_nativePdbWriterOpt != null);
+
+            _debugDirectory = _nativePdbWriterOpt.GetDebugDirectory();
             _debugDirectory.TimeDateStamp = _ntHeader.TimeDateStamp;
             _debugDirectory.PointerToRawData = offsetToMetadata + 0x1c;
             return 0x1c + (uint)_debugDirectory.Data.Length;
@@ -445,8 +456,8 @@ namespace Microsoft.Cci
             ntHeader.CertificateTable.Size = 0;
             ntHeader.CopyrightTable.RelativeVirtualAddress = 0;
             ntHeader.CopyrightTable.Size = 0;
-            ntHeader.DebugTable.RelativeVirtualAddress = _nativePdbWriter == null ? 0u : _textSection.RelativeVirtualAddress + this.ComputeOffsetToDebugTable(metadataSizes);
-            ntHeader.DebugTable.Size = _nativePdbWriter == null ? 0u : 0x1c; // Only the size of the fixed part of the debug table goes here.
+            ntHeader.DebugTable.RelativeVirtualAddress = EmitPdb ? _textSection.RelativeVirtualAddress + ComputeOffsetToDebugTable(metadataSizes) : 0u;
+            ntHeader.DebugTable.Size = EmitPdb ? 0x1c : 0u; // Only the size of the fixed part of the debug table goes here.
             ntHeader.DelayImportTable.RelativeVirtualAddress = 0;
             ntHeader.DelayImportTable.Size = 0;
             ntHeader.ExceptionTable.RelativeVirtualAddress = 0;
