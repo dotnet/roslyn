@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var compilerInputs = new CSharpCompilerInputs(this);
 
-                var result = await this.BuildAsync("Csc", compilerInputs, cancellationToken).ConfigureAwait(false);
-                var executedProject = result.Instance;
+                var executedProject = await this.BuildAsync("Csc", compilerInputs, cancellationToken).ConfigureAwait(false);
 
                 if (!compilerInputs.Initialized)
                 {

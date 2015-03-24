@@ -60,8 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Async Function GetProjectFileInfoAsync(cancellationToken As CancellationToken) As Tasks.Task(Of ProjectFileInfo)
                 Dim compilerInputs As New VisualBasicCompilerInputs(Me)
 
-                Dim result = Await Me.BuildAsync("Vbc", compilerInputs, cancellationToken).ConfigureAwait(False)
-                Dim executedProject = result.Instance
+                Dim executedProject = Await Me.BuildAsync("Vbc", compilerInputs, cancellationToken).ConfigureAwait(False)
 
                 If Not compilerInputs.Initialized Then
                     Me.InitializeFromModel(compilerInputs, executedProject)
