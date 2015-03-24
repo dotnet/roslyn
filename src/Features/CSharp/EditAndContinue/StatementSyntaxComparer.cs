@@ -157,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             TryStatement,
             CatchClause,                      // tied to parent
+            CatchDeclaration,                 // tied to parent
             CatchFilterClause,                // tied to parent
             FinallyClause,                    // tied to parent
             ForStatement,
@@ -223,6 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.BreakContinueStatement:
                 case Label.ElseClause:
                 case Label.CatchClause:
+                case Label.CatchDeclaration:
                 case Label.CatchFilterClause:
                 case Label.FinallyClause:
                 case Label.ForStatementPart:
@@ -365,6 +367,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.CatchClause:
                     return Label.CatchClause;
+
+                case SyntaxKind.CatchDeclaration:
+                    // the declarator of the exception variable
+                    return Label.CatchDeclaration;
 
                 case SyntaxKind.CatchFilterClause:
                     return Label.CatchFilterClause;

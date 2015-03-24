@@ -1079,6 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.CatchClause:
                     return ((CatchClauseSyntax)node).CatchKeyword.Span;
 
+                case SyntaxKind.CatchDeclaration:
                 case SyntaxKind.CatchFilterClause:
                     return node.Span;
 
@@ -1342,6 +1343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CSharpFeaturesResources.TryBlock;
 
                 case SyntaxKind.CatchClause:
+                case SyntaxKind.CatchDeclaration:
                     return CSharpFeaturesResources.CatchClause;
 
                 case SyntaxKind.CatchFilterClause:
