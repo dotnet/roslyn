@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim allScopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
             Dim containingScopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
             typedSymReader.GetScopes(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes)
-            Dim reuseConstraints = allScopes.GetReuseConstraints(moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive)
+            Dim reuseConstraints = allScopes.GetReuseConstraints(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive)
             allScopes.Free()
 
             Dim methodHandle = CType(MetadataTokens.Handle(methodToken), MethodDefinitionHandle)

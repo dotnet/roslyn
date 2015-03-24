@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             const uint endOffsetExclusive = 3;
 
             var constraints = new MethodContextReuseConstraints(
-                moduleVersionId,
                 methodToken, 
                 methodVersion, 
                 startOffset, 
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             const int methodToken = 0x06000001;
             const int methodVersion = 1;
 
-            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset: 5, areRangesEndInclusive: true);
+            var builder = new MethodContextReuseConstraints.Builder(methodToken, methodVersion, ilOffset: 5, areRangesEndInclusive: true);
             Assert.True(builder.Build().HasExpectedSpan(0u, uint.MaxValue));
 
             builder.AddRange(1, 9);
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             const int methodToken = 0x06000001;
             const int methodVersion = 1;
 
-            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset: 5, areRangesEndInclusive: false);
+            var builder = new MethodContextReuseConstraints.Builder(methodToken, methodVersion, ilOffset: 5, areRangesEndInclusive: false);
             Assert.True(builder.Build().HasExpectedSpan(0u, uint.MaxValue));
 
             builder.AddRange(1, 9);
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             const int methodToken = 0x06000001;
             const int methodVersion = 1;
 
-            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset: 5, areRangesEndInclusive: false);
+            var builder = new MethodContextReuseConstraints.Builder(methodToken, methodVersion, ilOffset: 5, areRangesEndInclusive: false);
             Assert.True(builder.Build().HasExpectedSpan(0u, uint.MaxValue));
 
             builder.AddRange(1, 10);

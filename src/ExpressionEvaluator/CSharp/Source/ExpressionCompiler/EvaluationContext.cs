@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var allScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
             var containingScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
             typedSymReader.GetScopes(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes);
-            var methodContextReuseConstraints = allScopes.GetReuseConstraints(moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive);
+            var methodContextReuseConstraints = allScopes.GetReuseConstraints(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive);
             allScopes.Free();
 
             var localNames = containingScopes.GetLocalNames();
