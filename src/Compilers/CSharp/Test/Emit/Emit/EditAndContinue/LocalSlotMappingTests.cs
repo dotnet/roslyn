@@ -330,8 +330,6 @@ public class C
   IL_005a:  ret
 }
 ");
-
-            ((IDisposable)symReader).Dispose();
         }
 
         /// <summary>

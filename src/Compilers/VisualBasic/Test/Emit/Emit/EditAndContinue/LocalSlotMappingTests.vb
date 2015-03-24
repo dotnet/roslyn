@@ -192,8 +192,6 @@ End Class
   IL_0039:  ret
 }
 ")
-            DirectCast(symReader, IDisposable).Dispose()
-
         End Sub
 
         ' <summary>
@@ -624,8 +622,6 @@ End Class
             ' check that all user-defined and long-lived synthesized local slots are reused
             diff1.VerifyIL("C._Lambda$__1", "
 ")
-
-            debugInfoProvider.Dispose()
 #End If
         End Sub
 
