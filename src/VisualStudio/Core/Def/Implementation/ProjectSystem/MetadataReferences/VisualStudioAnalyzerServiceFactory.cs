@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    [ExportWorkspaceServiceFactory(typeof(IMetadataService), ServiceLayer.Host), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IAnalyzerService), ServiceLayer.Host), Shared]
     internal sealed class VsAnalyzerServiceFactory : IWorkspaceServiceFactory
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)

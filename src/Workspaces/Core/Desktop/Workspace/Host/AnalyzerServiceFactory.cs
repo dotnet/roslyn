@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceServiceFactory(typeof(IMetadataService), ServiceLayer.Default), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IAnalyzerService), ServiceLayer.Default), Shared]
     internal sealed class AnalyzerServiceFactory : IWorkspaceServiceFactory
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
