@@ -6194,5 +6194,31 @@ public class ExcludeValidation
 }";
             AssertFormat(code, code);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpacingForForStatementInfiniteLoop()
+        {
+            var code = @"
+class Program
+{
+    void Main()
+    {
+        for ( ; ; )
+        {
+        }
     }
-}
+}";
+            var expected = @"
+class Program
+{
+    void Main()
+    {
+        for (;;)
+        {
+        }
+    }
+}";
+            AssertFormat(expected, code);
+        }
+        }
+    }
