@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis
         public CommonMessageProvider MessageProvider { get; private set; }
         public CommandLineArguments Arguments { get; private set; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
-        public abstract Func<string, Assembly> AnalyzerLoadFunc { get; }
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
 
         protected abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger);
@@ -85,6 +84,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal abstract bool SuppressDefaultResponseFile(IEnumerable<string> args);
+
+        public abstract Assembly LoadAssembly(string fullPath);
 
         internal virtual MetadataFileReferenceProvider GetMetadataProvider()
         {

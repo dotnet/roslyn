@@ -16,12 +16,6 @@ Friend NotInheritable Class Vbi
 
     Friend Const InteractiveResponseFileName As String = "vbi.rsp"
 
-    Public Overrides ReadOnly Property AnalyzerLoadFunc As Func(Of String, Assembly)
-        Get
-            Return AddressOf InMemoryAssemblyProvider.GetAssembly
-        End Get
-    End Property
-
     Friend Sub New(responseFile As String, baseDirectory As String, args As String())
         MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, baseDirectory, Nothing) ' TODO: what to pass as additionalReferencePaths?
     End Sub
@@ -34,6 +28,10 @@ Friend NotInheritable Class Vbi
             Console.WriteLine(ex.ToString())
             Return Failed
         End Try
+    End Function
+
+    Public Overrides Function LoadAssembly(fullPath As String) As Assembly
+        Throw New NotImplementedException()
     End Function
 
     Friend Overrides Function GetExternalMetadataResolver(touchedFiles As TouchedFileLogger) As MetadataFileReferenceResolver

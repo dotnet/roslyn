@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     internal class MockCsi : CSharpCompiler
     {
-        public override Func<string, Assembly> AnalyzerLoadFunc
-        {
-            get { throw new NotImplementedException(); }
-        }
-
         public MockCsi(string responseFIle, string baseDirectory, string[] args)
             : base(CSharpCommandLineParser.Interactive, responseFIle, args, baseDirectory, null)
         {
+        }
+
+        public override Assembly LoadAssembly(string fullPath)
+        {
+            throw new NotImplementedException();
         }
 
         protected override void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession)

@@ -16,11 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         internal Compilation Compilation;
 
-        public override Func<string, Assembly> AnalyzerLoadFunc
-        {
-            get { return InMemoryAssemblyProvider.GetAssembly; }
-        }
-
         public MockCSharpCompiler(string responseFile, string baseDirectory, string[] args, DiagnosticAnalyzer analyzer = null)
             : this(responseFile, baseDirectory, args, analyzer == null ? ImmutableArray<DiagnosticAnalyzer>.Empty : ImmutableArray.Create(analyzer))
         {
@@ -30,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
         {
             _analyzers = analyzers;
+        }
+
+        public override Assembly LoadAssembly(string fullPath)
+        {
+            throw new NotImplementedException();
         }
 
         protected override void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession)

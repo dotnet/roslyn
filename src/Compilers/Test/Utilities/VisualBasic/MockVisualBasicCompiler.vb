@@ -9,12 +9,6 @@ Imports Microsoft.VisualStudio.Shell.Interop
 Friend Class MockVisualBasicCompiler
     Inherits VisualBasicCompiler
 
-    Public Overrides ReadOnly Property AnalyzerLoadFunc As Func(Of String, Assembly)
-        Get
-            Return Function(p) Assembly.Load(File.ReadAllBytes(p))
-        End Get
-    End Property
-
     Private ReadOnly _analyzers As ImmutableArray(Of DiagnosticAnalyzer)
     Public Compilation As Compilation
 
@@ -31,6 +25,10 @@ Friend Class MockVisualBasicCompiler
 
         _analyzers = analyzers
     End Sub
+
+    Public Overrides Function LoadAssembly(fullPath As String) As Assembly
+        Throw New NotImplementedException()
+    End Function
 
     Protected Overrides Function GetSqmAppID() As UInteger
         Return SqmServiceProvider.BASIC_APPID

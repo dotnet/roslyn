@@ -7,16 +7,14 @@ Imports Microsoft.VisualStudio.Shell.Interop
 Friend Class MockVbi
     Inherits VisualBasicCompiler
 
-    Public Overrides ReadOnly Property AnalyzerLoadFunc As Func(Of String, Assembly)
-        Get
-            Throw New NotImplementedException()
-        End Get
-    End Property
-
     Public Sub New(responseFile As String, baseDirectory As String, args As String())
         MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, baseDirectory, Nothing)
 
     End Sub
+
+    Public Overrides Function LoadAssembly(fullPath As String) As Assembly
+        Throw New NotImplementedException()
+    End Function
 
     Protected Overrides Sub CompilerSpecificSqm(sqm As IVsSqmMulti, sqmSession As UInteger)
         Throw New NotImplementedException()

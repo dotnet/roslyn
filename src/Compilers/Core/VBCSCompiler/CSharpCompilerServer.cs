@@ -15,11 +15,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class CSharpCompilerServer : CSharpCompiler
     {
-        public override Func<string, Assembly> AnalyzerLoadFunc
-        {
-            get { return InMemoryAssemblyProvider.GetAssembly; }
-        }
-
         internal CSharpCompilerServer(string responseFile, string[] args, string baseDirectory, string libDirectory)
             : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, libDirectory)
         {
@@ -38,6 +33,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var compiler = new CSharpCompilerServer(responseFile, args, baseDirectory, libDirectory);
             utf8output = compiler.Arguments.Utf8Output;
             return compiler.Run(output, cancellationToken);
+        }
+
+        public override Assembly LoadAssembly(string fullPath)
+        {
+            return InMemoryAssemblyProvider.GetAssembly(fullPath);
         }
 
         public override int Run(TextWriter consoleOutput, CancellationToken cancellationToken = default(CancellationToken))

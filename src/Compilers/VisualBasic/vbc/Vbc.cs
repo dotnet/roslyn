@@ -12,11 +12,6 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {
     internal sealed class Vbc : VisualBasicCompiler
     {
-        public override Func<string, Assembly> AnalyzerLoadFunc
-        {
-            get { return (string p) => Assembly.Load(p); }
-        }
-
         internal Vbc(string responseFile, string baseDirectory, string[] args)
             : base(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
         {
@@ -51,6 +46,11 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
                 { // Try to reset the output encoding, ignore if we can't
                 }
             }
+        }
+
+        public override Assembly LoadAssembly(string fullPath)
+        {
+            return Assembly.Load(fullPath);
         }
 
         protected override uint GetSqmAppID()

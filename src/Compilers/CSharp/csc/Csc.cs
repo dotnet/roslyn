@@ -11,11 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 {
     internal sealed class Csc : CSharpCompiler
     {
-        public override Func<string, Assembly> AnalyzerLoadFunc
-        {
-            get { return (string p) => Assembly.Load(p); }
-        }
-
         internal Csc(string responseFile, string baseDirectory, string[] args)
             : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
         {
@@ -50,6 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
                 { // Try to reset the output encoding, ignore if we can't
                 }
             }
+        }
+
+        public override Assembly LoadAssembly(string fullPath)
+        {
+            return Assembly.Load(fullPath);
         }
 
         protected override uint GetSqmAppID()

@@ -15,11 +15,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class VisualBasicCompilerServer : VisualBasicCompiler
     {
-        public override Func<string, Assembly> AnalyzerLoadFunc
-        {
-            get { return InMemoryAssemblyProvider.GetAssembly; }
-        }
-
         internal VisualBasicCompilerServer(string responseFile, string[] args, string baseDirectory, string libDirectory)
             : base(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, libDirectory)
         {
@@ -47,6 +42,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             runResult = base.Run(consoleOutput, cancellationToken);
             CompilerServerLogger.Log("****VB Compilation complete.\r\n****Return code: {0}\r\n****Output:\r\n{1}\r\n", runResult, consoleOutput.ToString());
             return runResult;
+        }
+
+        public override Assembly LoadAssembly(string fullPath)
+        {
+            return InMemoryAssemblyProvider.GetAssembly(fullPath); 
         }
 
         internal override MetadataFileReferenceProvider GetMetadataProvider()

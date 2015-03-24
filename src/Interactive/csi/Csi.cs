@@ -18,11 +18,6 @@ namespace CSharpInteractive
     {
         private const string InteractiveResponseFileName = "csi.rsp";
 
-        public override Func<string, Assembly> AnalyzerLoadFunc
-        {
-            get { return InMemoryAssemblyProvider.GetAssembly; }
-        }
-
         internal Csi(string responseFile, string baseDirectory, string[] args)
             : base(CSharpCommandLineParser.Interactive, responseFile, args, baseDirectory, null /* TODO: what to pass as additionalReferencePaths? */)
         {
@@ -40,6 +35,11 @@ namespace CSharpInteractive
                 Console.WriteLine(ex.ToString());
                 return 1;
             }
+        }
+
+        public override Assembly LoadAssembly(string fullPath)
+        {
+            return InMemoryAssemblyProvider.GetAssembly(fullPath);
         }
 
         internal override MetadataFileReferenceResolver GetExternalMetadataResolver(TouchedFileLogger touchedFiles)
