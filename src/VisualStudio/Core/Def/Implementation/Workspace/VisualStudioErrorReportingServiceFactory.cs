@@ -8,13 +8,13 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     [ExportWorkspaceServiceFactory(typeof(IErrorReportingService), ServiceLayer.Host), Shared]
-    internal sealed class VisualStudioInfoBarServiceFactory : IWorkspaceServiceFactory
+    internal sealed class VisualStudioErrorReportingServiceFactory : IWorkspaceServiceFactory
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private IErrorReportingService _singleton;
 
         [ImportingConstructor]
-        public VisualStudioInfoBarServiceFactory(VisualStudioWorkspaceImpl workspace)
+        public VisualStudioErrorReportingServiceFactory(VisualStudioWorkspaceImpl workspace)
         {
             _workspace = workspace;
         }

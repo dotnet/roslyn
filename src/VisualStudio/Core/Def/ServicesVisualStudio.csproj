@@ -29,7 +29,7 @@
     <Compile Include="Implementation\Library\FindResults\TreeItems\MetadataDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\SourceDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Log\VisualStudioErrorLogger.cs" />
-    <Compile Include="Implementation\Log\VisualStudioExceptionLoggerFactory.cs" />
+    <Compile Include="Implementation\Log\VisualStudioErrorLoggerFactory.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.MetadataReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
