@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <remarks>
     /// Analyzer are read from the file, owned by the reference, and doesn't change 
     /// since the reference is accessed until the reference object is garbage collected.
-    /// During this time the file is open and its content is read-only.
     /// 
     /// If you need to manage the lifetime of the anayzer reference (and the file stream) explicitly use <see cref="AnalyzerImageReference"/>.
     /// </remarks>
@@ -39,33 +38,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public event EventHandler<AnalyzerLoadFailureEventArgs> AnalyzerLoadFailed;
 
         /// <summary>
-        /// Fired when an <see cref="Assembly"/> referred to by an <see cref="AnalyzerFileReference"/>
-        /// (or a dependent <see cref="Assembly"/>) is loaded.
-        /// </summary>
-        public static event EventHandler<AnalyzerAssemblyLoadEventArgs> AssemblyLoad;
-
-        /// <summary>
-        /// Maps from one assembly back to the assembly that requested it, if known.
-        /// </summary>
-        public static string TryGetRequestingAssemblyPath(string assemblyPath)
-        {
-            return InMemoryAssemblyLoader.TryGetRequestingAssembly(assemblyPath);
-        }
-
-        /// <summary>
         /// Creates an AnalyzerFileReference with the given <paramref name="fullPath"/>.
         /// </summary>
         /// <param name="fullPath">Full path of the analyzer assembly.</param>
         /// <param name="getAssembly">An optional assembly loader to override the default assembly load mechanism.</param>
-        public AnalyzerFileReference(string fullPath, Func<string, Assembly> getAssembly = null)
+        public AnalyzerFileReference(string fullPath, Func<string, Assembly> getAssembly)
         {
             if (fullPath == null)
             {
-                throw new ArgumentNullException("fullPath");
+                throw new ArgumentNullException(nameof(fullPath));
             }
 
             // TODO: remove full path normalization
-            CompilerPathUtilities.RequireAbsolutePath(fullPath, "fullPath");
+            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
 
             try
             {
@@ -176,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzerTypeNameMap = GetAnalyzerTypeNameMap();
                 analyzerAssembly = GetAssembly();
             }
-            catch (Exception e) when (e is IOException || e is BadImageFormatException || e is SecurityException || e is ArgumentException)
+            catch (Exception e)
             {
                 this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e, null));
                 return;
@@ -433,9 +418,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (_lazyAssembly == null)
             {
-                var assembly = _getAssembly != null ?
-                    _getAssembly(_fullPath) :
-                    InMemoryAssemblyLoader.Load(_fullPath);
+                var assembly = _getAssembly(_fullPath);
                 Interlocked.CompareExchange(ref _lazyAssembly, assembly, null);
             }
 

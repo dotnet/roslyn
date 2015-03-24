@@ -17,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
     Public Class CodeFixServiceTests
 
+        Public Function CreateAnalyzerFileReference(ByVal fullPath As String) As AnalyzerFileReference
+            Return New AnalyzerFileReference(fullPath, AddressOf InMemoryAssemblyProvider.GetAssembly)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestProjectCodeFix()
             Dim test = <Workspace>
@@ -58,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available codefix with a global fixer + a project fixer
                 ' We will use this assembly as a project fixer provider.
                 Dim _assembly = Assembly.GetExecutingAssembly()
-                Dim projectAnalyzerReference = New AnalyzerFileReference(_assembly.Location)
+                Dim projectAnalyzerReference = CreateAnalyzerFileReference(_assembly.Location)
 
                 Dim projectAnalyzerReferences = ImmutableArray.Create(Of AnalyzerReference)(projectAnalyzerReference)
                 project = project.WithAnalyzerReferences(projectAnalyzerReferences)
@@ -121,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify no codefix with a global fixer + a project fixer
                 ' We will use this assembly as a project fixer provider.
                 Dim _assembly = Assembly.GetExecutingAssembly()
-                Dim projectAnalyzerReference = New AnalyzerFileReference(_assembly.Location)
+                Dim projectAnalyzerReference = CreateAnalyzerFileReference(_assembly.Location)
 
                 Dim projectAnalyzerReferences = ImmutableArray.Create(Of AnalyzerReference)(projectAnalyzerReference)
                 project = project.WithAnalyzerReferences(projectAnalyzerReferences)

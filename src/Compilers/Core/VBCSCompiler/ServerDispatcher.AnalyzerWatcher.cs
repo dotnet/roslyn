@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             {
                 _fileChangedCompletionSource = fileChangedCompletionSource;
 
-                AnalyzerFileReference.AssemblyLoad += AnalyzerFileReference_AssemblyLoad;
+                InMemoryAssemblyProvider.AssemblyLoad += AnalyzerFileReference_AssemblyLoad;
             }
 
             private void AnalyzerFileReference_AssemblyLoad(object sender, AnalyzerAssemblyLoadEventArgs e)

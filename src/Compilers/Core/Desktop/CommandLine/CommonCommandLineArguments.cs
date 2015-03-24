@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -326,7 +327,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (CommandLineAnalyzerReference cmdLineReference in AnalyzerReferences)
             {
-                yield return ResolveAnalyzerReference(cmdLineReference)
+                yield return ResolveAnalyzerReference(cmdLineReference, InMemoryAssemblyProvider.GetAssembly)
                     ?? (AnalyzerReference)new UnresolvedAnalyzerReference(cmdLineReference.FilePath);
             }
         }
@@ -366,7 +367,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var reference in AnalyzerReferences)
             {
-                var resolvedReference = ResolveAnalyzerReference(reference);
+                var resolvedReference = ResolveAnalyzerReference(reference, null);
                 if (resolvedReference != null)
                 {
                     resolvedReference.AnalyzerLoadFailed += errorHandler;
@@ -382,7 +383,7 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutable();
         }
 
-        private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference)
+        private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference, Func<string, Assembly> getAssembly)
         {
             string resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: File.Exists);
             if (File.Exists(resolvedPath))
@@ -396,7 +397,7 @@ namespace Microsoft.CodeAnalysis
 
             if (resolvedPath != null)
             {
-                return new AnalyzerFileReference(resolvedPath);
+                return new AnalyzerFileReference(resolvedPath, getAssembly);
             }
 
             return null;

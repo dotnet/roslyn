@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _updateSource = hostDiagnosticUpdateSource;
             _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
 
-            AnalyzerFileReference.AssemblyLoad += AnalyzerFileReference_AssemblyLoad;
+            InMemoryAssemblyProvider.AssemblyLoad += AnalyzerFileReference_AssemblyLoad;
         }
 
         internal void ErrorIfAnalyzerAlreadyLoaded(ProjectId projectId, string analyzerPath)
