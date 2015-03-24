@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7,9 +8,8 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Roslyn.Utilities
 {
     /// <summary>
     /// Handles loading assemblies without locking the corresponding DLL on disk.
@@ -32,8 +32,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// event and handle finding and loading dependencies ourselves. We also need to
     /// handle loading the dependencies' dependencies, and so on.
     /// </remarks>
-    public static class InMemoryAssemblyProvider 
+    internal static class InMemoryAssemblyProvider 
     {
+        public sealed class AssemblyLoadEventArgs : EventArgs
+        {
+            private readonly string _path;
+            private readonly Assembly _loadedAssembly;
+
+            public AssemblyLoadEventArgs(string path, Assembly loadedAssembly)
+            {
+                _path = path;
+                _loadedAssembly = loadedAssembly;
+            }
+
+            public string Path
+            {
+                get { return _path; }
+            }
+
+            public Assembly LoadedAssembly
+            {
+                get { return _loadedAssembly; }
+            }
+        }
+
         /// <summary>
         /// Maps from a full path to a file to a corresponding <see cref="Assembly"/>
         /// that we've already loaded.
@@ -68,18 +90,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool s_hookedAssemblyResolve = false;
 
-        /// <summary>
-        /// Fired when an <see cref="Assembly"/> referred to by an <see cref="AnalyzerFileReference"/>
-        /// (or a dependent <see cref="Assembly"/>) is loaded.
-        /// </summary>
-        public static event EventHandler<AnalyzerAssemblyLoadEventArgs> AssemblyLoad;
+        public static event EventHandler<AssemblyLoadEventArgs> AssemblyLoad;
 
         /// <summary>
         /// Loads the <see cref="Assembly"/> at the given path without locking the file.
         /// </summary>
         public static Assembly GetAssembly(string fullPath)
         {
-            CompilerPathUtilities.RequireAbsolutePath(fullPath, "fullPath");
+            if (fullPath == null || !PathUtilities.IsAbsolute(fullPath))
+            {
+                throw new ArgumentException(nameof(fullPath));
+            }
 
             try
             {
@@ -125,6 +146,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        public static string GetCandidatePath(string baseDirectory, AssemblyIdentity assemblyIdentity)
+        {
+            if (!string.IsNullOrEmpty(assemblyIdentity.CultureName))
+            {
+                baseDirectory = Path.Combine(baseDirectory, assemblyIdentity.CultureName);
+            }
+
+            return Path.Combine(baseDirectory, assemblyIdentity.Name + ".dll");
+        }
+
         /// <summary>
         /// Performs the actual loading of the assembly, updates data structures, and
         /// fires the <see cref="AssemblyLoad"/> event.
@@ -140,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             s_filesFromAssemblyNames[assemblyName] = fullPath;
             s_assembliesFromNames[assemblyName] = assembly;
 
-            AssemblyLoad?.Invoke(null, new AnalyzerAssemblyLoadEventArgs(fullPath, assembly));
+            AssemblyLoad?.Invoke(null, new AssemblyLoadEventArgs(fullPath, assembly));
 
             return assembly;
         }
@@ -203,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     string directoryPath = Path.GetDirectoryName(loadedAssemblyFullPath);
 
-                    string candidateAssemblyFullPath = AnalyzerFileReference.AssemblyPathHelper.GetCandidatePath(directoryPath, requestedAssemblyIdentity);
+                    string candidateAssemblyFullPath = GetCandidatePath(directoryPath, requestedAssemblyIdentity);
 
                     AssemblyIdentity candidateAssemblyIdentity = TryGetAssemblyIdentity(candidateAssemblyFullPath);
 
@@ -259,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 string directoryPath = Path.GetDirectoryName(requestingAssemblyFullPath);
-                string assemblyFullPath = AnalyzerFileReference.AssemblyPathHelper.GetCandidatePath(directoryPath, assemblyIdentity);
+                string assemblyFullPath = GetCandidatePath(directoryPath, assemblyIdentity);
                 if (!File.Exists(assemblyFullPath))
                 {
                     return null;
@@ -290,20 +321,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     AssemblyDefinition assemblyDefinition = metadataReader.GetAssemblyDefinition();
 
                     string name = metadataReader.GetString(assemblyDefinition.Name);
-                    if (!MetadataHelpers.IsValidMetadataIdentifier(name))
-                    {
-                        return null;
-                    }
-
                     Version version = assemblyDefinition.Version;
 
                     StringHandle cultureHandle = assemblyDefinition.Culture;
                     string cultureName = (!cultureHandle.IsNil) ? metadataReader.GetString(cultureHandle) : null;
-                    if (cultureName != null && !MetadataHelpers.IsValidMetadataIdentifier(cultureName))
-                    {
-                        return null;
-                    }
-
                     AssemblyFlags flags = assemblyDefinition.Flags;
 
                     bool hasPublicKey = (flags & AssemblyFlags.PublicKey) != 0;
@@ -311,14 +332,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ImmutableArray<byte> publicKeyOrToken = !publicKeyHandle.IsNil
                         ? metadataReader.GetBlobBytes(publicKeyHandle).AsImmutableOrNull()
                         : default(ImmutableArray<byte>);
-                    if (hasPublicKey)
-                    {
-                        if (!MetadataHelpers.IsValidPublicKey(publicKeyOrToken))
-                        {
-                            return null;
-                        }
-                    }
-
                     return new AssemblyIdentity(name, version, cultureName, publicKeyOrToken, hasPublicKey);
                 }
             }

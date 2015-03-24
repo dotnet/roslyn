@@ -49,7 +49,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AdditionalTextFile.cs" />
-    <Compile Include="AnalyzerFileReference.AssemblyPathHelper.cs" />
     <Compile Include="AnalyzerLoadFailureEventArgs.cs" />
     <Compile Include="AssemblyReferenceResolver.cs" />
     <Compile Include="CodeAnalysisDesktopResources.Designer.cs">
@@ -88,8 +87,6 @@
     <Compile Include="EncodedStringText.cs" />
     <Compile Include="FileKey.cs" />
     <Compile Include="FileUtilities.cs" />
-    <Compile Include="AnalyzerAssemblyLoadEventArgs.cs" />
-    <Compile Include="InMemoryAssemblyLoader.cs" />
     <Compile Include="Interop\ClrStrongName.cs" />
     <Compile Include="Interop\IClrMetaHost.cs" />
     <Compile Include="Interop\IClrRuntimeInfo.cs" />

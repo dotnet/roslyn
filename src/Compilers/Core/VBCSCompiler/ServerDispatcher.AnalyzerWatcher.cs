@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 InMemoryAssemblyProvider.AssemblyLoad += AnalyzerFileReference_AssemblyLoad;
             }
 
-            private void AnalyzerFileReference_AssemblyLoad(object sender, AnalyzerAssemblyLoadEventArgs e)
+            private void AnalyzerFileReference_AssemblyLoad(object sender, InMemoryAssemblyProvider.AssemblyLoadEventArgs e)
             {
                 lock (_fileSystemWatcherLock)
                 {

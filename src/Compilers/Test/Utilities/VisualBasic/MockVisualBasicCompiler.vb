@@ -11,7 +11,7 @@ Friend Class MockVisualBasicCompiler
 
     Public Overrides ReadOnly Property AnalyzerLoadFunc As Func(Of String, Assembly)
         Get
-            Return AddressOf InMemoryAssemblyProvider.GetAssembly
+            Return Function(p) Assembly.Load(File.ReadAllBytes(p))
         End Get
     End Property
 

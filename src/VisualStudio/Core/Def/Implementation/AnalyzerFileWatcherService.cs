@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private void AnalyzerFileReference_AssemblyLoad(object sender, AnalyzerAssemblyLoadEventArgs e)
+        private void AnalyzerFileReference_AssemblyLoad(object sender, InMemoryAssemblyProvider.AssemblyLoadEventArgs e)
         {
             lock (_guard)
             {

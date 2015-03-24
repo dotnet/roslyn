@@ -76,6 +76,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
       <Link>Collections\PooledStringBuilder.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Helpers\InMemoryAssemblyProvider.cs">
+      <Link>InMemoryAssemblyProvider.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Test\PdbUtilities\Shared\DummyMetadataImport.cs">
       <Link>Shared\DummyMetadataImport.cs</Link>
     </Compile>

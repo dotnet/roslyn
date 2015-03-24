@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             StringBuilder sb = new StringBuilder();
             var directory = Temp.CreateDirectory();
 
-            EventHandler<AnalyzerAssemblyLoadEventArgs> handler = (e, args) =>
+            EventHandler<InMemoryAssemblyProvider.AssemblyLoadEventArgs> handler = (e, args) =>
             {
                 var relativePath = args.Path.Substring(directory.Path.Length);
                 sb.AppendFormat("Assembly {0} loaded from {1}", args.LoadedAssembly.FullName, relativePath);
@@ -222,7 +223,7 @@ Delta: Gamma: Beta: Test B
             AssemblyIdentity assemblyIdentity = new AssemblyIdentity("Gamma");
 
             string expected = @"C:\Alpha\Beta\Gamma.dll";
-            string actual = AnalyzerFileReference.AssemblyPathHelper.GetCandidatePath(directoryPath, assemblyIdentity);
+            string actual = InMemoryAssemblyProvider.GetCandidatePath(directoryPath, assemblyIdentity);
 
             Assert.Equal(expected, actual, StringComparer.OrdinalIgnoreCase);
         }
@@ -234,7 +235,7 @@ Delta: Gamma: Beta: Test B
             AssemblyIdentity assemblyIdentity = new AssemblyIdentity(name: "Gamma", cultureName: "fr-FR");
 
             string expected = @"C:\Alpha\Beta\fr-FR\Gamma.dll";
-            string actual = AnalyzerFileReference.AssemblyPathHelper.GetCandidatePath(directoryPath, assemblyIdentity);
+            string actual = InMemoryAssemblyProvider.GetCandidatePath(directoryPath, assemblyIdentity);
 
             Assert.Equal(expected, actual, StringComparer.OrdinalIgnoreCase);
         }
