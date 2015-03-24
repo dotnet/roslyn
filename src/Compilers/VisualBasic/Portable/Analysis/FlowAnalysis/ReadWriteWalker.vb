@@ -47,6 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _writtenOutside As HashSet(Of Symbol) = New HashSet(Of Symbol)()
         Private ReadOnly _captured As HashSet(Of Symbol) = New HashSet(Of Symbol)()
         Private _currentMethodOrLambda As Symbol
+        Private _currentQueryLambda As BoundQueryLambda
 
         Protected Overrides Sub NoteRead(variable As Symbol)
             If IsCompilerGeneratedTempLocal(variable) Then
@@ -135,13 +136,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case variable.Kind
                 Case SymbolKind.Local
                     Dim local = DirectCast(variable, LocalSymbol)
-                    If Not (local.IsConst Or Me._currentMethodOrLambda = local.ContainingSymbol) Then
+                    If Not local.IsConst AndAlso Me._currentMethodOrLambda <> local.ContainingSymbol Then
                         Me._captured.Add(local)
                     End If
                 Case SymbolKind.Parameter
                     Dim param = DirectCast(variable, ParameterSymbol)
-                    If Not (Me._currentMethodOrLambda = param.ContainingSymbol) Then
+                    If Me._currentMethodOrLambda <> param.ContainingSymbol Then
                         Me._captured.Add(param)
+                    End If
+                Case SymbolKind.RangeVariable
+                    Dim range = DirectCast(variable, RangeVariableSymbol)
+                    If Me._currentMethodOrLambda = range.ContainingSymbol Then
+                        ' OK, defined in same method, so not captured
+                    ElseIf Me._currentQueryLambda Is Nothing Then
+                        ' Not in a query lambda, but defined and used in different methods, so captured.
+                        Throw New NullReferenceException()
+                        Me._captured.Add(range)
+                    Else
+                        ' If in a nested lambda, or
+                        ' Not one of the range variables of the current query, then captured
+                        If Me._currentMethodOrLambda <> Me._currentQueryLambda.LambdaSymbol OrElse
+                            Not Me._currentQueryLambda.RangeVariables.Contains(range) Then
+                            Me._captured.Add(range)
+                        End If
                     End If
             End Select
         End Sub
@@ -157,8 +174,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitQueryLambda(node As BoundQueryLambda) As BoundNode
             Dim previousMethod = Me._currentMethodOrLambda
             Me._currentMethodOrLambda = node.LambdaSymbol
+            Dim previousQueryLambda = Me._currentQueryLambda
+            Me._currentQueryLambda = node
             Dim result = MyBase.VisitQueryLambda(node)
             Me._currentMethodOrLambda = previousMethod
+            Me._currentQueryLambda = previousQueryLambda
             Return result
         End Function
 
