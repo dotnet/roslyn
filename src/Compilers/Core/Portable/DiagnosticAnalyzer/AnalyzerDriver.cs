@@ -956,9 +956,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var nodesToAnalyze = descendantDeclsToSkip == null ?
                 declaredNode.DescendantNodesAndSelf(descendIntoTrivia: true) :
-                declaredNode.DescendantNodesAndSelf(n => !descendantDeclsToSkip.Contains(n), descendIntoTrivia: true).Except(descendantDeclsToSkip);
+                GetSyntaxNodesToAnalyze(declaredNode, descendantDeclsToSkip);
 
             analyzerExecutor.ExecuteSyntaxNodeActions(nodesToAnalyze, actionsByKind, semanticModel, getKind);
+        }
+
+        private static IEnumerable<SyntaxNode> GetSyntaxNodesToAnalyze(SyntaxNode declaredNode, HashSet<SyntaxNode> descendantDeclsToSkip)
+        {
+            Debug.Assert(declaredNode != null);
+            Debug.Assert(descendantDeclsToSkip != null);
+
+            foreach (var node in declaredNode.DescendantNodesAndSelf(n => !descendantDeclsToSkip.Contains(n), descendIntoTrivia: true))
+            {
+                if (!descendantDeclsToSkip.Contains(node))
+                {
+                    yield return node;
+                }
+            }
         }
     }
 
