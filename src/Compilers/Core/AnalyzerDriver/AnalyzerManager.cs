@@ -301,6 +301,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var diag in supportedDiagnostics)
             {
+                if (HasNotConfigurableTag(diag.CustomTags))
+                {
+                    if (diag.IsEnabledByDefault)
+                    {
+                        // Diagnostic descriptor is not configurable, so the diagnostics created through it cannot be suppressed.
+                        return false;
+                    }
+                    else
+                    {
+                        // NotConfigurable disabled diagnostic can be ignored as it is never reported.
+                        continue;
+                    }
+                }
+
                 // Is this diagnostic suppressed by default (as written by the rule author)
                 var isSuppressed = !diag.IsEnabledByDefault;
 
