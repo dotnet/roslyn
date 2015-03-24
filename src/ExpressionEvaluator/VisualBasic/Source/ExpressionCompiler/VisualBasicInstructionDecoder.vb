@@ -84,13 +84,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim appDomain = moduleInstance.AppDomain
             Dim previous = appDomain.GetDataItem(Of MetadataContextItem(Of VisualBasicMetadataContext))()
             Dim metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain)
+            Dim moduleVersionId = moduleInstance.Mvid
 
             Dim compilation As VisualBasicCompilation
-            If previous IsNot Nothing AndAlso previous.MetadataContext.Matches(metadataBlocks) Then
+            If previous IsNot Nothing AndAlso previous.MetadataContext.Matches(metadataBlocks, moduleVersionId) Then
                 compilation = previous.MetadataContext.Compilation
             Else
-                compilation = metadataBlocks.ToCompilation()
-                Dim dataItem = New MetadataContextItem(Of VisualBasicMetadataContext)(New VisualBasicMetadataContext(metadataBlocks, compilation))
+                compilation = metadataBlocks.ToCompilation(moduleVersionId)
+                Dim dataItem = New MetadataContextItem(Of VisualBasicMetadataContext)(New VisualBasicMetadataContext(metadataBlocks, compilation, moduleVersionId))
                 appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, dataItem)
             End If
 

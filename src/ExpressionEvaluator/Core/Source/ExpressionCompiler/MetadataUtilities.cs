@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -21,8 +22,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// <summary>
         /// Group module metadata into assemblies.
         /// </summary>
-        internal static ImmutableArray<MetadataReference> MakeAssemblyReferences(this ImmutableArray<MetadataBlock> metadataBlocks, AssemblyIdentityComparer identityComparer)
+        internal static ImmutableArray<MetadataReference> MakeAssemblyReferences(
+            this ImmutableArray<MetadataBlock> metadataBlocks,
+            AssemblyIdentityComparer identityComparer,
+            Guid moduleVersionId)
         {
+            Debug.Assert(moduleVersionId != Guid.Empty);
+
             // Get metadata for each module.
             var metadataBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
             // Win8 applications contain a reference to Windows.winmd version >= 1.3
@@ -89,7 +95,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 referencesBuilder.Add(reference);
             }
 
-            AddExternAliasesForDuplicateAssemblies(referencesBuilder, identitiesBuilder, identityComparer);
+            var module = metadataBuilder.FirstOrDefault(m => m.MetadataReader.GetModuleVersionIdOrThrow() == moduleVersionId);
+            if (module != null)
+            {
+                // Search for duplicate assemblies comparing against the
+                // target assembly and any referenced assemblies.
+                var referencedModules = ArrayBuilder<AssemblyIdentity>.GetInstance();
+                referencedModules.Add(module.MetadataReader.ReadAssemblyIdentityOrThrow());
+                referencedModules.AddRange(module.MetadataReader.GetReferencedAssembliesOrThrow());
+                AddExternAliasesToDuplicateAssemblies(referencesBuilder, identitiesBuilder, identityComparer, referencedModules);
+                referencedModules.Free();
+            }
             identitiesBuilder.Free();
 
             // Any runtime winmd modules were separated out initially. Now add
@@ -106,52 +122,44 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Generate extern aliases for any strong-named duplicate
-        /// assemblies that differ by version.
+        /// Add extern aliases to any strong-named duplicate assemblies that differ
+        /// by version, preferring the version referenced from the target module.
         /// </summary>
-        private static void AddExternAliasesForDuplicateAssemblies(ArrayBuilder<MetadataReference> references, ArrayBuilder<AssemblyIdentity> identities, AssemblyIdentityComparer identityComparer)
+        private static void AddExternAliasesToDuplicateAssemblies(
+            ArrayBuilder<MetadataReference> references,
+            ArrayBuilder<AssemblyIdentity> identities,
+            AssemblyIdentityComparer identityComparer,
+            ArrayBuilder<AssemblyIdentity> referencedModules)
         {
+            Debug.Assert(references.Count == identities.Count);
+
             var duplicateIdentities = PooledDictionary<AssemblyIdentity, string>.GetInstance();
 
-            // Find duplicate pairs. Note, this is O(n^2).
+            // Find duplicate pairs.
             int n = identities.Count;
-            for (int i = 0; i < n; i++)
+            foreach (var referencedModule in referencedModules)
             {
-                if (!IsNonNullAndStrongNamed(identities[i]))
+                if (!referencedModule.IsStrongName)
                 {
                     continue;
                 }
-                var bestIndex = i;
-                for (int j = i + 1; j < n; j++)
+                for (int i = 0; i < n; i++)
                 {
-                    if (!IsNonNullAndStrongNamed(identities[j]))
-                    {
-                        continue;
-                    }
-                    var compareResult = identityComparer.Compare(identities[bestIndex], identities[j]);
+                    var identity = identities[i];
+                    var compareResult = identityComparer.Compare(referencedModule, identity);
                     // Only need to handle assemblies that differ by version since
                     // ReferenceManager will drop equivalent assemblies.
                     if (compareResult != AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion)
                     {
                         continue;
                     }
-                    int worseIndex;
-                    if (identities[bestIndex].Version < identities[j].Version)
-                    {
-                        worseIndex = bestIndex;
-                        bestIndex = j;
-                    }
-                    else
-                    {
-                        worseIndex = j;
-                    }
-                    duplicateIdentities[identities[worseIndex]] = Guid.NewGuid().ToString();
+                    duplicateIdentities[identity] = Guid.NewGuid().ToString();
                 }
             }
 
             Debug.Assert(references.All(r => r.Properties.Aliases.IsEmpty));
 
-            // Add any extern aliases to references.
+            // Add extern aliases to duplicate references.
             if (duplicateIdentities.Count > 0)
             {
                 for (int i = 0; i < n; i++)
@@ -165,11 +173,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             duplicateIdentities.Free();
-        }
-
-        private static bool IsNonNullAndStrongNamed(AssemblyIdentity identity)
-        {
-            return (identity != null) && identity.IsStrongName;
         }
 
         private static PortableExecutableReference MakeAssemblyMetadata(ModuleMetadata metadata, Dictionary<string, ModuleMetadata> modulesByName)

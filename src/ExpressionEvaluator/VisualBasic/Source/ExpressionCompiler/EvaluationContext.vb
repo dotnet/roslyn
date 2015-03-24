@@ -31,6 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend ReadOnly MetadataBlocks As ImmutableArray(Of MetadataBlock)
         Friend ReadOnly MethodContextReuseConstraints As MethodContextReuseConstraints?
         Friend ReadOnly Compilation As VisualBasicCompilation
+        Friend ReadOnly ModuleVersionId As Guid
 
         Private ReadOnly _metadataDecoder As MetadataDecoder
         Private ReadOnly _currentFrame As MethodSymbol
@@ -42,15 +43,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             metadataBlocks As ImmutableArray(Of MetadataBlock),
             methodContextReuseConstraints As MethodContextReuseConstraints?,
             compilation As VisualBasicCompilation,
+            moduleVersionId As Guid,
             metadataDecoder As MetadataDecoder,
             currentFrame As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
             inScopeHoistedLocals As InScopeHoistedLocals,
             methodDebugInfo As MethodDebugInfo)
 
+            Debug.Assert(moduleVersionId <> Guid.Empty)
+
             Me.MetadataBlocks = metadataBlocks
             Me.MethodContextReuseConstraints = methodContextReuseConstraints
             Me.Compilation = compilation
+            Me.ModuleVersionId = moduleVersionId
             _metadataDecoder = metadataDecoder
             _currentFrame = currentFrame
             _locals = locals
@@ -78,9 +83,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Debug.Assert(MetadataTokens.Handle(typeToken).Kind = HandleKind.TypeDefinition)
 
             ' Re-use the previous compilation if possible.
-            Dim compilation = If(previous.Matches(metadataBlocks),
+            Dim compilation = If(previous.Matches(metadataBlocks, moduleVersionId),
                 previous.Compilation,
-                metadataBlocks.ToCompilation())
+                metadataBlocks.ToCompilation(moduleVersionId))
 
             Dim metadataDecoder As MetadataDecoder = Nothing
             Dim currentType = compilation.GetType(moduleVersionId, typeToken, metadataDecoder)
@@ -91,6 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 metadataBlocks,
                 Nothing,
                 compilation,
+                moduleVersionId,
                 metadataDecoder,
                 currentFrame,
                 locals:=Nothing,
@@ -125,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             ' Re-use the previous compilation if possible.
             Dim compilation As VisualBasicCompilation
-            If previous.Matches(metadataBlocks) Then
+            If previous.Matches(metadataBlocks, moduleVersionId) Then
                 ' Re-use entire context if method scope has not changed.
                 Dim previousContext = previous.EvaluationContext
                 If previousContext IsNot Nothing AndAlso
@@ -135,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 End If
                 compilation = previous.Compilation
             Else
-                compilation = metadataBlocks.ToCompilation()
+                compilation = metadataBlocks.ToCompilation(moduleVersionId)
             End If
 
             Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader)
@@ -178,6 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 metadataBlocks,
                 reuseConstraints,
                 compilation,
+                moduleVersionId,
                 metadataDecoder,
                 currentFrame,
                 locals,

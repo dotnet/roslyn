@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(context.Compilation, previous.Compilation);
 
             // No EvaluationContext. Should reuse Compilation
-            previous = new CSharpMetadataContext(previous.MetadataBlocks, previous.Compilation);
+            previous = new CSharpMetadataContext(previous.MetadataBlocks, previous.Compilation, moduleVersionId);
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken);
             Assert.Null(previous.EvaluationContext);
             Assert.NotNull(context);
@@ -3882,7 +3882,7 @@ class C
             var compilationBS2 = CreateCompilation(
                 new AssemblyIdentity(assemblyNameB, new Version(2, 2, 2, 1), cultureName: "", publicKeyOrToken: publicKeyB, hasPublicKey: true),
                 new[] { sourceB },
-                references: new[] { MscorlibRef, referenceAS1 },
+                references: new[] { MscorlibRef, referenceAS2 },
                 options: TestOptions.DebugDll.WithDelaySign(true));
             var referenceBS2 = compilationBS2.EmitToImageReference();
             var identityBS2 = referenceBS2.GetAssemblyIdentity();
@@ -3894,18 +3894,30 @@ class C
 
             // No duplicates.
             VerifyAssemblyReferences(
+                referenceAS1,
                 ImmutableArray.Create(MscorlibRef, referenceAS1, referenceBN1),
                 ImmutableArray<int>.Empty);
             // Strong-named, non-strong-named, and framework duplicates, same version (no aliases).
             VerifyAssemblyReferences(
+                referenceBN2,
                 ImmutableArray.Create(MscorlibRef, referenceAS1, MscorlibRef, referenceBN2, referenceBN2, referenceAS1, referenceAS1),
                 ImmutableArray<int>.Empty);
             // Strong-named, non-strong-named, and framework duplicates, different versions.
             VerifyAssemblyReferences(
+                referenceBN1,
                 ImmutableArray.Create(MscorlibRef, referenceAS1, MscorlibRef_v20, referenceAS2, referenceBN2, referenceBN1, referenceAS2, referenceAS1, referenceBN1),
-                ImmutableArray.Create(1, 7));
+                ImmutableArray.Create(3, 6));
+            VerifyAssemblyReferences(
+                referenceBN2,
+                ImmutableArray.Create(MscorlibRef, referenceAS1, MscorlibRef_v20, referenceAS2, referenceBN2, referenceBN1, referenceAS2, referenceAS1, referenceBN1),
+                ImmutableArray.Create(3, 6));
             // Strong-named, different versions.
             VerifyAssemblyReferences(
+                referenceBS1,
+                ImmutableArray.Create(MscorlibRef, referenceAS1, referenceAS2, referenceBS2, referenceBS1, referenceAS2, referenceAS1, referenceBS1),
+                ImmutableArray.Create(2, 3, 5));
+            VerifyAssemblyReferences(
+                referenceBS2,
                 ImmutableArray.Create(MscorlibRef, referenceAS1, referenceAS2, referenceBS2, referenceBS1, referenceAS2, referenceAS1, referenceBS1),
                 ImmutableArray.Create(1, 4, 6, 7));
 
@@ -3914,7 +3926,7 @@ class C
             var compilationCN1 = CreateCompilation(
                 new AssemblyIdentity(assemblyNameC, new Version(1, 1, 1, 1)),
                 new[] { sourceC },
-                references: new[] { MscorlibRef, referenceAS1, referenceBS1 },
+                references: new[] { MscorlibRef, referenceBS1 },
                 options: TestOptions.DebugDll);
             byte[] exeBytesC1;
             byte[] pdbBytesC1;
@@ -3923,33 +3935,39 @@ class C
             var compilationCN2 = CreateCompilation(
                 new AssemblyIdentity(assemblyNameC, new Version(2, 1, 1, 1)),
                 new[] { sourceC },
-                references: new[] { MscorlibRef, referenceAS2, referenceBS1 },
+                references: new[] { MscorlibRef, referenceBS2 },
                 options: TestOptions.DebugDll);
             byte[] exeBytesC2;
             byte[] pdbBytesC2;
             compilationCN1.EmitAndGetReferences(out exeBytesC2, out pdbBytesC2, out references);
 
-            // Duplicate assembly A, target module referencing AS2.
+            // Duplicate assemblies, target module referencing BS1.
             using (var runtime = CreateRuntimeInstance(
                 assemblyNameC,
-                ImmutableArray.Create(MscorlibRef, referenceAS1, referenceAS2, referenceBS1),
+                ImmutableArray.Create(MscorlibRef, referenceAS1, referenceAS2, referenceBS1, referenceBS2),
                 exeBytesC1,
                 new SymReader(pdbBytesC1)))
             {
                 // Compile expression with type context.
                 var context = CreateTypeContext(runtime, "C");
                 string error;
+                // A is ambiguous since there were no explicit references to AS1 or AS2.
                 var testData = new CompilationTestData();
                 context.CompileExpression("new A()", out error, testData);
+                Assert.Equal(error, $"error CS0433: The type 'A' exists in both '{identityAS2.GetDisplayName()}' and '{identityAS1.GetDisplayName()}'");
+                testData = new CompilationTestData();
+                // B should be resolved to BS1.
+                context.CompileExpression("new B()", out error, testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
                 methodData.VerifyIL(
 @"{
   // Code size        6 (0x6)
   .maxstack  1
-  IL_0000:  newobj     ""A..ctor()""
+  IL_0000:  newobj     ""B..ctor()""
   IL_0005:  ret
 }");
-                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityAS2.GetDisplayName());
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityBS1.GetDisplayName());
+                // B.F should be resolved to AS1.
                 testData = new CompilationTestData();
                 context.CompileExpression("(new B()).F", out error, testData);
                 methodData = testData.GetMethodData("<>x.<>m0");
@@ -3964,18 +3982,23 @@ class C
                 Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityAS1.GetDisplayName());
 
                 // Compile expression with method context.
-                context = CreateMethodContext(runtime, methodName: "C.M", previous: new CSharpMetadataContext(context));
+                var previous = new CSharpMetadataContext(context);
+                context = CreateMethodContext(runtime, methodName: "C.M", previous: previous);
+                Assert.Equal(previous.Compilation, context.Compilation); // re-use type context compilation
                 testData = new CompilationTestData();
                 context.CompileExpression("new A()", out error, testData);
+                Assert.Equal(error, $"error CS0433: The type 'A' exists in both '{identityAS2.GetDisplayName()}' and '{identityAS1.GetDisplayName()}'");
+                testData = new CompilationTestData();
+                context.CompileExpression("new B()", out error, testData);
                 methodData = testData.GetMethodData("<>x.<>m0");
                 methodData.VerifyIL(
 @"{
   // Code size        6 (0x6)
   .maxstack  1
-  IL_0000:  newobj     ""A..ctor()""
+  IL_0000:  newobj     ""B..ctor()""
   IL_0005:  ret
 }");
-                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityAS2.GetDisplayName());
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityBS1.GetDisplayName());
                 testData = new CompilationTestData();
                 context.CompileExpression("(new B()).F", out error, testData);
                 methodData = testData.GetMethodData("<>x.<>m0");
@@ -3992,15 +4015,18 @@ class C
         }
 
         private static void VerifyAssemblyReferences(
+            MetadataReference target,
             ImmutableArray<MetadataReference> references,
             ImmutableArray<int> expectedExternAliases)
         {
+            Assert.True(references.Contains(target));
             var modules = references.SelectAsArray(r => r.ToModuleInstance(fullImage: null, symReader: null, includeLocalSignatures: false));
             using (var runtime = new RuntimeInstance(modules))
             {
                 var identityComparer = DesktopAssemblyIdentityComparer.Default;
                 var blocks = runtime.Modules.SelectAsArray(m => m.MetadataBlock);
-                var actualReferences = blocks.MakeAssemblyReferences(identityComparer);
+                var moduleVersionId = target.GetModuleVersionId();
+                var actualReferences = blocks.MakeAssemblyReferences(identityComparer, moduleVersionId);
                 // Verify identities.
                 var expectedIdentities = references.SelectAsArray(r => r.GetAssemblyIdentity());
                 var actualIdentities = actualReferences.SelectAsArray(r => r.GetAssemblyIdentity());

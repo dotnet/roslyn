@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis
 
             var assemblyDef = reader.GetAssemblyDefinition();
 
-            return reader.CreateAssemblyIdentityOrThrow(
+            return CreateAssemblyIdentityOrThrow(
+                reader,
                 assemblyDef.Version,
                 assemblyDef.Flags,
                 assemblyDef.PublicKey,
@@ -54,8 +55,41 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        internal static AssemblyIdentity CreateAssemblyIdentityOrThrow(
-            this MetadataReader reader,
+        internal static ImmutableArray<AssemblyIdentity> GetReferencedAssembliesOrThrow(this MetadataReader reader)
+        {
+            var result = ArrayBuilder<AssemblyIdentity>.GetInstance(reader.AssemblyReferences.Count);
+            try
+            {
+                foreach (var assemblyRef in reader.AssemblyReferences)
+                {
+                    AssemblyReference reference = reader.GetAssemblyReference(assemblyRef);
+                    result.Add(CreateAssemblyIdentityOrThrow(
+                        reader,
+                        reference.Version,
+                        reference.Flags,
+                        reference.PublicKeyOrToken,
+                        reference.Name,
+                        reference.Culture,
+                        isReference: true));
+                }
+
+                return result.ToImmutable();
+            }
+            finally
+            {
+                result.Free();
+            }
+        }
+
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        internal static Guid GetModuleVersionIdOrThrow(this MetadataReader reader)
+        {
+            return reader.GetGuid(reader.GetModuleDefinition().Mvid);
+        }
+
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        private static AssemblyIdentity CreateAssemblyIdentityOrThrow(
+            MetadataReader reader,
             Version version,
             AssemblyFlags flags,
             BlobHandle publicKey,

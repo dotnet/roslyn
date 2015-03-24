@@ -302,6 +302,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return reader.ReadAssemblyIdentityOrThrow();
         }
 
+        internal static Guid GetModuleVersionId(this MetadataReference reference)
+        {
+            var moduleMetadata = reference.GetModuleMetadata();
+            var reader = moduleMetadata.MetadataReader;
+            return reader.GetModuleVersionIdOrThrow();
+        }
+
         internal static void VerifyLocal<TMethodSymbol>(
             this CompilationTestData testData,
             string typeName,

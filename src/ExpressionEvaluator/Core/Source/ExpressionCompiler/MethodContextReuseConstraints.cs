@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly uint _startOffset;
         private readonly uint _endOffsetExclusive;
 
-        private MethodContextReuseConstraints(Guid moduleVersionId, int methodToken, int methodVersion, uint startOffset, uint endOffsetExclusive)
+        internal MethodContextReuseConstraints(Guid moduleVersionId, int methodToken, int methodVersion, uint startOffset, uint endOffsetExclusive)
         {
             Debug.Assert(moduleVersionId != default(Guid));
             Debug.Assert(MetadataTokens.Handle(methodToken).Kind == HandleKind.MethodDefinition);
@@ -36,11 +36,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 methodVersion == _methodVersion &&
                 ilOffset >= _startOffset &&
                 ilOffset < _endOffsetExclusive;
-        }
-
-        internal static MethodContextReuseConstraints CreateTestInstance(Guid moduleVersionId, int methodToken, int methodVersion, uint startOffset, uint endOffsetExclusive)
-        {
-            return new MethodContextReuseConstraints(moduleVersionId, methodToken, methodVersion, startOffset, endOffsetExclusive);
         }
 
         internal bool HasExpectedSpan(uint startOffset, uint endOffsetExclusive)

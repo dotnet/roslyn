@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -84,13 +85,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var moduleInstances = runtime.Modules;
             blocks = moduleInstances.SelectAsArray(m => m.MetadataBlock);
 
-            var compilation = blocks.ToCompilation();
+            // Assume target module is the last module.
+            moduleVersionId = runtime.Modules.Last().MetadataReference.GetModuleVersionId();
+
+            var compilation = blocks.ToCompilation(moduleVersionId);
             var methodOrType = GetMethodOrTypeBySignature(compilation, methodOrTypeName);
             var module = (PEModuleSymbol)methodOrType.ContainingModule;
             var id = module.Module.GetModuleVersionIdOrThrow();
             var moduleInstance = moduleInstances.First(m => m.ModuleVersionId == id);
 
-            moduleVersionId = id;
+            Debug.Assert(moduleVersionId == id);
             symReader = (ISymUnmanagedReader)moduleInstance.SymReader;
 
             Handle methodOrTypeHandle;
