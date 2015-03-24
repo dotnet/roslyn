@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.IO
 Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -20,7 +21,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
     Public Class DiagnosticServiceTests
 
         Public Function CreateAnalyzerFileReference(ByVal fullPath As String) As AnalyzerFileReference
-            Return New AnalyzerFileReference(fullPath, AddressOf InMemoryAssemblyProvider.GetAssembly)
+            Return New AnalyzerFileReference(
+                fullPath,
+                Function(p)
+                    Dim bytes = File.ReadAllBytes(p)
+                    Return Assembly.Load(bytes)
+                End Function)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>

@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.IO
 Imports System.Reflection
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -18,7 +19,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
     Public Class CodeFixServiceTests
 
         Public Function CreateAnalyzerFileReference(ByVal fullPath As String) As AnalyzerFileReference
-            Return New AnalyzerFileReference(fullPath, AddressOf InMemoryAssemblyProvider.GetAssembly)
+            Return New AnalyzerFileReference(
+                fullPath,
+                Function(p)
+                    Dim bytes = File.ReadAllBytes(p)
+                    Return Assembly.Load(bytes)
+                End Function)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>

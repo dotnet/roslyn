@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -2492,7 +2493,7 @@ class C { }";
                 var project = solution.Projects.First();
 
                 var myAnalyzerPath = GetSolutionFileName(@"Analyzers\MyAnalyzer.dll");
-                var aref = new AnalyzerFileReference(myAnalyzerPath, InMemoryAssemblyProvider.GetAssembly);
+                var aref = new AnalyzerFileReference(myAnalyzerPath, p => Assembly.Load(File.ReadAllBytes(p)));
 
                 // add reference to MyAnalyzer.dll
                 ws.TryApplyChanges(project.AddAnalyzerReference(aref).Solution);
