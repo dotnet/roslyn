@@ -84,6 +84,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return LineColumnRule.PreserveLinesWithGivenIndentation(lines: insertNewLine ? 1 : 0);
                 }
 
+                /* All the cases are Trivia inside ArrayInitializers
+                    case 1:  {
+                                // This is a comment after the brace
+                         <TriviaOfInterest>    2
+                    case 2:  ,
+                                // This is a comment after the comma of the ArrayInitializer
+                         <TriviaOfInterest>    2
+                    case 3:   <value>
+                            // This is a comment after one of the values for the ArrayInitializer
+                         <TriviaOfInterest>     ,
+                    case 4: // This is a comment after one of the values for the ArrayInitializer
+                         <TriviaOfInterest>     }
+                */
+                if (IsTokenCommaOrBraceOfArrayInitializer(this.Token1, openBrace: true) ||
+                    IsTokenCommaOrBraceOfArrayInitializer(this.Token2, openBrace: false))
+                {
+                    return LineColumnRule.PreserveSpaces(spaces: existingWhitespaceBetween.Spaces);
+                }
+
                 if (insertNewLine)
                 {
                     return LineColumnRule.PreserveLinesWithDefaultIndentation(lines: 0);
@@ -122,6 +141,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // comments case
             if (trivia2.IsRegularOrDocComment())
             {
+                /* All the cases are trivia inside ArrayInitializers
+                    case 1: {
+                       <TriviaOfInterest>         // This is a comment after the brace
+                    case 2: ,
+                       <TriviaOfInterest>         // This is a comment after the comma of the array initializer
+                    case 3:
+                       <TriviaOfInterest>         // This is a comment after the value but before the comma of the array initializer
+                            ,
+                    case 4:
+                       <TriviaOfInterest>         // This is a comment after the value and before the close brace
+                            }
+                */
+                if (IsTokenCommaOrBraceOfArrayInitializer(this.Token1, openBrace: true) ||
+                    IsTokenCommaOrBraceOfArrayInitializer(this.Token2, openBrace: false))
+                {
+                    return LineColumnRule.PreserveSpaces(spaces: existingWhitespaceBetween.Spaces);
+                }
+
                 // start of new comments group
                 if (!trivia1.IsRegularComment() || existingWhitespaceBetween.Lines > 1)
                 {
@@ -354,6 +391,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             return GetLineColumnDelta(lineColumn, docComment);
+        }
+
+        private bool IsTokenCommaOrBraceOfArrayInitializer(SyntaxToken token, bool openBrace)
+        {
+            return (token.IsKind(SyntaxKind.CommaToken) || token.IsKind(openBrace ? SyntaxKind.OpenBraceToken : SyntaxKind.CloseBraceToken)) &&
+                token.Parent.IsKind(SyntaxKind.ArrayInitializerExpression);
         }
     }
 }

@@ -139,6 +139,19 @@ namespace Microsoft.CodeAnalysis.Formatting
             };
         }
 
+        public static LineColumnRule PreserveSpaces(int spaces)
+        {
+            return new LineColumnRule
+            {
+                SpaceOperation = SpaceOperations.Preserve,
+                LineOperation = LineOperations.Preserve,
+                IndentationOperation = IndentationOperations.Preserve,
+                Lines = 0,
+                Spaces = spaces,
+                Indentation = 0
+            };
+        }
+
         public static LineColumnRule PreserveSpacesOrUseDefaultIndentation(int spaces)
         {
             return new LineColumnRule
