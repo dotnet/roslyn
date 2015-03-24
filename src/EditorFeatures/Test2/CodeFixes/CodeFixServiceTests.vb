@@ -36,6 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim codefixService = New CodeFixService(
                                         diagnosticService,
+                                        workspace,
                                         {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
                                             Function() workspaceCodeFixProvider,
                                             New Mef.CodeChangeProviderMetadata(New Dictionary(Of String, Object)() From {{"Name", "C#"}, {"Languages", {LanguageNames.CSharp}}}))},
@@ -99,6 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
                 Dim codefixService = New CodeFixService(
                                         diagnosticService,
+                                        workspace,
                                         {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
                                             Function() workspaceCodeFixProvider,
                                             New Mef.CodeChangeProviderMetadata(New Dictionary(Of String, Object)() From {{"Name", "C#"}, {"Languages", {LanguageNames.CSharp}}}))},
