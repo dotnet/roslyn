@@ -3944,7 +3944,7 @@ class C
             // Duplicate assemblies, target module referencing BS1.
             using (var runtime = CreateRuntimeInstance(
                 assemblyNameC,
-                ImmutableArray.Create(MscorlibRef, referenceAS1, referenceAS2, referenceBS1, referenceBS2),
+                ImmutableArray.Create(MscorlibRef, referenceAS1, referenceAS2, referenceBS2, referenceBS1, referenceBS2),
                 exeBytesC1,
                 new SymReader(pdbBytesC1)))
             {
