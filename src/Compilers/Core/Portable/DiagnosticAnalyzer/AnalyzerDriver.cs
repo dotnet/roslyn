@@ -355,33 +355,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task ProcessEventAsync(CompilationEvent e, CancellationToken cancellationToken)
+        private static readonly Task s_emptyTask = Task.FromResult<object>(null);
+
+        private Task ProcessEventAsync(CompilationEvent e, CancellationToken cancellationToken)
         {
             var symbolEvent = e as SymbolDeclaredCompilationEvent;
             if (symbolEvent != null)
             {
-                await ProcessSymbolDeclaredAsync(symbolEvent, cancellationToken).ConfigureAwait(false);
-                return;
+                return ProcessSymbolDeclaredAsync(symbolEvent, cancellationToken);
             }
 
             var completedEvent = e as CompilationUnitCompletedEvent;
             if (completedEvent != null)
             {
-                await ProcessCompilationUnitCompleted(completedEvent, cancellationToken).ConfigureAwait(false);
-                return;
+                return ProcessCompilationUnitCompleted(completedEvent, cancellationToken);
             }
 
             var endEvent = e as CompilationCompletedEvent;
             if (endEvent != null)
             {
-                await ProcessCompilationCompletedAsync(endEvent, cancellationToken).ConfigureAwait(false);
-                return;
+                return ProcessCompilationCompletedAsync(endEvent, cancellationToken);
             }
 
             if (e is CompilationStartedEvent)
             {
                 // Ignore CompilationStartedEvent.
-                return;
+                return s_emptyTask;
             }
 
             throw new InvalidOperationException("Unexpected compilation event of type " + e.GetType().Name);
@@ -467,7 +466,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected abstract void AddTasksForExecutingDeclaringReferenceActions(SymbolDeclaredCompilationEvent symbolEvent, IDictionary<DiagnosticAnalyzer, Task> taskMap, CancellationToken cancellationToken);
 
-        private Task ProcessCompilationUnitCompleted(CompilationUnitCompletedEvent completedEvent, CancellationToken cancellationToken)
+        private async Task ProcessCompilationUnitCompleted(CompilationUnitCompletedEvent completedEvent, CancellationToken cancellationToken)
         {
             // When the compiler is finished with a compilation unit, we can run user diagnostics which
             // might want to ask the compiler for all the diagnostics in the source file, for example
@@ -490,7 +489,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     tasks.Add(task); 
                 }
 
-                return Task.WhenAll(tasks.ToArrayAndFree());
+                await Task.WhenAll(tasks.ToArrayAndFree()).ConfigureAwait(false);
             }
             finally
             {
@@ -511,7 +510,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task ExecuteCompilationActionsAsync(ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>> compilationActionsMap, CancellationToken cancellationToken)
+        private Task ExecuteCompilationActionsAsync(ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>> compilationActionsMap, CancellationToken cancellationToken)
         {
             // Execute analyzers in parallel.
             var tasks = ArrayBuilder<Task>.GetInstance();
@@ -526,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 tasks.Add(task);
             }
 
-            await Task.WhenAll(tasks.ToArrayAndFree()).ConfigureAwait(false);
+            return Task.WhenAll(tasks.ToArrayAndFree());
         }
 
         internal static Action<Diagnostic> GetDiagnosticSinkWithSuppression(Action<Diagnostic> addDiagnosticCore, Compilation compilation, ISymbol symbolOpt = null)
