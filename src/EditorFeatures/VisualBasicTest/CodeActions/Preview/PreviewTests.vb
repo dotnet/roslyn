@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         <Fact>
         Public Sub TestPickTheRightPreview_NoPreference()
             Using workspace = CreateWorkspaceFromFile("Class D : End Class", Nothing, Nothing)
-                Dim document As Document = Nothing
+                Dim document As document = Nothing
                 Dim previews As SolutionPreviewResult = Nothing
                 GetMainDocumentAndPreviews(workspace, document, previews)
 
@@ -126,12 +126,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         <Fact>
         Public Sub TestPickTheRightPreview_WithPreference()
             Using workspace = CreateWorkspaceFromFile("Class D : End Class", Nothing, Nothing)
-                Dim document As Document = Nothing
+                Dim document As document = Nothing
                 Dim previews As SolutionPreviewResult = Nothing
                 GetMainDocumentAndPreviews(workspace, document, previews)
 
                 ' Should return preview that matches the preferred (added) project.
-                Dim preview = previews.TakeNextPreview(preferredProjectId:=s_addedProjectId)
+                Dim preview = previews.TakeNextPreviewAsync(preferredProjectId:=s_addedProjectId).PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is String)
                 Dim text = DirectCast(preview, String)
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 diffView.Close()
 
                 ' There is no longer a preview for the preferred project. Should return the first remaining preview.
-                preview = previews.TakeNextPreview(preferredProjectId:=s_addedProjectId)
+                preview = previews.TakeNextPreviewAsync(preferredProjectId:=s_addedProjectId).PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is IWpfDifferenceViewer)
                 diffView = DirectCast(preview, IWpfDifferenceViewer)

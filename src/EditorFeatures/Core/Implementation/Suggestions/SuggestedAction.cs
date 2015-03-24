@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -59,6 +59,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return true;
         }
 
+        // NOTE: We want to avoid computing the operations on the UI thread. So we use Task.Run() to do this work on the background thread.
+        protected Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken)
+        {
+            return Task.Run(
+                async () => await CodeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false), cancellationToken);
+        }
+
+        protected Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CodeActionWithOptions actionWithOptions, object options, CancellationToken cancellationToken)
+        {
+            return Task.Run(
+                async () => await actionWithOptions.GetOperationsAsync(options, cancellationToken).ConfigureAwait(false), cancellationToken);
+        }
+
+        protected Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
+        {
+            return Task.Run(
+                async () => await CodeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false), cancellationToken);
+        }
+
         public virtual void Invoke(CancellationToken cancellationToken)
         {
             var snapshot = this.SubjectBuffer.CurrentSnapshot;
@@ -70,23 +89,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     IEnumerable<CodeActionOperation> operations = null;
 
-                    // NOTE: We want to avoid computing the operations on the UI thread, so we will kick off a task to GetOperations.
-                    // However, for CodeActionWithOptions, GetOptions might involve spinning up a dialog to compute the options and must be done on the UI thread.
-                    // Hence we need the below if-else statement instead of just invoking CodeAction.GetOperationsAsync()
+                    // NOTE: As mentoned above, we want to avoid computing the operations on the UI thread.
+                    // However, for CodeActionWithOptions, GetOptions() might involve spinning up a dialog
+                    // to compute the options and must be done on the UI thread.
                     var actionWithOptions = this.CodeAction as CodeActionWithOptions;
                     if (actionWithOptions != null)
                     {
                         var options = actionWithOptions.GetOptions(cancellationToken);
                         if (options != null)
                         {
-                            operations = Task.Run(
-                                async () => await actionWithOptions.GetOperationsAsync(options, cancellationToken).ConfigureAwait(false), cancellationToken).WaitAndGetResult(cancellationToken);
+                            operations = GetOperationsAsync(actionWithOptions, options, cancellationToken).WaitAndGetResult(cancellationToken);
                         }
                     }
                     else
                     {
-                        operations = Task.Run(
-                            async () => await this.CodeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false), cancellationToken).WaitAndGetResult(cancellationToken);
+                        operations = GetOperationsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
                     }
 
                     if (operations != null)
@@ -118,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             AssertIsForeground();
 
             // We use ConfigureAwait(true) to stay on the UI thread.
-            var operations = await CodeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(true);
+            var operations = await GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(true);
 
             return EditHandler.GetPreviews(Workspace, operations, cancellationToken);
         }
@@ -127,15 +144,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             get
             {
-                // Light bulb will always invoke this property on the UI thread.
-                AssertIsForeground();
+                // HasPreview is called synchronously on the UI thread. In order to avoid blocking the UI thread,
+                // we need to provide a 'quick' answer here as opposed to the 'right' answer. Providing the 'right'
+                // answer is expensive (because we will need to call CodeAction.GetPreivewOperationsAsync() for this
+                // and this will involve computing the changed solution for the ApplyChangesOperation for the fix /
+                // refactoring). So we always return 'true' here (so that platform will call GetActionSetsAsync()
+                // below). Platform guarantees that nothing bad will happen if we return 'true' here and later return
+                // 'null' / empty collection from within GetPreviewAsync().
 
-                var hasHeader = !string.IsNullOrWhiteSpace(GetDiagnostic()?.GetMessage());
-
-                // Preview pane needs to be displayed if we wither have a diagnostic with a 'message'
-                // (which means we will have a header for the preview pane) or if GetPreviewOperationsAsync()
-                // returns at least one operation.
-                return hasHeader || CodeAction.GetPreviewOperationsAsync(CancellationToken.None).Result.Any();
+                return true;
             }
         }
 
@@ -203,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {
-            return Task.FromResult<IEnumerable<SuggestedActionSet>>(null);
+            return SpecializedTasks.Default<IEnumerable<SuggestedActionSet>>();
         }
 
         string ISuggestedAction.IconAutomationText

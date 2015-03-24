@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -29,19 +28,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             get
             {
-                // Light bulb will always invoke this property on the UI thread.
-                AssertIsForeground();
+                // HasActionSets is called synchronously on the UI thread. In order to avoid blocking the UI thread,
+                // we need to provide a 'quick' answer here as opposed to the 'right' answer. Providing the 'right'
+                // answer is expensive (because we will need to call CodeAction.GetPreivewOperationsAsync() (to
+                // compute whether or not we should display the flavored action for 'Preview Changes') which in turn
+                // will involve computing the changed solution for the ApplyChangesOperation for the fix / refactoring
+                // So we always return 'true' here (so that platform will call GetActionSetsAsync() below). Platform
+                // guarantees that nothing bad will happen if we return 'true' here and later return 'null' / empty
+                // collection from within GetPreviewAsync().
 
-                var operations = CodeAction.GetPreviewOperationsAsync(CancellationToken.None).Result;
-
-                // We will have a PreviewChangesSuggestedAction only for fixes that don't override preview (by returning
-                // PreviewOperation or some other (non-preview-able) operation). In other words, we will only have a
-                // PreviewChangesSuggestedAction for fixes that provide an ApplyChangesOperation.
-                var hasPreviewChangesSuggestedAction = operations.Any(o => o is ApplyChangesOperation);
-
-                // We have flavored actions if we either have a PreviewChangesSuggestedAction or one or more
-                // FixAllSuggestedActions.
-                return hasPreviewChangesSuggestedAction || (GetFixAllSuggestedActionSet() != null);
+                return true;
             }
         }
 

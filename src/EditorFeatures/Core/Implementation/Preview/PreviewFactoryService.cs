@@ -10,6 +10,7 @@ using System.Windows;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -23,7 +24,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
     [Export(typeof(IPreviewFactoryService)), Shared]
-    internal class PreviewFactoryService : IPreviewFactoryService
+    internal class PreviewFactoryService : ForegroundThreadAffinitizedObject, IPreviewFactoryService
     {
         private const double DefaultZoomLevel = 0.75;
         private readonly ITextViewRoleSet _previewRoleSet;
@@ -466,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 // This can happen in cases where the user has already applied the fix and light bulb has already been dismissed,
                 // but platform hasn't cancelled the preview operation yet. Since the light bulb has already been dismissed at
                 // this point, the preview that we return will never be displayed to the user. So returning null here is harmless.
-                return Task.FromResult<object>(null);
+                return SpecializedTasks.Default<object>();
             }
 
             var originalBuffer = _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
@@ -570,6 +571,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             diffViewer.RightView.VisualElement.Focusable = false;
             diffViewer.LeftView.VisualElement.Focusable = false;
             diffViewer.InlineView.VisualElement.Focusable = false;
+
+            // This code path must be invoked on UI thread.
+            AssertIsForeground();
 
             // We use ConfigureAwait(true) to stay on the UI thread.
             await diffViewer.SizeToFitAsync().ConfigureAwait(true);

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
             if (IsEmpty)
             {
-                return Task.FromResult<object>(null);
+                return SpecializedTasks.Default<object>();
             }
 
             SolutionPreviewItem previewItem = null;
