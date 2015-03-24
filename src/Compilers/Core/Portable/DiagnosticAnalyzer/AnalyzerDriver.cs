@@ -345,7 +345,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 try
                 {
-                    await ProcessEventAsync(e, cancellationToken).ConfigureAwait(false);
+                    var processEventTask = ProcessEventAsync(e, cancellationToken);
+                    if (processEventTask != null)
+                    {
+                        await processEventTask.ConfigureAwait(false);
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -354,8 +358,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
         }
-
-        private static readonly Task s_emptyTask = Task.FromResult<object>(null);
 
         private Task ProcessEventAsync(CompilationEvent e, CancellationToken cancellationToken)
         {
@@ -380,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (e is CompilationStartedEvent)
             {
                 // Ignore CompilationStartedEvent.
-                return s_emptyTask;
+                return null;
             }
 
             throw new InvalidOperationException("Unexpected compilation event of type " + e.GetType().Name);
