@@ -160,5 +160,47 @@ namespace Microsoft.CodeAnalysis
             }
 
         }
-    }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class NotConfigurableDiagnosticAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor EnabledRule = new DiagnosticDescriptor(
+                "ID1",
+                "Title1",
+                "Message1",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true,
+                customTags: WellKnownDiagnosticTags.NotConfigurable);
+
+            public static readonly DiagnosticDescriptor DisabledRule = new DiagnosticDescriptor(
+                "ID2",
+                "Title2",
+                "Message2",
+                "Category2",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: false,
+                customTags: WellKnownDiagnosticTags.NotConfigurable);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get
+                {
+                    return ImmutableArray.Create(EnabledRule, DisabledRule);
+                }
+            }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationAction(compilationContext =>
+                {
+                    // Report enabled diagnostic.
+                    compilationContext.ReportDiagnostic(Diagnostic.Create(EnabledRule, Location.None));
+
+                    // Try to report disabled diagnostic.
+                    compilationContext.ReportDiagnostic(Diagnostic.Create(DisabledRule, Location.None));
+                });
+            }
+        }
+        }
 }
