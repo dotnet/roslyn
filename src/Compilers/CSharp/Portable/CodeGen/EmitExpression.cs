@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -221,6 +222,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitConditionalReceiver((BoundConditionalReceiver)expression, used);
                     break;
 
+                case BoundKind.ComplexConditionalReceiver:
+                    EmitComplexConditionalReceiver((BoundComplexConditionalReceiver)expression, used);
+                    break;
+
                 case BoundKind.PseudoVariable:
                     EmitPseudoVariableValue((BoundPseudoVariable)expression, used);
                     break;
@@ -232,6 +237,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // node should have been lowered:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
             }
+        }
+
+        private void EmitComplexConditionalReceiver(BoundComplexConditionalReceiver expression, bool used)
+        {
+            Debug.Assert(!expression.Type.IsReferenceType);
+            Debug.Assert(!expression.Type.IsValueType);
+
+            var receiverType = expression.Type;
+
+            var whenValueTypeLabel = new object();
+            var doneLabel = new object();
+
+            EmitInitObj(receiverType, true, expression.Syntax);
+            EmitBox(receiverType, expression.Syntax);
+            _builder.EmitBranch(ILOpCode.Brtrue, whenValueTypeLabel);
+
+            EmitExpression(expression.ReferenceTypeReceiver, used);
+            _builder.EmitBranch(ILOpCode.Br, doneLabel);
+            _builder.AdjustStack(-1);
+
+            _builder.MarkLabel(whenValueTypeLabel);
+            EmitExpression(expression.ValueTypeReceiver, used);
+
+            _builder.MarkLabel(doneLabel);
         }
 
         private void EmitLoweredConditionalAccessExpression(BoundLoweredConditionalAccess expression, bool used)

@@ -1235,6 +1235,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(receiver, whenNotNull, whenNull, node.Type);
         }
 
+        public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
+        {
+            EnsureOnlyEvalStack();
+
+            var origStack = this._evalStack;
+
+            this._evalStack += 1;
+
+            var cookie = GetStackStateCookie(); // implicit goto here 
+
+            this._evalStack = origStack; // consequence is evaluated with original stack 
+            var valueTypeReceiver = (BoundExpression)this.Visit(node.ValueTypeReceiver);
+
+            EnsureStackState(cookie); // implicit label here 
+
+            this._evalStack = origStack; // alternative is evaluated with original stack 
+             var referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
+
+            EnsureStackState(cookie); // implicit label here 
+
+            return node.Update(valueTypeReceiver, referenceTypeReceiver, node.Type);
+        }
+
         public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
         {
             // checked(-x) is emitted as "0 - x"

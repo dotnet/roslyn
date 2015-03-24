@@ -2835,6 +2835,87 @@ False");
         }
 
         [Fact]
+        public void ConditionalMemberAccessUnConstrainedAsyncValExt()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using DE;
+
+namespace DE
+{
+    public static class IDispExt
+    {
+        public static void DisposeExt(this Program.IDisposable1 d, int i)
+        {
+            d.Dispose(i);
+        }
+    }
+}
+
+public class Program
+{
+    public interface IDisposable1
+    {
+        int Dispose(int i);
+    }
+
+    class C1 : IDisposable1
+    {
+        private bool disposed;
+
+        public int Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+            return 1;
+        }
+    }
+
+    struct S1 : IDisposable1
+    {
+        private bool disposed;
+
+        public int Dispose(int i)
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+            return 1;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        C1 c = new C1();
+        Test(c, c).Wait();
+
+        S1 s = new S1();
+        Test(s, s).Wait();
+    }
+
+    static async Task<int> Val()
+    {
+        await Task.Yield();
+        return 0;
+    }
+
+    static async Task<int> Test<T>(T x, T y) where T : IDisposable1
+    {
+        x?.DisposeExt(await Val());
+        y?.DisposeExt(await Val());
+        return 1;
+    }
+}
+";
+            var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CompileAndVerify(c, expectedOutput: @"False
+True
+False
+False");
+        }
+
+        [Fact]
         public void ConditionalMemberAccessUnConstrainedAsyncNested()
         {
             var source = @"
@@ -2850,7 +2931,7 @@ class Program
     }
 
     class C1 : IDisposable1
-    {
+    { 
         private bool disposed;
 
         public IDisposable1 Dispose(int i)
