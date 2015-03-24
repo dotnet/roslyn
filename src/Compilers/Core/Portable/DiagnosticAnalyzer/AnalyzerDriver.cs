@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var completedEvent = e as CompilationUnitCompletedEvent;
             if (completedEvent != null)
             {
-                return ProcessCompilationUnitCompleted(completedEvent, cancellationToken);
+                return ProcessCompilationUnitCompletedAsync(completedEvent, cancellationToken);
             }
 
             var endEvent = e as CompilationCompletedEvent;
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected abstract void AddTasksForExecutingDeclaringReferenceActions(SymbolDeclaredCompilationEvent symbolEvent, IDictionary<DiagnosticAnalyzer, Task> taskMap, CancellationToken cancellationToken);
 
-        private async Task ProcessCompilationUnitCompleted(CompilationUnitCompletedEvent completedEvent, CancellationToken cancellationToken)
+        private async Task ProcessCompilationUnitCompletedAsync(CompilationUnitCompletedEvent completedEvent, CancellationToken cancellationToken)
         {
             // When the compiler is finished with a compilation unit, we can run user diagnostics which
             // might want to ask the compiler for all the diagnostics in the source file, for example
