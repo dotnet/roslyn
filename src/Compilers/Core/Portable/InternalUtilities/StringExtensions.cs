@@ -49,20 +49,6 @@ namespace Roslyn.Utilities
             return name.Length >= 3 && name[0] == 'T' && char.IsUpper(name[1]) && char.IsLower(name[2]);
         }
 
-        /// <summary>
-        /// Given an input string changes it to be acceptable as a part of a type name.
-        /// For now we will simply replace '.' with '_'as the most common case.
-        /// </summary>
-        internal static string MangleForTypeNameIfNeeded(this string original)
-        {
-            // TODO: it may make sense to strenthen this algorithm 
-            //       to result in 1-1 mapping to reduce chances of
-            //       producing matching results for distinct original strings
-            var result = original.Replace('.', '_');
-
-            return result;
-        }
-
         private static readonly Func<char, char> s_toLower = char.ToLower;
         private static readonly Func<char, char> s_toUpper = char.ToUpper;
 

@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // we include the module name in the name of the PrivateImplementationDetails class so that more than
             // one of them can be included in an assembly as part of netmodules.    
             var name = isNetModule ?
-                        $"<PrivateImplementationDetails><{moduleName.MangleForTypeNameIfNeeded()}>" :
+                        $"<PrivateImplementationDetails><{MetadataHelpers.MangleForTypeNameIfNeeded(moduleName)}>" :
                         $"<PrivateImplementationDetails>";
 
             if (submissionSlotIndex >= 0)
