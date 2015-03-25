@@ -71,15 +71,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 "PreprocessorSymbolNames",
                 "PreprocessorSymbols");
         }
-
-        [Fact]
-        public void Serializability()
-        {
-            VerifySerializability(new CSharpSerializableParseOptions(new CSharpParseOptions(
-                languageVersion: LanguageVersion.CSharp6,
-                documentationMode: DocumentationMode.None,
-                kind: SourceCodeKind.Interactive,
-                preprocessorSymbols: new[] { "A", "B" })));
-        }
     }
 }

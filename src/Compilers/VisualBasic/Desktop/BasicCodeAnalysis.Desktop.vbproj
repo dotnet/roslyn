@@ -86,8 +86,6 @@
     <Compile Include="CommandLine\CommandLineParser.vb" />
     <Compile Include="CommandLine\VisualBasicCompiler.vb" />
     <Compile Include="VisualBasicFileSystemExtensions.vb" />
-    <Compile Include="VisualBasicSerializableCompilationOptions.vb" />
-    <Compile Include="VisualBasicSerializableParseOptions.vb" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
