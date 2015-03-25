@@ -157,11 +157,17 @@ namespace Microsoft.DiaSymReader
         public static byte[] GetCustomDebugInfoBytes(this ISymUnmanagedReader reader, int methodToken, int methodVersion)
         {
             return GetItems(
-                (ISymUnmanagedReader3)reader,
+                reader,
                 methodToken,
                 methodVersion,
-                (ISymUnmanagedReader3 pReader, int pMethodToken, int pMethodVersion, int pBufferLength, out int pCount, byte[] pCustomDebugInfo) =>
-                    pReader.GetSymAttributeByVersion(pMethodToken, pMethodVersion, CdiAttributeName, pBufferLength, out pCount, pCustomDebugInfo));
+                (ISymUnmanagedReader pReader, int pMethodToken, int pMethodVersion, int pBufferLength, out int pCount, byte[] pCustomDebugInfo) =>
+                {
+                    // TODO (DevDiv #1145183): cast should always succeed.
+                    var pReader3 = pReader as ISymUnmanagedReader3;
+                    return pReader3 == null
+                        ? pReader.GetSymAttribute(pMethodToken, CdiAttributeName, pBufferLength, out pCount, pCustomDebugInfo)
+                        : pReader3.GetSymAttributeByVersion(pMethodToken, pMethodVersion, CdiAttributeName, pBufferLength, out pCount, pCustomDebugInfo);
+                });
         }
 
         public static int GetUserEntryPoint(this ISymUnmanagedReader symReader)
