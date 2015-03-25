@@ -15,6 +15,8 @@ Imports Microsoft.DiaSymReader
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources
+Imports Roslyn.Test.PdbUtilities
+Imports System.IO
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class ExpressionCompilerTests
@@ -256,7 +258,7 @@ End Class"
             ' At start of outer scope.
             Dim context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, startOffset, localSignatureToken)
             Assert.Equal(Nothing, previous)
-            previous = new VisualBasicMetadataContext(context)
+            previous = New VisualBasicMetadataContext(context)
 
             ' At end of outer scope - not reused because of the nested scope.
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken)
@@ -270,7 +272,7 @@ End Class"
 
             ' Step through entire method.
             Dim previousScope As Scope = Nothing
-            previous = new VisualBasicMetadataContext(context)
+            previous = New VisualBasicMetadataContext(context)
             For offset = startOffset To endOffset - 1
                 Dim scope = scopes.GetInnermostScope(offset)
                 Dim constraints = previous.EvaluationContext.MethodContextReuseConstraints
@@ -290,7 +292,7 @@ End Class"
                     End If
                 End If
                 previousScope = scope
-                previous = new VisualBasicMetadataContext(context)
+                previous = New VisualBasicMetadataContext(context)
             Next
 
             ' With different references.
@@ -309,7 +311,7 @@ End Class"
             Assert.NotEqual(context, previous.EvaluationContext)
             Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset - 1))
             Assert.NotEqual(context.Compilation, previous.Compilation)
-            previous = new VisualBasicMetadataContext(context)
+            previous = New VisualBasicMetadataContext(context)
 
             ' Different method. Should reuse Compilation.
             GetContextState(runtime, "C.G", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
@@ -3967,6 +3969,102 @@ End Class"
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
   IL_000a:  ret
 }")
+        End Sub
+
+        <WorkItem(1068138, "DevDiv")>
+        <Fact>
+        Public Sub GetSymAttributeByVersion()
+            Const source1 = "
+Public Class C
+    Public Shared Sub M()
+        Dim x As Integer = 1
+    End Sub
+End Class
+"
+
+            Const source2 = "
+Public Class C
+    Public Shared Sub M()
+        Dim x As Integer = 1
+        Dim y as String = ""a""
+    End Sub
+End Class
+"
+
+            Dim comp1 = CreateCompilationWithMscorlib({source1}, compOptions:=TestOptions.DebugDll)
+            Dim comp2 = CreateCompilationWithMscorlib({source2}, compOptions:=TestOptions.DebugDll)
+
+            Using _
+                peStream1Unused As New MemoryStream(),
+                peStream2 As New MemoryStream(),
+                pdbStream1 As New MemoryStream(),
+                pdbStream2 As New MemoryStream()
+
+                Assert.True(comp1.Emit(peStream1Unused, pdbStream1).Success)
+                Assert.True(comp2.Emit(peStream2, pdbStream2).Success)
+
+                ' Note: This SymReader will behave differently from the ISymUnmanagedReader
+                ' we receive during real debugging.  We're just using it as a rough
+                ' approximation of ISymUnmanagedReader3, which is unavailable here.
+                Dim symReader = New SymReader({pdbStream1, pdbStream2})
+
+                Dim runtime = CreateRuntimeInstance(
+                    GetUniqueName(),
+                    ImmutableArray.Create(MscorlibRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference),
+                    peStream2.ToArray(),
+                    symReader)
+
+                Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+                Dim moduleVersionId As Guid = Nothing
+                Dim symReader2 As ISymUnmanagedReader = Nothing
+                Dim methodToken As Integer = Nothing
+                Dim localSignatureToken As Integer = Nothing
+                GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader2, methodToken, localSignatureToken)
+
+                Assert.Same(symReader, symReader2)
+
+                AssertEx.SetEqual(symReader.GetLocalNames(methodToken, methodVersion:=1), "x")
+                AssertEx.SetEqual(symReader.GetLocalNames(methodToken, methodVersion:=2), "x", "y")
+
+                Dim context1 = EvaluationContext.CreateMethodContext(
+                    Nothing,
+                    blocks,
+                    MakeDummyLazyAssemblyReaders(),
+                    symReader,
+                    moduleVersionId,
+                    methodToken:=methodToken,
+                    methodVersion:=1,
+                    ilOffset:=0,
+                    localSignatureToken:=localSignatureToken)
+
+                Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+                Dim typeName As String = Nothing
+                context1.CompileGetLocals(
+                    locals,
+                    argumentsOnly:=False,
+                    typeName:=typeName,
+                    testData:=Nothing)
+                AssertEx.SetEqual(locals.Select(Function(l) l.LocalName), "x")
+
+                Dim context2 = EvaluationContext.CreateMethodContext(
+                    Nothing,
+                    blocks,
+                    MakeDummyLazyAssemblyReaders(),
+                    symReader,
+                    moduleVersionId,
+                    methodToken:=methodToken,
+                    methodVersion:=2,
+                    ilOffset:=0,
+                    localSignatureToken:=localSignatureToken)
+
+                locals.Clear()
+                context2.CompileGetLocals(
+                    locals,
+                    argumentsOnly:=False,
+                    typeName:=typeName,
+                    testData:=Nothing)
+                AssertEx.SetEqual(locals.Select(Function(l) l.LocalName), "x", "y")
+            End Using
         End Sub
 
     End Class

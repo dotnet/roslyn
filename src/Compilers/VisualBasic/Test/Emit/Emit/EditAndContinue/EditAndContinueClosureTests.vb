@@ -98,7 +98,7 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
@@ -149,7 +149,7 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
@@ -201,7 +201,7 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
@@ -253,7 +253,7 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
@@ -331,7 +331,7 @@ End Class
             Dim ctor0 = compilation0.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
             Dim ctor1 = compilation1.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
@@ -413,7 +413,7 @@ End Module
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
@@ -512,7 +512,7 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.N")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.N")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
             Dim reader0 = md0.MetadataReader
             CheckNamesSorted({reader0}, reader0.GetTypeDefNames(), "_Closure$__", "<Module>", "C", "VB$AnonymousDelegate_0", "VB$AnonymousDelegate_1`1", "VB$AnonymousDelegate_2`2", "VB$AnonymousDelegate_3`1", "VB$AnonymousType_0`1")
 
@@ -608,7 +608,7 @@ End Class
             Dim ctor0 = compilation0.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
             Dim ctor1 = compilation1.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
@@ -677,7 +677,7 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreatePdbInfoProvider().GetEncMethodDebugInfo)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
@@ -740,7 +740,7 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreatePdbInfoProvider().GetEncMethodDebugInfo)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
@@ -803,7 +803,7 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreatePdbInfoProvider().GetEncMethodDebugInfo)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
@@ -868,7 +868,7 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreatePdbInfoProvider().GetEncMethodDebugInfo)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,

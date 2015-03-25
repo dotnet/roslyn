@@ -1438,6 +1438,19 @@ lUnsplitAndFinish:
             Return Nothing
         End Function
 
+        Public Overrides Function VisitComplexConditionalAccessReceiver(node As BoundComplexConditionalAccessReceiver) As BoundNode
+            Dim savedState As LocalState = Me.State.Clone()
+
+            VisitLvalue(node.ValueTypeReceiver)
+            IntersectWith(Me.State, savedState)
+
+            savedState = Me.State.Clone()
+            VisitRvalue(node.ReferenceTypeReceiver)
+            IntersectWith(Me.State, savedState)
+
+            Return Nothing
+        End Function
+
         Public Overrides Function VisitConditionalAccessReceiverPlaceholder(node As BoundConditionalAccessReceiverPlaceholder) As BoundNode
             Return Nothing
         End Function

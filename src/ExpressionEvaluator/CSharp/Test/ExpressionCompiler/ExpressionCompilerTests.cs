@@ -20,6 +20,7 @@ using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
+using Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -5961,6 +5962,100 @@ public class C
 
             context.CompileExpression("typeof(Action<>a)", out error);
             Assert.Equal("(1,16): error CS1026: ) expected", error);
+        }
+
+        [WorkItem(1068138, "DevDiv")]
+        [Fact]
+        public void GetSymAttributeByVersion()
+        {
+            var source1 = @"
+public class C
+{
+    public static void M()
+    {
+        int x = 1;
+    }
+}";
+
+            var source2 = @"
+public class C
+{
+    public static void M()
+    {
+        int x = 1;
+        string y = ""a"";
+    }
+}";
+            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var comp2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
+
+            using (MemoryStream
+                peStream1Unused = new MemoryStream(),
+                peStream2 = new MemoryStream(),
+                pdbStream1 = new MemoryStream(), 
+                pdbStream2 = new MemoryStream())
+            {
+                Assert.True(comp1.Emit(peStream1Unused, pdbStream1).Success);
+                Assert.True(comp2.Emit(peStream2, pdbStream2).Success);
+
+                // Note: This SymReader will behave differently from the ISymUnmanagedReader
+                // we receive during real debugging.  We're just using it as a rough
+                // approximation of ISymUnmanagedReader3, which is unavailable here.
+                var symReader = new SymReader(new[] { pdbStream1, pdbStream2 });
+
+                var runtime = CreateRuntimeInstance(
+                    GetUniqueName(),
+                    ImmutableArray.Create(MscorlibRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference),
+                    peStream2.ToArray(),
+                    symReader);
+
+                ImmutableArray<MetadataBlock> blocks;
+                Guid moduleVersionId;
+                ISymUnmanagedReader symReader2;
+                int methodToken;
+                int localSignatureToken;
+                GetContextState(runtime, "C.M", out blocks, out moduleVersionId, out symReader2, out methodToken, out localSignatureToken);
+
+                Assert.Same(symReader, symReader2);
+
+                AssertEx.SetEqual(symReader.GetLocalNames(methodToken, methodVersion: 1), "x");
+                AssertEx.SetEqual(symReader.GetLocalNames(methodToken, methodVersion: 2), "x", "y");
+
+                var context1 = EvaluationContext.CreateMethodContext(
+                    default(CSharpMetadataContext),
+                    blocks,
+                    symReader,
+                    moduleVersionId,
+                    methodToken: methodToken,
+                    methodVersion: 1,
+                    ilOffset: 0,
+                    localSignatureToken: localSignatureToken);
+
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                context1.CompileGetLocals(
+                    locals,
+                    argumentsOnly: false,
+                    typeName: out typeName);
+                AssertEx.SetEqual(locals.Select(l => l.LocalName), "x");
+
+                var context2 = EvaluationContext.CreateMethodContext(
+                    default(CSharpMetadataContext),
+                    blocks,
+                    symReader,
+                    moduleVersionId,
+                    methodToken: methodToken,
+                    methodVersion: 2,
+                    ilOffset: 0,
+                    localSignatureToken: localSignatureToken);
+
+                locals.Clear();
+                context2.CompileGetLocals(
+                    locals,
+                    argumentsOnly: false,
+                    typeName: out typeName);
+                AssertEx.SetEqual(locals.Select(l => l.LocalName), "x", "y");
+            }
         }
     }
 }
