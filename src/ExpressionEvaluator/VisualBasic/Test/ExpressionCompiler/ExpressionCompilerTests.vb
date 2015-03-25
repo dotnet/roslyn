@@ -3273,8 +3273,8 @@ End Module
         End Sub
 
         <WorkItem(1042918)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <WorkItem(964, "GitHub")>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              <Fact(Skip:="964")>
+        <WorkItem(964, "GitHub")>
+        <Fact(Skip:="964")>
         Public Sub ConditionalAccessExpressionType()
             Dim source =
 "Class C
@@ -3913,7 +3913,7 @@ End Class
         End Sub
 
         <WorkItem(1105859)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <Fact(Skip:="1105859")>
+        <Fact(Skip:="1105859")>
         Public Sub WithExpression()
             Const source =
 "Structure S
@@ -4014,7 +4014,7 @@ End Class"
         End Sub
 
         <WorkItem(1112496)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              <Fact(Skip:="1112496")>
+        <Fact(Skip:="1112496")>
         Public Sub EvaluateLocalInAsyncLambda()
             Const source = "
 Imports System.Threading.Tasks
