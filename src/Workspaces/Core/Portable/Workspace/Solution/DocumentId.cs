@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
             _debugName = debugName;
         }
 
-        internal DocumentId(ProjectId projectId, Guid guid, string debugName)
+        public DocumentId(ProjectId projectId, Guid guid, string debugName = null)
         {
             this.ProjectId = projectId;
             this.Id = guid;

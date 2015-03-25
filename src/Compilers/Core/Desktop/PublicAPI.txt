@@ -77,10 +77,6 @@ Microsoft.CodeAnalysis.RuleSetInclude.Action.get -> Microsoft.CodeAnalysis.Repor
 Microsoft.CodeAnalysis.RuleSetInclude.IncludePath.get -> string
 Microsoft.CodeAnalysis.RuleSetInclude.LoadRuleSet(Microsoft.CodeAnalysis.RuleSet parent) -> Microsoft.CodeAnalysis.RuleSet
 Microsoft.CodeAnalysis.RuleSetInclude.RuleSetInclude(string includePath, Microsoft.CodeAnalysis.ReportDiagnostic action) -> void
-Microsoft.CodeAnalysis.SerializableCompilationOptions
-Microsoft.CodeAnalysis.SerializableCompilationOptions.Options.get -> Microsoft.CodeAnalysis.CompilationOptions
-Microsoft.CodeAnalysis.SerializableParseOptions
-Microsoft.CodeAnalysis.SerializableParseOptions.Options.get -> Microsoft.CodeAnalysis.ParseOptions
 Microsoft.CodeAnalysis.SourceFileResolver
 Microsoft.CodeAnalysis.SourceFileResolver.BaseDirectory.get -> string
 Microsoft.CodeAnalysis.SourceFileResolver.SearchPaths.get -> System.Collections.Immutable.ImmutableArray<string>
@@ -93,10 +89,6 @@ abstract Microsoft.CodeAnalysis.CommandLineArguments.CompilationOptionsCore.get 
 abstract Microsoft.CodeAnalysis.CommandLineArguments.ParseOptionsCore.get -> Microsoft.CodeAnalysis.ParseOptions
 abstract Microsoft.CodeAnalysis.CommandLineParser.RegularFileExtension.get -> string
 abstract Microsoft.CodeAnalysis.CommandLineParser.ScriptFileExtension.get -> string
-abstract Microsoft.CodeAnalysis.SerializableCompilationOptions.CommonOptions.get -> Microsoft.CodeAnalysis.CompilationOptions
-abstract Microsoft.CodeAnalysis.SerializableCompilationOptions.GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) -> void
-abstract Microsoft.CodeAnalysis.SerializableParseOptions.CommonOptions.get -> Microsoft.CodeAnalysis.ParseOptions
-abstract Microsoft.CodeAnalysis.SerializableParseOptions.GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) -> void
 override Microsoft.CodeAnalysis.CommandLineAnalyzerReference.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CommandLineAnalyzerReference.GetHashCode() -> int
 override Microsoft.CodeAnalysis.CommandLineReference.Equals(object obj) -> bool
@@ -128,8 +120,6 @@ static Microsoft.CodeAnalysis.FileSystemExtensions.Emit(this Microsoft.CodeAnaly
 static Microsoft.CodeAnalysis.RuleSet.GetDiagnosticOptionsFromRulesetFile(string rulesetFileFullPath, out System.Collections.Generic.Dictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> specificDiagnosticOptions) -> Microsoft.CodeAnalysis.ReportDiagnostic
 static Microsoft.CodeAnalysis.RuleSet.GetEffectiveIncludesFromFile(string filePath) -> System.Collections.Immutable.ImmutableArray<string>
 static Microsoft.CodeAnalysis.RuleSet.LoadEffectiveRuleSetFromFile(string filePath) -> Microsoft.CodeAnalysis.RuleSet
-static Microsoft.CodeAnalysis.SerializableCompilationOptions.CommonGetObjectData(Microsoft.CodeAnalysis.CompilationOptions options, System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) -> void
-static Microsoft.CodeAnalysis.SerializableParseOptions.CommonGetObjectData(Microsoft.CodeAnalysis.ParseOptions options, System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) -> void
 static readonly Microsoft.CodeAnalysis.DesktopAssemblyIdentityComparer.Default -> Microsoft.CodeAnalysis.DesktopAssemblyIdentityComparer
 static readonly Microsoft.CodeAnalysis.SourceFileResolver.Default -> Microsoft.CodeAnalysis.SourceFileResolver
 static readonly Microsoft.CodeAnalysis.XmlFileResolver.Default -> Microsoft.CodeAnalysis.XmlFileResolver
