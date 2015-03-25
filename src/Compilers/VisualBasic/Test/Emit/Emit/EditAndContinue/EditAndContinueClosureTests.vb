@@ -893,5 +893,228 @@ End Class
 
         ' TODO: AggregateClauseCrossMatch
         ' TODO: port C# tests, add more VB specific tests
+
+        <Fact>
+        Public Sub LambdasMultipleGenerations()
+            Dim source0 = MarkedSource("
+Imports System
+Class C
+    Shared Function G(f As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Shared Function F() As Object
+        Return G(<N:0>Function(a) a + 1</N:0>)
+    End Function
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System
+Class C
+    Shared Function G(f As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Shared Function F() As Object
+        Return G(<N:0>Function(a) a + 2</N:0>) + G(<N:1>Function(b) b + 20</N:1>)
+    End Function
+End Class
+")
+
+            Dim source2 = MarkedSource("
+Imports System
+Class C
+    Shared Function G(f As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Shared Function F() As Object
+        Return G(<N:0>Function(a) a + 3</N:0>) + G(<N:1>Function(b) b + 30</N:1>) + G(<N:2>Function(b) b + &H300</N:2>)
+    End Function
+End Class
+")
+
+            Dim source3 = MarkedSource("
+Imports System
+Class C
+    Shared Function G(f As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Shared Function F() As Object
+        Return G(<N:0>Function(a) a + 4</N:0>) + G(<N:1>Function(b) b + 40</N:1>) + G(<N:2>Function(b) b + &H400</N:2>)
+    End Function
+End Class
+")
+
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+            Dim compilation3 = compilation2.WithSource(source3.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+            Dim f3 = compilation3.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            ' New lambda "_Lambda$__2-1#1" has been added
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I2-0, $I2-1#1, _Lambda$__2-0, _Lambda$__2-1#1}")
+
+            ' updated
+            diff1.VerifyIL("C._Closure$__._Lambda$__2-0", "
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (Integer V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  ldc.i4.2
+  IL_0003:  add.ovf
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0007
+  IL_0007:  ldloc.0
+  IL_0008:  ret
+}
+")
+            ' added
+            diff1.VerifyIL("C._Closure$__._Lambda$__2-1#1", "
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (Integer V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  ldc.i4.s   20
+  IL_0004:  add.ovf
+  IL_0005:  stloc.0
+  IL_0006:  br.s       IL_0008
+  IL_0008:  ldloc.0
+  IL_0009:  ret
+}
+")
+            Dim diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            diff2.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I2-0, $I2-1#1, $I2-2#2, _Lambda$__2-0, _Lambda$__2-1#1, _Lambda$__2-2#2}")
+
+            ' updated
+            diff2.VerifyIL("C._Closure$__._Lambda$__2-0", "
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (Integer V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  ldc.i4.3
+  IL_0003:  add.ovf
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0007
+  IL_0007:  ldloc.0
+  IL_0008:  ret
+}
+")
+            ' updated
+            diff2.VerifyIL("C._Closure$__._Lambda$__2-1#1", "
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (Integer V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  ldc.i4.s   30
+  IL_0004:  add.ovf
+  IL_0005:  stloc.0
+  IL_0006:  br.s       IL_0008
+  IL_0008:  ldloc.0
+  IL_0009:  ret
+}
+")
+            ' added
+            diff2.VerifyIL("C._Closure$__._Lambda$__2-2#2", "
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (Integer V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  ldc.i4     0x300
+  IL_0007:  add.ovf
+  IL_0008:  stloc.0
+  IL_0009:  br.s       IL_000b
+  IL_000b:  ldloc.0
+  IL_000c:  ret
+}
+")
+            Dim diff3 = compilation3.EmitDifference(
+                diff2.NextGeneration,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables:=True)))
+
+            diff3.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I2-0, $I2-1#1, $I2-2#2, _Lambda$__2-0, _Lambda$__2-1#1, _Lambda$__2-2#2}")
+
+            ' updated
+            diff3.VerifyIL("C._Closure$__._Lambda$__2-0", "
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (Integer V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  ldc.i4.4
+  IL_0003:  add.ovf
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0007
+  IL_0007:  ldloc.0
+  IL_0008:  ret
+}
+")
+
+            ' updated
+            diff3.VerifyIL("C._Closure$__._Lambda$__2-1#1", "
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (Integer V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  ldc.i4.s   40
+  IL_0004:  add.ovf
+  IL_0005:  stloc.0
+  IL_0006:  br.s       IL_0008
+  IL_0008:  ldloc.0
+  IL_0009:  ret
+}
+")
+            ' added
+            diff3.VerifyIL("C._Closure$__._Lambda$__2-2#2", "
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (Integer V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  ldc.i4     0x400
+  IL_0007:  add.ovf
+  IL_0008:  stloc.0
+  IL_0009:  br.s       IL_000b
+  IL_000b:  ldloc.0
+  IL_000c:  ret
+}
+")
+        End Sub
     End Class
 End Namespace
