@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Compilation _compilation;
         private readonly CancellationToken _cancellationToken;
         private readonly ConcurrentSet<Diagnostic> _exceptionDiagnostics;
+        private ImmutableHashSet<SyntaxTree> _analyzedSyntaxTrees = ImmutableHashSet<SyntaxTree>.Empty;
 
         public Compilation Compilation
         {
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync()
         {
-            _driver.StartCompleteAnalysis(_cancellationToken);
+            _driver.StartCompleteAnalysis(_analyzedSyntaxTrees, _cancellationToken);
 
             // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
             // Discard the returned diagnostics.
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync()
         {
-            _driver.StartCompleteAnalysis(_cancellationToken);
+            _driver.StartCompleteAnalysis(_analyzedSyntaxTrees, _cancellationToken);
 
             // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
             ImmutableArray<Diagnostic> compilerDiagnostics = _compilation.GetDiagnostics(_cancellationToken);
@@ -74,10 +75,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsFromDocumentAsync(SemanticModel model)
         {
+            SyntaxTree documentTree = model.SyntaxTree;
+            _analyzedSyntaxTrees = _analyzedSyntaxTrees.Add(documentTree);
+
             // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
             ImmutableArray<Diagnostic> compilerDiagnostics = model.GetDiagnostics(null, _cancellationToken);
 
-            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetPartialDiagnosticsAsync(_cancellationToken).ConfigureAwait(false);
+            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetPartialDiagnosticsAsync(documentTree, _cancellationToken).ConfigureAwait(false);
             return compilerDiagnostics.AddRange(analyzerDiagnostics).AddRange(_exceptionDiagnostics);
         }
 

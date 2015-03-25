@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public void StartCompleteAnalysis(CancellationToken cancellationToken)
+        public void StartCompleteAnalysis(ImmutableHashSet<SyntaxTree> syntaxTreesToSkip, CancellationToken cancellationToken)
         {
             if (_initializeTaskStarted && _primaryTask == null)
             {
@@ -134,19 +134,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         await _initializeTask.ConfigureAwait(false);
                         await ProcessCompilationEventsAsync(true, cancellationToken).ConfigureAwait(false);
-                        await ExecuteSyntaxTreeActions(cancellationToken).ConfigureAwait(false);
+                        await ExecuteSyntaxTreeActions(_compilation.SyntaxTrees.Where((tree) => !syntaxTreesToSkip.Contains(tree)), cancellationToken).ConfigureAwait(false);
                     }, cancellationToken)
                     .ContinueWith(c => DiagnosticQueue.TryComplete(), cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             }
         }
 
-        private Task StartPartialAnalysis(CancellationToken cancellationToken)
+        private Task StartPartialAnalysis(SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
             if (_initializeTaskStarted)
             {
                 return Task.Run(async () =>
                 {
                     await _initializeTask.ConfigureAwait(false);
+                    await ExecuteSyntaxTreeActions(ImmutableArray.Create(syntaxTree), cancellationToken).ConfigureAwait(false);
                     await ProcessCompilationEventsAsync(false, cancellationToken).ConfigureAwait(false);
                 }, cancellationToken);
             }
@@ -154,11 +155,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return Task.FromResult(default(bool));
         }
 
-        private Task ExecuteSyntaxTreeActions(CancellationToken cancellationToken)
+        private Task ExecuteSyntaxTreeActions(IEnumerable<SyntaxTree> syntaxTrees, CancellationToken cancellationToken)
         {
             // Execute syntax tree analyzers in parallel.
             var tasks = ArrayBuilder<Task>.GetInstance();
-            foreach (var tree in _compilation.SyntaxTrees)
+            foreach (var tree in syntaxTrees)
             {
                 var actionsByAnalyzers = this.analyzerActions.SyntaxTreeActions.GroupBy(action => action.Analyzer);
                 foreach (var analyzerAndActions in actionsByAnalyzers)
@@ -264,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             analyzerDriver.Initialize(newCompilation, analyzerExecutor, cancellationToken);
             if (startCompleteAnalysis)
             {
-                analyzerDriver.StartCompleteAnalysis(cancellationToken);
+                analyzerDriver.StartCompleteAnalysis(ImmutableHashSet<SyntaxTree>.Empty, cancellationToken);
             }
 
             return analyzerDriver;
@@ -308,9 +309,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns all diagnostics computed by a partial analysis. Waits for an ongoing partial analysis to complete.
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetPartialDiagnosticsAsync(CancellationToken cancellationToken)
+        public async Task<ImmutableArray<Diagnostic>> GetPartialDiagnosticsAsync(SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            await StartPartialAnalysis(cancellationToken).ConfigureAwait(false);
+            await StartPartialAnalysis(syntaxTree, cancellationToken).ConfigureAwait(false);
 
             return GetDiagnostics();
         }

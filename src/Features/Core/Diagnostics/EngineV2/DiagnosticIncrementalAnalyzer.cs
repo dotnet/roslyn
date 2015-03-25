@@ -51,13 +51,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public async override Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+        public override Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
-            Project project = document.Project;
-            VersionStamp projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-            VersionStamp documentVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
-
-            // Come up with a way to run syntax tree analyzers exactly once, not duplicating analysis done for the project.
+            // Nothing happens here. The syntax tree analyzers get run as part of AnalyzeDocumentAsync.
+            return SpecializedTasks.EmptyTask;
         }
 
         public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
@@ -87,28 +84,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return SpecializedTasks.EmptyTask;
         }
 
-        // New above here.
-
         public override Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
+            // Opening a file now has no effect on its analysis.
             return SpecializedTasks.EmptyTask;
         }
 
         public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
+            // Closing a file now has no effect on its analysis.
             return SpecializedTasks.EmptyTask;
         }
+
+        public override void RemoveProject(ProjectId projectId)
+        {
+            lock (_compilationDescriptors)
+            {
+                CompilationDescriptors descriptors;
+                _compilationDescriptors.TryRemove(projectId, out descriptors);
+            }
+
+            _owner.RaiseDiagnosticsUpdated(this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, projectId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
+        }
+
+        // New above here.
 
         public override void RemoveDocument(DocumentId documentId)
         {
             _owner.RaiseDiagnosticsUpdated(
                 this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, documentId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
-        }
-
-        public override void RemoveProject(ProjectId projectId)
-        {
-            _owner.RaiseDiagnosticsUpdated(
-                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, projectId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
         #endregion
 
@@ -254,8 +258,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private class CompilationDescriptors
         {
-            public CompilationDescriptor OldCompilation = new CompilationDescriptor(VersionStamp.Default, null);
-            public CompilationDescriptor NewCompilation = new CompilationDescriptor(VersionStamp.Default, null);
+            public CompilationDescriptor CompletedCompilation = new CompilationDescriptor(VersionStamp.Default, null);
+            public CompilationDescriptor CurrentCompilation = new CompilationDescriptor(VersionStamp.Default, null);
         }
 
         private CompilationDescriptor GetCompilationDescriptor(Compilation compilation, Project project, VersionStamp projectVersion, CancellationToken cancellationToken)
@@ -269,22 +273,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     _compilationDescriptors[project.Id] = descriptors;
                 }
 
-                CompilationDescriptor oldCompilation = descriptors.OldCompilation;
-                if (oldCompilation.ProjectVersion == projectVersion)
+                CompilationDescriptor completedCompilation = descriptors.CompletedCompilation;
+                if (completedCompilation.ProjectVersion == projectVersion)
                 {
-                    return oldCompilation;
+                    return completedCompilation;
                 }
 
-                CompilationDescriptor newCompilation = descriptors.NewCompilation;
-                if (newCompilation.ProjectVersion != projectVersion)
+                CompilationDescriptor currentCompilation = descriptors.CurrentCompilation;
+                if (currentCompilation.ProjectVersion != projectVersion)
                 {
-                    CompilationWithAnalyzers newerCompilationWithAnalyzers = compilation.WithAnalyzers(Flatten(_hostAnalyzerManager.GetHostDiagnosticAnalyzersPerReference(project.Language).Values), project.AnalyzerOptions, cancellationToken);
-                    CompilationDescriptor newerCompilation = new CompilationDescriptor(projectVersion, newerCompilationWithAnalyzers);
+                    CompilationWithAnalyzers newCompilationWithAnalyzers = compilation.WithAnalyzers(Flatten(_hostAnalyzerManager.GetHostDiagnosticAnalyzersPerReference(project.Language).Values), project.AnalyzerOptions, cancellationToken);
+                    CompilationDescriptor newCompilation = new CompilationDescriptor(projectVersion, newCompilationWithAnalyzers);
                     
-                    descriptors.NewCompilation = newerCompilation;
+                    descriptors.CurrentCompilation = newCompilation;
                 }
 
-                return newCompilation;
+                return descriptors.CurrentCompilation;
             }
         }
 
@@ -293,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             lock (_compilationDescriptors)
             {
                 compilationDescriptor.MarkComplete();
-                _compilationDescriptors[project.Id].OldCompilation = compilationDescriptor;
+                _compilationDescriptors[project.Id].CompletedCompilation = compilationDescriptor;
             }
         }
 
