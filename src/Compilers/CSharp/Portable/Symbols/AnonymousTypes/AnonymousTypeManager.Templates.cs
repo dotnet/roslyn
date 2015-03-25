@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         moduleId = moduleId.Substring(0, moduleId.Length - extension.Length);
                     }
 
-                    moduleId = moduleId.Replace('.', '_');
+                    moduleId = MetadataHelpers.MangleForTypeNameIfNeeded(moduleId);
                 }
                 else
                 {
