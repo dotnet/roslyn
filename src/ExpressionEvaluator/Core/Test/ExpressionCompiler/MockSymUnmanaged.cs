@@ -39,7 +39,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // The EE should never be calling ISymUnmanagedReader.GetSymAttribute.  
             // In order to account for EnC updates, it should always be calling 
             // ISymUnmanagedReader3.GetSymAttributeByVersion instead.
-            throw ExceptionUtilities.Unreachable;
+            // TODO (DevDiv #1145183): throw ExceptionUtilities.Unreachable;
+
+            return GetSymAttributeByVersion(methodToken, 1, name, bufferLength, out count, customDebugInformation);
         }
 
         public int GetSymAttributeByVersion(int methodToken, int version, string name, int bufferLength, out int count, byte[] customDebugInformation)
