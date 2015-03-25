@@ -217,10 +217,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     get { return default(ImmutableArray<LambdaDebugInfo>); }
                 }
 
-                public int MethodOrdinal
-                {
-                    get { return -1; }
-                }
+                public DebugId MethodId => default(DebugId);
 
                 public string MethodNamespace
                 {
