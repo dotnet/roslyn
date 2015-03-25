@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)exprType == null)
             {
-                if (expr.ConstantValue != ConstantValue.Null) // Dev10 allows the null literal.
+                if (expr.ConstantValue != ConstantValue.Null || Compilation.FeatureStrictEnabled) // Dev10 allows the null literal.
                 {
                     Error(diagnostics, ErrorCode.ERR_LockNeedsReference, exprSyntax, expr.Display);
                     hasErrors = true;
                 }
             }
-            else if (!exprType.IsReferenceType)
+            else if (!exprType.IsReferenceType && (exprType.IsValueType || Compilation.FeatureStrictEnabled))
             {
                 Error(diagnostics, ErrorCode.ERR_LockNeedsReference, exprSyntax, exprType);
                 hasErrors = true;
