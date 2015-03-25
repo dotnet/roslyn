@@ -362,6 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         context.MessageProvider,
                         Function() stream,
                         nativePdbWriterOpt:=Nothing,
+                        pdbPathOpt:=Nothing,
                         allowMissingMethodBodies:=False,
                         deterministic:=False,
                         cancellationToken:=Nothing)
@@ -419,6 +420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         context.MessageProvider,
                         Function() stream,
                         nativePdbWriterOpt:=Nothing,
+                        pdbPathOpt:=Nothing,
                         allowMissingMethodBodies:=False,
                         deterministic:=False,
                         cancellationToken:=Nothing)
@@ -467,6 +469,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         context.MessageProvider,
                         Function() stream,
                         nativePdbWriterOpt:=Nothing,
+                        pdbPathOpt:=Nothing,
                         allowMissingMethodBodies:=False,
                         deterministic:=False,
                         cancellationToken:=Nothing)

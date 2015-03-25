@@ -106,10 +106,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.PropertyDeclaration:
                 case SyntaxKind.EventDeclaration:
                 case SyntaxKind.IndexerDeclaration:
                     return memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword);
+
+                case SyntaxKind.PropertyDeclaration:
+                    return node.IsFoundUnder((PropertyDeclarationSyntax p) => p.Initializer);
 
                 case SyntaxKind.FieldDeclaration:
                     // Inside a field one can only access static members of a type.

@@ -248,6 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         context.MessageProvider,
                         () => stream,
                         nativePdbWriterOpt: null,
+                        pdbPathOpt: null,
                         allowMissingMethodBodies: false,
                         deterministic: false,
                         cancellationToken: default(CancellationToken));
@@ -348,6 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         context.MessageProvider,
                         () => stream,
                         nativePdbWriterOpt: null,
+                        pdbPathOpt: null,
                         allowMissingMethodBodies: false,
                         deterministic: false,
                         cancellationToken: default(CancellationToken));
@@ -397,6 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         context.MessageProvider,
                         () => stream,
                         nativePdbWriterOpt: null,
+                        pdbPathOpt: null,
                         allowMissingMethodBodies: false,
                         deterministic: false,
                         cancellationToken: default(CancellationToken));

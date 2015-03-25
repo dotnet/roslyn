@@ -132,6 +132,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Case BoundKind.ConditionalAccessReceiverPlaceholder
                     EmitConditionalAccessReceiverPlaceholder(DirectCast(expression, BoundConditionalAccessReceiverPlaceholder), used)
 
+                Case BoundKind.ComplexConditionalAccessReceiver
+                    EmitComplexConditionalAccessReceiver(DirectCast(expression, BoundComplexConditionalAccessReceiver), used)
+
                 Case BoundKind.PseudoVariable
                     EmitPseudoVariableValue(DirectCast(expression, BoundPseudoVariable), used)
 
@@ -151,6 +154,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
 
             EmitPopIfUnused(used)
+        End Sub
+
+        Private Sub EmitComplexConditionalAccessReceiver(expression As BoundComplexConditionalAccessReceiver, used As Boolean)
+            Debug.Assert(Not expression.Type.IsReferenceType)
+            Debug.Assert(Not expression.Type.IsValueType)
+
+            Dim receiverType = expression.Type
+
+            Dim whenValueTypeLabel As New Object()
+            Dim doneLabel As New Object()
+
+            EmitInitObj(receiverType, True, expression.Syntax)
+            EmitBox(receiverType, expression.Syntax)
+            _builder.EmitBranch(ILOpCode.Brtrue, whenValueTypeLabel)
+
+            EmitExpression(expression.ReferenceTypeReceiver, used)
+            _builder.EmitBranch(ILOpCode.Br, doneLabel)
+            _builder.AdjustStack(-1)
+
+            _builder.MarkLabel(whenValueTypeLabel)
+            EmitExpression(expression.ValueTypeReceiver, used)
+
+            _builder.MarkLabel(doneLabel)
         End Sub
 
         Private Sub EmitConditionalAccess(conditinal As BoundLoweredConditionalAccess, used As Boolean)
@@ -288,6 +314,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     FreeTemp(receiverTemp)
                 End If
             End If
+        End Sub
+
+        Private Sub EmitComplexConditionalAccessReceiverAddress(expression As BoundComplexConditionalAccessReceiver)
+            Debug.Assert(Not expression.Type.IsReferenceType)
+            Debug.Assert(Not expression.Type.IsValueType)
+
+            Dim receiverType = expression.Type
+
+            Dim whenValueTypeLabel As New Object()
+            Dim doneLabel As New Object()
+
+            EmitInitObj(receiverType, True, expression.Syntax)
+            EmitBox(receiverType, expression.Syntax)
+            _builder.EmitBranch(ILOpCode.Brtrue, whenValueTypeLabel)
+
+            Dim receiverTemp = EmitAddress(expression.ReferenceTypeReceiver, addressKind:=AddressKind.ReadOnly)
+            Debug.Assert(receiverTemp Is Nothing)
+            _builder.EmitBranch(ILOpCode.Br, doneLabel)
+            _builder.AdjustStack(-1)
+
+            _builder.MarkLabel(whenValueTypeLabel)
+            EmitReceiverRef(expression.ValueTypeReceiver, isAccessConstrained:=True, addressKind:=AddressKind.ReadOnly)
+
+            _builder.MarkLabel(doneLabel)
         End Sub
 
         Private Sub EmitDelegateCreationExpression(expression As BoundDelegateCreationExpression, used As Boolean)
@@ -797,7 +847,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Case BoundKind.FieldAccess
                     Return DirectCast(receiver, BoundFieldAccess).FieldSymbol.IsCapturedFrame
 
-                Case BoundKind.ConditionalAccessReceiverPlaceholder
+                Case BoundKind.ConditionalAccessReceiverPlaceholder,
+                     BoundKind.ComplexConditionalAccessReceiver
                     Return True
 
                     'TODO: there must be more non-null cases.
