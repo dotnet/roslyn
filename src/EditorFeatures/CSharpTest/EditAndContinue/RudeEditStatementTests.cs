@@ -2501,11 +2501,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            // TODO: seems incorrect, a is not captured (bug 1291)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "from a in new[] { 1 }", "a"),
-                Diagnostic(RudeEditKind.CapturingVariable, "x = 2", "x"),
-                Diagnostic(RudeEditKind.CapturingVariable, "from a in new[] { 1 }", "a"));
+                Diagnostic(RudeEditKind.CapturingVariable, "x = 2", "x"));
         }
 
         [Fact]
