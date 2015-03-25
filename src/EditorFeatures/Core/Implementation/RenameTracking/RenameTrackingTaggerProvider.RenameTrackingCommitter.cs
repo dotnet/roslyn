@@ -147,26 +147,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // cancellation and update the workspace twice.
 
                 RenameTrackingSolutionSet renameTrackingSolutionSet;
-
-                // If the task was kicked off and had successfully completed to show preview, re-use its result.
-                if (_renameSymbolTask != null && _renameSymbolTask.Status == TaskStatus.RanToCompletion)
+                try
                 {
-                    renameTrackingSolutionSet = _renameSymbolTask.Result;
-                }
-                else
-                {
-                    // If the task isn't complete yet, cancel it anyway, because lightbulb will cancel the preview
-                    // operation once commit is entered, because the preview has technically been dismissed.
-                    // We kick off another rename task using Commit's cancellation here.
-                    try
+                    // If the task was kicked off and had successfully completed to show preview, re-use its result.
+                    if (_renameSymbolTask != null && _renameSymbolTask.Status == TaskStatus.RanToCompletion)
                     {
+                        renameTrackingSolutionSet = _renameSymbolTask.Result;
+                    }
+                    else
+                    {
+                        // If the task isn't complete yet, cancel it anyway, because lightbulb will cancel the preview
+                        // operation once commit is entered, because the preview has technically been dismissed.
+                        // We kick off another rename task using Commit's cancellation here.
                         _previewTaskCancellationTokenSource.Cancel();
                         renameTrackingSolutionSet = RenameSymbolAsync(isPreview: false, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
                     }
-                    finally
-                    {
-                        _previewTaskCancellationTokenSource.Dispose();
-                    }
+                }
+                finally
+                {
+                    _previewTaskCancellationTokenSource.Dispose();
                 }
 
                 var document = _snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
