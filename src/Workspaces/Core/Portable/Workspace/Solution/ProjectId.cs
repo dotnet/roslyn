@@ -30,6 +30,10 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectId(Guid guid, string debugName = null)
         {
+            if (guid == Guid.Empty)
+            {
+                throw new ArgumentException(nameof(guid));
+            }
             this.Id = guid;
             _debugName = debugName;
         }
