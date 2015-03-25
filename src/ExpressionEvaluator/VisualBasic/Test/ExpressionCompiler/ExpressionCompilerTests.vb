@@ -2400,7 +2400,7 @@ End Class"
         End Sub
 
         <WorkItem(958448)>
-                                                                                      <Fact>
+        <Fact>
         Public Sub ConditionalAttribute()
             Const source =
 "Imports System.Diagnostics
@@ -2430,7 +2430,7 @@ End Class"
         End Sub
 
         <WorkItem(958448)>
-                                                                                                          <Fact>
+        <Fact>
         Public Sub ConditionalAttribute_CollectionInitializer()
             Const source =
 "Imports System.Collections
@@ -2472,7 +2472,7 @@ End Class"
         End Sub
 
         <WorkItem(994485)>
-                                                                                                                              <Fact>
+        <Fact>
         Public Sub Repro994485()
             Const source = "
 Imports System
@@ -2598,7 +2598,7 @@ End Class
         End Sub
 
         <WorkItem(1000946)>
-                                                                                                                                                                      <Fact>
+        <Fact>
         Public Sub MyBaseExpression()
             Const source = "
 Class Base
@@ -2895,7 +2895,7 @@ End Module
         End Sub
 
         <WorkItem(1010922)>
-                                                                                                                                                                                                                                                                                                                                                              <Fact>
+        <Fact>
         Public Sub IntegerOverflow()
             Const source = "
 Class C
@@ -2925,7 +2925,7 @@ End Class
         End Sub
 
         <WorkItem(1012956)>
-                                                                                                                                                                                                                                                                                                                                                                      <Fact>
+        <Fact>
         Public Sub AssignmentConversion()
             Const source = "
 Class C
@@ -2945,7 +2945,7 @@ End Class
         End Sub
 
         <WorkItem(1016530)>
-                                                                                                                                                                                                                                                                                                                                                                              <Fact>
+        <Fact>
         Public Sub EvaluateStatement()
             Dim source = "
 Class C
@@ -2967,7 +2967,7 @@ End Class
         End Sub
 
         <WorkItem(1015887)>
-                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
+        <Fact>
         Public Sub DateTimeFieldConstant()
             Dim source = "
 Class C
@@ -3000,7 +3000,7 @@ End Class
         End Sub
 
         <WorkItem(1015887)>
-                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
+        <Fact>
         Public Sub DecimalFieldConstant()
             Dim source = "
 Class C
@@ -3037,7 +3037,7 @@ End Class
         End Sub
 
         <WorkItem(1028808)>
-                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
+        <Fact>
         Public Sub StaticLambdaInDisplayClass()
             ' Note:  I don't think the VB compiler ever generated code like this, but
             '        it doesn't hurt to make sure we do the right thing if it did...
@@ -3106,7 +3106,7 @@ End Class
         End Sub
 
         <WorkItem(1030236)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                          <Fact>
+        <Fact>
         Public Sub ExtensionMethodInContainingType()
             Dim source = "
 Imports System.Runtime.CompilerServices
@@ -3146,7 +3146,7 @@ End Module
         End Sub
 
         <WorkItem(1030236)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                              <Fact>
+        <Fact>
         Public Sub ExtensionMethodInContainingNamespace()
             Dim source = "
 Imports System.Runtime.CompilerServices
@@ -3188,7 +3188,7 @@ End Module
         End Sub
 
         <WorkItem(1030236)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  <Fact>
+        <Fact>
         Public Sub ExtensionMethodInImportedNamespace()
             Dim source = "
 Imports System.Runtime.CompilerServices
@@ -3233,7 +3233,7 @@ End Namespace
         End Sub
 
         <WorkItem(1030236)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
+        <Fact>
         Public Sub InaccessibleExtensionMethod() ' EE will be able to access this extension method anyway...
             Dim source = "
 Imports System.Runtime.CompilerServices
@@ -3388,7 +3388,7 @@ End Class"
         End Sub
 
         <WorkItem(1024137)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
+        <Fact>
         Public Sub IteratorParameters()
             Const source = "
 Class C
@@ -3421,7 +3421,7 @@ End Class
         End Sub
 
         <WorkItem(1024137)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
+        <Fact>
         Public Sub IteratorGenericLocal()
             Const source = "
 Class C(Of T)
@@ -3526,7 +3526,7 @@ End Structure
         End Sub
 
         <WorkItem(1079749)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              <Fact>
+        <Fact>
         Public Sub RangeVariableError()
             Const source =
 "Class C
@@ -3546,7 +3546,7 @@ End Class"
         End Sub
 
         <WorkItem(1079762)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
+        <Fact>
         Public Sub Bug1079762()
             Const source = "
 Class C
@@ -3582,7 +3582,7 @@ End Class
         End Sub
 
         <WorkItem(1014763)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
+        <Fact>
         Public Sub NonStateMachineTypeParameter()
             Const source = "
 Imports System.Collections.Generic
@@ -3614,7 +3614,7 @@ End Class
         End Sub
 
         <WorkItem(1014763)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
+        <Fact>
         Public Sub StateMachineTypeParameter()
             Const source = "
 Imports System.Collections.Generic
@@ -3650,7 +3650,7 @@ End Class
         End Sub
 
         <WorkItem(1085642)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
+        <Fact>
         Public Sub ModuleWithBadImageFormat()
             Dim source = "
 Class C
@@ -3701,7 +3701,7 @@ End Class"
         End Sub
 
         <WorkItem(1089688)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
+        <Fact>
         Public Sub MissingType()
             Const libSource = "
 Public Class Missing
@@ -3767,7 +3767,7 @@ End Class
         End Sub
 
         <WorkItem(1090458)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              <Fact>
+        <Fact>
         Public Sub ObsoleteAttribute()
             Const source = "
 Imports System
@@ -3792,7 +3792,7 @@ End Class
         End Sub
 
         <WorkItem(1090458)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <Fact>
+        <Fact>
         Public Sub DeprecatedAttribute()
             Const source = "
 Imports System
@@ -3843,7 +3843,7 @@ End Namespace
         End Sub
 
         <WorkItem(1089591)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <Fact>
+        <Fact>
         Public Sub BadPdb_MissingMethod()
             Const source = "
 Public Class C
@@ -3879,7 +3879,7 @@ End Class
         End Sub
 
         <WorkItem(1108133)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <Fact>
+        <Fact>
         Public Sub SymUnmanagedReaderNotImplemented()
             Const source = "
 Public Class C
@@ -3959,7 +3959,7 @@ End Sub)",
         End Sub
 
         <WorkItem(1115543)>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <Fact>
+        <Fact>
         Public Sub MethodTypeParameterInLambda()
             Const source = "
 Class C(Of T)

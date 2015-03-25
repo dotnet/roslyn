@@ -3955,7 +3955,7 @@ class C
                 // A is ambiguous since there were no explicit references to AS1 or AS2.
                 var testData = new CompilationTestData();
                 context.CompileExpression("new A()", out error, testData);
-                Assert.Equal(error, $"error CS0433: The type 'A' exists in both '{identityAS2.GetDisplayName()}' and '{identityAS1.GetDisplayName()}'");
+                Assert.True(error.StartsWith("error CS0433: The type 'A' exists in both "));
                 testData = new CompilationTestData();
                 // B should be resolved to BS1.
                 context.CompileExpression("new B()", out error, testData);
@@ -3988,7 +3988,7 @@ class C
                 Assert.Equal(previous.Compilation, context.Compilation); // re-use type context compilation
                 testData = new CompilationTestData();
                 context.CompileExpression("new A()", out error, testData);
-                Assert.Equal(error, $"error CS0433: The type 'A' exists in both '{identityAS2.GetDisplayName()}' and '{identityAS1.GetDisplayName()}'");
+                Assert.True(error.StartsWith("error CS0433: The type 'A' exists in both "));
                 testData = new CompilationTestData();
                 context.CompileExpression("new B()", out error, testData);
                 methodData = testData.GetMethodData("<>x.<>m0");

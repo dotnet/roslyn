@@ -133,6 +133,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             Debug.Assert(references.Count == identities.Count);
 
+            // Dictionary to ensure exactly one unique alias
+            // is added to each AssemblyIdentity.
             var duplicateIdentities = PooledDictionary<AssemblyIdentity, string>.GetInstance();
 
             // Find duplicate pairs.
