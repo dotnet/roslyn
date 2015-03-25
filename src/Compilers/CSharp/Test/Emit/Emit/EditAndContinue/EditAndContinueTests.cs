@@ -4045,7 +4045,7 @@ class B
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var method0 = compilation0.GetMember<MethodSymbol>("B.G");
             var method1 = compilation1.GetMember<MethodSymbol>("B.G");

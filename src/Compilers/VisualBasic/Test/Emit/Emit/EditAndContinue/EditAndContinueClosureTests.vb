@@ -956,7 +956,7 @@ End Class
             Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
             Dim f3 = compilation3.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreatePdbInfoProvider().GetEncMethodDebugInfo)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,

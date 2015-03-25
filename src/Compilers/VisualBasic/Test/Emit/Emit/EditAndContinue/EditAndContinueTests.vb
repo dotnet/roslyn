@@ -3444,7 +3444,7 @@ End Class
             Dim v0 = CompileAndVerify(compilation0)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreatePdbInfoProvider().GetEncMethodDebugInfo)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("B.G")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("B.G")
