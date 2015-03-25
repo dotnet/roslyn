@@ -30,6 +30,16 @@ namespace Microsoft.CodeAnalysis
 
         public DocumentId(ProjectId projectId, Guid guid, string debugName = null)
         {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            if (guid == Guid.Empty)
+            {
+                throw new ArgumentException(nameof(guid));
+            }
+
             this.ProjectId = projectId;
             this.Id = guid;
             _debugName = debugName;
@@ -44,7 +54,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             return new DocumentId(projectId, debugName);
