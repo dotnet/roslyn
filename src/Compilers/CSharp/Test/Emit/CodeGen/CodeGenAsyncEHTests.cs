@@ -1229,6 +1229,75 @@ Attempted to divide by zero.
             CompileAndVerify(source, expectedOutput: expected);
         }
 
+        [WorkItem(74, "https://github.com/dotnet/roslyn/issues/1334")]
+        [Fact]
+        public void AsyncInCatchRethrow01()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Test
+{
+    static async Task<int> F()
+    {
+        await Task.Yield();
+        return 2;
+    }
+
+    static async Task<int> G()
+    {
+        int x = 0;
+
+        try
+        {
+            try
+            {
+                x = x / x;
+            }
+            catch (ArgumentNullException)
+            {
+                x = await F();
+            }
+            catch
+            {
+                throw;
+            }
+        }
+        catch(DivideByZeroException ex)
+        {
+            x = await F();
+            System.Console.WriteLine(ex.Message);
+        }
+
+        return x;
+    }
+
+    public static void Main()
+    {
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
+        try
+        {
+            Task<int> t2 = G();
+            t2.Wait(1000 * 60);
+            Console.WriteLine(t2.Result);
+        }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
+        }
+    }
+}";
+            var expected = @"
+Attempted to divide by zero.
+2
+";
+            CompileAndVerify(source, expectedOutput: expected);
+        }
+
+
         [Fact]
         public void AsyncInCatchFilter()
         {
