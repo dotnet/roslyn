@@ -16,48 +16,33 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal abstract partial class AbstractCompletionService : ICompletionService, ITextCompletionService
     {
-        private const int MruSize = 10;
+        private readonly MostRecentlyUsedList<string> _committedItems = new MostRecentlyUsedList<string>();
 
-        private readonly List<string> _committedItems = new List<string>(MruSize);
-        private object _mruGate = new object();
-
-        private void CompletionItemComitted(CompletionItem item)
+        public virtual void CompletionItemComitted(CompletionItem item)
         {
-            lock (_mruGate)
-            {
-                // We need to remove the item if it's already in the list.
-                // If we're at capacity, we need to remove the LRU item.
-                var removed = _committedItems.Remove(item.DisplayText);
-                if (!removed && _committedItems.Count == MruSize)
-                {
-                    _committedItems.RemoveAt(0);
-                }
-
-                _committedItems.Add(item.DisplayText);
-            }
+            _committedItems.Add(item.DisplayText);
         }
 
-        protected int GetMRUIndex(CompletionItem item)
+        public virtual bool ShouldPreselect(CompletionItem item)
         {
-            lock (_mruGate)
-            {
-                // A lower value indicates more recently used.  Since items are added
-                // to the end of the list, our result just maps to the negation of the 
-                // index.
-                // -1 => 1  == Not Found
-                // 0  => 0  == least recently used 
-                // 9  => -9 == most recently used 
-                var index = _committedItems.IndexOf(item.DisplayText);
-                return -index;
-            }
+            // We should preselect this item, if no text was written, and this item
+            // was in the MRU list.
+            return _committedItems.Contains(item.DisplayText);
         }
 
-        public void ClearMRUCache()
+        public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2)
         {
-            lock (_mruGate)
-            {
-                _committedItems.Clear();
-            }
+            var mruIndex1 = _committedItems.IndexOf(item1.DisplayText);
+            var mruIndex2 = _committedItems.IndexOf(item2.DisplayText);
+
+            // The one with the higher index is the better one.
+            return mruIndex1 > mruIndex2;
+        }
+
+        // For testing purposes only. 
+        internal void ClearMostRecentlyUsedCache()
+        {
+            _committedItems.Clear();
         }
 
         /// <summary>
