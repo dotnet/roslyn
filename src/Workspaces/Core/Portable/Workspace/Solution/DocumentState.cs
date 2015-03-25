@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class DocumentState : TextDocumentState
     {
+        private static readonly Func<string, PreservationMode, string> s_fullParseLog = (path, mode) => $"{path} : {mode}";
+
         private readonly HostLanguageServices _languageServices;
         private readonly ParseOptions _options;
 
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis
             PreservationMode mode,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, s_fullParseLog, filePath, mode, cancellationToken))
             {
                 var textAndVersion = await newTextSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var text = textAndVersion.Text;
@@ -446,8 +448,8 @@ namespace Microsoft.CodeAnalysis
                 lazyTextAndVersion = new TreeTextSource(
                     new CachedWeakValueSource<SourceText>(
                         new AsyncLazy<SourceText>(
-                            c => BuildRecoverableTreeTextAsync(tree, encoding, c), 
-                            c => BuildRecoverableTreeText(tree, encoding, c), 
+                            c => BuildRecoverableTreeTextAsync(tree, encoding, c),
+                            c => BuildRecoverableTreeText(tree, encoding, c),
                             cacheResult: false)),
                     textVersion,
                     filePath);

@@ -87,7 +87,7 @@
     <Compile Include="Metadata\MethodILExtensions.cs" />
     <Compile Include="Pdb\PdbToXml.cs" />
     <Compile Include="Pdb\PdbToXmlOptions.cs" />
-    <Compile Include="Pdb\TempPdbReader.cs" />
+    <Compile Include="Pdb\SymReader.cs" />
     <Compile Include="Pdb\Token2SourceLineExporter.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\PEWriter\CustomDebugInfoConstants.cs">
       <Link>Shared\CustomDebugInfoConstants.cs</Link>
