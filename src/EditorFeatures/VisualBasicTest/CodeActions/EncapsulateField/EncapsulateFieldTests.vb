@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.E
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub EncapsulatePrivateFieldAndUpdateReferences()
+        Public Sub EncapsulatePrivateFieldAndUpdateReferences()
             Dim text = <File>
 Class C
     Private ReadOnly x[||] As Integer
@@ -49,7 +49,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub EncapsulateDimField()
+        Public Sub EncapsulateDimField()
             Dim text = <File>
 Class C
     Dim x[||] As Integer
@@ -82,7 +82,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub EncapsulateGenericField()
+        Public Sub EncapsulateGenericField()
             Dim text = <File>
 Class C(Of T)
     Dim x[||] As T
@@ -115,7 +115,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub EncapsulatePublicFieldIgnoringReferences()
+        Public Sub EncapsulatePublicFieldIgnoringReferences()
             Dim text = <File>
 Class C
     Public [|x|] As Integer
@@ -147,7 +147,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub EncapsulatePublicFieldUpdatingReferences()
+        Public Sub EncapsulatePublicFieldUpdatingReferences()
             Dim text = <File>
 Class C
     Public [|x|] As Integer
@@ -179,7 +179,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub EncapsulateMultiplePrivateFieldsWithReferences()
+        Public Sub EncapsulateMultiplePrivateFieldsWithReferences()
             Dim text = <File>
 Class C
     Private [|x, y|] As Integer
@@ -222,7 +222,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub EncapsulateMultiplePublicFieldsWithReferences()
+        Public Sub EncapsulateMultiplePublicFieldsWithReferences()
             Dim text = <File>
 Class C
     [|Public x As String
@@ -267,7 +267,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub NoSetterForConstField()
+        Public Sub NoSetterForConstField()
             Dim text = <File>
 Class Program
     Private Const [|foo|] As Integer = 3
@@ -289,7 +289,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub EncapsulateEscapedIdentifier()
+        Public Sub EncapsulateEscapedIdentifier()
             Dim text = <File>
 Class C
     Private [|[Class]|] As String
@@ -314,7 +314,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub EncapsulateFieldNamedValue()
+        Public Sub EncapsulateFieldNamedValue()
             Dim text = <File>
 Class C
     Private [|value|] As Integer = 3
@@ -339,7 +339,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub EncapsulateFieldName__()
+        Public Sub EncapsulateFieldName__()
             Dim text = <File>
 Class D
     Public [|__|] As Integer
@@ -366,7 +366,7 @@ End Class
 
         <WorkItem(694262)>
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub PreserveTrivia()
+        Public Sub PreserveTrivia()
             Dim text = <File>
 Class AA
     Private name As String : Public [|dsds|] As Integer
@@ -393,7 +393,7 @@ End Class
 
         <WorkItem(694241)>
 <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub NewPropertyNameIsUnique()
+        Public Sub NewPropertyNameIsUnique()
             Dim text = <File>
 Class AA
     Private [|name|] As String
@@ -436,7 +436,7 @@ End Class
 
         <WorkItem(695046)>
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub AvailableNotJustOnVariableName()
+        Public Sub AvailableNotJustOnVariableName()
             Dim text = <File>
 Class C
     Private [||] ReadOnly x As Integer
@@ -447,7 +447,7 @@ End Class</File>.ConvertTestSourceTag()
 
         <WorkItem(705898)>
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub CopyAccessibility()
+        Public Sub CopyAccessibility()
             Dim text = <File>
 Class C
     Protected [|x|] As Integer
@@ -472,7 +472,7 @@ End Class</File>.ConvertTestSourceTag()
 
         <WorkItem(707080)>
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub BackingFieldStartsWithUnderscore()
+        Public Sub BackingFieldStartsWithUnderscore()
             Dim text = <File>
 Public Class Class1
     Public [|Name|] As String
@@ -504,7 +504,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Sub EncapsulateShadowingField()
+        Public Sub EncapsulateShadowingField()
             Dim text = <File>
 Class C
     Protected _foo As Integer

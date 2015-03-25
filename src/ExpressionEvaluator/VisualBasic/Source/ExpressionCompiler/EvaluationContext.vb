@@ -24,8 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         ' These names are arbitrary, so we'll just use the same names as
         ' the C# expression compiler.
-        Private Const TypeName = "<>x"
-        Private Const MethodName = "<>m0"
+        Private Const s_typeName = "<>x"
+        Private Const s_methodName = "<>m0"
         Friend Const IsLocalScopeEndInclusive = True
 
         Friend ReadOnly MetadataBlocks As ImmutableArray(Of MetadataBlock)
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private ReadOnly _metadataDecoder As MetadataDecoder
         Private ReadOnly _currentFrame As MethodSymbol
         Private ReadOnly _locals As ImmutableArray(Of LocalSymbol)
-        Private ReadOnly _hoistedLocalFieldNames As ImmutableHashSet(Of String)
+        Private ReadOnly _inScopeHoistedLocals As InScopeHoistedLocals
         Private ReadOnly _methodDebugInfo As MethodDebugInfo
 
         Private Sub New(
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             metadataDecoder As MetadataDecoder,
             currentFrame As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
-            hoistedLocalFieldNames As ImmutableHashSet(Of String),
+            inScopeHoistedLocals As InScopeHoistedLocals,
             methodDebugInfo As MethodDebugInfo)
 
             Me.MetadataBlocks = metadataBlocks
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             _metadataDecoder = metadataDecoder
             _currentFrame = currentFrame
             _locals = locals
-            _hoistedLocalFieldNames = hoistedLocalFieldNames
+            _inScopeHoistedLocals = inScopeHoistedLocals
             _methodDebugInfo = methodDebugInfo
         End Sub
 
@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 metadataDecoder,
                 currentFrame,
                 locals:=Nothing,
-                hoistedLocalFieldNames:=Nothing,
+                inScopeHoistedLocals:=Nothing,
                 methodDebugInfo:=Nothing)
         End Function
 
@@ -149,8 +149,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim currentFrame = compilation.GetMethod(moduleVersionId, methodHandle)
             Debug.Assert(currentFrame IsNot Nothing)
             Dim metadataDecoder = New MetadataDecoder(DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
-            Dim hoistedLocalFieldNames As ImmutableHashSet(Of String) = Nothing
-            Dim localNames = GetLocalNames(containingScopes, hoistedLocalFieldNames)
+            Dim inScopeHoistedLocalNames As ImmutableHashSet(Of String) = Nothing
+            Dim localNames = GetLocalNames(containingScopes, inScopeHoistedLocalNames)
             Dim localInfo = metadataDecoder.GetLocalInfo(localSignatureToken)
             Dim localBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
             GetLocals(localBuilder, currentFrame, localNames, localInfo)
@@ -160,13 +160,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim locals = localBuilder.ToImmutableAndFree()
 
             Dim methodDebugInfo As MethodDebugInfo
+            Dim inScopeHoistedLocals As InScopeHoistedLocals
             If IsDteeEntryPoint(currentFrame) Then
                 methodDebugInfo = SynthesizeMethodDebugInfoForDtee(lazyAssemblyReaders.Value)
+                Debug.Assert(inScopeHoistedLocalNames.Count = 0)
+                inScopeHoistedLocals = InScopeHoistedLocals.Empty
             ElseIf typedSymReader IsNot Nothing Then
                 ' TODO (https://github.com/dotnet/roslyn/issues/702): Switch on the type of typedSymReader and call the appropriate helper.
                 methodDebugInfo = typedSymReader.GetMethodDebugInfo(methodToken, methodVersion)
+                InScopeHoistedLocals = New VisualBasicInScopeHoistedLocalsByName(inScopeHoistedLocalNames)
             Else
                 methodDebugInfo = Nothing
+                InScopeHoistedLocals = InScopeHoistedLocals.Empty
             End If
 
             Return New EvaluationContext(
@@ -176,24 +181,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 metadataDecoder,
                 currentFrame,
                 locals,
-                hoistedLocalFieldNames,
+                InScopeHoistedLocals,
                 methodDebugInfo)
         End Function
 
-        Private Shared Function GetLocalNames(scopes As ArrayBuilder(Of ISymUnmanagedScope), <Out> ByRef hoistedLocalFieldNames As ImmutableHashSet(Of String)) As ImmutableArray(Of String)
+        Private Shared Function GetLocalNames(scopes As ArrayBuilder(Of ISymUnmanagedScope), <Out> ByRef inScopeHoistedLocalNames As ImmutableHashSet(Of String)) As ImmutableArray(Of String)
             Dim localNames = ArrayBuilder(Of String).GetInstance()
-            Dim hoistedLocalFieldNamesBuilder As ImmutableHashSet(Of String).Builder = Nothing
+            Dim inScopeHoistedLocalsBuilder As ImmutableHashSet(Of String).Builder = Nothing
             For Each localName In scopes.GetLocalNames()
                 If localName IsNot Nothing AndAlso localName.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
-                    If hoistedLocalFieldNamesBuilder Is Nothing Then
-                        hoistedLocalFieldNamesBuilder = ImmutableHashSet.CreateBuilder(Of String)()
+                    If inScopeHoistedLocalsBuilder Is Nothing Then
+                        inScopeHoistedLocalsBuilder = ImmutableHashSet.CreateBuilder(Of String)()
                     End If
-                    hoistedLocalFieldNamesBuilder.Add(localName)
+                    inScopeHoistedLocalsBuilder.Add(localName)
                 Else
                     localNames.Add(localName)
                 End If
             Next
-            hoistedLocalFieldNames = If(hoistedLocalFieldNamesBuilder Is Nothing, ImmutableHashSet(Of String).Empty, hoistedLocalFieldNamesBuilder.ToImmutable())
+            inScopeHoistedLocalNames = If(inScopeHoistedLocalsBuilder Is Nothing, ImmutableHashSet(Of String).Empty, inScopeHoistedLocalsBuilder.ToImmutable())
             Return localNames.ToImmutableAndFree()
         End Function
 
@@ -302,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 _metadataDecoder,
                 _currentFrame,
                 _locals,
-                _hoistedLocalFieldNames,
+                _inScopeHoistedLocals,
                 _methodDebugInfo,
                 syntax)
         End Function
@@ -338,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
                 Dim context = Me.CreateCompilationContext(DirectCast(syntax, ExecutableStatementSyntax))
                 Dim properties As ResultProperties = Nothing
-                Dim moduleBuilder = context.Compile(inspectionContext, TypeName, MethodName, testData, diagnostics, properties)
+                Dim moduleBuilder = context.Compile(inspectionContext, s_typeName, s_methodName, testData, diagnostics, properties)
                 If moduleBuilder Is Nothing Then
                     errorMessage = GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, missingAssemblyIdentities)
                     Return Nothing
@@ -350,6 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         context.MessageProvider,
                         Function() stream,
                         nativePdbWriterOpt:=Nothing,
+                        pdbPathOpt:=Nothing,
                         allowMissingMethodBodies:=False,
                         deterministic:=False,
                         cancellationToken:=Nothing)
@@ -364,8 +370,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     missingAssemblyIdentities = ImmutableArray(Of AssemblyIdentity).Empty
                     Return New CompileResult(
                         stream.ToArray(),
-                        TypeName,
-                        MethodName,
+                        s_typeName,
+                        s_methodName,
                         formatSpecifiers)
                 End Using
             Finally
@@ -395,7 +401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
                 Dim context = Me.CreateCompilationContext(assignment)
                 Dim properties As ResultProperties = Nothing
-                Dim modulebuilder = context.Compile(inspectionContext, TypeName, MethodName, testData, diagnostics, properties)
+                Dim modulebuilder = context.Compile(inspectionContext, s_typeName, s_methodName, testData, diagnostics, properties)
                 If modulebuilder Is Nothing Then
                     errorMessage = GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, missingAssemblyIdentities)
                     Return Nothing
@@ -407,6 +413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         context.MessageProvider,
                         Function() stream,
                         nativePdbWriterOpt:=Nothing,
+                        pdbPathOpt:=Nothing,
                         allowMissingMethodBodies:=False,
                         deterministic:=False,
                         cancellationToken:=Nothing)
@@ -426,8 +433,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     missingAssemblyIdentities = ImmutableArray(Of AssemblyIdentity).Empty
                     Return New CompileResult(
                         stream.ToArray(),
-                        TypeName,
-                        MethodName,
+                        s_typeName,
+                        s_methodName,
                         formatSpecifiers:=Nothing)
                 End Using
             Finally
@@ -435,7 +442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Try
         End Function
 
-        Private Shared ReadOnly EmptyBytes As New ReadOnlyCollection(Of Byte)(New Byte() {})
+        Private Shared ReadOnly s_emptyBytes As New ReadOnlyCollection(Of Byte)(New Byte() {})
 
         Friend Overrides Function CompileGetLocals(
             locals As ArrayBuilder(Of LocalAndMethod),
@@ -445,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim diagnostics = DiagnosticBag.GetInstance()
             Dim context = Me.CreateCompilationContext(Nothing)
-            Dim modulebuilder = context.CompileGetLocals(EvaluationContext.TypeName, locals, argumentsOnly, testData, diagnostics)
+            Dim modulebuilder = context.CompileGetLocals(EvaluationContext.s_typeName, locals, argumentsOnly, testData, diagnostics)
             Dim assembly As ReadOnlyCollection(Of Byte) = Nothing
 
             If modulebuilder IsNot Nothing AndAlso locals.Count > 0 Then
@@ -455,6 +462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         context.MessageProvider,
                         Function() stream,
                         nativePdbWriterOpt:=Nothing,
+                        pdbPathOpt:=Nothing,
                         allowMissingMethodBodies:=False,
                         deterministic:=False,
                         cancellationToken:=Nothing)
@@ -469,10 +477,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             If assembly Is Nothing Then
                 locals.Clear()
-                assembly = EmptyBytes
+                assembly = s_emptyBytes
             End If
 
-            typeName = EvaluationContext.TypeName
+            typeName = EvaluationContext.s_typeName
             Return assembly
         End Function
 

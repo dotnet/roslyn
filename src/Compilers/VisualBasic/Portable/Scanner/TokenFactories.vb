@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         SyntaxKind.LineContinuationTrivia,
                         SyntaxKind.DocumentationCommentExteriorTrivia
 
-                    'do nothing
+                        'do nothing
                     Case Else
                         Return False
                 End Select

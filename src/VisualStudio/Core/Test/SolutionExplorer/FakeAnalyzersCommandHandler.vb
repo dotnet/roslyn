@@ -1,4 +1,6 @@
-﻿Imports Microsoft.Internal.VisualStudio.PlatformUI
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.Internal.VisualStudio.PlatformUI
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 
 Public Class FakeAnalyzersCommandHandler

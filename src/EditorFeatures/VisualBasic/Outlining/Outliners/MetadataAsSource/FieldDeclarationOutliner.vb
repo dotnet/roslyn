@@ -3,7 +3,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining.MetadataAsSource
-    Class FieldDeclarationOutliner
+    Friend Class FieldDeclarationOutliner
         Inherits AbstractMetadataAsSourceOutliner(Of FieldDeclarationSyntax)
 
         Protected Overrides Function GetEndToken(node As FieldDeclarationSyntax) As SyntaxToken

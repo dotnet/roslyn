@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
     <ExportSignatureHelpProvider("MidAssignmentSignatureHelpProvider", LanguageNames.VisualBasic)>
-    Partial Class MidAssignmentSignatureHelpProvider
+    Friend Partial Class MidAssignmentSignatureHelpProvider
         Inherits AbstractIntrinsicOperatorSignatureHelpProvider(Of AssignmentStatementSyntax)
 
         Protected Overrides Function GetIntrinsicOperatorDocumentation(node As AssignmentStatementSyntax, document As Document, cancellationToken As CancellationToken) As IEnumerable(Of AbstractIntrinsicOperatorDocumentation)

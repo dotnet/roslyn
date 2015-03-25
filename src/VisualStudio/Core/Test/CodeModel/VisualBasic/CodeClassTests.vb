@@ -1744,7 +1744,7 @@ End Class
 #Region "RemoveMember tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember1()
+        Public Sub RemoveMember1()
             Dim code =
 <Code>
 Class $$C
@@ -1762,7 +1762,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember2()
+        Public Sub RemoveMember2()
             Dim code =
 <Code><![CDATA[
 Class $$C
@@ -1784,7 +1784,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember3()
+        Public Sub RemoveMember3()
             Dim code =
 <Code><![CDATA[
 Class $$C
@@ -1804,7 +1804,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember4()
+        Public Sub RemoveMember4()
             Dim code =
 <Code><![CDATA[
 Class $$C
@@ -1826,7 +1826,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember5()
+        Public Sub RemoveMember5()
             Dim code =
 <Code><![CDATA[
 Class $$C
@@ -1854,7 +1854,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember6()
+        Public Sub RemoveMember6()
             Dim code =
 <Code><![CDATA[
 Class $$C
@@ -1880,7 +1880,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember7()
+        Public Sub RemoveMember7()
             Dim code =
 <Code>
 Class $$C
@@ -1902,7 +1902,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember8()
+        Public Sub RemoveMember8()
             Dim code =
 <Code>
 Class $$C
@@ -1932,7 +1932,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember9()
+        Public Sub RemoveMember9()
             Dim code =
 <Code>
 Class $$C
@@ -1951,7 +1951,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember10()
+        Public Sub RemoveMember10()
             Dim code =
 <Code>
 Class $$C
@@ -1970,7 +1970,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember11()
+        Public Sub RemoveMember11()
             Dim code =
 <Code>
 Class $$C
@@ -1989,7 +1989,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember12()
+        Public Sub RemoveMember12()
             Dim code =
 <Code>
 Class $$C
@@ -2795,7 +2795,7 @@ Module M : End Module
 
 #Region "Set Name tests"
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName1()
+        Public Sub SetName1()
             Dim code =
     <Code>
 Class $$Foo
@@ -2815,7 +2815,7 @@ End Class
 #Region "GenericExtender"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseTypesCount_Class1()
+        Public Sub GenericExtender_GetBaseTypesCount_Class1()
             Dim code =
 <Code>
 Class C$$
@@ -2826,7 +2826,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseTypesCount_Class2()
+        Public Sub GenericExtender_GetBaseTypesCount_Class2()
             Dim code =
 <Code>
 Class C$$
@@ -2841,7 +2841,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseGenericName_Class1()
+        Public Sub GenericExtender_GetBaseGenericName_Class1()
             Dim code =
 <Code>
 Class C$$
@@ -2852,7 +2852,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseGenericName_Class2()
+        Public Sub GenericExtender_GetBaseGenericName_Class2()
             Dim code =
 <Code>
 Class C$$
@@ -2867,7 +2867,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplementedTypesCount_Class1()
+        Public Sub GenericExtender_GetImplementedTypesCount_Class1()
             Dim code =
 <Code>
 Class C$$
@@ -2878,7 +2878,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplementedTypesCount_Class2()
+        Public Sub GenericExtender_GetImplementedTypesCount_Class2()
             Dim code =
 <Code>
 Class C$$
@@ -2893,7 +2893,7 @@ End Interface
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplTypeGenericName_Class1()
+        Public Sub GenericExtender_GetImplTypeGenericName_Class1()
             Dim code =
 <Code>
 Class C$$
@@ -2904,7 +2904,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplTypeGenericName_Class2()
+        Public Sub GenericExtender_GetImplTypeGenericName_Class2()
             Dim code =
 <Code>
 Class C$$
@@ -2919,7 +2919,7 @@ End Interface
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseTypesCount_Module()
+        Public Sub GenericExtender_GetBaseTypesCount_Module()
             Dim code =
 <Code>
 Module M$$
@@ -2930,7 +2930,7 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseGenericName_Module()
+        Public Sub GenericExtender_GetBaseGenericName_Module()
             Dim code =
 <Code>
 Module M$$
@@ -2941,7 +2941,7 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplementedTypesCount_Module()
+        Public Sub GenericExtender_GetImplementedTypesCount_Module()
             Dim code =
 <Code>
 Module M$$
@@ -2952,7 +2952,7 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplTypeGenericName_Module()
+        Public Sub GenericExtender_GetImplTypeGenericName_Module()
             Dim code =
 <Code>
 Module M$$
@@ -2965,7 +2965,7 @@ End Module
 #End Region
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub ExternalClass_ImplementedInterfaces()
+        Public Sub ExternalClass_ImplementedInterfaces()
             Dim code =
 <Code>
 Class $$Foo
@@ -2983,7 +2983,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub ClassIncludedDeclareMethods()
+        Public Sub ClassIncludedDeclareMethods()
             Dim code =
 <Code>
 Public Class $$C1

@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement result;
 
             MethodSymbol disposeMethod;
-            if (enumeratorInfo.NeedsDisposeMethod && TryGetSpecialTypeMember(forEachSyntax, SpecialMember.System_IDisposable__Dispose, out disposeMethod))
+            if (enumeratorInfo.NeedsDisposeMethod && Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, forEachSyntax, _diagnostics, out disposeMethod))
             {
                 Binder.ReportDiagnosticsIfObsolete(_diagnostics, disposeMethod, forEachSyntax,
                                                    hasBaseReceiver: false,

@@ -248,6 +248,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return false;
         }
 
+        public static bool IsEqualsTokenInAutoPropertyInitializers(this SyntaxToken token)
+        {
+            return token.IsKind(SyntaxKind.EqualsToken) &&
+                token.Parent.IsKind(SyntaxKind.EqualsValueClause) &&
+                token.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration);
+        }
+
         public static bool IsCloseParenInStatement(this SyntaxToken token)
         {
             var statement = token.Parent as StatementSyntax;

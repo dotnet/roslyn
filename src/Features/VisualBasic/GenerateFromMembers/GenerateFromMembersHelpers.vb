@@ -6,13 +6,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GenerateFromMembers
     Friend Class GenerateFromMembersHelpers
-        Shared Async Function GetSelectedMembersAsync(
+        Public Shared Async Function GetSelectedMembersAsync(
                 document As Document, textSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of IList(Of StatementSyntax))
             Dim tree = Await document.GetVisualBasicSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Return tree.GetMembersInSpan(textSpan, cancellationToken)
         End Function
 
-        Shared Function GetDeclaredSymbols(semanticModel As SemanticModel, memberDeclaration As StatementSyntax, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)
+        Public Shared Function GetDeclaredSymbols(semanticModel As SemanticModel, memberDeclaration As StatementSyntax, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)
             If TypeOf memberDeclaration Is FieldDeclarationSyntax Then
                 Return DirectCast(memberDeclaration, FieldDeclarationSyntax).Declarators.
                     SelectMany(Function(d) d.Names.AsEnumerable()).

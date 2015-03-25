@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend NotInheritable Class VisualBasicExpressionCompiler
         Inherits ExpressionCompiler
 
-        Private Shared ReadOnly _compilerId As New DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.VB)
+        Private Shared ReadOnly s_compilerId As New DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.VB)
 
         Friend Overrides ReadOnly Property DiagnosticFormatter As DiagnosticFormatter
             Get
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides ReadOnly Property CompilerId As DkmCompilerId
             Get
-                Return _compilerId
+                Return s_compilerId
             End Get
         End Property
 

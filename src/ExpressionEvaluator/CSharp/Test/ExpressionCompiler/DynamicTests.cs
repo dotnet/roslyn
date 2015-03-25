@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
+using Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

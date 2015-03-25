@@ -166,8 +166,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 stringStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.String] + _previousGeneration.StringStreamLengthAdded,
                 // UserString stream is concatenated aligned.
                 userStringStreamLengthAdded: metadataSizes.GetAlignedHeapSize(HeapIndex.UserString) + _previousGeneration.UserStringStreamLengthAdded,
-                // Guid stream is always aligned (the size if a multiple of 16 = sizeof(Guid))
-                guidStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.Guid] + _previousGeneration.GuidStreamLengthAdded,
+                // Guid stream accumulates on the GUID heap unlike other heaps, so the previous generations are already included.
+                guidStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.Guid],
                 anonymousTypeMap: ((IPEDeltaAssemblyBuilder)moduleBuilder).GetAnonymousTypeMap(),
                 synthesizedMembers: synthesizedMembers,
                 addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex, replace: true),

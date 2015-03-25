@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class ReferenceManagerTests
         Inherits BasicTestBase
 
-        Private Shared ReadOnly SignedDll As VisualBasicCompilationOptions =
+        Private Shared ReadOnly s_signedDll As VisualBasicCompilationOptions =
             New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
                                               optimizationLevel:=OptimizationLevel.Release,
                                               cryptoKeyFile:=SigningTestHelpers.KeyPairFile,
@@ -110,7 +110,7 @@ End Class
     </file>
 </compilation>
 
-            Dim libV1 = CreateCompilationWithMscorlib(sourceLibV1, options:=SignedDll)
+            Dim libV1 = CreateCompilationWithMscorlib(sourceLibV1, options:=s_signedDll)
 
             Dim sourceLibV2 =
 <compilation name="Lib">
@@ -122,7 +122,7 @@ End Class
     </file>
 </compilation>
 
-            Dim libV2 = CreateCompilationWithMscorlib(sourceLibV1, options:=SignedDll)
+            Dim libV2 = CreateCompilationWithMscorlib(sourceLibV1, options:=s_signedDll)
 
             Dim sourceLibV3 =
 <compilation name="Lib">
@@ -134,7 +134,7 @@ End Class
     </file>
 </compilation>
 
-            Dim libV3 = CreateCompilationWithMscorlib(sourceLibV3, options:=SignedDll)
+            Dim libV3 = CreateCompilationWithMscorlib(sourceLibV3, options:=s_signedDll)
 
             Dim sourceRefLibV2 =
 <compilation name="RefLibV2">
@@ -150,7 +150,7 @@ End Class
 
             Dim refLibV2 = CreateCompilationWithMscorlibAndReferences(
                 sourceRefLibV2,
-                references:={New VisualBasicCompilationReference(libV2)}, options:=SignedDll)
+                references:={New VisualBasicCompilationReference(libV2)}, options:=s_signedDll)
 
             Dim sourceMain =
 <compilation name="Main">
@@ -204,7 +204,7 @@ End Class
         </file>
     </compilation>
 
-            Dim libV1 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV1, options:=SignedDll)
+            Dim libV1 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV1, options:=s_signedDll)
 
             Dim sourceLibV2 =
     <compilation name="Lib">
@@ -222,7 +222,7 @@ End Interface
         </file>
     </compilation>
 
-            Dim libV2 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV2, options:=SignedDll)
+            Dim libV2 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV2, options:=s_signedDll)
 
             Dim sourceRefLibV2 =
     <compilation name="RefLibV2">
@@ -284,7 +284,7 @@ End Class
             Dim refLibV2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sourceRefLibV2,
                 {New VisualBasicCompilationReference(libV2)},
-                options:=SignedDll)
+                options:=s_signedDll)
 
             refLibV2.VerifyDiagnostics()
 
@@ -309,7 +309,7 @@ End Class
             Dim x = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sourceX,
                 {New VisualBasicCompilationReference(refLibV2), New VisualBasicCompilationReference(libV2)},
-                options:=SignedDll)
+                options:=s_signedDll)
 
             x.AssertNoDiagnostics()
 
@@ -414,7 +414,7 @@ End Class
     </file>
 </compilation>
 
-            Dim a1 = CreateCompilationWithMscorlib(sourceA1, options:=SignedDll)
+            Dim a1 = CreateCompilationWithMscorlib(sourceA1, options:=s_signedDll)
 
             Dim sourceA2 =
 <compilation name="A">
@@ -426,7 +426,7 @@ End Class
     </file>
 </compilation>
 
-            Dim a2 = CreateCompilationWithMscorlib(sourceA2, options:=SignedDll)
+            Dim a2 = CreateCompilationWithMscorlib(sourceA2, options:=s_signedDll)
 
             Dim sourceB1 =
 <compilation name="B">
@@ -438,7 +438,7 @@ End Class
     </file>
 </compilation>
 
-            Dim b1 = CreateCompilationWithMscorlib(sourceB1, options:=SignedDll)
+            Dim b1 = CreateCompilationWithMscorlib(sourceB1, options:=s_signedDll)
 
             Dim sourceB2 =
 <compilation name="B">
@@ -450,7 +450,7 @@ End Class
     </file>
 </compilation>
 
-            Dim b2 = CreateCompilationWithMscorlib(sourceB2, options:=SignedDll)
+            Dim b2 = CreateCompilationWithMscorlib(sourceB2, options:=s_signedDll)
 
             Dim sourceRefA1B2 =
 <compilation name="RefA1B2">
@@ -472,7 +472,7 @@ End Class
             Dim refA1B2 = CreateCompilationWithMscorlibAndReferences(
                 sourceRefA1B2,
                 references:={New VisualBasicCompilationReference(a1), New VisualBasicCompilationReference(b2)},
-                options:=SignedDll)
+                options:=s_signedDll)
 
             Dim sourceMain =
 <compilation name="Main">
@@ -508,7 +508,7 @@ End Class
     </file>
 </compilation>
 
-            Dim libV1 = CreateCompilationWithMscorlib(sourceLibV1, options:=SignedDll)
+            Dim libV1 = CreateCompilationWithMscorlib(sourceLibV1, options:=s_signedDll)
 
             Dim sourceLibV2 =
 <compilation name="Lib">
@@ -520,7 +520,7 @@ End Class
     </file>
 </compilation>
 
-            Dim libV2 = CreateCompilationWithMscorlib(sourceLibV2, options:=SignedDll)
+            Dim libV2 = CreateCompilationWithMscorlib(sourceLibV2, options:=s_signedDll)
 
             Dim sourceRefLibV1 =
 <compilation name="RefLibV1">
@@ -536,7 +536,7 @@ End Class
             Dim refLibV1 = CreateCompilationWithMscorlibAndReferences(
                 sourceRefLibV1,
                 references:={New VisualBasicCompilationReference(libV1)},
-                options:=SignedDll)
+                options:=s_signedDll)
 
             Dim sourceMain =
 <compilation name="Main">
@@ -588,7 +588,7 @@ End Class
         </file>
     </compilation>
 
-            Dim libV1 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV1, options:=SignedDll)
+            Dim libV1 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV1, options:=s_signedDll)
 
             Dim sourceLibV2 =
     <compilation name="Lib">
@@ -601,7 +601,7 @@ End Class
         </file>
     </compilation>
 
-            Dim libV2 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV2, options:=SignedDll)
+            Dim libV2 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV2, options:=s_signedDll)
 
             Dim sourceRefLibV1 =
     <compilation name="RefLibV1">
@@ -748,7 +748,7 @@ End class
 
             Dim sourceRefLibV1 =
 <compilation name="RefLibV1">
-<file>
+    <file>
 Public Class P
     Dim x = new C()
 End Class
@@ -757,7 +757,7 @@ End Class
 
             Dim sourceMain =
 <compilation name="Main">
-<file>        
+    <file>        
 Class Q
     Dim x = new P()
 End Class

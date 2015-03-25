@@ -1208,7 +1208,7 @@ end namespace
 
             findSymbol = Function(globalns) globalns
 
-                             ' never escape "the" Global namespace, but escape other ns named "global" always
+            ' never escape "the" Global namespace, but escape other ns named "global" always
             TestSymbolDescription(
                 text,
                 findSymbol,
@@ -1221,7 +1221,7 @@ end namespace
 
             findSymbol = Function(globalns) globalns.LookupNestedNamespace({"Global"}).LookupNestedNamespace({"Integer"})
 
-                             ' never escape "the" Global namespace, but escape other ns named "global" always
+            ' never escape "the" Global namespace, but escape other ns named "global" always
             TestSymbolDescription(
                 text,
                 findSymbol,
@@ -4548,7 +4548,7 @@ class Outer
         End Sub
 
         <Fact>
-        Sub FormatPrimitive()
+        Public Sub FormatPrimitive()
             Assert.Equal("Nothing", SymbolDisplay.FormatPrimitive(Nothing, quoteStrings:=True, useHexadecimalNumbers:=True))
 
             Assert.Equal("3", SymbolDisplay.FormatPrimitive(OutputKind.NetModule, quoteStrings:=False, useHexadecimalNumbers:=False))

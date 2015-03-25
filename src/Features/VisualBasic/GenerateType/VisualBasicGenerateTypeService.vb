@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
     Partial Friend Class VisualBasicGenerateTypeService
         Inherits AbstractGenerateTypeService(Of VisualBasicGenerateTypeService, SimpleNameSyntax, ObjectCreationExpressionSyntax, ExpressionSyntax, TypeBlockSyntax, ArgumentSyntax)
 
-        Private Shared ReadOnly annotation As SyntaxAnnotation = New SyntaxAnnotation
+        Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation
 
         Protected Overrides ReadOnly Property DefaultFileExtension As String
             Get
@@ -728,12 +728,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
             Dim typeNameToReplace = objectCreation.Type
             Dim newTypeName = namedType.GenerateTypeSyntax()
-            Dim newObjectCreation = objectCreation.WithType(newTypeName).WithAdditionalAnnotations(annotation)
+            Dim newObjectCreation = objectCreation.WithType(newTypeName).WithAdditionalAnnotations(s_annotation)
             Dim newNode = oldNode.ReplaceNode(objectCreation, newObjectCreation)
 
             Dim speculativeModel = SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(oldNode, newNode, model)
             If speculativeModel IsNot Nothing Then
-                newObjectCreation = DirectCast(newNode.GetAnnotatedNodes(annotation).Single(), ObjectCreationExpressionSyntax)
+                newObjectCreation = DirectCast(newNode.GetAnnotatedNodes(s_annotation).Single(), ObjectCreationExpressionSyntax)
                 Dim symbolInfo = speculativeModel.GetSymbolInfo(newObjectCreation, cancellationToken)
                 Return GenerateConstructorHelpers.GetDelegatingConstructor(symbolInfo, candidates, namedType)
             End If

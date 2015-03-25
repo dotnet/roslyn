@@ -13,7 +13,7 @@ Imports System.Xml.Schema
 Imports <xmlns="http://schemas.microsoft.com/VisualStudio/Roslyn/Compiler">
 
 Public Module ReadTree
-    Dim currentFile As String
+    Private s_currentFile As String
 
     ' Read an XML file and return the resulting ParseTree object.
     Public Function TryReadTheTree(fileName As String, <Out> ByRef tree As ParseTree) As Boolean
@@ -70,13 +70,13 @@ Public Module ReadTree
     ' Open the input XML file as an XDocument, using the reading options that we want.
     ' We use a schema to validate the input.
     Private Function GetXDocument(fileName As String, <Out> ByRef validationError As Boolean) As XDocument
-        currentFile = fileName
+        s_currentFile = fileName
 
         Dim hadError = False
         Dim onValidationError =
             Sub(sender As Object, e As ValidationEventArgs)
                 ' A validation error occurred while reading the document. Tell the user.
-                Console.Error.WriteLine("{0}({1},{2}): Invalid input: {3}", currentFile, e.Exception.LineNumber, e.Exception.LinePosition, e.Exception.Message)
+                Console.Error.WriteLine("{0}({1},{2}): Invalid input: {3}", s_currentFile, e.Exception.LineNumber, e.Exception.LinePosition, e.Exception.Message)
                 hadError = True
             End Sub
 

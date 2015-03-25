@@ -27,11 +27,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
             With enumBlock
                 With .EnumStatement
-                    Dim firstKeyword = If( .Modifiers.Count > 0, .Modifiers.First(), .EnumKeyword)
+                    Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .EnumKeyword)
                     highlights.Add(TextSpan.FromBounds(firstKeyword.SpanStart, .EnumKeyword.Span.End))
                 End With
 
-                highlights.Add( .EndEnumStatement.Span)
+                highlights.Add(.EndEnumStatement.Span)
             End With
 
             Return highlights

@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                        Function(i) i.DisplayText = v))
         End Function
 
-        Sub AssertSelectedCompletionItem(Optional displayText As String = Nothing,
+        Public Sub AssertSelectedCompletionItem(Optional displayText As String = Nothing,
                                Optional description As String = Nothing,
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,
@@ -379,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                        Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v))
         End Function
 
-        Sub AssertSelectedSignatureHelpItem(Optional displayText As String = Nothing,
+        Public Sub AssertSelectedSignatureHelpItem(Optional displayText As String = Nothing,
                                Optional documentation As String = Nothing,
                                Optional selectedParameter As String = Nothing)
             WaitForAsynchronousOperations()
