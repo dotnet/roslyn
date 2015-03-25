@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Xunit;
+using System.Collections;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -150,10 +151,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal DkmEvaluationResult FormatResult(string name, DkmClrValue value, DkmClrType declaredType = null, DkmInspectionContext inspectionContext = null)
         {
-            return FormatResult(name, name, value, declaredType, inspectionContext);
+            return FormatResult(name, name, value, declaredType, inspectionContext: inspectionContext);
         }
 
-        internal DkmEvaluationResult FormatResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null, DkmInspectionContext inspectionContext = null)
+        internal DkmEvaluationResult FormatResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null, bool[] declaredTypeInfo = null, DkmInspectionContext inspectionContext = null)
         {
             DkmEvaluationResult evaluationResult = null;
             var workList = new DkmWorkList();
@@ -161,9 +162,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 value,
                 workList,
                 declaredType: declaredType ?? value.Type,
+                customTypeInfo: new DynamicFlagsCustomTypeInfo(declaredTypeInfo == null ? null : new BitArray(declaredTypeInfo)).GetCustomTypeInfo(),
                 inspectionContext: inspectionContext ?? DefaultInspectionContext,
                 formatSpecifiers: Formatter.NoFormatSpecifiers,
-                customTypeInfo: null,
                 resultName: name,
                 resultFullName: null,
                 completionRoutine: asyncResult => evaluationResult = asyncResult.Result);
@@ -481,6 +482,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 throw new NotImplementedException();
             }
+        }
+
+        internal static DynamicFlagsCustomTypeInfo MakeDynamicFlagsCustomTypeInfo(params bool[] dynamicFlags)
+        {
+            return new DynamicFlagsCustomTypeInfo(dynamicFlags == null ? null : new BitArray(dynamicFlags));
         }
     }
 }

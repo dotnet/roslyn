@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal sealed class PointerDereferenceExpansion : Expansion
     {
-        private readonly Type _elementType;
+        private readonly TypeAndCustomInfo _elementTypeAndInfo;
 
-        public PointerDereferenceExpansion(Type elementType)
+        public PointerDereferenceExpansion(TypeAndCustomInfo elementTypeAndInfo)
         {
-            Debug.Assert(elementType != null);
-            _elementType = elementType;
+            Debug.Assert(elementTypeAndInfo.Type != null);
+            _elementTypeAndInfo = elementTypeAndInfo;
         }
 
         internal override void GetRows(
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             if (InRange(startIndex, count, index))
             {
-                rows.Add(GetRow(resultProvider, inspectionContext, value, _elementType, parent));
+                rows.Add(GetRow(resultProvider, inspectionContext, value, _elementTypeAndInfo, parent: parent));
             }
 
             index++;
@@ -41,16 +41,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext,
             DkmClrValue pointer,
-            Type elementType,
+            TypeAndCustomInfo elementTypeAndInfo,
             EvalResultDataItem parent)
         {
             var value = pointer.Dereference(inspectionContext);
             var wasExceptionThrown = value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown);
 
-            var declaredType = elementType;
             var expansion = wasExceptionThrown ?
                 null :
-                resultProvider.GetTypeExpansion(inspectionContext, declaredType, value, ExpansionFlags.None);
+                resultProvider.GetTypeExpansion(inspectionContext, elementTypeAndInfo, value, ExpansionFlags.None);
             var fullName = string.Format("*{0}", parent.ChildFullNamePrefix);
             var editableValue = resultProvider.Formatter.GetEditableValue(value, inspectionContext);
 
@@ -59,8 +58,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return new EvalResultDataItem(
                 ExpansionKind.PointerDereference,
                 name: fullName,
-                typeDeclaringMember: null,
-                declaredType: declaredType,
+                typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
+                declaredTypeAndInfo: elementTypeAndInfo,
                 parent: null,
                 value: value,
                 displayValue: wasExceptionThrown ? string.Format(Resources.InvalidPointerDereference, fullName) : null,

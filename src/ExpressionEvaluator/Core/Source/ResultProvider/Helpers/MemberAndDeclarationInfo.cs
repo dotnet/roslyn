@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
-using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 using Roslyn.Utilities;
+using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -130,13 +130,42 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             get
             {
+                return GetMemberType(_member);
+            }
+        }
+
+        public Type OriginalDefinitionType
+        {
+            get
+            {
+                return GetMemberType(_member.GetOriginalDefinition());
+            }
+        }
+
+        private static Type GetMemberType(MemberInfo member)
+        {
+            switch (member.MemberType)
+            {
+                case MemberTypes.Field:
+                    return ((FieldInfo)member).FieldType;
+                case MemberTypes.Property:
+                    return ((PropertyInfo)member).PropertyType;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(member.MemberType);
+            }
+        }
+
+        public DkmClrCustomTypeInfo TypeInfo
+        {
+            get
+            {
                 switch (_member.MemberType)
                 {
                     case MemberTypes.Field:
-                        return ((FieldInfo)_member).FieldType;
                     case MemberTypes.Property:
-                        return ((PropertyInfo)_member).PropertyType;
+                        return _member.GetCustomAttributesData().GetDynamicFlags().GetCustomTypeInfo();
                     default:
+                        // If we ever see a method, we'll have to use ReturnTypeCustomAttributes.
                         throw ExceptionUtilities.UnexpectedValue(_member.MemberType);
                 }
             }

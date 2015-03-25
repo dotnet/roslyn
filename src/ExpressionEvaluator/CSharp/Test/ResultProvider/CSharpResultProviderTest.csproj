@@ -94,6 +94,8 @@
     <Compile Include="DebuggerTypeProxyAttributeTests.cs" />
     <Compile Include="DebuggerVisualizerAttributeTests.cs" />
     <Compile Include="CSharpResultProviderTestBase.cs" />
+    <Compile Include="DynamicFlagsCustomTypeInfoTests.cs" />
+    <Compile Include="DynamicTests.cs" />
     <Compile Include="ExpansionTests.cs" />
     <Compile Include="FormatSpecifierTests.cs" />
     <Compile Include="FullNameTests.cs" />

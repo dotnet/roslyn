@@ -53,6 +53,24 @@ namespace Microsoft.CodeAnalysis
             _items.AddRange(items);
         }
 
+        public T Peek()
+        {
+            return _items[_items.Count - 1];
+        }
+
+        public void Push(T item)
+        {
+            Add(item);
+        }
+
+        public T Pop()
+        {
+            var position = _items.Count - 1;
+            var result = _items[position];
+            _items.RemoveAt(position);
+            return result;
+        }
+
         public void Clear()
         {
             _items.Clear();
