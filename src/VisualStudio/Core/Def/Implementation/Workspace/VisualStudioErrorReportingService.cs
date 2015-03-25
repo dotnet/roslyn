@@ -4,7 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
@@ -15,39 +17,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal class VisualStudioErrorReportingService : IErrorReportingService
     {
-        private VisualStudioWorkspaceImpl workspace;
-        private static InfoBarButton EnableItem = new InfoBarButton(ServicesVSResources.Enable);
-        private static InfoBarButton EnableAndIgnoreItem = new InfoBarButton(ServicesVSResources.EnableAndIgnore);
+        private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly IForegroundNotificationService _foregroundNotificationService;
+        private readonly IDocumentTrackingService _documentTrackingService;
+        private readonly static InfoBarButton EnableItem = new InfoBarButton(ServicesVSResources.Enable);
+        private readonly static InfoBarButton EnableAndIgnoreItem = new InfoBarButton(ServicesVSResources.EnableAndIgnore);
 
-        public VisualStudioErrorReportingService(VisualStudioWorkspaceImpl workspace)
+        public VisualStudioErrorReportingService(VisualStudioWorkspaceImpl workspace, IForegroundNotificationService foregroundNotificationService)
         {
-            this.workspace = workspace;
+            _workspace = workspace;
+            _foregroundNotificationService = foregroundNotificationService;
+            _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
+
         }
 
-        public async void ShowErrorInfoForCodeFix(DocumentId documentId, string codefixName, Action OnEnableClicked, Action OnEnableAndIgnoreClicked)
+        public void ShowErrorInfoForCodeFix(string codefixName, Action OnEnableClicked, Action OnEnableAndIgnoreClicked)
         {
+            var documentId = _documentTrackingService.GetActiveDocument();
+
             // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
-            // We try and get the current UI dispatcher and invoke our code on that thread. We return immediately so we don't block waiting on the UI thread.
-            var dispatcher = VS.UIThread.GetUIDispatcher();
-            await dispatcher?.InvokeAsync(() =>
+            var waiter = new InfoBarWaiter();
+            _foregroundNotificationService.RegisterNotification(() =>
             {
                 IVsWindowFrame frame;
                 IVsInfoBarUIFactory factory;
-                if (workspace.TryGetInfoBarData(documentId, out frame, out factory))
+                if (_workspace.TryGetInfoBarData(documentId, out frame, out factory))
                 {
                     CreateInfoBar(codefixName, OnEnableClicked, OnEnableAndIgnoreClicked, frame, factory);
                 }
-            });
+            }, waiter.BeginAsyncOperation("Show InfoBar"));
         }
 
-        private void CreateInfoBar(string codefixName, Action onEnableClicked, Action onEnableAndIgnoreClicked, IVsWindowFrame frame, IVsInfoBarUIFactory factory)
+        private void CreateInfoBar(string name, Action onEnableClicked, Action onEnableAndIgnoreClicked, IVsWindowFrame frame, IVsInfoBarUIFactory factory)
         {
             object unknown;
             if (frame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out unknown) == VSConstants.S_OK)
             {
                 var textSpans = new List<IVsInfoBarTextSpan>()
                 {
-                    new InfoBarTextSpan(string.Format(ServicesVSResources.CodefixEncounteredError, codefixName)),
+                    new InfoBarTextSpan(string.Format(ServicesVSResources.CodefixOrRefactoringEncounteredError, name)),
                 };
 
                 var infoBarModel = new InfoBarModel(
@@ -63,10 +71,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 IVsInfoBarUIElement infoBarUI;
                 if (TryCreateInfoBarUI(infoBarModel, factory, out infoBarUI))
                 {
-                    InfoBarEvents eventSink = new InfoBarEvents(onEnableClicked, onEnableAndIgnoreClicked);
+                    uint? infoBarCookie = null;
+                    InfoBarEvents eventSink = new InfoBarEvents(onEnableClicked, onEnableAndIgnoreClicked, () =>
+                    {
+                        if (infoBarCookie.HasValue)
+                        {
+                            infoBarUI.Unadvise(infoBarCookie.Value);
+                        }
+                    });
                     uint cookie;
                     infoBarUI.Advise(eventSink, out cookie);
-
+                    infoBarCookie = cookie;
                     IVsInfoBarHost host = (IVsInfoBarHost)unknown;
                     host.AddInfoBar(infoBarUI);
                 }
@@ -81,13 +96,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private class InfoBarEvents : IVsInfoBarUIEvents
         {
-            private Action onEnableAndIgnoreClicked;
-            private Action onEnableClicked;
+            private readonly Action onClosed;
+            private readonly Action onEnableAndIgnoreClicked;
+            private readonly Action onEnableClicked;
 
-            public InfoBarEvents(Action onEnableClicked, Action onEnableAndIgnoreClicked)
+            public InfoBarEvents(Action onEnableClicked, Action onEnableAndIgnoreClicked, Action onClose)
             {
                 this.onEnableClicked = onEnableClicked;
                 this.onEnableAndIgnoreClicked = onEnableAndIgnoreClicked;
+                this.onClosed = onClose;
             }
 
             public void OnActionItemClicked(IVsInfoBarUIElement infoBarUIElement, IVsInfoBarActionItem actionItem)
@@ -107,7 +124,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public void OnClosed(IVsInfoBarUIElement infoBarUIElement)
             {
+                onClosed();
             }
         }
+
+        internal class InfoBarWaiter : AsynchronousOperationListener { }
     }
 }

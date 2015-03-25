@@ -19,6 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
+    using Microsoft.CodeAnalysis.ErrorLogger;
     using DiagnosticId = String;
     using LanguageKind = String;
 
@@ -39,24 +40,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider>.CreateValueCallback _createProjectCodeFixProvider;
 
         private readonly ImmutableDictionary<LanguageKind, Lazy<ISuppressionFixProvider>> _suppressionProvidersMap;
+        private readonly IErrorLoggerService _errorLogger;
 
         private ImmutableDictionary<CodeFixProvider, FixAllProviderInfo> _fixAllProviderMap;
-
-        private readonly IExtensionManager _extensionManager;
 
         [ImportingConstructor]
         public CodeFixService(
             IDiagnosticAnalyzerService service,
-            Workspace workspace,
+            IErrorLoggerService logger,
             [ImportMany]IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
             [ImportMany]IEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>> suppressionProviders)
         {
+            _errorLogger = logger;
             _diagnosticService = service;
-            _extensionManager = workspace.Services.GetService<IExtensionManager>();
             var fixersPerLanguageMap = fixers.ToPerLanguageMapWithMultipleLanguages();
             var suppressionProvidersPerLanguageMap = suppressionProviders.ToPerLanguageMapWithMultipleLanguages();
 
-            _workspaceFixersMap = GetFixerPerLanguageMap(fixersPerLanguageMap);
+            _workspaceFixersMap = GetFixerPerLanguageMap(fixersPerLanguageMap, null);
             _suppressionProvidersMap = GetSuppressionProvidersPerLanguageMap(suppressionProvidersPerLanguageMap);
 
             // REVIEW: currently, fixer's priority is statically defined by the fixer itself. might considering making it more dynamic or configurable.
@@ -189,12 +189,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var diagnostics = diagnosticDataCollection.Select(data => data.ToDiagnostic(tree)).ToImmutableArray();
+            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
             foreach (var fixer in allFixers.Distinct())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                Func<Diagnostic, bool> hasFix = (d) => this.GetFixableDiagnosticIds(fixer).Contains(d.Id);
+                Func<Diagnostic, bool> hasFix = (d) => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id);
                 Func<ImmutableArray<Diagnostic>, Task<IEnumerable<CodeFix>>> getFixes =
                     async (dxs) =>
                     {
@@ -258,8 +259,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 // this can happen for suppression case where all diagnostics can't be suppressed
                 return result;
             }
-
-            var fixes = await _extensionManager.PerformFunctionAsync(fixer, () => getFixes(diagnostics)).ConfigureAwait(false);
+            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+            var fixes = await extensionManager.PerformFunctionAsync(fixer, () => getFixes(diagnostics)).ConfigureAwait(false);
             if (fixes != null && fixes.Any())
             {
                 FixAllCodeActionContext fixAllContext = null;
@@ -267,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (codeFixProvider != null)
                 {
                     // If the codeFixProvider supports fix all occurrences, then get the corresponding FixAllProviderInfo and fix all context.
-                    var fixAllProviderInfo = _extensionManager.PerformFunction(codeFixProvider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, codeFixProvider, FixAllProviderInfo.Create));
+                    var fixAllProviderInfo = extensionManager.PerformFunction(codeFixProvider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, codeFixProvider, FixAllProviderInfo.Create));
                     if (fixAllProviderInfo != null)
                     {
                         fixAllContext = new FixAllCodeActionContext(document, fixAllProviderInfo, codeFixProvider, diagnostics, this.GetDocumentDiagnosticsAsync, this.GetProjectDiagnosticsAsync, cancellationToken);
@@ -369,10 +370,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 verifyArguments: false,
                 cancellationToken: cancellationToken);
 
+            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+
             // we do have fixer. now let's see whether it actually can fix it
             foreach (var fixer in allFixers)
             {
-                await _extensionManager.PerformActionAsync(fixer, () => fixer.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask).ConfigureAwait(false);
+                await extensionManager.PerformActionAsync(fixer, () => fixer.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask).ConfigureAwait(false);
                 if (!fixes.Any())
                 {
                     continue;
@@ -386,13 +389,36 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static readonly Func<DiagnosticId, List<CodeFixProvider>> s_createList = _ => new List<CodeFixProvider>();
 
-        private ImmutableArray<DiagnosticId> GetFixableDiagnosticIds(CodeFixProvider fixer)
+        private ImmutableArray<DiagnosticId> GetFixableDiagnosticIds(CodeFixProvider fixer, IExtensionManager extensionManager)
         {
-            return _extensionManager.PerformFunction(fixer, () => ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => f.FixableDiagnosticIds), ImmutableArray<DiagnosticId>.Empty);
+            // If we are passed a null extension manager it means we do not have access to a document so there is nothing to 
+            // show the user.  In this case we will log any exceptions that occur, but the user will not see them.
+            if (extensionManager != null)
+            {
+                return extensionManager.PerformFunction(
+                    fixer, 
+                    () => ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => f.FixableDiagnosticIds), 
+                    ImmutableArray<DiagnosticId>.Empty);
+            }
+
+            try
+            {
+                return ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => f.FixableDiagnosticIds);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                _errorLogger?.LogError(fixer.GetType().Name, e.Message + Environment.NewLine + e.StackTrace);
+                return ImmutableArray<DiagnosticId>.Empty;
+            }
         }
 
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>> GetFixerPerLanguageMap(
-            Dictionary<LanguageKind, List<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> fixersPerLanguage)
+            Dictionary<LanguageKind, List<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> fixersPerLanguage,
+            IExtensionManager extensionManager)
         {
             var fixerMap = ImmutableDictionary.Create<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>>();
             foreach (var languageKindAndFixers in fixersPerLanguage)
@@ -403,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     foreach (var fixer in languageKindAndFixers.Value)
                     {
-                        foreach (var id in this.GetFixableDiagnosticIds(fixer.Value))
+                        foreach (var id in this.GetFixableDiagnosticIds(fixer.Value, extensionManager))
                         {
                             if (string.IsNullOrWhiteSpace(id))
                             {
@@ -475,13 +501,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private ImmutableDictionary<DiagnosticId, List<CodeFixProvider>> ComputeProjectFixers(Project project)
         {
+            var extensionManager = project.Solution.Workspace.Services.GetService<IExtensionManager>();
             ImmutableDictionary<DiagnosticId, List<CodeFixProvider>>.Builder builder = null;
             foreach (var reference in project.AnalyzerReferences)
             {
                 var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, _createProjectCodeFixProvider);
                 foreach (var fixer in projectCodeFixerProvider.GetFixers(project.Language))
                 {
-                    var fixableIds = this.GetFixableDiagnosticIds(fixer);
+                    var fixableIds = this.GetFixableDiagnosticIds(fixer, extensionManager);
                     foreach (var id in fixableIds)
                     {
                         if (string.IsNullOrWhiteSpace(id))

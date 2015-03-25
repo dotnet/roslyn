@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -10,18 +11,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportWorkspaceServiceFactory(typeof(IErrorReportingService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioErrorReportingServiceFactory : IWorkspaceServiceFactory
     {
-        private readonly VisualStudioWorkspaceImpl _workspace;
-        private IErrorReportingService _singleton;
+        private Lazy<IErrorReportingService> _singleton;
 
         [ImportingConstructor]
-        public VisualStudioErrorReportingServiceFactory(VisualStudioWorkspaceImpl workspace)
+        public VisualStudioErrorReportingServiceFactory(VisualStudioWorkspaceImpl workspace, IForegroundNotificationService foregroundNotificationService)
         {
-            _workspace = workspace;
+            _singleton = new Lazy<IErrorReportingService>(() => new VisualStudioErrorReportingService(workspace, foregroundNotificationService));
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return _singleton ?? (_singleton = new VisualStudioErrorReportingService(_workspace));
+            return _singleton.Value;
         }
     }
 }

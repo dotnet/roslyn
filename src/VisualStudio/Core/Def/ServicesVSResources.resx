@@ -453,8 +453,8 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="ReferenceCountSingular" xml:space="preserve">
     <value>1 reference</value>
   </data>
-  <data name="CodefixEncounteredError" xml:space="preserve">
-    <value>Codefix '{0}' encountered an error and has been disabled.</value>
+  <data name="CodefixOrRefactoringEncounteredError" xml:space="preserve">
+    <value>'{0}' encountered an error and has been disabled.</value>
   </data>
   <data name="Enable" xml:space="preserve">
     <value>Enable</value>

@@ -654,13 +654,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var document = this.GetHostDocument(documentId);
-            if (document?.Project != null)
+            if (TryGetFrame(document, out frame))
             {
-                if (TryGetFrame(document, out frame))
-                {
-                    factory = ServiceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
-                    return frame != null && factory != null;
-                }
+                factory = ServiceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
+                return frame != null && factory != null;
             }
 
             frame = null;

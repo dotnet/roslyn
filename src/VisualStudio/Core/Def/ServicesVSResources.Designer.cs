@@ -115,11 +115,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Codefix &apos;{0}&apos; encountered an error and has been disabled..
+        ///   Looks up a localized string similar to &apos;{0}&apos; encountered an error and has been disabled..
         /// </summary>
-        internal static string CodefixEncounteredError {
+        internal static string CodefixOrRefactoringEncounteredError {
             get {
-                return ResourceManager.GetString("CodefixEncounteredError", resourceCulture);
+                return ResourceManager.GetString("CodefixOrRefactoringEncounteredError", resourceCulture);
             }
         }
         

@@ -117,12 +117,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             if (_operations == null)
             {
-                var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
-                var operationsArray = extensionManager.PerformFunction(Provider, () =>
-                {
-                    return Task.Run(
+                var operationsArray =  Task.Run(
                     async () => await this.CodeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false), cancellationToken).WaitAndGetResult(cancellationToken);
-                });
 
                 _operations = operationsArray == default(ImmutableArray<CodeActionOperation>) ? null : operationsArray as IEnumerable<CodeActionOperation>;
             }

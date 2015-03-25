@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ErrorLogger
 {
-    interface IErrorLogger : IWorkspaceService
+    interface IErrorLoggerService : IWorkspaceService
     {
         void LogError(string source, string message);
         bool TryLogError(string source, string message);

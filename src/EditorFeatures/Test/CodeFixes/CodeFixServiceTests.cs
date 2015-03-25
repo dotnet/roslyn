@@ -4,12 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code))
             {
                 var fixService = new CodeFixService(
-                    diagnosticService, workspace, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
+                    diagnosticService, workspace.Services.GetService<IErrorLoggerService>(), fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
 
                 var incrementalAnalzyer = (IIncrementalAnalyzerProvider)diagnosticService;
 
@@ -58,36 +60,63 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         public void TestGetCodeFixWithExceptionInRegisterMethod()
         {
             GetFirstDiagnosticWithFix(new ErrorCases.ExceptionInRegisterMethod());
+            GetAddedFixes(new ErrorCases.ExceptionInRegisterMethod());
         }
 
         [Fact]
         public void TestGetCodeFixWithExceptionInRegisterMethodAsync()
         {
             GetFirstDiagnosticWithFix(new ErrorCases.ExceptionInRegisterMethodAsync());
+            GetAddedFixes(new ErrorCases.ExceptionInRegisterMethodAsync());
         }
 
         [Fact]
         public void TestGetCodeFixWithExceptionInFixableDiagnosticIds()
         {
-            GetFixes(new ErrorCases.ExceptionInFixableDiagnosticIds());
+            GetDefaultFixes(new ErrorCases.ExceptionInFixableDiagnosticIds());
+            GetAddedFixes(new ErrorCases.ExceptionInFixableDiagnosticIds());
         }
 
         [Fact]
         public void TestGetCodeFixWithExceptionInGetFixAllProvider()
         {
-            GetFixes(new ErrorCases.ExceptionInGetFixAllProvider());
+            GetAddedFixes(new ErrorCases.ExceptionInGetFixAllProvider());
         }
 
-        public void GetFixes(CodeFixProvider codefix)
+        public void GetDefaultFixes(CodeFixProvider codefix)
         {
             TestDiagnosticAnalyzerService diagnosticService;
             CodeFixService fixService;
-            using (var workspace = ServiceSetup(codefix, out diagnosticService, out fixService))
+            IErrorLoggerService errorLogger;
+            using (var workspace = ServiceSetup(codefix, out diagnosticService, out fixService, out errorLogger))
             {
                 Document document;
                 EditorLayerExtensionManager.ExtensionManager extensionManager;
                 GetDocumentAndExtensionManager(diagnosticService, workspace, out document, out extensionManager);
                 var fixes = fixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None).Result;
+                Assert.True(((TestErrorLogger)errorLogger).Messages.Count == 1);
+                string message;
+                Assert.True(((TestErrorLogger)errorLogger).Messages.TryGetValue(codefix.GetType().Name, out message));
+            }
+        }
+
+        public void GetAddedFixes(CodeFixProvider codefix)
+        {
+            TestDiagnosticAnalyzerService diagnosticService;
+            CodeFixService fixService;
+            IErrorLoggerService errorLogger;
+            using (var workspace = ServiceSetup(codefix, out diagnosticService, out fixService, out errorLogger))
+            {
+                Document document;
+                EditorLayerExtensionManager.ExtensionManager extensionManager;
+                GetDocumentAndExtensionManager(diagnosticService, workspace, out document, out extensionManager);
+                var incrementalAnalzyer = (IIncrementalAnalyzerProvider)diagnosticService;
+                var analyzer = incrementalAnalzyer.CreateIncrementalAnalyzer(workspace);
+                var reference = new MockAnalyzerReference(codefix);
+                var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
+                document = project.Documents.Single();
+                var fixes = fixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None).Result;
+
                 Assert.True(extensionManager.IsDisabled(codefix));
                 Assert.False(extensionManager.IsIgnored(codefix));
             }
@@ -97,7 +126,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         {
             TestDiagnosticAnalyzerService diagnosticService;
             CodeFixService fixService;
-            using (var workspace = ServiceSetup(codefix, out diagnosticService, out fixService))
+            IErrorLoggerService errorLogger;
+            using (var workspace = ServiceSetup(codefix, out diagnosticService, out fixService, out errorLogger))
             {
                 Document document;
                 EditorLayerExtensionManager.ExtensionManager extensionManager;
@@ -108,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
         }
 
-        private static TestWorkspace ServiceSetup(CodeFixProvider codefix, out TestDiagnosticAnalyzerService diagnosticService, out CodeFixService fixService)
+        private static TestWorkspace ServiceSetup(CodeFixProvider codefix, out TestDiagnosticAnalyzerService diagnosticService, out CodeFixService fixService, out IErrorLoggerService errorLogger)
         {
             diagnosticService = new TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             var fixers = SpecializedCollections.SingletonEnumerable(
@@ -117,8 +147,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
             var code = @"class Program { }";
             var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code);
+            errorLogger = new TestErrorLogger();
             fixService = new CodeFixService(
-                    diagnosticService, workspace, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
+                    diagnosticService, errorLogger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
             return workspace;
         }
 
@@ -160,8 +191,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         private class MockAnalyzerReference : AnalyzerReference, ICodeFixProviderFactory
         {
-            public readonly MockFixer Fixer = new MockFixer();
+            public readonly CodeFixProvider Fixer;
             public readonly MockDiagnosticAnalyzer Analyzer = new MockDiagnosticAnalyzer();
+
+            public MockAnalyzerReference()
+            {
+               Fixer = new MockFixer();
+            }
+
+            public MockAnalyzerReference(CodeFixProvider codeFix)
+            {
+                Fixer = codeFix;
+            }
 
             public override string Display
             {
@@ -212,6 +253,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                     {
                         c.ReportDiagnostic(Diagnostic.Create(_descriptor, c.Tree.GetLocation(TextSpan.FromBounds(0, 0))));
                     });
+                }
+            }
+        }
+
+        internal class TestErrorLogger : IErrorLoggerService
+        {
+            public Dictionary<string, string> Messages = new Dictionary<string, string>();
+
+            public void LogError(string source, string message)
+            {
+                Messages.Add(source, message);
+            }
+
+            public bool TryLogError(string source, string message)
+            {
+                try
+                {
+                    Messages.Add(source, message);
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
                 }
             }
         }
