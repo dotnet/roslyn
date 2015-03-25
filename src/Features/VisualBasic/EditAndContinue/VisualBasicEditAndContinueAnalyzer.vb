@@ -2622,6 +2622,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                              SyntaxKind.GroupJoinClause
                             ReportError(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, node, Me._newNode)
                             Return
+
+                        Case SyntaxKind.LocalDeclarationStatement
+                            Dim declaration = DirectCast(node, LocalDeclarationStatementSyntax)
+                            If declaration.Modifiers.Any(SyntaxKind.StaticKeyword) Then
+                                ReportError(RudeEditKind.UpdateStaticLocal)
+                            End If
                     End Select
                 Next
             End Sub
