@@ -2576,7 +2576,7 @@ index: 2);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [Fact(Skip = "1561"), WorkItem(1561, "https://github.com/dotnet/roslyn/issues/1561"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public void TestGeneratePropertyInPropertyInitializers()
         {
             Test(
@@ -2584,7 +2584,7 @@ index: 2);
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { private int y ; public int MyProperty { get ; } = y ; } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [Fact(Skip = "1561"), WorkItem(1561, "https://github.com/dotnet/roslyn/issues/1561"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public void TestGenerateFieldInPropertyInitializers()
         {
             Test(
@@ -2593,7 +2593,7 @@ index: 2);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [Fact(Skip = "1561"), WorkItem(1561, "https://github.com/dotnet/roslyn/issues/1561"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public void TestGenerateReadonlyFieldInPropertyInitializers()
         {
             Test(
