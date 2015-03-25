@@ -985,6 +985,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.AddModifiers(param
 Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.AddParameterListParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.ExpressionBody.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.ParameterList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.BracketedParameterListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.Semicolon.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.SemicolonToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.ThisKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.Update(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, Microsoft.CodeAnalysis.SyntaxToken thisKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.BracketedParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.AccessorListSyntax accessorList, Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax expressionBody, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax
@@ -994,6 +995,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.WithExplicitInterf
 Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.WithExpressionBody(Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.WithModifiers(Microsoft.CodeAnalysis.SyntaxTokenList modifiers) -> Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.WithParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.BracketedParameterListSyntax parameterList) -> Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.WithSemicolon(Microsoft.CodeAnalysis.SyntaxToken semicolon) -> Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.WithSemicolonToken(Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.WithThisKeyword(Microsoft.CodeAnalysis.SyntaxToken thisKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.IndexerDeclarationSyntax
@@ -1419,6 +1421,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.AddModifiers(para
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.ExpressionBody.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.Identifier.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.Semicolon.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.SemicolonToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.Update(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.AccessorListSyntax accessorList, Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax expressionBody, Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax initializer, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.WithAccessorList(Microsoft.CodeAnalysis.CSharp.Syntax.AccessorListSyntax accessorList) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax
@@ -1428,6 +1431,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.WithExpressionBod
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.WithIdentifier(Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.WithInitializer(Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax initializer) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.WithModifiers(Microsoft.CodeAnalysis.SyntaxTokenList modifiers) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.WithSemicolon(Microsoft.CodeAnalysis.SyntaxToken semicolon) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.WithSemicolonToken(Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.QualifiedCrefSyntax
