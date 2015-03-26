@@ -13,10 +13,9 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Microsoft.DiaSymReader;
-using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
@@ -417,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(context.Compilation, previous.Compilation);
 
             // No EvaluationContext. Should reuse Compilation
-            previous = new CSharpMetadataContext(previous.MetadataBlocks);
+            previous = new CSharpMetadataContext(previous.MetadataBlocks, previous.Compilation);
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken);
             Assert.Null(previous.EvaluationContext);
             Assert.NotNull(context);
