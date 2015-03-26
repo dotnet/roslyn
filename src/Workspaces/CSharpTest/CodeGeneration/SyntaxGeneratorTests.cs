@@ -614,6 +614,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.MethodDeclaration("m", returnType: _g.IdentifierName("x"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Abstract),
                 "public abstract x m();");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial),
+                "partial void m();");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial, statements: new[] { _g.IdentifierName("y") }),
+                "partial void m()\r\n{\r\n    y;\r\n}");
         }
 
         [Fact]

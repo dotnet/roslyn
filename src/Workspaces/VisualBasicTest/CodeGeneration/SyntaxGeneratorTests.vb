@@ -682,6 +682,11 @@ End Function</x>.Value)
             VerifySyntax(Of MethodStatementSyntax)(
                 _g.MethodDeclaration("m", returnType:=_g.IdentifierName("x"), accessibility:=Accessibility.Public, modifiers:=DeclarationModifiers.Abstract),
 <x>Public MustInherit Function m() As x</x>.Value)
+
+            VerifySyntax(Of MethodBlockSyntax)(
+                _g.MethodDeclaration("m", accessibility:=Accessibility.Private, modifiers:=DeclarationModifiers.Partial),
+<x>Private Partial Sub m()
+End Sub</x>.Value)
         End Sub
 
         <Fact>
