@@ -4431,7 +4431,7 @@ End Class
   IL_005b:  ldc.i4.5
   IL_005c:  newarr     "Integer"
   IL_0061:  dup
-  IL_0062:  ldtoken    "<PrivateImplementationDetails><MODULE>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails><MODULE>.864782BF337E3DBC1A27023D5C0C065C80F17087"
+  IL_0062:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.864782BF337E3DBC1A27023D5C0C065C80F17087"
   IL_0067:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_006c:  ldloc.0
   IL_006d:  ldftn      "Function AllMembers._Closure$__5-0._Lambda$__0(Integer) As Boolean"

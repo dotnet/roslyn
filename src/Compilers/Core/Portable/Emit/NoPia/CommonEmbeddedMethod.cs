@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 ImmutableArray<LambdaDebugInfo> Cci.IMethodBody.LambdaDebugInfo => 
                     default(ImmutableArray<LambdaDebugInfo>);
 
-                public int MethodOrdinal => -1;
+                public DebugId MethodId => default(DebugId);
             }
 
             IEnumerable<Cci.IGenericMethodParameter> Cci.IMethodDefinition.GenericParameters => _typeParameters;

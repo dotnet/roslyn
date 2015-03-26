@@ -7,11 +7,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeGen
 {
     /// <summary>
-    /// Unique identification of an emitted method used for debugging purposes (EnC).
-    /// If the method is synthesized the id is included its name.
-    /// For user defined methods the id is included in Custom Debug Information record attached to the method.
+    /// Unique identification of an emitted entity (method, lambda, closure) used for debugging purposes (EnC).
     /// </summary>
-    internal struct MethodDebugId : IEquatable<MethodDebugId>
+    /// <remarks>
+    /// When used for a synthesized method the ordinal and generation numbers are included its name.
+    /// For user defined methods the ordinal is included in Custom Debug Information record attached to the method.
+    /// </remarks>
+    internal struct DebugId : IEquatable<DebugId>
     {
         public const int UndefinedOrdinal = -1;
 
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         public readonly int Generation;
 
-        public MethodDebugId(int ordinal, int generation)
+        public DebugId(int ordinal, int generation)
         {
             Debug.Assert(ordinal >= 0 || ordinal == UndefinedOrdinal);
             Debug.Assert(generation >= 0);
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.Generation = generation;
         }
 
-        public bool Equals(MethodDebugId other)
+        public bool Equals(DebugId other)
         {
             return this.Ordinal == other.Ordinal
                 && this.Generation == other.Generation;
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override bool Equals(object obj)
         {
-            return obj is MethodDebugId && Equals((MethodDebugId)obj);
+            return obj is DebugId && Equals((DebugId)obj);
         }
 
         public override int GetHashCode()

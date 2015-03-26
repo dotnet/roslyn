@@ -2,21 +2,27 @@
 
 using System;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
     internal struct ClosureDebugInfo : IEquatable<ClosureDebugInfo>
     {
         public readonly int SyntaxOffset;
+        public readonly int Generation;
 
-        public ClosureDebugInfo(int syntaxOffset)
+        public ClosureDebugInfo(int syntaxOffset, int generation)
         {
-            this.SyntaxOffset = syntaxOffset;
+            Debug.Assert(generation >= 0);
+
+            SyntaxOffset = syntaxOffset;
+            Generation = generation;
         }
 
         public bool Equals(ClosureDebugInfo other)
         {
-            return this.SyntaxOffset == other.SyntaxOffset;
+            return SyntaxOffset == other.SyntaxOffset &&
+                   Generation == other.Generation;
         }
 
         public override bool Equals(object obj)
@@ -26,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override int GetHashCode()
         {
-            return SyntaxOffset.GetHashCode();
+            return Hash.Combine(SyntaxOffset, Generation);
         }
 
         public override string ToString()
         {
-            return $"({SyntaxOffset})";
+            return $"(#{Generation} @{SyntaxOffset})";
         }
     }
 }
