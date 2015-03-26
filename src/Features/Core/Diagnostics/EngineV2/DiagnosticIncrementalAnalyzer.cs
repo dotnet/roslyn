@@ -34,20 +34,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             // ToDo: Should there be an exception handler here? Should there be checks for cancellation?
 
-            Project project = document.Project;
-            VersionStamp projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-            VersionStamp documentVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
-
-            SemanticModel documentModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            Compilation compilation = documentModel.Compilation;
-            CompilationDescriptor compilationDescriptor = GetCompilationDescriptor(compilation, project, projectVersion, cancellationToken);
-
-            if (!compilationDescriptor.DocumentAnalyzed(documentVersion) && !compilationDescriptor.IsComplete)
+            if (document.SupportsSemanticModel)
             {
-                ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.CompilationWithAnalyzers.GetDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
-                DistributeDiagnostics(project, compilationDescriptor, diagnostics);
+                Project project = document.Project;
+                VersionStamp projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+                DocumentId documentId = document.Id;
 
-                compilationDescriptor.MarkDocumentAnalyzed(documentVersion);
+                SemanticModel documentModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                Compilation compilation = documentModel.Compilation;
+                CompilationDescriptor compilationDescriptor = GetCompilationDescriptor(compilation, project, projectVersion, cancellationToken);
+
+                if (!compilationDescriptor.DocumentAnalyzed(documentId) && !compilationDescriptor.IsComplete)
+                {
+                    ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.CompilationWithAnalyzers.GetDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
+                    DistributeDiagnostics(project, compilationDescriptor, diagnostics);
+
+                    compilationDescriptor.MarkDocumentAnalyzed(documentId);
+                }
             }
         }
 
@@ -118,7 +121,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public override Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken);
+            if (projectId != null)
+            {
+                Project project = solution.GetProject(projectId);
+
+                if (project != null)
+                {
+                    CompilationDescriptor completedCompilationDescriptor = GetCompilationDescriptor(project, CompilationVintage.Completed);
+                    if (completedCompilationDescriptor != null)
+                    {
+                        if (completedCompilationDescriptor.ProjectVersion.Equals(VersionStamp.Default))
+                        {
+                            // There hasn't been a completed analysis of this project. Return the current analysis.
+                            return GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken);
+                        }
+
+                        if (documentId != null)
+                        {
+                            Document document = project.GetDocument(documentId);
+                            if (document != null)
+                            {
+                                ImmutableArray<Diagnostic> documentDiagnostics;
+                                completedCompilationDescriptor.DiagnosticsPerPaths.TryGetValue(document.FilePath, out documentDiagnostics);
+                                return Task.FromResult(GetDiagnosticData(project, documentDiagnostics).ToImmutableArrayOrEmpty());
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
 
         public override Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, CancellationToken cancellationToken)
@@ -256,10 +288,37 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         // New below here.
 
+        // CompilationDescriptors represents the compilations and associated diagnostics for up to two versions
+        // (one complete and one current) of a project.
         private class CompilationDescriptors
         {
+            // CompletedCompilation represents the most recent compilation of a project for which analysis came to full completion.
+            // It includes all diagnostics but does not hold on to the Compilation object used to create them.
             public CompilationDescriptor CompletedCompilation = new CompilationDescriptor(VersionStamp.Default, null);
+
+            // CurrentCompilation represents the most recent compilation of a project, with analysis possibly ongoing.
+            // It includes a snapshot of current diagnostics and the Compilation being used to create more.
             public CompilationDescriptor CurrentCompilation = new CompilationDescriptor(VersionStamp.Default, null);
+        }
+
+        private enum CompilationVintage
+        {
+            Completed,
+            Current
+        }
+
+        private CompilationDescriptor GetCompilationDescriptor(Project project, CompilationVintage vintage)
+        {
+            lock (_compilationDescriptors)
+            {
+                CompilationDescriptors descriptors;
+                if (_compilationDescriptors.TryGetValue(project.Id, out descriptors))
+                {
+                    return vintage == CompilationVintage.Completed ? descriptors.CompletedCompilation : descriptors.CurrentCompilation;
+                }
+            }
+
+            return null;
         }
 
         private CompilationDescriptor GetCompilationDescriptor(Compilation compilation, Project project, VersionStamp projectVersion, CancellationToken cancellationToken)
@@ -282,6 +341,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CompilationDescriptor currentCompilation = descriptors.CurrentCompilation;
                 if (currentCompilation.ProjectVersion != projectVersion)
                 {
+                    // The requested project version is not the same as that of the current compilation.
+                    // Assume that the requested version is newer.
+
                     CompilationWithAnalyzers newCompilationWithAnalyzers = compilation.WithAnalyzers(Flatten(_hostAnalyzerManager.GetHostDiagnosticAnalyzersPerReference(project.Language).Values), project.AnalyzerOptions, cancellationToken);
                     CompilationDescriptor newCompilation = new CompilationDescriptor(projectVersion, newCompilationWithAnalyzers);
                     
@@ -332,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public CompilationWithAnalyzers CompilationWithAnalyzers { get; private set; }
             public ConcurrentDictionary<string, ImmutableArray<Diagnostic>> DiagnosticsPerPaths { get; private set; }
             public bool IsComplete { get; private set; }
-            private readonly ConcurrentDictionary<VersionStamp, bool> _analyzedDocuments = new ConcurrentDictionary<VersionStamp, bool>();
+            private readonly ConcurrentDictionary<DocumentId, bool> _analyzedDocuments = new ConcurrentDictionary<DocumentId, bool>();
             private readonly object UpdateDiagnosticsLock = new object();
 
             public CompilationDescriptor(VersionStamp projectVersion, CompilationWithAnalyzers compilation)
@@ -342,14 +404,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 this.DiagnosticsPerPaths = new ConcurrentDictionary<string, ImmutableArray<Diagnostic>>();
             }
 
-            public bool DocumentAnalyzed(VersionStamp documentVersion)
+            public bool DocumentAnalyzed(DocumentId documentId)
             {
-                return _analyzedDocuments.ContainsKey(documentVersion);
+                return _analyzedDocuments.ContainsKey(documentId);
             }
 
-            public void MarkDocumentAnalyzed(VersionStamp documentVersion)
+            public void MarkDocumentAnalyzed(DocumentId documentId)
             {
-                _analyzedDocuments[documentVersion] = true;
+                _analyzedDocuments[documentId] = true;
+            }
+
+            public void RemoveDocument(DocumentId documentId)
+            {
+                
             }
 
             public void DistributeDiagnostics(ImmutableArray<Diagnostic> diagnostics)
@@ -378,6 +445,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public void MarkComplete()
             {
                 IsComplete = true;
+
+                // Enable the compilation to be collected.
                 this.CompilationWithAnalyzers = null;
             }
         }
