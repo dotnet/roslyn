@@ -85,6 +85,9 @@
     <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
       <Link>InternalUtilities\GacFileResolver.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Helpers\AssemblyIdentityExtensions.cs">
+      <Link>InternalUtilities\AssemblyIdentityExtensions.cs</Link>
+    </Compile>
     <Compile Include="Options\ExportOptionAttribute.cs" />
     <Compile Include="InternalUtilities\FilePathUtilities.cs" />
     <Compile Include="Log\EtwLogger.cs" />
