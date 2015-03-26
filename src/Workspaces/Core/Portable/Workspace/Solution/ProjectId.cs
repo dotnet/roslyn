@@ -28,12 +28,8 @@ namespace Microsoft.CodeAnalysis
             _debugName = debugName;
         }
 
-        public ProjectId(Guid guid, string debugName = null)
+        internal ProjectId(Guid guid, string debugName)
         {
-            if (guid == Guid.Empty)
-            {
-                throw new ArgumentException(nameof(guid));
-            }
             this.Id = guid;
             _debugName = debugName;
         }
@@ -44,6 +40,16 @@ namespace Microsoft.CodeAnalysis
         /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
         public static ProjectId CreateNewId(string debugName = null)
         {
+            return new ProjectId(debugName);
+        }
+
+        public static ProjectId CreateFromSerialized(Guid id, string debugName = null)
+        {
+            if (id == Guid.Empty)
+            {
+                throw new ArgumentException(nameof(id));
+            }
+
             return new ProjectId(debugName);
         }
 

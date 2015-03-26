@@ -28,18 +28,8 @@ namespace Microsoft.CodeAnalysis
             _debugName = debugName;
         }
 
-        public DocumentId(ProjectId projectId, Guid guid, string debugName = null)
+        internal DocumentId(ProjectId projectId, Guid guid, string debugName)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            if (guid == Guid.Empty)
-            {
-                throw new ArgumentException(nameof(guid));
-            }
-
             this.ProjectId = projectId;
             this.Id = guid;
             _debugName = debugName;
@@ -58,6 +48,21 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new DocumentId(projectId, debugName);
+        }
+
+        public static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, string debugName = null)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            if (id == Guid.Empty)
+            {
+                throw new ArgumentException(nameof(id));
+            }
+
+            return new DocumentId(projectId, id, debugName);
         }
 
         internal string GetDebuggerDisplay()
