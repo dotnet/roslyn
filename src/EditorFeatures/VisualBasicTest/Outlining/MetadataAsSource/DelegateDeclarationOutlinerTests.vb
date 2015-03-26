@@ -29,7 +29,7 @@ Delegate Sub Bar()
             Assert.Empty(GetRegions(typeDecl))
         End Sub
 
-        Delegate Sub Bar(x As Int16)
+        Public Delegate Sub Bar(x As Int16)
 
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub WithAttributes()

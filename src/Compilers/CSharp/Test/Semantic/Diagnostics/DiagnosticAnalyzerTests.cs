@@ -13,6 +13,8 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
+using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
+
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class DiagnosticAnalyzerTests : CompilingTestBase
@@ -568,10 +570,11 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
         {
             public static DiagnosticDescriptor desc1 = new DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
             public static DiagnosticDescriptor desc2 = new DiagnosticDescriptor("XX002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
+            public static DiagnosticDescriptor desc3 = new DiagnosticDescriptor("XX003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false, customTags: WellKnownDiagnosticTags.NotConfigurable);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
-                get { return ImmutableArray.Create(desc1, desc2); }
+                get { return ImmutableArray.Create(desc1, desc2, desc3); }
             }
 
             public override void Initialize(AnalysisContext context)
@@ -631,6 +634,12 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
             Assert.False(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
             Assert.True(partiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
+
+            // Verify not configurable disabled diagnostic cannot be enabled, and hence cannot affect IsDiagnosticAnalyzerSuppressed computation.
+            specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
+            specificDiagOptions.Add(FullyDisabledAnalyzer.desc3.Id, ReportDiagnostic.Warn);
+            options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
+            Assert.True(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
         }
 
         [Fact, WorkItem(1008059)]
@@ -975,5 +984,37 @@ Parameter name: diagnostic")
                     compilationContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(UnsupportedDescriptor, Location.None)));
             }
         }
+
+        [Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")]
+        public void TestReportingNotConfigurableDiagnostic()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new NotConfigurableDiagnosticAnalyzer() };
+
+            // Verify, not configurable enabled diagnostic is always reported and disabled diagnostic is never reported..
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false, expected: Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id));
+
+            // Verify not configurable enabled diagnostic cannot be suppressed.
+            var specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
+            specificDiagOptions.Add(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id, ReportDiagnostic.Suppress);
+            var options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
+
+            CreateCompilationWithMscorlib45(source, options: options)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false, expected: Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id));
+
+            // Verify not configurable disabled diagnostic cannot be enabled.
+            specificDiagOptions.Clear();
+            specificDiagOptions.Add(NotConfigurableDiagnosticAnalyzer.DisabledRule.Id, ReportDiagnostic.Warn);
+            options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
+
+            CreateCompilationWithMscorlib45(source, options: options)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false, expected: Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id));
+        }
+
+
     }
 }

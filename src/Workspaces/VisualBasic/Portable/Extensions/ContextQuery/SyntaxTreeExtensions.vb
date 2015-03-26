@@ -496,7 +496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         End Function
 
         ' PERF: Use UShort instead of SyntaxKind so the compiler can use array literal initialization.
-        Private ReadOnly multilineStatementBlockStartKinds As SyntaxKind() = DirectCast(New UShort() {
+        Private ReadOnly s_multilineStatementBlockStartKinds As SyntaxKind() = DirectCast(New UShort() {
             SyntaxKind.MultiLineFunctionLambdaExpression,
             SyntaxKind.MultiLineSubLambdaExpression,
             SyntaxKind.SubBlock,
@@ -548,7 +548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return syntaxTree.IsInStatementBlockOfKind(position,
                                                        targetToken,
                                                        cancellationToken,
-                                                       multilineStatementBlockStartKinds)
+                                                       s_multilineStatementBlockStartKinds)
         End Function
 
         <Extension()>

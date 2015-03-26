@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub SimpleType()
+        Public Sub SimpleType()
             AssertCreatedNodeIs("namespace N { class $$C { } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -43,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub NamespaceType()
+        Public Sub NamespaceType()
             AssertCreatedNodeIs("namespace $$N { class C { } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -57,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub LongNamespaceType()
+        Public Sub LongNamespaceType()
             AssertCreatedNodeIs("namespace N.$$N1.N11 { class C { } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N.N1)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -71,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub SimpleParameterType()
+        Public Sub SimpleParameterType()
             AssertCreatedNodeIs("namespace N { class C { void M(int $$x) { } } }",
                     "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=M OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32)]) ParameterIdentifier=x)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
@@ -87,7 +87,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub DelegateType()
+        Public Sub DelegateType()
             AssertCreatedNodeIs("namespace N { delegate void D(string $$m); }",
                     "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=D Member=(Name=Invoke OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=String)]) ParameterIdentifier=m)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
@@ -103,7 +103,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub LambdaParameterType()
+        Public Sub LambdaParameterType()
             AssertCreatedNodeIs("namespace N { class C { void M(Func<int,int> $$x) { } } }",
                     "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=M OverloadingParameters=[(Assembly=file:///Z:/CSharpAssembly1.dll Type=(Name=Func GenericParameterCount=2 GenericArguments=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32),(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32)]))]) ParameterIdentifier=x)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
@@ -119,7 +119,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub LocalType()
+        Public Sub LocalType()
             AssertCreatedNodeIs("namespace N { class C { int M() { int $$y = 0; return y; } } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=M LocalVariable=y)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -133,7 +133,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub FirstLocalWithSameNameType()
+        Public Sub FirstLocalWithSameNameType()
             AssertCreatedNodeIs("namespace N { class C { int M() { { int $$y = 0; } { int y = 1;} } } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=M LocalVariable=y)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -147,7 +147,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub SecondLocalWithSameNameType()
+        Public Sub SecondLocalWithSameNameType()
             AssertCreatedNodeIs("namespace N { class C { int M() { { int y = 0; } { int $$y = 1;} } } }",
                     "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=M LocalVariable=y LocalVariableIndex=1)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
@@ -162,7 +162,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub ErrorType()
+        Public Sub ErrorType()
             AssertCreatedNodeIs(
                 "Class $$C : Inherits D : End Class",
                 "(Assembly=file:///Z:/VisualBasicAssembly1.dll Type=C)",
@@ -179,7 +179,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub SimpleMethodSymbolTest()
+        Public Sub SimpleMethodSymbolTest()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -199,7 +199,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub ReferenceParameterSymbolTest()
+        Public Sub ReferenceParameterSymbolTest()
             AssertCreatedNodeIs("namespace N { class C { void $$Foo(ref int i) { i = i + 1; } } }",
                     "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=Foo OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32 ParamKind=Ref)]))",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
@@ -215,7 +215,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub ReferenceOutParameterSymbolTest()
+        Public Sub ReferenceOutParameterSymbolTest()
             AssertCreatedNodeIs("namespace N { class C { void $$Foo(out int i) { i = 1; } } }",
                     "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=Foo OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32 ParamKind=Ref)]))",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
@@ -231,7 +231,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub SimpleIndexerTest()
+        Public Sub SimpleIndexerTest()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -268,7 +268,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub AttributedIndexerTest()
+        Public Sub AttributedIndexerTest()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -306,7 +306,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub ParameterWithConversionOperatorTest()
+        Public Sub ParameterWithConversionOperatorTest()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -339,7 +339,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub LocalVBVariableType()
+        Public Sub LocalVBVariableType()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
@@ -372,7 +372,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub LocalVBRangeTypeVariable()
+        Public Sub LocalVBRangeTypeVariable()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
@@ -405,7 +405,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub LocalVBVariableWithinBlockType()
+        Public Sub LocalVBVariableWithinBlockType()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
@@ -442,7 +442,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub LocalVariableIndexTest()
+        Public Sub LocalVariableIndexTest()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
@@ -479,7 +479,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub GenericArgumentsTest()
+        Public Sub GenericArgumentsTest()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -533,7 +533,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub GenericArgumentsTest2()
+        Public Sub GenericArgumentsTest2()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -587,7 +587,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub GenericCSharpMethodSymbolTest()
+        Public Sub GenericCSharpMethodSymbolTest()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -607,7 +607,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub GenericCSharpTypeSymbolTest()
+        Public Sub GenericCSharpTypeSymbolTest()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -640,7 +640,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub GenericCSharpMethodTypeSymbolTest()
+        Public Sub GenericCSharpMethodTypeSymbolTest()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -669,7 +669,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub GenericVBMethodSymbolTest()
+        Public Sub GenericVBMethodSymbolTest()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
@@ -692,7 +692,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub GenericVBTypeSymbolTest()
+        Public Sub GenericVBTypeSymbolTest()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
@@ -727,7 +727,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub MultiGenericVBTypeSymbolTest()
+        Public Sub MultiGenericVBTypeSymbolTest()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
@@ -762,7 +762,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub FilteringPropertiesTest()
+        Public Sub FilteringPropertiesTest()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">

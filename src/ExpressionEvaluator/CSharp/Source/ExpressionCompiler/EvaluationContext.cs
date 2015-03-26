@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly MetadataDecoder _metadataDecoder;
         private readonly MethodSymbol _currentFrame;
         private readonly ImmutableArray<LocalSymbol> _locals;
-        private readonly ImmutableSortedSet<int> _inScopeHoistedLocalIndices;
+        private readonly InScopeHoistedLocals _inScopeHoistedLocals;
         private readonly MethodDebugInfo _methodDebugInfo;
 
         private EvaluationContext(
@@ -42,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MetadataDecoder metadataDecoder,
             MethodSymbol currentFrame,
             ImmutableArray<LocalSymbol> locals,
-            ImmutableSortedSet<int> inScopeHoistedLocalIndices,
+            InScopeHoistedLocals inScopeHoistedLocals,
             MethodDebugInfo methodDebugInfo)
         {
-            Debug.Assert(inScopeHoistedLocalIndices != null);
+            Debug.Assert(inScopeHoistedLocals != null);
 
             this.MetadataBlocks = metadataBlocks;
             this.MethodContextReuseConstraints = methodContextReuseConstraints;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _metadataDecoder = metadataDecoder;
             _currentFrame = currentFrame;
             _locals = locals;
-            _inScopeHoistedLocalIndices = inScopeHoistedLocalIndices;
+            _inScopeHoistedLocals = inScopeHoistedLocals;
             _methodDebugInfo = methodDebugInfo;
         }
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(MetadataTokens.Handle(typeToken).Kind == HandleKind.TypeDefinition);
 
             // Re-use the previous compilation if possible.
-            var compilation = metadataBlocks.HaveNotChanged(previous) ?
+            var compilation = previous.Matches(metadataBlocks) ?
                 previous.Compilation :
                 metadataBlocks.ToCompilation();
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 metadataDecoder,
                 currentFrame,
                 default(ImmutableArray<LocalSymbol>),
-                ImmutableSortedSet<int>.Empty,
+                InScopeHoistedLocals.Empty,
                 default(MethodDebugInfo));
         }
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // Re-use the previous compilation if possible.
             CSharpCompilation compilation;
-            if (metadataBlocks.HaveNotChanged(previous))
+            if (previous.Matches(metadataBlocks))
             {
                 // Re-use entire context if method scope has not changed.
                 var previousContext = previous.EvaluationContext;
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var localNames = containingScopes.GetLocalNames();
 
-            var inScopeHoistedLocalIndices = ImmutableSortedSet<int>.Empty;
+            var inScopeHoistedLocals = InScopeHoistedLocals.Empty;
             var methodDebugInfo = default(MethodDebugInfo);
 
             if (typedSymReader != null)
@@ -158,7 +158,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     // TODO (https://github.com/dotnet/roslyn/issues/702): switch on the type of typedSymReader and call the appropriate helper.
                     methodDebugInfo = typedSymReader.GetMethodDebugInfo(methodToken, methodVersion, localNames.FirstOrDefault());
-                    inScopeHoistedLocalIndices = methodDebugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref methodContextReuseConstraints);
+                    var inScopeHoistedLocalIndices = methodDebugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref methodContextReuseConstraints);
+                    inScopeHoistedLocals = new CSharpInScopeHoistedLocals(inScopeHoistedLocalIndices);
                 }
                 catch (InvalidOperationException)
                 {
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 metadataDecoder,
                 currentFrame,
                 locals,
-                inScopeHoistedLocalIndices,
+                inScopeHoistedLocals,
                 methodDebugInfo);
         }
 
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 _metadataDecoder,
                 _currentFrame,
                 _locals,
-                _inScopeHoistedLocalIndices,
+                _inScopeHoistedLocals,
                 _methodDebugInfo,
                 syntax);
         }
@@ -240,8 +241,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
                         context.MessageProvider,
                         () => stream,
-                        getPdbStreamOpt: null,
+                        getPortablePdbStreamOpt: null,
                         nativePdbWriterOpt: null,
+                        pdbPathOpt: null,
                         allowMissingMethodBodies: false,
                         deterministic: false,
                         cancellationToken: default(CancellationToken));
@@ -341,8 +343,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
                         context.MessageProvider,
                         () => stream,
-                        getPdbStreamOpt: null,
+                        getPortablePdbStreamOpt: null,
                         nativePdbWriterOpt: null,
+                        pdbPathOpt: null,
                         allowMissingMethodBodies: false,
                         deterministic: false,
                         cancellationToken: default(CancellationToken));
@@ -391,8 +394,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
                         context.MessageProvider,
                         () => stream,
-                        getPdbStreamOpt: null,
+                        getPortablePdbStreamOpt: null,
                         nativePdbWriterOpt: null,
+                        pdbPathOpt: null,
                         allowMissingMethodBodies: false,
                         deterministic: false,
                         cancellationToken: default(CancellationToken));

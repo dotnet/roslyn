@@ -191,8 +191,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CallHierarchy\CallHierarchyTests.vb" />
-    <Compile Include="CallHierarchy\MockDocumentNavigationServiceProvider.vb" />
-    <Compile Include="CallHierarchy\MockSymbolNavigationServiceProvider.vb" />
+    <Compile Include="Utilities\MockDocumentNavigationServiceProvider.vb" />
+    <Compile Include="Utilities\MockSymbolNavigationServiceProvider.vb" />
     <Compile Include="CodeFixes\CodeFixServiceTests.vb" />
     <Compile Include="Compilation\CompilationTests.vb" />
     <Compile Include="Diagnostics\AbstractCrossLanguageUserDiagnosticTest.vb" />

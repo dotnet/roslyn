@@ -93,6 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim outputFileName As String = Nothing
             Dim outputDirectory As String = baseDirectory
             Dim documentationPath As String = Nothing
+            Dim errorLogPath As String = Nothing
             Dim parseDocumentationComments As Boolean = False ' Don't just null check documentationFileName because we want to do this even if the file name is invalid.
             Dim outputKind As OutputKind = OutputKind.ConsoleApplication
             Dim ssVersion As SubsystemVersion = SubsystemVersion.None
@@ -459,6 +460,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             parseDocumentationComments = False
                             Continue For
 
+                        Case "errorlog"
+                            Dim unquoted = RemoveAllQuotes(value)
+                            If String.IsNullOrEmpty(unquoted) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "errorlog", ":<file>")
+                            Else
+                                errorLogPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory)
+                            End If
+
+                            Continue For
+
                         Case "netcf"
                             ' Do nothing as we no longer have any use for implementing this switch and 
                             ' want to avoid failing with any warnings/errors
@@ -562,8 +573,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ElseIf value.IsEmpty Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "debug", ":pdbonly|full")
                                 Else
-                                    AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, value, "debug")
-                                End If
+                                AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "debug", value)
+                            End If
 
                                 Continue For
 
@@ -1174,6 +1185,7 @@ lVbRuntimePlus:
                     .OutputFileName = outputFileName,
                     .OutputDirectory = outputDirectory,
                     .DocumentationPath = documentationPath,
+                    .ErrorLogPath = errorLogPath,
                     .SourceFiles = sourceFiles.AsImmutable(),
                     .Encoding = codepage,
                     .ChecksumAlgorithm = checksumAlgorithm,

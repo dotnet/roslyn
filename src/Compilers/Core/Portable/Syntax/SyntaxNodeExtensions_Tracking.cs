@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (nodes == null)
             {
-                throw new ArgumentNullException("nodes");
+                throw new ArgumentNullException(nameof(nodes));
             }
 
             // create an id for each node
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (node == null)
             {
-                throw new ArgumentNullException("originalNode");
+                throw new ArgumentNullException(nameof(node));
             }
 
             return GetCurrentNodeFromTrueRoots(GetRoot(root), node).OfType<TNode>();
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (nodes == null)
             {
-                throw new ArgumentNullException("nodes");
+                throw new ArgumentNullException(nameof(nodes));
             }
 
             var trueRoot = GetRoot(root);

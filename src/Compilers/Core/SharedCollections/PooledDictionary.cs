@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Collections
         private readonly ObjectPool<PooledDictionary<K, V>> _pool;
 
         private PooledDictionary(ObjectPool<PooledDictionary<K, V>> pool)
-            : base()
         {
             _pool = pool;
         }
@@ -21,10 +20,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public void Free()
         {
             this.Clear();
-            if (_pool != null)
-            {
-                _pool.Free(this);
-            }
+            _pool?.Free(this);
         }
 
         // global pool

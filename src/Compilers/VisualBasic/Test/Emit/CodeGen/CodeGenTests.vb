@@ -4845,7 +4845,7 @@ expectedOutput:="3b").VerifyIL("M1.Main",
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails><MODULE>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails><MODULE>.E429CCA3F703A39CC5954A6572FEC9086135B34E"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  stloc.0
   IL_0012:  ldc.i4.2
@@ -6796,25 +6796,25 @@ End Module
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     "Byte"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails><MODULE>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails><MODULE>.9755240DD0C4C1AD226DEBD40C6D2EBD408250CB"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.9755240DD0C4C1AD226DEBD40C6D2EBD408250CB"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  pop
   IL_0012:  ldc.i4.5
   IL_0013:  newarr     "Double"
   IL_0018:  dup
-  IL_0019:  ldtoken    "<PrivateImplementationDetails><MODULE>.__StaticArrayInitTypeSize=40 <PrivateImplementationDetails><MODULE>.11F3436B917FFBA0FAB0FAD5563AF18FA24AC16A"
+  IL_0019:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=40 <PrivateImplementationDetails>.11F3436B917FFBA0FAB0FAD5563AF18FA24AC16A"
   IL_001e:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0023:  pop
   IL_0024:  ldc.i4.5
   IL_0025:  newarr     "Boolean"
   IL_002a:  dup
-  IL_002b:  ldtoken    "<PrivateImplementationDetails><MODULE>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails><MODULE>.4E724558F6B816715597A51663AD8F05247E2C4A"
+  IL_002b:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.4E724558F6B816715597A51663AD8F05247E2C4A"
   IL_0030:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0035:  pop
   IL_0036:  ldc.i4.5
   IL_0037:  newarr     "Char"
   IL_003c:  dup
-  IL_003d:  ldtoken    "<PrivateImplementationDetails><MODULE>.__StaticArrayInitTypeSize=10 <PrivateImplementationDetails><MODULE>.E313A2813013780396D58750DC5D62221C86F42F"
+  IL_003d:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=10 <PrivateImplementationDetails>.E313A2813013780396D58750DC5D62221C86F42F"
   IL_0042:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0047:  pop
   IL_0048:  ret
@@ -6897,7 +6897,7 @@ End Module
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     "System.TypeCode"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails><MODULE>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails><MODULE>.3191FF614021ADF3122AC274EA5B6097C21BEB81"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.3191FF614021ADF3122AC274EA5B6097C21BEB81"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  pop
   IL_0012:  ret
@@ -9907,7 +9907,7 @@ End Class
 
         <WorkItem(542593, "DevDiv")>
         <Fact>
-        Sub InheritClassFromRetargetedAssemblyReference()
+        Public Sub InheritClassFromRetargetedAssemblyReference()
             Dim ref1 = New VisualBasicCompilationReference(CompilationUtils.CreateCompilationWithReferences(
                 <compilation>
                     <file name="a.vb">
@@ -9960,7 +9960,7 @@ End Class
 
         <WorkItem(542593, "DevDiv")>
         <Fact>
-        Sub InheritClassFromRetargetedAssemblyReferenceProperty()
+        Public Sub InheritClassFromRetargetedAssemblyReferenceProperty()
             Dim ref1 = New VisualBasicCompilationReference(CompilationUtils.CreateCompilationWithReferences(
                 <compilation>
                     <file name="a.vb">
@@ -10615,7 +10615,7 @@ True
   IL_0040:  ldc.i4.4
   IL_0041:  newarr     "Boolean"
   IL_0046:  dup
-  IL_0047:  ldtoken    "Integer <PrivateImplementationDetails><MODULE>.35CCB1599F52363510686EF38B7DB5E7998DB108"
+  IL_0047:  ldtoken    "Integer <PrivateImplementationDetails>.35CCB1599F52363510686EF38B7DB5E7998DB108"
   IL_004c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0051:  ldc.i4.2
   IL_0052:  ldelem.u1
@@ -11474,7 +11474,7 @@ End Module
   IL_0000:  ldc.i4.4
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails><MODULE>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails><MODULE>.1456763F890A84558F99AFA687C36B9037697848"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.1456763F890A84558F99AFA687C36B9037697848"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  stloc.0
   IL_0012:  ldloc.0

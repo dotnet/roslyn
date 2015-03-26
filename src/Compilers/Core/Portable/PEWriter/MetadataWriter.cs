@@ -11,7 +11,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -443,8 +442,8 @@ namespace Microsoft.Cci
         // There is no guarantee the types actually exist in a cor library
         internal static readonly string dummyAssemblyAttributeParentNamespace = "System.Runtime.CompilerServices";
         internal static readonly string dummyAssemblyAttributeParentName = "AssemblyAttributesGoHere";
-        internal static readonly string[,] dummyAssemblyAttributeParentQualifier = new string[2, 2] { { "", "M" }, { "S", "SM" } };
-        private readonly uint[,] _dummyAssemblyAttributeParent = new uint[2, 2] { { 0, 0 }, { 0, 0 } };
+        internal static readonly string[,] dummyAssemblyAttributeParentQualifier = { { "", "M" }, { "S", "SM" } };
+        private readonly uint[,] _dummyAssemblyAttributeParent = { { 0, 0 }, { 0, 0 } };
 
         internal const int MappedFieldDataAlignment = 8;
 
@@ -766,7 +765,7 @@ namespace Microsoft.Cci
 
         private uint GetCustomAttributeSignatureIndex(ICustomAttribute customAttribute)
         {
-            uint result = 0;
+            uint result;
             if (_customAtributeSignatureIndex.TryGetValue(customAttribute, out result))
             {
                 return result;
@@ -789,14 +788,9 @@ namespace Microsoft.Cci
                 methodDef = methodReference.GetResolvedMethod(Context);
             }
 
-            if (methodDef != null)
-            {
-                return (this.GetMethodDefIndex(methodDef) << 3) | 2;
-            }
-            else
-            {
-                return (this.GetMemberRefIndex(methodReference) << 3) | 3;
-            }
+            return methodDef != null
+                ? (this.GetMethodDefIndex(methodDef) << 3) | 2
+                : (this.GetMemberRefIndex(methodReference) << 3) | 3;
         }
 
         public static ushort GetEventFlags(IEventDefinition eventDef)
@@ -882,7 +876,7 @@ namespace Microsoft.Cci
 
         internal uint GetFieldSignatureIndex(IFieldReference fieldReference)
         {
-            uint result = 0;
+            uint result;
             ISpecializedFieldReference specializedFieldReference = fieldReference.AsSpecializedFieldReference;
             if (specializedFieldReference != null)
             {
@@ -912,14 +906,9 @@ namespace Microsoft.Cci
                 fieldDef = fieldReference.GetResolvedField(Context);
             }
 
-            if (fieldDef != null)
-            {
-                return 0x04000000 | this.GetFieldDefIndex(fieldDef);
-            }
-            else
-            {
-                return 0x0A000000 | this.GetMemberRefIndex(fieldReference);
-            }
+            return fieldDef != null
+                ? 0x04000000 | this.GetFieldDefIndex(fieldDef)
+                : 0x0A000000 | this.GetMemberRefIndex(fieldReference);
         }
 
         internal uint GetFileRefIndex(IFileReference fileReference)
@@ -940,7 +929,7 @@ namespace Microsoft.Cci
         private uint GetFileRefIndex(IModuleReference mref)
         {
             string key = mref.Name;
-            uint result = 0;
+            uint result;
             if (_fileRefIndex.TryGetValue(key, out result))
             {
                 return result;
@@ -996,14 +985,9 @@ namespace Microsoft.Cci
             if (mref != null)
             {
                 aref = mref.GetContainingAssembly(Context);
-                if (aref == null || ReferenceEquals(aref, this.module.GetContainingAssembly(Context)))
-                {
-                    return (this.GetFileRefIndex(mref) << 2) | 0;
-                }
-                else
-                {
-                    return (this.GetAssemblyRefIndex(aref) << 2) | 1;
-                }
+                return aref == null || ReferenceEquals(aref, this.module.GetContainingAssembly(Context))
+                    ? (this.GetFileRefIndex(mref) << 2) | 0
+                    : (this.GetAssemblyRefIndex(aref) << 2) | 1;
             }
 
             Debug.Assert(false);
@@ -1012,7 +996,7 @@ namespace Microsoft.Cci
             return 0;
         }
 
-        private uint GetManagedResourceOffset(ManagedResource resource, BinaryWriter resourceWriter)
+        private static uint GetManagedResourceOffset(ManagedResource resource, BinaryWriter resourceWriter)
         {
             if (resource.ExternalFile != null)
             {
@@ -1043,7 +1027,7 @@ namespace Microsoft.Cci
             ITypeDefinition parentTypeDef = memberRef.GetContainingType(Context).AsTypeDefinition(Context);
             if (parentTypeDef != null)
             {
-                uint parentTypeDefIndex = 0;
+                uint parentTypeDefIndex;
                 this.TryGetTypeDefIndex(parentTypeDef, out parentTypeDefIndex);
                 if (parentTypeDefIndex > 0)
                 {
@@ -1058,7 +1042,7 @@ namespace Microsoft.Cci
                     {
                         if (methodRef.AcceptsExtraArguments)
                         {
-                            uint methodIndex = 0;
+                            uint methodIndex;
                             if (this.TryGetMethodDefIndex(methodRef.GetResolvedMethod(Context), out methodIndex))
                             {
                                 return (methodIndex << 3) | 3;
@@ -1072,14 +1056,9 @@ namespace Microsoft.Cci
             }
 
             // TODO: special treatment for global fields and methods. Object model support would be nice.
-            if (!memberRef.GetContainingType(Context).IsTypeSpecification())
-            {
-                return (this.GetTypeRefIndex(memberRef.GetContainingType(Context)) << 3) | 1;
-            }
-            else
-            {
-                return (this.GetTypeSpecIndex(memberRef.GetContainingType(Context)) << 3) | 4;
-            }
+            return memberRef.GetContainingType(Context).IsTypeSpecification()
+                ? (this.GetTypeSpecIndex(memberRef.GetContainingType(Context)) << 3) | 4
+                : (this.GetTypeRefIndex(memberRef.GetContainingType(Context)) << 3) | 1;
         }
 
         internal uint GetMethodDefOrRefCodedIndex(IMethodReference methodReference)
@@ -1091,14 +1070,9 @@ namespace Microsoft.Cci
                 methodDef = methodReference.GetResolvedMethod(Context);
             }
 
-            if (methodDef != null)
-            {
-                return this.GetMethodDefIndex(methodDef) << 1;
-            }
-            else
-            {
-                return (this.GetMemberRefIndex(methodReference) << 1) | 1;
-            }
+            return methodDef != null
+                ? this.GetMethodDefIndex(methodDef) << 1
+                : (this.GetMemberRefIndex(methodReference) << 1) | 1;
         }
 
         public static ushort GetMethodFlags(IMethodDefinition methodDef)
@@ -1169,7 +1143,7 @@ namespace Microsoft.Cci
 
         internal uint GetMethodInstanceSignatureIndex(IGenericMethodInstanceReference methodInstanceReference)
         {
-            uint result = 0;
+            uint result;
             if (_methodInstanceSignatureIndex.TryGetValue(methodInstanceReference, out result))
             {
                 return result;
@@ -1192,7 +1166,7 @@ namespace Microsoft.Cci
 
         private uint GetMarshallingDescriptorIndex(IMarshallingInformation marshallingInformation)
         {
-            uint result = 0;
+            uint result;
             if (_marshallingDescriptorIndex.TryGetValue(marshallingInformation, out result))
             {
                 return result;
@@ -1231,7 +1205,7 @@ namespace Microsoft.Cci
 
         internal uint GetMethodSignatureIndex(IMethodReference methodReference)
         {
-            uint result = 0;
+            uint result;
             ISpecializedMethodReference specializedMethodReference = methodReference.AsSpecializedMethodReference;
             if (specializedMethodReference != null)
             {
@@ -1274,7 +1248,7 @@ namespace Microsoft.Cci
 
         internal virtual uint GetMethodToken(IMethodReference methodReference)
         {
-            uint methodDefIndex = 0;
+            uint methodDefIndex;
             IMethodDefinition methodDef = null;
             IUnitReference definingUnit = GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
             if (definingUnit != null && ReferenceEquals(definingUnit, this.module))
@@ -1286,18 +1260,11 @@ namespace Microsoft.Cci
             {
                 return 0x06000000 | methodDefIndex;
             }
-            else
-            {
-                IGenericMethodInstanceReference methodSpec = methodReference.AsGenericMethodInstanceReference;
-                if (methodSpec != null)
-                {
-                    return 0x2B000000 | this.GetMethodSpecIndex(methodSpec);
-                }
-                else
-                {
-                    return 0x0A000000 | this.GetMemberRefIndex(methodReference);
-                }
-            }
+
+            IGenericMethodInstanceReference methodSpec = methodReference.AsGenericMethodInstanceReference;
+            return methodSpec != null
+                ? 0x2B000000 | this.GetMethodSpecIndex(methodSpec)
+                : 0x0A000000 | this.GetMemberRefIndex(methodReference);
         }
 
         public static ushort GetParameterFlags(IParameterDefinition parDef)
@@ -1339,7 +1306,7 @@ namespace Microsoft.Cci
         private uint GetPermissionSetIndex(ImmutableArray<ICustomAttribute> permissionSet)
         {
             MemoryStream sig = MemoryStream.GetInstance();
-            uint result = 0;
+            uint result;
             try
             {
                 BinaryWriter writer = new BinaryWriter(sig);
@@ -1379,7 +1346,7 @@ namespace Microsoft.Cci
 
         private uint GetPropertySignatureIndex(IPropertyDefinition propertyDef)
         {
-            uint result = 0;
+            uint result;
             if (_signatureIndex.TryGetValue(propertyDef, out result))
             {
                 return result;
@@ -1761,21 +1728,16 @@ namespace Microsoft.Cci
 
         private uint GetTypeDefOrRefCodedIndex(ITypeReference typeReference, bool treatRefAsPotentialTypeSpec)
         {
-            uint typeDefIndex = 0;
+            uint typeDefIndex;
             var typeDefinition = typeReference.AsTypeDefinition(this.Context);
             if ((typeDefinition != null) && this.TryGetTypeDefIndex(typeDefinition, out typeDefIndex))
             {
                 return (typeDefIndex << 2) | 0;
             }
 
-            if (!treatRefAsPotentialTypeSpec || !typeReference.IsTypeSpecification())
-            {
-                return (this.GetTypeRefIndex(typeReference) << 2) | 1;
-            }
-            else
-            {
-                return (this.GetTypeSpecIndex(typeReference) << 2) | 2;
-            }
+            return treatRefAsPotentialTypeSpec && typeReference.IsTypeSpecification()
+                ? (this.GetTypeSpecIndex(typeReference) << 2) | 2
+                : (this.GetTypeRefIndex(typeReference) << 2) | 1;
         }
 
         private static ushort GetTypeMemberVisibilityFlags(ITypeDefinitionMember member)
@@ -1880,7 +1842,7 @@ namespace Microsoft.Cci
 
         internal uint GetTypeSpecSignatureIndex(ITypeReference typeReference)
         {
-            uint result = 0;
+            uint result;
             if (_typeSpecSignatureIndex.TryGetValue(typeReference, out result))
             {
                 return result;
@@ -1916,21 +1878,16 @@ namespace Microsoft.Cci
 
         internal virtual uint GetTypeToken(ITypeReference typeReference)
         {
-            uint typeDefIndex = 0;
+            uint typeDefIndex;
             var typeDefinition = typeReference.AsTypeDefinition(this.Context);
             if ((typeDefinition != null) && this.TryGetTypeDefIndex(typeDefinition, out typeDefIndex))
             {
                 return 0x02000000 | typeDefIndex;
             }
 
-            if (!typeReference.IsTypeSpecification())
-            {
-                return 0x01000000 | this.GetTypeRefIndex(typeReference);
-            }
-            else
-            {
-                return 0x1B000000 | this.GetTypeSpecIndex(typeReference);
-            }
+            return typeReference.IsTypeSpecification()
+                ? 0x1B000000 | this.GetTypeSpecIndex(typeReference)
+                : 0x01000000 | this.GetTypeRefIndex(typeReference);
         }
 
         internal uint GetTokenForDefinition(IDefinition definition)
@@ -2049,10 +2006,7 @@ namespace Microsoft.Cci
 
         public void WriteMetadataAndIL(PdbWriter pdbWriterOpt, Stream metadataStream, Stream ilStream, out MetadataSizes metadataSizes)
         {
-            if (pdbWriterOpt != null)
-            {
-                pdbWriterOpt.SetMetadataEmitter(this);
-            }
+            pdbWriterOpt?.SetMetadataEmitter(this);
 
             // TODO: we can precalculate the exact size of IL stream
             var ilBuffer = new MemoryStream(1024);
@@ -2230,11 +2184,11 @@ namespace Microsoft.Cci
             Debug.Assert(!metadataSizes.IsEmpty(TableIndex.Module));
             if (isPortablePdb)
             {
-                this.SerializeModuleTable(writer, metadataSizes, debugHeapsOpt, ref _debugModuleRow);
+                SerializeModuleTable(writer, metadataSizes, debugHeapsOpt, ref _debugModuleRow);
             }
             else
             {
-                this.SerializeModuleTable(writer, metadataSizes, heaps, ref _moduleRow);
+                SerializeModuleTable(writer, metadataSizes, heaps, ref _moduleRow);
             }
 
             if (!metadataSizes.IsEmpty(TableIndex.TypeRef))
@@ -2747,7 +2701,7 @@ namespace Microsoft.Cci
                 // at multi-module assembly build time.
                 AddAssemblyAttributesToTable(
                     this.module.AssemblySecurityAttributes.Select(sa => sa.Attribute),
-                    writingNetModule,   // needsDummyParent
+                    true,               // needsDummyParent
                     true);              // isSecurity
             }
 
@@ -2988,8 +2942,8 @@ namespace Microsoft.Cci
                 foreach (ITypeExport typeExport in this.module.GetExportedTypes(Context))
                 {
                     ITypeReference exportedType = typeExport.ExportedType;
-                    INestedTypeReference nestedRef = null;
-                    INamespaceTypeReference namespaceTypeRef = null;
+                    INestedTypeReference nestedRef;
+                    INamespaceTypeReference namespaceTypeRef;
                     ExportedTypeRow r = new ExportedTypeRow();
                     r.TypeDefId = (uint)MetadataTokens.GetToken(exportedType.TypeDef);
                     if ((namespaceTypeRef = exportedType.AsNamespaceTypeReference) != null)
@@ -3083,14 +3037,9 @@ namespace Microsoft.Cci
 
                 var marshallingInformation = fieldDef.MarshallingInformation;
 
-                if (marshallingInformation != null)
-                {
-                    r.NativeType = this.GetMarshallingDescriptorIndex(marshallingInformation);
-                }
-                else
-                {
-                    r.NativeType = this.GetMarshallingDescriptorIndex(fieldDef.MarshallingDescriptor);
-                }
+                r.NativeType = marshallingInformation != null 
+                    ? this.GetMarshallingDescriptorIndex(marshallingInformation) 
+                    : this.GetMarshallingDescriptorIndex(fieldDef.MarshallingDescriptor);
 
                 uint fieldDefIndex = this.GetFieldDefIndex(fieldDef);
                 r.Parent = fieldDefIndex << 1;
@@ -3109,14 +3058,9 @@ namespace Microsoft.Cci
 
                 var marshallingInformation = parDef.MarshallingInformation;
 
-                if (marshallingInformation != null)
-                {
-                    r.NativeType = this.GetMarshallingDescriptorIndex(marshallingInformation);
-                }
-                else
-                {
-                    r.NativeType = this.GetMarshallingDescriptorIndex(parDef.MarshallingDescriptor);
-                }
+                r.NativeType = marshallingInformation != null 
+                    ? this.GetMarshallingDescriptorIndex(marshallingInformation) 
+                    : this.GetMarshallingDescriptorIndex(parDef.MarshallingDescriptor);
 
                 uint parameterDefIndex = this.GetParameterDefIndex(parDef);
                 r.Parent = (parameterDefIndex << 1) | 1;
@@ -3270,7 +3214,7 @@ namespace Microsoft.Cci
                     return result;
                 }
 
-                return ((int)x.Number) - (int)y.Number;
+                return x.Number - y.Number;
             }
         }
 
@@ -3289,19 +3233,14 @@ namespace Microsoft.Cci
 
                 var data = methodDef.PlatformInvokeData;
                 uint methodDefIndex = this.GetMethodDefIndex(methodDef);
-                ImplMapRow r = new ImplMapRow();
+                var r = new ImplMapRow();
                 r.MappingFlags = (ushort)data.Flags;
                 r.MemberForwarded = (methodDefIndex << 1) | 1;
 
                 string entryPointName = data.EntryPointName;
-                if (entryPointName != null)
-                {
-                    r.ImportName = this.GetStringIndexForNameAndCheckLength(entryPointName, methodDef);
-                }
-                else
-                {
-                    r.ImportName = heaps.GetStringIndex(methodDef.Name); // Length checked while populating the method def table.
-                }
+                r.ImportName = entryPointName != null 
+                    ? this.GetStringIndexForNameAndCheckLength(entryPointName, methodDef) 
+                    : heaps.GetStringIndex(methodDef.Name); // Length checked while populating the method def table.
 
                 r.ImportScope = this.GetModuleRefIndex(data.ModuleName);
                 _implMapTable.Add(r);
@@ -3336,7 +3275,7 @@ namespace Microsoft.Cci
             foreach (var resource in this.module.GetResources(Context))
             {
                 ManifestResourceRow r = new ManifestResourceRow();
-                r.Offset = this.GetManagedResourceOffset(resource, resourceDataWriter);
+                r.Offset = GetManagedResourceOffset(resource, resourceDataWriter);
                 r.Flags = resource.IsPublic ? 1u : 2u;
                 r.Name = this.GetStringIndexForNameAndCheckLength(resource.Name);
 
@@ -3412,7 +3351,7 @@ namespace Microsoft.Cci
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
             {
                 uint propertyIndex = this.GetPropertyDefIndex(propertyDef);
-                MethodSemanticsRow r = new MethodSemanticsRow();
+                var r = new MethodSemanticsRow();
                 r.Association = (propertyIndex << 1) | 1;
                 foreach (IMethodReference accessorMethod in propertyDef.Accessors)
                 {
@@ -3439,7 +3378,7 @@ namespace Microsoft.Cci
             foreach (IEventDefinition eventDef in this.GetEventDefs())
             {
                 uint eventIndex = this.GetEventDefIndex(eventDef);
-                MethodSemanticsRow r = new MethodSemanticsRow();
+                var r = new MethodSemanticsRow();
                 r.Association = eventIndex << 1;
                 foreach (IMethodReference accessorMethod in eventDef.Accessors)
                 {
@@ -3643,7 +3582,7 @@ namespace Microsoft.Cci
 
             foreach (IPropertyDefinition propertyDef in propertyDefs)
             {
-                PropertyRow r = new PropertyRow();
+                var r = new PropertyRow();
                 r.PropFlags = GetPropertyFlags(propertyDef);
                 r.Name = this.GetStringIndexForNameAndCheckLength(propertyDef.Name, propertyDef);
                 r.Type = this.GetPropertySignatureIndex(propertyDef);
@@ -3651,6 +3590,7 @@ namespace Microsoft.Cci
             }
         }
 
+        [StructLayout(LayoutKind.Auto)]
         private struct PropertyRow { public ushort PropFlags; public StringIdx Name; public uint Type; }
 
         private readonly List<PropertyRow> _propertyTable = new List<PropertyRow>();
@@ -3662,7 +3602,7 @@ namespace Microsoft.Cci
 
             foreach (INamedTypeDefinition typeDef in typeDefs)
             {
-                TypeDefRow r = new TypeDefRow();
+                var r = new TypeDefRow();
                 INamespaceTypeDefinition namespaceType = typeDef.AsNamespaceTypeDefinition(Context);
                 r.Flags = GetTypeDefFlags(typeDef);
                 string mangledTypeName = GetMangledName(typeDef);
@@ -3772,8 +3712,8 @@ namespace Microsoft.Cci
                 heapSizes |= (HeapSizeFlag.EnCDeltas | HeapSizeFlag.DeletedMarks);
             }
 
-            ulong validTables = 0;
-            ulong sortedTables = 0;
+            ulong validTables;
+            ulong sortedTables;
             ComputeValidAndSortedMasks(metadataSizes, out validTables, out sortedTables);
 
             writer.WriteUint(0); // reserved
@@ -3818,7 +3758,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeModuleTable(BinaryWriter writer, MetadataSizes metadataSizes, MetadataHeapsBuilder heaps, ref ModuleRow moduleRow)
+        private static void SerializeModuleTable(BinaryWriter writer, MetadataSizes metadataSizes, MetadataHeapsBuilder heaps, ref ModuleRow moduleRow)
         {
             writer.WriteUshort(moduleRow.Generation);
             writer.WriteReference(heaps.ResolveStringIndex(moduleRow.Name), metadataSizes.StringIndexSize);
@@ -4230,10 +4170,7 @@ namespace Microsoft.Cci
                         // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
                         rva = this.SerializeMethodBody(body, writer, localSignatureToken);
 
-                        if (pdbWriterOpt != null)
-                        {
-                            pdbWriterOpt.SerializeDebugInfo(body, localSignatureToken, customDebugInfoWriter);
-                        }
+                        pdbWriterOpt?.SerializeDebugInfo(body, localSignatureToken, customDebugInfoWriter);
                     }
                     else
                     {
@@ -4410,27 +4347,21 @@ namespace Microsoft.Cci
             {
                 return this.GetTypeToken(typeReference);
             }
-            else
-            {
-                IFieldReference fieldReference = reference as IFieldReference;
 
-                if (fieldReference != null)
-                {
-                    return this.GetFieldToken(fieldReference);
-                }
-                else
-                {
-                    IMethodReference methodReference = reference as IMethodReference;
-                    if (methodReference != null)
-                    {
-                        return this.GetMethodToken(methodReference);
-                    }
-                    else
-                    {
-                        throw ExceptionUtilities.UnexpectedValue(reference);
-                    }
-                }
+            IFieldReference fieldReference = reference as IFieldReference;
+
+            if (fieldReference != null)
+            {
+                return this.GetFieldToken(fieldReference);
             }
+
+            IMethodReference methodReference = reference as IMethodReference;
+            if (methodReference != null)
+            {
+                return this.GetMethodToken(methodReference);
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(reference);
         }
 
         private uint ResolveSymbolTokenFromPseudoSymbolToken(uint pseudoSymbolToken)
@@ -4762,10 +4693,8 @@ namespace Microsoft.Cci
                         writer.WriteByte(0xFF); // null string
                         return;
                     }
-                    else
-                    {
-                        this.SerializeTypeReference(expression.Type, writer, true, true);
-                    }
+
+                    this.SerializeTypeReference(expression.Type, writer, true, true);
                 }
 
                 if (c != null)
@@ -4895,9 +4824,6 @@ namespace Microsoft.Cci
                     }
 
                     break;
-
-                default:
-                    break;
             }
         }
 
@@ -4915,7 +4841,7 @@ namespace Microsoft.Cci
             StringBuilder sb = pooled.Builder;
             sb.Append(assemblyReference.Name);
             sb.AppendFormat(CultureInfo.InvariantCulture, ", Version={0}.{1}.{2}.{3}", assemblyReference.Version.Major, assemblyReference.Version.Minor, assemblyReference.Version.Build, assemblyReference.Version.Revision);
-            if (assemblyReference.Culture != null && assemblyReference.Culture.Length > 0)
+            if (!string.IsNullOrEmpty(assemblyReference.Culture))
             {
                 sb.AppendFormat(CultureInfo.InvariantCulture, ", Culture={0}", assemblyReference.Culture);
             }
@@ -4954,15 +4880,11 @@ namespace Microsoft.Cci
                 string typeName = customAttribute.GetType(context).GetSerializedTypeName(context, ref isAssemblyQualified);
                 if (!isAssemblyQualified)
                 {
-                    IAssemblyReference referencedAssembly = null;
                     INamespaceTypeReference namespaceType = customAttribute.GetType(context).AsNamespaceTypeReference;
-                    if (namespaceType != null)
+                    var referencedAssembly = namespaceType?.GetUnit(context) as IAssemblyReference;
+                    if (referencedAssembly != null)
                     {
-                        referencedAssembly = namespaceType.GetUnit(context) as IAssemblyReference;
-                        if (referencedAssembly != null)
-                        {
-                            typeName = typeName + ", " + StrongName(referencedAssembly);
-                        }
+                        typeName = typeName + ", " + StrongName(referencedAssembly);
                     }
                 }
 
@@ -5088,14 +5010,11 @@ namespace Microsoft.Cci
                                 this.SerializeTypeName(pointerTypeReference, writer);
                                 return;
                             }
-                            else
-                            {
-                                writer.WriteByte(0x0f);
-                                typeReference = pointerTypeReference.GetTargetType(Context);
-                                noTokens = false;
-                                treatRefAsPotentialTypeSpec = true;
-                                continue;
-                            }
+
+                            writer.WriteByte(0x0f);
+                            typeReference = pointerTypeReference.GetTargetType(Context);
+                            treatRefAsPotentialTypeSpec = true;
+                            continue;
                         }
 
                         break;
@@ -5108,14 +5027,11 @@ namespace Microsoft.Cci
                                 this.SerializeTypeName(managedPointerTypeReference, writer);
                                 return;
                             }
-                            else
-                            {
-                                writer.WriteByte(0x10);
-                                typeReference = managedPointerTypeReference.GetTargetType(Context);
-                                noTokens = false;
-                                treatRefAsPotentialTypeSpec = true;
-                                continue;
-                            }
+
+                            writer.WriteByte(0x10);
+                            typeReference = managedPointerTypeReference.GetTargetType(Context);
+                            treatRefAsPotentialTypeSpec = true;
+                            continue;
                         }
 
                         break;
@@ -5127,18 +5043,18 @@ namespace Microsoft.Cci
                         return;
                 }
 
-                IArrayTypeReference arrayTypeReference;
-                IGenericMethodParameterReference genericMethodParameterReference;
-                IGenericTypeParameterReference genericTypeParameterReference;
 
-                if ((genericTypeParameterReference = typeReference.AsGenericTypeParameterReference) != null)
+                IGenericTypeParameterReference genericTypeParameterReference = typeReference.AsGenericTypeParameterReference;
+                if (genericTypeParameterReference != null)
                 {
                     writer.WriteByte(0x13);
                     uint numberOfInheritedParameters = GetNumberOfInheritedTypeParameters(genericTypeParameterReference.DefiningType);
                     writer.WriteCompressedUInt(numberOfInheritedParameters + genericTypeParameterReference.Index);
                     return;
                 }
-                else if ((arrayTypeReference = typeReference as IArrayTypeReference) != null && !arrayTypeReference.IsVector)
+
+                var arrayTypeReference = typeReference as IArrayTypeReference;
+                if (arrayTypeReference?.IsVector == false)
                 {
                     Debug.Assert(noTokens == false, "Custom attributes cannot have multi-dimensional arrays");
 
@@ -5159,12 +5075,14 @@ namespace Microsoft.Cci
 
                     return;
                 }
-                else if (module.IsPlatformType(typeReference, PlatformType.SystemTypedReference))
+
+                if (module.IsPlatformType(typeReference, PlatformType.SystemTypedReference))
                 {
                     writer.WriteByte(0x16);
                     return;
                 }
-                else if (module.IsPlatformType(typeReference, PlatformType.SystemObject))
+
+                if (module.IsPlatformType(typeReference, PlatformType.SystemObject))
                 {
                     if (noTokens)
                     {
@@ -5177,20 +5095,24 @@ namespace Microsoft.Cci
 
                     return;
                 }
-                else if (arrayTypeReference != null && arrayTypeReference.IsVector)
+
+                if (arrayTypeReference != null && arrayTypeReference.IsVector)
                 {
                     writer.WriteByte(0x1d);
                     typeReference = arrayTypeReference.GetElementType(Context);
                     treatRefAsPotentialTypeSpec = true;
                     continue;
                 }
-                else if ((genericMethodParameterReference = typeReference.AsGenericMethodParameterReference) != null)
+
+                IGenericMethodParameterReference genericMethodParameterReference = typeReference.AsGenericMethodParameterReference;
+                if (genericMethodParameterReference != null)
                 {
                     writer.WriteByte(0x1e);
                     writer.WriteCompressedUInt(genericMethodParameterReference.Index);
                     return;
                 }
-                else if (!noTokens && typeReference.IsTypeSpecification() && treatRefAsPotentialTypeSpec)
+
+                if (!noTokens && typeReference.IsTypeSpecification() && treatRefAsPotentialTypeSpec)
                 {
                     ITypeReference uninstantiatedTypeReference = typeReference.GetUninstantiatedGenericType();
 
@@ -5199,13 +5121,14 @@ namespace Microsoft.Cci
 
                     writer.WriteByte(0x15);
                     this.SerializeTypeReference(uninstantiatedTypeReference, writer, false, false);
-                    ArrayBuilder<ITypeReference> consolidatedTypeArguments = ArrayBuilder<ITypeReference>.GetInstance();
+                    var consolidatedTypeArguments = ArrayBuilder<ITypeReference>.GetInstance();
                     typeReference.GetConsolidatedTypeArguments(consolidatedTypeArguments, this.Context);
                     writer.WriteCompressedUInt((uint)consolidatedTypeArguments.Count);
                     foreach (ITypeReference typeArgument in consolidatedTypeArguments)
                     {
                         this.SerializeTypeReference(typeArgument, writer, false, true);
                     }
+
                     consolidatedTypeArguments.Free();
 
                     return;
@@ -5240,6 +5163,7 @@ namespace Microsoft.Cci
 
                     writer.WriteCompressedUInt(this.GetTypeDefOrRefCodedIndex(typeReference, treatRefAsPotentialTypeSpec));
                 }
+
                 return;
             }
         }
@@ -5288,7 +5212,7 @@ namespace Microsoft.Cci
                 encLocalSlots = GetLocalSlotDebugInfos(encSlotInfo);
             }
 
-            return new EditAndContinueMethodDebugInformation(methodBody.MethodOrdinal, encLocalSlots, methodBody.ClosureDebugInfo, methodBody.LambdaDebugInfo);
+            return new EditAndContinueMethodDebugInformation(methodBody.MethodId.Ordinal, encLocalSlots, methodBody.ClosureDebugInfo, methodBody.LambdaDebugInfo);
         }
 
         internal static ImmutableArray<LocalSlotDebugInfo> GetLocalSlotDebugInfos(ImmutableArray<ILocalDefinition> locals)
@@ -5327,7 +5251,7 @@ namespace Microsoft.Cci
             private readonly List<T> _rows;
             private readonly uint _firstRowId;
 
-            public HeapOrReferenceIndexBase(MetadataWriter writer, uint lastRowId)
+            protected HeapOrReferenceIndexBase(MetadataWriter writer, uint lastRowId)
             {
                 _writer = writer;
                 _rows = new List<T>();

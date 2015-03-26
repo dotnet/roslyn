@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class PartialTypeCompletionProvider
         Inherits AbstractCompletionProvider
 
-        Private ReadOnly PartialNameFormat As SymbolDisplayFormat =
+        Private ReadOnly _partialNameFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim insertionText As String = Nothing
 
             If symbol.MatchesKind(SymbolKind.NamedType) AndAlso symbol.GetArity() > 0 Then
-                displayText = symbol.ToMinimalDisplayString(context.SemanticModel, position, format:=PartialNameFormat)
+                displayText = symbol.ToMinimalDisplayString(context.SemanticModel, position, format:=_partialNameFormat)
                 insertionText = displayText
             Else
                 Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(symbol, isAttributeNameContext:=False, isAfterDot:=False, isWithinAsyncMethod:=False, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService))

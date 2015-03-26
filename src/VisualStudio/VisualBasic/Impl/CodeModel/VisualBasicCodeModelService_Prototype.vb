@@ -12,14 +12,14 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
     Partial Friend Class VisualBasicCodeModelService
 
-        Private Shared ReadOnly prototypeFullNameFormat As SymbolDisplayFormat =
+        Private Shared ReadOnly s_prototypeFullNameFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 memberOptions:=SymbolDisplayMemberOptions.IncludeContainingType,
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.ExpandNullable Or SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
-        Private Shared ReadOnly prototypeTypeNameFormat As SymbolDisplayFormat =
+        Private Shared ReadOnly s_prototypeTypeNameFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 memberOptions:=SymbolDisplayMemberOptions.IncludeContainingType,
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
@@ -155,9 +155,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Private Shared Sub AppendName(builder As StringBuilder, symbol As ISymbol, flags As PrototypeFlags)
             Select Case flags And PrototypeFlags.NameMask
                 Case PrototypeFlags.FullName
-                    builder.Append(symbol.ToDisplayString(prototypeFullNameFormat))
+                    builder.Append(symbol.ToDisplayString(s_prototypeFullNameFormat))
                 Case PrototypeFlags.TypeName
-                    builder.Append(symbol.ToDisplayString(prototypeTypeNameFormat))
+                    builder.Append(symbol.ToDisplayString(s_prototypeTypeNameFormat))
                 Case PrototypeFlags.BaseName
                     builder.Append(symbol.Name)
             End Select
@@ -183,7 +183,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     End If
 
                     If (flags And PrototypeFlags.ParameterTypes) <> 0 Then
-                        builder.Append(parameter.Type.ToDisplayString(prototypeFullNameFormat))
+                        builder.Append(parameter.Type.ToDisplayString(s_prototypeFullNameFormat))
                     End If
 
                     If (flags And PrototypeFlags.ParameterDefaultValues) <> 0 Then
@@ -206,7 +206,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Private Shared Sub AppendType(builder As StringBuilder, type As ITypeSymbol, flags As PrototypeFlags)
             If (flags And PrototypeFlags.Type) <> 0 Then
                 builder.Append(" As ")
-                builder.Append(type.ToDisplayString(prototypeFullNameFormat))
+                builder.Append(type.ToDisplayString(s_prototypeFullNameFormat))
             End If
         End Sub
 

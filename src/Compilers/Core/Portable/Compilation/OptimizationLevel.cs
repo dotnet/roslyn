@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         /// <item><description>JIT optimizations are enabled via assembly level attribute (<see cref="DebuggableAttribute"/>).</description></item>
         /// <item><description>Edit and Continue is disabled.</description></item>
         /// <item><description>Sequence points may be optimized away. As a result it might not be possible to place or hit a breakpoint.</description></item>
-        /// <item><description>User-defined locals migth be optimized away. They might not be available while debugging.</description></item>
+        /// <item><description>User-defined locals might be optimized away. They might not be available while debugging.</description></item>
         /// </list>
         /// <para>
         /// Corresponds to command line argument /optimize+.

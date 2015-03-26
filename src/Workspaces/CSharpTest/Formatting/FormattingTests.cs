@@ -6149,5 +6149,76 @@ class Program
             };
             AssertFormat(expected, code, changedOptionSet: optionSet);
         }
-    }
+
+        [WorkItem(1298, "https://github.com/dotnet/roslyn/issues/1298")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DontforceAccessorsToNewLineWithPropertyInitializers()
+        {
+            var code = @"using System.Collections.Generic;
+
+class Program
+{
+    public List<ExcludeValidation> ValidationExcludeFilters { get; }
+    = new List<ExcludeValidation>();
 }
+
+public class ExcludeValidation
+{
+}";
+
+            var expected = @"using System.Collections.Generic;
+
+class Program
+{
+    public List<ExcludeValidation> ValidationExcludeFilters { get; }
+    = new List<ExcludeValidation>();
+}
+
+public class ExcludeValidation
+{
+}";
+            AssertFormat(expected, code);
+        }
+
+        [WorkItem(1339, "https://github.com/dotnet/roslyn/issues/1339")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DontFormatAutoPropertyInitializerIfNotDifferentLine()
+        {
+            var code = @"class Program
+{
+    public int d { get; }
+            = 3;
+    static void Main(string[] args)
+    {
+    }
+}";
+            AssertFormat(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpacingForForStatementInfiniteLoop()
+        {
+            var code = @"
+class Program
+{
+    void Main()
+    {
+        for ( ; ; )
+        {
+        }
+    }
+}";
+            var expected = @"
+class Program
+{
+    void Main()
+    {
+        for (;;)
+        {
+        }
+    }
+}";
+            AssertFormat(expected, code);
+        }
+        }
+    }

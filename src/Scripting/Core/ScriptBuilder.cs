@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// identity into the same load context.
         /// 
         /// We are using a certain naming scheme for the generated assemblies (a fixed name prefix followed by a number). 
-        /// If we allowed the compiled code to add references that match this exact pattern it migth happen that 
+        /// If we allowed the compiled code to add references that match this exact pattern it might happen that 
         /// the user supplied reference identity conflicts with the identity we use for our generated assemblies and 
         /// the AppDomain assembly resolve event won't be able to correctly identify the target assembly.
         /// 

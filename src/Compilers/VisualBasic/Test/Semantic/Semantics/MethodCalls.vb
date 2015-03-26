@@ -5322,7 +5322,7 @@ FooAttributes3
         End Sub
 
         <Fact()>
-        Sub AutoImplmentedPropertiesWithGenericTypeParameters()
+        Public Sub AutoImplmentedPropertiesWithGenericTypeParameters()
             Dim TEMP = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -5362,7 +5362,7 @@ End Interface
         End Sub
 
         <Fact(), WorkItem(758861, "DevDiv")>
-        Sub Bug758861()
+        Public Sub Bug758861()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -5416,7 +5416,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(762717, "DevDiv")>
-        Sub Bug762717()
+        Public Sub Bug762717()
 
             Dim library = CreateCompilationWithMscorlib(
 <compilation>

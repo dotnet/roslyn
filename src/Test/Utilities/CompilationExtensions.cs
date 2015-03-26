@@ -22,10 +22,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             DiagnosticDescription[] expectedWarnings = null)
         {
             var stream = new MemoryStream();
+            MemoryStream pdbStream = (compilation.Options.OptimizationLevel == OptimizationLevel.Debug) ? new MemoryStream() : null;
 
             var emitResult = compilation.Emit(
                 peStream: stream,
-                pdbStream: null,
+                pdbStream: pdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: null,
                 manifestResources: null,

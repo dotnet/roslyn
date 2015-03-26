@@ -529,15 +529,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The DiagnosticDescriptor with ID &apos;{0}&apos; threw an exception with message &apos;{1}&apos;..
-        /// </summary>
-        internal static string DiagnosticDescriptorThrows {
-            get {
-                return ResourceManager.GetString("DiagnosticDescriptorThrows", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to TODO: dispose managed state (managed objects)..
         /// </summary>
         internal static string DisposeManagedStateTodo {
@@ -1290,6 +1281,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string ModifyingAWhichContainsStackalloc {
             get {
                 return ResourceManager.GetString("ModifyingAWhichContainsStackalloc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a static variable will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ModifyingAWhichContainsStaticLocal {
+            get {
+                return ResourceManager.GetString("ModifyingAWhichContainsStaticLocal", resourceCulture);
             }
         }
         

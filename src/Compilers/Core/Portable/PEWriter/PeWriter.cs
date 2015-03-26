@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -21,18 +20,10 @@ namespace Microsoft.Cci
         private readonly bool _deterministic;
 
         private readonly IModule _module;
-        private readonly PdbWriter _nativePdbWriter;
+        private readonly PdbWriter _nativePdbWriterOpt;
+        private readonly string _pdbPathOpt;
         private readonly bool _emitRuntimeStartupStub;
         private readonly uint _sizeOfImportAddressTable;
-
-        private PeWriter(IModule module, PdbWriter nativePdbWriter, bool deterministic)
-        {
-            _module = module;
-            _emitRuntimeStartupStub = module.RequiresStartupStub;
-            _nativePdbWriter = nativePdbWriter;
-            _deterministic = deterministic;
-            _sizeOfImportAddressTable = _emitRuntimeStartupStub ? (!_module.Requires64bits ? 8u : 16u) : 0;
-        }
 
         private PeDebugDirectory _debugDirectory;
         private MemoryStream _headerStream = new MemoryStream(1024);
@@ -55,27 +46,40 @@ namespace Microsoft.Cci
         private SectionHeader _textSection;
         private SectionHeader _tlsSection;
 
+        private PeWriter(IModule module, PdbWriter nativePdbWriterOpt, string pdbPathOpt, bool deterministic)
+        {
+            _module = module;
+            _emitRuntimeStartupStub = module.RequiresStartupStub;
+            _nativePdbWriterOpt = nativePdbWriterOpt;
+            _pdbPathOpt = pdbPathOpt;
+            _deterministic = deterministic;
+            _sizeOfImportAddressTable = _emitRuntimeStartupStub ? (!_module.Requires64bits ? 8u : 16u) : 0;
+        }
+
+        private bool EmitPdb => _pdbPathOpt != null;
+
         public static bool WritePeToStream(
             EmitContext context,
             CommonMessageProvider messageProvider,
             Func<Stream> getPeStream,
-            Func<Stream> getPdbStreamOpt,
+            Func<Stream> getPortablePdbStreamOpt,
             PdbWriter nativePdbWriterOpt,
+            string pdbPathOpt,
             bool allowMissingMethodBodies,
             bool deterministic,
             CancellationToken cancellationToken)
         {
-            var peWriter = new PeWriter(context.Module, nativePdbWriterOpt, deterministic);
+            // If PDB writer is given, we have to have PDB path.
+            Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
+
+            var peWriter = new PeWriter(context.Module, nativePdbWriterOpt, pdbPathOpt, deterministic);
 
             var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
 
-            if (nativePdbWriterOpt != null)
-            {
-                nativePdbWriterOpt.SetMetadataEmitter(mdWriter);
-            }
+            nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
 
             uint entryPointToken;
-            if (!peWriter.Write(mdWriter, getPeStream, getPdbStreamOpt, nativePdbWriterOpt, out entryPointToken))
+            if (!peWriter.Write(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt, out entryPointToken))
             {
                 return false;
             }
@@ -147,7 +151,6 @@ namespace Microsoft.Cci
             var corHeader = CreateCorHeader(metadataSizes, entryPointToken);
 
             // write to streams
-
 
             if (getPdbStreamOpt != null)
             {
@@ -334,12 +337,15 @@ namespace Microsoft.Cci
 
         private uint ComputeSizeOfDebugTable(uint offsetToMetadata)
         {
-            if (_nativePdbWriter == null)
+            if (!EmitPdb)
             {
                 return 0;
             }
 
-            _debugDirectory = _nativePdbWriter.GetDebugDirectory();
+            // currently we only support native PDB:
+            Debug.Assert(_nativePdbWriterOpt != null);
+
+            _debugDirectory = _nativePdbWriterOpt.GetDebugDirectory();
             _debugDirectory.TimeDateStamp = _ntHeader.TimeDateStamp;
             _debugDirectory.PointerToRawData = offsetToMetadata + 0x1c;
             return 0x1c + (uint)_debugDirectory.Data.Length;
@@ -465,8 +471,8 @@ namespace Microsoft.Cci
             ntHeader.CertificateTable.Size = 0;
             ntHeader.CopyrightTable.RelativeVirtualAddress = 0;
             ntHeader.CopyrightTable.Size = 0;
-            ntHeader.DebugTable.RelativeVirtualAddress = _nativePdbWriter == null ? 0u : _textSection.RelativeVirtualAddress + this.ComputeOffsetToDebugTable(metadataSizes);
-            ntHeader.DebugTable.Size = _nativePdbWriter == null ? 0u : 0x1c; // Only the size of the fixed part of the debug table goes here.
+            ntHeader.DebugTable.RelativeVirtualAddress = EmitPdb ? _textSection.RelativeVirtualAddress + ComputeOffsetToDebugTable(metadataSizes) : 0u;
+            ntHeader.DebugTable.Size = EmitPdb ? 0x1c : 0u; // Only the size of the fixed part of the debug table goes here.
             ntHeader.DelayImportTable.RelativeVirtualAddress = 0;
             ntHeader.DelayImportTable.Size = 0;
             ntHeader.ExceptionTable.RelativeVirtualAddress = 0;
@@ -731,11 +737,11 @@ namespace Microsoft.Cci
 
         private class Directory
         {
-            internal string Name;
-            internal int ID;
+            internal readonly string Name;
+            internal readonly int ID;
             internal ushort NumberOfNamedEntries;
             internal ushort NumberOfIdEntries;
-            internal List<object> Entries;
+            internal readonly List<object> Entries;
 
             internal Directory(string name, int id)
             {
@@ -894,8 +900,8 @@ namespace Microsoft.Cci
             uint k = offset + 16 + n * 8;
             for (int i = 0; i < n; i++)
             {
-                int id = int.MinValue;
-                string name = null;
+                int id;
+                string name;
                 uint nameOffset = dataWriter.BaseStream.Position + sizeOfDirectoryTree;
                 uint directoryOffset = k;
                 Directory subDir = directory.Entries[i] as Directory;
@@ -1004,7 +1010,7 @@ namespace Microsoft.Cci
             var savedPosition = _win32ResourceWriter.BaseStream.Position;
 
             var readStream = new System.IO.MemoryStream(resourceSections.SectionBytes);
-            var reader = new System.IO.BinaryReader(readStream);
+            var reader = new BinaryReader(readStream);
 
             foreach (int addressToFixup in resourceSections.Relocations)
             {
@@ -1066,7 +1072,7 @@ namespace Microsoft.Cci
 
             // COFF Header 20 bytes
             writer.WriteUshort((ushort)module.Machine);
-            writer.WriteUshort((ushort)ntHeader.NumberOfSections);
+            writer.WriteUshort(ntHeader.NumberOfSections);
             timestampOffset = (uint)(writer.BaseStream.Position + peStream.Position);
             writer.WriteUint(ntHeader.TimeDateStamp);
             writer.WriteUint(ntHeader.PointerToSymbolTable);
@@ -1263,14 +1269,14 @@ namespace Microsoft.Cci
             startOfMetadata = peStream.Position;
             WriteMetadata(peStream, metadataStream);
 
-            this.WriteManagedResources(peStream, managedResourceStream);
+            WriteManagedResources(peStream, managedResourceStream);
             WriteSpaceForHash(peStream, (int)corHeader.StrongNameSignature.Size);
             this.WriteDebugTable(peStream, out positionOfTimestamp);
 
             if (_emitRuntimeStartupStub)
             {
                 this.WriteImportTable(peStream);
-                this.WriteNameTable(peStream);
+                WriteNameTable(peStream);
                 this.WriteRuntimeStartupStub(peStream);
             }
 
@@ -1346,7 +1352,7 @@ namespace Microsoft.Cci
             writer.BaseStream.WriteTo(peStream);
         }
 
-        private void WriteNameTable(Stream peStream)
+        private static void WriteNameTable(Stream peStream)
         {
             BinaryWriter writer = new BinaryWriter(new MemoryStream(14));
             foreach (char ch in "mscoree.dll")
@@ -1419,7 +1425,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void WriteManagedResources(Stream peStream, MemoryStream managedResourceStream)
+        private static void WriteManagedResources(Stream peStream, MemoryStream managedResourceStream)
         {
             managedResourceStream.WriteTo(peStream);
             while (peStream.Position % 4 != 0)

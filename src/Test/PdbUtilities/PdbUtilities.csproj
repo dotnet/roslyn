@@ -72,7 +72,7 @@
       <HintPath>..\..\..\packages\System.Reflection.Metadata.1.1.0-alpha-00001\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.DiaSymReader">
-      <HintPath>..\..\..\packages\Microsoft.DiaSymReader.1.0.2-rc2\lib\net45\Microsoft.DiaSymReader.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.DiaSymReader.1.0.3-rc2\lib\net45\Microsoft.DiaSymReader.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.XML" />
@@ -93,7 +93,7 @@
     <Compile Include="Metadata\MethodILExtensions.cs" />
     <Compile Include="Pdb\PdbToXml.cs" />
     <Compile Include="Pdb\PdbToXmlOptions.cs" />
-    <Compile Include="Pdb\TempPdbReader.cs" />
+    <Compile Include="Pdb\SymReader.cs" />
     <Compile Include="Pdb\Token2SourceLineExporter.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\PEWriter\CustomDebugInfoConstants.cs">
       <Link>Shared\CustomDebugInfoConstants.cs</Link>
@@ -101,7 +101,7 @@
     <Compile Include="Shared\CustomDebugInfoReader.cs" />
     <Compile Include="Shared\DummyMetadataImport.cs" />
     <Compile Include="Shared\IMetadataImport.cs" />
-    <Compile Include="Shared\SymUnmanagedSequencePoint.cs" />
+    <Compile Include="Shared\SymUnmanagedReaderTestExtensions.cs" />
     <Compile Include="Shared\SymUnmanagedReaderExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

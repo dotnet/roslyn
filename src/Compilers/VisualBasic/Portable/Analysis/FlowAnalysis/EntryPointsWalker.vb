@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         _entryPoints.Add(DirectCast(labelStmt.Syntax, LabelStatementSyntax))
 
                     Case BoundKind.ReturnStatement
-                    ' Do nothing
+                        ' Do nothing
 
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(stmt.Kind)

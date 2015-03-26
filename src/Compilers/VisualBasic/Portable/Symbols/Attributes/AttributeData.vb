@@ -278,9 +278,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     isPermissionRequestAction = False
 
                 Case Cci.SecurityAction.Undocumented
-                ' Native compiler allows security action value 1 even though there is no corresponding field in 
-                ' System.Security.Permissions.SecurityAction enum.
-                ' We will maintain compatibility.
+                    ' Native compiler allows security action value 1 even though there is no corresponding field in 
+                    ' System.Security.Permissions.SecurityAction enum.
+                    ' We will maintain compatibility.
 
                 Case Cci.SecurityAction.Assert,
                      Cci.SecurityAction.Demand,

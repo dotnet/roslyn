@@ -20,6 +20,7 @@ using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
+using Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -328,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             compilationB.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
             const int methodVersion = 1;
 
-            CSharpMetadataContext previous = null;
+            CSharpMetadataContext previous = default(CSharpMetadataContext);
             int startOffset;
             int endOffset;
             var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, new SymReader(pdbBytes));
@@ -352,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // At start of outer scope.
             var context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, startOffset, localSignatureToken);
-            Assert.Null(previous);
+            Assert.Equal(default(CSharpMetadataContext), previous);
             previous = new CSharpMetadataContext(context);
 
             // At end of outer scope - not reused because of the nested scope.
@@ -3372,7 +3373,7 @@ class B : A
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails><{#Module#}.dll>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails><{#Module#}.dll>.1036C5F8EF306104BD582D73E555F4DAE8EECB24""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.1036C5F8EF306104BD582D73E555F4DAE8EECB24""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  ret
 }");
@@ -5914,6 +5915,147 @@ public class C<T>
   IL_000a:  ret
 }
 ");
+        }
+
+        [WorkItem(1136085, "DevDiv")]
+        [Fact]
+        public void TypeofOpenGenericType()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public void M()
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            var runtime = CreateRuntimeInstance(compilation);
+            var context = CreateMethodContext(runtime, "C.M");
+
+            string error;
+            var expectedIL = @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""System.Action<T>""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ret
+}";
+
+            var testData = new CompilationTestData();
+            context.CompileExpression("typeof(Action<>)", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(expectedIL);
+
+            testData = new CompilationTestData();
+            context.CompileExpression("typeof(Action<>  )", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(expectedIL);
+
+            context.CompileExpression("typeof(Action<Action<>>)", out error, testData);
+            Assert.Equal("error CS7003: Unexpected use of an unbound generic name", error);
+
+            context.CompileExpression("typeof(Action<Action< > > )", out error);
+            Assert.Equal("error CS7003: Unexpected use of an unbound generic name", error);
+
+            context.CompileExpression("typeof(Action<>a)", out error);
+            Assert.Equal("(1,16): error CS1026: ) expected", error);
+        }
+
+        [WorkItem(1068138, "DevDiv")]
+        [Fact]
+        public void GetSymAttributeByVersion()
+        {
+            var source1 = @"
+public class C
+{
+    public static void M()
+    {
+        int x = 1;
+    }
+}";
+
+            var source2 = @"
+public class C
+{
+    public static void M()
+    {
+        int x = 1;
+        string y = ""a"";
+    }
+}";
+            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var comp2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
+
+            using (MemoryStream
+                peStream1Unused = new MemoryStream(),
+                peStream2 = new MemoryStream(),
+                pdbStream1 = new MemoryStream(), 
+                pdbStream2 = new MemoryStream())
+            {
+                Assert.True(comp1.Emit(peStream1Unused, pdbStream1).Success);
+                Assert.True(comp2.Emit(peStream2, pdbStream2).Success);
+
+                // Note: This SymReader will behave differently from the ISymUnmanagedReader
+                // we receive during real debugging.  We're just using it as a rough
+                // approximation of ISymUnmanagedReader3, which is unavailable here.
+                var symReader = new SymReader(new[] { pdbStream1, pdbStream2 });
+
+                var runtime = CreateRuntimeInstance(
+                    GetUniqueName(),
+                    ImmutableArray.Create(MscorlibRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference),
+                    peStream2.ToArray(),
+                    symReader);
+
+                ImmutableArray<MetadataBlock> blocks;
+                Guid moduleVersionId;
+                ISymUnmanagedReader symReader2;
+                int methodToken;
+                int localSignatureToken;
+                GetContextState(runtime, "C.M", out blocks, out moduleVersionId, out symReader2, out methodToken, out localSignatureToken);
+
+                Assert.Same(symReader, symReader2);
+
+                AssertEx.SetEqual(symReader.GetLocalNames(methodToken, methodVersion: 1), "x");
+                AssertEx.SetEqual(symReader.GetLocalNames(methodToken, methodVersion: 2), "x", "y");
+
+                var context1 = EvaluationContext.CreateMethodContext(
+                    default(CSharpMetadataContext),
+                    blocks,
+                    symReader,
+                    moduleVersionId,
+                    methodToken: methodToken,
+                    methodVersion: 1,
+                    ilOffset: 0,
+                    localSignatureToken: localSignatureToken);
+
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                context1.CompileGetLocals(
+                    locals,
+                    argumentsOnly: false,
+                    typeName: out typeName);
+                AssertEx.SetEqual(locals.Select(l => l.LocalName), "x");
+
+                var context2 = EvaluationContext.CreateMethodContext(
+                    default(CSharpMetadataContext),
+                    blocks,
+                    symReader,
+                    moduleVersionId,
+                    methodToken: methodToken,
+                    methodVersion: 2,
+                    ilOffset: 0,
+                    localSignatureToken: localSignatureToken);
+
+                locals.Clear();
+                context2.CompileGetLocals(
+                    locals,
+                    argumentsOnly: false,
+                    typeName: out typeName);
+                AssertEx.SetEqual(locals.Select(l => l.LocalName), "x", "y");
+            }
         }
     }
 }

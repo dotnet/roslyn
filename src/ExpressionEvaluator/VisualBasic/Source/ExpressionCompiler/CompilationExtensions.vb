@@ -93,11 +93,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return VisualBasicCompilation.Create(
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
                 references:=metadataBlocks.MakeAssemblyReferences(),
-                options:=CompilationOptions)
+                options:=s_compilationOptions)
         End Function
 
         ' XML file references, #r directives not supported:
-        Private ReadOnly CompilationOptions As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(
+        Private ReadOnly s_compilationOptions As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(
             outputKind:=OutputKind.DynamicallyLinkedLibrary,
             platform:=Platform.AnyCpu, ' Platform should match PEModule.Machine, in this case I386.
             optimizationLevel:=OptimizationLevel.Release,

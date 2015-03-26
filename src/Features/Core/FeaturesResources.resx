@@ -659,9 +659,6 @@ Do you want to continue?</value>
   <data name="UserDiagnosticAnalyzerThrows" xml:space="preserve">
     <value>The User Diagnostic Analyzer '{0}' threw an exception with message '{1}'.</value>
   </data>
-  <data name="DiagnosticDescriptorThrows" xml:space="preserve">
-    <value>The DiagnosticDescriptor with ID '{0}' threw an exception with message '{1}'.</value>
-  </data>
   <data name="RemoveUnnecessaryCast" xml:space="preserve">
     <value>Remove Unnecessary Cast</value>
   </data>
@@ -757,5 +754,8 @@ Do you want to continue?</value>
   </data>
   <data name="ToDetectRedundantCalls" xml:space="preserve">
     <value>To detect redundant calls</value>
+  </data>
+  <data name="ModifyingAWhichContainsStaticLocal" xml:space="preserve">
+    <value>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</value>
   </data>
 </root>

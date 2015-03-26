@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
 {
-    internal class SourceDefinitionTreeItem : AbstractSourceTreeItem, ITreeItemWithReferenceCount
+    internal class SourceDefinitionTreeItem : AbstractSourceTreeItem
     {
         private readonly string _symbolDisplay;
 
@@ -17,10 +17,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             this.DisplayText = $"[{document.Project.Name}] {_symbolDisplay}";
         }
 
-        public void SetReferenceCount(int referenceCount)
+        internal override void SetReferenceCount(int referenceCount)
         {
             var referenceCountDisplay = referenceCount == 1
-                ? string.Format(ServicesVSResources.ReferenceCountSingular, referenceCount)
+                ? ServicesVSResources.ReferenceCountSingular
                 : string.Format(ServicesVSResources.ReferenceCountPlural, referenceCount);
 
             this.DisplayText = $"[{_projectName}] {_symbolDisplay} ({referenceCountDisplay})";

@@ -70,10 +70,14 @@
     <Compile Include="CommandLine\CommonCompiler.LoggingXmlFileResolver.cs" />
     <Compile Include="CommandLine\CommonCompiler.LoggingMetadataFileResolver.cs" />
     <Compile Include="CommandLine\CommonCompiler.ExistingReferencesResolver.cs" />
+    <Compile Include="CommandLine\ErrorLogger.Issue.cs" />
+    <Compile Include="CommandLine\ErrorLogger.Value.cs" />
+    <Compile Include="CommandLine\ErrorLogger.WellKnownStrings.cs" />
     <Compile Include="CommandLine\RuleSet\InvalidRuleSetException.cs" />
     <Compile Include="CommandLine\RuleSet\RuleSet.cs" />
     <Compile Include="CommandLine\RuleSet\RuleSetInclude.cs" />
     <Compile Include="CommandLine\RuleSet\RuleSetProcessor.cs" />
+    <Compile Include="CommandLine\ErrorLogger.cs" />
     <Compile Include="CommandLine\TouchedFileLogger.cs" />
     <Compile Include="CompilerPathUtilities.cs" />
     <Compile Include="FileSystemExtensions.cs" />
@@ -92,9 +96,7 @@
     <Compile Include="Interop\IClrStrongName.cs" />
     <Compile Include="Interop\SuppressUnmanagedCodeSecurityAttribute.cs" />
     <Compile Include="IVsSQM.cs" />
-    <Compile Include="MetadataCache.cs" />
     <Compile Include="AnalyzerFileReference.cs" />
-    <Compile Include="MetadataFileReference.cs" />
     <Compile Include="MetadataFileReferenceResolver.cs" />
     <Compile Include="PathKind.cs" />
     <Compile Include="PathUtilities.cs" />

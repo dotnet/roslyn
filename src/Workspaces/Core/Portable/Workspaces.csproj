@@ -392,6 +392,7 @@
     <Compile Include="Simplification\SimplificationOptionProvider.cs" />
     <Compile Include="Simplification\SimplifyTypeNameCodeAction.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
+    <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
     <Compile Include="Versions\Extensions.cs" />
     <Compile Include="Versions\ISemanticVersionTrackingService.cs" />
@@ -804,7 +805,7 @@
     <Compile Include="Utilities\Documentation\DeferredDocumentationProvider.cs" />
     <Compile Include="Utilities\Documentation\XmlDocumentationProvider.cs" />
     <Compile Include="Workspace\DocumentEventArgs.cs" />
-    <Compile Include="Workspace\Host\Caching\RecoverableCachedObjectSource.cs" />
+    <Compile Include="Utilities\ValuesSources\RecoverableWeakValueSource.cs" />
     <Compile Include="Workspace\Host\HostLanguageServices.cs" />
     <Compile Include="Workspace\Host\HostServices.cs" />
     <Compile Include="Workspace\Host\Metadata\MetadataServiceFactory.cs" />

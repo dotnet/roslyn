@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Partial Friend Module ExpressionGenerator
 
-        Private Const DoubleQuote = """"
+        Private Const s_doubleQuote = """"
 
         Friend Function GenerateExpression(typedConstant As TypedConstant) As ExpressionSyntax
             Select Case typedConstant.Kind
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Function GenerateStringLiteralExpression(type As ITypeSymbol, value As String) As ExpressionSyntax
             Dim pieces = StringPiece.Split(value)
             If pieces.Count = 0 Then
-                Return SyntaxFactory.StringLiteralExpression(SyntaxFactory.StringLiteralToken(DoubleQuote & DoubleQuote, String.Empty))
+                Return SyntaxFactory.StringLiteralExpression(SyntaxFactory.StringLiteralToken(s_doubleQuote & s_doubleQuote, String.Empty))
             End If
 
             If pieces.Count = 1 AndAlso pieces(0).Kind = StringPieceKind.NonPrintable Then

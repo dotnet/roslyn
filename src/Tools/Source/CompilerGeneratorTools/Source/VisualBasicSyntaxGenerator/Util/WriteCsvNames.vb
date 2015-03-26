@@ -10,7 +10,7 @@ Imports System.IO
 
 ' Class to write out the names in the tree as a CSV file for Excel.
 
-Class WriteCsvNames
+Friend Class WriteCsvNames
     Inherits WriteUtils
 
     Private _writer As TextWriter    'output is sent here.

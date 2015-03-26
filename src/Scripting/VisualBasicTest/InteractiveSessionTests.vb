@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.Test
 #Region "Statements and Expressions"
 
         <Fact()>
-        Sub TestTopLevelClassBinding()
+        Public Sub TestTopLevelClassBinding()
             Dim source = <text>
 Class C
     Dim f As C
@@ -108,7 +108,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub CallStatement()
+        Public Sub CallStatement()
             Dim source = <text>
 System.Console.WriteLine(1+1)
 </text>.Value
@@ -120,7 +120,7 @@ System.Console.WriteLine(1+1)
         End Sub
 
         <Fact()>
-        Sub CallStatement_RegularCode()
+        Public Sub CallStatement_RegularCode()
             Dim source =
     <compilation>
         <file>
@@ -133,7 +133,7 @@ System.Console.WriteLine(1+1)
         End Sub
 
         <Fact()>
-        Sub ReturnStatement()
+        Public Sub ReturnStatement()
             Dim source = <text>
 Return Foo
 </text>.Value
@@ -145,7 +145,7 @@ Return Foo
         End Sub
 
         <Fact()>
-        Sub MeKeyword()
+        Public Sub MeKeyword()
             Dim source = <text>
 Sub Foo
     Me.Bar
@@ -166,7 +166,7 @@ Me.Foo
         End Sub
 
         <Fact()>
-        Sub MyBaseAndMyClassKeyword()
+        Public Sub MyBaseAndMyClassKeyword()
             Dim source = <text>
 Sub Foo
     MyClass.Bar
@@ -187,7 +187,7 @@ MyBase.Foo
         End Sub
 
         <Fact()>
-        Sub SubStatement()
+        Public Sub SubStatement()
             Dim source = <text>
 Sub Foo
     System.Console.WriteLine(1+1)
@@ -203,7 +203,7 @@ Foo
         End Sub
 
         <Fact()>
-        Sub SubStatement_RegularCode()
+        Public Sub SubStatement_RegularCode()
             Dim source =
     <compilation>
         <file>
@@ -217,7 +217,7 @@ End Sub
         End Sub
 
         <Fact()>
-        Sub FunctionStatement()
+        Public Sub FunctionStatement()
             Dim source = <text>
 Function Foo As Integer
     Return 3
@@ -233,7 +233,7 @@ System.Console.WriteLine(Foo)
         End Sub
 
         <Fact()>
-        Sub ForStatement()
+        Public Sub ForStatement()
             Dim source = <text>
 For i = 0 To 2
     System.Console.Write(i)
@@ -247,7 +247,7 @@ Next
         End Sub
 
         <Fact()>
-        Sub StatementExpressions_LineContinuation()
+        Public Sub StatementExpressions_LineContinuation()
             Dim source = <text>
 ?1 _
 </text>.Value
@@ -258,7 +258,7 @@ Next
         End Sub
 
         <Fact()>
-        Sub StatementExpressions_IntLiteral()
+        Public Sub StatementExpressions_IntLiteral()
             Dim source = <text>
 ?1
 </text>.Value
@@ -269,7 +269,7 @@ Next
         End Sub
 
         <Fact()>
-        Sub StatementExpressions_Nothing()
+        Public Sub StatementExpressions_Nothing()
             Dim source = <text>
 ?  Nothing
 </text>.Value
@@ -286,7 +286,7 @@ Next
 
         <WorkItem(10856, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Sub IfStatement()
+        Public Sub IfStatement()
             Dim source = <text>
 Dim x As Integer
 If (True)
@@ -361,7 +361,7 @@ End Sub
 
         <WorkItem(530404)>
         <Fact()>
-        Sub DiagnosticsPass()
+        Public Sub DiagnosticsPass()
             Dim engine = New VisualBasicScriptEngine()
             Dim session = engine.CreateSession()
             session.AddReference(GetType(System.Linq.Expressions.Expression).Assembly)
@@ -384,7 +384,7 @@ End Function")
         ''' </summary>
         <WorkItem(530986)>
         <Fact()>
-        Sub LookupSymbols()
+        Public Sub LookupSymbols()
             Dim text = "1 + "
             Dim compilation = CreateSubmission(text, TestOptions.Interactive, expectedErrorCount:=1)
             Dim tree = compilation.SyntaxTrees.Single()
@@ -411,7 +411,7 @@ End Function")
 #Region "Anonymous types"
 
         <Fact>
-        Sub AnonymousTypes_TopLevel_MultipleSubmissions()
+        Public Sub AnonymousTypes_TopLevel_MultipleSubmissions()
             Dim engine = New VisualBasicScriptEngine()
             Dim session = engine.CreateSession()
 
@@ -441,7 +441,7 @@ Dim b = New With { Key .f = 1 }
         End Sub
 
         <Fact>
-        Sub AnonymousTypes_TopLevel_MultipleSubmissions2()
+        Public Sub AnonymousTypes_TopLevel_MultipleSubmissions2()
             Dim engine = New VisualBasicScriptEngine()
             Dim session = engine.CreateSession()
 

@@ -1920,6 +1920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         IDS_LogoLine2 = 56008
         IDS_VBCHelp = 56009
         IDS_InvalidPreprocessorConstantType = 56010
+        IDS_ToolName = 56011
 
         ' Feature codes
         FEATURE_AutoProperties

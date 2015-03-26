@@ -3,8 +3,8 @@
 Imports System.IO
 Imports System.Text
 
-Module Program
-    Sub Main()
+Friend Module Program
+    Public Sub Main()
         Dim args = Environment.GetCommandLineArgs()
 
         If args.Length <> 3 Then

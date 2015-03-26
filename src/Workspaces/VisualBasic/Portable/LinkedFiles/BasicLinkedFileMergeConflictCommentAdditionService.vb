@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageService(GetType(ILinkedFileMergeConflictCommentAdditionService), LanguageNames.VisualBasic), [Shared]>
-    Class BasicLinkedFileMergeConflictCommentAdditionService
+    Friend Class BasicLinkedFileMergeConflictCommentAdditionService
         Inherits AbstractLinkedFileMergeConflictCommentAdditionService
 
         Friend Overrides Function GetConflictCommentText(header As String, beforeString As String, afterString As String) As String

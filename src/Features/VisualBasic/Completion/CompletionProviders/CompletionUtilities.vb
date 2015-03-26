@@ -12,8 +12,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Module CompletionUtilities
 
-        Private ReadOnly commitChars As Char() = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c, "?"c}
-        Private ReadOnly defaultTriggerChars As Char() = {"."c, "["c, "#"c, " "c, "="c, "<"c, "{"c}
+        Private ReadOnly s_commitChars As Char() = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c, "?"c}
+        Private ReadOnly s_defaultTriggerChars As Char() = {"."c, "["c, "#"c, " "c, "="c, "<"c, "{"c}
 
         Public Function GetTextChangeSpan(text As SourceText, position As Integer) As TextSpan
             Return CommonCompletionUtilities.GetTextChangeSpan(
@@ -39,12 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Public Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            Return commitChars.Contains(ch)
+            Return s_commitChars.Contains(ch)
         End Function
 
         Public Function IsDefaultTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Dim ch = text(characterPosition)
-            If defaultTriggerChars.Contains(ch) Then
+            If s_defaultTriggerChars.Contains(ch) Then
                 Return True
             End If
 
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return _
                 ch = "("c OrElse
-                defaultTriggerChars.Contains(ch) OrElse
+                s_defaultTriggerChars.Contains(ch) OrElse
                 IsStartingNewWord(text, characterPosition, options)
         End Function
 

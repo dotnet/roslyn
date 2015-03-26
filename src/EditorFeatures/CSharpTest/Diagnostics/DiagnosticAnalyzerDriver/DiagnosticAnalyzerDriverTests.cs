@@ -148,7 +148,7 @@ class C
 
         private void AccessSupportedDiagnostics(DiagnosticAnalyzer analyzer)
         {
-            var diagnosticService = new DiagnosticAnalyzerService(LanguageNames.CSharp, analyzer);
+            var diagnosticService = new TestDiagnosticAnalyzerService(LanguageNames.CSharp, analyzer);
             diagnosticService.GetDiagnosticDescriptors(projectOpt: null);
         }
 

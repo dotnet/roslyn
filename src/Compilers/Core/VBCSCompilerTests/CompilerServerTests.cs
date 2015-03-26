@@ -1292,7 +1292,7 @@ End Class
 "}
             };
 
-        [Fact()]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1445")]
         public void SimpleMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 HelloSolution.sln");
@@ -2094,6 +2094,16 @@ class Hello
             Assert.Equal(1, result.ExitCode);
             Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
             Assert.Equal("", result.Errors);
+        }
+
+        [Fact]
+        public void SimpleKeepAlive()
+        {
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable,
+                                                $"/nologo /keepalive:1 hello.cs",
+                                                _tempDirectory,
+                                                s_helloWorldSrcCs);
+            VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
         }
 
         [Fact, WorkItem(1024619, "DevDiv")]
