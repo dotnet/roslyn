@@ -2,18 +2,13 @@
 
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 {
     internal static class WrapperPolicy
     {
-        [ComImport, Guid("436b402a-a479-41a8-a093-9713ce3ad111"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface IComWrapperFactory
-        {
-            IComWrapper CreateAggregatedObject(object managedObject);
-        }
-
         /// <summary>
         /// Factory object for creating IComWrapper instances. Uses the Visual Studio implementation,
         /// if available, or falls back to using our own implementation based on <see cref="BlindAggregatorFactory"/>
@@ -22,10 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             PackageUtilities.CreateInstance(typeof(IComWrapperFactory).GUID) as IComWrapperFactory
             ?? new ComWrapperFactory();
 
-        internal static object CreateAggregatedObject(object managedObject)
-        {
-            return s_ComWrapperFactory.CreateAggregatedObject(managedObject);
-        }
+        internal static object CreateAggregatedObject(object managedObject) => s_ComWrapperFactory.CreateAggregatedObject(managedObject);
 
         private class ComWrapperFactory : IComWrapperFactory
         {
@@ -56,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
                 }
             }
 
-            public IComWrapper CreateAggregatedObject(object managedObject)
+            public object CreateAggregatedObject(object managedObject)
             {
                 Contract.ThrowIfNull(managedObject, "managedObject");
 

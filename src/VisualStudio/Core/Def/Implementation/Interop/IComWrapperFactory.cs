@@ -5,13 +5,11 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.VisualStudio.Shell.Interop
 {
-    // TODO: Remove this definition of IComWrapper and use the one from the VSSDK
+    // TODO: Remove this definition of IComWrapperFactory and use the one from the VSSDK
     // (Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime) when it is available.
-    [ComImport]
-    [Guid("CBD71F2C-6BC5-4932-B851-B93EB3151386")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    internal interface IComWrapper
+    [ComImport, Guid("436b402a-a479-41a8-a093-9713ce3ad111"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown), TypeIdentifier]
+    public interface IComWrapperFactory
     {
-        IntPtr GCHandlePtr { get; }
+        object CreateAggregatedObject(object managedObject);
     }
 }
