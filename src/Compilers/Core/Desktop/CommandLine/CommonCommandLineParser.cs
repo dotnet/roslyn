@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         // internal for testing
         internal virtual TextReader CreateTextFileReader(string fullPath)
         {
-            return new StreamReader(fullPath, detectEncodingFromByteOrderMarks: true);
+            return new StreamReader(File.OpenRead(fullPath), detectEncodingFromByteOrderMarks: true);
         }
 
         /// <summary>
