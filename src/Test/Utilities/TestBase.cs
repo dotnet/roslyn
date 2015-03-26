@@ -23,6 +23,7 @@ using PDB::Roslyn.Test.PdbUtilities;
 using Roslyn.Utilities;
 using Xunit;
 using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
+using System.Reflection.PortableExecutable;
 
 namespace Roslyn.Test.Utilities
 {
@@ -666,21 +667,7 @@ namespace Roslyn.Test.Utilities
 
         public static string GetPdbXml(Compilation compilation, string qualifiedMethodName = "")
         {
-            string actual = null;
-            using (var exebits = new MemoryStream())
-            {
-                using (var pdbbits = new MemoryStream())
-                {
-                    compilation.Emit(exebits, pdbbits);
-
-                    pdbbits.Position = 0;
-                    exebits.Position = 0;
-
-                    actual = PdbToXmlConverter.ToXml(pdbbits, exebits, PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError, methodName: qualifiedMethodName);
-                }
-            }
-
-            return actual;
+            return SharedCompilationUtils.GetPdbXml(compilation, qualifiedMethodName);
         }
 
         public static Dictionary<int, string> GetMarkers(string pdbXml)
