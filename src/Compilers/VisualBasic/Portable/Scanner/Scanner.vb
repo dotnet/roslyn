@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
-' Contains the definition of the Scanner, which produces tokens from text 
+' Contains the definition of the Scanner, which produces tokens from text
 '-----------------------------------------------------------------------------
 
 Option Compare Binary
@@ -37,8 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private ReadOnly _sbPooled As PooledStringBuilder = PooledStringBuilder.GetInstance
         ''' <summary>
-        ''' DO NOT USE DIRECTLY. 
-        ''' USE GetScratch() 
+        ''' DO NOT USE DIRECTLY.
+        ''' USE GetScratch()
         ''' </summary>
         Private ReadOnly _sb As StringBuilder = _sbPooled.Builder
         Private ReadOnly _triviaListPool As New SyntaxListPool
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function GetScratch() As StringBuilder
             ' the normal pattern is that we clean scratch after use.
-            ' hitting this assert very likely indicates that you 
+            ' hitting this assert very likely indicates that you
             ' did not release scratch content or worse trying to use
             ' scratch in two places at a time.
             Debug.Assert(_sb.Length = 0, "trying to use dirty buffer?")
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function GetNextToken(Optional allowLeadingMultilineTrivia As Boolean = False) As SyntaxToken
-            ' Use quick token scanning to see if we can scan a token quickly. 
+            ' Use quick token scanning to see if we can scan a token quickly.
             Dim quickToken = QuickScanToken(allowLeadingMultilineTrivia)
 
             If quickToken.Succeeded Then
@@ -240,6 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' If we get too many characters that we cannot make sense of, absorb the rest of the input.
                     token = MakeBadToken(leadingTrivia, RemainingLength(), ERRID.ERR_IllegalChar)
                 End If
+
             End If
 
             Return token
@@ -324,7 +325,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Sub EatThroughLine()
             While CanGet()
                 Dim c As Char = Peek()
-
                 If IsNewLine(c) Then
                     EatThroughLineBreak(c)
                     Return
@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Gets a chunk of text as a DisabledCode node.
         ''' </summary>
         ''' <param name="span">The range of text.</param>
-        ''' <returns>The DisabledCode node.</returns> 
+        ''' <returns>The DisabledCode node.</returns>
         Friend Function GetDisabledTextAt(span As TextSpan) As SyntaxTrivia
             If span.Start >= 0 AndAlso span.End <= _bufferLen Then
                 Return SyntaxFactory.DisabledTextTrivia(GetTextNotInterned(span.Start, span.Length))
@@ -489,9 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function LengthOfLineBreak(StartCharacter As Char, Optional here As Integer = 0) As Integer
             Debug.Assert(CanGet(here))
             Debug.Assert(IsNewLine(StartCharacter))
-
             Debug.Assert(StartCharacter = Peek(here))
-
             If StartCharacter = CARRIAGE_RETURN AndAlso NextIs(here + 1, LINE_FEED) Then
                 Return 2
             End If
@@ -503,7 +501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Accept a CR/LF pair or either in isolation as a newline.
         ''' Make it a statement separator
-        ''' </summary>        
+        ''' </summary>
         Private Function ScanNewlineAsStatementTerminator(startCharacter As Char, precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             If _lineBufferOffset < _endOfTerminatorTrivia Then
                 Dim width = LengthOfLineBreak(startCharacter)
@@ -830,7 +828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             '   3. colon followed by new line -> colon terminator + new line terminator
             '   4. new line followed by new line -> new line terminator + new line terminator
 
-            ' Case 3 is required to parse single line if's and numeric labels. 
+            ' Case 3 is required to parse single line if's and numeric labels.
             ' Case 4 is required to limit explicit line continuations to single new line
 
             If CanGet() Then
@@ -995,8 +993,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 #End Region
 
-        ' at this point it is very likely that we are located at 
-        ' the beginning of a token        
+        ' at this point it is very likely that we are located at
+        ' the beginning of a token
         Private Function TryScanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
 
             If Not CanGet() Then
@@ -1232,7 +1230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return Nothing
         End Function
 
-        ' REVIEW: Is there a better way to reuse this logic? 
+        ' REVIEW: Is there a better way to reuse this logic?
         Private Function ScanTokenFullWidth(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), ch As Char) As SyntaxToken
             Select Case ch
                 Case CARRIAGE_RETURN, LINE_FEED
@@ -1465,7 +1463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ScanRightAngleBracket(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As SyntaxToken
-            Debug.Assert(CanGet)  ' > 
+            Debug.Assert(CanGet)  ' >
             Debug.Assert(Peek() = ">"c OrElse Peek() = FULLWIDTH_GREATER_THAN_SIGN)
 
             Dim length As Integer = 1
@@ -1492,7 +1490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ScanLeftAngleBracket(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean, scanTrailingTrivia As ScanTriviaFunc) As SyntaxToken
-            Debug.Assert(CanGet)  ' < 
+            Debug.Assert(CanGet)  ' <
             Debug.Assert(Peek() = "<"c OrElse Peek() = FULLWIDTH_LESS_THAN_SIGN)
 
             Dim length As Integer = 1
@@ -1568,10 +1566,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim c = spelling(0)
             If SyntaxFacts.IsIdentifierStartCharacter(c) Then
-                '  SPEC: ... Visual Basic identifiers conform to the Unicode Standard Annex 15 with one 
-                '  SPEC:     exception: identifiers may begin with an underscore (connector) character. 
-                '  SPEC:     If an identifier begins with an underscore, it must contain at least one other 
-                '  SPEC:     valid identifier character to disambiguate it from a line continuation. 
+                '  SPEC: ... Visual Basic identifiers conform to the Unicode Standard Annex 15 with one
+                '  SPEC:     exception: identifiers may begin with an underscore (connector) character.
+                '  SPEC:     If an identifier begins with an underscore, it must contain at least one other
+                '  SPEC:     valid identifier character to disambiguate it from a line continuation.
                 If IsConnectorPunctuation(c) AndAlso spellingLength = 1 Then
                     Return False
                 End If
@@ -2103,7 +2101,7 @@ FullWidthRepeat2:
                 End If
 
             Else
-                ' // Copy the text of the literal to deal with fullwidth 
+                ' // Copy the text of the literal to deal with fullwidth
                 Dim scratch = GetScratch()
                 For i = 0 To literalWithoutTypeChar - 1
                     Dim curCh = Peek(i)
@@ -2251,7 +2249,7 @@ FullWidthRepeat2:
                 HaveDateValue = True
                 Here += 1
 
-                ' Is the first value a year? 
+                ' Is the first value a year?
                 ' It is a year if it consists of exactly 4 digits.
                 ' Condition below uses 5 because we already skipped the separator.
                 If Here - FirstValueStart = 5 Then
@@ -2598,7 +2596,7 @@ baddate:
             ' CC has trouble to prove this after the loop
             Debug.Assert(CanGet(length - 1))
 
-            '// The literal does not have an explicit termination.      
+            '// The literal does not have an explicit termination.
             ' DIFFERENT: here in IDE we used to report string token marked as unterminated
 
             Dim sp = GetTextNotInterned(length)

@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
-' Contains the definition of the Scanner, which produces tokens from text 
+' Contains the definition of the Scanner, which produces tokens from text
 '-----------------------------------------------------------------------------
 Option Compare Binary
 Option Strict On
@@ -148,7 +148,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return XmlMakeLessToken(leadingTrivia)
 
                     Case "?"c
-
                         If NextIs(1,">"c) Then
                             ' // Create token for the '?>' termination sequence
                             Return XmlMakeEndProcessingInstructionToken(leadingTrivia)
@@ -186,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         '//
-        '// This is used to detect a VB statement on the next line 
+        '// This is used to detect a VB statement on the next line
         '//
         '// NL WS* KW WS* ID | KW
         '// Example  Dim x
@@ -200,10 +199,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '//
         '// NL WS* < ID WS* (
         '// Example <ClsCompliant(
-        '// 
+        '//
         '// NL WS* # WS* KW
         '// Example #END
-        '// 
+        '//
         '// NL WS* '
         '// Example ' This is a comment
         Private Function ScanXmlForPossibleStatement(state As ScannerState) As Boolean
@@ -336,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                 Return XmlMakeTextLiteralToken(Nothing, Here, scratch)
                             Else
                                 scratch.Clear() ' will not use this
-                                Here = 0        ' consumed chars. 
+                                Here = 0        ' consumed chars.
                                 precedingTrivia = ScanXmlTrivia(Peek)
                             End If
                         End If
@@ -372,12 +371,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                     Return XmlMakeBeginEndElementToken(precedingTrivia, s_scanNoTriviaFunc)
                             End Select
                         End If
-
                         Return XmlMakeLessToken(precedingTrivia)
 
                     Case "]"c
                         If NextAre(Here+1,"]>") Then
-
                             ' // If valid characters found then return them.
                             If Here <> 0 Then
                                 Return XmlMakeTextLiteralToken(Nothing, Here, scratch)
@@ -424,8 +421,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Case "%"c
 
-                        'TODO: error recovery. We cannot do this. 
-                        'If there is all whitespace after ">", it will be scanned as insignificant, 
+                        'TODO: error recovery. We cannot do this.
+                        'If there is all whitespace after ">", it will be scanned as insignificant,
                         'but in this case it is significant.
                         'Also as far as I can see Dev10 does not resync on "%>" text anyways.
 
@@ -453,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         GoTo ScanChars
                     Case Else
 ScanChars:
-                        ' // Check characters are valid 
+                        ' // Check characters are valid
                         IsAllWhitespace = False
                         Dim xmlCh = ScanXmlChar(Here)
 
@@ -501,7 +498,6 @@ ScanChars:
 
                     Case "-"c
                         If NextIs(Here + 1,"-"c) Then
-
                             ' // --> terminates an Xml comment but otherwise -- is an illegal character sequence.
                             ' // The scanner will always returns "--" as a separate comment data string and the
                             ' // the semantics will error if '--' is ever found.
@@ -526,9 +522,9 @@ ScanChars:
                                     ' // This works because the -> terminates only when the invalid --
                                     ' // is returned.
 
-                                    'If Here + 1 < m_InputStreamEnd AndAlso _ 
+                                    'If Here + 1 < m_InputStreamEnd AndAlso _
                                     '   m_InputStream(Here) = "-"c AndAlso _
-                                    '   m_InputStream(Here + 1) = ">"c Then 
+                                    '   m_InputStream(Here + 1) = ">"c Then
 
                                     '    Here += 1
                                     'Else
@@ -670,7 +666,6 @@ ScanChars:
 
                     Case "?"c
                         If NextIs(Here + 1, ">"c) Then
-
                             '// If valid characters found then return them.
                             If Here <> 0 Then
                                 result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here)
@@ -752,7 +747,7 @@ CleanUp:
 
                         Return XmlMakeLessToken(precedingTrivia)
 
-                    ' TODO: review 
+                    ' TODO: review
 
                     '    If Not m_State.m_ScannedElement OrElse c = "?"c OrElse c = "!"c Then
                     '        ' // Remove tEOL from token ring if any exists
@@ -984,7 +979,7 @@ CleanUp:
         End Function
 
         ''' <summary>
-        ''' 0 - not a surrogate, 2 - is valid surrogate 
+        ''' 0 - not a surrogate, 2 - is valid surrogate
         ''' 1 is an error
         ''' </summary>
         Private Function ScanSurrogatePair(c1 As Char, Here As Integer) As XmlCharResult
@@ -1003,7 +998,7 @@ CleanUp:
             Return Nothing
         End Function
 
-        ' contains result of Xml char scanning. 
+        ' contains result of Xml char scanning.
         Friend Structure XmlCharResult
             Friend ReadOnly Length As Integer
             Friend ReadOnly Char1 As Char
@@ -1162,7 +1157,6 @@ CreateNCNameToken:
                     Case "a"c
                         ' // &amp;
                         ' // &apos;
-
                         If CanGet(4) AndAlso NextAre(2,"mp") Then
                             If Peek(4) = ";"c Then
                                 Return XmlMakeAmpLiteralToken(precedingTrivia)
@@ -1185,9 +1179,7 @@ CreateNCNameToken:
 
                     Case "l"c
                         ' // &lt;
-
                         If CanGet(3) AndAlso NextIs(2,"t"c) Then
-
                             If Peek(3) = ";"c Then
                                 Return XmlMakeLtLiteralToken(precedingTrivia)
                             Else
@@ -1199,9 +1191,7 @@ CreateNCNameToken:
 
                     Case "g"c
                         ' // &gt;
-
                         If CanGet(3) AndAlso NextIs(2,"t"c) Then
-
                             If Peek(3) = ";"c Then
                                 Return XmlMakeGtLiteralToken(precedingTrivia)
                             Else
@@ -1213,9 +1203,7 @@ CreateNCNameToken:
 
                     Case "q"c
                         ' // &quot;
-
                         If CanGet(5) AndAlso NextAre(2,"uot") Then
-
                             If Peek(5) = ";"c Then
                                 Return XmlMakeQuotLiteralToken(precedingTrivia)
                             Else

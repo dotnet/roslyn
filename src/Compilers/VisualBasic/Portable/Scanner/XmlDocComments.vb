@@ -49,7 +49,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function TryScanXmlDocComment(tList As SyntaxListBuilder) As Boolean
             Debug.Assert(IsAtNewLine)
-
             ' leading whitespace until we see ''' should be regular whitespace
             If CanGet() AndAlso IsWhitespace(Peek()) Then
                 Dim ws = ScanWhitespace()
@@ -62,8 +61,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #End If
             Dim restorePoint = CreateRestorePoint()
 
-            ' since we do not have lookahead tokens, this just 
-            ' resets current token to _lineBufferOffset 
+            ' since we do not have lookahead tokens, this just
+            ' resets current token to _lineBufferOffset
             Me.GetNextTokenInState(ScannerState.Content)
 
             Dim currentNonterminal = Me.GetCurrentSyntaxNode()
@@ -79,23 +78,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me.IsScanningXmlDoc = True
                 Me._isStartingFirstXmlDocLine = True
 
-                ' NOTE: Documentation comment syntax trivia must have at least one child xml node, because 
+                ' NOTE: Documentation comment syntax trivia must have at least one child xml node, because
                 '       all the ['''] trivia are created as leading trivia for appropriate tokens.
                 '       This means that we have to create at least one XmlText having trailing
                 '       EOL to represent an empty documentation comment: ['''<eol>]
                 '
                 '       The problem with this approach is that in presence of some errors (like
                 '       not closed XML tags) we create missing tokens needed to represent the nodes
-                '       *after* that last <eol> of the doc comment trivia, that means all the locations 
+                '       *after* that last <eol> of the doc comment trivia, that means all the locations
                 '       of created diagnostics will land on the first character of the next line
                 '       after documentation comment
                 '
-                '       To workaround this we parse XML nodes in two phases: 
-                '         - in the first phase we detect the last DocCommentLineBreak and create 
-                '         end-of-xml token instead; this should force all diagnostics to be 
+                '       To workaround this we parse XML nodes in two phases:
+                '         - in the first phase we detect the last DocCommentLineBreak and create
+                '         end-of-xml token instead; this should force all diagnostics to be
                 '         reported on the next token location;
-                '         - in the second phase we continue parsing XML nodes but don't create 
-                '         end-of-xml token which should just result in parsing one single node 
+                '         - in the second phase we continue parsing XML nodes but don't create
+                '         end-of-xml token which should just result in parsing one single node
                 '         of XmlText type containing EOL;
                 '       Then we merge the results and create resulting DocumentationCommentTrivia
 
@@ -106,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' The second phase
                 Me._endOfXmlInsteadOfLastDocCommentLineBreak = False
                 If nodes.Count = 0 AndAlso parser.CurrentToken.Kind = SyntaxKind.EndOfXmlToken Then
-                    ' This must be an empty documentation comment, we need to reset scanner so 
+                    ' This must be an empty documentation comment, we need to reset scanner so
                     ' that the doc comment exterior trivia ([''']) lands on the final XmlNode
 
                     ResetLineBufferOffset()
@@ -255,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         If _endOfXmlInsteadOfLastDocCommentLineBreak Then
                             Dim tempHere As Integer = Here
                             If Not TrySkipXmlDocMarker(tempHere) Then
-                                ' NOTE: we need to reset the buffer so that precedingTrivia 
+                                ' NOTE: we need to reset the buffer so that precedingTrivia
                                 '       lands on the next token
                                 ResetLineBufferOffset()
                                 Return SyntaxFactory.Token(Nothing, SyntaxKind.EndOfXmlToken, Nothing, String.Empty)
@@ -313,7 +312,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Case "]"c
                         If NextAre(Here + 1, "]>") Then
-
                             ' // If valid characters found then return them.
                             If Here <> 0 Then
                                 Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
@@ -325,7 +323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         GoTo ScanChars
                     Case Else
 ScanChars:
-                        ' // Check characters are valid 
+                        ' // Check characters are valid
                         Dim xmlCh = ScanXmlChar(Here)
 
                         If xmlCh.Length = 0 Then
@@ -397,7 +395,6 @@ ScanChars:
 
                     Case "?"c
                         If NextIs(Here + 1,">"c) Then
-
                             '// If valid characters found then return them.
                             If Here <> 0 Then
                                 result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here)

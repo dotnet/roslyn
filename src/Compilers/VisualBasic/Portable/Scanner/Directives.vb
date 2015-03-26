@@ -31,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim restorePoint = CreateRestorePoint()
             Me._isScanningDirective = True
 
-            ' since we do not have lookahead tokens, this just 
-            ' resets current token to _lineBufferOffset 
+            ' since we do not have lookahead tokens, this just
+            ' resets current token to _lineBufferOffset
             Me.GetNextTokenInState(ScannerState.VB)
 
             Dim currentNonterminal = Me.GetCurrentSyntaxNode()
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me.MoveToNextSyntaxNodeInTrivia()
 
                 ' adjust current token to just after the node
-                ' we need that in case we need to skip some disabled text 
+                ' we need that in case we need to skip some disabled text
                 '(yes we do tokenize disabled text for compatibility reasons)
                 Me.GetNextTokenInState(ScannerState.VB)
 
@@ -91,10 +91,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 disabledCode = SkipConditionalCompilationSection()
             End If
 
-            ' Here we add the directive and disabled text that follows it 
+            ' Here we add the directive and disabled text that follows it
             ' (if there is any) to the trivia list
 
-            ' processing statement could add an error to it, 
+            ' processing statement could add an error to it,
             ' so we may need to rebuild the trivia node
             If statement IsNot directiveTrivia Then
                 directiveTrivia = statement
@@ -507,7 +507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '//
         '// Skip all text until the end of the current conditional section.  This will also return the
         '// span of text that was skipped
-        '// 
+        '//
         '//-------------------------------------------------------------------------------------------------
 
         Private Function SkipConditionalCompilationSection() As SyntaxList(Of VisualBasicSyntaxNode)
