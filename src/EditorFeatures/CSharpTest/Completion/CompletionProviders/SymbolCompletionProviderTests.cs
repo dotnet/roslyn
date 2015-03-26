@@ -6880,6 +6880,7 @@ class C
             VerifyItemInLinkedFiles(markup, "y", expectedDescription);
         }
 
+        [WorkItem(1063403)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void MethodOverloadDifferencesIgnored()
         {
@@ -6913,6 +6914,7 @@ class C
             VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
         }
 
+        [WorkItem(1063403)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void WarningForSymbolsOfDifferingKind()
         {
