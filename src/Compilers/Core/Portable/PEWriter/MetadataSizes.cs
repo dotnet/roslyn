@@ -232,11 +232,11 @@ namespace Microsoft.Cci
 
             size += GetTableSize(TableIndex.Document, this.BlobIndexSize + this.GuidIndexSize + this.BlobIndexSize + this.GuidIndexSize);
             size += GetTableSize(TableIndex.MethodBody, this.BlobIndexSize);
-            size += GetTableSize(TableIndex.LocalScope, this.MethodDefIndexSize + this.LocalVariableIndexSize + this.LocalConstantIndexSize + 4 + 4);
+            size += GetTableSize(TableIndex.LocalScope, this.MethodDefIndexSize + this.ImportScopeIndexSize + this.LocalVariableIndexSize + this.LocalConstantIndexSize + 4 + 4);
             size += GetTableSize(TableIndex.LocalVariable, 2 + 2 + this.StringIndexSize);
             size += GetTableSize(TableIndex.LocalConstant, this.StringIndexSize + this.BlobIndexSize + 1);
-            size += GetTableSize(TableIndex.ImportScope, this.MethodDefIndexSize + this.StringIndexSize);
-            size += GetTableSize(TableIndex.AsyncMethod, 2 * this.MethodDefIndexSize + 4 + 2 * this.BlobIndexSize);
+            size += GetTableSize(TableIndex.ImportScope, this.ImportScopeIndexSize + this.BlobIndexSize);
+            size += GetTableSize(TableIndex.AsyncMethod, this.MethodDefIndexSize + 4 + this.BlobIndexSize);
             size += GetTableSize(TableIndex.CustomDebugInformation, this.HasCustomDebugInformationSize + this.GuidIndexSize + this.BlobIndexSize);
 
             // +1 for terminating 0 byte

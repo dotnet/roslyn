@@ -53,7 +53,7 @@ namespace Microsoft.Cci
 
         private struct ImportScopeRow
         {
-            public uint Parent;        // HasLocalImport coded index
+            public uint Parent;        // ImportScopeRid
             public uint Imports;       // Blob index
         }
 
