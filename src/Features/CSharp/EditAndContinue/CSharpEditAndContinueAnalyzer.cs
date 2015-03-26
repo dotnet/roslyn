@@ -902,6 +902,45 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return LambdaUtilities.GetLambda(lambdaBody);
         }
 
+        internal override IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken)
+        {
+            return (IMethodSymbol)model.GetEnclosingSymbol(lambdaExpression.SpanStart, cancellationToken);
+        }
+
+        internal override SyntaxNode GetContainingQueryExpression(SyntaxNode node)
+        {
+            return node.FirstAncestorOrSelf<QueryExpressionSyntax>();
+        }
+
+        internal override bool QueryClauseLambdasTypeEquivalent(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, CancellationToken cancellationToken)
+        {
+            switch (oldNode.Kind())
+            {
+                case SyntaxKind.FromClause:
+                case SyntaxKind.LetClause:
+                case SyntaxKind.WhereClause:
+                case SyntaxKind.OrderByClause:
+                case SyntaxKind.JoinClause:
+                    var oldQueryClauseInfo = oldModel.GetQueryClauseInfo((QueryClauseSyntax)oldNode, cancellationToken);
+                    var newQueryClauseInfo = newModel.GetQueryClauseInfo((QueryClauseSyntax)newNode, cancellationToken);
+
+                    return MemberSignaturesEquivalent(oldQueryClauseInfo.CastInfo.Symbol, newQueryClauseInfo.CastInfo.Symbol) &&
+                           MemberSignaturesEquivalent(oldQueryClauseInfo.OperationInfo.Symbol, newQueryClauseInfo.OperationInfo.Symbol);
+
+                case SyntaxKind.AscendingOrdering:
+                case SyntaxKind.DescendingOrdering:
+                case SyntaxKind.SelectClause:
+                case SyntaxKind.GroupClause:
+                    var oldSymbolInfo = oldModel.GetSymbolInfo(oldNode, cancellationToken);
+                    var newSymbolInfo = newModel.GetSymbolInfo(newNode, cancellationToken);
+
+                    return MemberSignaturesEquivalent(oldSymbolInfo.Symbol, newSymbolInfo.Symbol);
+
+                default:
+                    return true;
+            }
+        }
+
         #endregion
 
         #region Diagnostic Info

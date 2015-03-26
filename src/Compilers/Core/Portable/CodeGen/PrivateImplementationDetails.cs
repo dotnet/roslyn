@@ -80,14 +80,25 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _systemInt64Type = systemInt64Type;
 
             _compilerGeneratedAttribute = compilerGeneratedAttribute;
-            _name = GetClassName(moduleName, submissionSlotIndex);
+
+            var isNetModule = moduleBuilder.AsAssembly == null;
+            _name = GetClassName(moduleName, submissionSlotIndex, isNetModule);
         }
 
-        internal static string GetClassName(string moduleName, int submissionSlotIndex)
+        private static string GetClassName(string moduleName, int submissionSlotIndex, bool isNetModule)
         {
             // we include the module name in the name of the PrivateImplementationDetails class so that more than
-            // one of them can be included in an assembly as part of netmodules.
-            return $"<PrivateImplementationDetails><{(submissionSlotIndex >= 0 ? submissionSlotIndex.ToString() : moduleName)}>";
+            // one of them can be included in an assembly as part of netmodules.    
+            var name = isNetModule ?
+                        $"<PrivateImplementationDetails><{MetadataHelpers.MangleForTypeNameIfNeeded(moduleName)}>" :
+                        $"<PrivateImplementationDetails>";
+
+            if (submissionSlotIndex >= 0)
+            {
+                name += submissionSlotIndex.ToString();
+            }
+
+            return name;
         }
 
         internal void Freeze()

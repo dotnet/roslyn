@@ -3373,7 +3373,7 @@ class B : A
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails><{#Module#}.dll>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails><{#Module#}.dll>.1036C5F8EF306104BD582D73E555F4DAE8EECB24""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.1036C5F8EF306104BD582D73E555F4DAE8EECB24""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  ret
 }");
