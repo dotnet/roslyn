@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 
         public override Assembly LoadAssembly(string fullPath)
         {
-            return Assembly.Load(fullPath);
+            return Assembly.LoadFrom(fullPath);
         }
 
         protected override uint GetSqmAppID()

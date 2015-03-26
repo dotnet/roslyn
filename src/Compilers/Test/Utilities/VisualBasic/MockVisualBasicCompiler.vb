@@ -27,7 +27,7 @@ Friend Class MockVisualBasicCompiler
     End Sub
 
     Public Overrides Function LoadAssembly(fullPath As String) As Assembly
-        Throw New NotImplementedException()
+        Return Assembly.LoadFrom(fullPath)
     End Function
 
     Protected Overrides Function GetSqmAppID() As UInteger

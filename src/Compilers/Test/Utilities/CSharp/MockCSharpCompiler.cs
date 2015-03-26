@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public override Assembly LoadAssembly(string fullPath)
         {
-            throw new NotImplementedException();
+            return Assembly.LoadFrom(fullPath);
         }
 
         protected override void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession)

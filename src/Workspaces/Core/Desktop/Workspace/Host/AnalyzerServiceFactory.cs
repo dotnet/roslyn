@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             public Assembly GetAnalyzer(string fullPath)
             {
-                return Assembly.Load(fullPath);
+                return Assembly.LoadFrom(fullPath);
             }
         }
     }
