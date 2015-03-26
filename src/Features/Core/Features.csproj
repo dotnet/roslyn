@@ -199,7 +199,7 @@
     <Compile Include="Diagnostics\DiagnosticProviderMetadata.cs" />
     <Compile Include="Diagnostics\DiagnosticService.cs" />
     <Compile Include="Diagnostics\DiagnosticsUpdatedArgs.cs" />
-    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.IncrementalAnalyzer.AnalyzerExecutor.cs" />
+    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.AnalyzerExecutor.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer_GetDiagnostics.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.NestedTypes.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateType.cs" />
