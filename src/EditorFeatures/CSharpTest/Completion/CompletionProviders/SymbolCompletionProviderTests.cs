@@ -6881,6 +6881,72 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void MethodOverloadDifferencesIgnored()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+class C
+{
+#if ONE
+    void Do(int x){}
+#endif
+#if TWO
+    void Do(string x){}
+#endif
+
+    void Shared()
+    {
+        $$
+    }
+
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"void C.Do(string x)";
+            VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void WarningForSymbolsOfDifferingKind()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+class C
+{
+#if ONE
+    void Do(int x){}
+#endif
+#if TWO
+    int Do;
+#endif
+
+    void Shared()
+    {
+        $$
+    }
+
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"({FeaturesResources.Field}) int C.Do\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.NotAvailable)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.Available)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}";
+            VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ConditionalAccessWalkUp()
         {
             var markup = @"
