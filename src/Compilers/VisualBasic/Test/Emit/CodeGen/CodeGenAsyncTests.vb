@@ -8301,7 +8301,7 @@ BC42356: This async method lacks 'Await' operators and so will run synchronously
             End Using
         End Sub
 
-        <WorkItem(863, "https://github.com/dotnet/roslyn")>
+        <WorkItem(863, "https://github.com/dotnet/roslyn/issues/863")>
         <Fact()>
         Public Sub CatchInIteratorStateMachine()
             CompileAndVerify(
@@ -8311,7 +8311,7 @@ Imports System
 Imports System.Collections
 Class C
     Shared Function F() As Object
-        Throw New ArgumentException()
+        Throw New ArgumentException("Value does not fall within the expected range.")
     End Function
     Shared Iterator Function M() As IEnumerable
         Dim o As Object
@@ -8323,8 +8323,13 @@ Class C
         Yield o
     End Function
     Shared Sub Main()
-        For Each o in M()
-            Console.WriteLine(o)
+        For Each e As Exception in M()
+            ' Cannot just call .ToString() on the exception, because the exact format of a stack trace depends on a localization
+            Console.WriteLine($"{e.GetType()}: {e.Message}")
+            For Each frame In New Diagnostics.StackTrace(e).GetFrames()
+                Dim m = frame.GetMethod()
+                Console.WriteLine($"   at {m.DeclaringType.FullName.Replace("+"c, "."c)}.{m.Name}({String.Join(",", DirectCast(m.GetParameters(), Object()))})")
+            Next
         Next
     End Sub
 End Class
@@ -8338,7 +8343,7 @@ End Class
    at C.VB$StateMachine_2_M.MoveNext()")
         End Sub
 
-        <WorkItem(863, "https://github.com/dotnet/roslyn")>
+        <WorkItem(863, "https://github.com/dotnet/roslyn/issues/863")>
         <Fact()>
         Public Sub CatchInAsyncStateMachine()
             CompileAndVerify(
@@ -8348,7 +8353,7 @@ Imports System
 Imports System.Threading.Tasks
 Class C
     Shared Function F() As Object
-        Throw New ArgumentException()
+        Throw New ArgumentException("Value does not fall within the expected range.")
     End Function
     Shared Async Function M() As Task(Of Object)
         Dim o As Object
@@ -8360,8 +8365,13 @@ Class C
         Return o
     End Function
     Shared Sub Main()
-        Dim o = M().Result
-        Console.WriteLine(o)
+        Dim e = DirectCast(M().Result, Exception)
+        ' Cannot just call .ToString() on the exception, because the exact format of a stack trace depends on a localization
+        Console.WriteLine($"{e.GetType()}: {e.Message}")
+        For Each frame In New Diagnostics.StackTrace(e).GetFrames()
+            Dim m = frame.GetMethod()
+            Console.WriteLine($"   at {m.DeclaringType.FullName.Replace("+"c, "."c)}.{m.Name}({String.Join(",", DirectCast(m.GetParameters(), Object()))})")
+        Next
     End Sub
 End Class
     </file>

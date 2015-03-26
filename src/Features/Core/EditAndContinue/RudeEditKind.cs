@@ -80,8 +80,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         UpdateExceptionHandlerOfActiveTry = 64,
         UpdateTryOrCatchWithActiveFinally = 65,
         UpdateCatchHandlerAroundActiveStatement = 66,
+        UpdateStaticLocal = 67,
 
-        // 67-69 can be used
+        // 68-69 can be used
 
         InsertHandlesClause = 70,
         InsertFile = 71,

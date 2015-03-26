@@ -56,9 +56,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public abstract int PreviousAwaiterSlotCount { get; }
 
         /// <summary>
-        /// The id of the method in the previous generation.
+        /// The id of the method, or null if the method wasn't assigned one.
         /// </summary>
-        public abstract MethodDebugId PreviousMethodId { get; }
+        public abstract DebugId? MethodId { get; }
 
         /// <summary>
         /// Finds a closure in the previous generation that corresponds to the specified syntax.
@@ -66,13 +66,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <remarks>
         /// See LambdaFrame.AssertIsLambdaScopeSyntax for kinds of syntax nodes that represent closures.
         /// </remarks>
-        public abstract bool TryGetPreviousClosure(SyntaxNode closureSyntax, out int closureOrdinal);
+        public abstract bool TryGetPreviousClosure(SyntaxNode closureSyntax, out DebugId closureId);
 
         /// <summary>
         /// Finds a lambda in the previous generation that corresponds to the specified syntax.
         /// The <paramref name="lambdaOrLambdaBodySyntax"/> is either a lambda syntax (<paramref name="isLambdaBody"/> is false),
         /// or lambda body syntax (<paramref name="isLambdaBody"/> is true).
         /// </summary>
-        public abstract bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out int lambdaOrdinal);
+        public abstract bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out DebugId lambdaId);
     }
 }

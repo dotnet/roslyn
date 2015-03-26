@@ -1009,7 +1009,7 @@ Console.WriteLine(1)/*4*/;
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [catch (Exception e) { }]@10 -> [catch (IOException e) { }]@10");
+                "Update [(Exception e)]@16 -> [(IOException e)]@16");
         }
 
         [Fact]
@@ -1022,6 +1022,7 @@ Console.WriteLine(1)/*4*/;
 
             edits.VerifyEdits(
                 "Insert [catch (IOException e) { /*3*/ }]@16",
+                "Insert [(IOException e)]@22",
                 "Insert [{ /*3*/ }]@38");
         }
 
@@ -1047,6 +1048,7 @@ Console.WriteLine(1)/*4*/;
 
             edits.VerifyEdits(
                 "Delete [catch (Exception e) { }]@36",
+                "Delete [(Exception e)]@42",
                 "Delete [{ }]@56");
         }
 
@@ -1073,7 +1075,7 @@ Console.WriteLine(1)/*4*/;
             edits.VerifyEdits(
                 "Reorder [catch (Exception e) { }]@36 -> @26",
                 "Reorder [catch { }]@60 -> @10",
-                "Update [catch { }]@60 -> [catch (A e) { }]@10");
+                "Insert [(A e)]@16");
         }
 
         [Fact]
@@ -1105,8 +1107,10 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
 
             edits.VerifyEdits(
                 "Insert [catch (E e) { /*1*/ }]@79",
+                "Insert [(E e)]@85",
                 "Move [{ /*1*/ }]@29 -> @91",
-                "Delete [catch (E e) { /*1*/ }]@17");
+                "Delete [catch (E e) { /*1*/ }]@17",
+                "Delete [(E e)]@23");
         }
 
         [Fact]
@@ -1119,7 +1123,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
 
             edits.VerifyEdits(
                 "Move [{ /*3*/ }]@52 -> @39",
-                "Delete [catch (E2 e) { /*3*/ }]@39");
+                "Delete [catch (E2 e) { /*3*/ }]@39",
+                "Delete [(E2 e)]@45");
         }
 
         [Fact]
@@ -1132,6 +1137,7 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
 
             edits.VerifyEdits(
                 "Insert [catch (E2 e) { /*3*/ }]@39",
+                "Insert [(E2 e)]@45",
                 "Move [{ /*3*/ }]@39 -> @52");
         }
 
@@ -1182,7 +1188,7 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [catch when (e == null) { /*2*/ }]@16 -> [catch (E1 e) when (e == null) { /*2*/ }]@16");
+                "Insert [(E1 e)]@22");
         }
 
         [Fact]
@@ -1194,7 +1200,7 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [catch { /*2*/ }]@16 -> [catch (E1 e) when (e == null) { /*2*/ }]@16",
+                "Insert [(E1 e)]@22",
                 "Insert [when (e == null)]@29");
         }
 
@@ -1207,7 +1213,7 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [catch (E1 e) { /*2*/ }]@16 -> [catch { /*2*/ }]@16");
+                "Delete [(E1 e)]@22");
         }
 
         [Fact]
@@ -1231,7 +1237,7 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [catch (E1 e) when (e == null) { /*2*/ }]@16 -> [catch when (e == null) { /*2*/ }]@16");
+                "Delete [(E1 e)]@22");
         }
 
         [Fact]
@@ -1243,7 +1249,7 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [catch (E1 e) when (e == null) { /*2*/ }]@16 -> [catch { /*2*/ }]@16",
+                "Delete [(E1 e)]@22",
                 "Delete [when (e == null)]@29");
         }
 
@@ -2677,6 +2683,382 @@ class C
                 Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "y0", CSharpFeaturesResources.Lambda, "this", "y0"),
                 Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.Lambda, "this", "x3"));
         }
+
+        [Fact]
+        public void Lambdas_Insert_ForEach1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void G(Func<int, int> f) {}
+
+    void F()                       
+    {                              
+        foreach (int x0 in new[] { 1 })  // Group #0             
+        {                                // Group #1
+            int x1 = 0;                  
+                                         
+            G(a => x0);   
+            G(a => x1);
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void G(Func<int, int> f) {}
+
+    void F()                       
+    {                              
+        foreach (int x0 in new[] { 1 })  // Group #0             
+        {                                // Group #1
+            int x1 = 0;                  
+                                         
+            G(a => x0);   
+            G(a => x1);
+
+            G(a => x0 + x1);             // error: connecting previously disconnected closures
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"));
+        }
+
+        [Fact]
+        public void Lambdas_Insert_ForEach2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void G(Func<int, int> f1, Func<int, int> f2, Func<int, int> f3) {}
+
+    void F()                       
+    {               
+        int x0 = 0;                              // Group #0  
+        foreach (int x1 in new[] { 1 })          // Group #1                   
+            G(a => x0, a => x1, null);                     
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void G(Func<int, int> f1, Func<int, int> f2, Func<int, int> f3) {}
+
+    void F()                       
+    {               
+        int x0 = 0;                              // Group #0  
+        foreach (int x1 in new[] { 1 })          // Group #1            
+            G(a => x0, a => x1, a => x0 + x1);   // error: connecting previously disconnected closures            
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"));
+        }
+
+        [Fact]
+        public void Lambdas_Insert_For1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    bool G(Func<int, int> f) => true;
+
+    void F()                       
+    {                              
+        for (int x0 = 0, x1 = 0; G(a => x0) && G(a => x1);)
+        {
+            int x2 = 0;
+            G(a => x2); 
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    bool G(Func<int, int> f) => true;
+
+    void F()                       
+    {                              
+        for (int x0 = 0, x1 = 0; G(a => x0) && G(a => x1);)
+        {
+            int x2 = 0;
+            G(a => x2); 
+
+            G(a => x0 + x1);  // ok
+            G(a => x0 + x2);  // error: connecting previously disconnected closures
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x2", "lambda", "x0", "x2"));
+        }
+
+        [Fact]
+        public void Lambdas_Insert_Switch1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    bool G(Func<int> f) => true;
+
+    int a = 1;
+
+    void F()                       
+    {        
+        int x2 = 1;
+        G(() => x2);
+                      
+        switch (a)
+        {
+            case 1:
+                int x0 = 1;
+                G(() => x0);
+                break;
+
+            case 2:
+                int x1 = 1;
+                G(() => x1);
+                break;
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    bool G(Func<int> f) => true;
+
+    int a = 1;
+
+    void F()                       
+    {                
+        int x2 = 1;
+        G(() => x2);
+ 
+        switch (a)
+        {
+            case 1:
+                int x0 = 1;
+                G(() => x0);
+                goto case 2;
+
+            case 2:
+                int x1 = 1;
+                G(() => x1);
+                goto default;
+
+            default:
+                x0 = 1;
+                x1 = 2;
+                G(() => x0 + x1);       // ok
+                G(() => x0 + x2);       // error
+                break;
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x0", "lambda", "x2", "x0"));
+        }
+
+        [Fact]
+        public void Lambdas_Insert_Using1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static int F(object a, object b) => 1;
+
+    static IDisposable D() => null;
+    
+    static void F()                       
+    {                              
+        using (IDisposable x0 = D(), y0 = D())
+        {
+            int x1 = 1;
+        
+            G(() => x0);
+            G(() => y0);
+            G(() => x1);
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static int F(object a, object b) => 1;
+
+    static IDisposable D() => null;
+    
+    static void F()                       
+    {                              
+        using (IDisposable x0 = D(), y0 = D())
+        {
+            int x1 = 1;
+        
+            G(() => x0);
+            G(() => y0);
+            G(() => x1);
+
+            G(() => F(x0, y0)); // ok
+            G(() => F(x0, x1)); // error
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"));
+        }
+
+        [Fact]
+        public void Lambdas_Insert_Catch1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static int F(object a, object b) => 1;
+    
+    static void F()                       
+    {                              
+        try
+        {
+        }
+        catch (Exception x0)
+        {
+            int x1 = 1;
+            G(() => x0);
+            G(() => x1);
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static int F(object a, object b) => 1;
+    
+    static void F()                       
+    {                              
+        try
+        {
+        }
+        catch (Exception x0)
+        {
+            int x1 = 1;
+            G(() => x0);
+            G(() => x1);
+
+            G(() => x0); //ok
+            G(() => F(x0, x1)); //error
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1504"), WorkItem(1504)]
+        public void Lambdas_Insert_CatchFilter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    
+    static void F()                       
+    {                              
+        Exception x1 = null;
+    
+        try
+        {
+            G(() => x1);
+        }
+        catch (Exception x0) when (G(() => x0))
+        {
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    
+    static void F()                       
+    {                 
+        Exception x1 = null;
+             
+        try
+        {
+            G(() => x1);
+        }
+        catch (Exception x0) when (G(() => x0) && 
+                                   G(() => x0) &&    // ok
+                                   G(() => x0 != x1)) // error
+        {
+            G(() => x0); // ok
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
 
         [Fact]
         public void Lambdas_Update_CeaseCapture_This()

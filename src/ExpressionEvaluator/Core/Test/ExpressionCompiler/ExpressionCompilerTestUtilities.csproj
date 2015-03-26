@@ -75,7 +75,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="SymReader.cs" />
     <Compile Include="TestExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

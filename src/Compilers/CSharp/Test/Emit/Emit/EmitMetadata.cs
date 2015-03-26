@@ -236,6 +236,7 @@ public class Test : Class2
                     () => stream,
                     getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
+                    pdbPathOpt: null,
                     allowMissingMethodBodies: false,
                     deterministic: false,
                     cancellationToken: CancellationToken.None);

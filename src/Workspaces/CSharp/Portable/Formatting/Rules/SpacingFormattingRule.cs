@@ -116,6 +116,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinOtherParentheses);
             }
 
+            // Semicolons in an empty for statement.  i.e.   for(;;)
+            if (previousKind == SyntaxKind.OpenParenToken || previousKind == SyntaxKind.SemicolonToken)
+            {
+                if (previousToken.Parent.Kind() == SyntaxKind.ForStatement)
+                {
+                    var forStatement = (ForStatementSyntax)previousToken.Parent;
+                    if (forStatement.Initializers.Count == 0 &&
+                        forStatement.Declaration == null &&
+                        forStatement.Condition == null &&
+                        forStatement.Incrementors.Count == 0)
+                    {
+                        return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+                    }
+                }
+            }
+
             if (currentKind == SyntaxKind.CloseParenToken &&
                 (currentParentKind == SyntaxKind.IfStatement || currentParentKind == SyntaxKind.WhileStatement || currentParentKind == SyntaxKind.SwitchStatement ||
                 currentParentKind == SyntaxKind.ForStatement || currentParentKind == SyntaxKind.ForEachStatement || currentParentKind == SyntaxKind.DoStatement ||

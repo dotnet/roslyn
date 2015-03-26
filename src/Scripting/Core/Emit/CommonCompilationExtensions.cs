@@ -158,6 +158,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
                     () => stream,
                     getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
+                    pdbPathOpt: null,
                     allowMissingMethodBodies: false,
                     deterministic: false,
                     cancellationToken: cancellationToken);

@@ -755,4 +755,7 @@ Do you want to continue?</value>
   <data name="ToDetectRedundantCalls" xml:space="preserve">
     <value>To detect redundant calls</value>
   </data>
+  <data name="ModifyingAWhichContainsStaticLocal" xml:space="preserve">
+    <value>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</value>
+  </data>
 </root>
