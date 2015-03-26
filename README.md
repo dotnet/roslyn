@@ -56,7 +56,7 @@ From the NuGet package manager console:
 * [Syntax Visualizer Tool](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer)
 * [Roadmap](https://github.com/dotnet/roslyn/wiki/Roadmap) 
 * [Language Feature Status](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14)
-* [Language Design Notes](https://github.com/dotnet/roslyn/issues?q=label%3A%22Area-Design+Notes%22+)
+* [Language Design Notes](https://github.com/dotnet/roslyn/issues?q=label%3A%22Design+Notes%22+)
 * [FAQ](https://github.com/dotnet/roslyn/wiki/FAQ)
 
 ### Contribute!
