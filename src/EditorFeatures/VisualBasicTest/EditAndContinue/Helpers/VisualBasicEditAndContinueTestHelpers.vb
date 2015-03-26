@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
         Public Overrides Function CreateLibraryCompilation(name As String, trees As IEnumerable(Of SyntaxTree)) As Compilation
             Return VisualBasicCompilation.Create("New",
                                                  trees,
-                                                 {TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System},
+                                                 {TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System, TestReferences.NetFx.v4_0_30319.System_Core},
                                                  TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
         End Function
 
