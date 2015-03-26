@@ -28,8 +28,18 @@ namespace Microsoft.CodeAnalysis
             _debugName = debugName;
         }
 
-        internal DocumentId(ProjectId projectId, Guid guid, string debugName)
+        public DocumentId(ProjectId projectId, Guid guid, string debugName = null)
         {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            if (guid == Guid.Empty)
+            {
+                throw new ArgumentException(nameof(guid));
+            }
+
             this.ProjectId = projectId;
             this.Id = guid;
             _debugName = debugName;

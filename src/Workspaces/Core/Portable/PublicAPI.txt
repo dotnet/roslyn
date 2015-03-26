@@ -152,6 +152,7 @@ Microsoft.CodeAnalysis.DocumentEventArgs
 Microsoft.CodeAnalysis.DocumentEventArgs.Document.get -> Microsoft.CodeAnalysis.Document
 Microsoft.CodeAnalysis.DocumentEventArgs.DocumentEventArgs(Microsoft.CodeAnalysis.Document document) -> void
 Microsoft.CodeAnalysis.DocumentId
+Microsoft.CodeAnalysis.DocumentId.DocumentId(Microsoft.CodeAnalysis.ProjectId projectId, System.Guid guid, string debugName = null) -> void
 Microsoft.CodeAnalysis.DocumentId.Equals(Microsoft.CodeAnalysis.DocumentId other) -> bool
 Microsoft.CodeAnalysis.DocumentId.Id.get -> System.Guid
 Microsoft.CodeAnalysis.DocumentId.ProjectId.get -> Microsoft.CodeAnalysis.ProjectId
@@ -574,6 +575,7 @@ Microsoft.CodeAnalysis.ProjectDiagnostic.ProjectId.get -> Microsoft.CodeAnalysis
 Microsoft.CodeAnalysis.ProjectId
 Microsoft.CodeAnalysis.ProjectId.Equals(Microsoft.CodeAnalysis.ProjectId other) -> bool
 Microsoft.CodeAnalysis.ProjectId.Id.get -> System.Guid
+Microsoft.CodeAnalysis.ProjectId.ProjectId(System.Guid guid, string debugName = null) -> void
 Microsoft.CodeAnalysis.ProjectInfo
 Microsoft.CodeAnalysis.ProjectInfo.AdditionalDocuments.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.DocumentInfo>
 Microsoft.CodeAnalysis.ProjectInfo.AnalyzerReferences.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference>
