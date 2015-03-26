@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             return x.Kind == y.Kind && (x.IsKind(SymbolKind.Local) || x.IsKind(SymbolKind.Label) || x.IsKind(SymbolKind.RangeVariable))
                  ? x.Name == y.Name
-                 : _symbolEquivalenceComparer.Equals(x, y);
+                 : x.Name == y.Name && x.Kind == y.Kind && _symbolEquivalenceComparer.Equals(x.ContainingType, y.ContainingType);
         }
 
         int IEqualityComparer<ISymbol>.GetHashCode(ISymbol symbol)
         {
             return symbol.IsKind(SymbolKind.Local) || symbol.IsKind(SymbolKind.Label) || symbol.IsKind(SymbolKind.RangeVariable)
                 ? symbol.Name.GetHashCode()
-                : _symbolEquivalenceComparer.GetHashCode(symbol);
+                : _symbolEquivalenceComparer.GetHashCode(symbol.ContainingType);
         }
     }
 }
