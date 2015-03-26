@@ -2096,6 +2096,16 @@ class Hello
             Assert.Equal("", result.Errors);
         }
 
+        [Fact]
+        public void SimpleKeepAlive()
+        {
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable,
+                                                $"/nologo /keepalive:1 hello.cs",
+                                                _tempDirectory,
+                                                s_helloWorldSrcCs);
+            VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
+        }
+
         [Fact, WorkItem(1024619, "DevDiv")]
         public void Bug1024619_01()
         {
