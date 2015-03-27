@@ -28,16 +28,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         bool IEqualityComparer<ISymbol>.Equals(ISymbol x, ISymbol y)
         {
-            return x.Kind == y.Kind && (x.IsKind(SymbolKind.Local) || x.IsKind(SymbolKind.Label) || x.IsKind(SymbolKind.RangeVariable))
-                 ? x.Name == y.Name
-                 : x.Name == y.Name && x.Kind == y.Kind && _symbolEquivalenceComparer.Equals(x.ContainingType, y.ContainingType);
+            return x.Kind == y.Kind && x.Name == y.Name;
         }
 
         int IEqualityComparer<ISymbol>.GetHashCode(ISymbol symbol)
         {
-            return symbol.IsKind(SymbolKind.Local) || symbol.IsKind(SymbolKind.Label) || symbol.IsKind(SymbolKind.RangeVariable)
-                ? symbol.Name.GetHashCode()
-                : _symbolEquivalenceComparer.GetHashCode(symbol.ContainingType);
+            return symbol.Name.GetHashCode();
         }
     }
 }
