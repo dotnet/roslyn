@@ -140,21 +140,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private Task StartPartialAnalysis(SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            if (_initializeTaskStarted)
-            {
-                return Task.Run(async () =>
-                {
-                    await _initializeTask.ConfigureAwait(false);
-                    await ExecuteSyntaxTreeActions(ImmutableArray.Create(syntaxTree), cancellationToken).ConfigureAwait(false);
-                    await ProcessCompilationEventsAsync(false, cancellationToken).ConfigureAwait(false);
-                }, cancellationToken);
-            }
-
-            return Task.FromResult(default(bool));
-        }
-
         private Task ExecuteSyntaxTreeActions(IEnumerable<SyntaxTree> syntaxTrees, CancellationToken cancellationToken)
         {
             // Execute syntax tree analyzers in parallel.
@@ -307,13 +292,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns all diagnostics computed by a partial analysis. Waits for an ongoing partial analysis to complete.
+        /// Returns all diagnostics produced by a partial analysis of a single syntax tree.
         /// </summary>
         public async Task<ImmutableArray<Diagnostic>> GetPartialDiagnosticsAsync(SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            await StartPartialAnalysis(syntaxTree, cancellationToken).ConfigureAwait(false);
+            if (_initializeTaskStarted && _primaryTask == null)
+            {
+                await _initializeTask.ConfigureAwait(false);
+                await ExecuteSyntaxTreeActions(ImmutableArray.Create(syntaxTree), cancellationToken).ConfigureAwait(false);
+                await ProcessCompilationEventsAsync(false, cancellationToken).ConfigureAwait(false);
 
-            return GetDiagnostics();
+                return GetDiagnostics();
+            }
+
+            return ImmutableArray<Diagnostic>.Empty;
         }
 
         private ImmutableArray<Diagnostic> GetDiagnostics()

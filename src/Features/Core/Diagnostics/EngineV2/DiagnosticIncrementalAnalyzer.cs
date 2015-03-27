@@ -44,12 +44,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Compilation compilation = documentModel.Compilation;
                 CompilationDescriptor compilationDescriptor = GetCompilationDescriptor(compilation, project, projectVersion, cancellationToken);
 
-                if (!compilationDescriptor.DocumentAnalyzed(documentId) && !compilationDescriptor.IsComplete)
+                if (!compilationDescriptor.DocumentAnalyzed(documentId) && !compilationDescriptor.CompletionStarted)
                 {
-                    ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.CompilationWithAnalyzers.GetDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
-                    DistributeDiagnostics(project, compilationDescriptor, diagnostics);
-
-                    compilationDescriptor.MarkDocumentAnalyzed(documentId);
+                    ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.AnalyzeDocumentAsync(documentId, documentModel, cancellationToken).ConfigureAwait(false);
+                    RaiseEvents(project, diagnostics);
                 }
             }
         }
@@ -67,19 +65,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             CompilationDescriptor compilationDescriptor = GetCompilationDescriptor(compilation, project, projectVersion, cancellationToken);
 
-            if (!compilationDescriptor.IsComplete)
+            if (!compilationDescriptor.CompletionStarted)
             {
-                ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.CompilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
-                DistributeDiagnostics(project, compilationDescriptor, diagnostics);
-
+                ImmutableArray<Diagnostic> diagnostics = await compilationDescriptor.AnalyzeProjectAsync(cancellationToken).ConfigureAwait(false);
+                RaiseEvents(project, diagnostics);
                 MarkComplete(project, compilationDescriptor);
             }
-        }
-
-        private void DistributeDiagnostics(Project project, CompilationDescriptor compilationDescriptor, ImmutableArray<Diagnostic> diagnostics)
-        {
-            compilationDescriptor.DistributeDiagnostics(diagnostics);
-            RaiseEvents(project, diagnostics);
         }
 
         public override Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
@@ -110,8 +101,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _owner.RaiseDiagnosticsUpdated(this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, projectId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
 
-        // New above here.
-
         public override void RemoveDocument(DocumentId documentId)
         {
             _owner.RaiseDiagnosticsUpdated(
@@ -119,7 +108,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
         #endregion
 
-        public override Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
+        {
+            return await GetDiagnosticsAsync(CompilationVintage.Completed, solution, projectId, documentId, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(CompilationVintage vintage, Solution solution, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
         {
             if (projectId != null)
             {
@@ -127,76 +121,72 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (project != null)
                 {
-                    CompilationDescriptor completedCompilationDescriptor = GetCompilationDescriptor(project, CompilationVintage.Completed);
-                    if (completedCompilationDescriptor != null)
+                    CompilationDescriptor compilationDescriptor = GetCompilationDescriptor(project, vintage);
+                    if (compilationDescriptor != null && !compilationDescriptor.ProjectVersion.Equals(VersionStamp.Default))
                     {
-                        if (completedCompilationDescriptor.ProjectVersion.Equals(VersionStamp.Default))
-                        {
-                            // There hasn't been a completed analysis of this project. Return the current analysis.
-                            return GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken);
-                        }
-
                         if (documentId != null)
                         {
                             Document document = project.GetDocument(documentId);
                             if (document != null)
                             {
-                                ImmutableArray<Diagnostic> documentDiagnostics;
-                                completedCompilationDescriptor.DiagnosticsPerPaths.TryGetValue(document.FilePath, out documentDiagnostics);
-                                return Task.FromResult(GetDiagnosticData(project, documentDiagnostics).ToImmutableArrayOrEmpty());
+                                return GetDiagnosticData(project, await compilationDescriptor.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
                             }
+                        }
+                        else
+                        {
+                            return GetDiagnosticData(project, await compilationDescriptor.GetAllDiagnosticsAsync().ConfigureAwait(false)).ToImmutableArrayOrEmpty();
                         }
                     }
                 }
             }
+            else
+            {
+                ImmutableArray<DiagnosticData>.Builder diagnosticsBuilder = ImmutableArray.CreateBuilder<DiagnosticData>();
+                foreach (ProjectId solutionProjectId in solution.ProjectIds)
+                {
+                    diagnosticsBuilder.AddRange(await GetDiagnosticsAsync(vintage, solution, solutionProjectId, null, cancellationToken).ConfigureAwait(false));
+                }
 
-            return null;
+                return diagnosticsBuilder.ToImmutable();
+            }
+
+            return ImmutableArray<DiagnosticData>.Empty;
         }
 
         public override Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, CancellationToken cancellationToken)
         {
-            return GetSpecificDiagnosticsAsync(solution, id, cancellationToken);
+            return GetSpecificDiagnosticsAsync(CompilationVintage.Completed, solution, id, cancellationToken);
         }
 
-        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (documentId != null)
-            {
-                var diagnostics = await GetProjectDiagnosticsAsync(solution.GetProject(projectId), cancellationToken).ConfigureAwait(false);
-                return diagnostics.Where(d => d.DocumentId == documentId).ToImmutableArrayOrEmpty();
-            }
-
-            if (projectId != null)
-            {
-                return await GetProjectDiagnosticsAsync(solution.GetProject(projectId), cancellationToken).ConfigureAwait(false);
-            }
-
-            var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
-            foreach (var project in solution.Projects)
-            {
-                builder.AddRange(await GetProjectDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false));
-            }
-
-            return builder.ToImmutable();
-        }
-
-        public override async Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(CompilationVintage vintage, Solution solution, object id, CancellationToken cancellationToken)
         {
             if (id is ValueTuple<DiagnosticIncrementalAnalyzer, DocumentId>)
             {
                 var key = (ValueTuple<DiagnosticIncrementalAnalyzer, DocumentId>)id;
-                return await GetDiagnosticsAsync(solution, key.Item2.ProjectId, key.Item2, cancellationToken).ConfigureAwait(false);
+                return await GetDiagnosticsAsync(vintage, solution, key.Item2.ProjectId, key.Item2, cancellationToken).ConfigureAwait(false);
             }
 
             if (id is ValueTuple<DiagnosticIncrementalAnalyzer, ProjectId>)
             {
                 var key = (ValueTuple<DiagnosticIncrementalAnalyzer, ProjectId>)id;
-                var diagnostics = await GetDiagnosticsAsync(solution, key.Item2, null, cancellationToken).ConfigureAwait(false);
+                ImmutableArray<DiagnosticData> diagnostics = await GetDiagnosticsAsync(vintage, solution, key.Item2, null, cancellationToken).ConfigureAwait(false);
                 return diagnostics.Where(d => d.DocumentId == null).ToImmutableArray();
             }
 
             return ImmutableArray<DiagnosticData>.Empty;
         }
+        
+        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
+        {
+            return await GetDiagnosticsAsync(CompilationVintage.Current, solution, projectId, documentId, cancellationToken).ConfigureAwait(false);
+        }
+
+        public override async Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, CancellationToken cancellationToken)
+        {
+            return await GetSpecificDiagnosticsAsync(CompilationVintage.Current, solution, id, cancellationToken).ConfigureAwait(false);
+        }
+
+        // New above here.
 
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, ImmutableHashSet<string> diagnosticIds = null, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -358,7 +348,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             lock (_compilationDescriptors)
             {
-                compilationDescriptor.MarkComplete();
                 _compilationDescriptors[project.Id].CompletedCompilation = compilationDescriptor;
             }
         }
@@ -391,17 +380,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private class CompilationDescriptor
         {
             public VersionStamp ProjectVersion { get; private set; }
-            public CompilationWithAnalyzers CompilationWithAnalyzers { get; private set; }
-            public ConcurrentDictionary<string, ImmutableArray<Diagnostic>> DiagnosticsPerPaths { get; private set; }
-            public bool IsComplete { get; private set; }
-            private readonly ConcurrentDictionary<DocumentId, bool> _analyzedDocuments = new ConcurrentDictionary<DocumentId, bool>();
-            private readonly object UpdateDiagnosticsLock = new object();
+
+            private readonly ConcurrentDictionary<string, ImmutableArray<Diagnostic>> _diagnosticsPerPaths = new ConcurrentDictionary<string, ImmutableArray<Diagnostic>>();
+            private readonly ConcurrentDictionary<DocumentId, Task> _analyzedDocuments = new ConcurrentDictionary<DocumentId, Task>();
+            private readonly object _updateDiagnosticsLock = new object();
+            private CompilationWithAnalyzers _compilationWithAnalyzers;
+
+            private Task _completionTask;
 
             public CompilationDescriptor(VersionStamp projectVersion, CompilationWithAnalyzers compilation)
             {
-                this.CompilationWithAnalyzers = compilation;
+                _compilationWithAnalyzers = compilation;
                 this.ProjectVersion = projectVersion;
-                this.DiagnosticsPerPaths = new ConcurrentDictionary<string, ImmutableArray<Diagnostic>>();
+            }
+
+            public bool CompletionStarted
+            {
+                get { return _completionTask != null; }
             }
 
             public bool DocumentAnalyzed(DocumentId documentId)
@@ -409,21 +404,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return _analyzedDocuments.ContainsKey(documentId);
             }
 
-            public void MarkDocumentAnalyzed(DocumentId documentId)
-            {
-                _analyzedDocuments[documentId] = true;
-            }
-
-            public void RemoveDocument(DocumentId documentId)
-            {
-                
-            }
-
             public void DistributeDiagnostics(ImmutableArray<Diagnostic> diagnostics)
             {
-                lock (this.UpdateDiagnosticsLock)
+                lock (_updateDiagnosticsLock)
                 {
-                    ConcurrentDictionary<string, ImmutableArray<Diagnostic>> diagnosticMap = this.DiagnosticsPerPaths;
+                    ConcurrentDictionary<string, ImmutableArray<Diagnostic>> diagnosticMap = _diagnosticsPerPaths;
                     foreach (Diagnostic diagnostic in diagnostics)
                     {
                         string diagnosticPath = LocationPath(diagnostic.Location);
@@ -442,12 +427,92 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            public void MarkComplete()
+            public async Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(CancellationToken cancellationToken)
             {
-                IsComplete = true;
+                ImmutableArray<Diagnostic> diagnostics = ImmutableArray<Diagnostic>.Empty;
+                lock (_updateDiagnosticsLock)
+                {
+                    if (!this.CompletionStarted)
+                    {
+                        _completionTask = Task.Run(async () =>
+                        {
+                            diagnostics = await _compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
 
-                // Enable the compilation to be collected.
-                this.CompilationWithAnalyzers = null;
+                            // Enable the compilation to be collected.
+                            _compilationWithAnalyzers = null;
+
+                            DistributeDiagnostics(diagnostics);
+                        }, cancellationToken);
+                    }
+                }
+
+                await _completionTask.ConfigureAwait(false);
+                return diagnostics;
+            }
+
+            public async Task<ImmutableArray<Diagnostic>> AnalyzeDocumentAsync(DocumentId documentId, SemanticModel documentModel, CancellationToken cancellationToken)
+            {
+                ImmutableArray<Diagnostic> diagnostics = ImmutableArray<Diagnostic>.Empty;
+
+                lock (_updateDiagnosticsLock)
+                {
+                    if (!DocumentAnalyzed(documentId) && !CompletionStarted)
+                    {
+                        _analyzedDocuments[documentId] = Task.Run(async () =>
+                        {
+                            diagnostics = await _compilationWithAnalyzers.GetDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
+                            DistributeDiagnostics(diagnostics);
+                        }, cancellationToken);
+                    }
+                }
+
+                if (DocumentAnalyzed(documentId))
+                {
+                    await _analyzedDocuments[documentId].ConfigureAwait(false);
+                }
+
+                return diagnostics;
+            }
+
+            public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync()
+            {
+                if (CompletionStarted)
+                {
+                    await _completionTask.ConfigureAwait(false);
+
+                    ImmutableArray<Diagnostic>.Builder result = ImmutableArray.CreateBuilder<Diagnostic>();
+                    lock (_updateDiagnosticsLock)
+                    {
+                        foreach (ImmutableArray<Diagnostic> diagnostics in _diagnosticsPerPaths.Values)
+                        {
+                            result.AddRange(diagnostics);
+                        }
+                    }
+
+                    return result.ToImmutable();
+                }
+
+                return ImmutableArray<Diagnostic>.Empty;
+            }
+
+            public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document)
+            {
+                if (DocumentAnalyzed(document.Id))
+                {
+                    await _analyzedDocuments[document.Id].ConfigureAwait(false);
+                }
+                else if (CompletionStarted)
+                {
+                    await _completionTask.ConfigureAwait(false);
+                }
+
+                ImmutableArray<Diagnostic> documentDiagnostics;
+                if (_diagnosticsPerPaths.TryGetValue(document.FilePath, out documentDiagnostics))
+                {
+                    return documentDiagnostics;
+                }
+
+                return ImmutableArray<Diagnostic>.Empty;
             }
         }
     }
