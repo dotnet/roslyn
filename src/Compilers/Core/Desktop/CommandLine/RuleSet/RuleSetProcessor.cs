@@ -46,19 +46,6 @@ namespace Microsoft.CodeAnalysis
         private const string RuleActionErrorValue = "Error";
         private const string RuleActionDefaultValue = "Default";
 
-        private const string XsdResourceName = "Microsoft.CodeAnalysis.RuleSet.xsd";
-
-        /// <summary>
-        /// Static constructor for initializing the schema object to be used for schema validation
-        /// </summary>
-        private static XmlSchema CreateRuleSetSchema()
-        {
-            using (XmlReader reader = XmlReader.Create(typeof(RuleSetProcessor).Assembly.GetManifestResourceStream(XsdResourceName)))
-            {
-                return XmlSchema.Read(reader, validationEventHandler: null);
-            }
-        }
-
         /// <summary>
         /// Creates and loads the rule set from a file
         /// </summary>
@@ -94,19 +81,6 @@ namespace Microsoft.CodeAnalysis
                 ruleSetNode = nodeList[0];
             }
 
-            // Validate against the current schema
-            var ruleSetSchema = CreateRuleSetSchema();
-            ruleSetDocument.Schemas.Add(ruleSetSchema);
-            ruleSetDocument.Schemas.Compile();
-            try
-            {
-                ruleSetDocument.Validate(null);
-            }
-            catch (XmlSchemaValidationException e)
-            {
-                throw new InvalidRuleSetException(string.Format(CodeAnalysisResources.RuleSetSchemaViolation, e.Message));
-            }
-
             return ReadRuleSet(ruleSetNode, filePath);
         }
 
@@ -121,6 +95,9 @@ namespace Microsoft.CodeAnalysis
             var specificOptions = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>();
             var generalOption = ReportDiagnostic.Default;
             var includes = ImmutableArray.CreateBuilder<RuleSetInclude>();
+
+            ValidateAttribute(ruleSetNode, RuleSetToolsVersionAttributeName);
+            ValidateAttribute(ruleSetNode, RuleSetNameAttributeName);
 
             // Loop through each rules or include node in this rule set
             foreach (XmlNode childNode in ruleSetNode.ChildNodes)
@@ -199,7 +176,7 @@ namespace Microsoft.CodeAnalysis
         private static KeyValuePair<string, ReportDiagnostic> ReadRule(XmlNode ruleNode, string analyzer, string space)
         {
             string ruleId = ReadNonEmptyAttribute(ruleNode, RuleIdAttributeName);
-            ReportDiagnostic action = ReadAction(ruleNode);
+            ReportDiagnostic action = ReadAction(ruleNode, allowDefault: false);
 
             return new KeyValuePair<string, ReportDiagnostic>(ruleId, action);
         }
@@ -212,7 +189,7 @@ namespace Microsoft.CodeAnalysis
         private static RuleSetInclude ReadRuleSetInclude(XmlNode includeNode)
         {
             string includePath = ReadNonEmptyAttribute(includeNode, IncludePathAttributeName);
-            ReportDiagnostic action = ReadAction(includeNode);
+            ReportDiagnostic action = ReadAction(includeNode, allowDefault: true);
 
             return new RuleSetInclude(includePath, action);
         }
@@ -220,9 +197,10 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Reads the action from the given node
         /// </summary>
-        /// <param name="node">The node to read the action, it can be a rule node or an include node</param>
+        /// <param name="node">The node to read the action, it can be a rule node or an include node.</param>
+        /// <param name="allowDefault">Whether or not the default value is allowed.</param>
         /// <returns>The rule action</returns>
-        private static ReportDiagnostic ReadAction(XmlNode node)
+        private static ReportDiagnostic ReadAction(XmlNode node, bool allowDefault)
         {
             string action = ReadNonEmptyAttribute(node, RuleActionAttributeName);
 
@@ -246,14 +224,12 @@ namespace Microsoft.CodeAnalysis
             {
                 return ReportDiagnostic.Suppress;
             }
-            else if (string.Equals(action, RuleActionDefaultValue))
+            else if (string.Equals(action, RuleActionDefaultValue) && allowDefault)
             {
                 return ReportDiagnostic.Default;
             }
 
-            // Schema validation should prevent us from getting here.
-            Debug.Fail("Invalid action value in RuleSet");
-            throw ExceptionUtilities.Unreachable;
+            throw new InvalidRuleSetException(string.Format(CodeAnalysisDesktopResources.RuleSetBadAttributeValue, RuleActionAttributeName, action));
         }
 
         /// <summary>
@@ -263,7 +239,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A IncludeAll object with data from the given XML node</returns>
         private static ReportDiagnostic ReadIncludeAll(XmlNode includeAllNode)
         {
-            return ReadAction(includeAllNode);
+            return ReadAction(includeAllNode, allowDefault: false);
         }
 
         /// <summary>
@@ -275,9 +251,14 @@ namespace Microsoft.CodeAnalysis
         private static string ReadNonEmptyAttribute(XmlNode node, string attributeName)
         {
             XmlAttribute attribute = node.Attributes[attributeName];
-            if (attribute == null || string.IsNullOrEmpty(attribute.Value))
+            if (attribute == null)
             {
-                Debug.Fail("Failed to validate attribute '" + attributeName + "' in node '" + node.Name + "'");
+                throw new InvalidRuleSetException(string.Format(CodeAnalysisDesktopResources.RuleSetMissingAttribute, node.Name, attributeName));
+            }
+
+            if (string.IsNullOrEmpty(attribute.Value))
+            {
+                throw new InvalidRuleSetException(string.Format(CodeAnalysisDesktopResources.RuleSetBadAttributeValue, attributeName, attribute.Value));
             }
 
             return attribute.Value;
@@ -295,12 +276,15 @@ namespace Microsoft.CodeAnalysis
             xmlReaderSettings.ConformanceLevel = ConformanceLevel.Document;
             xmlReaderSettings.IgnoreComments = true;
             xmlReaderSettings.IgnoreProcessingInstructions = true;
-            xmlReaderSettings.ValidationType = ValidationType.None;
             xmlReaderSettings.IgnoreWhitespace = true;
             xmlReaderSettings.DtdProcessing = DtdProcessing.Prohibit;
-            xmlReaderSettings.XmlResolver = null;
 
             return xmlReaderSettings;
+        }
+
+        private static void ValidateAttribute(XmlNode node, string attributeName)
+        {
+            ReadNonEmptyAttribute(node, attributeName);
         }
     }
 }
