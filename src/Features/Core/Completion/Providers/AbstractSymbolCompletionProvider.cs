@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 // We need to use the SemanticModel any particular symbol came from in order to generate its description correctly.
                 // Therefore, when we add a symbol to set of union symbols, add a mapping from it to its SyntaxContext.
-                foreach (var symbol in linkedContextSymbolList.Item3.GroupBy(s => new { s.ContainingType, s.Name, s.Kind }).Select(g => g.First()))
+                foreach (var symbol in linkedContextSymbolList.Item3.GroupBy(s => new { s.Name, s.Kind }).Select(g => g.First()))
                 {
                     if (set.Add(symbol))
                     {
