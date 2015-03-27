@@ -394,7 +394,7 @@ ScanChars:
                         GoTo CleanUp
 
                     Case "?"c
-                        If NextIs(Here + 1,">"c) Then
+                        If NextIs(Here + 1, ">"c) Then
                             '// If valid characters found then return them.
                             If Here <> 0 Then
                                 result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here)
