@@ -19,5 +19,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [ExportOption]
         public static readonly Option<bool> UseCompilationEndCodeFixHeuristic = new Option<bool>(OptionName, "Enable Compilation End Code Fix With Heuristic", defaultValue: true);
+
+        [ExportOption]
+        public static readonly Option<bool> BuildErrorIsTheGod = new Option<bool>(OptionName, "Make build errors to take over everything", defaultValue: false);
+
+        [ExportOption]
+        public static readonly Option<bool> BuildErrorWinLiveError = new Option<bool>(OptionName, "Errors from build will win live errors from same analyzer", defaultValue: true);
     }
 }
