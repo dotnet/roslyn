@@ -406,6 +406,7 @@
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_RenameHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_ReturnHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_SelectAllHandler.cs" />
+    <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_SaveHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_TabHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_OpenLineAboveHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_TypeCharHandler.cs" />
