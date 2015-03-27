@@ -133,6 +133,7 @@ namespace Microsoft.Cci
         void MapTokenToSourceSpan(uint token, ISymUnmanagedDocumentWriter document, uint startLine, uint startColumn, uint endLine, uint endColumn);
     }
 
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     internal struct ImageDebugDirectory
     {
         internal int Characteristics;
@@ -143,18 +144,5 @@ namespace Microsoft.Cci
         internal int SizeOfData;
         internal int AddressOfRawData;
         internal int PointerToRawData;
-
-        // only here to shut up warnings
-        internal ImageDebugDirectory(object dummy)
-        {
-            this.Characteristics = 0;
-            this.TimeDateStamp = 0;
-            this.MajorVersion = 0;
-            this.MinorVersion = 0;
-            this.Type = 0;
-            this.SizeOfData = 0;
-            this.AddressOfRawData = 0;
-            this.PointerToRawData = 0;
-        }
     }
 }
