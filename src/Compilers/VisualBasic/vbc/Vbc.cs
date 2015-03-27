@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -45,6 +46,11 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
                 { // Try to reset the output encoding, ignore if we can't
                 }
             }
+        }
+
+        public override Assembly LoadAssembly(string fullPath)
+        {
+            return Assembly.LoadFrom(fullPath);
         }
 
         protected override uint GetSqmAppID()

@@ -11,9 +11,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 using System.Globalization;
-using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -103,14 +101,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
             // location of the response files.
-            var responseFileDirectory = CommonCompiler.GetResponseFileDirectory();
-            var dispatcher = new ServerDispatcher(new CompilerRequestHandler(responseFileDirectory), new EmptyDiagnosticListener());
+            var compilerExeDirectory = CommonCompiler.GetResponseFileDirectory();
+            var dispatcher = new ServerDispatcher(new CompilerRequestHandler(compilerExeDirectory), new EmptyDiagnosticListener());
 
-            // Add the process ID onto the pipe name so each process gets a semi-unique and predictable pipe 
-            // name.  The client must use this algorithm too to connect.
-            string pipeName = BuildProtocolConstants.PipeName + Process.GetCurrentProcess().Id.ToString();
-
-            dispatcher.ListenAndDispatchConnections(pipeName, keepAliveTimeout, watchAnalyzerFiles: true);
+            dispatcher.ListenAndDispatchConnections(
+                BuildProtocolConstants.GetPipeName(compilerExeDirectory),
+                keepAliveTimeout,
+                watchAnalyzerFiles: true);
             return 0;
         }
 

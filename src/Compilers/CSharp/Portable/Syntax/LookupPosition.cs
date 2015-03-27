@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             PropertyDeclarationSyntax property)
         {
             var exprOpt = property.GetExpressionBodySyntax();
-            return IsInExpressionBody(position, exprOpt, property.Semicolon);
+            return IsInExpressionBody(position, exprOpt, property.SemicolonToken);
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             IndexerDeclarationSyntax indexer)
         {
             var exprOpt = indexer.GetExpressionBodySyntax();
-            return IsInExpressionBody(position, exprOpt, indexer.Semicolon);
+            return IsInExpressionBody(position, exprOpt, indexer.SemicolonToken);
         }
 
         /// <summary>

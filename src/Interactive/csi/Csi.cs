@@ -6,9 +6,11 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.CodeAnalysis.Scripting;
+using Roslyn.Utilities;
 
 namespace CSharpInteractive
 {
@@ -33,6 +35,11 @@ namespace CSharpInteractive
                 Console.WriteLine(ex.ToString());
                 return 1;
             }
+        }
+
+        public override Assembly LoadAssembly(string fullPath)
+        {
+            return InMemoryAssemblyProvider.GetAssembly(fullPath);
         }
 
         internal override MetadataFileReferenceResolver GetExternalMetadataResolver(TouchedFileLogger touchedFiles)

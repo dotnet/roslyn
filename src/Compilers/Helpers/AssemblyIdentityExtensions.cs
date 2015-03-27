@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Microsoft.CodeAnalysis
 {
-    public static class AssemblyIdentityExtensions
+    internal static class AssemblyIdentityExtensions
     {
         // CultureInfo is not portable.
 

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     var existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
 
                     ImmutableArray<DiagnosticData> diagnosticData;
-                    if (supportsSemanticInSpan && CanUseDocumentState(existingData, ranges.TextVersion, versions.DataVersion))
+                    if (supportsSemanticInSpan && CanUseRange(memberId, ranges.Ranges) && CanUseDocumentState(existingData, ranges.TextVersion, versions.DataVersion))
                     {
                         var memberDxData = await GetSemanticDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
 
@@ -109,6 +110,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
+            }
+
+            private bool CanUseRange(int memberId, ImmutableArray<TextSpan> ranges)
+            {
+                // range got out of sync, don't do partial analysis
+                return memberId >= 0 && memberId < ranges.Length;
             }
 
             public async Task<AnalysisData> GetProjectAnalysisDataAsync(DiagnosticAnalyzerDriver analyzerDriver, StateSet stateSet, VersionArgument versions)
@@ -181,7 +188,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return null;
                 }
 
-                Contract.Requires(textVersion != VersionStamp.Default);
                 return new AnalysisData(textVersion, dataVersion, builder.ToImmutable());
             }
 

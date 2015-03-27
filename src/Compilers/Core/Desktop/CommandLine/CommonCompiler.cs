@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract bool SuppressDefaultResponseFile(IEnumerable<string> args);
 
+        public abstract Assembly LoadAssembly(string fullPath);
+
         internal virtual MetadataFileReferenceProvider GetMetadataProvider()
         {
             return MetadataFileReferenceProvider.Default;
