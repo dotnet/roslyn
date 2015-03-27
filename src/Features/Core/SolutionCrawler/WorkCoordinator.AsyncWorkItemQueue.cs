@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected abstract bool TryTake_NoLock(TKey key, out WorkItem workInfo);
 
-                protected abstract bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, out WorkItem workItem);
+                protected abstract bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, out WorkItem workItem);
 
                 public bool HasAnyWork
                 {
@@ -48,17 +48,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         lock (_gate)
                         {
                             return HasAnyWork_NoLock;
-                        }
-                    }
-                }
-
-                public int WorkItemCount
-                {
-                    get
-                    {
-                        lock (_gate)
-                        {
-                            return WorkItemCount_NoLock;
                         }
                     }
                 }
@@ -198,12 +187,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                public bool TryTakeAnyWork(ProjectId preferableProjectId, out WorkItem workItem, out CancellationTokenSource source)
+                public bool TryTakeAnyWork(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, out WorkItem workItem, out CancellationTokenSource source)
                 {
                     lock (_gate)
                     {
                         // there must be at least one item in the map when this is called unless host is shutting down.
-                        if (TryTakeAnyWork_NoLock(preferableProjectId, out workItem))
+                        if (TryTakeAnyWork_NoLock(preferableProjectId, dependencyGraph, out workItem))
                         {
                             if (!HasAnyWork_NoLock)
                             {

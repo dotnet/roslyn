@@ -458,6 +458,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 foreach (var document in project.Documents)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     await AppendDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
                 }
             }
