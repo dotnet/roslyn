@@ -90,6 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string RoslynOptionPagePerformanceFunctionIdIdString = "0C537218-3BDD-4CC8-AC4B-CEC152D4871A";
         public const string RoslynOptionPagePerformanceLoggersIdString = "236AC96F-A60D-4BD6-A480-D315151EDC2B";
         public const string RoslynOptionPageInternalDiagnosticsIdString = "48993C4C-C619-42AD-B1C8-79378AD8BEF2";
+        public const string RoslynOptionPageInternalSolutionCrawlerIdString = "9702D3BD-F06C-4A6A-974B-7D0C2BC89A72";
 
         public static readonly Guid RoslynPackageId = new Guid(RoslynPackageIdString);
         public static readonly Guid RoslynCommandSetId = new Guid(RoslynCommandSetIdString);

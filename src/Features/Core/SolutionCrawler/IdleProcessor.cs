@@ -51,6 +51,27 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             _lastAccessTimeInMS = Environment.TickCount;
         }
 
+        protected async Task WaitForIdleAsync()
+        {
+            while (true)
+            {
+                if (this.CancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                var diffInMS = Environment.TickCount - _lastAccessTimeInMS;
+                if (diffInMS >= _backOffTimeSpanInMS)
+                {
+                    return;
+                }
+
+                // TODO: will safestart/unwarp capture cancellation exception?
+                var timeLeft = _backOffTimeSpanInMS - diffInMS;
+                await Task.Delay(Math.Max(MinimumDelayInMS, timeLeft), this.CancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+            }
+        }
+
         private async Task ProcessAsync()
         {
             while (true)
@@ -77,27 +98,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     // ignore cancellation exception
                 }
-            }
-        }
-
-        private async Task WaitForIdleAsync()
-        {
-            while (true)
-            {
-                if (this.CancellationToken.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                var diffInMS = Environment.TickCount - _lastAccessTimeInMS;
-                if (diffInMS >= _backOffTimeSpanInMS)
-                {
-                    return;
-                }
-
-                // TODO: will safestart/unwarp capture cancellation exception?
-                var timeLeft = _backOffTimeSpanInMS - diffInMS;
-                await Task.Delay(Math.Max(MinimumDelayInMS, timeLeft), this.CancellationToken).ConfigureAwait(continueOnCapturedContext: false);
             }
         }
 

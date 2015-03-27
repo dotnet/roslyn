@@ -508,7 +508,7 @@
     <Compile Include="SolutionCrawler\ISolutionCrawlerRegistrationService.cs" />
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerLogger.cs" />
-    <Compile Include="SolutionCrawler\SolutionCrawlerOptions.cs" />
+    <Compile Include="SolutionCrawler\InternalSolutionCrawlerOptions.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerProgressReporter.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerService.cs" />
     <Compile Include="SolutionCrawler\State\AbstractAnalyzerState.cs" />
