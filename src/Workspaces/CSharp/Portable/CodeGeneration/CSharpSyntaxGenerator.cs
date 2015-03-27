@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             parameters = this.ClearTrivia(parameters);
             returnType = this.ClearTrivia(returnType);
 
-            bool hasBody = !modifiers.IsAbstract;
+            bool hasBody = !modifiers.IsAbstract && (!modifiers.IsPartial || statements != null);
 
             return SyntaxFactory.MethodDeclaration(
                 default(SyntaxList<AttributeListSyntax>),

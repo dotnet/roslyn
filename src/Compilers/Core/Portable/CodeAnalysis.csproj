@@ -330,6 +330,8 @@
     <Compile Include="MetadataReference\UnresolvedMetadataReference.cs" />
     <Compile Include="PEWriter\MetadataHeapsBuilder.cs" />
     <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
+    <Compile Include="PEWriter\NoPiaReferenceIndexer.cs" />
+    <Compile Include="PEWriter\ReferenceIndexerBase.cs" />
     <Compile Include="PEWriter\TypeNameSerializer.cs" />
     <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
     <Compile Include="PEWriter\MetadataWriter.cs" />
