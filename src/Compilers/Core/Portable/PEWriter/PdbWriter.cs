@@ -577,37 +577,36 @@ namespace Microsoft.Cci
             }
         }
 
-        public unsafe PeDebugDirectory GetDebugDirectory()
+        public unsafe Guid GetDebugDirectoryGuid()
         {
+            // See symwrite.cpp - the data byte[] doesn't depend on the content of metadata tables or IL.
+            // The writer only sets two values of the ImageDebugDirectory struct.
+            // 
+            //   IMAGE_DEBUG_DIRECTORY *pIDD
+            // 
+            //   if ( pIDD == NULL ) return E_INVALIDARG;
+            //   memset( pIDD, 0, sizeof( *pIDD ) );
+            //   pIDD->Type = IMAGE_DEBUG_TYPE_CODEVIEW;
+            //   pIDD->SizeOfData = cTheData;
+            
             ImageDebugDirectory debugDir = new ImageDebugDirectory();
-            uint dataCount;
+            uint dataLength;
 
             try
             {
-                _symWriter.GetDebugInfo(ref debugDir, 0, out dataCount, IntPtr.Zero);
+                _symWriter.GetDebugInfo(ref debugDir, 0, out dataLength, IntPtr.Zero);
             }
             catch (Exception ex)
             {
                 throw new PdbWritingException(ex);
             }
 
-            // See symwrite.cpp - the data don't depend on the content of metadata tables or IL
-            // 
-            // struct RSDSI                     
-            // {
-            //     DWORD dwSig;                 // "RSDS"
-            //     GUID guidSig;
-            //     DWORD age;
-            //     char szPDB[0];               // zero-terminated UTF8 file name
-            // };
-            //
-            byte[] data = new byte[dataCount];
-
+            byte[] data = new byte[dataLength];
             fixed (byte* pb = data)
             {
                 try
                 {
-                    _symWriter.GetDebugInfo(ref debugDir, dataCount, out dataCount, (IntPtr)pb);
+                    _symWriter.GetDebugInfo(ref debugDir, dataLength, out dataLength, (IntPtr)pb);
                 }
                 catch (Exception ex)
                 {
@@ -615,18 +614,19 @@ namespace Microsoft.Cci
                 }
             }
 
-            PeDebugDirectory result = new PeDebugDirectory();
-            result.AddressOfRawData = (uint)debugDir.AddressOfRawData;
-            result.Characteristics = (uint)debugDir.Characteristics;
-            result.Data = data;
-            result.MajorVersion = (ushort)debugDir.MajorVersion;
-            result.MinorVersion = (ushort)debugDir.MinorVersion;
-            result.PointerToRawData = (uint)debugDir.PointerToRawData;
-            result.SizeOfData = (uint)debugDir.SizeOfData;
-            result.TimeDateStamp = (uint)debugDir.TimeDateStamp;
-            result.Type = (uint)debugDir.Type;
+            // Data has the following structure:
+            // struct RSDSI                     
+            // {
+            //     DWORD dwSig;                 // "RSDS"
+            //     GUID guidSig;                // GUID
+            //     DWORD age;                   // always 1
+            //     char szPDB[0];               // zero-terminated UTF8 file name passed to the writer
+            // };
+            const int GuidSize = 16;
+            byte[] guidBytes = new byte[GuidSize];
+            Buffer.BlockCopy(data, 4, guidBytes, 0, guidBytes.Length);
 
-            return result;
+            return new Guid(guidBytes);
         }
 
         public void SetEntryPoint(uint entryMethodToken)

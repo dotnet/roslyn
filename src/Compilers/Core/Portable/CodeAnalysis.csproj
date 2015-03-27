@@ -369,7 +369,6 @@
     <Compile Include="PEWriter\NtHeader.cs" />
     <Compile Include="PEWriter\PdbMetadataWrapper.cs" />
     <Compile Include="PEWriter\PdbWriter.cs" />
-    <Compile Include="PEWriter\PeDebugDirectory.cs" />
     <Compile Include="PEWriter\PeWriter.cs" />
     <Compile Include="PEWriter\ReferenceIndexer.cs" />
     <Compile Include="PEWriter\ReturnValueParameter.cs" />
