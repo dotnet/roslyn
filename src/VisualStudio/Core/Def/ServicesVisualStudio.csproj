@@ -369,7 +369,6 @@
     <Compile Include="Implementation\InlineRename\InlineRenameUndoManager.cs" />
     <Compile Include="Implementation\Interop\ComAggregate.cs" />
     <Compile Include="Implementation\Interop\ComHandle.cs" />
-    <Compile Include="Implementation\Interop\IComWrapper.cs" />
     <Compile Include="Implementation\Interop\WeakComHandle.cs" />
     <Compile Include="Implementation\Interop\WrapperPolicy.cs" />
     <Compile Include="Implementation\LanguageService\AbstractLanguageService.cs" />
