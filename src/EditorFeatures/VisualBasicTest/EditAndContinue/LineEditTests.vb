@@ -5,6 +5,8 @@ Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
 
+#Disable Warning RS0007 ' Avoid zero-length array allocations. This is non-shipping test code.
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class LineEditTests
         Inherits RudeEditTestBase
@@ -40,7 +42,7 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {})
+            edits.VerifyLineEdits(Array.Empty(Of LineChange)(), Array.Empty(Of String)())
         End Sub
 
         <Fact>
@@ -70,6 +72,7 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
+
             edits.VerifyLineEdits({New LineChange(2, 6), New LineChange(6, 2)}, {})
         End Sub
 

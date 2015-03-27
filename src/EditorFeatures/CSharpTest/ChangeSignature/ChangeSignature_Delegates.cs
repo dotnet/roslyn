@@ -190,7 +190,7 @@ class C
         d1 =r=>{ System.Console.WriteLine(""Test""); };
     }
 }";
-            var updatedSignature = new int[] { };
+            var updatedSignature = Array.Empty<int>();
             var expectedUpdatedCode = @"
 delegate void MyDelegate();
 
@@ -618,7 +618,7 @@ public class DP16a
         E2 -= new D<int>(M3);
     }
 }";
-            var updatedSignature = new int[] { };
+            var updatedSignature = Array.Empty<int>();
             var expectedUpdatedCode = @"
 public class DP16a
 {
@@ -653,7 +653,7 @@ public class D17Test
     void Test() { var x = new D17<string>.D(M17); }
     internal void M17(string s) { }
 }";
-            var updatedSignature = new int[] { };
+            var updatedSignature = Array.Empty<int>();
             var expectedUpdatedCode = @"
 public class D17<T>
 {
@@ -692,7 +692,7 @@ public class DP20<T>
         D d = new D(M1);
     }
 }";
-            var updatedSignature = new int[] { };
+            var updatedSignature = Array.Empty<int>();
             var expectedUpdatedCode = @"
 class DA
 {
@@ -732,7 +732,7 @@ class Test
         var dele = new CD<int>.$$D((int x) => { });
     }
 }";
-            var updatedSignature = new int[] { };
+            var updatedSignature = Array.Empty<int>();
             var expectedUpdatedCode = @"public class CD<T>
 {
     public delegate void D();
@@ -767,7 +767,7 @@ public class D2
         $$d(D2.Instance);
     }
 }";
-            var updatedSignature = new int[] { };
+            var updatedSignature = Array.Empty<int>();
             var expectedUpdatedCode = @"
 public class C2<T>
 {
