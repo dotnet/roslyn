@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return XmlMakeLessToken(precedingTrivia)
 
                     Case "]"c
-                        If NextAre(Here + 2,"]>") Then
+                        If NextAre(Here + 1, "]>") Then
 
                             ' // If valid characters found then return them.
                             If Here <> 0 Then
