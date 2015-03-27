@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Host
         private static Task s_latestTask = SpecializedTasks.EmptyTask;
         private static readonly NonReentrantLock s_taskGuard = new NonReentrantLock();
 
-        private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, AsyncSemaphore.Factory);
+        private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, SemaphoreSlimFactory.Instance);
 
         public override bool TryGetValue(out T value)
         {

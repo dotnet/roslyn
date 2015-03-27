@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
             _storageService = storageService;
         }
 
-        private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, AsyncSemaphore.Factory);
+        private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, SemaphoreSlimFactory.Instance);
 
         public override bool TryGetValue(out TextAndVersion value)
         {

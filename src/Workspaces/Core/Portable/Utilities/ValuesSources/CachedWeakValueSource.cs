@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Host
             _reference = s_noReference;
         }
 
-        private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, AsyncSemaphore.Factory);
+        private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, SemaphoreSlimFactory.Instance);
 
         public override bool TryGetValue(out T value)
         {
