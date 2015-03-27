@@ -48,9 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryGetOptimizableNullableConditionalAccess(BoundExpression operand, out BoundConditionalAccess conditionalAccess)
         {
-            if (operand.Kind != BoundKind.ConditionalAccess ||
-                            _inExpressionLambda ||
-                            _factory.CurrentMethod.IsAsync)
+            if (operand.Kind != BoundKind.ConditionalAccess || _inExpressionLambda )
             {
                 conditionalAccess = null;
                 return false;
@@ -105,6 +103,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenLeft = MakeConversion(rewrittenLeft.Syntax, rewrittenLeft, leftConversion, rewrittenResultType, @checked: false);
                 }
                 return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, Conversion.Identity, rewrittenResultType);
+            }
+
+            if (leftConversion.IsIdentity || leftConversion.Kind == ConversionKind.ExplicitNullable)
+            {
+                var conditionalAccess = rewrittenLeft as BoundLoweredConditionalAccess;
+                if (conditionalAccess != null && 
+                    (conditionalAccess.WhenNullOpt == null || NullableNeverHasValue(conditionalAccess.WhenNullOpt)))
+                {
+                    var notNullAccess = NullableAlwaysHasValue(conditionalAccess.WhenNotNull);
+                    if (notNullAccess != null)
+                    {
+                        var whenNullOpt = rewrittenRight;
+
+                        if (whenNullOpt.Type.IsNullableType())
+                        {
+                            notNullAccess = conditionalAccess.WhenNotNull;
+                        }
+
+                        if (whenNullOpt.IsDefaultValue() && whenNullOpt.Type.SpecialType != SpecialType.System_Decimal)
+                        {
+                            whenNullOpt = null;
+                        }
+
+                        return conditionalAccess.Update(
+                            conditionalAccess.Receiver,
+                            whenNotNull: notNullAccess,
+                            whenNullOpt: whenNullOpt,
+                            type: rewrittenResultType
+                        );
+                    }
+                }
             }
 
             // We lower left ?? right to 

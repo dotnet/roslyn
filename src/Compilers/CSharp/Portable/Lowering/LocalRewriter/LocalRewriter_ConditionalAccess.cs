@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             //       Nullable is special since we are not going to read any part of it twice
             //       we will read "HasValue" and then, conditionally will read "ValueOrDefault"
-            else if (IntroducingReadCanBeObservable(loweredReceiver, !receiverType.IsNullableType()))
+            else if (CanChangeValueBetweenReads(loweredReceiver, !receiverType.IsNullableType()))
             {
                 // NOTE: dynamic operations historically do not propagate mutations
                 // to the receiver if that hapens to be a value type

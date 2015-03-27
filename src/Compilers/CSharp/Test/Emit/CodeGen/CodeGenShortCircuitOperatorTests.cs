@@ -3447,6 +3447,83 @@ class Program
         }
 
         [Fact]
+        public void ConditionalMemberAccessCoalessce001n()
+        {
+            var source = @"
+class Program
+{
+    class C1
+    {
+        public int x{get; set;}
+        public int? y{get; set;}
+    }
+
+    static void Main()
+    {
+        var c = new C1();
+        System.Console.WriteLine(Test1(c));
+        System.Console.WriteLine(Test1(null));
+
+        System.Console.WriteLine(Test2(c));
+        System.Console.WriteLine(Test2(null));
+    }
+
+    static int? Test1(C1 c)
+    {
+        return c?.x ?? (int?)42;
+    }
+
+    static int? Test2(C1 c)
+    {
+        return c?.y ?? (int?)42;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"0
+42
+42
+42");
+            comp.VerifyIL("Program.Test1(Program.C1)", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000b
+  IL_0003:  ldc.i4.s   42
+  IL_0005:  newobj     ""int?..ctor(int)""
+  IL_000a:  ret
+  IL_000b:  ldarg.0
+  IL_000c:  call       ""int Program.C1.x.get""
+  IL_0011:  newobj     ""int?..ctor(int)""
+  IL_0016:  ret
+}
+").VerifyIL("Program.Test2(Program.C1)", @"
+{
+  // Code size       40 (0x28)
+  .maxstack  1
+  .locals init (int? V_0,
+                int? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    ""int?""
+  IL_000b:  ldloc.1
+  IL_000c:  br.s       IL_0014
+  IL_000e:  ldarg.0
+  IL_000f:  call       ""int? Program.C1.y.get""
+  IL_0014:  stloc.0
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""bool int?.HasValue.get""
+  IL_001c:  brtrue.s   IL_0026
+  IL_001e:  ldc.i4.s   42
+  IL_0020:  newobj     ""int?..ctor(int)""
+  IL_0025:  ret
+  IL_0026:  ldloc.0
+  IL_0027:  ret
+}");
+        }
+
+        [Fact]
         public void ConditionalMemberAccessCoalessce001r()
         {
             var source = @"
@@ -3786,15 +3863,17 @@ False");
 }
 ").VerifyIL("Program.Test3(Program.C1)", @"
 {
-  // Code size       12 (0xc)
+  // Code size       14 (0xe)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000a
-  IL_0003:  ldarg.0
-  IL_0004:  call       ""int Program.C1.x.get""
-  IL_0009:  pop
-  IL_000a:  ldc.i4.0
-  IL_000b:  ret
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""int Program.C1.x.get""
+  IL_000b:  pop
+  IL_000c:  ldc.i4.0
+  IL_000d:  ret
 }
 ");
         }
@@ -4484,14 +4563,18 @@ class Program
 {
     static void Main()
     {
-        Test1<string>(null);
-        Test2<string>(null);
+        System.Console.WriteLine(Test1<string>(null));
+        System.Console.WriteLine(Test2<string>(null));
+        System.Console.WriteLine(Test1<string>(new string[] {}));
+        System.Console.WriteLine(Test2<string>(new string[] {}));
+        System.Console.WriteLine(Test1<string>(new string[] { System.String.Empty }));
+        System.Console.WriteLine(Test2<string>(new string[] { System.String.Empty }));
     }
 
     static string Test1<T>(T[] arr1)
     {
         var arr = arr1;
-        if (arr == null || arr.Length == 0)
+        if (arr != null && arr.Length == 0)
         {
             return ""empty"";
         }
@@ -4511,7 +4594,12 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"");
+            var comp = CompileAndVerify(source, expectedOutput: @"not empty
+not empty
+empty
+empty
+not empty
+not empty");
             comp.VerifyIL("Program.Test1<T>(T[])", @"
 {
   // Code size       21 (0x15)
@@ -4520,7 +4608,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  brfalse.s  IL_0009
+  IL_0003:  brfalse.s  IL_000f
   IL_0005:  ldloc.0
   IL_0006:  ldlen
   IL_0007:  brtrue.s   IL_000f
@@ -5660,6 +5748,43 @@ class Program
             var compilation = CreateCompilationWithMscorlib45(
                 source, references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: "12456");
+        }
+
+        [WorkItem(825, "https://github.com/dotnet/roslyn/issues/825")]
+        [Fact]
+        public void ConditionalBoolExpr01()
+        {
+            var source = @"
+class C 
+{ 
+    public static void Main() 
+    { 
+        System.Console.WriteLine(HasLength(null, 0));
+    }
+
+    static bool HasLength(string s, int len)
+    {
+        return s?.Length == len;
+    }
+}
+
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"False");
+
+            verifier.VerifyIL("C.HasLength", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""int string.Length.get""
+  IL_000b:  ldarg.1
+  IL_000c:  ceq
+  IL_000e:  ret
+}");
         }
     }
 }

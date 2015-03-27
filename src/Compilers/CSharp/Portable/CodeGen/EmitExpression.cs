@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // we need a copy if we deal with nonlocal value (to capture the value)
             // or if we have a ref-constrained T (to do box just once)
             // or if we deal with stack local (reads are destructive)
-            var nullCheckOnCopy = LocalRewriter.IntroducingReadCanBeObservable(receiver, localsMayBeAssignedOrCaptured: false) ||
+            var nullCheckOnCopy = LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                    (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ||
                                    (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
 

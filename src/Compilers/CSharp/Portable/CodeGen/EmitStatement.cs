@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         // we need a copy if we deal with nonlocal value (to capture the value)
                         // or if we deal with stack local (reads are destructive)
                         var complexCase = !receiverType.IsReferenceType ||
-                                          LocalRewriter.IntroducingReadCanBeObservable(receiver, localsMayBeAssignedOrCaptured: false) ||
+                                          LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                           (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol)) ||
                                           (ca.WhenNullOpt?.IsDefaultValue() == false) ;
 
