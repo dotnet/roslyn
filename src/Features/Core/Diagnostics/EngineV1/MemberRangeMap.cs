@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return;
             }
 
+            // if range is invalid, create new member map
             if (memberId < 0 ||
                 !data.MemberRangeMap.TryGetValue(oldVersion, out range) ||
                 range.Length <= memberId)
