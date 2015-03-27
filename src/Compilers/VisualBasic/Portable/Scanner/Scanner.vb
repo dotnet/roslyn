@@ -400,6 +400,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
+        Private Function NextIs(offset As Integer, c As String) As Boolean
+            Return CanGet(offset) AndAlso (Peek(offset) = c)
+        End Function
+
         Private Function CanGet() As Boolean
             Return _lineBufferOffset < _bufferLen
         End Function
