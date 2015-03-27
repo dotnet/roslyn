@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(IsAtNewLine)
 
             ' leading whitespace until we see ''' should be regular whitespace
-            If CanGetChar() AndAlso IsWhitespace(Peek()) Then
+            If CanGet() AndAlso IsWhitespace(Peek()) Then
                 Dim ws = ScanWhitespace()
                 tList.Add(ws)
             End If
@@ -385,7 +385,7 @@ ScanChars:
                 precedingTrivia.Add(xDocTrivia)
             End If
 
-            If state = ScannerState.StartProcessingInstruction AndAlso CanGetChar() Then
+            If state = ScannerState.StartProcessingInstruction AndAlso CanGet() Then
                 ' // Whitespace
                 ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
                 Dim c = Peek()
@@ -477,7 +477,7 @@ CleanUp:
                 precedingTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
             End If
 
-            While CanGetChar()
+            While CanGet()
                 If Not precedingTrivia.Any AndAlso IsAtNewLine() AndAlso Not Me._doNotRequireXmlDocCommentPrefix Then
                     ' this would indicate that we looked at Trivia, but did not find
                     ' XmlDoc prefix (or we would not be at the line start)

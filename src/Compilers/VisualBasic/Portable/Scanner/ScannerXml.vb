@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim leadingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
 
-            While CanGetChar()
+            While CanGet()
                 Dim c As Char = Peek()
 
                 Select Case (c)
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '// NL WS* '
         '// Example ' This is a comment
         Private Function ScanXmlForPossibleStatement(state As ScannerState) As Boolean
-            If Not CanGetChar() Then
+            If Not CanGet() Then
                 Return False
             End If
 
@@ -687,7 +687,7 @@ ScanChars:
             Dim precedingTrivia = _triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
             Dim result As SyntaxToken
 
-            If state = ScannerState.StartProcessingInstruction AndAlso CanGetChar() Then
+            If state = ScannerState.StartProcessingInstruction AndAlso CanGet() Then
                 ' // Whitespace
                 ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
                 Dim c = Peek()
@@ -760,7 +760,7 @@ CleanUp:
             ' // Misc    ::=    Comment | PI | S
 
             Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
-            While CanGetChar()
+            While CanGet()
                 Dim c As Char = Peek()
 
                 Select Case (c)
@@ -838,7 +838,7 @@ CleanUp:
         End Function
 
         Friend Function ScanXmlStringUnQuoted() As SyntaxToken
-            If Not CanGetChar() Then
+            If Not CanGet() Then
                 Return MakeEofToken()
             End If
 
@@ -1198,7 +1198,7 @@ CreateNCNameToken:
         End Function
 
         Private Function ScanXmlReference(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As XmlTextTokenSyntax
-            Debug.Assert(CanGetChar)
+            Debug.Assert(CanGet)
             Debug.Assert(Peek() = "&"c)
 
             ' skip 1 char for "&"

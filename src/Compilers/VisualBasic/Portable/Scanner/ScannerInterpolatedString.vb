@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Partial Friend Class Scanner
 
         Private Function ScanInterpolatedStringPunctuation() As SyntaxToken
-            If Not CanGetChar() Then
+            If Not CanGet() Then
                 Return MakeEndOfInterpolatedStringToken()
             End If
 
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ScanInterpolatedStringText(scanTrailingWhitespaceAsTrivia As Boolean) As SyntaxToken
-            If Not CanGetChar() Then Return MakeEndOfInterpolatedStringToken()
+            If Not CanGet() Then Return MakeEndOfInterpolatedStringToken()
 
             Dim offset = 0
             Dim pendingWhitespace = 0

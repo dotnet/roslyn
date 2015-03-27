@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ScanNextCharAsToken(leadingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Dim token As SyntaxToken
 
-            If Not CanGetChar() Then
+            If Not CanGet() Then
                 token = MakeEofToken(leadingTrivia)
             Else
                 ' // Don't break up surrogate pairs
@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim condLineStart = _lineBufferOffset
 
-            While (CanGetChar())
+            While (CanGet())
                 Dim c As Char = Peek()
 
                 Select Case (c)
@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Sub EatThroughLine()
-            While CanGetChar()
+            While CanGet()
                 Dim c As Char = Peek()
 
                 If IsNewLine(c) Then
@@ -400,7 +400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
-        Private Function CanGetChar() As Boolean
+        Private Function CanGet() As Boolean
             Return _lineBufferOffset < _bufferLen
         End Function
 
@@ -446,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Private Function GetNextChar() As String
-            Debug.Assert(CanGetChar)
+            Debug.Assert(CanGet)
 
             Dim ch = GetChar()
             _lineBufferOffset += 1
@@ -512,7 +512,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ScanLineContinuation(tList As SyntaxListBuilder) As Boolean
-            If Not CanGetChar() Then
+            If Not CanGet() Then
                 Return False
             End If
 
@@ -580,7 +580,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Consumes all trivia until a nontrivia char is found
         ''' </summary>
         Friend Function ScanMultilineTrivia() As SyntaxList(Of VisualBasicSyntaxNode)
-            If Not CanGetChar() Then
+            If Not CanGet() Then
                 Return Nothing
             End If
 
@@ -605,7 +605,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Scans a single piece of trivia
         ''' </summary>
         Private Function TryScanSinglePieceOfMultilineTrivia(tList As SyntaxListBuilder) As Boolean
-            If CanGetChar() Then
+            If CanGet() Then
 
                 Dim atNewLine = IsAtNewLine()
 
@@ -709,7 +709,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Private Sub ScanSingleLineTriviaInXmlDoc(tList As SyntaxListBuilder)
-            If CanGetChar() Then
+            If CanGet() Then
                 Dim c As Char = Peek()
                 Select Case (c)
                     ' // Whitespace
@@ -742,7 +742,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Sub ScanWhitespaceAndLineContinuations(tList As SyntaxListBuilder)
-            If CanGetChar() AndAlso IsWhitespace(Peek()) Then
+            If CanGet() AndAlso IsWhitespace(Peek()) Then
                 tList.Add(ScanWhitespace(1))
                 ' collect { lineCont, ws }
                 While ScanLineContinuation(tList)
@@ -812,7 +812,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' Case 3 is required to parse single line if's and numeric labels. 
             ' Case 4 is required to limit explicit line continuations to single new line
 
-            If CanGetChar() Then
+            If CanGet() Then
 
                 Dim ch As Char = Peek()
                 Dim startOfTerminatorTrivia = _lineBufferOffset
@@ -853,7 +853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Private Function ScanCommentIfAny(tList As SyntaxListBuilder) As Boolean
-            If CanGetChar() Then
+            If CanGet() Then
                 ' check for comment
                 Dim comment = ScanComment()
                 If comment IsNot Nothing Then
@@ -897,13 +897,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Sub EatWhitespace()
-            Debug.Assert(CanGetChar)
+            Debug.Assert(CanGet)
             Debug.Assert(IsWhitespace(Peek()))
 
             AdvanceChar()
 
             ' eat until linebreak or nonwhitespace
-            While CanGetChar() AndAlso IsWhitespace(Peek)
+            While CanGet() AndAlso IsWhitespace(Peek)
                 AdvanceChar()
             End While
         End Sub
@@ -933,7 +933,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ScanComment() As SyntaxTrivia
-            Debug.Assert(CanGetChar())
+            Debug.Assert(CanGet())
 
             Dim length = PeekStartComment(0)
             If length > 0 Then
@@ -966,7 +966,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ScanColonAsTrivia() As SyntaxTrivia
-            Debug.Assert(CanGetChar())
+            Debug.Assert(CanGet())
             Debug.Assert(IsColonAndNotColonEquals(Peek(), offset:=0))
 
             Return MakeColonTrivia(GetText(1))
@@ -978,7 +978,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' the beginning of a token        
         Private Function TryScanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
 
-            If Not CanGetChar() Then
+            If Not CanGet() Then
                 Return MakeEofToken(precedingTrivia)
             End If
 
@@ -1444,7 +1444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ScanRightAngleBracket(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As SyntaxToken
-            Debug.Assert(CanGetChar)  ' > 
+            Debug.Assert(CanGet)  ' > 
             Debug.Assert(Peek() = ">"c OrElse Peek() = FULLWIDTH_GREATER_THAN_SIGN)
 
             Dim length As Integer = 1
@@ -1471,7 +1471,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ScanLeftAngleBracket(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean, scanTrailingTrivia As ScanTriviaFunc) As SyntaxToken
-            Debug.Assert(CanGetChar)  ' < 
+            Debug.Assert(CanGet)  ' < 
             Debug.Assert(Peek() = "<"c OrElse Peek() = FULLWIDTH_LESS_THAN_SIGN)
 
             Dim length As Integer = 1
@@ -1566,7 +1566,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ScanIdentifierOrKeyword(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
-            Debug.Assert(CanGetChar)
+            Debug.Assert(CanGet)
             Debug.Assert(IsIdentifierStartCharacter(Peek))
             Debug.Assert(PeekStartComment(0) = 0) ' comment should be handled by caller
 
@@ -1684,7 +1684,7 @@ FullWidthRepeat:
         End Function
 
         Private Function ScanBracketedIdentifier(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
-            Debug.Assert(CanGetChar)  ' [
+            Debug.Assert(CanGet)  ' [
             Debug.Assert(Peek() = "["c OrElse Peek() = FULLWIDTH_LEFT_SQUARE_BRACKET)
 
             Dim IdStart As Integer = 1
@@ -1757,7 +1757,7 @@ FullWidthRepeat:
         End Enum
 
         Private Function ScanNumericLiteral(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
-            Debug.Assert(CanGetChar)
+            Debug.Assert(CanGet)
 
             Dim Here As Integer = 0
             Dim IntegerLiteralStart As Integer
@@ -2190,7 +2190,7 @@ FullWidthRepeat2:
         End Function
 
         Private Function ScanDateLiteral(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
-            Debug.Assert(CanGetChar)
+            Debug.Assert(CanGet)
             Debug.Assert(IsHash(Peek()))
 
             Dim Here As Integer = 1 'skip #
@@ -2499,7 +2499,7 @@ baddate:
         End Function
 
         Private Function ScanStringLiteral(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
-            Debug.Assert(CanGetChar)
+            Debug.Assert(CanGet)
             Debug.Assert(IsDoubleQuote(Peek))
 
             Dim length As Integer = 1
