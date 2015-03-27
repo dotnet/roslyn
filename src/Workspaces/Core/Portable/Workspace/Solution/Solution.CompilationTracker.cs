@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
             private State _stateDoNotAccessDirectly;
 
             // guarantees only one thread is building at a time
-            private readonly AsyncSemaphore _buildLock = new AsyncSemaphore(initialCount: 1);
+            private readonly SemaphoreSlim _buildLock = new SemaphoreSlim(initialCount: 1);
 
             private CompilationTracker(
                 ProjectState project,
