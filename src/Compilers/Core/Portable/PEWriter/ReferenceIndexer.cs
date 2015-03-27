@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -8,6 +10,7 @@ namespace Microsoft.Cci
     internal abstract class ReferenceIndexer : ReferenceIndexerBase
     {
         protected readonly MetadataWriter metadataWriter;
+        private readonly HashSet<IImportScope> _alreadySeenScopes = new HashSet<IImportScope>();
 
         internal ReferenceIndexer(MetadataWriter metadataWriter)
             : base(metadataWriter.Context)
@@ -43,6 +46,8 @@ namespace Microsoft.Cci
             {
                 this.Visit(module.GetResources(Context));
             }
+
+            VisitImports(module.GetImports(Context));
         }
 
         public void VisitMethodBodyReference(IReference reference)
@@ -91,10 +96,42 @@ namespace Microsoft.Cci
                 if (body != null)
                 {
                     this.Visit(body);
+
+                    for (IImportScope scope = body.ImportScope; scope != null; scope = scope.Parent)
+                    {
+                        if (_alreadySeenScopes.Add(scope))
+                        {
+                            VisitImports(scope.GetUsedNamespaces(Context));
+                        }
+                    }
                 }
                 else if (!metadataWriter.allowMissingMethodBodies)
                 {
                     throw ExceptionUtilities.Unreachable;
+                }
+            }
+        }
+
+        private void VisitImports(ImmutableArray<UsedNamespaceOrType> imports)
+        {
+            // Visit type and assembly references in import scopes.
+            // These references are emitted to Portable debug metadata,
+            // so they need to be present in the assembly metadata.
+            // It may happen that some using/import clause references an assembly/type 
+            // that is not actually used in IL. Although rare we need to handle such cases.
+            // We include these references regardless of the format for debugging information 
+            // to avoid dependency of metadata on the chosen debug format.
+
+            foreach (var import in imports)
+            {
+                if (import.TargetAssemblyOpt != null)
+                {
+                    Visit(import.TargetAssemblyOpt);
+                }
+
+                if (import.TargetTypeOpt != null)
+                {
+                    Visit(import.TargetTypeOpt);
                 }
             }
         }
