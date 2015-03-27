@@ -168,10 +168,10 @@
       <SubType>Designer</SubType>
       <LastGenOutput>CodeAnalysisDesktopResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="CommandLine\RuleSet\RuleSetSchema.xsd">
+    <None Include="CommandLine\RuleSet\RuleSetSchema.xsd">
       <SubType>Designer</SubType>
       <LogicalName>Microsoft.CodeAnalysis.RuleSet.xsd</LogicalName>
-    </EmbeddedResource>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\CodeAnalysisRules.ruleset">

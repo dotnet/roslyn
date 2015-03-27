@@ -348,9 +348,6 @@
   <data name="XmlReferencesNotSupported" xml:space="preserve">
     <value>References to XML documents are not supported.</value>
   </data>
-  <data name="RuleSetSchemaViolation" xml:space="preserve">
-    <value>The file does not conform to the rule set schema - {0}</value>
-  </data>
   <data name="FailedToResolveRuleSetName" xml:space="preserve">
     <value>Could not locate the rule set file '{0}'.</value>
   </data>
