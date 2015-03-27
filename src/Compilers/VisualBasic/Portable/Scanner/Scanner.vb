@@ -390,6 +390,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 #Region "Buffer helpers"
 
+        Private Function NextAre(chars As String) As Boolean
+            Debug.Assert(Not String.IsNullOrEmpty(chars))
+            Dim n = chars.Length-1
+            If Not CanGet( n) Then Return False
+            For i = 0 To n
+                If chars(i) <> Peek(i) Then Return False
+            Next
+            Return True
+        End Function
+
         Private Function NextAre(offset As Integer, chars As String) As Boolean
             Debug.Assert(Not String.IsNullOrEmpty(chars))
             Dim n = chars.Length
@@ -472,10 +482,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Debug.Assert(StartCharacter = Peek(here))
 
-            If StartCharacter = CARRIAGE_RETURN AndAlso
-                CanGet(here + 1) AndAlso
-                Peek(here + 1) = LINE_FEED Then
-
+            If StartCharacter = CARRIAGE_RETURN AndAlso NextIs(here + 1, LINE_FEED) Then
                 Return 2
             End If
             Return 1

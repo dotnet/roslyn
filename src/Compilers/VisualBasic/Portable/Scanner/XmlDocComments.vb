@@ -289,28 +289,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                     If CanGet(2) Then
                                         Select Case (Peek(2))
                                             Case "-"c
-                                                If CanGet(3) AndAlso Peek(3) = "-"c Then
+                                                If NextIs(3,"-"c) Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "["c
-                                                If CanGet(8) AndAlso _
-                                                    Peek(3) = "C"c AndAlso _
-                                                    Peek(4) = "D"c AndAlso _
-                                                    Peek(5) = "A"c AndAlso _
-                                                    Peek(6) = "T"c AndAlso _
-                                                    Peek(7) = "A"c AndAlso _
-                                                    Peek(8) = "["c Then
-
+                                                If NextAre(3,"CDATA[") Then
                                                     Return XmlMakeBeginCDataToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
-                                                If CanGet(8) AndAlso
-                                                    Peek(3) = "O"c AndAlso
-                                                    Peek(4) = "C"c AndAlso
-                                                    Peek(5) = "T"c AndAlso
-                                                    Peek(6) = "Y"c AndAlso
-                                                    Peek(7) = "P"c AndAlso
-                                                    Peek(8) = "E"c Then
+                                                If  NextAre(3,"OCTYPE") Then
                                                     Return XmlMakeBeginDTDToken(precedingTrivia)
                                                 End If
                                         End Select
@@ -325,9 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return XmlMakeLessToken(precedingTrivia)
 
                     Case "]"c
-                        If CanGet(Here + 2) AndAlso _
-                           Peek(Here + 1) = "]"c AndAlso _
-                           Peek(Here + 2) = ">"c Then
+                        If NextAre(Here + 2,"]>") Then
 
                             ' // If valid characters found then return them.
                             If Here <> 0 Then
@@ -411,8 +396,7 @@ ScanChars:
                         GoTo CleanUp
 
                     Case "?"c
-                        If CanGet(Here + 1) AndAlso _
-                           Peek(Here + 1) = ">"c Then
+                        If NextIs(Here + 1,">"c) Then
 
                             '// If valid characters found then return them.
                             If Here <> 0 Then
@@ -504,7 +488,7 @@ CleanUp:
                         End If
 
                     Case "/"c
-                        If CanGet(1) AndAlso Peek(1) = ">" Then
+                        If NextIs(1,">"c) Then
                             Return XmlMakeEndEmptyElementToken(precedingTrivia)
                         End If
                         Return XmlMakeDivToken(precedingTrivia)
@@ -529,28 +513,15 @@ CleanUp:
                                     If CanGet(2) Then
                                         Select Case (Peek(2))
                                             Case "-"c
-                                                If CanGet(3) AndAlso Peek(3) = "-"c Then
+                                                If NextIs(3,"-"c) Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "["c
-                                                If CanGet(8) AndAlso
-                                                    Peek(3) = "C"c AndAlso
-                                                    Peek(4) = "D"c AndAlso
-                                                    Peek(5) = "A"c AndAlso
-                                                    Peek(6) = "T"c AndAlso
-                                                    Peek(7) = "A"c AndAlso
-                                                    Peek(8) = "["c Then
-
+                                                If NextAre(3,"CDATA[") Then
                                                     Return XmlMakeBeginCDataToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
-                                                If CanGet(8) AndAlso
-                                                    Peek(3) = "O"c AndAlso
-                                                    Peek(4) = "C"c AndAlso
-                                                    Peek(5) = "T"c AndAlso
-                                                    Peek(6) = "Y"c AndAlso
-                                                    Peek(7) = "P"c AndAlso
-                                                    Peek(8) = "E"c Then
+                                                If NextAre(3,"OCTYPE") Then
                                                     Return XmlMakeBeginDTDToken(precedingTrivia)
                                                 End If
                                         End Select
@@ -566,7 +537,7 @@ CleanUp:
                         Return XmlMakeLessToken(precedingTrivia)
 
                     Case "?"c
-                        If CanGet(1) AndAlso Peek(1) = ">"c Then
+                        If NextIs(1, ">"c) Then
                             ' // Create token for the '?>' termination sequence
                             Return XmlMakeEndProcessingInstructionToken(precedingTrivia)
                         End If
