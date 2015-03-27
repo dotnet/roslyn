@@ -166,5 +166,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
+
+        public bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic)
+        {
+            return _hostAnalyzerManager.IsCompilerDiagnostic(language, diagnostic);
+        }
     }
 }

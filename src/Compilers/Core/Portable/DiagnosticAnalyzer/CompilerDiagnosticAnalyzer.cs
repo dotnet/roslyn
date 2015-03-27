@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 c.RegisterSyntaxTreeAction(analyzer.AnalyzeSyntaxTree);
                 c.RegisterSemanticModelAction(analyzer.AnalyzeSemanticModel);
             });
-
-            context.RegisterCompilationAction(CompilationAnalyzer.AnalyzeCompilation);
         }
     }
 }

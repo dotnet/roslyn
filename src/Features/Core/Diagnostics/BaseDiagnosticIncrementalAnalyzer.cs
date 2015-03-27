@@ -165,6 +165,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected Workspace Workspace { get; }
         protected AbstractHostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
 
+        #region build error synchronization
+        /// <summary>
+        /// Callback from build listener.
+        /// 
+        /// Given diagnostics are errors host got from explicit build.
+        /// It is up to each incremental analyzer how they will merge this information with live diagnostic info.
+        /// 
+        /// this API doesn't have cancellationToken since it can't be cancelled.
+        /// 
+        /// given diagnostics are project wide diagnsotics that doesn't contain a source location.
+        /// </summary>
+        public abstract Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics);
+
+        /// <summary>
+        /// Callback from build listener.
+        /// 
+        /// Given diagnostics are errors host got from explicit build.
+        /// It is up to each incremental analyzer how they will merge this information with live diagnostic info
+        /// 
+        /// this API doesn't have cancellationToken since it can't be cancelled.
+        /// 
+        /// given diagnostics are ones that has a source location.
+        /// </summary>
+        public abstract Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics);
+        #endregion
+
         public virtual bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
         {
             return false;
