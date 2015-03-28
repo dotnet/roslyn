@@ -215,6 +215,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 
                     case SyntaxKind.CloseBraceToken:
                         {
+                            if (token.Parent.IsKind(SyntaxKind.AccessorList) &&
+                                token.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration))
+                            {
+                                if (token.GetNextToken().IsEqualsTokenInAutoPropertyInitializers())
+                                {
+                                    return GetDefaultIndentationFromToken(token);
+                                }
+                            }
+
                             return IndentFromStartOfLine(Finder.GetIndentationOfCurrentPosition(Tree, token, position, CancellationToken));
                         }
 

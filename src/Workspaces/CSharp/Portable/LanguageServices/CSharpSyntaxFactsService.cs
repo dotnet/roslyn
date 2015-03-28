@@ -450,6 +450,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NullKeyword:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
+                case SyntaxKind.InterpolatedStringStartToken:
+                case SyntaxKind.InterpolatedStringEndToken:
+                case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                case SyntaxKind.InterpolatedStringTextToken:
                     return true;
             }
 
@@ -1270,6 +1274,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node = parent;
                         break;
                     }
+                }
+
+                // The inside of an interpolated string is treated as its own token so we
+                // need to force navigation to the parent expression syntax.
+                if (node is InterpolatedStringTextSyntax && parent is InterpolatedStringExpressionSyntax)
+                {
+                    node = parent;
+                    break;
                 }
 
                 // If this node is not parented by a name, we're done.

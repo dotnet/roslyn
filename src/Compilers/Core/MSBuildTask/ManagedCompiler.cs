@@ -89,6 +89,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault("EmitDebugInformation", false); }
         }
 
+        public string ErrorLog
+        {
+            set { _store[nameof(ErrorLog)] = value; }
+            get { return (string)_store[nameof(ErrorLog)]; }
+        }
+
         public int FileAlignment
         {
             set { _store["FileAlignment"] = value; }
@@ -172,6 +178,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store["References"] = value; }
             get { return (ITaskItem[])_store["References"]; }
+        }
+
+        public bool ReportAnalyzer
+        {
+            set { _store[nameof(ReportAnalyzer)] = value; }
+            get { return _store.GetOrDefault(nameof(ReportAnalyzer), false); }
         }
 
         public ITaskItem[] Resources
@@ -301,7 +313,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         CurrentDirectoryToUse(),
                         GetArguments(commandLineCommands, responseFileCommands),
                         _sharedCompileCts.Token,
-                        libEnvVariable: LibDirectoryToUse());
+                        libEnvVariable: LibDirectoryToUse(),
+                        fallbackCompilerExeDir: Path.GetDirectoryName(pathToTool));
 
                     responseTask.Wait(_sharedCompileCts.Token);
 
@@ -535,7 +548,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/optimize", this._store, "Optimize");
             commandLine.AppendSwitchIfNotNull("/out:", this.OutputAssembly);
             commandLine.AppendSwitchIfNotNull("/ruleset:", this.CodeAnalysisRuleSet);
+            commandLine.AppendSwitchIfNotNull("/errorlog:", this.ErrorLog);
             commandLine.AppendSwitchIfNotNull("/subsystemversion:", this.SubsystemVersion);
+            // TODO: uncomment the below line once "/reportanalyzer" switch is added to compiler.
+            //commandLine.AppendWhenTrue("/reportanalyzer", this._store, "ReportAnalyzer");
             // If the strings "LogicalName" or "Access" ever change, make sure to search/replace everywhere in vsproject.
             commandLine.AppendSwitchIfNotNull("/resource:", this.Resources, new string[] { "LogicalName", "Access" });
             commandLine.AppendSwitchIfNotNull("/target:", this.TargetType);

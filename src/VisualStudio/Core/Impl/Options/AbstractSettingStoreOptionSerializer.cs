@@ -26,6 +26,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public virtual bool TryFetch(OptionKey optionKey, out object value)
         {
+            return TryFetch(optionKey, (r, k, o) => r.GetValue(k, defaultValue: (bool)o.DefaultValue ? 1 : 0).Equals(1), out value);
+        }
+
+        public virtual bool TryPersist(OptionKey optionKey, object value)
+        {
+            return TryPersist(optionKey, value, (r, k, o, v) => r.SetValue(k, (bool)v ? 1 : 0, RegistryValueKind.DWord));
+        }
+
+        protected bool TryFetch(OptionKey optionKey, Func<RegistryKey, string, IOption, object> valueGetter, out object value)
+        {
             if (this.RegistryKey == null)
             {
                 throw new InvalidOperationException();
@@ -40,21 +50,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             lock (Gate)
             {
-                using (var openSubKey = this.RegistryKey.OpenSubKey(collectionPathAndPropertyName.Item1))
+                using (var subKey = this.RegistryKey.OpenSubKey(collectionPathAndPropertyName.Item1))
                 {
-                    if (openSubKey == null)
+                    if (subKey == null)
                     {
                         value = null;
                         return false;
                     }
 
-                    value = openSubKey.GetValue(collectionPathAndPropertyName.Item2, defaultValue: (bool)optionKey.Option.DefaultValue ? 1 : 0).Equals(1);
+                    value = valueGetter(subKey, collectionPathAndPropertyName.Item2, optionKey.Option);
                     return true;
                 }
             }
         }
 
-        public virtual bool TryPersist(OptionKey optionKey, object value)
+        protected bool TryPersist(OptionKey optionKey, object value, Action<RegistryKey, string, IOption, object> valueSetter)
         {
             // We ignore languageName, since the current use of this class is only for
             // language-specific options that apply to a single language. The underlying option
@@ -74,10 +84,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 using (var subKey = this.RegistryKey.CreateSubKey(collectionPathAndPropertyName.Item1))
                 {
-                    subKey.SetValue(collectionPathAndPropertyName.Item2, (bool)value ? 1 : 0, RegistryValueKind.DWord);
+                    valueSetter(subKey, collectionPathAndPropertyName.Item2, optionKey.Option, value);
+                    return true;
                 }
-
-                return true;
             }
         }
     }

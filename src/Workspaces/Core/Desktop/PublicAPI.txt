@@ -17,18 +17,6 @@ Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.OpenSolutionAsync(string solutio
 Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
 Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.SkipUnrecognizedProjects.get -> bool
 Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.SkipUnrecognizedProjects.set -> void
-Microsoft.CodeAnalysis.SerializableDocumentId
-Microsoft.CodeAnalysis.SerializableDocumentId.DocumentId.get -> Microsoft.CodeAnalysis.DocumentId
-Microsoft.CodeAnalysis.SerializableDocumentId.SerializableDocumentId(Microsoft.CodeAnalysis.DocumentId documentId) -> void
-Microsoft.CodeAnalysis.SerializableProjectId
-Microsoft.CodeAnalysis.SerializableProjectId.ProjectId.get -> Microsoft.CodeAnalysis.ProjectId
-Microsoft.CodeAnalysis.SerializableProjectId.SerializableProjectId(Microsoft.CodeAnalysis.ProjectId projectId) -> void
-Microsoft.CodeAnalysis.SerializableProjectReference
-Microsoft.CodeAnalysis.SerializableProjectReference.ProjectReference.get -> Microsoft.CodeAnalysis.ProjectReference
-Microsoft.CodeAnalysis.SerializableProjectReference.SerializableProjectReference(Microsoft.CodeAnalysis.ProjectReference projectReference) -> void
-Microsoft.CodeAnalysis.SerializableVersionStamp
-Microsoft.CodeAnalysis.SerializableVersionStamp.SerializableVersionStamp(Microsoft.CodeAnalysis.VersionStamp versionStamp) -> void
-Microsoft.CodeAnalysis.SerializableVersionStamp.VersionStamp.get -> Microsoft.CodeAnalysis.VersionStamp
 override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 override Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices.CreateWorkspaceServices(Microsoft.CodeAnalysis.Workspace workspace) -> Microsoft.CodeAnalysis.Host.HostWorkspaceServices
 override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.ApplyAnalyzerReferenceAdded(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference analyzerReference) -> void

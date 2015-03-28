@@ -76,5 +76,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <returns>A list of the diagnostics produced by the given analyzer</returns>
         ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer);
+
+        /// <summary>
+        /// Check whether given diagnostic is compiler diagnostic or not
+        /// </summary>
+        bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic);
     }
 }

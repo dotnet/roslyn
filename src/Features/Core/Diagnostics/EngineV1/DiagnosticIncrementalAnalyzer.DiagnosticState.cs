@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var textVersion = VersionStamp.ReadFrom(reader);
                         var dataVersion = VersionStamp.ReadFrom(reader);
 
-                        if (textVersion == VersionStamp.Default || dataVersion == VersionStamp.Default)
+                        if (dataVersion == VersionStamp.Default)
                         {
                             return null;
                         }

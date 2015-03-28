@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression disposeCall;
 
             MethodSymbol disposeMethodSymbol;
-            if (TryGetSpecialTypeMember(syntax, SpecialMember.System_IDisposable__Dispose, out disposeMethodSymbol))
+            if (Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, syntax, _diagnostics, out disposeMethodSymbol))
             {
                 disposeCall = BoundCall.Synthesized(syntax, disposedExpression, disposeMethodSymbol);
             }

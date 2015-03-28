@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 extern alias PDB;
-// Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,7 +8,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
@@ -131,9 +131,67 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     actual = PdbToXmlConverter.ToXml(pdbbits, exebits, PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError, methodName: qualifiedMethodName);
                 }
+
+                ValidateDebugDirectory(exebits, compilation.AssemblyName + ".pdb");
             }
 
             return actual;
+        }
+
+        private static void ValidateDebugDirectory(MemoryStream peStream, string pdbPath)
+        {
+            peStream.Seek(0, SeekOrigin.Begin);
+            PEReader peReader = new PEReader(peStream);
+
+            var debugDirectory = peReader.PEHeaders.PEHeader.DebugTableDirectory;
+
+            int position;
+            Assert.True(peReader.PEHeaders.TryGetDirectoryOffset(debugDirectory, out position));
+            Assert.Equal(0x1c, debugDirectory.Size);
+
+            byte[] buffer = new byte[debugDirectory.Size];
+            peStream.Read(buffer, 0, buffer.Length);
+
+            peStream.Position = position;
+            var reader = new BinaryReader(peStream);
+
+            int characteristics = reader.ReadInt32();
+            Assert.Equal(0, characteristics);
+
+            uint timeDateStamp = reader.ReadUInt32();
+
+            uint version = reader.ReadUInt32();
+            Assert.Equal(0u, version);
+
+            int type = reader.ReadInt32();
+            Assert.Equal(2, type);
+
+            int sizeOfData = reader.ReadInt32();
+            int rvaOfRawData = reader.ReadInt32();
+
+            int section = peReader.PEHeaders.GetContainingSectionIndex(rvaOfRawData);
+            var sectionHeader = peReader.PEHeaders.SectionHeaders[section];
+
+            int pointerToRawData = reader.ReadInt32();
+            Assert.Equal(pointerToRawData, sectionHeader.PointerToRawData + rvaOfRawData - sectionHeader.VirtualAddress);
+
+            peStream.Position = pointerToRawData;
+
+            Assert.Equal((byte)'R', reader.ReadByte());
+            Assert.Equal((byte)'S', reader.ReadByte());
+            Assert.Equal((byte)'D', reader.ReadByte());
+            Assert.Equal((byte)'S', reader.ReadByte());
+
+            byte[] guidBlob = new byte[16];
+            reader.Read(guidBlob, 0, guidBlob.Length);
+
+            Assert.Equal(1u, reader.ReadUInt32());
+
+            byte[] pathBlob = new byte[sizeOfData - 24 - 1];
+            reader.Read(pathBlob, 0, pathBlob.Length);
+            var actualPath = Encoding.UTF8.GetString(pathBlob);
+            Assert.Equal(pdbPath, actualPath);
+            Assert.Equal(0, reader.ReadByte());
         }
 
         internal static string GetMethodIL(this CompilationTestData.MethodData method)

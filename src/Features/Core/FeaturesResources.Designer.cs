@@ -1285,6 +1285,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a static variable will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ModifyingAWhichContainsStaticLocal {
+            get {
+                return ResourceManager.GetString("ModifyingAWhichContainsStaticLocal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifying the initializer of &apos;{0}&apos; in a generic type will prevent the debug session from continuing..
         /// </summary>
         internal static string ModifyingTheInitializerInGenericType {

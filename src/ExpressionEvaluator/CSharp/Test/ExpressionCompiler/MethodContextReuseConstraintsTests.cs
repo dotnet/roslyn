@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             const uint startOffset = 1;
             const uint endOffsetExclusive = 3;
 
-            var constraints = MethodContextReuseConstraints.CreateTestInstance(
+            var constraints = new MethodContextReuseConstraints(
                 moduleVersionId,
                 methodToken, 
                 methodVersion, 

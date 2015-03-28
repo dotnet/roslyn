@@ -1630,6 +1630,7 @@ namespace Microsoft.CodeAnalysis
             Stream peTempStream = null;
 
             bool deterministic = this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
+            string pdbPath = (pdbStreamProvider != null) ? (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
 
             try
             {
@@ -1660,10 +1661,7 @@ namespace Microsoft.CodeAnalysis
                     // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
                     // frequently used during PDB writing.  Ensure a name is provided here in the case we were given
                     // only a Stream value.
-                    nativePdbWriter = new Cci.PdbWriter(
-                        getNativePdbStream,
-                        moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
-                        testSymWriterFactory);
+                    nativePdbWriter = new Cci.PdbWriter(getNativePdbStream, pdbPath, testSymWriterFactory);
                 }
 
                 Func<Stream> getPeStream = () =>
@@ -1712,6 +1710,7 @@ namespace Microsoft.CodeAnalysis
                         this.MessageProvider,
                         getPeStream,
                         nativePdbWriter,
+                        pdbPath,
                         metadataOnly,
                         deterministic,
                         cancellationToken);

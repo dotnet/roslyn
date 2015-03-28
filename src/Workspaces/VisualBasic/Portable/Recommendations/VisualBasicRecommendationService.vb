@@ -278,6 +278,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 End If
             End If
 
+            ' No completion on types/namespace after conditional access
+            If leftExpression.Parent.IsKind(SyntaxKind.ConditionalAccessExpression) AndAlso
+                (couldBeMergedNamespace OrElse leftHandBinding.GetBestOrAllSymbols().FirstOrDefault().MatchesKind(SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Alias)) Then
+                Return SpecializedCollections.EmptyCollection(Of ISymbol)()
+            End If
+
             Dim position = node.SpanStart
             Dim symbols As IEnumerable(Of ISymbol)
             If couldBeMergedNamespace Then

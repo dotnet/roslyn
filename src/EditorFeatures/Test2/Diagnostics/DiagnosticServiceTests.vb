@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.IO
 Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -18,6 +19,15 @@ Imports Xunit.Sdk
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
     Public Class DiagnosticServiceTests
+
+        Public Function CreateAnalyzerFileReference(ByVal fullPath As String) As AnalyzerFileReference
+            Return New AnalyzerFileReference(
+                fullPath,
+                Function(p)
+                    Dim bytes = File.ReadAllBytes(p)
+                    Return Assembly.Load(bytes)
+                End Function)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestProjectAnalyzers()
@@ -302,8 +312,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
             Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
-                Dim analyzerReference1 = New AnalyzerFileReference("x:\temp.dll")
-                Dim analyzerReference2 = New AnalyzerFileReference("x:\temp.dll")
+                Dim analyzerReference1 = CreateAnalyzerFileReference("x:\temp.dll")
+                Dim analyzerReference2 = CreateAnalyzerFileReference("x:\temp.dll")
                 project = project.AddAnalyzerReference(analyzerReference1)
 #If DEBUG Then
                 Assert.Throws(Of TraceAssertException)(Function() project.AddAnalyzerReference(analyzerReference2))
@@ -324,10 +334,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
                 ' Add duplicate analyzer references: one as VSIX analyzer reference and other one as project analyzer reference.
                 Dim project = workspace.CurrentSolution.Projects.Single()
-                Dim analyzerReference1 = New AnalyzerFileReference(Assembly.GetExecutingAssembly().Location)
+                Dim analyzerReference1 = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location)
                 project = project.AddAnalyzerReference(analyzerReference1)
 
-                Dim analyzerReference2 = New AnalyzerFileReference(Assembly.GetExecutingAssembly().Location)
+                Dim analyzerReference2 = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(ImmutableArray.Create(Of AnalyzerReference)(analyzerReference2))
 
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
