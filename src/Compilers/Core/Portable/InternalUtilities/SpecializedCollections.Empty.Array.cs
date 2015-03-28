@@ -8,9 +8,7 @@ namespace Roslyn.Utilities
         {
             internal class Array<T>
             {
-#pragma warning disable RS0007 // Avoid zero-length array allocations.
                 public static readonly T[] Instance = new T[0];
-#pragma warning restore RS0007 // Avoid zero-length array allocations.
             }
         }
     }

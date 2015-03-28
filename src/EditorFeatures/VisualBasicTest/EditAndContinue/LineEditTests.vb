@@ -42,7 +42,7 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of LineChange)(), Array.Empty(Of String)())
+            edits.VerifyLineEdits({}, {})
         End Sub
 
         <Fact>
@@ -72,7 +72,6 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-
             edits.VerifyLineEdits({New LineChange(2, 6), New LineChange(6, 2)}, {})
         End Sub
 
