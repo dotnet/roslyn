@@ -61,7 +61,7 @@ struct S
 
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.CCI,
+                emitters: TestEmitters.CCI,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
@@ -1166,7 +1166,7 @@ class C : I
                 Assert.False(classIndexer.CanBeReferencedByName);
             };
 
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -1228,7 +1228,7 @@ public class C : I
                 Assert.False(classCIndexer.IsIndexer()); //not the default member of C
             };
 
-            CompileAndVerify(text, emitOptions: TestEmitters.RefEmitBug, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
+            CompileAndVerify(text, emitters: TestEmitters.RefEmitBug, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
         }
 
         [Fact]

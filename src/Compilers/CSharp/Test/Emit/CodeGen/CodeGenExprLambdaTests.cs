@@ -2856,7 +2856,7 @@ unsafe class Test
             var c = CompileAndVerify(text,
                 additionalRefs: new[] { SystemCoreRef },
                 options: TestOptions.UnsafeReleaseDll,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 verify: false);
 
             c.VerifyDiagnostics();

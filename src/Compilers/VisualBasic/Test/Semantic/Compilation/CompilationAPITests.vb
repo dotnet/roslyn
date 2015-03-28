@@ -612,7 +612,7 @@ End Class
 </compilation>, additionalRefs:={netModule1.EmitToImageReference(), netModule2.EmitToImageReference()})
             assembly.VerifyDiagnostics()
 
-            CompileAndVerify(assembly, emitOptions:=TestEmitters.RefEmitBug)
+            CompileAndVerify(assembly, emitters:=TestEmitters.RefEmitBug)
         End Sub
 
         <WorkItem(713356, "DevDiv")>
@@ -1524,11 +1524,11 @@ End Class
 
         <Fact>
         Public Sub MetadataConsistencyWhileEvolvingCompilation()
-            Dim md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class C : End Class"}, compOptions:=TestOptions.ReleaseDll).EmitToArray())
-            Dim md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class D : End Class"}, compOptions:=TestOptions.ReleaseDll).EmitToArray())
+            Dim md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class C : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
+            Dim md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class D : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
             Dim reference = New EvolvingTestReference({md1, md2})
 
-            Dim c1 = CreateCompilationWithMscorlib({"Public Class Main : Public Shared C As C : End Class"}, {reference, reference}, compOptions:=TestOptions.ReleaseDll)
+            Dim c1 = CreateCompilationWithMscorlib({"Public Class Main : Public Shared C As C : End Class"}, {reference, reference}, options:=TestOptions.ReleaseDll)
             Dim c2 = c1.WithAssemblyName("c2")
             Dim c3 = c2.AddSyntaxTrees(Parse("Public Class Main2 : Public Shared A As Integer : End Class"))
             Dim c4 = c3.WithOptions(New VisualBasicCompilationOptions(OutputKind.NetModule))

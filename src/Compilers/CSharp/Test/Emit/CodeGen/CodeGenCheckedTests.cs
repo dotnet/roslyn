@@ -2086,7 +2086,7 @@ public class MyClass
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
+                emitters: TestEmitters.CCI,
                 expectedOutput: "32000");
         }
 

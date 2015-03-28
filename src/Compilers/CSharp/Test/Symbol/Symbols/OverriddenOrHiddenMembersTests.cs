@@ -2817,7 +2817,7 @@ class Test
             var ref1 = CompileIL(il);
 
             var comp = CreateCompilationWithMscorlib(csharp, new[] { ref1 }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"
+            CompileAndVerify(comp, emitters: TestEmitters.RefEmitBug, expectedOutput: @"
 SubSubT[System.Int32].vMeth(System.Int32)
 Base[System.Int32].vMeth(System.Int32)
 SubSubGT[System.Int32].vMeth(G`1[System.Int32])

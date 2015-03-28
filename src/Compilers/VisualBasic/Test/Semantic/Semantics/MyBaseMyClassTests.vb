@@ -3913,7 +3913,7 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileWithCustomILSource(source, ilSource.Value, TestOptions.ReleaseExe, emitOptions:=TestEmitters.RefEmitBug,
+            CompileWithCustomILSource(source, ilSource.Value, TestOptions.ReleaseExe, emitters:=TestEmitters.RefEmitBug,
                                       expectedOutput:="B2::F-B1::F").
             VerifyIL("OuterClass(Of V).B2.$VB$ClosureStub_F_MyBase",
             <![CDATA[

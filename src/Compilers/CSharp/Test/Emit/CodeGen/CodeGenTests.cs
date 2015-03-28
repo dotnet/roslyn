@@ -448,7 +448,7 @@ class C
 }";
             var tree = Parse(source);
             var compilation = CreateCompilation(new List<SyntaxTree> { tree }, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, "Test");
-            CompileAndVerify(compilation, emitOptions: TestEmitters.CCI, expectedOutput: "k");
+            CompileAndVerify(compilation, emitters: TestEmitters.CCI, expectedOutput: "k");
         }
 
         [WorkItem(546853, "DevDiv")]
@@ -505,7 +505,7 @@ class C
 }
 ";
             var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseDll);
-            var result = CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug);
+            var result = CompileAndVerify(compilation, emitters: TestEmitters.RefEmitBug);
 
             result.VerifyIL("C.A", @"
 {
@@ -579,7 +579,7 @@ class C
 }
 ";
             var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
-            var result = CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug);
+            var result = CompileAndVerify(compilation, emitters: TestEmitters.RefEmitBug);
 
             result.VerifyIL("C.A",
 @"{
@@ -824,7 +824,7 @@ class Clazz
 }
 ";
             var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
-            var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ", emitOptions: TestEmitters.RefEmitBug);
+            var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ", emitters: TestEmitters.RefEmitBug);
 
             result.VerifyIL("Clazz.Main", @"
 {
@@ -6080,7 +6080,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"BCDE2442");
+            var compilation = CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: @"BCDE2442");
 
             compilation.VerifyIL("D.DD.Test",
 @"{
@@ -11268,7 +11268,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }, emitOptions: TestEmitters.RefEmitBug).VerifyIL("Test.Main", @"
+            CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }, emitters: TestEmitters.RefEmitBug).VerifyIL("Test.Main", @"
 {
   // Code size       26 (0x1a)
   .maxstack  4
@@ -11298,7 +11298,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(source, new[] { TestReferences.SymbolsTests.Methods.CSMethods }, emitOptions: TestEmitters.RefEmitBug).VerifyIL("Test.Main", @"
+            CompileAndVerify(source, new[] { TestReferences.SymbolsTests.Methods.CSMethods }, emitters: TestEmitters.RefEmitBug).VerifyIL("Test.Main", @"
 {
   // Code size       26 (0x1a)
   .maxstack  4
@@ -11459,7 +11459,7 @@ class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: @"1A");
+            var compilation = CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: @"1A");
         }
 
         [WorkItem(543090, "DevDiv")]
@@ -11491,7 +11491,7 @@ partial class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: @"1A");
+            var compilation = CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: @"1A");
         }
 
         [WorkItem(543530, "DevDiv")]
@@ -11532,7 +11532,7 @@ class C1
         B(""Main"");
     }
 }";
-            var compilation = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: "null;null;C1;");
+            var compilation = CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: "null;null;C1;");
         }
         [WorkItem(543091, "DevDiv")]
         [Fact()]
@@ -11563,7 +11563,7 @@ partial class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: @"1A");
+            var compilation = CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: @"1A");
         }
 
         [WorkItem(543156, "DevDiv")]
@@ -11744,7 +11744,7 @@ struct MyManagedStruct
     }
 }";
             // TODO (tomat): Ref.Emit has problems with nested structs
-            var compilation = CompileAndVerify(source, expectedOutput: @"42", emitOptions: TestEmitters.RefEmitUnsupported_646042);
+            var compilation = CompileAndVerify(source, expectedOutput: @"42", emitters: TestEmitters.RefEmitUnsupported_646042);
 
             // Dev10
             compilation.VerifyIL("Program.Main",
@@ -13730,7 +13730,7 @@ using System;
 
 ";
 
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @""
+            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: @""
 ).VerifyIL("Test.Main()",
 @"
 {
@@ -13773,7 +13773,7 @@ using System;
 
 ";
 
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"hello"
+            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: @"hello"
 ).VerifyIL("Test.Main()",
 @"
 {
@@ -13825,7 +13825,7 @@ class c1
 
 ";
 
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"").
+            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: @"").
                 VerifyIL("Test..cctor()",
 @"
 {
