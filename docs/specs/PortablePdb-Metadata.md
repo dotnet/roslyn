@@ -216,11 +216,32 @@ The LocalConstant table has the following columns:
 
 * _Name_ (String heap index)
 * _Value_ (Blob heap index)
-* _TypeCode_ (see ECMA-335-II §23.1.16; encoding: uint8)
+* _TypeCode_ (type code; encoding: uint8)
 
 Conceptually, every row in the LocalConstant table is owned by one, and only one, row in the LocalScope table.
 
 There shall be no duplicate rows in the LocalConstant table, based upon owner and _Name_.
+
+_TypeCode_ shall be exactly one of 
+| _TypeCode_                | value | _Value_ encoding         |
+|:--------------------------|:------|:-------------------------|
+| ```ELEMENT_TYPE_VOID```   | 0x01  | A custom typed constant  |
+| ```ELEMENT_TYPE_BOOLEAN```| 0x02  | |
+| ```ELEMENT_TYPE_CHAR```   | 0x03  | |
+| ```ELEMENT_TYPE_I1```     | 0x04  | |
+| ```ELEMENT_TYPE_U1```     | 0x05  | |
+| ```ELEMENT_TYPE_I2```     | 0x06  | |
+| ```ELEMENT_TYPE_U2```     | 0x07  | |
+| ```ELEMENT_TYPE_I4```     | 0x08  | |
+| ```ELEMENT_TYPE_U4```     | 0x09  | |
+| ```ELEMENT_TYPE_I8```     | 0x0a  | |
+| ```ELEMENT_TYPE_U8```     | 0x0b  | |
+| ```ELEMENT_TYPE_R4```     | 0x0c  | |
+| ```ELEMENT_TYPE_R8```     | 0x0d  | |
+| ```ELEMENT_TYPE_STRING``` | 0x0e  | | 
+| ```ELEMENT_TYPE_CLASS```  | 0x12  | _Value_ must be 0.       |
+
+The values of these constants are defined in ECMA-335 §II.23.1.16.
 
 ###<a name="ImportScopeTable"></a>ImportScope Table: 0x35
 The ImportScope table has the following columns:
