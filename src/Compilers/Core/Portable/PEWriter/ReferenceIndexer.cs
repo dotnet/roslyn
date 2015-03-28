@@ -131,7 +131,9 @@ namespace Microsoft.Cci
 
                 if (import.TargetTypeOpt != null)
                 {
+                    this.typeReferenceNeedsToken = true;
                     Visit(import.TargetTypeOpt);
+                    Debug.Assert(!this.typeReferenceNeedsToken);
                 }
             }
         }
