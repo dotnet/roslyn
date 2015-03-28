@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 references = new[] { TestBase.MscorlibRef };
             }
             var compilation = CreateCompilationWithMscorlib(source, assemblyName, references);
-            var verifier = s_instance.CompileAndVerify(compilation, emitOptions: TestEmitters.CCI, verify: verify);
+            var verifier = s_instance.CompileAndVerify(compilation, emitters: TestEmitters.CCI, verify: verify);
             return MetadataReference.CreateFromImage(verifier.EmittedAssemblyData);
         }
 

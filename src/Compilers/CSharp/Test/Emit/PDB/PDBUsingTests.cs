@@ -2131,7 +2131,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
-            var v = CompileAndVerify(comp, emitOptions: TestEmitters.CCI, validator: (peAssembly, emitters) =>
+            var v = CompileAndVerify(comp, emitters: TestEmitters.CCI, validator: (peAssembly, emitters) =>
             {
                 var reader = peAssembly.ManifestModule.MetadataReader;
 

@@ -1202,7 +1202,7 @@ End Class
                 references:={New VisualBasicCompilationReference(multiModule),
                              New VisualBasicCompilationReference(pia1)})
 
-            CompileAndVerify(consumer, emitOptions:=TestEmitters.RefEmitBug)
+            CompileAndVerify(consumer, emitters:=TestEmitters.RefEmitBug)
         End Sub
 
         <Fact, WorkItem(528047, "DevDiv")>

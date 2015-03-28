@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Sub
 
         Protected Shared Function GetAssembly(source As String) As Assembly
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.ReleaseDll)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll)
             Return ReflectionUtilities.Load(comp.EmitToArray())
         End Function
 

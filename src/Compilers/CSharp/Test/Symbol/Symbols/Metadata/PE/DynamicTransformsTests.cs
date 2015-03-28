@@ -546,7 +546,7 @@ str
 str";
 
             var compilation = CreateCompilationWithCustomILSource(source, il, references: new[] { MscorlibRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, emitters: TestEmitters.RefEmitBug);
 
             var classDerived = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
             var field1 = classDerived.BaseType.GetMember<FieldSymbol>("field1");

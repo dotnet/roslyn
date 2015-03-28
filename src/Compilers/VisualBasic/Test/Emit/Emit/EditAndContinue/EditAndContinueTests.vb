@@ -4102,7 +4102,7 @@ End Class
             Dim parseOptions As New VisualBasicParseOptions(preprocessorSymbols:={New KeyValuePair(Of String, Object)("Defined", True)})
             Dim tree0 = VisualBasicSyntaxTree.ParseText(source0, parseOptions)
             Dim tree1 = VisualBasicSyntaxTree.ParseText(source0.Replace("' Body", "N1(): N2()"), parseOptions)
-            Dim compilation0 = CreateCompilationWithMscorlib({tree0}, compOptions:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib({tree0}, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.ReplaceSyntaxTree(tree0, tree1)
 
             Dim bytes0 = compilation0.EmitToArray()
@@ -4165,10 +4165,10 @@ Public Class Y
 End Class
 "
 
-            Dim compilationA0 = CreateCompilationWithMscorlib({sourceA0}, compOptions:=TestOptions.DebugDll, assemblyName:="LibA")
+            Dim compilationA0 = CreateCompilationWithMscorlib({sourceA0}, options:=TestOptions.DebugDll, assemblyName:="LibA")
             Dim compilationA1 = compilationA0.WithSource(sourceA1)
-            Dim compilationB0 = CreateCompilationWithMscorlib({sourceB0}, {compilationA0.ToMetadataReference()}, compOptions:=TestOptions.DebugDll, assemblyName:="LibB")
-            Dim compilationB1 = CreateCompilationWithMscorlib({sourceB1}, {compilationA1.ToMetadataReference()}, compOptions:=TestOptions.DebugDll, assemblyName:="LibB")
+            Dim compilationB0 = CreateCompilationWithMscorlib({sourceB0}, {compilationA0.ToMetadataReference()}, options:=TestOptions.DebugDll, assemblyName:="LibB")
+            Dim compilationB1 = CreateCompilationWithMscorlib({sourceB1}, {compilationA1.ToMetadataReference()}, options:=TestOptions.DebugDll, assemblyName:="LibB")
 
             Dim bytesA0 = compilationA0.EmitToArray()
             Dim bytesB0 = compilationB0.EmitToArray()
@@ -4229,10 +4229,10 @@ Public Class B
     End Sub
 End Class"
 
-            Dim compilationA = CreateCompilationWithMscorlib({sourceA}, compOptions:=TestOptions.DebugDll, assemblyName:="AssemblyA")
+            Dim compilationA = CreateCompilationWithMscorlib({sourceA}, options:=TestOptions.DebugDll, assemblyName:="AssemblyA")
             Dim aRef = compilationA.ToMetadataReference()
 
-            Dim compilationB0 = CreateCompilationWithMscorlib({sourceB0}, {aRef}, compOptions:=TestOptions.DebugDll, assemblyName:="AssemblyB")
+            Dim compilationB0 = CreateCompilationWithMscorlib({sourceB0}, {aRef}, options:=TestOptions.DebugDll, assemblyName:="AssemblyB")
             Dim compilationB1 = compilationB0.WithSource(sourceB1)
             Dim compilationB2 = compilationB1.WithSource(sourceB2)
 
