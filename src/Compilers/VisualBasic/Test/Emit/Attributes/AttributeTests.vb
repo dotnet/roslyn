@@ -3800,7 +3800,7 @@ End Class
     ]]></file>
 </compilation>
 
-            CompileAndVerify(source, emitOptions:=TestEmitters.RefEmitBug, symbolValidator:=
+            CompileAndVerify(source, emitters:=TestEmitters.RefEmitBug, symbolValidator:=
                 Sub(m)
                     Dim c = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
                     Dim attr = c.GetAttributes().Single()
@@ -3902,7 +3902,7 @@ End Class
     ]]></file>
 </compilation>
 
-            CompileAndVerify(source, emitOptions:=TestEmitters.RefEmitBug, symbolValidator:=
+            CompileAndVerify(source, emitters:=TestEmitters.RefEmitBug, symbolValidator:=
                 Sub(m)
                     Dim c = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
                     Dim attr = c.GetAttributes().Single()
@@ -3990,7 +3990,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            CompileAndVerify(source, emitOptions:=TestEmitters.RefEmitBug, expectedOutput:=<![CDATA[
+            CompileAndVerify(source, emitters:=TestEmitters.RefEmitBug, expectedOutput:=<![CDATA[
  - 5 -
  - 100 -
  - 100000 -

@@ -5345,7 +5345,7 @@ namespace NS
                     new CSharpCompilationReference(lib)
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
+            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0436: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
     //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
@@ -5358,7 +5358,7 @@ namespace NS
                     MetadataReference.CreateFromImage(lib.EmitToArray())
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
+            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0436: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
     //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
@@ -5404,7 +5404,7 @@ namespace NS
                     new CSharpCompilationReference(lib)
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
+            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
     // (9,43): warning CS0436: The type 'NS.Util.A' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util.A' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod02.netmodule'.
     //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("ErrTestMod02.netmodule", "NS.Util.A", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util.A")
@@ -5417,7 +5417,7 @@ namespace NS
                     MetadataReference.CreateFromImage(lib.EmitToArray())
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
+            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
     // (9,43): warning CS0436: The type 'NS.Util.A' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util.A' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod02.netmodule'.
     //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("ErrTestMod02.netmodule", "NS.Util.A", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util.A")
@@ -5463,7 +5463,7 @@ namespace NS
                     new CSharpCompilationReference(lib)
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
+            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0435: The namespace 'NS.Util' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'ErrTestMod02.netmodule'.
     //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "Util").WithArguments("ErrTestMod02.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
@@ -5476,7 +5476,7 @@ namespace NS
                     MetadataReference.CreateFromImage(lib.EmitToArray())
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
+            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0435: The namespace 'NS.Util' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'ErrTestMod02.netmodule'.
     //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "Util").WithArguments("ErrTestMod02.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
@@ -5522,7 +5522,7 @@ namespace NS
                     new CSharpCompilationReference(lib)
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
+            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0437: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported namespace 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
     //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
@@ -5535,7 +5535,7 @@ namespace NS
                     MetadataReference.CreateFromImage(lib.EmitToArray())
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
+            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0437: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported namespace 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
     //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
@@ -5676,7 +5676,7 @@ namespace NS
                     s_mod2.GetReference(),
                 });
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.CCI).VerifyDiagnostics();
+            CompileAndVerify(comp, emitters: TestEmitters.CCI).VerifyDiagnostics();
         }
 
         [Fact()]
@@ -6524,7 +6524,7 @@ public static int AT = (new { field = 2 }).field;
             Assert.Equal(1, comp.Assembly.Modules[2].GlobalNamespace.GetTypeMembers("<ModuleB01>f__AnonymousType0", 1).Length);
 
             CompileAndVerify(comp, expectedOutput: @"1 + 1 = 2
-2 = 2", emitOptions: TestEmitters.RefEmitBug);
+2 = 2", emitters: TestEmitters.RefEmitBug);
         }
 
         [Fact]
@@ -6754,7 +6754,7 @@ public class CF3<T>
                 }, TestOptions.ReleaseDll);
 
             // Exported types in .Net modules cause PEVerify to fail.
-            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug, verify: false).VerifyDiagnostics();
+            CompileAndVerify(compilation, emitters: TestEmitters.RefEmitBug, verify: false).VerifyDiagnostics();
 
             compilation = CreateCompilationWithMscorlib("[assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(CF3<byte>))]",
                 new List<MetadataReference>()
@@ -6763,7 +6763,7 @@ public class CF3<T>
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug, verify: false).VerifyDiagnostics();
+            CompileAndVerify(compilation, emitters: TestEmitters.RefEmitBug, verify: false).VerifyDiagnostics();
 
             compilation = CreateCompilationWithMscorlib(modSource,
                 new List<MetadataReference>()
@@ -6838,7 +6838,7 @@ extern alias FT1;
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug, verify: false).VerifyDiagnostics();
+            CompileAndVerify(compilation, emitters: TestEmitters.RefEmitBug, verify: false).VerifyDiagnostics();
 
             compilation = CreateCompilationWithMscorlib("",
                 new List<MetadataReference>()
@@ -17161,7 +17161,7 @@ public class B : A
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            var verifier = CompileAndVerify(comp, verify: false, emitOptions: TestEmitters.RefEmitBug).
+            var verifier = CompileAndVerify(comp, verify: false, emitters: TestEmitters.RefEmitBug).
                            VerifyDiagnostics(
     // (8,17): warning CS0824: Constructor 'B.B()' is marked external
     //   public extern B();

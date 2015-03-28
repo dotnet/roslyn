@@ -547,7 +547,7 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Used to validate metadata blobs emitted for MarshalAs.
         /// </summary>
-        internal static void MarshalAsMetadataValidator(PEAssembly assembly, Func<string, PEAssembly, TestEmitters, byte[]> getExpectedBlob, TestEmitters emitOptions, bool isField = true)
+        internal static void MarshalAsMetadataValidator(PEAssembly assembly, Func<string, PEAssembly, TestEmitters, byte[]> getExpectedBlob, TestEmitters emitters, bool isField = true)
         {
             var metadataReader = assembly.GetMetadataReader();
 
@@ -567,7 +567,7 @@ namespace Roslyn.Test.Utilities
                     var field = metadataReader.GetFieldDefinition(fieldDef);
                     string fieldName = metadataReader.GetString(field.Name);
 
-                    byte[] expectedBlob = getExpectedBlob(fieldName, assembly, emitOptions);
+                    byte[] expectedBlob = getExpectedBlob(fieldName, assembly, emitters);
                     if (expectedBlob != null)
                     {
                         BlobHandle descriptor = metadataReader.GetFieldDefinition(fieldDef).GetMarshallingDescriptor();
@@ -597,7 +597,7 @@ namespace Roslyn.Test.Utilities
                         var paramRow = metadataReader.GetParameter(paramHandle);
                         string paramName = metadataReader.GetString(paramRow.Name);
 
-                        byte[] expectedBlob = getExpectedBlob(memberName + ":" + paramName, assembly, emitOptions);
+                        byte[] expectedBlob = getExpectedBlob(memberName + ":" + paramName, assembly, emitters);
                         if (expectedBlob != null)
                         {
                             Assert.NotEqual(0, (int)(paramRow.Attributes & ParameterAttributes.HasFieldMarshal));

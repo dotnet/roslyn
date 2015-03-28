@@ -3678,7 +3678,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: "").VerifyDiagnostics();
+            CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: "").VerifyDiagnostics();
         }
 
         [WorkItem(546655, "DevDiv")]
@@ -3710,7 +3710,7 @@ class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: @"False
+            var comp = CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: @"False
 False");
             comp.VerifyDiagnostics();
         }
@@ -3994,7 +3994,7 @@ struct S
 }
 
 ";
-            CompileAndVerify(source1, emitOptions: TestEmitters.CCI, expectedOutput: "1");
+            CompileAndVerify(source1, emitters: TestEmitters.CCI, expectedOutput: "1");
             CreateCompilationWithMscorlib(source2).VerifyDiagnostics(
 // (16,9): error CS0034: Operator '==' is ambiguous on operands of type 'S?' and '<null>'
 //     if (s == null) s = default(S);
@@ -4080,7 +4080,7 @@ class D
 ";
             string expectedOutput = @"True
 False";
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: expectedOutput);
         }
 
         [WorkItem(543431, "DevDiv")]
@@ -4204,7 +4204,7 @@ class D
 ";
             string expectedOutput = @"True
 False";
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: expectedOutput);
         }
 
         [WorkItem(543754, "DevDiv")]
