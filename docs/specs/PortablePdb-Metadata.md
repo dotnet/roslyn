@@ -242,7 +242,7 @@ Imports blob has the following structure:
 | _alias_             | Compressed unsigned Blob heap index of a UTF8 string. | A name that can be used to refer to the target within the import scope. |
 | _target-assembly_   | Compressed unsigned integer. | Row id of the AssemblyRef table. |
 | _target-namespace_  | Compressed unsigned Blob heap index of a UTF8 string. | Fully qualified namespace name or XML namespace name. |
-| _target-type_       | Compressed unsigned integer. | TypeDef, TypeRef or TypeSpec encoded as TypeDefOrRefEncoded (see section 23.2.8 of the ECMA-335 Metadata specification). |
+| _target-type_       | Compressed unsigned integer. | TypeDef, TypeRef or TypeSpec encoded as TypeDefOrRefOrSpecEncoded (see section II.23.2.8 of the ECMA-335 Metadata specification). |
 
 | _kind_ | description |
 |:-------|:------------|
