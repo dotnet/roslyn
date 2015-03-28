@@ -3598,15 +3598,9 @@ class C
             Assert.Equal(error, "error CS1061: 'object[]' does not contain a definition for 'First' and no extension method 'First' accepting a first argument of type 'object[]' could be found (are you missing a using directive or an assembly reference?)");
         }
 
-        /// <summary>
-        /// Evaluating an expression where the imported type
-        /// is valid but the required reference is missing.
-        /// </summary>
         [Fact]
-        public void EvaluateExpression_MissingReferenceImportedType()
+        public void EvaluateExpression_UnusedImportedType()
         {
-            // System.Linq namespace is available but System.Core is
-            // missing since the reference was not needed in compilation.
             var source =
 @"using E=System.Linq.Enumerable;
 class C
@@ -3624,8 +3618,19 @@ class C
                 runtime,
                 methodName: "C.M");
             string error;
-            var result = context.CompileExpression("E.First(o)", out error);
-            Assert.Equal(error, "error CS0103: The name 'E' does not exist in the current context");
+
+            var testData = new CompilationTestData();
+            var result = context.CompileExpression("E.First(o)", out error, testData);
+            Assert.Null(error);
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object System.Linq.Enumerable.First<object>(System.Collections.Generic.IEnumerable<object>)""
+  IL_0006:  ret
+}");
         }
 
         [Fact]

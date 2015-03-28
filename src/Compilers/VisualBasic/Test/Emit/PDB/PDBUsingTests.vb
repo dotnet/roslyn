@@ -368,5 +368,44 @@ End Namespace
             Dim actual = GetPdbXml(comp)
             AssertXmlEqual(expected, actual)
         End Sub
+
+        <Fact>
+        Public Sub UnusedImports()
+            Dim source = "
+Imports X = System.Linq.Enumerable
+Imports Y = System.Linq
+
+Class C
+    Sub Main() 
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib(
+                {source},
+                {SystemCoreRef, SystemDataRef},
+                compOptions:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("System.Data.DataColumn")))
+
+            CompileAndVerify(comp, emitOptions:=TestEmitters.CCI, validator:=
+                Sub(peAssembly, emitters)
+                    Dim reader = peAssembly.ManifestModule.MetadataReader
+
+                    Assert.Equal(
+                        {"mscorlib",
+                         "System.Core",
+                         "System.Data"},
+                        peAssembly.AssemblyReferences.Select(Function(ai) ai.Name))
+
+                    Assert.Equal(
+                        {"CompilationRelaxationsAttribute",
+                         "RuntimeCompatibilityAttribute",
+                         "DebuggableAttribute",
+                         "DebuggingModes",
+                         "Object",
+                         "Enumerable",
+                         "DataColumn"},
+                         reader.TypeReferences.Select(Function(h) reader.GetString(reader.GetTypeReference(h).Name)))
+                End Sub)
+        End Sub
+
     End Class
 End Namespace

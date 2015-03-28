@@ -2110,5 +2110,47 @@ class D
 
             AssertXmlEqual(expectedXml, GetPdbXml(comp, "D.Main"));
         }
+
+        [Fact]
+        public void UnusedImports()
+        {
+            var source = @"
+extern alias A;
+
+using X = A::System.Linq.Enumerable;
+using Y = A::System.Linq;
+using Z = System.Data.DataColumn;
+
+class C
+{
+    static void Main() 
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
+            CompileAndVerify(comp, emitOptions: TestEmitters.CCI, validator: (peAssembly, emitters) =>
+            {
+                var reader = peAssembly.ManifestModule.MetadataReader;
+
+                Assert.Equal(new[] 
+                {
+                    "mscorlib",
+                    "System.Core",
+                    "System.Data"
+                }, peAssembly.AssemblyReferences.Select(ai => ai.Name));
+
+                Assert.Equal(new[] 
+                {
+                    "CompilationRelaxationsAttribute",
+                    "RuntimeCompatibilityAttribute",
+                    "DebuggableAttribute",
+                    "DebuggingModes",
+                    "Object",
+                    "Enumerable",
+                    "DataColumn"
+                }, reader.TypeReferences.Select(h => reader.GetString(reader.GetTypeReference(h).Name)));
+            });
+        }
     }
 }
