@@ -59,6 +59,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
+                    public bool HasAnyWork
+                    {
+                        get
+                        {
+                            return _workItemQueue.HasAnyWork;
+                        }
+                    }
+
                     public void Enqueue(WorkItem item)
                     {
                         Contract.ThrowIfFalse(item.DocumentId != null, "can only enqueue a document work item");
@@ -134,6 +142,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private bool GetNextWorkItem(out WorkItem workItem, out CancellationTokenSource documentCancellation)
                     {
+                        // GetNextWorkItem since it can't fail. we still return bool to confirm that this never fail.
                         var documentId = _processor._documentTracker.GetActiveDocument();
                         if (documentId != null)
                         {
@@ -143,7 +152,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             }
                         }
 
-                        return _workItemQueue.TryTakeAnyWork(preferableProjectId: null, workItem: out workItem, source: out documentCancellation);
+                        return _workItemQueue.TryTakeAnyWork(
+                            preferableProjectId: null,
+                            dependencyGraph: this._processor.DependencyGraph,
+                            workItem: out workItem,
+                            source: out documentCancellation);
                     }
 
                     private async Task ProcessDocumentAsync(Solution solution, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationTokenSource source)

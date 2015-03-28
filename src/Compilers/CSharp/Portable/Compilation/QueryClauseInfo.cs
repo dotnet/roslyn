@@ -23,9 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The .Cast&lt;T&gt;() operation generated from the query range variable's type restriction.
-        /// If you want the type restriction, when this is non-null use Cast.TypeArguments[0].
+        /// The .Cast&lt;T&gt;() operation generated from the query range variable's type restriction,
+        /// or null if the type restriction isn't specified. 
         /// </summary>
+        /// <remarks>
+        /// The operation, when present is implemented via <see cref="IMethodSymbol"/>.
+        /// To access the type, when this is non-null use <see cref="IMethodSymbol.TypeArguments"/>[0].
+        /// If it is an extension method, it is returned in reduced form.
+        /// </remarks>
         public SymbolInfo CastInfo
         {
             get { return _castInfo; }
@@ -33,8 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// The operation (e.g. Select(), Where(), etc) that implements the given clause.
-        /// If it is an extension method, it is returned in reduced form.
         /// </summary>
+        /// <remarks>
+        /// The clause can be implemented via <see cref="IMethodSymbol"/>, or 
+        /// <see cref="IFieldSymbol"/> or <see cref="IPropertySymbol"/> that return a delegate.
+        /// If it is an extension method, it is returned in reduced form.
+        /// </remarks>
         public SymbolInfo OperationInfo
         {
             get { return _operationInfo; }

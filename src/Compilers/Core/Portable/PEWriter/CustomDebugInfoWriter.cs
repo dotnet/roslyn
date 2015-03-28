@@ -156,14 +156,14 @@ namespace Microsoft.Cci
         {
             if (iteratorClassName == null) return;
             MemoryStream customMetadata = new MemoryStream();
-            BinaryWriter cmw = new BinaryWriter(customMetadata, true);
+            BinaryWriter cmw = new BinaryWriter(customMetadata, unicode: true);
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte(CDI.CdiKindForwardIterator);
             cmw.Align(4);
             uint length = 10 + (uint)iteratorClassName.Length * 2;
             if ((length & 3) != 0) length += 4 - (length & 3);
             cmw.WriteUint(length);
-            cmw.WriteString(iteratorClassName, true);
+            cmw.WriteString(iteratorClassName, emitNullTerminator: true);
             cmw.Align(4);
             Debug.Assert(customMetadata.Position == length);
             customDebugInfo.Add(customMetadata);

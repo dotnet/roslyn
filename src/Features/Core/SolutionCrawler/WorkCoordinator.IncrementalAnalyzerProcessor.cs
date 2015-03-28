@@ -143,6 +143,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
+                private ProjectDependencyGraph DependencyGraph
+                {
+                    get
+                    {
+                        return CurrentSolution.GetProjectDependencyGraph();
+                    }
+                }
+
                 private IEnumerable<DocumentId> GetOpenDocumentIds()
                 {
                     return _registration.Workspace.GetOpenDocumentIds();

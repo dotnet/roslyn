@@ -246,11 +246,4 @@ Public Class VisualBasicParseOptionsTests
                 "PreprocessorSymbolNames",
                 "PreprocessorSymbols")
     End Sub
-
-    <Fact>
-    Public Sub Serializability()
-        VerifySerializability(New VisualBasicSerializableParseOptions(New VisualBasicParseOptions(
-                    languageVersion:=LanguageVersion.VisualBasic14,
-                    documentationMode:=DocumentationMode.Diagnose)))
-    End Sub
 End Class

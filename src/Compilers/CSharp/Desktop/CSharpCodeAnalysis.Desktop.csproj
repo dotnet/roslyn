@@ -78,9 +78,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CSharpSerializableParseOptions.cs" />
     <Compile Include="CSharpFileSystemExtensions.cs" />
-    <Compile Include="CSharpSerializableCompilationOptions.cs" />
     <Compile Include="CommandLine\CommandLineArguments.cs" />
     <Compile Include="CommandLine\CommandLineDiagnosticFormatter.cs" />
     <Compile Include="CommandLine\CommandLineParser.cs" />

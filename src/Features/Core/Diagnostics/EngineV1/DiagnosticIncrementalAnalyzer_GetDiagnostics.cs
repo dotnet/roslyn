@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private Task ReanalyzeAllDocumentsAsync(Project project, ImmutableHashSet<string> diagnosticIds, CancellationToken cancellationToken)
         {
-            return new ReanalysisDiagnosticGetter(this, diagnosticIds).ReanalyzeAllDocuments(project, cancellationToken);
+            return new ReanalysisDiagnosticGetter(this, diagnosticIds).ReanalyzeAllDocumentsAsync(project, cancellationToken);
         }
 
         private abstract class DiagnosticsGetter
@@ -454,10 +454,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
             }
 
-            public async Task ReanalyzeAllDocuments(Project project, CancellationToken cancellationToken)
+            public async Task ReanalyzeAllDocumentsAsync(Project project, CancellationToken cancellationToken)
             {
                 foreach (var document in project.Documents)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     await AppendDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
                 }
             }

@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -23,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
         {
             _analyzers = analyzers;
+        }
+
+        public override Assembly LoadAssembly(string fullPath)
+        {
+            return Assembly.LoadFrom(fullPath);
         }
 
         protected override void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession)

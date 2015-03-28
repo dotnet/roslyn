@@ -2633,12 +2633,12 @@ namespace ConsoleApplication1
 @"using System ; class C { public E B { get ; private set ; } void Main ( C a ) { var x = a ? . B . C ( ) ; } public class E { internal object C ( ) { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [Fact(Skip = "1561"), WorkItem(1561, "https://github.com/dotnet/roslyn/issues/1561"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public void TestGenerateMethodInPropertyInitializer()
         {
             Test(
 @"class Program { public int MyProperty { get ; } = [|y|] ( ) ; } ",
-@"using System ; class Program { public int MyProperty { get ; } = y ( ) ; private int y ( ) { throw new NotImplementedException ( ) ; } } ");
+@"using System ; class Program { public int MyProperty { get ; } = y ( ) ; private static int y ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]

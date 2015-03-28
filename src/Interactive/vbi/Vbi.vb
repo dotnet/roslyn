@@ -4,9 +4,11 @@ Imports System.Globalization
 Imports System.IO
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.CodeAnalysis.Scripting
+Imports Roslyn.Utilities
 Imports VisualBasicInteractive.BasicInteractive
 
 Friend NotInheritable Class Vbi
@@ -26,6 +28,10 @@ Friend NotInheritable Class Vbi
             Console.WriteLine(ex.ToString())
             Return Failed
         End Try
+    End Function
+
+    Public Overrides Function LoadAssembly(fullPath As String) As Assembly
+        Throw New NotImplementedException()
     End Function
 
     Friend Overrides Function GetExternalMetadataResolver(touchedFiles As TouchedFileLogger) As MetadataFileReferenceResolver

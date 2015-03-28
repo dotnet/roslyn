@@ -4641,7 +4641,7 @@ namespace Microsoft.Cci
                         this.SerializeTypeReference(namedArgument.Type, writer, true, true);
                     }
 
-                    writer.WriteString(namedArgument.ArgumentName, false);
+                    writer.WriteString(namedArgument.ArgumentName, emitNullTerminator: false);
 
                     this.SerializeMetadataExpression(writer, namedArgument.ArgumentValue, namedArgument.Type);
                 }
@@ -4758,7 +4758,7 @@ namespace Microsoft.Cci
                     }
                     else if (marshaller != null)
                     {
-                        writer.WriteString((string)marshaller, false);
+                        writer.WriteString((string)marshaller, emitNullTerminator: false);
                     }
                     else
                     {
@@ -4768,7 +4768,7 @@ namespace Microsoft.Cci
                     var arg = marshallingInformation.CustomMarshallerRuntimeArgument;
                     if (arg != null)
                     {
-                        writer.WriteString(arg, false);
+                        writer.WriteString(arg, emitNullTerminator: false);
                     }
                     else
                     {
@@ -4829,7 +4829,7 @@ namespace Microsoft.Cci
 
         private void SerializeTypeName(ITypeReference typeReference, BinaryWriter writer)
         {
-            writer.WriteString(typeReference.GetSerializedTypeName(this.Context), false);
+            writer.WriteString(typeReference.GetSerializedTypeName(this.Context), emitNullTerminator: false);
         }
 
         /// <summary>
@@ -4851,7 +4851,7 @@ namespace Microsoft.Cci
             }
 
             sb.Append(", PublicKeyToken=");
-            if (IteratorHelper.EnumerableIsNotEmpty(assemblyReference.PublicKeyToken))
+            if (assemblyReference.PublicKeyToken.Length > 0)
             {
                 foreach (byte b in assemblyReference.PublicKeyToken)
                 {
@@ -4888,7 +4888,7 @@ namespace Microsoft.Cci
                     }
                 }
 
-                writer.WriteString(typeName, false);
+                writer.WriteString(typeName, emitNullTerminator: false);
                 BinaryWriter customAttributeWriter = new BinaryWriter(new MemoryStream());
                 this.SerializeCustomAttributeSignature(customAttribute, true, customAttributeWriter);
                 writer.WriteCompressedUInt(customAttributeWriter.BaseStream.Length);
