@@ -223,6 +223,7 @@ Conceptually, every row in the LocalConstant table is owned by one, and only one
 There shall be no duplicate rows in the LocalConstant table, based upon owner and _Name_.
 
 _TypeCode_ shall be exactly one of 
+
 | _TypeCode_                | value | _Value_ encoding         |
 |:--------------------------|:------|:-------------------------|
 | ```ELEMENT_TYPE_VOID```   | 0x01  | A custom typed constant  |
