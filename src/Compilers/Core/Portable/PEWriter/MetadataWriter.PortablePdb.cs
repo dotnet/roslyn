@@ -559,11 +559,12 @@ namespace Microsoft.Cci
                 documentRowId = _documentTable.Count + 1;
                 index.Add(document, documentRowId);
 
+                var checksumAndAlgorithm = document.ChecksumAndAlgorithm;
                 _documentTable.Add(new DocumentRow
                 {
                     Name = SerializeDocumentName(document.Location),
-                    HashAlgorithm = debugHeapsOpt.GetGuidIndex(document.ChecksumAndAlgorithm.Item2),
-                    Hash = debugHeapsOpt.GetBlobIndex(document.ChecksumAndAlgorithm.Item1),
+                    HashAlgorithm = checksumAndAlgorithm.Item1.IsDefault ? 0 : debugHeapsOpt.GetGuidIndex(checksumAndAlgorithm.Item2),
+                    Hash = checksumAndAlgorithm.Item1.IsDefault ? 0 : debugHeapsOpt.GetBlobIndex(checksumAndAlgorithm.Item1),
                     Language = debugHeapsOpt.GetGuidIndex(document.Language),
                 });
             }
@@ -576,6 +577,11 @@ namespace Microsoft.Cci
 
         private uint SerializeDocumentName(string name)
         {
+            if (name.Length == 0)
+            {
+                return 0;
+            }
+
             MemoryStream sig = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(sig);
 
