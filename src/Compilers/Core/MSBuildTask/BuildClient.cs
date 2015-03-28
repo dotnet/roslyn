@@ -31,11 +31,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private const int TimeOutMsNewProcess = 20000; 
 
         /// <summary>
-        /// Try to get the directory this assembly is in.
+        /// Try to get the directory this assembly is in. Returns null if assembly
+        /// was in the GAC.
         /// </summary>
-        private static string GetClientDir()
+        private static string TryGetClientDir()
         {
-            var uri = new Uri(Assembly.GetExecutingAssembly().CodeBase);
+            var assembly = typeof(BuildClient).Assembly;
+
+            if (assembly.GlobalAssemblyCache)
+                return null;
+
+            var uri = new Uri(assembly.CodeBase);
             string assemblyPath = uri.IsFile 
                 ? uri.LocalPath
                 : Assembly.GetCallingAssembly().Location;
@@ -133,13 +139,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             IList<string> arguments,
             CancellationToken cancellationToken,
             string keepAlive = null,
-            string libEnvVariable = null)
+            string libEnvVariable = null,
+            string fallbackCompilerExeDir = null)
         {
             try
             {
                 NamedPipeClientStream pipe;
 
-                var clientDir = GetClientDir();
+                var clientDir = TryGetClientDir() ?? fallbackCompilerExeDir;
+
+                if (clientDir == null)
+                    return Task.FromResult<BuildResponse>(null);
+
                 var pipeName = GetPipeName(clientDir);
                 bool holdsMutex;
                 using (var mutex = new Mutex(initiallyOwned: true,

@@ -313,7 +313,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         CurrentDirectoryToUse(),
                         GetArguments(commandLineCommands, responseFileCommands),
                         _sharedCompileCts.Token,
-                        libEnvVariable: LibDirectoryToUse());
+                        libEnvVariable: LibDirectoryToUse(),
+                        fallbackCompilerExeDir: Path.GetDirectoryName(pathToTool));
 
                     responseTask.Wait(_sharedCompileCts.Token);
 
