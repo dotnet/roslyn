@@ -3,14 +3,13 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     /// <summary>
     /// This factory creates COM "blind aggregator" instances in managed code.
     /// </summary>
-    internal static class BlindAggregatorFactory
+    public static class BlindAggregatorFactory
     {
         public static unsafe IntPtr CreateWrapper()
         {
@@ -134,9 +133,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             // 00000003-0000-0000-C000-000000000046
             private static readonly Guid s_IMarshalInterfaceGuid = new Guid(0x00000003, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46);
 
+            // CBD71F2C-6BC5-4932-B851-B93EB3151386
+            private static readonly Guid s_IComWrapperGuid = new Guid("CBD71F2C-6BC5-4932-B851-B93EB3151386");
+
             private static unsafe int QueryInterface(BlindAggregator* pThis, [In] ref Guid riid, out IntPtr pvObject)
             {
-                if (riid == s_IUnknownInterfaceGuid || riid == typeof(IComWrapper).GUID)
+                if (riid == s_IUnknownInterfaceGuid || riid == s_IComWrapperGuid)
                 {
                     AddRef(pThis);
                     pvObject = (IntPtr)pThis;
@@ -179,3 +181,4 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         }
     }
 }
+
