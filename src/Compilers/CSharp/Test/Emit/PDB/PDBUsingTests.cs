@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2116,10 +2117,11 @@ class D
         {
             var source = @"
 extern alias A;
-
+using System;
 using X = A::System.Linq.Enumerable;
 using Y = A::System.Linq;
 using Z = System.Data.DataColumn;
+using F = System.Func<int>;
 
 class C
 {
@@ -2129,7 +2131,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
-            CompileAndVerify(comp, emitOptions: TestEmitters.CCI, validator: (peAssembly, emitters) =>
+            var v = CompileAndVerify(comp, emitOptions: TestEmitters.CCI, validator: (peAssembly, emitters) =>
             {
                 var reader = peAssembly.ManifestModule.MetadataReader;
 
@@ -2148,8 +2150,11 @@ class C
                     "DebuggingModes",
                     "Object",
                     "Enumerable",
-                    "DataColumn"
+                    "DataColumn",
+                    "Func`1"
                 }, reader.TypeReferences.Select(h => reader.GetString(reader.GetTypeReference(h).Name)));
+
+                Assert.Equal(1, reader.GetTableRowCount(TableIndex.TypeSpec));
             });
         }
     }
