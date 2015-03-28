@@ -1821,7 +1821,7 @@ End Class
             edits.VerifyEdits(
                 "Reorder [Sub g() : End Sub]@64 -> @11")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, {})
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, Array.Empty(Of SemanticEditDescription)())
         End Sub
 
         <Fact>

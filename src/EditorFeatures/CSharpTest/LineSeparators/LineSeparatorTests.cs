@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -504,7 +505,7 @@ class Program
         public void IncompleteOperator()
         {
             // top level operators not supported in script code
-            AssertTagsOnBracesOrSemicolonsTokens(@"C operator +(C lhs, C rhs) {", new int[0], Options.Regular);
+            AssertTagsOnBracesOrSemicolonsTokens(@"C operator +(C lhs, C rhs) {", Array.Empty<int>(), Options.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]

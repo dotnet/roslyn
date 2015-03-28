@@ -158,7 +158,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 providers As TProvider(),
                 languageName As String) As IEnumerable(Of Lazy(Of TProvider, OrderableLanguageMetadata))
             If providers Is Nothing Then
-                Return {}
+                Return Array.Empty(Of Lazy(Of TProvider, OrderableLanguageMetadata))()
             End If
 
             Return providers.Select(Function(p) New Lazy(Of TProvider, OrderableLanguageMetadata)(

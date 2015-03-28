@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 private static readonly Func<int, DocumentId, bool, string> s_enqueueLogger = (t, i, b) => string.Format("[{0}] {1} - hint: {2}", t, i.ToString(), b);
 
-                private readonly AsyncSemaphore _gate;
+                private readonly SemaphoreSlim _gate;
 
                 private readonly Registration _registration;
                 private readonly ProjectProcessor _processor;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     CancellationToken cancellationToken) :
                     base(listener, backOffTimeSpanInMS, cancellationToken)
                 {
-                    _gate = new AsyncSemaphore(initialCount: 0);
+                    _gate = new SemaphoreSlim(initialCount: 0);
 
                     _registration = registration;
 
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     private static readonly Func<int, ProjectId, string> s_enqueueLogger = (t, i) => string.Format("[{0}] {1}", t, i.ToString());
 
-                    private readonly AsyncSemaphore _gate;
+                    private readonly SemaphoreSlim _gate;
 
                     private readonly Registration _registration;
                     private readonly IncrementalAnalyzerProcessor _processor;
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _registration = registration;
                         _processor = processor;
 
-                        _gate = new AsyncSemaphore(initialCount: 0);
+                        _gate = new SemaphoreSlim(initialCount: 0);
 
                         _workGate = new NonReentrantLock();
                         _pendingWork = new Dictionary<ProjectId, Data>();

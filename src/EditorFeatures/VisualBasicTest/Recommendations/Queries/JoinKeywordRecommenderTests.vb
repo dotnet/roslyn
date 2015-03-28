@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
         <WorkItem(543078)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NothingAfterJoinInQuery()
-            VerifyRecommendationsAreExactly(<MethodBody>Dim x = From y In z Join |</MethodBody>, {})
+            VerifyRecommendationsAreExactly(<MethodBody>Dim x = From y In z Join |</MethodBody>, Array.Empty(Of String)())
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
