@@ -226,7 +226,7 @@ _TypeCode_ shall be exactly one of
 
 | _TypeCode_                | value | _Value_ encoding         |
 |:--------------------------|:------|:-------------------------|
-| ```ELEMENT_TYPE_VOID```   | 0x01  | A custom typed constant  |
+| Custom                    | 0x00  | [Custom constant blob](#CustomConstantBlob) |
 | ```ELEMENT_TYPE_BOOLEAN```| 0x02  | |
 | ```ELEMENT_TYPE_CHAR```   | 0x03  | |
 | ```ELEMENT_TYPE_I1```     | 0x04  | |
@@ -240,9 +240,23 @@ _TypeCode_ shall be exactly one of
 | ```ELEMENT_TYPE_R4```     | 0x0c  | |
 | ```ELEMENT_TYPE_R8```     | 0x0d  | |
 | ```ELEMENT_TYPE_STRING``` | 0x0e  | | 
-| ```ELEMENT_TYPE_CLASS```  | 0x12  | _Value_ must be 0.       |
+| ```ELEMENT_TYPE_CLASS```  | 0x12  | _Value_ must be 0. |
+| Decimal                   | 0x22  | sign (highest bit), scale (bits 0..7), low (uint32), mid (uint32), high (uint32) |
+| DateTime                  | 0x23  | ticks (int64)
 
-The values of these constants are defined in ECMA-335 §II.23.1.16.
+Values and encoding of ```ELEMENT_TYPE_*``` constants are defined in ECMA-335 §II.23.1.16.
+
+####<a name="CustomConstantBlob"></a>Custom Constant Blob
+Custom constant blob represents a value of a constant whose encoding is language/tool specific.
+
+The blob has the following structure:
+
+	Blob ::= kind value
+
+| terminal   | value                        | description                          |
+|:-----------|:-----------------------------|:-------------------------------------|
+| _kind_     | Compressed unsigned integer  | GUID heap index                      |
+| _value_    | Sequence of bytes            | Value                                |
 
 ###<a name="ImportScopeTable"></a>ImportScope Table: 0x35
 The ImportScope table has the following columns:
