@@ -28,7 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Const s_methodName = "<>m0"
         Friend Const IsLocalScopeEndInclusive = True
 
-        Friend ReadOnly MetadataBlocks As ImmutableArray(Of MetadataBlock)
         Friend ReadOnly MethodContextReuseConstraints As MethodContextReuseConstraints?
         Friend ReadOnly Compilation As VisualBasicCompilation
 
@@ -39,7 +38,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private ReadOnly _methodDebugInfo As MethodDebugInfo
 
         Private Sub New(
-            metadataBlocks As ImmutableArray(Of MetadataBlock),
             methodContextReuseConstraints As MethodContextReuseConstraints?,
             compilation As VisualBasicCompilation,
             metadataDecoder As MetadataDecoder,
@@ -48,7 +46,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             inScopeHoistedLocals As InScopeHoistedLocals,
             methodDebugInfo As MethodDebugInfo)
 
-            Me.MetadataBlocks = metadataBlocks
             Me.MethodContextReuseConstraints = methodContextReuseConstraints
             Me.Compilation = compilation
             _metadataDecoder = metadataDecoder
@@ -88,7 +85,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim currentFrame = New SynthesizedContextMethodSymbol(currentType)
             Return New EvaluationContext(
-                metadataBlocks,
                 Nothing,
                 compilation,
                 metadataDecoder,
@@ -175,13 +171,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End If
 
             Return New EvaluationContext(
-                metadataBlocks,
                 reuseConstraints,
                 compilation,
                 metadataDecoder,
                 currentFrame,
                 locals,
-                InScopeHoistedLocals,
+                inScopeHoistedLocals,
                 methodDebugInfo)
         End Function
 

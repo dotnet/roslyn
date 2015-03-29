@@ -115,8 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static EvaluationContext CreateMethodContext(
             RuntimeInstance runtime,
             string methodName,
-            int atLineNumber = -1,
-            CSharpMetadataContext previous = default(CSharpMetadataContext))
+            int atLineNumber = -1)
         {
             ImmutableArray<MetadataBlock> blocks;
             Guid moduleVersionId;
@@ -128,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber);
 
             return EvaluationContext.CreateMethodContext(
-                previous,
+                default(CSharpMetadataContext),
                 blocks,
                 symReader,
                 moduleVersionId,
