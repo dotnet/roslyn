@@ -70,7 +70,7 @@ Document name blob is a sequence:
 where
 
 * _separator_ is a UTF8 encoded character, or byte 0 to represent an empty separator.
-* _part_ is a compressed integer into the #Blob heap, where the part is stored in UTF8 encoding (0 represents and empty string).
+* _part_ is a compressed integer into the #Blob heap, where the part is stored in UTF8 encoding (0 represents an empty string).
 
 The document name is a concatenation of the _parts_ separated by the _separator_.
 - - -
