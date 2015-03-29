@@ -404,7 +404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
-        Private Function NextIs(offset As Integer, c As String) As Boolean
+        Private Function NextIs(offset As Integer, c As Char) As Boolean
             Return CanGet(offset) AndAlso (Peek(offset) = c)
         End Function
 
