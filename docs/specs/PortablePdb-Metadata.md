@@ -42,7 +42,7 @@ The table is not required to be sorted.
 
 There shall be no duplicate rows in the _Document_ table, based upon document name. 
 
-Document name shall not be empty.
+_Name_ shall not be nil. It can however encode an empty name string.
 
 The values for which field _Language_ has a defined meaning are listed in the following tables along with the corresponding interpretation:
 
