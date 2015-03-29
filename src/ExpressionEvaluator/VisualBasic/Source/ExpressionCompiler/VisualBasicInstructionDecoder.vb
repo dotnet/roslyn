@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 compilation = previous.Compilation
             Else
                 compilation = metadataBlocks.ToCompilation()
-                appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, New VisualBasicMetadataContext(metadataBlocks))
+                appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, New VisualBasicMetadataContext(metadataBlocks, compilation))
             End If
 
             Return compilation

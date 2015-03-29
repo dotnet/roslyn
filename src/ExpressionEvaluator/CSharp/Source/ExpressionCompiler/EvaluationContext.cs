@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private const string MethodName = "<>m0";
         internal const bool IsLocalScopeEndInclusive = false;
 
-        internal readonly ImmutableArray<MetadataBlock> MetadataBlocks;
         internal readonly MethodContextReuseConstraints? MethodContextReuseConstraints;
         internal readonly CSharpCompilation Compilation;
 
@@ -36,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly MethodDebugInfo _methodDebugInfo;
 
         private EvaluationContext(
-            ImmutableArray<MetadataBlock> metadataBlocks,
             MethodContextReuseConstraints? methodContextReuseConstraints,
             CSharpCompilation compilation,
             MetadataDecoder metadataDecoder,
@@ -47,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             Debug.Assert(inScopeHoistedLocalIndices != null);
 
-            this.MetadataBlocks = metadataBlocks;
             this.MethodContextReuseConstraints = methodContextReuseConstraints;
             this.Compilation = compilation;
             _metadataDecoder = metadataDecoder;
@@ -81,13 +78,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 previous.Compilation :
                 metadataBlocks.ToCompilation();
 
+            return CreateTypeContext(compilation, moduleVersionId, typeToken);
+        }
+
+        internal static EvaluationContext CreateTypeContext(
+            CSharpCompilation compilation,
+            Guid moduleVersionId,
+            int typeToken)
+        {
             MetadataDecoder metadataDecoder;
             var currentType = compilation.GetType(moduleVersionId, typeToken, out metadataDecoder);
             Debug.Assert((object)currentType != null);
             Debug.Assert(metadataDecoder != null);
             var currentFrame = new SynthesizedContextMethodSymbol(currentType);
             return new EvaluationContext(
-                metadataBlocks,
                 null,
                 compilation,
                 metadataDecoder,
@@ -140,6 +144,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 compilation = metadataBlocks.ToCompilation();
             }
 
+            return CreateMethodContext(
+                compilation,
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                ilOffset,
+                localSignatureToken);
+        }
+
+        internal static EvaluationContext CreateMethodContext(
+            CSharpCompilation compilation,
+            object symReader,
+            Guid moduleVersionId,
+            int methodToken,
+            int methodVersion,
+            int ilOffset,
+            int localSignatureToken)
+        {
             var typedSymReader = (ISymUnmanagedReader)symReader;
             var allScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
             var containingScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
@@ -180,7 +203,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var locals = localBuilder.ToImmutableAndFree();
 
             return new EvaluationContext(
-                metadataBlocks,
                 methodContextReuseConstraints,
                 compilation,
                 metadataDecoder,

@@ -141,12 +141,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var appDomain = moduleInstance.AppDomain;
                 var references = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain);
 
-                ResultProperties unusedResultProperties;
                 ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
                 CompileResult compileResult;
                 do
                 {
                     var context = this.CreateTypeContext(moduleInstance, references, token);
+                    ResultProperties unusedResultProperties;
                     compileResult = context.CompileExpression(
                         RuntimeInspectionContext.Empty,
                         expression.Text,
@@ -174,7 +174,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 missingAssemblyIdentities,
                 ref references);
         }
-
 
         /// <remarks>
         /// Internal for testing.
@@ -212,7 +211,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrAppDomain appDomain,
             ImmutableArray<MetadataBlock> metadataBlocks,
             Guid moduleVersionId,
-            int typeToken);
+            int typeToken,
+            bool useReferencedModulesOnly);
 
         internal abstract EvaluationContextBase CreateMethodContext(
             DkmClrAppDomain appDomain,
@@ -223,9 +223,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             int methodToken,
             int methodVersion,
             int ilOffset,
-            int localSignatureToken);
+            int localSignatureToken,
+            bool useReferencedModulesOnly);
 
-        internal abstract bool RemoveDataItem(DkmClrAppDomain appDomain);
+        internal abstract void RemoveDataItem(DkmClrAppDomain appDomain);
 
         private EvaluationContextBase CreateTypeContext(DkmClrModuleInstance moduleInstance, ImmutableArray<MetadataBlock> references, int typeToken)
         {
@@ -233,7 +234,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 moduleInstance.AppDomain,
                 references,
                 moduleInstance.Mvid,
-                typeToken);
+                typeToken,
+                useReferencedModulesOnly: false);
         }
 
         private EvaluationContextBase CreateMethodContext(DkmClrInstructionAddress instructionAddress, ImmutableArray<MetadataBlock> metadataBlocks)
@@ -264,7 +266,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 methodToken: methodToken,
                 methodVersion: (int)instructionAddress.MethodId.Version,
                 ilOffset: (int)instructionAddress.ILOffset,
-                localSignatureToken: localSignatureToken);
+                localSignatureToken: localSignatureToken,
+                useReferencedModulesOnly: false);
         }
     }
 }
