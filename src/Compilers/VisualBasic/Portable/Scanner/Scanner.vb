@@ -391,19 +391,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #Region "Buffer helpers"
 
         Private Function NextAre(chars As String) As Boolean
-            Debug.Assert(Not String.IsNullOrEmpty(chars))
-            Dim n = chars.Length-1
-            If Not CanGet( n) Then Return False
-            For i = 0 To n
-                If chars(i) <> Peek(i) Then Return False
-            Next
-            Return True
+            Return NextAre(0, chars)
         End Function
 
         Private Function NextAre(offset As Integer, chars As String) As Boolean
             Debug.Assert(Not String.IsNullOrEmpty(chars))
             Dim n = chars.Length
-            If Not CanGet(offset + n) Then Return False
+            If Not CanGet(offset + n - 1) Then Return False
             For i = 0 To n - 1
                 If chars(i) <> Peek(offset + i) Then Return False
             Next
