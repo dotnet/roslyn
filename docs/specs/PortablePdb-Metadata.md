@@ -184,7 +184,7 @@ The LocalScope table has the following columns:
 
     The scope length in bytes.
 
-The table is required to be sorted first by _Method_ and then by _StartOffset_.
+The table is required to be sorted first by _Method_ in ascending order, then by _StartOffset_ in ascending order, then by _Length_ in descending order.
 
 Each scope spans IL instructions in range [_StartOffset_, _StartOffset_ + _Length_).
 
