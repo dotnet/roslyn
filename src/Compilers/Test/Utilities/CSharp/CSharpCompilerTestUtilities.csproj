@@ -16,6 +16,7 @@
     <AssemblyName>Roslyn.Compilers.CSharp.Test.Utilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\TestUtilities.csproj">
@@ -96,6 +97,11 @@
     <Compile Include="SymbolUtilities.cs" />
     <Compile Include="SyntaxTreeExtensions.cs" />
     <Compile Include="TestOptions.cs" />
+  </ItemGroup>
+  <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\..\Helpers\InMemoryAssemblyProvider.cs">
+      <Link>InMemoryAssemblyProvider.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />

@@ -5,11 +5,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.DiaSymReader;
 
@@ -76,11 +74,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 modulesByName[name] = modulesByName.ContainsKey(name) ? null : metadata;
             }
 
-            // Build assembly references from modules in primary module
-            // manifests. There will be duplicate assemblies if the process has
-            // multiple app domains and those duplicates need to be dropped.
+            // Build assembly references from modules in primary module manifests.
             var referencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
-            var moduleIds = PooledHashSet<Guid>.GetInstance();
             foreach (var metadata in metadataBuilder)
             {
                 if (!IsPrimaryModule(metadata))
@@ -88,14 +83,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     continue;
                 }
                 var mvid = metadata.GetModuleVersionId();
-                if (moduleIds.Contains(mvid))
-                {
-                    continue;
-                }
-                moduleIds.Add(mvid);
                 referencesBuilder.Add(MakeAssemblyMetadata(metadata, modulesByName));
             }
-            moduleIds.Free();
 
             // Any runtime winmd modules were separated out initially. Now add
             // those to a placeholder for the missing compile time module since

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
     Public Class LineSeparatorTests
         <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub NoLinesInEmptyFile()
-            AssertTags({}, "")
+            AssertTags(Array.Empty(Of TextSpan)(), "")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>

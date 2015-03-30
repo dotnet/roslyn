@@ -15,6 +15,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -78,9 +79,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CSharpSerializableParseOptions.cs" />
     <Compile Include="CSharpFileSystemExtensions.cs" />
-    <Compile Include="CSharpSerializableCompilationOptions.cs" />
     <Compile Include="CommandLine\CommandLineArguments.cs" />
     <Compile Include="CommandLine\CommandLineDiagnosticFormatter.cs" />
     <Compile Include="CommandLine\CommandLineParser.cs" />

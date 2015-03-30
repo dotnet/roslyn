@@ -864,7 +864,7 @@ public class Test
 	}
 }";
 
-            var compVerifier = CompileAndVerify(text, emitOptions: TestEmitters.CCI, expectedOutput: "0");
+            var compVerifier = CompileAndVerify(text, emitters: TestEmitters.CCI, expectedOutput: "0");
             compVerifier.VerifyIL("Test.DoEnum", @"
 {
   // Code size      127 (0x7f)
@@ -2283,7 +2283,7 @@ class Test
             var reference = compVerifier.Compilation.EmitToImageReference();
             var comp = CSharpCompilation.Create("Name", references: new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
-            var pid = ((NamedTypeSymbol)comp.GlobalNamespace.GetMembers().Single(s => s.Name.StartsWith("<PrivateImplementationDetails><MODULE>", StringComparison.Ordinal)));
+            var pid = ((NamedTypeSymbol)comp.GlobalNamespace.GetMembers().Single(s => s.Name.StartsWith("<PrivateImplementationDetails>", StringComparison.Ordinal)));
             var member = pid.GetMembers(PrivateImplementationDetails.SynthesizedStringHashFunctionName).Single();
             Assert.Equal(Accessibility.Internal, member.DeclaredAccessibility);
         }
@@ -3449,7 +3449,7 @@ class Program
                 references: new[] { AacorlibRef });
 
 
-            var verifier = CompileAndVerify(comp, verify: false, emitOptions: TestEmitters.RefEmitUnsupported);
+            var verifier = CompileAndVerify(comp, verify: false, emitters: TestEmitters.RefEmitUnsupported);
             verifier.VerifyIL("Program.Main", @"
 {
   // Code size      223 (0xdf)

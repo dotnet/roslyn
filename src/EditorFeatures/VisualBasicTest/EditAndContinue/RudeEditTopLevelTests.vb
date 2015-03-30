@@ -1821,7 +1821,7 @@ End Class
             edits.VerifyEdits(
                 "Reorder [Sub g() : End Sub]@64 -> @11")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, {})
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, Array.Empty(Of SemanticEditDescription)())
         End Sub
 
         <Fact>
@@ -2406,6 +2406,35 @@ End Class
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertHandlesClause, "Private Sub Foo()", "method"))
+        End Sub
+
+        <Fact>
+        Public Sub MethodUpdate_WithStaticLocal()
+            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", "method"))
+        End Sub
+
+        <Fact>
+        Public Sub MethodUpdate_AddingStaticLocal()
+            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a = 0 : a = 1 : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", "method"))
+        End Sub
+
+        <Fact>
+        Public Sub MethodUpdate_DeletingStaticLocal()
+            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a = 0 : a = 2 : End Sub : End Module"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics()
         End Sub
 #End Region
 

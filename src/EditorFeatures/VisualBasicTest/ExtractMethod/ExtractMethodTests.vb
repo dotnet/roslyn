@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim textSpan As TextSpan
             MarkupTestFile.GetSpan(codeWithMarker.NormalizedValue, codeWithoutMarker, textSpan)
 
-            Dim metadataReferences = If(metadataReference Is Nothing, New String() {}, New String() {metadataReference})
+            Dim metadataReferences = If(metadataReference Is Nothing, Array.Empty(Of String)(), New String() {metadataReference})
 
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFiles(New String() {codeWithMarker.NormalizedValue}, metadataReferences:=metadataReferences, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 

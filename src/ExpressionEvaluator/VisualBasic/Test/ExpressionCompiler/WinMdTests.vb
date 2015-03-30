@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.VisualStudio.Debugger.Evaluation
+Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports Resources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources
@@ -29,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Shared Sub M(f As Windows.Storage.StorageFolder, p As Windows.Foundation.Collections.PropertySet)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll, references:=WinRtRefs)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, references:=WinRtRefs)
             Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections")
             Assert.True(runtimeAssemblies.Length >= 2)
             Dim exeBytes As Byte() = Nothing
@@ -242,7 +243,7 @@ End Class"
 
             Dim comp = CreateCompilationWithMscorlib(
                 {source},
-                compOptions:=TestOptions.DebugDll,
+                options:=TestOptions.DebugDll,
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
                 references:=compileReferences)
             Dim exeBytes As Byte() = Nothing

@@ -3145,7 +3145,7 @@
     <Field Name="AccessorList" Type="AccessorListSyntax" Override="true" Optional="true" />
     <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" />
     <Field Name="Initializer" Type="EqualsValueClauseSyntax" Optional="true"/>
-    <Field Name="Semicolon" Type="SyntaxToken" Optional="true">
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
       <Kind Name="SemicolonToken" />
     </Field>
   </Node>
@@ -3192,7 +3192,7 @@
     </Field>
     <Field Name="AccessorList" Type="AccessorListSyntax" Override="true" Optional="true"/>
     <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true"/>
-    <Field Name="Semicolon" Type="SyntaxToken" Optional="true">
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>

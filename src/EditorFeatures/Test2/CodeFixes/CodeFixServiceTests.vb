@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.IO
 Imports System.Reflection
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -16,6 +17,15 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
     Public Class CodeFixServiceTests
+
+        Public Function CreateAnalyzerFileReference(ByVal fullPath As String) As AnalyzerFileReference
+            Return New AnalyzerFileReference(
+                fullPath,
+                Function(p)
+                    Dim bytes = File.ReadAllBytes(p)
+                    Return Assembly.Load(bytes)
+                End Function)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestProjectCodeFix()
@@ -58,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available codefix with a global fixer + a project fixer
                 ' We will use this assembly as a project fixer provider.
                 Dim _assembly = Assembly.GetExecutingAssembly()
-                Dim projectAnalyzerReference = New AnalyzerFileReference(_assembly.Location)
+                Dim projectAnalyzerReference = CreateAnalyzerFileReference(_assembly.Location)
 
                 Dim projectAnalyzerReferences = ImmutableArray.Create(Of AnalyzerReference)(projectAnalyzerReference)
                 project = project.WithAnalyzerReferences(projectAnalyzerReferences)
@@ -121,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify no codefix with a global fixer + a project fixer
                 ' We will use this assembly as a project fixer provider.
                 Dim _assembly = Assembly.GetExecutingAssembly()
-                Dim projectAnalyzerReference = New AnalyzerFileReference(_assembly.Location)
+                Dim projectAnalyzerReference = CreateAnalyzerFileReference(_assembly.Location)
 
                 Dim projectAnalyzerReferences = ImmutableArray.Create(Of AnalyzerReference)(projectAnalyzerReference)
                 project = project.WithAnalyzerReferences(projectAnalyzerReferences)

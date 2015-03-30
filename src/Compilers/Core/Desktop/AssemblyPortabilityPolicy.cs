@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis
         private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
         {
             DtdProcessing = DtdProcessing.Prohibit,
-            XmlResolver = null
         };
 
         internal static AssemblyPortabilityPolicy LoadFromXml(Stream input)

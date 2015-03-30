@@ -7,7 +7,7 @@ using Microsoft.DiaSymReader;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal sealed class NotImplementedSymUnmanagedReader : ISymUnmanagedReader, ISymUnmanagedReader2
+    internal sealed class NotImplementedSymUnmanagedReader : ISymUnmanagedReader, ISymUnmanagedReader2, ISymUnmanagedReader3
     {
         public static readonly NotImplementedSymUnmanagedReader Instance = new NotImplementedSymUnmanagedReader();
 
@@ -89,6 +89,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public int GetSymAttribute(int parent, string name, int sizeBuffer, out int lengthBuffer, byte[] buffer)
         {
             lengthBuffer = 0;
+            return SymUnmanagedReaderExtensions.E_NOTIMPL;
+        }
+
+        public int GetSymAttributeByVersion(int methodToken, int version, string name, int bufferLength, out int count, byte[] customDebugInformation)
+        {
+            count = 0;
+            return SymUnmanagedReaderExtensions.E_NOTIMPL;
+        }
+
+        public int GetSymAttributeByVersionPreRemap(int methodToken, int version, string name, int bufferLength, out int count, byte[] customDebugInformation)
+        {
+            count = 0;
             return SymUnmanagedReaderExtensions.E_NOTIMPL;
         }
 

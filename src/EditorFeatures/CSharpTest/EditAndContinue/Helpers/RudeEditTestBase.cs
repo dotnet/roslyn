@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             Iterator,
         }
 
-        internal static SemanticEditDescription[] NoSemanticEdits = new SemanticEditDescription[0];
+        internal static SemanticEditDescription[] NoSemanticEdits = Array.Empty<SemanticEditDescription>();
 
         internal static RudeEditDiagnosticDescription Diagnostic(RudeEditKind rudeEditKind, string squiggle, params string[] arguments)
         {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             var diagnostics = new List<RudeEditDiagnostic>();
             bool needsSyntaxMap;
-            var match = Analyzer.ComputeBodyMatch(m1, m2, new AbstractEditAndContinueAnalyzer.ActiveNode[0], diagnostics, out needsSyntaxMap);
+            var match = Analyzer.ComputeBodyMatch(m1, m2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out needsSyntaxMap);
 
             Assert.Equal(stateMachine != StateMachineKind.None, needsSyntaxMap);
 
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             var diagnostics = new List<RudeEditDiagnostic>();
             bool isActiveMethod;
-            var match = Analyzer.ComputeBodyMatch(body1, body2, new AbstractEditAndContinueAnalyzer.ActiveNode[0], diagnostics, out isActiveMethod);
+            var match = Analyzer.ComputeBodyMatch(body1, body2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out isActiveMethod);
 
             // Active methods are detected to preserve local variables for variable mapping and
             // edited async/iterator methods are considered active.

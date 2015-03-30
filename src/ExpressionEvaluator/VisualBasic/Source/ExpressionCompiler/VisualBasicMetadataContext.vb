@@ -11,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend ReadOnly Compilation As VisualBasicCompilation
         Friend ReadOnly EvaluationContext As EvaluationContext
 
-        Friend Sub New(metadataBlocks As ImmutableArray(Of MetadataBlock))
+        Friend Sub New(metadataBlocks As ImmutableArray(Of MetadataBlock), compilation As VisualBasicCompilation)
             Me.MetadataBlocks = metadataBlocks
-            Me.Compilation = metadataBlocks.ToCompilation()
+            Me.Compilation = compilation
             Me.EvaluationContext = Nothing
         End Sub
 

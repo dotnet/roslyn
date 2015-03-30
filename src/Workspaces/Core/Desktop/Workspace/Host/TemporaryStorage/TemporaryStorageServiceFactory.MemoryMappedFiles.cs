@@ -425,17 +425,8 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     byte* ptr = null;
                     accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
-                    ptr += GetPrivateOffset(accessor);
+                    ptr += accessor.PointerOffset;
                     return ptr;
-                }
-
-                // this is a copy from compiler's MemoryMappedFileBlock. see MemoryMappedFileBlock for more information on why this is needed.
-                private static long GetPrivateOffset(MemoryMappedViewAccessor stream)
-                {
-                    System.Reflection.FieldInfo unmanagedMemoryStreamOffset = typeof(MemoryMappedViewAccessor).GetField("m_view", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.GetField);
-                    object memoryMappedView = unmanagedMemoryStreamOffset.GetValue(stream);
-                    System.Reflection.PropertyInfo memoryMappedViewPointerOffset = memoryMappedView.GetType().GetProperty("PointerOffset", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.GetProperty);
-                    return (long)memoryMappedViewPointerOffset.GetValue(memoryMappedView);
                 }
             }
         }

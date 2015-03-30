@@ -15,6 +15,7 @@
     <BoundTreeGeneratorToolPath>$(OutDir)BoundTreeGenerator.exe</BoundTreeGeneratorToolPath>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Core\Desktop\CodeAnalysis.Desktop.csproj">
@@ -86,8 +87,6 @@
     <Compile Include="CommandLine\CommandLineParser.vb" />
     <Compile Include="CommandLine\VisualBasicCompiler.vb" />
     <Compile Include="VisualBasicFileSystemExtensions.vb" />
-    <Compile Include="VisualBasicSerializableCompilationOptions.vb" />
-    <Compile Include="VisualBasicSerializableParseOptions.vb" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

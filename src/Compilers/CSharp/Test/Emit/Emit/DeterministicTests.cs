@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 options: TestOptions.ReleaseExe.WithFeatures(ImmutableArray.Create("deterministic")));
 
             Guid result = default(Guid);
-            base.CompileAndVerify(compilation, emitOptions: TestEmitters.CCI, validator: (a, eo) =>
+            base.CompileAndVerify(compilation, emitters: TestEmitters.CCI, validator: (a, eo) =>
             {
                 var module = a.Modules[0];
                 result = module.GetModuleVersionIdOrThrow();

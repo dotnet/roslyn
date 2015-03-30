@@ -882,6 +882,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Return MyBase.VisitConditionalAccessReceiverPlaceholder(node)
             End Function
 
+            Public Overrides Function VisitComplexConditionalAccessReceiver(node As BoundComplexConditionalAccessReceiver) As BoundNode
+                EnsureOnlyEvalStack()
+
+                Dim origStack As Integer = Me._evalStack
+
+                Me._evalStack += 1
+
+                Dim cookie As Object = GetStackStateCookie() ' implicit goto here
+
+                Me._evalStack = origStack ' consequence is evaluated with original stack
+                Dim valueTypeReceiver = DirectCast(Me.Visit(node.ValueTypeReceiver), BoundExpression)
+
+                EnsureStackState(cookie) ' implicit label here
+
+                Me._evalStack = origStack ' alternative is evaluated with original stack
+                Dim referenceTypeReceiver = DirectCast(Me.Visit(node.ReferenceTypeReceiver), BoundExpression)
+
+                EnsureStackState(cookie) ' implicit label here
+
+                Return node.Update(valueTypeReceiver, referenceTypeReceiver, node.Type)
+            End Function
+
             Public Overrides Function VisitBinaryOperator(node As BoundBinaryOperator) As BoundNode
                 Select Case (node.OperatorKind And BinaryOperatorKind.OpMask)
                     Case BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse

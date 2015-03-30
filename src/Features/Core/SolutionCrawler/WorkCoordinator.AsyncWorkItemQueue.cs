@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 where TKey : class
             {
                 private readonly object _gate;
-                private readonly AsyncSemaphore _semaphore;
+                private readonly SemaphoreSlim _semaphore;
                 private readonly SolutionCrawlerProgressReporter _progressReporter;
 
                 // map containing cancellation source for the item given out.
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 public AsyncWorkItemQueue(SolutionCrawlerProgressReporter progressReporter)
                 {
                     _gate = new object();
-                    _semaphore = new AsyncSemaphore(initialCount: 0);
+                    _semaphore = new SemaphoreSlim(initialCount: 0);
                     _cancellationMap = new Dictionary<object, CancellationTokenSource>();
                     _progressReporter = progressReporter;
                 }
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected abstract bool TryTake_NoLock(TKey key, out WorkItem workInfo);
 
-                protected abstract bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, out WorkItem workItem);
+                protected abstract bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, out WorkItem workItem);
 
                 public bool HasAnyWork
                 {
@@ -48,17 +48,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         lock (_gate)
                         {
                             return HasAnyWork_NoLock;
-                        }
-                    }
-                }
-
-                public int WorkItemCount
-                {
-                    get
-                    {
-                        lock (_gate)
-                        {
-                            return WorkItemCount_NoLock;
                         }
                     }
                 }
@@ -198,12 +187,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                public bool TryTakeAnyWork(ProjectId preferableProjectId, out WorkItem workItem, out CancellationTokenSource source)
+                public bool TryTakeAnyWork(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, out WorkItem workItem, out CancellationTokenSource source)
                 {
                     lock (_gate)
                     {
                         // there must be at least one item in the map when this is called unless host is shutting down.
-                        if (TryTakeAnyWork_NoLock(preferableProjectId, out workItem))
+                        if (TryTakeAnyWork_NoLock(preferableProjectId, dependencyGraph, out workItem))
                         {
                             if (!HasAnyWork_NoLock)
                             {

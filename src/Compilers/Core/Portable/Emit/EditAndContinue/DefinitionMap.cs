@@ -174,8 +174,8 @@ namespace Microsoft.CodeAnalysis.Emit
             ImmutableArray<EncLocalInfo> previousLocals;
             IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalMap = null;
             IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMap = null;
-            IReadOnlyDictionary<int, KeyValuePair<int, int>> lambdaMap = null;
-            IReadOnlyDictionary<int, int> closureMap = null;
+            IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> lambdaMap = null;
+            IReadOnlyDictionary<int, DebugId> closureMap = null;
 
             int hoistedLocalSlotCount = 0;
             int awaiterSlotCount = 0;
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Emit
             TSymbolMatcher symbolMap;
 
             uint methodIndex = (uint)MetadataTokens.GetRowNumber(handle);
-            MethodDebugId methodId;
+            DebugId methodId;
 
             // Check if method has changed previously. If so, we already have a map.
             AddedOrChangedMethodInfo addedOrChangedMethod;
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 // using the local names provided with the initial metadata.
                 var debugInfo = baseline.DebugInformationProvider(handle);
 
-                methodId = new MethodDebugId(debugInfo.MethodOrdinal, 0);
+                methodId = new DebugId(debugInfo.MethodOrdinal, 0);
 
                 if (!debugInfo.Lambdas.IsDefaultOrEmpty)
                 {
@@ -278,22 +278,22 @@ namespace Microsoft.CodeAnalysis.Emit
         private static void MakeLambdaAndClosureMaps(
             ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
             ImmutableArray<ClosureDebugInfo> closureDebugInfo,
-            out IReadOnlyDictionary<int, KeyValuePair<int, int>> lambdaMap,
-            out IReadOnlyDictionary<int, int> closureMap)
+            out IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> lambdaMap,
+            out IReadOnlyDictionary<int, DebugId> closureMap)
         {
-            var lambdas = new Dictionary<int, KeyValuePair<int, int>>(lambdaDebugInfo.Length);
-            var closures = new Dictionary<int, int>(closureDebugInfo.Length);
+            var lambdas = new Dictionary<int, KeyValuePair<DebugId, int>>(lambdaDebugInfo.Length);
+            var closures = new Dictionary<int, DebugId>(closureDebugInfo.Length);
 
             for (int i = 0; i < lambdaDebugInfo.Length; i++)
             {
                 var lambdaInfo = lambdaDebugInfo[i];
-                lambdas[lambdaInfo.SyntaxOffset] = KeyValuePair.Create(i, lambdaInfo.ClosureOrdinal);
+                lambdas[lambdaInfo.SyntaxOffset] = KeyValuePair.Create(new DebugId(i, lambdaInfo.Generation), lambdaInfo.ClosureOrdinal);
             }
 
             for (int i = 0; i < closureDebugInfo.Length; i++)
             {
                 var closureInfo = closureDebugInfo[i];
-                closures[closureInfo.SyntaxOffset] = i;
+                closures[closureInfo.SyntaxOffset] = new DebugId(i, closureInfo.Generation);
             }
 
             lambdaMap = lambdas;

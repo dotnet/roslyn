@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -139,9 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             else
             {
-                var dataItem = new MetadataContextItem<CSharpMetadataContext>(new CSharpMetadataContext(metadataBlocks));
+                compilation = metadataBlocks.ToCompilation();
+                var dataItem = new MetadataContextItem<CSharpMetadataContext>(new CSharpMetadataContext(metadataBlocks, compilation));
                 appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, dataItem);
-                compilation = dataItem.MetadataContext.Compilation;
             }
 
             return compilation;
