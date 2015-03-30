@@ -152,18 +152,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SymbolKind.Local
                     Dim local = DirectCast(variable, LocalSymbol)
                     If Not local.IsConst AndAlso Me._currentMethodOrLambda <> local.ContainingSymbol Then
-                        Me._captured.Add(local)
+                        Me.NoteCaptured(local)
                     End If
                 Case SymbolKind.Parameter
                     Dim param = DirectCast(variable, ParameterSymbol)
                     If Me._currentMethodOrLambda <> param.ContainingSymbol Then
-                        Me._captured.Add(param)
+                        Me.NoteCaptured(param)
                     End If
                 Case SymbolKind.RangeVariable
                     Dim range = DirectCast(variable, RangeVariableSymbol)
                     If Me._currentMethodOrLambda <> range.ContainingSymbol AndAlso
-                        (Me._currentQueryLambda Is Nothing OrElse ' might be Nothing in error scenarios
-                         Me._currentMethodOrLambda <> Me._currentQueryLambda.LambdaSymbol OrElse
+                        Me._currentQueryLambda IsNot Nothing AndAlso ' might be Nothing in error scenarios
+                        (Me._currentMethodOrLambda <> Me._currentQueryLambda.LambdaSymbol OrElse
                             Not Me._currentQueryLambda.RangeVariables.Contains(range)) Then
                         Me.NoteCaptured(range) ' Range variables only captured if in region
                     End If
