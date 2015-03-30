@@ -305,7 +305,7 @@ Public Interface I
     Function F() As Object
 End Interface
 "
-            Dim piaComp = CreateCompilationWithMscorlib({piaSource}, compOptions:=TestOptions.DebugDll, assemblyName:="PIA")
+            Dim piaComp = CreateCompilationWithMscorlib({piaSource}, options:=TestOptions.DebugDll, assemblyName:="PIA")
             AssertNoErrors(piaComp)
             Dim piaRef = piaComp.EmitToImageReference(embedInteropTypes:=True)
 
@@ -383,9 +383,9 @@ End Class
             Dim comp = CreateCompilationWithMscorlib(
                 {source},
                 {SystemCoreRef, SystemDataRef},
-                compOptions:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("System.Data.DataColumn")))
+                options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("System.Data.DataColumn")))
 
-            CompileAndVerify(comp, emitOptions:=TestEmitters.CCI, validator:=
+            CompileAndVerify(comp, emitters:=TestEmitters.CCI, validator:=
                 Sub(peAssembly, emitters)
                     Dim reader = peAssembly.ManifestModule.MetadataReader
 

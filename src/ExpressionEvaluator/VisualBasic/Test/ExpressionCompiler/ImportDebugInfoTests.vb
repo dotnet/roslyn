@@ -33,7 +33,7 @@ Class C
 End Class
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll)
             comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
 
             Dim importStrings = GetImportStrings(comp, "M")
@@ -54,7 +54,7 @@ Class C
 End Class
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll)
             comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
 
             Dim importStrings1 = GetImportStrings(comp, "M1")
@@ -91,7 +91,7 @@ End Namespace
                 "<xmlns=""http://xml2"">",
                 "<xmlns:F=""http://xml3"">"
             }))
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=options)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=options)
             comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
 
             Dim importStrings = GetImportStrings(comp, "M")
@@ -326,7 +326,7 @@ End Namespace
                 "<xmlns=""http://xml2"">",
                 "<xmlns:F=""http://xml3"">"
             }))
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=options)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=options)
             comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
 
             Dim rootNamespace As NamespaceSymbol = Nothing
@@ -376,7 +376,7 @@ End Namespace
 "
 
             For Each rootNamespaceName In {"", Nothing}
-                Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.ReleaseDll.WithRootNamespace(rootNamespaceName))
+                Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll.WithRootNamespace(rootNamespaceName))
                 comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
 
                 Dim rootNamespace As NamespaceSymbol = Nothing
@@ -433,7 +433,7 @@ End Namespace
                 "<xmlns=""http://xml2"">",
                 "<xmlns:C=""http://xml3"">"
             }))
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=options)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=options)
             comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
 
             Dim rootNamespace As NamespaceSymbol = Nothing

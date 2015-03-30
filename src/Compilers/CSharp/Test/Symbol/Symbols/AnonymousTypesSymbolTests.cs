@@ -1291,7 +1291,7 @@ class Query
             CompileAndVerify(
                 source,
                 additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
-                emitOptions: TestEmitters.RefEmitUnsupported_646023);
+                emitters: TestEmitters.RefEmitUnsupported_646023);
         }
 
         [Fact]

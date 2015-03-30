@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
             Dim options = If(debug, TestOptions.DebugExe, TestOptions.ReleaseExe).WithPlatform(platform)
             options = options.WithFeatures({"dEtErmInIstIc"}.AsImmutable()) ' expect case-insensitivity
 
-            Dim compilation = CreateCompilationWithMscorlib({source}, assemblyName:="DeterminismTest", compOptions:=options)
+            Dim compilation = CreateCompilationWithMscorlib({source}, assemblyName:="DeterminismTest", options:=options)
 
             ' The resolution of the PE header time date stamp Is seconds, And we want to make sure that has an opportunity to change
             ' between calls to Emit.

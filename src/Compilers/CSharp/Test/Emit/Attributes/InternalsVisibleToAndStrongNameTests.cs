@@ -94,7 +94,7 @@ public class Test
                     }
 
                     Assert.True(haveAttribute);
-                }, emitOptions: TestEmitters.CCI);
+                }, emitters: TestEmitters.CCI);
         }
 
         [Fact]
@@ -206,7 +206,7 @@ public class Test
                 }
 
                 Assert.True(haveAttribute);
-            }, emitOptions: TestEmitters.CCI);
+            }, emitters: TestEmitters.CCI);
         }
 
         [Fact]
@@ -1292,7 +1292,7 @@ public class C : B
             comp3.VerifyDiagnostics();
 
             // Note: calls B.M, not A.M, since asm1 is not accessible.
-            var verifier = CompileAndVerify(comp3, emitOptions: TestEmitters.CCI);
+            var verifier = CompileAndVerify(comp3, emitters: TestEmitters.CCI);
 
             verifier.VerifyIL("C.Test", @"
 {
@@ -1414,7 +1414,7 @@ public class D : C
 
             // Note: calls C.M, not A.M, since asm2 is not accessible (stops search).
             // Confirmed in Dev11.
-            var verifier = CompileAndVerify(comp4, emitOptions: TestEmitters.CCI);
+            var verifier = CompileAndVerify(comp4, emitters: TestEmitters.CCI);
 
             verifier.VerifyIL("D.Test", @"
 {
@@ -1605,10 +1605,10 @@ public class C
 ", options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
             CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), new CSharpCompilationReference(unsigned) }),
-                             emitOptions: TestEmitters.CCI).VerifyDiagnostics();
+                             emitters: TestEmitters.CCI).VerifyDiagnostics();
 
             CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream()) }),
-                             emitOptions: TestEmitters.CCI).VerifyDiagnostics();
+                             emitters: TestEmitters.CCI).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1927,7 +1927,7 @@ class B
             CompileAndVerify(ca);
 
             var cb = CreateCompilationWithMscorlib(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca) });
-            CompileAndVerify(cb, expectedOutput: "42", emitOptions: TestEmitters.CCI).Diagnostics.Verify();
+            CompileAndVerify(cb, expectedOutput: "42", emitters: TestEmitters.CCI).Diagnostics.Verify();
         }
 
         [Fact, WorkItem(1072339, "DevDiv")]
@@ -1953,7 +1953,7 @@ class B
             CompileAndVerify(ca);
 
             var cb = CreateCompilationWithMscorlib(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca) });
-            CompileAndVerify(cb, expectedOutput: "42", emitOptions: TestEmitters.CCI).Diagnostics.Verify();
+            CompileAndVerify(cb, expectedOutput: "42", emitters: TestEmitters.CCI).Diagnostics.Verify();
         }
 
         [Fact, WorkItem(1095618, "DevDiv")]
