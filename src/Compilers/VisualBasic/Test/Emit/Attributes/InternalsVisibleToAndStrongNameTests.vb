@@ -65,7 +65,7 @@ Public Class InternalsVisibleToAndStrongNameTests
         Dim syntaxTree = ParseAndVerify(s)
 
         ' verify failure with default assembly key file resolver
-        Dim comp = CreateCompilationWithMscorlib({syntaxTree}, compOptions:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
+        Dim comp = CreateCompilationWithMscorlib({syntaxTree}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
         comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(keyFileName, CodeAnalysisResources.FileNotFound))
 
@@ -94,7 +94,7 @@ Public Class InternalsVisibleToAndStrongNameTests
         Dim syntaxTree = ParseAndVerify(s)
 
         ' verify failure with default assembly key file resolver
-        Dim comp As Compilation = CreateCompilationWithMscorlib({syntaxTree}, compOptions:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
+        Dim comp As Compilation = CreateCompilationWithMscorlib({syntaxTree}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
         comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments("..\" & keyFileName, CodeAnalysisResources.FileNotFound))
 
@@ -1113,7 +1113,7 @@ End Class
               "End Class"
 
         Dim tree = ParseAndVerify(src)
-        Dim comp = CreateCompilationWithMscorlib({tree}, compOptions:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
+        Dim comp = CreateCompilationWithMscorlib({tree}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
 
         ' Native Compiler:
         'warning BC41008: Use command-line option '/keycontainer' or appropriate project settings instead of 'System.Reflection.AssemblyKeyNameAttribute() '.
@@ -1677,7 +1677,7 @@ End Class]]>
         CompileAndVerify(ca)
 
         Dim cb = CreateCompilationWithMscorlib(sourceB, options:=TestOptions.ReleaseExe, references:={new VisualBasicCompilationReference(ca)})
-        CompileAndVerify(cb, expectedOutput:="42", emitOptions:=TestEmitters.CCI).Diagnostics.Verify()
+        CompileAndVerify(cb, expectedOutput:="42", emitters:=TestEmitters.CCI).Diagnostics.Verify()
     End Sub
 
     <Fact, WorkItem(1072339, "DevDiv")>
@@ -1707,7 +1707,7 @@ End Class]]>
         CompileAndVerify(ca)
 
         Dim cb = CreateCompilationWithMscorlib(sourceB, options:=TestOptions.ReleaseExe, references:={new VisualBasicCompilationReference(ca)})
-        CompileAndVerify(cb, expectedOutput:="42", emitOptions:=TestEmitters.CCI).Diagnostics.Verify()
+        CompileAndVerify(cb, expectedOutput:="42", emitters:=TestEmitters.CCI).Diagnostics.Verify()
     End Sub
 
     <Fact, WorkItem(1095618, "DevDiv")>

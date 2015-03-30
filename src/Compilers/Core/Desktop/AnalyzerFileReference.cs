@@ -125,22 +125,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     try
                     {
-                        var assemblyName = AssemblyName.GetAssemblyName(this.FullPath);
-                        _lazyDisplayName = assemblyName.Name;
-                        return _lazyDisplayName;
+                        _lazyDisplayName = GetAssembly()?.GetName().Name;
                     }
-                    catch (ArgumentException)
-                    { }
-                    catch (BadImageFormatException)
-                    { }
-                    catch (SecurityException)
-                    { }
-                    catch (FileLoadException)
-                    { }
-                    catch (FileNotFoundException)
+                    catch (Exception)
                     { }
 
-                    _lazyDisplayName = Path.GetFileName(this.FullPath);
+                    _lazyDisplayName = _lazyDisplayName ?? Path.GetFileName(this.FullPath);
                 }
 
                 return _lazyDisplayName;
@@ -259,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 DiagnosticAnalyzer analyzer = null;
                 try
                 {
-                    var type = analyzerAssembly.GetType(typeName, throwOnError: true);
+                    var type = analyzerAssembly.GetType(typeName, throwOnError: true, ignoreCase: false);
                     if (DerivesFromDiagnosticAnalyzer(type))
                     {
                         analyzer = (DiagnosticAnalyzer)Activator.CreateInstance(type);

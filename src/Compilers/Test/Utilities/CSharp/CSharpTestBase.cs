@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string source,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitOptions = TestEmitters.All,
+            TestEmitters emitters = TestEmitters.All,
             Action<ModuleSymbol> sourceSymbolValidator = null,
             Action<PEAssembly, TestEmitters> assemblyValidator = null,
             Action<ModuleSymbol> symbolValidator = null,
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 source: source,
                 additionalRefs: additionalRefs,
                 dependencies: dependencies,
-                emitOptions: emitOptions,
+                emitters: emitters,
                 sourceSymbolValidator: Translate2(sourceSymbolValidator),
                 assemblyValidator: assemblyValidator,
                 symbolValidator: Translate2(symbolValidator),
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string expectedOutput = null,
             MetadataReference[] additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitOptions = TestEmitters.All,
+            TestEmitters emitters = TestEmitters.All,
             Action<ModuleSymbol> sourceSymbolValidator = null,
             Action<PEAssembly, TestEmitters> assemblyValidator = null,
             Action<ModuleSymbol> symbolValidator = null,
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CompileAndVerify(
                 compilation: compilation,
                 dependencies: dependencies,
-                emitOptions: emitOptions,
+                emitters: emitters,
                 sourceSymbolValidator: Translate2(sourceSymbolValidator),
                 assemblyValidator: assemblyValidator,
                 symbolValidator: Translate2(symbolValidator),
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string source,
             string expectedOutput = null,
             MetadataReference[] additionalRefs = null,
-            TestEmitters emitOptions = TestEmitters.All,
+            TestEmitters emitters = TestEmitters.All,
             CSharpCompilationOptions options = null,
             bool verify = true)
         {
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CompileAndVerify(
                 compilation: compilation,
                 expectedOutput: expectedOutput,
-                emitOptions: emitOptions,
+                emitters: emitters,
                 verify: verify);
         }
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 source,
                 additionalRefs: additionalRefs,
                 expectedOutput: isWin8 ? expectedOutput : null,
-                emitOptions: emitOptions,
+                emitters: emitOptions,
                 verify: isWin8);
         }
 
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources = null,
             IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitOptions = TestEmitters.All,
+            TestEmitters emitters = TestEmitters.All,
             Action<ModuleSymbol> sourceSymbolValidator = null,
             Action<PEAssembly, TestEmitters> validator = null,
             Action<ModuleSymbol> symbolValidator = null,
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 compilation,
                 manifestResources,
                 dependencies,
-                emitOptions,
+                emitters,
                 Translate2(sourceSymbolValidator),
                 validator,
                 Translate2(symbolValidator),
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             if (ilSource == null)
             {
                 var c = CreateCompilationWithMscorlib(cSharpSource, options: compilationOptions);
-                return CompileAndVerify(c, emitOptions: emitOptions, expectedOutput: expectedOutput);
+                return CompileAndVerify(c, emitters: emitOptions, expectedOutput: expectedOutput);
             }
 
             MetadataReference reference = null;
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 compilationVerifier(compilation);
             }
 
-            return CompileAndVerify(compilation, emitOptions: emitOptions, expectedOutput: expectedOutput);
+            return CompileAndVerify(compilation, emitters: emitOptions, expectedOutput: expectedOutput);
         }
 
         protected override Compilation GetCompilationForEmit(
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             try
             {
-                CompileAndVerify(comp, emitOptions: emitOptions, expectedOutput: ""); //need expected output to force execution
+                CompileAndVerify(comp, emitters: emitOptions, expectedOutput: ""); //need expected output to force execution
                 Assert.False(true, string.Format("Expected exception {0}({1})", typeof(T).Name, expectedMessage));
             }
             catch (ExecutionException x)
@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 }
             }
 
-            return CompileAndVerify(comp, emitOptions: emitOptions);
+            return CompileAndVerify(comp, emitters: emitOptions);
         }
 
         #endregion

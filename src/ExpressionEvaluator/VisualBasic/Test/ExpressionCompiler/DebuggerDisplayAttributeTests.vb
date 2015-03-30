@@ -30,7 +30,7 @@ Public Class Derived
     End Function
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp, includeSymbols:=False)
             Dim context = CreateTypeContext(runtime, "Derived")
             Dim resultProperties As ResultProperties = Nothing

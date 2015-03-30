@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             specificDiagOptions.Add(warningDiagDesciptor.Id, ReportDiagnostic.[Error])
             Dim options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
 
-            Dim comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            Dim comp = CreateCompilationWithMscorlib({""}, options:=options)
             Dim effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(diags.Length, effectiveDiags.Length)
             For Each effectiveDiag In effectiveDiags
@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             specificDiagOptions.Add(errorDiagDesciptor.Id, ReportDiagnostic.Suppress)
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
 
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(0, effectiveDiags.Length)
 
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             specificDiagOptions.Add(errorDiagDesciptor.Id, ReportDiagnostic.Warn)
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
 
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(diags.Length, effectiveDiags.Length)
             Dim diagIds = New HashSet(Of String)(diags.[Select](Function(d) d.Id))
@@ -264,39 +264,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Dim diags = New Diagnostic() {noneDiag, infoDiag, warningDiag, errorDiag}
 
             Dim options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Default)
-            Dim comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            Dim comp = CreateCompilationWithMscorlib({""}, options:=options)
             Dim effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(4, effectiveDiags.Length)
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(4, effectiveDiags.Length)
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.IsWarningAsError))
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Warn)
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(4, effectiveDiags.Length)
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Warning))
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Info)
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(4, effectiveDiags.Length)
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Info))
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Hidden)
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(4, effectiveDiags.Length)
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Hidden))
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(2, effectiveDiags.Length)
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
@@ -316,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             ' Verify that only the enabled diag shows up after filtering.
             Dim options = TestOptions.ReleaseDll
-            Dim comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            Dim comp = CreateCompilationWithMscorlib({""}, options:=options)
             Dim effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(1, effectiveDiags.Length)
             Assert.Contains(enabledDiag, effectiveDiags)
@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             specificDiagOptions.Add(enabledDiagDescriptor.Id, ReportDiagnostic.Suppress)
 
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(1, effectiveDiags.Length)
             Assert.Contains(disabledDiag, effectiveDiags)

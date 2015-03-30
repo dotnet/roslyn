@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
         Public Function Cleanup(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode Implements ICodeCleanupProvider.Cleanup
             Dim rewriter = New Rewriter(spans, cancellationToken)
-            Dim newRoot = Rewriter.Visit(root)
+            Dim newRoot = rewriter.Visit(root)
 
             Return If(root Is newRoot, root, newRoot)
         End Function
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Return newToken
                 End If
 
-                If token.IsMissing OrElse Not SyntaxFacts.IsOperator(token.Kind) Then
+                If token.IsMissing OrElse Not (SyntaxFacts.IsOperator(token.Kind) OrElse token.IsKind(SyntaxKind.ColonEqualsToken)) Then
                     Return newToken
                 End If
 

@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection.PortableExecutable;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
@@ -23,9 +25,8 @@ namespace Microsoft.Cci
         private readonly PdbWriter _nativePdbWriterOpt;
         private readonly string _pdbPathOpt;
         private readonly bool _emitRuntimeStartupStub;
-        private readonly uint _sizeOfImportAddressTable;
+        private readonly int _sizeOfImportAddressTable;
 
-        private PeDebugDirectory _debugDirectory;
         private MemoryStream _headerStream = new MemoryStream(1024);
 
         private readonly MemoryStream _emptyStream = new MemoryStream(0);
@@ -53,7 +54,7 @@ namespace Microsoft.Cci
             _nativePdbWriterOpt = nativePdbWriterOpt;
             _pdbPathOpt = pdbPathOpt;
             _deterministic = deterministic;
-            _sizeOfImportAddressTable = _emitRuntimeStartupStub ? (!_module.Requires64bits ? 8u : 16u) : 0;
+            _sizeOfImportAddressTable = _emitRuntimeStartupStub ? (!_module.Requires64bits ? 8 : 16) : 0;
         }
 
         private bool EmitPdb => _pdbPathOpt != null;
@@ -123,7 +124,7 @@ namespace Microsoft.Cci
             var calculateMethodBodyStreamRva = new Func<MetadataSizes, int>(mdSizes =>
             {
                 FillInTextSectionHeader(mdSizes);
-                return (int)(_textSection.RelativeVirtualAddress + _sizeOfImportAddressTable + 72);
+                return (int)_textSection.RelativeVirtualAddress + _sizeOfImportAddressTable + 72;
             });
 
             MetadataSizes metadataSizes;
@@ -165,6 +166,7 @@ namespace Microsoft.Cci
                 ilBuffer,
                 mappedFieldDataBuffer,
                 managedResourceBuffer,
+                metadataSizes,
                 out startOfMetadataStream,
                 out positionOfDebugTableTimestamp);
 
@@ -272,7 +274,7 @@ namespace Microsoft.Cci
             return guidData;
         }
 
-        private uint ComputeStrongNameSignatureSize()
+        private int ComputeStrongNameSignatureSize()
         {
             IAssembly assembly = _module.AsAssembly;
             if (assembly == null)
@@ -281,59 +283,68 @@ namespace Microsoft.Cci
             }
 
             // EDMAURER the count of characters divided by two because the each pair of characters will turn in to one byte.
-            uint keySize = assembly.SignatureKey == null ? 0u : (uint)assembly.SignatureKey.Length / 2;
+            int keySize = (assembly.SignatureKey == null) ? 0 : assembly.SignatureKey.Length / 2;
 
             if (keySize == 0)
-                keySize = IteratorHelper.EnumerableCount(assembly.PublicKey);
+            {
+                keySize = assembly.PublicKey.Length;
+            }
 
             if (keySize == 0)
             {
                 return 0;
             }
 
-            return keySize < 128 + 32 ? 128u : keySize - 32;
+            return (keySize < 128 + 32) ? 128 : keySize - 32;
         }
 
-        private uint ComputeOffsetToDebugTable(MetadataSizes metadataSizes)
+        private int ComputeOffsetToDebugTable(MetadataSizes metadataSizes)
         {
-            uint result = this.ComputeOffsetToMetadata(metadataSizes.ILStreamSize);
-            result += (uint)metadataSizes.MetadataSize;
-            result += (uint)metadataSizes.ResourceDataSize;
-            result += this.ComputeStrongNameSignatureSize(); // size of strong name hash
-            return result;
+            return
+                ComputeOffsetToMetadata(metadataSizes.ILStreamSize) + 
+                metadataSizes.MetadataSize +
+                metadataSizes.ResourceDataSize +
+                ComputeStrongNameSignatureSize(); // size of strong name hash
         }
 
-        private uint ComputeOffsetToImportTable(MetadataSizes metadataSizes)
+        private int ComputeOffsetToImportTable(MetadataSizes metadataSizes)
         {
-            uint result = this.ComputeOffsetToDebugTable(metadataSizes);
-            result += this.ComputeSizeOfDebugTable(result);
-            result += 0; // TODO: size of unmanaged export stubs (when and if these are ever supported).
-            return result;
+            // TODO: add size of unmanaged export stubs (when and if these are ever supported).
+            return
+                ComputeOffsetToDebugTable(metadataSizes) +
+                ComputeSizeOfDebugDirectory();
         }
 
-        private uint ComputeOffsetToMetadata(int ilStreamLength)
+        private int ComputeOffsetToMetadata(int ilStreamLength)
         {
-            uint result = 0;
-            result += _sizeOfImportAddressTable;
-            result += 72; // size of CLR header
-            result += BitArithmeticUtilities.Align((uint)ilStreamLength, 4);
-            return result;
+            return 
+                _sizeOfImportAddressTable + 
+                72 + // size of CLR header
+                + BitArithmeticUtilities.Align(ilStreamLength, 4);
         }
 
-        private uint ComputeSizeOfDebugTable(uint offsetToMetadata)
+        private const int ImageDebugDirectoryBaseSize =
+            sizeof(uint) +   // Characteristics
+            sizeof(uint) +   // TimeDataStamp
+            sizeof(uint) +   // Version
+            sizeof(uint) +   // Type
+            sizeof(uint) +   // SizeOfData
+            sizeof(uint) +   // AddressOfRawData
+            sizeof(uint);    // PointerToRawData
+
+        private int ComputeSizeOfDebugDirectoryData()
         {
-            if (!EmitPdb)
-            {
-                return 0;
-            }
+            return
+                4 +              // 4B signature "RSDS"
+                16 +             // GUID
+                sizeof(uint) +   // Age
+                Encoding.UTF8.GetByteCount(_pdbPathOpt) +
+                1;               // Null terminator
+        }
 
-            // currently we only support native PDB:
-            Debug.Assert(_nativePdbWriterOpt != null);
-
-            _debugDirectory = _nativePdbWriterOpt.GetDebugDirectory();
-            _debugDirectory.TimeDateStamp = _ntHeader.TimeDateStamp;
-            _debugDirectory.PointerToRawData = offsetToMetadata + 0x1c;
-            return 0x1c + (uint)_debugDirectory.Data.Length;
+        private int ComputeSizeOfDebugDirectory()
+        {
+            return EmitPdb ? ImageDebugDirectoryBaseSize + ComputeSizeOfDebugDirectoryData() : 0;
         }
 
         private uint ComputeSizeOfPeHeaders()
@@ -358,20 +369,20 @@ namespace Microsoft.Cci
             return sizeOfPeHeaders;
         }
 
-        private uint ComputeSizeOfTextSection(MetadataSizes metadataSizes)
+        private int ComputeSizeOfTextSection(MetadataSizes metadataSizes)
         {
-            uint textSectionLength = this.ComputeOffsetToImportTable(metadataSizes);
+            int textSectionLength = this.ComputeOffsetToImportTable(metadataSizes);
 
             if (_emitRuntimeStartupStub)
             {
-                textSectionLength += !_module.Requires64bits ? 66u : 70u; //size of import table
+                textSectionLength += !_module.Requires64bits ? 66 : 70; //size of import table
                 textSectionLength += 14; //size of name table
-                textSectionLength = BitArithmeticUtilities.Align(textSectionLength, !_module.Requires64bits ? 4u : 8u); //optional padding to make startup stub's target address align on word or double word boundary
-                textSectionLength += !_module.Requires64bits ? 8u : 16u; //fixed size of runtime startup stub
+                textSectionLength = BitArithmeticUtilities.Align(textSectionLength, !_module.Requires64bits ? 4 : 8); //optional padding to make startup stub's target address align on word or double word boundary
+                textSectionLength += !_module.Requires64bits ? 8 : 16; //fixed size of runtime startup stub
             }
 
             Debug.Assert(metadataSizes.MappedFieldDataSize % MetadataWriter.MappedFieldDataAlignment == 0);
-            textSectionLength += (uint)metadataSizes.MappedFieldDataSize;
+            textSectionLength += metadataSizes.MappedFieldDataSize;
             return textSectionLength;
         }
 
@@ -397,13 +408,13 @@ namespace Microsoft.Cci
             corHeader.ExportAddressTableJumps.Size = 0;
             corHeader.Flags = this.GetCorHeaderFlags();
             corHeader.MajorRuntimeVersion = 2;
-            corHeader.MetadataDirectory.RelativeVirtualAddress = _textSection.RelativeVirtualAddress + this.ComputeOffsetToMetadata(metadataSizes.ILStreamSize);
+            corHeader.MetadataDirectory.RelativeVirtualAddress = _textSection.RelativeVirtualAddress + (uint)ComputeOffsetToMetadata(metadataSizes.ILStreamSize);
             corHeader.MetadataDirectory.Size = (uint)metadataSizes.MetadataSize;
             corHeader.MinorRuntimeVersion = 5;
             corHeader.Resources.RelativeVirtualAddress = corHeader.MetadataDirectory.RelativeVirtualAddress + corHeader.MetadataDirectory.Size;
             corHeader.Resources.Size = (uint)metadataSizes.ResourceDataSize;
             corHeader.StrongNameSignature.RelativeVirtualAddress = corHeader.Resources.RelativeVirtualAddress + corHeader.Resources.Size;
-            corHeader.StrongNameSignature.Size = this.ComputeStrongNameSignatureSize();
+            corHeader.StrongNameSignature.Size = (uint)ComputeStrongNameSignatureSize();
             corHeader.VTableFixups.RelativeVirtualAddress = 0;
             corHeader.VTableFixups.Size = 0;
 
@@ -430,12 +441,12 @@ namespace Microsoft.Cci
             ntHeader.TimeDateStamp = _deterministic ? 0 : (uint)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
 
             ntHeader.ImportAddressTable.RelativeVirtualAddress = (_emitRuntimeStartupStub) ? _textSection.RelativeVirtualAddress : 0;
-            ntHeader.ImportAddressTable.Size = _sizeOfImportAddressTable;
+            ntHeader.ImportAddressTable.Size = (uint)_sizeOfImportAddressTable;
 
             ntHeader.CliHeaderTable.RelativeVirtualAddress = _textSection.RelativeVirtualAddress + ntHeader.ImportAddressTable.Size;
             ntHeader.CliHeaderTable.Size = 72;
 
-            ntHeader.ImportTable.RelativeVirtualAddress = _textSection.RelativeVirtualAddress + this.ComputeOffsetToImportTable(metadataSizes);
+            ntHeader.ImportTable.RelativeVirtualAddress = _textSection.RelativeVirtualAddress + (uint)ComputeOffsetToImportTable(metadataSizes);
 
             if (!_emitRuntimeStartupStub)
             {
@@ -456,8 +467,8 @@ namespace Microsoft.Cci
             ntHeader.CertificateTable.Size = 0;
             ntHeader.CopyrightTable.RelativeVirtualAddress = 0;
             ntHeader.CopyrightTable.Size = 0;
-            ntHeader.DebugTable.RelativeVirtualAddress = EmitPdb ? _textSection.RelativeVirtualAddress + ComputeOffsetToDebugTable(metadataSizes) : 0u;
-            ntHeader.DebugTable.Size = EmitPdb ? 0x1c : 0u; // Only the size of the fixed part of the debug table goes here.
+            ntHeader.DebugTable.RelativeVirtualAddress = EmitPdb ? _textSection.RelativeVirtualAddress + (uint)ComputeOffsetToDebugTable(metadataSizes) : 0u;
+            ntHeader.DebugTable.Size = EmitPdb ? ImageDebugDirectoryBaseSize : 0u; // Only the size of the fixed part of the debug table goes here.
             ntHeader.DelayImportTable.RelativeVirtualAddress = 0;
             ntHeader.DelayImportTable.Size = 0;
             ntHeader.ExceptionTable.RelativeVirtualAddress = 0;
@@ -480,8 +491,8 @@ namespace Microsoft.Cci
         {
             if (_textSection == null)
             {
-                uint sizeOfPeHeaders = this.ComputeSizeOfPeHeaders();
-                uint sizeOfTextSection = this.ComputeSizeOfTextSection(metadataSizes);
+                uint sizeOfPeHeaders = (uint)ComputeSizeOfPeHeaders();
+                uint sizeOfTextSection = (uint)ComputeSizeOfTextSection(metadataSizes);
 
                 _textSection = new SectionHeader
                 {
@@ -1239,6 +1250,7 @@ namespace Microsoft.Cci
             MemoryStream ilStream,
             MemoryStream mappedFieldDataStream,
             MemoryStream managedResourceStream,
+            MetadataSizes metadataSizes,
             out long startOfMetadata,
             out long positionOfTimestamp)
         {
@@ -1256,13 +1268,13 @@ namespace Microsoft.Cci
 
             WriteManagedResources(peStream, managedResourceStream);
             WriteSpaceForHash(peStream, (int)corHeader.StrongNameSignature.Size);
-            this.WriteDebugTable(peStream, out positionOfTimestamp);
+            WriteDebugTable(peStream, metadataSizes, out positionOfTimestamp);
 
             if (_emitRuntimeStartupStub)
             {
-                this.WriteImportTable(peStream);
+                WriteImportTable(peStream);
                 WriteNameTable(peStream);
-                this.WriteRuntimeStartupStub(peStream);
+                WriteRuntimeStartupStub(peStream);
             }
 
             WriteMappedFieldData(peStream, mappedFieldDataStream);
@@ -1419,29 +1431,58 @@ namespace Microsoft.Cci
             }
         }
 
-        private void WriteDebugTable(Stream peStream, out long timestampOffset)
+        private void WriteDebugTable(Stream peStream, MetadataSizes metadataSizes, out long timestampOffset)
         {
-            timestampOffset = 0;
-            PeDebugDirectory debugDirectory = _debugDirectory;
-            if (debugDirectory == null)
+            if (!EmitPdb)
             {
+                timestampOffset = 0;
                 return;
             }
 
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
-            writer.WriteUint(debugDirectory.Characteristics);
+
+            // characteristics:
+            writer.WriteUint(0);
+
+            // timestamp from NT headers
             timestampOffset = writer.BaseStream.Position + peStream.Position;
-            writer.WriteUint(debugDirectory.TimeDateStamp);
-            writer.WriteUshort(debugDirectory.MajorVersion);
-            writer.WriteUshort(debugDirectory.MinorVersion);
-            writer.WriteUint(debugDirectory.Type);
-            writer.WriteUint(debugDirectory.SizeOfData);
-            debugDirectory.AddressOfRawData = debugDirectory.PointerToRawData + _textSection.RelativeVirtualAddress;
-            debugDirectory.PointerToRawData += _textSection.PointerToRawData;
-            writer.WriteUint(debugDirectory.AddressOfRawData);
-            writer.WriteUint(debugDirectory.PointerToRawData);
-            writer.WriteBytes(debugDirectory.Data);
+            writer.WriteUint(_ntHeader.TimeDateStamp);
+
+            // version
+            writer.WriteUint(0);
+
+            // type: 
+            const int ImageDebugTypeCodeView = 2;
+            writer.WriteUint(ImageDebugTypeCodeView);
+
+            // size of data:
+            writer.WriteUint((uint)ComputeSizeOfDebugDirectoryData());
+
+            uint dataOffset = (uint)ComputeOffsetToDebugTable(metadataSizes) + ImageDebugDirectoryBaseSize;
+
+            // PointerToRawData (RVA of the data):
+            writer.WriteUint(_textSection.RelativeVirtualAddress + dataOffset);
+
+            // AddressOfRawData (position of the data in the PE stream):
+            writer.WriteUint(_textSection.PointerToRawData + dataOffset);
+
+            writer.WriteByte((byte)'R');
+            writer.WriteByte((byte)'S');
+            writer.WriteByte((byte)'D');
+            writer.WriteByte((byte)'S');
+
+            // TODO: use deterministic hash
+            Guid guid = _nativePdbWriterOpt?.GetDebugDirectoryGuid() ?? Guid.NewGuid();
+            writer.WriteBytes(guid.ToByteArray());
+
+            // Age (EnC generation + 1): always 0x00000001.
+            // We don't emit PE files when emitting EnC deltas.
+            writer.WriteUint(1);
+
+            // UTF-8 encoded zero-terminated path to PDB
+            writer.WriteString(_pdbPathOpt, emitNullTerminator: true);
+
             writer.BaseStream.WriteTo(peStream);
             stream.Free();
         }

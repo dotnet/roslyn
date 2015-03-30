@@ -56,7 +56,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CodeAnalysisDesktopResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="AssemblyIdentityExtensions.cs" />
     <Compile Include="AssemblyPortabilityPolicy.cs" />
     <Compile Include="AssemblyVersion.cs" />
     <Compile Include="CommandLine\CommandLineReference.cs" />

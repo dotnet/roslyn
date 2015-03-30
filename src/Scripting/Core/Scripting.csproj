@@ -27,6 +27,9 @@
     <Compile Include="..\..\Compilers\Helpers\InMemoryAssemblyProvider.cs">
       <Link>InMemoryAssemblyProvider.cs</Link>
     </Compile>
+    <Compile Include="..\..\Compilers\Helpers\AssemblyIdentityExtensions.cs">
+      <Link>InMemoryAssemblyProvider.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">

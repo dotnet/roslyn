@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 }
                              };";
 
-            CompileAndVerify(text, WinRtRefs, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "#FF000000");
+            CompileAndVerify(text, WinRtRefs, emitters: TestEmitters.RefEmitBug, expectedOutput: "#FF000000");
         }
 
         /// <summary>
