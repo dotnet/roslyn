@@ -296,27 +296,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             Contract.ThrowIfNull(project);
 
-            var diagnostics = await _diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds, cancellationToken: cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId == null));
-            var dxs = diagnostics.Select(d => d.ToDiagnostic(null));
-
             if (includeAllDocumentDiagnostics)
             {
-                var list = new List<Diagnostic>();
-                list.AddRange(dxs);
-
-                foreach (var document in project.Documents)
-                {
-                    var docDiagnsotics = await GetDocumentDiagnosticsAsync(document, diagnosticIds, cancellationToken).ConfigureAwait(false);
-                    list.AddRange(docDiagnsotics);
-                }
-
-                return list;
+                // Get all diagnostics for the entire project, including document diagnostics.
+                var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds: diagnosticIds, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var documentIdsToTreeMap = await GetDocumentIdsToTreeMapAsync(project, cancellationToken).ConfigureAwait(false);
+                return diagnostics.Select(d => d.DocumentId != null ? d.ToDiagnostic(documentIdsToTreeMap[d.DocumentId]) : d.ToDiagnostic(null));
             }
             else
             {
-                return dxs;
+                // Get all no-location diagnostics for the project, doesn't include document diagnostics.
+                var diagnostics = await _diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds, cancellationToken: cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId == null));
+                return diagnostics.Select(d => d.ToDiagnostic(null));
             }
+        }
+
+        private static async Task<ImmutableDictionary<DocumentId, SyntaxTree>> GetDocumentIdsToTreeMapAsync(Project project, CancellationToken cancellationToken)
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DocumentId, SyntaxTree>();
+            foreach (var document in project.Documents)
+            {
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                builder.Add(document.Id, tree);
+            }
+
+            return builder.ToImmutable();
         }
 
         private async Task<bool> ContainsAnyFix(Document document, DiagnosticData diagnostic, CancellationToken cancellationToken)
