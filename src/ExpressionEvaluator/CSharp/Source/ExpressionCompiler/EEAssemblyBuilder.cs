@@ -177,15 +177,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return false;
             }
 
-            public override bool TryGetPreviousClosure(SyntaxNode closureSyntax, out int closureOrdinal)
+            public override bool TryGetPreviousClosure(SyntaxNode closureSyntax, out DebugId closureId)
             {
-                closureOrdinal = -1;
+                closureId = default(DebugId);
                 return false;
             }
 
-            public override bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out int lambdaOrdinal)
+            public override bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out DebugId lambdaId)
             {
-                lambdaOrdinal = -1;
+                lambdaId = default(DebugId);
                 return false;
             }
 
@@ -194,11 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 get { return 0; }
             }
 
-            public override MethodDebugId PreviousMethodId
+            public override DebugId? MethodId
             {
                 get
                 {
-                    return default(MethodDebugId);
+                    return null;
                 }
             }
         }

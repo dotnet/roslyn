@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.DiaSymReader
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
+Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 Imports Xunit
@@ -88,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             blocks = moduleInstances.SelectAsArray(Function(m) m.MetadataBlock)
 
             Dim compilation = blocks.ToCompilation()
-            Dim methodOrType = GetMethodOrTypeBySignature(Compilation, methodOrTypeName)
+            Dim methodOrType = GetMethodOrTypeBySignature(compilation, methodOrTypeName)
             Dim [module] = DirectCast(methodOrType.ContainingModule, PEModuleSymbol)
             Dim id = [module].Module.GetModuleVersionIdOrThrow()
             Dim moduleInstance = moduleInstances.First(Function(m) m.ModuleVersionId = id)

@@ -2750,7 +2750,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source: source, emitOptions: TestEmitters.CCI, expectedOutput: "Pass");
+            var verifier = CompileAndVerify(source: source, emitters: TestEmitters.CCI, expectedOutput: "Pass");
 
             verifier.VerifyIL("Program.Main", @"
 {

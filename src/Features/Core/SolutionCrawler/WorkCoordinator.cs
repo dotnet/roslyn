@@ -54,21 +54,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 _eventProcessingQueue = new SimpleTaskQueue(TaskScheduler.Default);
 
-                var activeFileBackOffTimeSpanInMS = _optionService.GetOption(SolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS);
-                var allFilesWorkerBackOffTimeSpanInMS = _optionService.GetOption(SolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpanInMS);
-                var entireProjectWorkerBackOffTimeSpanInMS = _optionService.GetOption(SolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS);
+                var activeFileBackOffTimeSpanInMS = _optionService.GetOption(InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS);
+                var allFilesWorkerBackOffTimeSpanInMS = _optionService.GetOption(InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpanInMS);
+                var entireProjectWorkerBackOffTimeSpanInMS = _optionService.GetOption(InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS);
 
                 _documentAndProjectWorkerProcessor = new IncrementalAnalyzerProcessor(
                     listener, analyzerProviders, _registration,
                     activeFileBackOffTimeSpanInMS, allFilesWorkerBackOffTimeSpanInMS, entireProjectWorkerBackOffTimeSpanInMS, _shutdownToken);
 
-                var semanticBackOffTimeSpanInMS = _optionService.GetOption(SolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS);
-                var projectBackOffTimeSpanInMS = _optionService.GetOption(SolutionCrawlerOptions.ProjectPropagationBackOffTimeSpanInMS);
+                var semanticBackOffTimeSpanInMS = _optionService.GetOption(InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS);
+                var projectBackOffTimeSpanInMS = _optionService.GetOption(InternalSolutionCrawlerOptions.ProjectPropagationBackOffTimeSpanInMS);
 
                 _semanticChangeProcessor = new SemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpanInMS, projectBackOffTimeSpanInMS, _shutdownToken);
 
                 // if option is on
-                if (_optionService.GetOption(SolutionCrawlerOptions.SolutionCrawler))
+                if (_optionService.GetOption(InternalSolutionCrawlerOptions.SolutionCrawler))
                 {
                     _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
                     _registration.Workspace.DocumentOpened += OnDocumentOpened;
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private void OnOptionChanged(object sender, OptionChangedEventArgs e)
             {
                 // if solution crawler got turned off or on.
-                if (e.Option == SolutionCrawlerOptions.SolutionCrawler)
+                if (e.Option == InternalSolutionCrawlerOptions.SolutionCrawler)
                 {
                     var value = (bool)e.Value;
                     if (value)

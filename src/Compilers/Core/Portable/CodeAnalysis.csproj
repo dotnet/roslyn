@@ -76,7 +76,7 @@
     <Compile Include="CodeGen\MetadataNamedArgument.cs" />
     <Compile Include="CodeGen\MetadataTypeOf.cs" />
     <Compile Include="CodeGen\MethodBody.cs" />
-    <Compile Include="CodeGen\MethodDebugId.cs" />
+    <Compile Include="CodeGen\DebugId.cs" />
     <Compile Include="CodeGen\PermissionSetAttribute.cs" />
     <Compile Include="CodeGen\PrivateImplementationDetails.cs" />
     <Compile Include="CodeGen\RawSequencePoint.cs" />
@@ -330,6 +330,8 @@
     <Compile Include="MetadataReference\UnresolvedMetadataReference.cs" />
     <Compile Include="PEWriter\MetadataHeapsBuilder.cs" />
     <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
+    <Compile Include="PEWriter\NoPiaReferenceIndexer.cs" />
+    <Compile Include="PEWriter\ReferenceIndexerBase.cs" />
     <Compile Include="PEWriter\TypeNameSerializer.cs" />
     <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
     <Compile Include="PEWriter\MetadataWriter.cs" />
@@ -369,7 +371,6 @@
     <Compile Include="PEWriter\NtHeader.cs" />
     <Compile Include="PEWriter\PdbMetadataWrapper.cs" />
     <Compile Include="PEWriter\PdbWriter.cs" />
-    <Compile Include="PEWriter\PeDebugDirectory.cs" />
     <Compile Include="PEWriter\PeWriter.cs" />
     <Compile Include="PEWriter\ReferenceIndexer.cs" />
     <Compile Include="PEWriter\ReturnValueParameter.cs" />

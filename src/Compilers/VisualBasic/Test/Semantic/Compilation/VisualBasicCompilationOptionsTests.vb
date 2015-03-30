@@ -501,64 +501,6 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
         End Sub
 
         <Fact>
-        Public Sub Serializability1()
-            VerifySerializability(New VisualBasicSerializableCompilationOptions(New VisualBasicCompilationOptions(
-                outputKind:=OutputKind.WindowsApplication,
-                generalDiagnosticOption:=ReportDiagnostic.Hidden,
-                specificDiagnosticOptions:={KeyValuePair.Create("VB0001", ReportDiagnostic.Suppress)},
-                globalImports:={GlobalImport.Parse("Foo.Bar")})))
-        End Sub
-
-        <Fact>
-        Public Sub Serializability2()
-            VerifySerializability(New VisualBasicSerializableCompilationOptions(New VisualBasicCompilationOptions(
-                outputKind:=OutputKind.WindowsApplication,
-                parseOptions:=New VisualBasicParseOptions(
-                    languageVersion:=LanguageVersion.VisualBasic14,
-                    documentationMode:=DocumentationMode.Diagnose,
-                    preprocessorSymbols:={KeyValuePair.Create(Of String, Object)("s", 1), KeyValuePair.Create(Of String, Object)("t", 2)}))))
-        End Sub
-
-        <Fact>
-        Public Sub Serializability3()
-            Dim parseOptions = New VisualBasicParseOptions(
-                languageVersion:=LanguageVersion.VisualBasic10,
-                documentationMode:=DocumentationMode.Diagnose,
-                kind:=SourceCodeKind.Regular,
-                preprocessorSymbols:=ImmutableArray.Create(New KeyValuePair(Of String, Object)("key", "Value")))
-
-            Dim compilationOptions = New VisualBasicCompilationOptions(
-                OutputKind.ConsoleApplication,
-                globalImports:={GlobalImport.Parse("Foo.Bar")},
-                rootNamespace:="Alpha.Beta",
-                optionStrict:=OptionStrict.Custom,
-                optionInfer:=False,
-                optionExplicit:=False,
-                optionCompareText:=True,
-                embedVbCoreRuntime:=True,
-                parseOptions:=parseOptions)
-
-            Dim deserializedCompilationOptions = VerifySerializability(New VisualBasicSerializableCompilationOptions(compilationOptions)).Options
-
-            Assert.Equal(compilationOptions.GlobalImports.First().Name,
-                         deserializedCompilationOptions.GlobalImports.First().Name)
-            Assert.Equal(compilationOptions.RootNamespace,
-                         deserializedCompilationOptions.RootNamespace)
-            Assert.Equal(compilationOptions.OptionStrict,
-                         deserializedCompilationOptions.OptionStrict)
-            Assert.Equal(compilationOptions.OptionInfer,
-                         deserializedCompilationOptions.OptionInfer)
-            Assert.Equal(compilationOptions.OptionExplicit,
-                         deserializedCompilationOptions.OptionExplicit)
-            Assert.Equal(compilationOptions.OptionCompareText,
-                         deserializedCompilationOptions.OptionCompareText)
-            Assert.Equal(compilationOptions.EmbedVbCoreRuntime,
-                         deserializedCompilationOptions.EmbedVbCoreRuntime)
-            Assert.Equal(compilationOptions.ExtendedCustomDebugInformation,
-                         deserializedCompilationOptions.ExtendedCustomDebugInformation)
-        End Sub
-
-        <Fact>
         Public Sub WithCryptoPublicKey()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
 

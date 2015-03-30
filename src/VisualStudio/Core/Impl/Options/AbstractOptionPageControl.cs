@@ -60,6 +60,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
+        protected void BindToOption(TextBox textBox, Option<int> optionKey)
+        {
+            Binding binding = new Binding();
+
+            binding.Source = new OptionBinding<int>(OptionService, optionKey);
+            binding.Path = new PropertyPath("Value");
+            binding.UpdateSourceTrigger = UpdateSourceTrigger.Explicit;
+
+            var bindingExpression = textBox.SetBinding(TextBox.TextProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
+        protected void BindToOption(TextBox textBox, PerLanguageOption<int> optionKey, string languageName)
+        {
+            Binding binding = new Binding();
+
+            binding.Source = new PerLanguageOptionBinding<int>(OptionService, optionKey, languageName);
+            binding.Path = new PropertyPath("Value");
+            binding.UpdateSourceTrigger = UpdateSourceTrigger.Explicit;
+
+            var bindingExpression = textBox.SetBinding(TextBox.TextProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
         internal virtual void LoadSettings()
         {
             foreach (var bindingExpression in _bindingExpressions)

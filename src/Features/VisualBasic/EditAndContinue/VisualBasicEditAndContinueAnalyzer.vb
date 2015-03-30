@@ -952,6 +952,67 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Protected Overrides Function GetLambdaBodyExpressionsAndStatements(lambdaBody As SyntaxNode) As IEnumerable(Of SyntaxNode)
             Return LambdaUtilities.GetLambdaBodyExpressionsAndStatements(lambdaBody)
         End Function
+
+        Friend Overrides Function GetLambdaExpressionSymbol(model As SemanticModel, lambdaExpression As SyntaxNode, cancellationToken As CancellationToken) As IMethodSymbol
+            Dim lambdaExpressionSyntax = DirectCast(lambdaExpression, LambdaExpressionSyntax)
+
+            ' The semantic model only returns the lambda symbol for positions that are within the body of the lambda (not the header)
+            Return DirectCast(model.GetEnclosingSymbol(lambdaExpressionSyntax.SubOrFunctionHeader.Span.End, cancellationToken), IMethodSymbol)
+        End Function
+
+        Friend Overrides Function GetContainingQueryExpression(node As SyntaxNode) As SyntaxNode
+            Return node.FirstAncestorOrSelf(Of QueryExpressionSyntax)
+        End Function
+
+        Friend Overrides Function QueryClauseLambdasTypeEquivalent(oldModel As SemanticModel, oldNode As SyntaxNode, newModel As SemanticModel, newNode As SyntaxNode, cancellationToken As CancellationToken) As Boolean
+            Select Case oldNode.Kind
+                Case SyntaxKind.AggregateClause
+                    Dim oldInfo = oldModel.GetAggregateClauseSymbolInfo(DirectCast(oldNode, AggregateClauseSyntax), cancellationToken)
+                    Dim newInfo = newModel.GetAggregateClauseSymbolInfo(DirectCast(newNode, AggregateClauseSyntax), cancellationToken)
+                    Return MemberSignaturesEquivalent(oldInfo.Select1.Symbol, newInfo.Select1.Symbol) AndAlso
+                           MemberSignaturesEquivalent(oldInfo.Select2.Symbol, newInfo.Select2.Symbol)
+
+                Case SyntaxKind.CollectionRangeVariable
+                    Dim oldInfo = oldModel.GetCollectionRangeVariableSymbolInfo(DirectCast(oldNode, CollectionRangeVariableSyntax), cancellationToken)
+                    Dim newInfo = newModel.GetCollectionRangeVariableSymbolInfo(DirectCast(newNode, CollectionRangeVariableSyntax), cancellationToken)
+                    Return MemberSignaturesEquivalent(oldInfo.AsClauseConversion.Symbol, newInfo.AsClauseConversion.Symbol) AndAlso
+                           MemberSignaturesEquivalent(oldInfo.SelectMany.Symbol, newInfo.SelectMany.Symbol) AndAlso
+                           MemberSignaturesEquivalent(oldInfo.ToQueryableCollectionConversion.Symbol, newInfo.ToQueryableCollectionConversion.Symbol)
+
+                Case SyntaxKind.FunctionAggregation
+                    Dim oldInfo = oldModel.GetSymbolInfo(DirectCast(oldNode, FunctionAggregationSyntax), cancellationToken)
+                    Dim newInfo = newModel.GetSymbolInfo(DirectCast(newNode, FunctionAggregationSyntax), cancellationToken)
+                    Return MemberSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
+
+                Case SyntaxKind.ExpressionRangeVariable
+                    Dim oldInfo = oldModel.GetSymbolInfo(DirectCast(oldNode, ExpressionRangeVariableSyntax), cancellationToken)
+                    Dim newInfo = newModel.GetSymbolInfo(DirectCast(newNode, ExpressionRangeVariableSyntax), cancellationToken)
+                    Return MemberSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
+
+                Case SyntaxKind.AscendingOrdering,
+                     SyntaxKind.DescendingOrdering
+                    Dim oldInfo = oldModel.GetSymbolInfo(DirectCast(oldNode, OrderingSyntax), cancellationToken)
+                    Dim newInfo = newModel.GetSymbolInfo(DirectCast(newNode, OrderingSyntax), cancellationToken)
+                    Return MemberSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
+
+                Case SyntaxKind.FromClause,
+                     SyntaxKind.WhereClause,
+                     SyntaxKind.SkipClause,
+                     SyntaxKind.TakeClause,
+                     SyntaxKind.SkipWhileClause,
+                     SyntaxKind.TakeWhileClause,
+                     SyntaxKind.GroupByClause,
+                     SyntaxKind.SimpleJoinClause,
+                     SyntaxKind.GroupJoinClause,
+                     SyntaxKind.SelectClause
+                    Dim oldInfo = oldModel.GetSymbolInfo(DirectCast(oldNode, QueryClauseSyntax), cancellationToken)
+                    Dim newInfo = newModel.GetSymbolInfo(DirectCast(newNode, QueryClauseSyntax), cancellationToken)
+                    Return MemberSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
+
+                Case Else
+                    Return True
+            End Select
+        End Function
 #End Region
 
 #Region "Diagnostic Info"
@@ -2622,6 +2683,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                              SyntaxKind.GroupJoinClause
                             ReportError(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, node, Me._newNode)
                             Return
+
+                        Case SyntaxKind.LocalDeclarationStatement
+                            Dim declaration = DirectCast(node, LocalDeclarationStatementSyntax)
+                            If declaration.Modifiers.Any(SyntaxKind.StaticKeyword) Then
+                                ReportError(RudeEditKind.UpdateStaticLocal)
+                            End If
                     End Select
                 Next
             End Sub

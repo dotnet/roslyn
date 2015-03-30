@@ -1049,6 +1049,26 @@ End Module";
             Verify(code, expected);
         }
 
+        [Fact]
+        [WorkItem(1534, "https://github.com/dotnet/roslyn/issues/1534")]
+        [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
+        public void TestColonEqualsToken()
+        {
+            var code = @"[|Module Program
+    Sub Main(args As String())
+        Main(args   :     =    args)
+    End Sub
+End Module|]";
+
+            var expected = @"Module Program
+    Sub Main(args As String())
+        Main(args:=args)
+    End Sub
+End Module";
+
+            Verify(code, expected);
+        }
+
         private void Verify(string codeWithMarker, string expectedResult)
         {
             var codeWithoutMarker = default(string);

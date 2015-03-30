@@ -867,7 +867,7 @@ internal class A
 }";
             var compilation1 = CreateCompilationWithMscorlib(source1, assemblyName: "A");
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1, emitOptions: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilation1, emitters: TestEmitters.CCI);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""C"")]
@@ -893,7 +893,7 @@ internal abstract class B3 : A
 }";
             var compilation2 = CreateCompilationWithMscorlib(source2, assemblyName: "B", references: new[] { reference1 });
             compilation2.VerifyDiagnostics();
-            compilationVerifier = CompileAndVerify(compilation2, emitOptions: TestEmitters.CCI);
+            compilationVerifier = CompileAndVerify(compilation2, emitters: TestEmitters.CCI);
             var reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source3 =
 @"class C
@@ -940,7 +940,7 @@ public abstract class A
 }";
             var compilation1 = CreateCompilationWithMscorlib(source1, assemblyName: "A");
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1, emitOptions: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilation1, emitters: TestEmitters.CCI);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""C"")]
@@ -951,7 +951,7 @@ public abstract class B : A
 }";
             var compilation2 = CreateCompilationWithMscorlib(source2, assemblyName: "B", references: new[] { reference1 });
             compilation2.VerifyDiagnostics();
-            compilationVerifier = CompileAndVerify(compilation2, emitOptions: TestEmitters.CCI);
+            compilationVerifier = CompileAndVerify(compilation2, emitters: TestEmitters.CCI);
             var reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source3 =
 @"class C
@@ -977,7 +977,7 @@ internal class A
 }
 ";
             var compilationA = CreateCompilationWithMscorlib(sourceA, assemblyName: "A");
-            var compilationVerifier = CompileAndVerify(compilationA, emitOptions: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilationA, emitters: TestEmitters.CCI);
             var referenceA = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
             // Dev11 compiler doesn't allow this code, Roslyn does.
@@ -989,7 +989,7 @@ public class B
 }
 ";
             var compilationB = CreateCompilationWithMscorlib(sourceB, assemblyName: "B", references: new[] { referenceA });
-            compilationVerifier = CompileAndVerify(compilationB, emitOptions: TestEmitters.CCI);
+            compilationVerifier = CompileAndVerify(compilationB, emitters: TestEmitters.CCI);
             var referenceB = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
             var sourceC = @"
@@ -1019,7 +1019,7 @@ internal class A
 }
 ";
             var compilationA = CreateCompilationWithMscorlib(sourceA, assemblyName: "A");
-            var compilationVerifier = CompileAndVerify(compilationA, emitOptions: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilationA, emitters: TestEmitters.CCI);
             var referenceA = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
             var sourceB = @"
@@ -1030,7 +1030,7 @@ public class B
 }
 ";
             var compilationB = CreateCompilationWithMscorlib(sourceB, assemblyName: "B", references: new[] { referenceA });
-            compilationVerifier = CompileAndVerify(compilationB, emitOptions: TestEmitters.CCI);
+            compilationVerifier = CompileAndVerify(compilationB, emitters: TestEmitters.CCI);
             var referenceB = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
             var sourceC = @"

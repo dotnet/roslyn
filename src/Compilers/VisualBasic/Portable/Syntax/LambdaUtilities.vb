@@ -414,12 +414,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SyntaxKind.JoinCondition
                     Dim joinClause = DirectCast(lambda.Parent, JoinClauseSyntax)
-                    Dim joinCondition = DirectCast(lambdaBody, JoinConditionSyntax)
+                    Dim joinCondition = DirectCast(lambda, JoinConditionSyntax)
 
                     If lambdaBody Is joinCondition.Left Then
-                        Return SyntaxFactory.List(EnumerateJoinClauseLeftExpressions(joinClause))
+                        Return EnumerateJoinClauseLeftExpressions(joinClause)
                     Else
-                        Return SyntaxFactory.List(EnumerateJoinClauseRightExpressions(joinClause))
+                        Return EnumerateJoinClauseRightExpressions(joinClause)
                     End If
 
                 Case Else
@@ -430,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function GetAggregateLambdaBodyExpressions(clause As AggregateClauseSyntax) As IEnumerable(Of SyntaxNode)
             Dim result = ArrayBuilder(Of SyntaxNode).GetInstance()
 
-            result.Add(clause.Variables.First)
+            result.Add(clause.Variables.First.Expression)
 
             For Each innerClause In clause.AdditionalQueryOperators
                 Select Case innerClause.Kind

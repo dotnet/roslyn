@@ -2657,7 +2657,7 @@ public interface IA
                  // We should see the same members from both source and metadata
                  var verifier = CompileAndVerify(
                       libSrc,
-                      emitOptions: TestEmitters.RefEmitBug,
+                      emitters: TestEmitters.RefEmitBug,
                       sourceSymbolValidator: validator,
                       symbolValidator: validator,
                       options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll);

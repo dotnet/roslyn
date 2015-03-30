@@ -43,6 +43,16 @@ namespace Microsoft.CodeAnalysis
             return new ProjectId(debugName);
         }
 
+        public static ProjectId CreateFromSerialized(Guid id, string debugName = null)
+        {
+            if (id == Guid.Empty)
+            {
+                throw new ArgumentException(nameof(id));
+            }
+
+            return new ProjectId(debugName);
+        }
+
         private string GetDebuggerDisplay()
         {
             return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);

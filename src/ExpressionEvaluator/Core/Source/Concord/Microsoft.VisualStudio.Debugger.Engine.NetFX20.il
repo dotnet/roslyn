@@ -3462,6 +3462,7 @@
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_DEPLOY_FILE_PATH_INVALID' = int32(0x92330039)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_DEPLOY_FILE_TOO_LARGE' = int32(0x92330038)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_DESTROYED' = int32(0x80040201)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_DETACH_FAILED_ON_ENC' = int32(0x92330064)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_DETACH_IMPERSONATE_FAILURE' = int32(0x800400F0)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_DETACH_NO_PROXY' = int32(0x800400D0)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_DETACH_TS_UNSUPPORTED' = int32(0x800400E0)
@@ -4417,12 +4418,22 @@
 			ret
 		}
 		.method public hidebysig specialname 
+			instance uint64 'get_OSOverhead'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance uint64 'get_TotalOverhead'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
 			instance uint64 'get_Id'()
 		{
 			ret
 		}
 		.method public static hidebysig 
-			class 'Microsoft.VisualStudio.Debugger'.'DkmPerformanceCounters' 'Create'(uint32 'StartStopCounter', uint64 'SystemTime', uint64 'UserTime', uint64 'KernelTime', uint64 'RuntimeOverhead', uint64 'Id')
+			class 'Microsoft.VisualStudio.Debugger'.'DkmPerformanceCounters' 'Create'(uint32 'StartStopCounter', uint64 'SystemTime', uint64 'UserTime', uint64 'KernelTime', uint64 'RuntimeOverhead', uint64 'OSOverhead', uint64 'TotalOverhead', uint64 'Id')
 		{
 			ret
 		}
@@ -4433,6 +4444,10 @@
 		.property instance uint64 'KernelTime'()
 		{
 			.get instance uint64 'Microsoft.VisualStudio.Debugger'.'DkmPerformanceCounters'::'get_KernelTime'()
+		}
+		.property instance uint64 'OSOverhead'()
+		{
+			.get instance uint64 'Microsoft.VisualStudio.Debugger'.'DkmPerformanceCounters'::'get_OSOverhead'()
 		}
 		.property instance uint64 'RuntimeOverhead'()
 		{
@@ -4445,6 +4460,10 @@
 		.property instance uint64 'SystemTime'()
 		{
 			.get instance uint64 'Microsoft.VisualStudio.Debugger'.'DkmPerformanceCounters'::'get_SystemTime'()
+		}
+		.property instance uint64 'TotalOverhead'()
+		{
+			.get instance uint64 'Microsoft.VisualStudio.Debugger'.'DkmPerformanceCounters'::'get_TotalOverhead'()
 		}
 		.property instance uint64 'UserTime'()
 		{
@@ -14415,6 +14434,43 @@
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmDeploymentCommandFlags' 'Default' = int32(0x00000000)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmDeploymentCommandFlags' 'ShowUI' = int32(0x00000004)
 	}
+	.class public 'DkmDeviceInfo'
+		extends ['mscorlib']'System'.'Object'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 36 34 62 64 66 64 31 61 2D 63 62 38 61 2D 33 31 64 63 2D 61 39 37 64 2D 62 33 65 31 35 31 31 36 38 38 35 61 00 00)
+		.method public hidebysig specialname 
+			instance string 'get_DeviceFamily'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance string 'get_DeviceFamilyVersion'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance string 'get_DeviceForm'()
+		{
+			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmDeviceInfo' 'Create'(string 'DeviceFamily', string 'DeviceFamilyVersion', string 'DeviceForm')
+		{
+			ret
+		}
+		.property instance string 'DeviceFamily'()
+		{
+			.get instance string 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmDeviceInfo'::'get_DeviceFamily'()
+		}
+		.property instance string 'DeviceFamilyVersion'()
+		{
+			.get instance string 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmDeviceInfo'::'get_DeviceFamilyVersion'()
+		}
+		.property instance string 'DeviceForm'()
+		{
+			.get instance string 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmDeviceInfo'::'get_DeviceForm'()
+		}
+	}
 	.class public sequential sealed 'DkmDownloadFileAsyncResult'
 		extends ['mscorlib']'System'.'ValueType'
 	{
@@ -15129,6 +15185,11 @@
 		{
 			ret
 		}
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmDeviceInfo' 'get_DeviceInfo'()
+		{
+			ret
+		}
 		.method public static hidebysig 
 			class 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmSystemInformation' 'Create'(valuetype 'Microsoft.VisualStudio.Debugger'.'DkmProcessorArchitecture' 'ProcessorArchitecture', int32 'PageSize', int32 'OperatingSystemVersion', uint16 'SuiteMask', valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmSystemInformationFlags' 'Flags', valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmProcessorFeatures' 'ProcessorFeatures')
 		{
@@ -15138,6 +15199,15 @@
 			class 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmSystemInformation' 'Create'(valuetype 'Microsoft.VisualStudio.Debugger'.'DkmProcessorArchitecture' 'ProcessorArchitecture', int32 'PageSize', int32 'OperatingSystemVersion', uint16 'SuiteMask', valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmSystemInformationFlags' 'Flags', valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmProcessorFeatures' 'ProcessorFeatures', valuetype 'Microsoft.VisualStudio.Debugger'.'MinidumpFlags' 'MinidumpFlags', string 'SystemDirectory', string 'SystemWow64Directory')
 		{
 			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmSystemInformation' 'Create'(valuetype 'Microsoft.VisualStudio.Debugger'.'DkmProcessorArchitecture' 'ProcessorArchitecture', int32 'PageSize', int32 'OperatingSystemVersion', uint16 'SuiteMask', valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmSystemInformationFlags' 'Flags', valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmProcessorFeatures' 'ProcessorFeatures', valuetype 'Microsoft.VisualStudio.Debugger'.'MinidumpFlags' 'MinidumpFlags', string 'SystemDirectory', string 'SystemWow64Directory', class 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmDeviceInfo' 'DeviceInfo')
+		{
+			ret
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmDeviceInfo' 'DeviceInfo'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmDeviceInfo' 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmSystemInformation'::'get_DeviceInfo'()
 		}
 		.property instance valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmSystemInformationFlags' 'Flags'()
 		{

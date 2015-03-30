@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.VisualStudio.Shell.Interop
 
@@ -24,6 +25,10 @@ Friend Class MockVisualBasicCompiler
 
         _analyzers = analyzers
     End Sub
+
+    Public Overrides Function LoadAssembly(fullPath As String) As Assembly
+        Return Assembly.LoadFrom(fullPath)
+    End Function
 
     Protected Overrides Function GetSqmAppID() As UInteger
         Return SqmServiceProvider.BASIC_APPID

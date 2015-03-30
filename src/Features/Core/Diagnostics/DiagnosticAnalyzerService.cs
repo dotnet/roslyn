@@ -169,6 +169,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
+        public bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic)
+        {
+            return _hostAnalyzerManager.IsCompilerDiagnostic(language, diagnostic);
+        }
+
         // virtual for testing purposes.
         internal virtual Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId, DiagnosticLogAggregator diagnosticLogAggregator)
         {

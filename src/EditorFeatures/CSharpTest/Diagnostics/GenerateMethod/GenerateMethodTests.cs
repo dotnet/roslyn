@@ -2638,7 +2638,7 @@ namespace ConsoleApplication1
         {
             Test(
 @"class Program { public int MyProperty { get ; } = [|y|] ( ) ; } ",
-@"using System ; class Program { public int MyProperty { get ; } = y ( ) ; private int y ( ) { throw new NotImplementedException ( ) ; } } ");
+@"using System ; class Program { public int MyProperty { get ; } = y ( ) ; private static int y ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
