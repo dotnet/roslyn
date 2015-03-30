@@ -547,6 +547,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show preview for _rename tracking.
+        /// </summary>
+        internal static string Option_RenameTrackingPreview {
+            get {
+                return ResourceManager.GetString("Option_RenameTrackingPreview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Selection In Completion List.
         /// </summary>
         internal static string Option_SelectionInCompletionList {

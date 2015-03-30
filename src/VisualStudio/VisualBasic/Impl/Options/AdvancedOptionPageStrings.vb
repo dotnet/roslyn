@@ -21,6 +21,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
+        Public ReadOnly Property Option_RenameTrackingPreview As String
+            Get
+                Return BasicVSResources.Option_RenameTrackingPreview
+            End Get
+        End Property
+
         Public ReadOnly Property Option_DisplayLineSeparators As String
             Get
                 Return BasicVSResources.Option_DisplayLineSeparators

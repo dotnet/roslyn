@@ -248,6 +248,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(FeatureOnOffOptions.RenameTracking, value); }
         }
 
+        public int RenameTrackingPreview
+        {
+            get { return GetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview); }
+            set { SetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview, value); }
+        }
+
         public int ShowKeywords
         {
             get { return GetBooleanOption(CompletionOptions.IncludeKeywords); }

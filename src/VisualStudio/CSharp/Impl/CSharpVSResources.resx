@@ -399,4 +399,7 @@
   <data name="Option_SelectionInCompletionList" xml:space="preserve">
     <value>Selection In Completion List</value>
   </data>
+  <data name="Option_RenameTrackingPreview" xml:space="preserve">
+    <value>Show preview for _rename tracking</value>
+  </data>
 </root>
