@@ -4,8 +4,10 @@ namespace Microsoft.DiaSymReader.PortablePdb
 {
     internal static class HResult
     {
-        internal const int E_NOTIMPL = unchecked((int)0x80004001);
         internal const int S_OK = 0;
+        internal const int S_FALSE = 1;
+        internal const int E_NOTIMPL = unchecked((int)0x80004001);
+        internal const int E_FAIL = unchecked((int)0x80004005);
 
         // TODO:
         internal const int E_INVALIDARG = 1;

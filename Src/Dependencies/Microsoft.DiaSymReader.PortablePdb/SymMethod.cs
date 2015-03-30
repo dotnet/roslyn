@@ -3,16 +3,16 @@
 using System;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.DiaSymReader.PortablePdb
 {
-    [ComVisible(true)]
+    [ComVisible(false)]
     public sealed class SymMethod : ISymUnmanagedMethod
     {
         private readonly MethodDefinitionHandle _handle;
         private readonly SymReader _symReader;
+        private RootScopeData _lazyRootScopeData;
 
         internal SymMethod(SymReader symReader, MethodDefinitionHandle handle)
         {
@@ -20,6 +20,10 @@ namespace Microsoft.DiaSymReader.PortablePdb
             _symReader = symReader;
             _handle = handle;
         }
+
+        internal SymReader SymReader => _symReader;
+        internal MetadataReader MetadataReader => _symReader.MetadataReader;
+        internal MethodDefinitionHandle Handle => _handle;
 
         public int GetNamespace([MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedNamespace @namespace)
         {
@@ -31,7 +35,10 @@ namespace Microsoft.DiaSymReader.PortablePdb
             throw new NotImplementedException();
         }
 
-        public int GetParameters(int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedVariable[] parameters)
+        public int GetParameters(
+            int bufferLength, 
+            out int count, 
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedVariable[] parameters)
         {
             throw new NotImplementedException();
         }
@@ -43,21 +50,14 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetRootScope([MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedScope scope)
         {
-            // TODO: binary search
-            var mdReader = _symReader.MetadataReader;
-            for (int i = 0; i < mdReader.LocalScopes.Count; i++)
+            if (_lazyRootScopeData == null)
             {
-                LocalScopeHandle scopeHandle = MetadataTokens.LocalScopeHandle(i + 1);
-                var s = mdReader.GetLocalScope(scopeHandle);
-                if (s.Method == _handle)
-                {
-                    scope = new SymScope(this, scopeHandle);
-                    return HResult.S_OK;
-                }
+                _lazyRootScopeData = new RootScopeData(this);
             }
 
-            scope = null;
-            return HResult.E_INVALIDARG;
+            // SymReader always creates a new scope instance
+            scope = new SymScope(_lazyRootScopeData);
+            return HResult.S_OK;
         }
 
         public int GetScopeFromOffset(int offset, [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedScope scope)
@@ -67,7 +67,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetSequencePointCount(out int count)
         {
-            throw new NotImplementedException();
+            return GetSequencePoints(0, out count, null, null, null, null, null, null);
         }
 
         public int GetSequencePoints(
@@ -80,6 +80,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]int[] endLines,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]int[] endColumns)
         {
+            // TODO: cache
+
             var mdReader = _symReader.MetadataReader;
 
             var body = mdReader.GetMethodBody(_handle);
