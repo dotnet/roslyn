@@ -30,6 +30,7 @@
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\VisualStudio\Setup\VisualStudioSetup.csproj">

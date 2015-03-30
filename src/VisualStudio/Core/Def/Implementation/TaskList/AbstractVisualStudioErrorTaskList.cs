@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         // decide what would be appropriate number of errors to show users.
         private const int ErrorReportThreshold = 416;
 
-        private static readonly VisualStudioTaskItem[] s_noItems = new VisualStudioTaskItem[0];
+        private static readonly VisualStudioTaskItem[] s_noItems = Array.Empty<VisualStudioTaskItem>();
 
         private readonly SimpleTaskQueue _taskQueue;
         private readonly VisualStudioWorkspace _workspace;

@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 End Try
             Next
 
-            AssertEx.Equal(New SyntaxKind() {}, unhandledKinds)
+            AssertEx.Equal(Array.Empty(Of SyntaxKind)(), unhandledKinds)
         End Sub
 #End Region
 
