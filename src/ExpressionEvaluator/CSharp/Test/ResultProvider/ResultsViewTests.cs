@@ -1407,7 +1407,7 @@ class C : IEnumerable
             }
         }
 
-        [Fact]
+        [Fact, WorkItem(1145125, "DevDiv")]
         public void GetEnumerableException()
         {
             var source =
