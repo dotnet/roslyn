@@ -148,7 +148,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                    option == FeatureOnOffOptions.FormatOnPaste ||
                    option == FeatureOnOffOptions.AutoXmlDocCommentGeneration ||
                    option == FeatureOnOffOptions.RefactoringVerification ||
-                   option == FeatureOnOffOptions.RenameTracking;
+                   option == FeatureOnOffOptions.RenameTracking ||
+                   option == FeatureOnOffOptions.RenameTrackingPreview;
         }
 
         public override bool TryFetch(OptionKey optionKey, out object value)
