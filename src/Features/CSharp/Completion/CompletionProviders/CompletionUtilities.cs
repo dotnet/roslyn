@@ -81,11 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             // Bring up on space or at the start of a word.
             var ch = text[characterPosition];
-            return SpaceTypedNotAdjacentToWord(ch, text, characterPosition) ||
+            return SpaceTypedNotBeforeWord(ch, text, characterPosition) ||
                 (CompletionUtilities.IsStartingNewWord(text, characterPosition) && options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp));
         }
 
-        private static bool SpaceTypedNotAdjacentToWord(char ch, SourceText text, int characterPosition)
+        private static bool SpaceTypedNotBeforeWord(char ch, SourceText text, int characterPosition)
         {
             return ch == ' ' && (characterPosition == text.Length - 1 || !IsWordStartCharacter(text[characterPosition + 1]));
         }
