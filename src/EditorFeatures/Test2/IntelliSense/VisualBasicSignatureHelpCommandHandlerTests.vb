@@ -1,5 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class VisualBasicSignatureHelpCommandHandlerTests
 
@@ -201,6 +203,66 @@ End Class
                 state.SendInvokeSignatureHelp()
                 state.SendTypeChars(" ")
                 state.AssertSelectedSignatureHelpItem("C.M(a As String, b As String)")
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TestGenericNameSigHelpInTypeParameterListAfterConditionalAccess()
+            Using state = TestState.CreateVisualBasicTestState(
+                              <Document><![CDATA[
+Imports System.Collections
+Imports System.Collections.Generic
+Imports System.Linq
+
+Class C
+    Sub M(args As Object())
+        Dim x = args?.OfType$$
+    End Sub
+End Class
+]]></Document>)
+
+                state.SendTypeChars("(")
+                state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TestGenericNameSigHelpInTypeParameterListAfterMultipleConditionalAccess()
+            Using state = TestState.CreateVisualBasicTestState(
+                              <Document><![CDATA[
+Imports System.Collections
+Imports System.Collections.Generic
+Imports System.Linq
+
+Class C
+    Sub M(args As Object())
+        Dim x = args?.Select(Function(a) a)?.OfType$$
+    End Sub
+End Class
+]]></Document>)
+
+                state.SendTypeChars("(")
+                state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TestGenericNameSigHelpInTypeParameterListMuchAfterConditionalAccess()
+            Using state = TestState.CreateVisualBasicTestState(
+                              <Document><![CDATA[
+Imports System.Collections
+Imports System.Collections.Generic
+Imports System.Linq
+
+Class C
+    Sub M(args As Object())
+        Dim x = args?.Select(Function(a) a.GetHashCode()).Where(Function(temp) True).OfType$$
+    End Sub
+End Class
+]]></Document>)
+
+                state.SendTypeChars("(")
+                state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
             End Using
         End Sub
     End Class
