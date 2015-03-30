@@ -58,6 +58,7 @@
     </Compile>
     <Compile Include="AssemblyPortabilityPolicy.cs" />
     <Compile Include="AssemblyVersion.cs" />
+    <Compile Include="CommandLine\CommandLineAnalyzerDependency.cs" />
     <Compile Include="CommandLine\CommandLineReference.cs" />
     <Compile Include="CommandLine\CommandLineSourceFile.cs" />
     <Compile Include="CommandLine\CommonCommandLineArguments.cs" />
