@@ -186,11 +186,15 @@ The LocalScope table has the following columns:
 
 The table is required to be sorted first by _Method_ in ascending order, then by _StartOffset_ in ascending order, then by _Length_ in descending order.
 
+_StartOffset_ + _Length_ shall be in range (0..0x80000000).
+
 Each scope spans IL instructions in range [_StartOffset_, _StartOffset_ + _Length_).
 
 _StartOffset_ shall point to the starting byte of an instruction of the _Method_.
 
 _StartOffset_ + _Length_ shall point to the starting byte of an instruction of the _Method_ or be equal to the size of the IL stream of the _Method_.
+
+For each pair of scopes belonging to the same _Method_ the intersection of their respective ranges _R1_ and _R2_ shall be either _R1_ or _R2_ or empty.
 
 ### <a name="LocalVariableTable"></a>LocalVariable Table: 0x33
 
