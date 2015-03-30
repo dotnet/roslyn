@@ -1981,7 +1981,7 @@ class Test
 ");
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlows.VariablesDeclared));
             Assert.Null(GetSymbolNamesJoined(dataFlows.AlwaysAssigned));
-            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlows.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlows.Captured));
             Assert.Null(GetSymbolNamesJoined(dataFlows.DataFlowsIn));
             Assert.Null(GetSymbolNamesJoined(dataFlows.DataFlowsOut));
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlows.ReadInside));
@@ -4561,6 +4561,32 @@ public class Test
 }");
             var dataFlowAnalysisResults = analysisResults;
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+        }
+
+        [WorkItem(1291, "https://github.com/dotnet/roslyn/issues/1291")]
+        [Fact]
+        public void CaptureInQuery()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+using System.Linq;
+
+public class Test
+{
+    public static void Main(int[] data)
+    {
+        int y = 1;
+        {
+            int x = 2;
+            var f2 = from a in data select a + y;
+            var f3 = from a in data where x > 0 select a;
+            var f4 = from a in data let b = 1 where /*<bind>*/M(() => b)/*</bind>*/ select a + b;
+            var f5 = from c in data where M(() => c) select c;
+        }
+    }
+    private static bool M(Func<int> f) => true;
+}");
+            var dataFlowAnalysisResults = analysisResults;
+            Assert.Equal("y, x, b", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
         }
 
         #endregion query expressions

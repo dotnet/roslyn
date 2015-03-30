@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.UnitTests;
-using Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel;
+using static Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CodeModelTestHelpers;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
@@ -29,8 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
                 var document = project.Documents.Single().Id;
 
                 var componentModel = new MockComponentModel(workspace.ExportProvider);
-                var serviceProvider = new CodeModelTestHelpers.MockServiceProvider(componentModel);
-                WrapperPolicy.s_ComWrapperFactory = CodeModelTestHelpers.MockComWrapperFactory.Instance;
+                var serviceProvider = new MockServiceProvider(componentModel);
+                WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance;
 
                 var visualStudioWorkspaceMock = new MockVisualStudioWorkspace(workspace);
 

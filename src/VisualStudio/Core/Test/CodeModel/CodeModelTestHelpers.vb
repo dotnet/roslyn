@@ -92,7 +92,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Public Shared ReadOnly Instance As IComWrapperFactory = New MockComWrapperFactory
 
             Public Function CreateAggregatedObject(managedObject As Object) As Object Implements IComWrapperFactory.CreateAggregatedObject
-                ' This is a fake implementation.
                 Dim wrapperUnknown = BlindAggregatorFactory.CreateWrapper()
                 Try
                     Dim innerUnknown = Marshal.CreateAggregatedObject(wrapperUnknown, managedObject)
