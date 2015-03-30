@@ -1,15 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
     internal abstract class ReferenceIndexerBase : MetadataVisitor
     {
-        protected readonly HashSet<IReference> alreadySeen = new HashSet<IReference>();
-        protected readonly HashSet<IReference> alreadyHasToken = new HashSet<IReference>();
+        private readonly HashSet<IReference> _alreadySeen = new HashSet<IReference>();
+        private readonly HashSet<IReference> _alreadyHasToken = new HashSet<IReference>();
         protected bool typeReferenceNeedsToken;
         protected IModule module;
 
@@ -69,7 +71,7 @@ namespace Microsoft.Cci
 
         public override void Visit(IFieldReference fieldReference)
         {
-            if (!alreadySeen.Add(fieldReference))
+            if (!_alreadySeen.Add(fieldReference))
             {
                 return;
             }
@@ -148,7 +150,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            if (!alreadySeen.Add(methodReference))
+            if (!_alreadySeen.Add(methodReference))
             {
                 return;
             }
@@ -417,7 +419,7 @@ namespace Microsoft.Cci
         // Returns true if we need to look at the children, false otherwise.
         private bool VisitTypeReference(ITypeReference typeReference)
         {
-            if (!this.alreadySeen.Add(typeReference))
+            if (!this._alreadySeen.Add(typeReference))
             {
                 if (!this.typeReferenceNeedsToken)
                 {
@@ -425,7 +427,7 @@ namespace Microsoft.Cci
                 }
 
                 this.typeReferenceNeedsToken = false;
-                if (!this.alreadyHasToken.Add(typeReference))
+                if (!this._alreadyHasToken.Add(typeReference))
                 {
                     return false;
                 }
@@ -443,13 +445,13 @@ namespace Microsoft.Cci
                 if (specializedNestedTypeReference != null)
                 {
                     INestedTypeReference unspecializedNestedTypeReference = specializedNestedTypeReference.UnspecializedVersion;
-                    if (this.alreadyHasToken.Add(unspecializedNestedTypeReference))
+                    if (this._alreadyHasToken.Add(unspecializedNestedTypeReference))
                     {
                         RecordTypeReference(unspecializedNestedTypeReference);
                     }
                 }
 
-                if (this.typeReferenceNeedsToken && this.alreadyHasToken.Add(typeReference))
+                if (this.typeReferenceNeedsToken && this._alreadyHasToken.Add(typeReference))
                 {
                     RecordTypeReference(typeReference);
                 }

@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2109,6 +2110,52 @@ class D
 </symbols>";
 
             AssertXmlEqual(expectedXml, GetPdbXml(comp, "D.Main"));
+        }
+
+        [Fact]
+        public void UnusedImports()
+        {
+            var source = @"
+extern alias A;
+using System;
+using X = A::System.Linq.Enumerable;
+using Y = A::System.Linq;
+using Z = System.Data.DataColumn;
+using F = System.Func<int>;
+
+class C
+{
+    static void Main() 
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
+            var v = CompileAndVerify(comp, emitters: TestEmitters.CCI, validator: (peAssembly, emitters) =>
+            {
+                var reader = peAssembly.ManifestModule.MetadataReader;
+
+                Assert.Equal(new[] 
+                {
+                    "mscorlib",
+                    "System.Core",
+                    "System.Data"
+                }, peAssembly.AssemblyReferences.Select(ai => ai.Name));
+
+                Assert.Equal(new[] 
+                {
+                    "CompilationRelaxationsAttribute",
+                    "RuntimeCompatibilityAttribute",
+                    "DebuggableAttribute",
+                    "DebuggingModes",
+                    "Object",
+                    "Enumerable",
+                    "DataColumn",
+                    "Func`1"
+                }, reader.TypeReferences.Select(h => reader.GetString(reader.GetTypeReference(h).Name)));
+
+                Assert.Equal(1, reader.GetTableRowCount(TableIndex.TypeSpec));
+            });
         }
     }
 }
