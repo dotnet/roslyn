@@ -14,6 +14,7 @@
     <AssemblyName>csc2</AssemblyName>
     <LargeAddressAware>true</LargeAddressAware>
     <Prefer32Bit>false</Prefer32Bit>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Csc2.cs" />

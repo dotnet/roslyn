@@ -96,7 +96,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         End Property
 
         Public Shared Function CreateTestState(markup As String, languageName As String, Optional startActiveSession As Boolean = False, Optional extraParts As IEnumerable(Of Type) = Nothing) As SnippetTestState
-            extraParts = If(extraParts, {})
+            extraParts = If(extraParts, Type.EmptyTypes)
             Dim workspaceXml = <Workspace>
                                    <Project Language=<%= languageName %> CommonReferences="true">
                                        <Document><%= markup %></Document>

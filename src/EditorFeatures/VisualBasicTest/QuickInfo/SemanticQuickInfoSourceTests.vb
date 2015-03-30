@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         Inherits AbstractSemanticQuickInfoSourceTests
 
         Protected Overrides Sub Test(markup As String, ParamArray expectedResults() As Action(Of Object))
-            TestWithReferences(markup, {}, expectedResults)
+            TestWithReferences(markup, Array.Empty(Of String)(), expectedResults)
         End Sub
 
         Protected Sub TestShared(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of Object))

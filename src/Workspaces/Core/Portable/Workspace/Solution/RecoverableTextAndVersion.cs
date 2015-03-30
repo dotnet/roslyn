@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ITemporaryStorageService _storageService;
 
-        private AsyncSemaphore _gateDoNotAccessDirectly; // Lazily created. Access via the Gate property
+        private SemaphoreSlim _gateDoNotAccessDirectly; // Lazily created. Access via the Gate property
         private ValueSource<TextAndVersion> _initialSource;
 
         private RecoverableText _text;
@@ -32,13 +32,7 @@ namespace Microsoft.CodeAnalysis
             _storageService = storageService;
         }
 
-        private AsyncSemaphore Gate
-        {
-            get
-            {
-                return LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, AsyncSemaphore.Factory);
-            }
-        }
+        private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, SemaphoreSlimFactory.Instance);
 
         public override bool TryGetValue(out TextAndVersion value)
         {

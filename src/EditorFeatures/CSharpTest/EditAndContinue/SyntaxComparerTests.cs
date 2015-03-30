@@ -150,24 +150,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             distance = SyntaxComparer.ComputeDistance(
                 null,
-                new SyntaxNode[0] { });
+                Array.Empty<SyntaxNode>());
 
             Assert.Equal(0, Math.Round(distance, 2));
 
             distance = SyntaxComparer.ComputeDistance(
-                new SyntaxNode[0] { },
+                Array.Empty<SyntaxNode>(),
                 null);
 
             Assert.Equal(0, Math.Round(distance, 2));
 
             distance = SyntaxComparer.ComputeDistance(
                 null,
-                new SyntaxToken[0] { });
+                Array.Empty<SyntaxToken>());
 
             Assert.Equal(0, Math.Round(distance, 2));
 
             distance = SyntaxComparer.ComputeDistance(
-                new SyntaxToken[0] { },
+                Array.Empty<SyntaxToken>(),
                 null);
 
             Assert.Equal(0, Math.Round(distance, 2));
