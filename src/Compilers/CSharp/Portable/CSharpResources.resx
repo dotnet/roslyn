@@ -4377,6 +4377,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                                assembly files (Short form: /l)
  /analyzer:&lt;file list&gt;         Run the analyzers from this assembly
                                (Short form: /a)
+ /analyzerdependency:&lt;file list&gt; Additional assemblies required by analyzers
+                               (Short form: /ad)
  /additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
                                generation but may be used by analyzers for producing
                                errors or warnings.

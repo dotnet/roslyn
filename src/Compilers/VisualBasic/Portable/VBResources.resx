@@ -5025,6 +5025,8 @@
                                   assembly. (Short form: /r)
 /analyzer:&lt;file_list&gt;             Run the analyzers from this assembly
                                   (Short form: /a)
+/analyzerdependency:&lt;file_list&gt;   Additional assemblies required by analyzers
+                                  (Short form: /a)
 /additionalfile:&lt;file list&gt;       Additional files that don't directly affect code
                                   generation but may be used by analyzers for producing
                                   errors or warnings.
