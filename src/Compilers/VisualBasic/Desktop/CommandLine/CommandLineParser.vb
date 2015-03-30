@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         analyzers.AddRange(ParseAnalyzers(name, value, diagnostics))
                         Continue For
 
-                    Case "analyzerdependency"
+                    Case "ad", "analyzerdependency"
                         analyzerDependencies.AddRange(ParseAnalyzerDependencies(name, value, diagnostics))
                         Continue For
 

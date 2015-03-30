@@ -152,6 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzers.AddRange(ParseAnalyzers(arg, value, diagnostics));
                         continue;
 
+                    case "ad":
                     case "analyzerdependency":
                         analyzerDependencies.AddRange(ParseAnalyzerDependencies(arg, value, diagnostics));
                         continue;
