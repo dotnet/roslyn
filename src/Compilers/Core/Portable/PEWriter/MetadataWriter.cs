@@ -4096,12 +4096,13 @@ namespace Microsoft.Cci
             {
                 // Check if an identical method body has already been serialized. 
                 // If so, use the RVA of the already serialized one.
-                if (!_smallMethodBodies.TryGetValue(il, out bodyRva))
+                if (_smallMethodBodies.TryGetValue(il, out bodyRva))
                 {
-                    bodyRva = writer.BaseStream.Position;
-                    _smallMethodBodies.Add(il, bodyRva);
+                    return bodyRva;
                 }
 
+                bodyRva = writer.BaseStream.Position;
+                _smallMethodBodies.Add(il, bodyRva);
                 writer.WriteByte((byte)((ilLength << 2) | 2));
             }
             else

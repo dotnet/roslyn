@@ -2821,6 +2821,57 @@ End interface
             Assert.Equal(P2RVA, P1RVA)
         End Sub
 
+        Private Shared Function SequenceMatches(buffer As Byte(), startIndex As Integer, pattern As Byte()) As Boolean
+            For i = 0 To pattern.Length - 1
+                If buffer(startIndex + i) <> pattern(i) Then Return False
+            Next
+            Return True
+        End Function
+
+        Private Shared Function IndexOfPattern(buffer As Byte(), startIndex As Integer, pattern As Byte()) As Integer
+            Dim [end] = buffer.Length - pattern.Length
+            For i = startIndex To [end] - 1
+                If SequenceMatches(buffer, i, pattern) Then Return i
+            Next
+            Return -1
+        End Function
+
+        <Fact, WorkItem(1669, "https://github.com/dotnet/roslyn/issues/1669")>
+        Public Sub FoldMethods2()
+            ' Verifies that IL folding eliminates duplicate copies of small method bodies by
+            ' examining the emitted binary.
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Class C
+    Function M() As ULong
+        Return &amp;H8675309ABCDE4225UL
+    End Function
+    ReadOnly Property P As Long 
+        Get
+            Return -8758040459200282075
+        End Get
+    End Property
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
+            Using stream As Stream = compilation.EmitToStream()
+                Dim len As Integer = CType(stream.Length, Integer)
+                Dim bytes(len) As Byte
+                Assert.Equal(len, stream.Read(bytes, 0, len))
+
+                ' The constant should appear exactly once
+                Dim pattern() As Byte = {&H25, &H42, &HDE, &HBC, &H9A, &H30, &H75, &H86}
+                Dim firstMatch = IndexOfPattern(bytes, 0, pattern)
+                Assert.True(firstMatch >= 0, "Couldn't find the expected byte pattern in the output.")
+                Dim secondMatch = IndexOfPattern(bytes, firstMatch + 1, pattern)
+                Assert.True(secondMatch < 0, "Expected to find just one occurrence of the pattern in the output.")
+            End Using
+
+        End Sub
+
         ''' <summary>
         ''' Ordering of anonymous type definitions
         ''' in metadata should be deterministic.

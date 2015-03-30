@@ -2634,6 +2634,62 @@ class Viewable
             Assert.Equal(P2RVA, P1RVA);
         }
 
+        private static bool SequenceMatches(byte[] buffer, int startIndex, byte[] pattern)
+        {
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                if (buffer[startIndex + i] != pattern[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static int IndexOfPattern(byte[] buffer, int startIndex, byte[] pattern)
+        {
+            // Naive linear search for target within buffer
+            int end = buffer.Length - pattern.Length;
+            for (int i = startIndex; i < end; i++)
+            {
+                if (SequenceMatches(buffer, i, pattern))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        [Fact, WorkItem(1669, "https://github.com/dotnet/roslyn/issues/1669")]
+        public void FoldMethods2()
+        {
+            // Verifies that IL folding eliminates duplicate copies of small method bodies by
+            // examining the emitted binary.
+            string source = @"
+class C
+{
+    ulong M() => 0x8675309ABCDE4225UL; 
+    long P => -8758040459200282075L;
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, null, TestOptions.ReleaseDll);
+            using (var stream = compilation.EmitToStream())
+            {
+                var bytes = new byte[stream.Length];
+                Assert.Equal(bytes.Length, stream.Read(bytes, 0, bytes.Length));
+
+                // The constant should appear exactly once
+                byte[] pattern = new byte[] { 0x25, 0x42, 0xDE, 0xBC, 0x9A, 0x30, 0x75, 0x86 };
+                int firstMatch = IndexOfPattern(bytes, 0, pattern);
+                Assert.True(firstMatch >= 0, "Couldn't find the expected byte pattern in the output.");
+                int secondMatch = IndexOfPattern(bytes, firstMatch + 1, pattern);
+                Assert.True(secondMatch < 0, "Expected to find just one occurrence of the pattern in the output.");
+            }
+        }
+
         [Fact]
         public void BrokenOutStream()
         {
