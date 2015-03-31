@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 // Grab the MemoryStream and its internal buffer
                 // to prevent making another copy.
-                var stream = (MemoryStream)writer.BaseStream;
+                var stream = writer.BaseStream;
                 // Write the length of the request
                 int length = checked((int)stream.Length);
 
@@ -258,8 +258,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     ///
     /// Field Name       Field Type          Size (bytes)
     /// -------------------------------------------------
-    /// responseType     enum ResponseType   4
     /// responseLength   int (positive)      4  
+    /// responseType     enum ResponseType   4
     /// responseBody     Response subclass   variable
     /// </summary>
     internal abstract class BuildResponse
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 // Grab the MemoryStream and its internal buffer to prevent
                 // making another copy.
-                var stream = (MemoryStream)writer.BaseStream;
+                var stream = writer.BaseStream;
 
                 // Write the length of the response
                 int length = checked((int)stream.Length);
