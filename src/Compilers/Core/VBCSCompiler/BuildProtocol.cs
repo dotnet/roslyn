@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // to prevent making another copy.
                 var stream = (MemoryStream)writer.BaseStream;
                 // Write the length of the request
-                int length = (int)stream.Length;
+                int length = checked((int)stream.Length);
 
                 // Back out if the request is > 1 MB
                 if (stream.Length > 0x100000)
@@ -200,8 +200,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 Log("Writing request of size {0}", length);
                 // Write the request
-                await outStream.WriteAsync(stream.GetBuffer(), 0, length,
-                                           cancellationToken).ConfigureAwait(false);
+                await stream.CopyToAsync(outStream, bufferSize: length, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -259,8 +258,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     ///
     /// Field Name       Field Type          Size (bytes)
     /// -------------------------------------------------
-    /// responseLength   int (positive)      4  
     /// responseType     enum ResponseType   4
+    /// responseLength   int (positive)      4  
     /// responseBody     Response subclass   variable
     /// </summary>
     internal abstract class BuildResponse
@@ -292,8 +291,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // Grab the MemoryStream and its internal buffer to prevent
                 // making another copy.
                 var stream = (MemoryStream)writer.BaseStream;
+
                 // Write the length of the response
-                uint length = (uint)stream.Length;
+                int length = checked((int)stream.Length);
+
                 Log("Writing response length");
                 // There is no way to know the number of bytes written to
                 // the pipe stream. We just have to assume all of them are written.
@@ -304,12 +305,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 // Write the response
                 Log("Writing response of size {0}", length);
-                // There is no way to know the number of bytes written to
-                // the pipe stream. We just have to assume all of them are written.
-                await outStream.WriteAsync(stream.GetBuffer(),
-                                           0,
-                                           (int)length,
-                                           cancellationToken).ConfigureAwait(false);
+                await stream.CopyToAsync(outStream, bufferSize: length, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
 

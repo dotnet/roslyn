@@ -93,6 +93,7 @@
     <Compile Include="ObjectFormatter.Formatter.cs" />
     <Compile Include="Script.cs" />
     <Compile Include="ScriptBuilder.cs" />
+    <Compile Include="ScriptCompilerUtil.cs" />
     <Compile Include="ScriptingResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
