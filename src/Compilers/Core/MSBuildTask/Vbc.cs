@@ -840,6 +840,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     param = "AdditionalFiles"; this.CheckHostObjectSupport(param, analyzerHostObject.SetAdditionalFiles(this.AdditionalFiles));
                 }
 
+                // For host objects which support them, set the analyzers' dependencies.
+                IAnalyzerDependencyHostObject analyzerDependencyHostObject = vbcHostObject as IAnalyzerDependencyHostObject;
+                if (analyzerDependencyHostObject != null)
+                {
+                    param = "AnalyzerDependencies"; this.CheckHostObjectSupport(param, analyzerDependencyHostObject.SetAnalyzerDependencies(this.AnalyzerDependencies));
+                }
+
                 param = "BaseAddress"; this.CheckHostObjectSupport(param, vbcHostObject.SetBaseAddress(this.TargetType, this.GetBaseAddressInHex()));
                 param = "CodePage"; this.CheckHostObjectSupport(param, vbcHostObject.SetCodePage(this.CodePage));
                 param = "DebugType"; this.CheckHostObjectSupport(param, vbcHostObject.SetDebugType(this.EmitDebugInformation, this.DebugType));
