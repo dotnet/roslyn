@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             string clientDir,
             string workingDir,
             RequestLanguage language,
-            Func<string[], int> fallbackCompiler)
+            Func<string, string[], int> fallbackCompiler)
         {
             args = args.Select(arg => arg.Trim()).ToArray();
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            return fallbackCompiler(parsedArgs.ToArray());
+            return fallbackCompiler(clientDir, parsedArgs.ToArray());
         }
 
         private static int HandleResponse(BuildResponse response)

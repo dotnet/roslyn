@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
         {
         }
 
-        internal static int Run(string[] args, string clientDir)
+        internal static int Run(string clientDir, string[] args)
         {
             FatalError.Handler = FailFast.OnFatalException;
 
