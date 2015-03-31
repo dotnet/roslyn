@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private static string TryGetClientDir()
         {
-            var assembly = typeof(BuildClient).Assembly;
+            var assembly = typeof(ManagedCompiler).Assembly;
 
             if (assembly.GlobalAssemblyCache)
                 return null;
