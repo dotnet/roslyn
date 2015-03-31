@@ -49,7 +49,7 @@ class D<T> where T : A<int>, new() { }";
 
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -88,7 +88,7 @@ class B1 : A<int>
 
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -115,7 +115,7 @@ class C : I<C, object>
 
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -172,7 +172,7 @@ partial class B<T> : A<T>
 
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -4703,7 +4703,7 @@ abstract class E : D, IB
             };
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.CCI,
+                emitters: TestEmitters.CCI,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -4991,7 +4991,7 @@ interface I6<U> : I3<I<U>, I<U>> { }";
             };
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.CCI,
+                emitters: TestEmitters.CCI,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -5367,7 +5367,7 @@ class A1 : A<C>
             };
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -6605,7 +6605,7 @@ class P
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(compilation1.EmitToArray()) },
                 options: TestOptions.ReleaseExe);
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, emitOptions: TestEmitters.RefEmitBug, expectedOutput:
+            CompileAndVerify(compilation2, emitters: TestEmitters.RefEmitBug, expectedOutput:
 @"C0
 C1
 C2

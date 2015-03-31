@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         }
 
         // this lock is static because we are using the default build manager, and there is only one per process
-        private static readonly AsyncSemaphore s_buildManagerLock = new AsyncSemaphore(1);
+        private static readonly SemaphoreSlim s_buildManagerLock = new SemaphoreSlim(initialCount: 1);
 
         private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildParameters parameters, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {

@@ -84,7 +84,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseTodoListUpdated(workspace)
                 Assert.Equal(1, sink.Entries.Count)
 
-                provider.Items = New ITaskItem() {}
+                provider.Items = Array.Empty(Of ITaskItem)()
                 provider.RaiseClearTodoListUpdated(workspace, documentId)
                 Assert.Equal(0, sink.Entries.Count)
             End Using

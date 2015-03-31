@@ -48,10 +48,10 @@ End Class
 </text>
 
             ' reference asks for a lower version than available:
-            Dim testRefV1 = CreateCompilationWithMscorlib({testRefSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV1), v2}, compOptions:=TestOptions.ReleaseDll)
+            Dim testRefV1 = CreateCompilationWithMscorlib({testRefSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV1), v2}, options:=TestOptions.ReleaseDll)
 
             ' reference asks for a higher version than available:
-            Dim testRefV2 = CreateCompilationWithMscorlib({testRefSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV2), v1}, compOptions:=TestOptions.ReleaseDll)
+            Dim testRefV2 = CreateCompilationWithMscorlib({testRefSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV2), v1}, options:=TestOptions.ReleaseDll)
 
             testRefV1.VerifyDiagnostics()
 
@@ -89,10 +89,10 @@ End Class
 </text>
 
             ' reference asks for a lower version than available:
-            Dim testRefV1 = CreateCompilationWithMscorlib({refSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV1), v2}, compOptions:=TestOptions.ReleaseDll)
+            Dim testRefV1 = CreateCompilationWithMscorlib({refSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV1), v2}, options:=TestOptions.ReleaseDll)
 
             ' reference asks for a higher version than available:
-            Dim testRefV2 = CreateCompilationWithMscorlib({refSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV2), v1}, compOptions:=TestOptions.ReleaseDll)
+            Dim testRefV2 = CreateCompilationWithMscorlib({refSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV2), v1}, options:=TestOptions.ReleaseDll)
 
             testRefV1.VerifyDiagnostics()
             testRefV2.VerifyDiagnostics()
@@ -559,7 +559,7 @@ End Class
             main.VerifyDiagnostics()
 
             ' Disable PE verification, it would need .config file with Lib v1 -> Lib v2 binding redirect.
-            CompileAndVerify(main, emitOptions:=TestEmitters.CCI, verify:=False, validator:=
+            CompileAndVerify(main, emitters:=TestEmitters.CCI, verify:=False, validator:=
                 Sub(assembly, _omitted)
                     Dim reader = assembly.GetMetadataReader()
                     Dim refs As List(Of String) = New List(Of String)()
@@ -685,7 +685,7 @@ Class D
 End Class
 </text>.Value
 
-            c = CreateCompilationWithMscorlib({source}, {r1, r2}, compOptions:=TestOptions.ReleaseDll)
+            c = CreateCompilationWithMscorlib({source}, {r1, r2}, options:=TestOptions.ReleaseDll)
             c.AssertTheseDiagnostics()
             Assert.Null(c.GetReferencedAssemblySymbol(r1))
             Assert.NotNull(c.GetReferencedAssemblySymbol(r2))
@@ -697,12 +697,12 @@ Class D
 End Class
 </text>.Value
 
-            c = CreateCompilationWithMscorlib({source}, {r1, r2}, compOptions:=TestOptions.ReleaseDll)
+            c = CreateCompilationWithMscorlib({source}, {r1, r2}, options:=TestOptions.ReleaseDll)
             Assert.Null(c.GetReferencedAssemblySymbol(r1))
             Assert.NotNull(c.GetReferencedAssemblySymbol(r2))
             c.AssertTheseDiagnostics()
 
-            c = CreateCompilationWithMscorlib({source}, {r1, rEmbed}, compOptions:=TestOptions.ReleaseDll)
+            c = CreateCompilationWithMscorlib({source}, {r1, rEmbed}, options:=TestOptions.ReleaseDll)
             c.AssertTheseDiagnostics(<errors>
 BC31549: Cannot embed interop types from assembly 'C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9' because it is missing the 'System.Runtime.InteropServices.GuidAttribute' attribute.
 BC31553: Cannot embed interop types from assembly 'C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9' because it is missing either the 'System.Runtime.InteropServices.ImportedFromTypeLibAttribute' attribute or the 'System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute' attribute.
@@ -713,7 +713,7 @@ BC31541: Reference to class 'C' is not allowed when its assembly is configured t
             Assert.Null(c.GetReferencedAssemblySymbol(r1))
             Assert.NotNull(c.GetReferencedAssemblySymbol(rEmbed))
 
-            c = CreateCompilationWithMscorlib({source}, {rEmbed, r1}, compOptions:=TestOptions.ReleaseDll)
+            c = CreateCompilationWithMscorlib({source}, {rEmbed, r1}, options:=TestOptions.ReleaseDll)
             c.AssertTheseDiagnostics()
             Assert.Null(c.GetReferencedAssemblySymbol(rEmbed))
             Assert.NotNull(c.GetReferencedAssemblySymbol(r1))

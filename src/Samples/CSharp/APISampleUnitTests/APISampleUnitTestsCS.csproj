@@ -6,7 +6,7 @@
   </ImportGroup>
   <PropertyGroup>
     <DeployToSamplesSubfolder>false</DeployToSamplesSubfolder>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UpgradeBackupLocation>

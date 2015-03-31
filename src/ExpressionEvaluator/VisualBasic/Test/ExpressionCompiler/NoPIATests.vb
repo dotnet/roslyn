@@ -26,7 +26,7 @@ Class C
 End Class"
             Dim compilation0 = CreateCompilationWithMscorlib(
                 {source},
-                compOptions:=TestOptions.DebugDll,
+                options:=TestOptions.DebugDll,
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(compilation0)
             Dim context = CreateMethodContext(

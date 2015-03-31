@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
         {
             internal class Array<T>
             {
-                public static readonly T[] Instance = new T[0];
+                public static readonly T[] Instance = Array.Empty<T>();
             }
         }
 

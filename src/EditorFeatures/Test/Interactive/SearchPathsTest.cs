@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         public void ListOperations()
         {
             var sp = new SearchPaths();
-            AssertEx.Equal(new string[0], sp.List.GetNewContent());
+            AssertEx.Equal(Array.Empty<string>(), sp.List.GetNewContent());
             Assert.Equal(0, sp.List.Version);
 
             sp.Add("foo");
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             Assert.Equal(6, sp.List.Version);
 
             sp.Clear();
-            AssertEx.Equal(new string[0], sp.List.GetNewContent());
+            AssertEx.Equal(Array.Empty<string>(), sp.List.GetNewContent());
             Assert.Equal(7, sp.List.Version);
 
             sp.Clear();
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         public void Exceptions()
         {
             var sp = new SearchPaths();
-            AssertEx.Equal(new string[0], sp.List.GetNewContent());
+            AssertEx.Equal(Array.Empty<string>(), sp.List.GetNewContent());
             Assert.Equal(0, sp.List.Version);
 
             Assert.Throws<ArgumentNullException>(() => sp.AddRange(null));

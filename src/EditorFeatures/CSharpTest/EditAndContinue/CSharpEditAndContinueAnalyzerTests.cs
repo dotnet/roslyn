@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 }
             }
 
-            AssertEx.Equal(new SyntaxKind[0], unhandledKinds);
+            AssertEx.Equal(Array.Empty<SyntaxKind>(), unhandledKinds);
         }
 
         #endregion
@@ -424,7 +424,7 @@ class C
         public void AnalyzeDocumentAsync_Features_Change()
         {
             // these are all the experimental features currently implemented
-            string[] experimentalFeatures = { };
+            string[] experimentalFeatures = Array.Empty<string>();
 
             foreach (var feature in experimentalFeatures)
             {

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RuleSet Name="Ruleset for Roslyn test projects." Description="These rule are identical to the minimum recommended ruleset, but specific roslyn performance rules have been turned off." ToolsVersion="14.0">
   <!-- Include all non-shipping project rules -->
-  <Include Path="..\..\..\..\..\Open\src\Tools\Microsoft.CodeAnalysis.Toolset.Open\Rulesets\NonShippingProjectRules.ruleset" Action="Default" />
+  <Include Path="..\src\Tools\Microsoft.CodeAnalysis.Toolset.Open\Rulesets\NonShippingProjectRules.ruleset" Action="Default" />
 
   <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
     <Rule Id="CA1001" Action="Warning" />
