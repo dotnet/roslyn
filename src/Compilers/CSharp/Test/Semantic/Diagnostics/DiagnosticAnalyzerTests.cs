@@ -950,14 +950,13 @@ public class B
         {
             string source = @"";
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerReportingUnsupportedDiagnostic() };
+            string message = new ArgumentException("Reported diagnostic with ID 'ID_2' is not supported by the analyzer.", "diagnostic").Message;
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
                      expected: Diagnostic("AD0001")
-                     .WithArguments("Microsoft.CodeAnalysis.CSharp.UnitTests.DiagnosticAnalyzerTests+AnalyzerReportingUnsupportedDiagnostic", 
-                     @"Reported diagnostic with ID 'ID_2' is not supported by the analyzer.
-Parameter name: diagnostic")
+                     .WithArguments("Microsoft.CodeAnalysis.CSharp.UnitTests.DiagnosticAnalyzerTests+AnalyzerReportingUnsupportedDiagnostic", message)
                      .WithLocation(1, 1));
         }
 
