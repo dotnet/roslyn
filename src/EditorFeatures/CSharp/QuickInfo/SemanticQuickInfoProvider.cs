@@ -2,10 +2,8 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -29,6 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
             : base(textBufferFactoryService, contentTypeRegistryService, projectionBufferFactoryService,
                    editorOptionsFactoryService, textEditorFactoryService, glyphService, typeMap)
         {
+        }
+
+        protected override bool IsAttributeSyntax(SyntaxNode node)
+        {
+            return node.IsKind(SyntaxKind.Attribute);
         }
 
         protected override bool ShouldCheckPreviousToken(SyntaxToken token)

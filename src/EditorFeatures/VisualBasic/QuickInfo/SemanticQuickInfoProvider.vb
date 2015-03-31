@@ -6,7 +6,6 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Intellisense.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
 Imports Microsoft.VisualStudio.Language.Intellisense
@@ -105,6 +104,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
             End Select
 
             Return Await MyBase.BuildContentAsync(document, token, cancellationToken).ConfigureAwait(False)
+        End Function
+
+        Protected Overrides Function IsAttributeSyntax(node As SyntaxNode) As Boolean
+            Return node.IsKind(SyntaxKind.Attribute)
         End Function
 
         Private Overloads Async Function BuildContentAsync(document As Document,

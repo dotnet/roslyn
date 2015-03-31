@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         {
         }
 
+        protected abstract bool IsAttributeSyntax(SyntaxNode node);
+
         protected override async Task<IDeferredQuickInfoContent> BuildContentAsync(
             Document document,
             SyntaxToken token,
@@ -191,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             // TODO: exceptions
 
             var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
-            var documentationContent = GetDocumentationContent(symbols, sections, semanticModel, token.SpanStart, formatter, cancellationToken);
+            var documentationContent = GetDocumentationContent(symbols, sections, semanticModel, token, formatter, cancellationToken);
             var showWarningGlyph = supportedPlatforms != null && supportedPlatforms.HasValidAndInvalidProjects();
             var showSymbolGlyph = true;
 
@@ -217,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             IEnumerable<ISymbol> symbols,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<SymbolDisplayPart>> sections,
             SemanticModel semanticModel,
-            int position,
+            SyntaxToken token,
             IDocumentationCommentFormattingService formatter,
             CancellationToken cancellationToken)
         {
@@ -231,7 +233,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             {
                 var symbol = symbols.First().OriginalDefinition;
 
-                var documentation = symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken);
+                // if generating quick info for an attribute, bind to the class instead of the constructor
+                if (token.GetAncestors(t => IsAttributeSyntax(t)).Any())
+                {
+                    var attributeType = semanticModel.Compilation.GetTypeByMetadataName("System.Attribute");
+                    if (symbol.IsConstructor() && attributeType != null && symbol.ContainingType.InheritsFromOrEquals(attributeType))
+                    {
+                        symbol = symbol.ContainingType;
+                    }
+                }
+
+                var documentation = symbol.GetDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
 
                 if (documentation != null)
                 {

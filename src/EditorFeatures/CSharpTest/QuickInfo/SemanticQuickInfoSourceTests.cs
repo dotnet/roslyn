@@ -2594,6 +2594,54 @@ class class1Attribute : Attribute
                 MainDescription($"({FeaturesResources.Field}) class1Attribute class1Attribute.x"));
         }
 
+        [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void AttributeQuickInfoBindsToClassTest()
+        {
+            Test(@"
+using System;
+
+/// <summary>
+/// class comment
+/// </summary>
+[Some$$]
+class SomeAttribute : Attribute
+{
+    /// <summary>
+    /// ctor comment
+    /// </summary>
+    public SomeAttribute()
+    {
+    }
+}
+",
+                Documentation("class comment"));
+        }
+
+        [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void AttributeConstructorQuickInfo()
+        {
+            Test(@"
+using System;
+
+/// <summary>
+/// class comment
+/// </summary>
+class SomeAttribute : Attribute
+{
+    /// <summary>
+    /// ctor comment
+    /// </summary>
+    public SomeAttribute()
+    {
+        var s = new Some$$Attribute();
+    }
+}
+",
+                Documentation("ctor comment"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestLabel()
         {
