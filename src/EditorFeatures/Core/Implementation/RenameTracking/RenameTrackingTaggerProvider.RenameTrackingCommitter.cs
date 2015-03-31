@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -27,30 +29,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
             private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
             private readonly string _displayText;
-            private readonly bool _showPreview;
+
+            // This task performs the actual rename on solution. We kick this off during preview to be able to show the diff preview
+            // and if it was successfully completed without being cancelled, we reuse its result during the actual commit operation as well.
+            private Task<RenameTrackingSolutionSet> _renameSymbolTask;
+
+            // Since the renameSymbolTask is used in both Preview and Commit, we need to be able to cancel it cleanly in both phases.
+            // We use this CTS to cancel the task kicked off during preview during the commit phase.
+            private readonly CancellationTokenSource _previewTaskCancellationTokenSource = new CancellationTokenSource();
 
             public RenameTrackingCommitter(
                 StateMachine stateMachine,
                 SnapshotSpan snapshotSpan,
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
-                string displayText,
-                bool showPreview)
+                string displayText)
             {
                 _stateMachine = stateMachine;
                 _snapshotSpan = snapshotSpan;
                 _refactorNotifyServices = refactorNotifyServices;
                 _undoHistoryRegistry = undoHistoryRegistry;
                 _displayText = displayText;
-                _showPreview = showPreview;
             }
 
             public void Commit(CancellationToken cancellationToken)
             {
                 AssertIsForeground();
 
-                bool clearTrackingSession = false;
-                RenameSymbolAndApplyChanges(cancellationToken, out clearTrackingSession);
+                bool clearTrackingSession = ApplyChangesToWorkspace(cancellationToken);
 
                 // Clear the state machine so that future updates to the same token work,
                 // and any text changes caused by this update are not interpreted as 
@@ -61,9 +67,67 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
             }
 
-            private void RenameSymbolAndApplyChanges(CancellationToken cancellationToken, out bool clearTrackingSession)
+            public Task<RenameTrackingSolutionSet> RenameSymbolAsync(bool isPreview, CancellationToken cancellationToken)
+            {
+                // start rename task and use our own cancellation token if it is a Preview operation.
+                _renameSymbolTask = Task.Factory.SafeStartNewFromAsync(
+                        () => RenameSymbolWorkerAsync(isPreview ? _previewTaskCancellationTokenSource.Token : cancellationToken),
+                        isPreview ? _previewTaskCancellationTokenSource.Token : cancellationToken,
+                        TaskScheduler.Default);
+
+                if (isPreview)
+                {
+                    // register for a callback on the cancellation token we are handed and perform the actual cancellation upon callback.
+                    var cancellationTokenRegistration = cancellationToken.Register(() => _previewTaskCancellationTokenSource.Cancel());
+
+                    // deregister the callback after the task completes.
+                    _renameSymbolTask.ContinueWith(_ => cancellationTokenRegistration.Dispose(),
+                        CancellationToken.None,
+                        TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
+                }
+
+                return _renameSymbolTask;
+            }
+
+            private async Task<RenameTrackingSolutionSet> RenameSymbolWorkerAsync(CancellationToken cancellationToken)
+            {
+                var document = _snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var newName = _snapshotSpan.GetText();
+
+                if (document == null)
+                {
+                    Contract.Fail("Invoked rename tracking smart tag but cannot find the document for the snapshot span.");
+                }
+
+                // Get copy of solution with the original name in the place of the renamed name
+                var solutionWithOriginalName = CreateSolutionWithOriginalName(document, cancellationToken);
+
+                var symbol = await TryGetSymbolAsync(solutionWithOriginalName, document.Id, cancellationToken).ConfigureAwait(false);
+                if (symbol == null)
+                {
+                    Contract.Fail("Invoked rename tracking smart tag but cannot find the symbol.");
+                }
+
+                var optionSet = document.Project.Solution.Workspace.Options;
+
+                if (_stateMachine.TrackingSession.ForceRenameOverloads)
+                {
+                    optionSet = optionSet.WithChangedOption(RenameOptions.RenameOverloads, true);
+                }
+
+                var renamedSolution = await Renamer.RenameSymbolAsync(solutionWithOriginalName, symbol, newName, optionSet, cancellationToken).ConfigureAwait(false);
+                return new RenameTrackingSolutionSet(symbol, solutionWithOriginalName, renamedSolution);
+            }
+
+            private bool ApplyChangesToWorkspace(CancellationToken cancellationToken)
             {
                 AssertIsForeground();
+
+                // Now that the necessary work has been done to create the intermediate and final
+                // solutions during PreparePreview, check one more time for cancellation before making all of the
+                // workspace changes.
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // Undo must backtrack to the state with the original identifier before the state
                 // with the user-edited identifier. For example,
@@ -82,64 +146,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // final solution without updating the workspace, and then finally disallow
                 // cancellation and update the workspace twice.
 
-                Document document = _snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document == null)
+                RenameTrackingSolutionSet renameTrackingSolutionSet;
+                try
                 {
-                    Contract.Fail("Invoked rename tracking smart tag but cannot find the document for the snapshot span.");
-                }
-
-                // Get copy of solution with the original name in the place of the renamed name
-
-                var solutionWithOriginalName = CreateSolutionWithOriginalName(document, cancellationToken);
-
-                // Get the symbol for the identifier we're renaming (which has now been reverted to
-                // its original name) and invoke the rename service.
-
-                ISymbol symbol;
-                if (!TryGetSymbol(solutionWithOriginalName, document.Id, cancellationToken, out symbol))
-                {
-                    Contract.Fail("Invoked rename tracking smart tag but cannot find the symbol");
-                }
-
-                var newName = _snapshotSpan.GetText();
-                var optionSet = document.Project.Solution.Workspace.Options;
-
-                if (_stateMachine.TrackingSession.ForceRenameOverloads)
-                {
-                    optionSet = optionSet.WithChangedOption(RenameOptions.RenameOverloads, true);
-                }
-
-                var renamedSolution = Renamer.RenameSymbolAsync(solutionWithOriginalName, symbol, newName, optionSet, cancellationToken).WaitAndGetResult(cancellationToken);
-
-                // Now that the necessary work has been done to create the intermediate and final
-                // solutions, check one more time for cancellation before making all of the
-                // workspace changes.
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (_showPreview)
-                {
-                    var previewService = renamedSolution.Workspace.Services.GetService<IPreviewDialogService>();
-
-                    renamedSolution = previewService.PreviewChanges(
-                           string.Format(EditorFeaturesResources.PreviewChangesOf, EditorFeaturesResources.Rename),
-                           "vs.csharp.refactoring.rename",
-                           string.Format(
-                               EditorFeaturesResources.RenameToTitle,
-                               _stateMachine.TrackingSession.OriginalName,
-                               newName),
-                           symbol.ToDisplayString(),
-                           symbol.GetGlyph(),
-                           renamedSolution,
-                           solutionWithOriginalName);
-
-                    if (renamedSolution == null)
+                    // If the task was kicked off and had successfully completed to show preview, re-use its result.
+                    if (_renameSymbolTask != null && _renameSymbolTask.Status == TaskStatus.RanToCompletion)
                     {
-                        // User clicked cancel.
-                        clearTrackingSession = false;
-                        return;
+                        renameTrackingSolutionSet = _renameSymbolTask.Result;
+                    }
+                    else
+                    {
+                        // If the task isn't complete yet, cancel it anyway, because lightbulb will cancel the preview
+                        // operation once commit is entered, because the preview has technically been dismissed.
+                        // We kick off another rename task using Commit's cancellation here.
+                        _previewTaskCancellationTokenSource.Cancel();
+                        renameTrackingSolutionSet = RenameSymbolAsync(isPreview: false, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
                     }
                 }
+                finally
+                {
+                    _previewTaskCancellationTokenSource.Dispose();
+                }
+
+                var document = _snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var newName = _snapshotSpan.GetText();
 
                 var workspace = document.Project.Solution.Workspace;
 
@@ -147,15 +177,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // text changes caused by undo and redo actions as potential renames, so carefully
                 // update the state machine after undo/redo actions. 
 
-                var changedDocuments = renamedSolution.GetChangedDocuments(solutionWithOriginalName);
+                var changedDocuments = renameTrackingSolutionSet.RenamedSolution.GetChangedDocuments(renameTrackingSolutionSet.OriginalSolution);
 
                 // When this action is undone (the user has undone twice), restore the state
                 // machine to so that they can continue their original rename tracking session.
-                UpdateWorkspaceForResetOfTypedIdentifier(workspace, solutionWithOriginalName);
+                UpdateWorkspaceForResetOfTypedIdentifier(workspace, renameTrackingSolutionSet.OriginalSolution);
 
                 // Now that the solution is back in its original state, notify third parties about
                 // the coming rename operation.
-                if (!_refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: false))
+                if (!_refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, renameTrackingSolutionSet.Symbol, newName, throwOnFailure: false))
                 {
                     var notificationService = workspace.Services.GetService<INotificationService>();
                     notificationService.SendNotification(
@@ -163,8 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         EditorFeaturesResources.RenameSymbol,
                         NotificationSeverity.Error);
 
-                    clearTrackingSession = true;
-                    return;
+                    return true;
                 }
 
                 // move all changes to final solution based on the workspace's current solution, since the current solution
@@ -174,15 +203,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 {
                     // because changes have already been made to the workspace (UpdateWorkspaceForResetOfTypedIdentifier() above),
                     // these calls can't be cancelled and must be allowed to complete.
-                    var root = renamedSolution.GetDocument(docId).GetSyntaxRootAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                    var root = renameTrackingSolutionSet.RenamedSolution.GetDocument(docId).GetSyntaxRootAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                     finalSolution = finalSolution.WithDocumentSyntaxRoot(docId, root);
                 }
 
                 // Undo/redo on this action must always clear the state machine
-                UpdateWorkspaceForGlobalIdentifierRename(workspace, finalSolution, workspace.CurrentSolution, _displayText, changedDocuments, symbol, newName);
+                UpdateWorkspaceForGlobalIdentifierRename(workspace, finalSolution, workspace.CurrentSolution, _displayText, changedDocuments, renameTrackingSolutionSet.Symbol, newName);
 
                 RenameTrackingDismisser.DismissRenameTracking(workspace, changedDocuments);
-                clearTrackingSession = true;
+                return true;
             }
 
             private Solution CreateSolutionWithOriginalName(Document document, CancellationToken cancellationToken)
@@ -209,20 +238,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return solution;
             }
 
-            private bool TryGetSymbol(Solution solutionWithOriginalName, DocumentId documentId, CancellationToken cancellationToken, out ISymbol symbol)
+            private async Task<ISymbol> TryGetSymbolAsync(Solution solutionWithOriginalName, DocumentId documentId, CancellationToken cancellationToken)
             {
                 var documentWithOriginalName = solutionWithOriginalName.GetDocument(documentId);
-                var syntaxTreeWithOriginalName = documentWithOriginalName.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var syntaxTreeWithOriginalName = await documentWithOriginalName.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 var syntaxFacts = documentWithOriginalName.GetLanguageService<ISyntaxFactsService>();
                 var semanticFacts = documentWithOriginalName.GetLanguageService<ISemanticFactsService>();
-                var semanticModel = documentWithOriginalName.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var semanticModel = await documentWithOriginalName.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var token = syntaxTreeWithOriginalName.GetTouchingWord(_snapshotSpan.Start, syntaxFacts, cancellationToken);
                 var tokenRenameInfo = RenameUtilities.GetTokenRenameInfo(semanticFacts, semanticModel, token, cancellationToken);
 
-                symbol = tokenRenameInfo.HasSymbols ? tokenRenameInfo.Symbols.First() : null;
-                return symbol != null;
+                return tokenRenameInfo.HasSymbols ? tokenRenameInfo.Symbols.First() : null;
             }
 
             private void UpdateWorkspaceForResetOfTypedIdentifier(Workspace workspace, Solution newSolution)

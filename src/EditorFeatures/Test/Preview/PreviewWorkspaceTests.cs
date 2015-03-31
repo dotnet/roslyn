@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Differencing;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -250,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
                 // create a diff view
                 var previewFactoryService = workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
-                var diffView = previewFactoryService.CreateChangedDocumentPreviewView(oldDocument, newDocument, CancellationToken.None);
+                var diffView = (IWpfDifferenceViewer)previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None).PumpingWaitResult();
 
                 var foregroundService = new TestForegroundNotificationService();
                 var optionsService = workspace.Services.GetService<IOptionService>();

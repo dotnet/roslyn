@@ -835,56 +835,6 @@ End Enum";
             }
         }
 
-        [Fact, WorkItem(978099)]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
-        public void RenameTrackingPreviewChanges()
-        {
-            var code = @"
-class C$$
-{
-}";
-
-            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
-            {
-                var mockPreview = state.Workspace.Services.GetService<IPreviewDialogService>() as MockPreviewDialogService;
-                mockPreview.Called = false;
-                mockPreview.ReturnsNull = false;
-                state.EditorOperations.InsertText("at");
-                state.AssertTag("C", "Cat", invokeAction: true, actionIndex: 1);
-                Assert.True(mockPreview.Called);
-                Assert.Equal(string.Format(EditorFeaturesResources.RenameToTitle, "C", "Cat"), mockPreview.Description);
-                Assert.Equal(string.Format(EditorFeaturesResources.PreviewChangesOf, EditorFeaturesResources.Rename), mockPreview.Title);
-                Assert.Equal("C", mockPreview.TopLevelName);
-                Assert.Equal(Glyph.ClassInternal, mockPreview.TopLevelGlyph);
-            }
-        }
-
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
-        public void RenameTrackingCancelPreviewChanges()
-        {
-            var code = @"
-class C$$
-{
-}";
-
-            var expected = @"
-class Cat
-{
-}";
-            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
-            {
-                var mockPreview = state.Workspace.Services.GetService<IPreviewDialogService>() as MockPreviewDialogService;
-                mockPreview.Called = false;
-                mockPreview.ReturnsNull = true;
-                state.EditorOperations.InsertText("at");
-                state.AssertTag("C", "Cat", invokeAction: true, actionIndex: 1);
-                Assert.True(mockPreview.Called);
-                Assert.Equal(expected, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
-                state.AssertTag("C", "Cat");
-            }
-        }
-
         [Fact, WorkItem(1028072)]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingDoesNotThrowAggregateException()

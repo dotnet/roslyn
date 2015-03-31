@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (expectedPreviewContents != null)
             {
                 var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
-                var content = editHandler.GetPreview(workspace, operations, CancellationToken.None);
+                var content = editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync().PumpingWaitResult();
                 var diffView = content as IWpfDifferenceViewer;
                 Assert.NotNull(diffView);
                 var previewContents = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
             var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
-            var content = editHandler.GetPreview(workspace, operations, CancellationToken.None);
+            var content = editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync().PumpingWaitResult();
             var textView = content as IWpfTextView;
             Assert.NotNull(textView);
 

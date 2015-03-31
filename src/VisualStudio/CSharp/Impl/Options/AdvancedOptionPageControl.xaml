@@ -36,6 +36,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleSlash}" />
                     <CheckBox x:Name="ClosedFileDiagnostics"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_ClosedFileDiagnostics}" />
+                    <CheckBox x:Name="RenameTrackingPreview"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="OrganizeUsingsGroupBox"

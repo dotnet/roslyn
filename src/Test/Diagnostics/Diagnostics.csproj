@@ -21,6 +21,10 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj">
+      <Project>{76c6f005-c89d-4348-bb4a-39189ddbeb52}</Project>
+      <Name>ServicesTestUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
@@ -98,7 +102,6 @@
     <Compile Include="Waiters\SolutionCrawlerWaiter.cs" />
     <Compile Include="Waiters\TodoCommentListWaiter.cs" />
     <Compile Include="Waiters\WorkspaceWaiter.cs" />
-    <Compile Include="WaitHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.DiagnosticsWindow" />

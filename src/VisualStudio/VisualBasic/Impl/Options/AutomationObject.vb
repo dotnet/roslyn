@@ -53,6 +53,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        Public Property RenameTrackingPreview As Boolean
+            Get
+                Return GetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview, value)
+            End Set
+        End Property
+
         Public Property DisplayLineSeparators As Boolean
             Get
                 Return GetBooleanOption(FeatureOnOffOptions.LineSeparator)
