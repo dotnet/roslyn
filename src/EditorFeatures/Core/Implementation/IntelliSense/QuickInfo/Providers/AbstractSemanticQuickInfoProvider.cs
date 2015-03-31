@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             foreach (var candidate in candidateResults)
             {
-                if (!candidate.Item3.SequenceEqual(bestBinding.Item3, LinkedFilesSymbolEquivalenceComparer.IgnoreAssembliesInstance))
+                if (!candidate.Item3.SequenceEqual(bestBinding.Item3, LinkedFilesSymbolEquivalenceComparer.Instance))
                 {
                     invalidProjects.Add(candidate.Item1.ProjectId);
                 }

@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             originDictionary = new Dictionary<ISymbol, AbstractSyntaxContext>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
             // We don't care about assembly identity when creating the union.
-            var set = new HashSet<ISymbol>(LinkedFilesSymbolEquivalenceComparer.IgnoreAssembliesInstance);
+            var set = new HashSet<ISymbol>(LinkedFilesSymbolEquivalenceComparer.Instance);
             foreach (var linkedContextSymbolList in linkedContextSymbolLists)
             {
                 // We need to use the SemanticModel any particular symbol came from in order to generate its description correctly.
@@ -320,11 +320,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <returns>The list of projects each recommended symbol did NOT appear in.</returns>
         protected Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(HashSet<ISymbol> expectedSymbols, IEnumerable<Tuple<DocumentId, AbstractSyntaxContext, IEnumerable<ISymbol>>> linkedContextSymbolLists)
         {
-            var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.IgnoreAssembliesInstance);
+            var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
             foreach (var linkedContextSymbolList in linkedContextSymbolLists)
             {
-                var symbolsMissingInLinkedContext = expectedSymbols.Except(linkedContextSymbolList.Item3, LinkedFilesSymbolEquivalenceComparer.IgnoreAssembliesInstance);
+                var symbolsMissingInLinkedContext = expectedSymbols.Except(linkedContextSymbolList.Item3, LinkedFilesSymbolEquivalenceComparer.Instance);
                 foreach (var missingSymbol in symbolsMissingInLinkedContext)
                 {
                     missingSymbols.GetOrAdd(missingSymbol, (m) => new List<ProjectId>()).Add(linkedContextSymbolList.Item1.ProjectId);
