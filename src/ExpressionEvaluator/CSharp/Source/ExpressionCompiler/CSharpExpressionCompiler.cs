@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (useReferencedModulesOnly)
             {
+                // Avoid using the cache for referenced assemblies only
+                // since this should be the exceptional case.
                 var compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId);
                 return EvaluationContext.CreateTypeContext(
                     compilation,
@@ -71,6 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (useReferencedModulesOnly)
             {
+                // Avoid using the cache for referenced assemblies only
+                // since this should be the exceptional case.
                 var compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId);
                 return EvaluationContext.CreateMethodContext(
                     compilation,

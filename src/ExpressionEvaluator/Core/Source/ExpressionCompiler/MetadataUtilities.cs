@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         /// <summary>
         /// Group module metadata into assemblies.
-        /// If 'moduleVersionId' is set, the assemblies are
-        /// limited to those referenced by that module.
+        /// If <paramref name="moduleVersionId"/> is set, the
+        /// assemblies are limited to those referenced by that module.
         /// </summary>
         internal static ImmutableArray<MetadataReference> MakeAssemblyReferences(
             this ImmutableArray<MetadataBlock> metadataBlocks,
@@ -140,16 +140,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// <summary>
         /// Remove any modules that are not in the set of referenced modules.
         /// If there are duplicates of referenced modules, potentially differing by
-        /// version, one of the highest version is kept and others dropped.
+        /// version, one instance of the highest version is kept and others dropped.
         /// </summary>
         /// <remarks>
         /// Binding against this reduced set of modules will not handle certain valid cases
-        /// where binding to full set of modules would succeed. For instance, this reduced
-        /// set clearly will not allow binding to types outside the referenced modules. And
-        /// since duplicates are dropped, this will prevent resolving ambiguities between
-        /// two versions of the same assembly by using aliases. Also, there is no attempt
-        /// here to follow assembly binding redirects or to use the CLR to determine which
-        /// version of an assembly to prefer when there are duplicate assemblies.
+        /// where binding to full set would succeed (e.g.: binding to types outside the
+        /// referenced modules). And since duplicates are dropped, this will prevent resolving
+        /// ambiguities between two versions of the same assembly by using aliases. Also,
+        /// there is no attempt here to follow binding redirects or to use the CLR to determine
+        /// which version of an assembly to prefer when there are duplicate assemblies.
         /// </remarks>
         private static void RemoveUnreferencedModules(
             ArrayBuilder<MetadataReference> modules,
