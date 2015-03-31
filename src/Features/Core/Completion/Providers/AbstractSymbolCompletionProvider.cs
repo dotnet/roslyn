@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return await CreateItemsAsync(position, itemsForCurrentDocument, context, null, null, preselect, cancellationToken).ConfigureAwait(false);
             }
 
-            var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, relatedDocumentIds.Concat(document.Id), preselect, cancellationToken).ConfigureAwait(false);
+            var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
 
             Dictionary<ISymbol, AbstractSyntaxContext> orignatingContextMap = null;
             var unionedSymbolsList = UnionSymbols(contextAndSymbolLists, out orignatingContextMap);

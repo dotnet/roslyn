@@ -6910,7 +6910,7 @@ class C
     </Project>
 </Workspace>";
 
-            var expectedDescription = $"void C.Do(string x)";
+            var expectedDescription = $"void C.Do(int x)";
             VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
         }
 
@@ -6944,7 +6944,7 @@ class C
     </Project>
 </Workspace>";
 
-            var expectedDescription = $"({FeaturesResources.Field}) int C.Do\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.NotAvailable)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.Available)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}";
+            var expectedDescription = $"void C.Do(int x) (+ 1 {FeaturesResources.Overload})\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}";
             VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
         }
 
@@ -6979,6 +6979,45 @@ public static class Extensions
         </Document>
     </Project>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"void C.Do(int x)";
+            VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void MethodOverloadDifferencesIgnored_ExtensionMethod2()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""TWO"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+class C
+{
+#if ONE
+    void Do(int x){}
+#endif
+
+    void Shared()
+    {
+        this.$$
+    }
+
+}
+
+public static class Extensions
+{
+#if TWO
+    public static void Do (this C c, string x)
+    {
+    }
+#endif
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""ONE"">
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
@@ -7037,7 +7076,7 @@ public class Methods2
     </Project>
 </Workspace>";
 
-            var expectedDescription = $"void Methods2.Do(string x)";
+            var expectedDescription = $"void Methods1.Do(string x)";
             VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
         }
 
