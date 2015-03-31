@@ -545,7 +545,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Sub
 
         Friend Overrides Function HasDuplicateTypesOrAssemblies(diagnostic As Diagnostic) As Boolean
-            Return False
+            Select Case CType(diagnostic.Code, ERRID)
+                Case ERRID.ERR_DuplicateReferenceStrong
+                    Return True
+                Case Else
+                    Return False
+            End Select
         End Function
 
         Friend Overrides Function GetMissingAssemblyIdentities(diagnostic As Diagnostic) As ImmutableArray(Of AssemblyIdentity)

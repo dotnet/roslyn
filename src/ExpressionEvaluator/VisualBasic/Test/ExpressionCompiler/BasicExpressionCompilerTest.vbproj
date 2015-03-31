@@ -102,6 +102,7 @@
     <Compile Include="InstructionDecoderTests.vb" />
     <Compile Include="HoistedStateMachineLocalTests.vb" />
     <Compile Include="HoistedMeTests.vb" />
+    <Compile Include="ReferencedModulesTests.vb" />
     <Compile Include="ResultPropertiesTests.vb" />
     <Compile Include="NoPIATests.vb" />
     <Compile Include="PseudoVariableTests.vb" />

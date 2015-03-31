@@ -115,12 +115,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     RemoveUnreferencedModules(referencesBuilder, identitiesBuilder, identityComparer, referencedModules);
                     referencedModules.Free();
                 }
-            }
-
-            if (identitiesBuilder != null)
-            {
                 identitiesBuilder.Free();
             }
+
             metadataBuilder.Free();
 
             // Any runtime winmd modules were separated out initially. Now add

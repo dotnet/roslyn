@@ -117,10 +117,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal string GetErrorMessageAndMissingAssemblyIdentities(DiagnosticBag diagnostics, DiagnosticFormatter formatter, CultureInfo preferredUICulture, out bool useReferencedModulesOnly, out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
         {
-            var diagnosticsEnumerable = diagnostics.AsEnumerable().Where(d => d.Severity == DiagnosticSeverity.Error);
-            foreach (var diagnostic in diagnosticsEnumerable)
+            var errors = diagnostics.AsEnumerable().Where(d => d.Severity == DiagnosticSeverity.Error);
+            foreach (var error in errors)
             {
-                missingAssemblyIdentities = this.GetMissingAssemblyIdentities(diagnostic);
+                missingAssemblyIdentities = this.GetMissingAssemblyIdentities(error);
                 if (!missingAssemblyIdentities.IsDefault)
                 {
                     break;
@@ -132,14 +132,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 missingAssemblyIdentities = ImmutableArray<AssemblyIdentity>.Empty;
             }
 
-            useReferencedModulesOnly = diagnosticsEnumerable.All(HasDuplicateTypesOrAssemblies);
+            useReferencedModulesOnly = errors.All(HasDuplicateTypesOrAssemblies);
 
-            var firstError = diagnosticsEnumerable.FirstOrDefault();
+            var firstError = errors.FirstOrDefault();
             Debug.Assert(firstError != null);
 
             var simpleMessage = firstError as SimpleMessageDiagnostic;
             return (simpleMessage != null) ?
-                simpleMessage.Message :
+                simpleMessage.GetMessage() :
                 formatter.Format(firstError, preferredUICulture ?? CultureInfo.CurrentUICulture);
         }
 
@@ -149,11 +149,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         protected sealed class SimpleMessageDiagnostic : Diagnostic
         {
-            internal readonly string Message;
+            private readonly string _message;
 
             internal SimpleMessageDiagnostic(string message)
             {
-                this.Message = message;
+                _message = message;
             }
 
             public override IReadOnlyList<Location> AdditionalLocations
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             public override string GetMessage(IFormatProvider formatProvider = null)
             {
-                throw new NotImplementedException();
+                return _message;
             }
 
             internal override Diagnostic WithLocation(Location location)

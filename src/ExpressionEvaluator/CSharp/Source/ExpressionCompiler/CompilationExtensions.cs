@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 options: s_compilationOptions);
         }
 
-        private static readonly AssemblyIdentityComparer IdentityComparer = DesktopAssemblyIdentityComparer.Default;
+        internal static readonly AssemblyIdentityComparer IdentityComparer = DesktopAssemblyIdentityComparer.Default;
 
         // XML file references, #r directives not supported:
         private static readonly CSharpCompilationOptions s_compilationOptions = new CSharpCompilationOptions(
