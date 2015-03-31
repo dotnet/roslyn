@@ -213,7 +213,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function SynthesizeDecimalConstantAttribute(value As Decimal) As SynthesizedAttributeData
-            Dim decimalData As DecimalData = value.GetBits()
+            Dim isNegative As Boolean
+            Dim scale As Byte
+            Dim low, mid, high As UInteger
+            value.GetBits(isNegative, scale, low, mid, high)
 
             Dim specialTypeByte = GetSpecialType(SpecialType.System_Byte)
             Debug.Assert(specialTypeByte.GetUseSiteErrorInfo() Is Nothing)
@@ -224,11 +227,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
                 ImmutableArray.Create(
-                    New TypedConstant(specialTypeByte, TypedConstantKind.Primitive, decimalData.scale),
-                    New TypedConstant(specialTypeByte, TypedConstantKind.Primitive, If(decimalData.sign, CByte(128), CByte(0))),
-                    New TypedConstant(specialTypeUInt32, TypedConstantKind.Primitive, decimalData.Hi32),
-                    New TypedConstant(specialTypeUInt32, TypedConstantKind.Primitive, decimalData.Mid32),
-                    New TypedConstant(specialTypeUInt32, TypedConstantKind.Primitive, decimalData.Lo32)
+                    New TypedConstant(specialTypeByte, TypedConstantKind.Primitive, scale),
+                    New TypedConstant(specialTypeByte, TypedConstantKind.Primitive, CByte(If(isNegative, 128, 0))),
+                    New TypedConstant(specialTypeUInt32, TypedConstantKind.Primitive, high),
+                    New TypedConstant(specialTypeUInt32, TypedConstantKind.Primitive, mid),
+                    New TypedConstant(specialTypeUInt32, TypedConstantKind.Primitive, low)
                 ))
         End Function
 
