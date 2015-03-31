@@ -106,10 +106,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
             Return Await MyBase.BuildContentAsync(document, token, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function IsAttributeSyntax(node As SyntaxNode) As Boolean
-            Return node.IsKind(SyntaxKind.Attribute)
-        End Function
-
         Private Overloads Async Function BuildContentAsync(document As Document,
                                                 token As SyntaxToken,
                                                 declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax),

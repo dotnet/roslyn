@@ -29,11 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
         {
         }
 
-        protected override bool IsAttributeSyntax(SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.Attribute);
-        }
-
         protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         {
             return !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
