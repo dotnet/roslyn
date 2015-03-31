@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol VisitArrayType(ArrayTypeSymbol symbol)
             {
                 var otherElementType = (TypeSymbol)this.Visit(symbol.ElementType);
-                if (otherElementType == null)
+                if ((object)otherElementType == null)
                 {
                     // For a newly added type, there is no match in the previous generation, so it could be null.
                     return null;
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol VisitPointerType(PointerTypeSymbol symbol)
             {
                 var otherPointedAtType = (TypeSymbol)this.Visit(symbol.PointedAtType);
-                if (otherPointedAtType == null)
+                if ((object)otherPointedAtType == null)
                 {
                     // For a newly added type, there is no match in the previous generation, so it could be null.
                     return null;
