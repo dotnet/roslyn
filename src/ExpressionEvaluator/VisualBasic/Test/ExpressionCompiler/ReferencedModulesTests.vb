@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Linq
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -142,6 +143,159 @@ End Class"
                 Assert.Equal(errorMessage, "(1,6): error BC30554: 'B' is ambiguous.")
             End Using
         End Sub
+
+        <Fact>
+        Public Sub DuplicateTypesAndMethodsDifferentAssemblies()
+            Const sourceA =
+"Option Strict On
+Imports System.Runtime.CompilerServices
+Imports N
+Namespace N
+    Class C1
+    End Class
+    Public Module E
+        <Extension>
+        Public Function F(o As A) As Integer
+            Return 1
+        End Function
+    End Module
+End Namespace
+Class C2
+End Class
+Public Class A
+    Public Shared Sub M()
+        Dim x As New A()
+        Dim y As Object = x.F()
+    End Sub
+End Class"
+            Const sourceB =
+"Option Strict On
+Imports System.Runtime.CompilerServices
+Imports N
+Namespace N
+    Class C1
+    End Class
+End Namespace
+Class C2
+End Class
+Public Module E
+    <Extension>
+    Public Function F(o As A) As Integer
+        Return 2
+    End Function
+End Module
+Class B
+    Shared Sub Main()
+        Dim x As New A()
+        Dim y As Object = x.F()
+        A.M()
+    End Sub
+End Class"
+            Dim assemblyNameA = ExpressionCompilerUtilities.GenerateUniqueName()
+            Dim compilationA = CreateCompilationWithMscorlibAndVBRuntime(
+                MakeSources(sourceA, assemblyName:=assemblyNameA),
+                options:=TestOptions.DebugDll,
+                additionalRefs:={SystemCoreRef})
+            Dim exeBytesA As Byte() = Nothing
+            Dim pdbBytesA As Byte() = Nothing
+            Dim referencesA As ImmutableArray(Of MetadataReference) = Nothing
+            compilationA.EmitAndGetReferences(exeBytesA, pdbBytesA, referencesA)
+            Dim referenceA = AssemblyMetadata.CreateFromImage(exeBytesA).GetReference(display:=assemblyNameA)
+            Dim moduleA = referenceA.ToModuleInstance(exeBytesA, New SymReader(pdbBytesA))
+
+            Dim assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName()
+            Dim compilationB = CreateCompilationWithMscorlibAndVBRuntime(
+                MakeSources(sourceB, assemblyName:=assemblyNameB),
+                options:=TestOptions.DebugDll,
+                additionalRefs:={SystemCoreRef, referenceA})
+            Dim exeBytesB As Byte() = Nothing
+            Dim pdbBytesB As Byte() = Nothing
+            Dim referencesB As ImmutableArray(Of MetadataReference) = Nothing
+            compilationB.EmitAndGetReferences(exeBytesB, pdbBytesB, referencesB)
+            Dim referenceB = AssemblyMetadata.CreateFromImage(exeBytesB).GetReference(display:=assemblyNameB)
+            Dim moduleB = referenceB.ToModuleInstance(exeBytesB, New SymReader(pdbBytesB))
+
+            Dim moduleBuilder = ArrayBuilder(Of ModuleInstance).GetInstance()
+            moduleBuilder.AddRange(referencesA.Select(Function(r) r.ToModuleInstance(Nothing, Nothing)))
+            moduleBuilder.Add(moduleA)
+            moduleBuilder.Add(moduleB)
+            Dim modules = moduleBuilder.ToImmutableAndFree()
+
+            Using runtime = CreateRuntimeInstance(modules)
+                Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+                Dim moduleVersionId As Guid = Nothing
+                Dim symReader As ISymUnmanagedReader = Nothing
+                Dim methodToken = 0
+                Dim localSignatureToken = 0
+                GetContextState(runtime, "B.Main", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                Dim contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
+                Dim errorMessage As String = Nothing
+
+                ' Duplicate type in namespace.
+                Dim testData = New CompilationTestData()
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C1()", contextFactory, errorMessage, testData)
+                Assert.Equal(errorMessage, "(1,6): error BC30560: 'C1' is ambiguous in the namespace 'N'.")
+
+                ' Duplicate type in global namespace.
+                testData = New CompilationTestData()
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", contextFactory, errorMessage, testData)
+                Assert.Equal(errorMessage, "(1,6): error BC30554: 'C2' is ambiguous.")
+
+                ' Duplicate extension method. No ambiguity in VB.
+                testData = New CompilationTestData()
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, errorMessage, testData)
+                Assert.Null(errorMessage)
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (A V_0, //x
+                Object V_1) //y
+  IL_0000:  ldloc.0
+  IL_0001:  call       ""Function E.F(A) As Integer""
+  IL_0006:  ret
+}")
+
+                ' Same tests as above but in library that does not directly reference duplicates.
+                GetContextState(runtime, "A.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
+
+                ' Duplicate type in namespace.
+                testData = New CompilationTestData()
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C1()", contextFactory, errorMessage, testData)
+                Assert.Null(errorMessage)
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (A V_0, //x
+                Object V_1) //y
+  IL_0000:  ldloc.0
+  IL_0001:  call       ""Function E.F(A) As Integer""
+  IL_0006:  ret
+}")
+            End Using
+        End Sub
+
+        Private Shared Function CreateMethodContextFactory(
+            moduleVersionId As Guid,
+            symReader As ISymUnmanagedReader,
+            methodToken As Integer,
+            localSignatureToken As Integer) As ExpressionCompiler.CreateContextDelegate
+
+            Return Function(blocks, useReferencedModulesOnly)
+                       Return EvaluationContext.CreateMethodContext(
+                        Nothing,
+                        blocks,
+                        MakeDummyLazyAssemblyReaders(),
+                        symReader,
+                        moduleVersionId,
+                        methodToken,
+                        methodVersion:=1,
+                        ilOffset:=0,
+                        localSignatureToken:=localSignatureToken)
+                   End Function
+        End Function
 
     End Class
 
