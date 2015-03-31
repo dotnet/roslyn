@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // If this file has already been included don't recurse into it.
-                if (!arrayBuilder.Contains(ruleSet.FilePath, StringComparer.InvariantCultureIgnoreCase))
+                if (!arrayBuilder.Contains(ruleSet.FilePath, StringComparer.OrdinalIgnoreCase))
                 {
                     ruleSet.GetEffectiveIncludesCore(arrayBuilder);
                 }

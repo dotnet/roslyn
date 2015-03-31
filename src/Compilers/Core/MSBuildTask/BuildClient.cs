@@ -164,8 +164,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         {
                             try
                             {
-                                holdsMutex = mutex.WaitOne(TimeOutMsNewProcess,
-                                    exitContext: false);
+                                holdsMutex = mutex.WaitOne(TimeOutMsNewProcess);
                             }
                             catch (AbandonedMutexException)
                             {

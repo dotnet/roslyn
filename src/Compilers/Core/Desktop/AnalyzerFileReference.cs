@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool DerivesFromDiagnosticAnalyzer(Type type)
         {
-            return type.IsSubclassOf(typeof(DiagnosticAnalyzer));
+            return type.GetTypeInfo().IsSubclassOf(typeof(DiagnosticAnalyzer));
         }
 
         public override bool Equals(object obj)
