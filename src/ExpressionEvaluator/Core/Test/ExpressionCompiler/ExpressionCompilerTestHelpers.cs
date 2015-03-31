@@ -101,25 +101,41 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             string expr,
             ExpressionCompiler.CreateContextDelegate createContext,
             out string errorMessage,
-            CompilationTestData testData)
+            out CompilationTestData testData)
         {
-            return ExpressionCompiler.CompileWithRetry(
+            var r = ExpressionCompiler.CompileWithRetry(
                 metadataBlocks,
                 DiagnosticFormatter.Instance,
                 createContext,
                 (context, diagnostics) =>
                 {
+                    var td = new CompilationTestData();
                     ResultProperties resultProperties;
-                    return context.CompileExpression(
+                    var compileResult = context.CompileExpression(
                         InspectionContextFactory.Empty,
                         expr,
                         DkmEvaluationFlags.TreatAsExpression,
                         diagnostics,
                         out resultProperties,
-                        testData);
+                        td);
+                    return new CompileExpressionResult(compileResult, td);
                 },
                 getMetaDataBytesPtr: null,
                 errorMessage: out errorMessage);
+            testData = r.TestData;
+            return r.CompileResult;
+        }
+
+        private struct CompileExpressionResult
+        {
+            internal readonly CompileResult CompileResult;
+            internal readonly CompilationTestData TestData;
+
+            internal CompileExpressionResult(CompileResult compileResult, CompilationTestData testData)
+            {
+                this.CompileResult = compileResult;
+                this.TestData = testData;
+            }
         }
 
         internal static TypeDefinition GetTypeDef(this MetadataReader reader, string typeName)

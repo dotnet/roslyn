@@ -33,6 +33,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             typeToken As Integer,
             useReferencedModulesOnly As Boolean) As EvaluationContextBase
 
+            If useReferencedModulesOnly Then
+                Dim compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
+                Return EvaluationContext.CreateTypeContext(
+                    compilation,
+                    moduleVersionId,
+                    typeToken)
+            End If
+
             Dim previous = appDomain.GetDataItem(Of VisualBasicMetadataContext)()
             Dim context = EvaluationContext.CreateTypeContext(
                 previous,
@@ -60,6 +68,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ilOffset As Integer,
             localSignatureToken As Integer,
             useReferencedModulesOnly As Boolean) As EvaluationContextBase
+
+            If useReferencedModulesOnly Then
+                Dim compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
+                Return EvaluationContext.CreateMethodContext(
+                    compilation,
+                    lazyAssemblyReaders,
+                    symReader,
+                    moduleVersionId,
+                    methodToken,
+                    methodVersion,
+                    ilOffset,
+                    localSignatureToken)
+            End If
 
             Dim previous = appDomain.GetDataItem(Of VisualBasicMetadataContext)()
             Dim context = EvaluationContext.CreateMethodContext(

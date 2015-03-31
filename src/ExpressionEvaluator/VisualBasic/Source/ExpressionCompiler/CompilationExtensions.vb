@@ -95,6 +95,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         <Extension>
+        Friend Function ToCompilationReferencedModulesOnly(metadataBlocks As ImmutableArray(Of MetadataBlock), moduleVersionId As Guid) As VisualBasicCompilation
+            Dim references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer)
+            Return references.ToCompilation()
+        End Function
+
+        <Extension>
         Friend Function ToCompilation(references As ImmutableArray(Of MetadataReference)) As VisualBasicCompilation
             Return VisualBasicCompilation.Create(
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
