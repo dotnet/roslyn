@@ -56,6 +56,9 @@ namespace Microsoft.CodeAnalysis
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
 
+        public abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger);
+        public abstract void PrintLogo(TextWriter consoleOutput);
+        public abstract void PrintHelp(TextWriter consoleOutput);
         internal abstract string GetToolName();
         internal abstract Version GetAssemblyVersion();
         internal abstract string GetAssemblyFileVersion();
@@ -190,6 +193,7 @@ namespace Microsoft.CodeAnalysis
             return diagnosticInfo;
         }
 
+        public bool ReportErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, ErrorLogger errorLogger)
         {
             bool hasErrors = false;
             foreach (var diag in diagnostics)
@@ -226,6 +230,7 @@ namespace Microsoft.CodeAnalysis
             return hasErrors;
         }
 
+        public bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLogger)
         {
             bool hasErrors = false;
             if (diagnostics != null && diagnostics.Any())
@@ -256,6 +261,7 @@ namespace Microsoft.CodeAnalysis
             consoleOutput.WriteLine(diagnostic.ToString(Culture));
         }
 
+        public ErrorLogger GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)
         {
             Debug.Assert(Arguments.ErrorLogPath != null);
 
