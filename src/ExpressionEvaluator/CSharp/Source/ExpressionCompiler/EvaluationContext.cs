@@ -505,6 +505,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 case ErrorCode.ERR_DuplicateImport:
                     return true;
+                case ErrorCode.ERR_SameFullNameAggAgg:
+                case ErrorCode.ERR_AmbigCall:
+                    return true;
                 default:
                     return false;
             }
