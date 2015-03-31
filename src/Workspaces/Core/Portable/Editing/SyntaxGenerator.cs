@@ -397,14 +397,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
                 case SymbolKind.Event:
                     var ev = (IEventSymbol)symbol;
-                    if (ev.IsAbstract || ev.IsVirtual || ev.AddMethod != null || ev.RemoveMethod != null)
-                    {
-                        return CustomEventDeclaration(ev);
-                    }
-                    else
-                    {
-                        return EventDeclaration(ev);
-                    }
+                    return EventDeclaration(ev);
 
                 case SymbolKind.Method:
                     var method = (IMethodSymbol)symbol;
@@ -417,7 +410,6 @@ namespace Microsoft.CodeAnalysis.Editing
                         case MethodKind.Ordinary:
                             return MethodDeclaration(method);
                     }
-
                     break;
 
                 case SymbolKind.Parameter:
@@ -436,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Editing
                                 modifiers: DeclarationModifiers.From(type),
                                 baseType: TypeExpression(type.BaseType),
                                 interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
-                                members: type.GetMembers().Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Struct:
                             declaration = StructDeclaration(
@@ -444,20 +436,20 @@ namespace Microsoft.CodeAnalysis.Editing
                                 accessibility: type.DeclaredAccessibility,
                                 modifiers: DeclarationModifiers.From(type),
                                 interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
-                                members: type.GetMembers().Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Interface:
                             declaration = InterfaceDeclaration(
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
                                 interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
-                                members: type.GetMembers().Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Enum:
                             declaration = EnumDeclaration(
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
-                                members: type.GetMembers().Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Delegate:
                             var invoke = type.GetMembers("Invoke").First() as IMethodSymbol;
@@ -480,6 +472,44 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             throw new ArgumentException("Symbol cannot be converted to a declaration");
+        }
+
+        private static bool CanBeDeclared(ISymbol symbol)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Field:
+                case SymbolKind.Property:
+                case SymbolKind.Event:
+                case SymbolKind.Parameter:
+                    return true;
+
+                case SymbolKind.Method:
+                    var method = (IMethodSymbol)symbol;
+                    switch (method.MethodKind)
+                    {
+                        case MethodKind.Constructor:
+                        case MethodKind.SharedConstructor:
+                        case MethodKind.Ordinary:
+                            return true;
+                    }
+                    break;
+
+                case SymbolKind.NamedType:
+                    var type = (INamedTypeSymbol)symbol;
+                    switch (type.TypeKind)
+                    {
+                        case TypeKind.Class:
+                        case TypeKind.Struct:
+                        case TypeKind.Interface:
+                        case TypeKind.Enum:
+                        case TypeKind.Delegate:
+                            return true;
+                    }
+                    break;
+            }
+
+            return false;
         }
 
         private SyntaxNode WithTypeParametersAndConstraints(SyntaxNode declaration, ImmutableArray<ITypeParameterSymbol> typeParameters)
