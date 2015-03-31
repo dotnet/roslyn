@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using Microsoft.Build.Framework;
@@ -310,11 +311,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     var responseTask = BuildClient.TryRunServerCompilation(
                         Language,
+                        TryGetClientDir() ?? Path.GetDirectoryName(pathToTool),
                         CurrentDirectoryToUse(),
                         GetArguments(commandLineCommands, responseFileCommands),
                         _sharedCompileCts.Token,
-                        libEnvVariable: LibDirectoryToUse(),
-                        fallbackCompilerExeDir: Path.GetDirectoryName(pathToTool));
+                        libEnvVariable: LibDirectoryToUse());
 
                     responseTask.Wait(_sharedCompileCts.Token);
 
@@ -334,6 +335,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
             return ExitCode;
+        }
+
+        /// <summary>
+        /// Try to get the directory this assembly is in. Returns null if assembly
+        /// was in the GAC.
+        /// </summary>
+        private static string TryGetClientDir()
+        {
+            var assembly = typeof(ManagedCompiler).Assembly;
+
+            if (assembly.GlobalAssemblyCache)
+                return null;
+
+            var uri = new Uri(assembly.CodeBase);
+            string assemblyPath = uri.IsFile 
+                ? uri.LocalPath
+                : Assembly.GetCallingAssembly().Location;
+            return Path.GetDirectoryName(assemblyPath);
         }
 
         /// <summary>

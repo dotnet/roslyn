@@ -26,31 +26,6 @@ namespace Microsoft.CodeAnalysis
         internal const int Failed = 1;
         internal const int Succeeded = 0;
 
-        /// <summary>
-        /// Return the path in which to look for response files.  This should only be called 
-        /// on EXE entry points as the implementation relies on managed entry points.
-        /// </summary>
-        /// <returns></returns>
-        internal static string GetResponseFileDirectory()
-        {
-            var exePath = Assembly.GetEntryAssembly().Location;
-
-            // This assert will fire when this method is called from places like xUnit and certain
-            // types of AppDomains.  It should only be called on EXE entry points to help guarantee
-            // this is being called from an executed assembly.
-            Debug.Assert(exePath != null);
-            return Path.GetDirectoryName(exePath);
-        }
-
-        /// <summary>
-        /// Called from a compiler exe entry point to get the full path to the response file for
-        /// the given name.  Will return a fully qualified path.
-        /// </summary>
-        internal static string GetResponseFileFullPath(string responseFileName)
-        {
-            return Path.Combine(GetResponseFileDirectory(), responseFileName);
-        }
-
         public CommonMessageProvider MessageProvider { get; private set; }
         public CommandLineArguments Arguments { get; private set; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
