@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
@@ -187,6 +188,160 @@ class C
             Assert.NotNull(other);
             Assert.Equal(((PointerTypeSymbol)other.Parameters[0].Type).CustomModifiers.Length, 1);
             Assert.Equal(((ArrayTypeSymbol)other.ReturnType).CustomModifiers.Length, 1);
+        }
+
+        [WorkItem(1533)]
+        [Fact]
+        public void PreviousType_ArrayType()
+        {
+            var source0 = @"
+class C
+{  
+    static void M()
+    {
+        int x = 0;
+    }
+    class D {}
+}";
+            var source1 = @"
+class C
+{
+    static void M()
+    {
+        D[] x = null;
+    }
+    class D {}
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+            var elementType = compilation1.GetMember<TypeSymbol>("C.D");
+            var member = compilation1.CreateArrayTypeSymbol(elementType);
+            var other = matcher.MapReference((Cci.ITypeReference)member);
+            Assert.NotNull(other);
+        }
+
+        [WorkItem(1533)]
+        [Fact]
+        public void NoPreviousType_ArrayType()
+        {
+            var source0 = @"
+class C
+{  
+    static void M()
+    {
+        int x = 0;
+    }
+}";
+            var source1 = @"
+class C
+{
+    static void M()
+    {
+        D[] x = null;
+    }
+    class D {}
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+            var elementType = compilation1.GetMember<TypeSymbol>("C.D");
+            var member = compilation1.CreateArrayTypeSymbol(elementType);
+            var other = matcher.MapReference((Cci.ITypeReference)member);
+            // For a newly added type, there is no match in the previous generation.
+            Assert.Null(other);
+        }
+
+        [WorkItem(1533)]
+        [Fact]
+        public void NoPreviousType_PointerType()
+        {
+            var source0 = @"
+class C
+{  
+    static void M()
+    {
+        int x = 0;
+    }
+}";
+            var source1 = @"
+class C
+{
+    static unsafe void M()
+    {
+        D* x = null;
+    }
+    struct D {}
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+            var elementType = compilation1.GetMember<TypeSymbol>("C.D");
+            var member = compilation1.CreatePointerTypeSymbol(elementType);
+            var other = matcher.MapReference((Cci.ITypeReference)member);
+            // For a newly added type, there is no match in the previous generation.
+            Assert.Null(other);
+        }
+
+        [WorkItem(1533)]
+        [Fact]
+        public void NoPreviousType_GenericType()
+        {
+            var source0 = @"
+using System.Collections.Generic;
+class C
+{  
+    static void M()
+    {
+        int x = 0;
+    }
+}";
+            var source1 = @"
+using System.Collections.Generic;
+class C
+{
+    static void M()
+    {
+        List<D> x = null;
+    }
+    class D {}
+    List<D> y;
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+            var member = compilation1.GetMember<FieldSymbol>("C.y");
+            var other = matcher.MapReference((Cci.ITypeReference)member.Type);
+            // For a newly added type, there is no match in the previous generation.
+            Assert.Null(other);
         }
     }
 }
