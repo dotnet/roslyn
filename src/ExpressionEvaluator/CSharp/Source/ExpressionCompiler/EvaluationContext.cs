@@ -503,6 +503,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
+        internal override bool HasDuplicateTypesOrAssemblies(Diagnostic diagnostic)
+        {
+            switch ((ErrorCode)diagnostic.Code)
+            {
+                case ErrorCode.ERR_DuplicateImport:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         internal override ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentities(Diagnostic diagnostic)
         {
             return GetMissingAssemblyIdentitiesHelper((ErrorCode)diagnostic.Code, diagnostic.Arguments);

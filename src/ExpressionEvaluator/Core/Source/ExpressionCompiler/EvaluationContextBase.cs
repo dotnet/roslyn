@@ -117,10 +117,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal string GetErrorMessageAndMissingAssemblyIdentities(DiagnosticBag diagnostics, DiagnosticFormatter formatter, CultureInfo preferredUICulture, out bool useReferencedModulesOnly, out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
         {
-            var diagnosticsEnumerable = diagnostics.AsEnumerable();
-            foreach (Diagnostic diagnostic in diagnosticsEnumerable)
+            var diagnosticsEnumerable = diagnostics.AsEnumerable().Where(d => d.Severity == DiagnosticSeverity.Error);
+            foreach (var diagnostic in diagnosticsEnumerable)
             {
-                missingAssemblyIdentities = GetMissingAssemblyIdentities(diagnostic);
+                missingAssemblyIdentities = this.GetMissingAssemblyIdentities(diagnostic);
                 if (!missingAssemblyIdentities.IsDefault)
                 {
                     break;
@@ -132,9 +132,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 missingAssemblyIdentities = ImmutableArray<AssemblyIdentity>.Empty;
             }
 
-            useReferencedModulesOnly = false;
+            useReferencedModulesOnly = diagnosticsEnumerable.All(HasDuplicateTypesOrAssemblies);
 
-            var firstError = diagnosticsEnumerable.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error);
+            var firstError = diagnosticsEnumerable.FirstOrDefault();
             Debug.Assert(firstError != null);
 
             var simpleMessage = firstError as SimpleMessageDiagnostic;
@@ -142,6 +142,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 simpleMessage.Message :
                 formatter.Format(firstError, preferredUICulture ?? CultureInfo.CurrentUICulture);
         }
+
+        internal abstract bool HasDuplicateTypesOrAssemblies(Diagnostic diagnostic);
 
         internal abstract ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentities(Diagnostic diagnostic);
 
