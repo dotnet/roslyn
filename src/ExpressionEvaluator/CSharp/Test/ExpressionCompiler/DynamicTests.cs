@@ -6,12 +6,12 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
-using Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

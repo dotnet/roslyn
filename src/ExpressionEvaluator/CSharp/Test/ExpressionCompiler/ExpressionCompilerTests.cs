@@ -4010,7 +4010,7 @@ class C
 
                 // Compile expression with type context with referenced modules only.
                 context = EvaluationContext.CreateTypeContext(
-                    typeBlocks.MakeAssemblyReferences(moduleVersionId, DesktopAssemblyIdentityComparer.Default).ToCompilation(),
+                    typeBlocks.ToCompilationReferencedModulesOnly(moduleVersionId),
                     moduleVersionId,
                     typeToken);
                 // A is unrecognized since there were no direct references to AS1 or AS2.
@@ -4068,7 +4068,7 @@ class C
 
                 // Compile expression with method context with referenced modules only.
                 context = EvaluationContext.CreateMethodContext(
-                    methodBlocks.MakeAssemblyReferences(moduleVersionId, DesktopAssemblyIdentityComparer.Default).ToCompilation(),
+                    methodBlocks.ToCompilationReferencedModulesOnly(moduleVersionId),
                     symReader,
                     moduleVersionId,
                     methodToken: methodToken,
@@ -6262,7 +6262,8 @@ public class C
                 context1.CompileGetLocals(
                     locals,
                     argumentsOnly: false,
-                    typeName: out typeName);
+                    typeName: out typeName,
+                    testData: null);
                 AssertEx.SetEqual(locals.Select(l => l.LocalName), "x");
 
                 var context2 = EvaluationContext.CreateMethodContext(
@@ -6279,7 +6280,8 @@ public class C
                 context2.CompileGetLocals(
                     locals,
                     argumentsOnly: false,
-                    typeName: out typeName);
+                    typeName: out typeName,
+                    testData: null);
                 AssertEx.SetEqual(locals.Select(l => l.LocalName), "x", "y");
             }
         }
