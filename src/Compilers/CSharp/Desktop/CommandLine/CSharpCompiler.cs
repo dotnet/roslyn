@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override DiagnosticFormatter DiagnosticFormatter { get { return _diagnosticFormatter; } }
         protected internal new CSharpCommandLineArguments Arguments { get { return (CSharpCommandLineArguments)base.Arguments; } }
 
-        protected override Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger)
+        public override Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger)
         {
             var parseOptions = Arguments.ParseOptions;
             var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Print compiler logo
         /// </summary>
         /// <param name="consoleOutput"></param>
-        protected override void PrintLogo(TextWriter consoleOutput)
+        public override void PrintLogo(TextWriter consoleOutput)
         {
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine1, Culture), GetToolName(), GetAssemblyFileVersion());
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine2, Culture));
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Print Commandline help message (up to 80 English characters per line)
         /// </summary>
         /// <param name="consoleOutput"></param>
-        protected override void PrintHelp(TextWriter consoleOutput)
+        public override void PrintHelp(TextWriter consoleOutput)
         {
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_CSCHelp, Culture));
         }

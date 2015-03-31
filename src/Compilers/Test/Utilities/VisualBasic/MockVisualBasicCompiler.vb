@@ -48,7 +48,7 @@ Friend Class MockVisualBasicCompiler
         Return analyzers
     End Function
 
-    Protected Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger) As Compilation
+    Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger) As Compilation
         Compilation = MyBase.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger)
         Return Compilation
     End Function
