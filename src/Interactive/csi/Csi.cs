@@ -27,7 +27,7 @@ namespace CSharpInteractive
         {
             try
             {
-                var responseFile = CommonCompiler.GetResponseFileFullPath(InteractiveResponseFileName);
+                var responseFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, InteractiveResponseFileName);
                 return ScriptCompilerUtil.RunInteractive(new Csi(responseFile, Directory.GetCurrentDirectory(), args), Console.Out);
             }
             catch (Exception ex)

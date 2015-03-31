@@ -22,7 +22,7 @@ Friend NotInheritable Class Vbi
 
     Public Shared Function Main(args As String()) As Integer
         Try
-            Dim responseFile = CommonCompiler.GetResponseFileFullPath(InteractiveResponseFileName)
+            Dim responseFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, InteractiveResponseFileName)
             Return ScriptCompilerUtil.RunInteractive(New Vbi(responseFile, Directory.GetCurrentDirectory(), args), Console.Out)
         Catch ex As Exception
             Console.WriteLine(ex.ToString())
