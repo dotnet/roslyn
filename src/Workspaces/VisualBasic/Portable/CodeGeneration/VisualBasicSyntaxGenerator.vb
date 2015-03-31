@@ -17,6 +17,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Inherits SyntaxGenerator
 
 #Region "Expressions and Statements"
+
+        Public Overrides Function AwaitExpression(expression As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.AwaitExpression(DirectCast(expression, ExpressionSyntax))
+        End Function
+
         Private Function Parenthesize(expression As SyntaxNode) As ParenthesizedExpressionSyntax
             Return DirectCast(expression, ExpressionSyntax).Parenthesize()
         End Function
@@ -195,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         ' parenthesize the left-side of a dot or target of an invocation if not unnecessary
         Private Function ParenthesizeLeft(expression As SyntaxNode) As ExpressionSyntax
-            Dim expressionSyntax = DirectCast(expression, expressionSyntax)
+            Dim expressionSyntax = DirectCast(expression, ExpressionSyntax)
             If TypeOf expressionSyntax Is TypeSyntax _
                OrElse expressionSyntax.IsMeMyBaseOrMyClass() _
                OrElse expressionSyntax.IsKind(SyntaxKind.ParenthesizedExpression) _
@@ -253,37 +258,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function TypeExpression(specialType As SpecialType) As SyntaxNode
             Select Case specialType
-                Case specialType.System_Boolean
+                Case SpecialType.System_Boolean
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BooleanKeyword))
-                Case specialType.System_Byte
+                Case SpecialType.System_Byte
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ByteKeyword))
-                Case specialType.System_Char
+                Case SpecialType.System_Char
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.CharKeyword))
-                Case specialType.System_Decimal
+                Case SpecialType.System_Decimal
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DecimalKeyword))
-                Case specialType.System_Double
+                Case SpecialType.System_Double
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword))
-                Case specialType.System_Int16
+                Case SpecialType.System_Int16
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ShortKeyword))
-                Case specialType.System_Int32
+                Case SpecialType.System_Int32
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntegerKeyword))
-                Case specialType.System_Int64
+                Case SpecialType.System_Int64
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.LongKeyword))
-                Case specialType.System_Object
+                Case SpecialType.System_Object
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))
-                Case specialType.System_SByte
+                Case SpecialType.System_SByte
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.SByteKeyword))
-                Case specialType.System_Single
+                Case SpecialType.System_Single
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.SingleKeyword))
-                Case specialType.System_String
+                Case SpecialType.System_String
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))
-                Case specialType.System_UInt16
+                Case SpecialType.System_UInt16
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.UShortKeyword))
-                Case specialType.System_UInt32
+                Case SpecialType.System_UInt32
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.UIntegerKeyword))
-                Case specialType.System_UInt64
+                Case SpecialType.System_UInt64
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ULongKeyword))
-                Case specialType.System_DateTime
+                Case SpecialType.System_DateTime
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DateKeyword))
                 Case Else
                     Throw New NotSupportedException("Unsupported SpecialType")

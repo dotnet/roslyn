@@ -1779,6 +1779,12 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             return LambdaParameter(identifier, TypeExpression(type));
         }
+
+        /// <summary>
+        /// Creates an await expression.
+        /// </summary>
+        public abstract SyntaxNode AwaitExpression(SyntaxNode expression);
+
         #endregion
     }
 }

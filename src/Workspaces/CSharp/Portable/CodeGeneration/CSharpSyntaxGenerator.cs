@@ -3244,6 +3244,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         #endregion
 
         #region Statements and Expressions
+
+        public override SyntaxNode AwaitExpression(SyntaxNode expression)
+        {
+            return SyntaxFactory.AwaitExpression((ExpressionSyntax)expression);
+        }
+
         public override SyntaxNode ReturnStatement(SyntaxNode expressionOpt = null)
         {
             return SyntaxFactory.ReturnStatement((ExpressionSyntax)expressionOpt);
