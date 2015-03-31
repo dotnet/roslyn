@@ -161,6 +161,7 @@
     <Compile Include="Emit\EditAndContinue\EditAndContinueStateMachineTests.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTests.vb" />
+    <Compile Include="Emit\EditAndContinue\SymbolMatcherTests.vb" />
     <Compile Include="Emit\EmitCustomModifiers.vb" />
     <Compile Include="Emit\EmitErrorTests.vb" />
     <Compile Include="Emit\EmitMetadata.vb" />
