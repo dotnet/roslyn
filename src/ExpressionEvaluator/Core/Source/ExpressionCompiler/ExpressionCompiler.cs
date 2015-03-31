@@ -309,6 +309,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         missingAssemblyIdentities: out missingAssemblyIdentities);
                     if (useReferencedModulesOnly)
                     {
+                        Debug.Assert(missingAssemblyIdentities.IsEmpty);
                         var otherContext = createContext(metadataBlocks, useReferencedModulesOnly: true);
                         var otherDiagnostics = DiagnosticBag.GetInstance();
                         var otherResult = compile(otherContext, otherDiagnostics);

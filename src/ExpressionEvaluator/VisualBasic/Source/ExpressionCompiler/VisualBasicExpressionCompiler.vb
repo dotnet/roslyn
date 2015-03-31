@@ -34,6 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             useReferencedModulesOnly As Boolean) As EvaluationContextBase
 
             If useReferencedModulesOnly Then
+                ' Avoid using the cache for referenced assemblies only
+                ' since this should be the exceptional case.
                 Dim compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
                 Return EvaluationContext.CreateTypeContext(
                     compilation,
@@ -70,6 +72,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             useReferencedModulesOnly As Boolean) As EvaluationContextBase
 
             If useReferencedModulesOnly Then
+                ' Avoid using the cache for referenced assemblies only
+                ' since this should be the exceptional case.
                 Dim compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
                 Return EvaluationContext.CreateMethodContext(
                     compilation,
