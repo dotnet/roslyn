@@ -39,7 +39,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             var diagnostics = DiagnosticBag.GetInstance();
             var result = this.CompileExpression(inspectionContext, expr, compilationFlags, diagnostics, out resultProperties, testData);
-            error = GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out missingAssemblyIdentities);
+            if (diagnostics.HasAnyErrors())
+            {
+                bool useReferencedModulesOnly;
+                error = GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out useReferencedModulesOnly, out missingAssemblyIdentities);
+            }
+            else
+            {
+                error = null;
+                missingAssemblyIdentities = ImmutableArray<AssemblyIdentity>.Empty;
+            }
             diagnostics.Free();
             return result;
         }
@@ -52,24 +61,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out ResultProperties resultProperties,
             CompilationTestData testData);
 
-        internal CompileResult CompileAssignment(
-            InspectionContext inspectionContext,
-            string target,
-            string expr,
-            DiagnosticFormatter formatter,
-            out ResultProperties resultProperties,
-            out string error,
-            out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities,
-            CultureInfo preferredUICulture,
-            CompilationTestData testData)
-        {
-            var diagnostics = DiagnosticBag.GetInstance();
-            var result = this.CompileAssignment(inspectionContext, target, expr, diagnostics, out resultProperties, testData);
-            error = GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out missingAssemblyIdentities);
-            diagnostics.Free();
-            return result;
-        }
-
         internal abstract CompileResult CompileAssignment(
             InspectionContext inspectionContext,
             string target,
@@ -77,18 +68,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DiagnosticBag diagnostics,
             out ResultProperties resultProperties,
             CompilationTestData testData);
-
-        internal ReadOnlyCollection<byte> CompileGetLocals(
-            ArrayBuilder<LocalAndMethod> locals,
-            bool argumentsOnly,
-            out string typeName,
-            CompilationTestData testData)
-        {
-            var diagnostics = DiagnosticBag.GetInstance();
-            var result = this.CompileGetLocals(locals, argumentsOnly, diagnostics, out typeName, testData);
-            diagnostics.Free();
-            return result;
-        }
 
         internal abstract ReadOnlyCollection<byte> CompileGetLocals(
             ArrayBuilder<LocalAndMethod> locals,
@@ -102,17 +81,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return specialType == SpecialType.System_DateTime
                 ? ConstantValue.Create(DateTimeUtilities.ToDateTime((double)raw.Value))
                 : raw;
-        }
-
-        internal string GetErrorMessageAndMissingAssemblyIdentities(DiagnosticBag diagnostics, DiagnosticFormatter formatter, CultureInfo preferredUICulture, out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
-        {
-            if (diagnostics.HasAnyErrors())
-            {
-                bool useReferencedModulesOnly;
-                return GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out useReferencedModulesOnly, out missingAssemblyIdentities);
-            }
-            missingAssemblyIdentities = ImmutableArray<AssemblyIdentity>.Empty;
-            return null;
         }
 
         internal string GetErrorMessageAndMissingAssemblyIdentities(DiagnosticBag diagnostics, DiagnosticFormatter formatter, CultureInfo preferredUICulture, out bool useReferencedModulesOnly, out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)

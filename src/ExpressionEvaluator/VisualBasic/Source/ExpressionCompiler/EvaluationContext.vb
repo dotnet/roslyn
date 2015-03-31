@@ -539,6 +539,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overrides Function HasDuplicateTypesOrAssemblies(diagnostic As Diagnostic) As Boolean
             Select Case CType(diagnostic.Code, ERRID)
                 Case ERRID.ERR_DuplicateReferenceStrong
+                Case ERRID.ERR_AmbiguousInNamespace2
                     Return True
                 Case Else
                     Return False

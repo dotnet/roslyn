@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -20,6 +21,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -53,6 +55,73 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
     internal static class ExpressionCompilerTestHelpers
     {
+        internal static CompileResult CompileAssignment(
+            this EvaluationContextBase context,
+            InspectionContext inspectionContext,
+            string target,
+            string expr,
+            DiagnosticFormatter formatter,
+            out ResultProperties resultProperties,
+            out string error,
+            out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities,
+            CultureInfo preferredUICulture,
+            CompilationTestData testData)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            var result = context.CompileAssignment(inspectionContext, target, expr, diagnostics, out resultProperties, testData);
+            if (diagnostics.HasAnyErrors())
+            {
+                bool useReferencedModulesOnly;
+                error = context.GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out useReferencedModulesOnly, out missingAssemblyIdentities);
+            }
+            else
+            {
+                error = null;
+                missingAssemblyIdentities = ImmutableArray<AssemblyIdentity>.Empty;
+            }
+            diagnostics.Free();
+            return result;
+        }
+
+        internal static ReadOnlyCollection<byte> CompileGetLocals(
+            this EvaluationContextBase context,
+            ArrayBuilder<LocalAndMethod> locals,
+            bool argumentsOnly,
+            out string typeName,
+            CompilationTestData testData)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            var result = context.CompileGetLocals(locals, argumentsOnly, diagnostics, out typeName, testData);
+            diagnostics.Free();
+            return result;
+        }
+
+        internal static CompileResult CompileExpressionWithRetry(
+            ImmutableArray<MetadataBlock> metadataBlocks,
+            string expr,
+            ExpressionCompiler.CreateContextDelegate createContext,
+            out string errorMessage,
+            CompilationTestData testData)
+        {
+            return ExpressionCompiler.CompileWithRetry(
+                metadataBlocks,
+                DiagnosticFormatter.Instance,
+                createContext,
+                (context, diagnostics) =>
+                {
+                    ResultProperties resultProperties;
+                    return context.CompileExpression(
+                        InspectionContextFactory.Empty,
+                        expr,
+                        DkmEvaluationFlags.TreatAsExpression,
+                        diagnostics,
+                        out resultProperties,
+                        testData);
+                },
+                getMetaDataBytesPtr: null,
+                errorMessage: out errorMessage);
+        }
+
         internal static TypeDefinition GetTypeDef(this MetadataReader reader, string typeName)
         {
             return reader.TypeDefinitions.Select(reader.GetTypeDefinition).First(t => reader.StringComparer.Equals(t.Name, typeName));
