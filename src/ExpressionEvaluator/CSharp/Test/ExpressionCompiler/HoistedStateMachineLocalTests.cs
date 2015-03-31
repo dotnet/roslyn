@@ -1362,7 +1362,7 @@ class C
         {
             string unused;
             var locals = new ArrayBuilder<LocalAndMethod>();
-            context.CompileGetLocals(locals, argumentsOnly: false, typeName: out unused);
+            context.CompileGetLocals(locals, argumentsOnly: false, typeName: out unused, testData: null);
             return locals.Select(l => l.LocalName).ToArray();
         }
     }

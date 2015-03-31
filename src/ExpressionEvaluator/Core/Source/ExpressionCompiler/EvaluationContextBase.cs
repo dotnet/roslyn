@@ -1,11 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// <returns>
         /// Result containing generated assembly, type and method names, and any format specifiers.
         /// </returns>
-        internal abstract CompileResult CompileExpression(
+        internal CompileResult CompileExpression(
             InspectionContext inspectionContext,
             string expr,
             DkmEvaluationFlags compilationFlags,
@@ -34,9 +35,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out string error,
             out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities,
             CultureInfo preferredUICulture,
+            CompilationTestData testData)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            var result = this.CompileExpression(inspectionContext, expr, compilationFlags, diagnostics, out resultProperties, testData);
+            error = GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out missingAssemblyIdentities);
+            diagnostics.Free();
+            return result;
+        }
+
+        internal abstract CompileResult CompileExpression(
+            InspectionContext inspectionContext,
+            string expr,
+            DkmEvaluationFlags compilationFlags,
+            DiagnosticBag diagnostics,
+            out ResultProperties resultProperties,
             CompilationTestData testData);
 
-        internal abstract CompileResult CompileAssignment(
+        internal CompileResult CompileAssignment(
             InspectionContext inspectionContext,
             string target,
             string expr,
@@ -45,11 +61,39 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out string error,
             out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities,
             CultureInfo preferredUICulture,
+            CompilationTestData testData)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            var result = this.CompileAssignment(inspectionContext, target, expr, diagnostics, out resultProperties, testData);
+            error = GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out missingAssemblyIdentities);
+            diagnostics.Free();
+            return result;
+        }
+
+        internal abstract CompileResult CompileAssignment(
+            InspectionContext inspectionContext,
+            string target,
+            string expr,
+            DiagnosticBag diagnostics,
+            out ResultProperties resultProperties,
             CompilationTestData testData);
+
+        internal ReadOnlyCollection<byte> CompileGetLocals(
+            ArrayBuilder<LocalAndMethod> locals,
+            bool argumentsOnly,
+            out string typeName,
+            CompilationTestData testData)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            var result = this.CompileGetLocals(locals, argumentsOnly, diagnostics, out typeName, testData);
+            diagnostics.Free();
+            return result;
+        }
 
         internal abstract ReadOnlyCollection<byte> CompileGetLocals(
             ArrayBuilder<LocalAndMethod> locals,
             bool argumentsOnly,
+            DiagnosticBag diagnostics,
             out string typeName,
             CompilationTestData testData);
 
@@ -62,12 +106,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal string GetErrorMessageAndMissingAssemblyIdentities(DiagnosticBag diagnostics, DiagnosticFormatter formatter, CultureInfo preferredUICulture, out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
         {
-            Diagnostic firstError = GetErrorAndMissingAssemblyIdentities(diagnostics, out missingAssemblyIdentities);
-            Debug.Assert(firstError != null);
-            return formatter.Format(firstError, preferredUICulture ?? Thread.CurrentThread.CurrentUICulture);
+            if (diagnostics.HasAnyErrors())
+            {
+                bool useReferencedModulesOnly;
+                return GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out useReferencedModulesOnly, out missingAssemblyIdentities);
+            }
+            missingAssemblyIdentities = ImmutableArray<AssemblyIdentity>.Empty;
+            return null;
         }
 
-        internal Diagnostic GetErrorAndMissingAssemblyIdentities(DiagnosticBag diagnostics, out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
+        internal string GetErrorMessageAndMissingAssemblyIdentities(DiagnosticBag diagnostics, DiagnosticFormatter formatter, CultureInfo preferredUICulture, out bool useReferencedModulesOnly, out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
         {
             var diagnosticsEnumerable = diagnostics.AsEnumerable();
             foreach (Diagnostic diagnostic in diagnosticsEnumerable)
@@ -84,9 +132,87 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 missingAssemblyIdentities = ImmutableArray<AssemblyIdentity>.Empty;
             }
 
-            return diagnosticsEnumerable.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error);
+            useReferencedModulesOnly = false;
+
+            var firstError = diagnosticsEnumerable.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error);
+            Debug.Assert(firstError != null);
+
+            var simpleMessage = firstError as SimpleMessageDiagnostic;
+            return (simpleMessage != null) ?
+                simpleMessage.Message :
+                formatter.Format(firstError, preferredUICulture ?? CultureInfo.CurrentUICulture);
         }
 
         internal abstract ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentities(Diagnostic diagnostic);
+
+        protected sealed class SimpleMessageDiagnostic : Diagnostic
+        {
+            internal readonly string Message;
+
+            internal SimpleMessageDiagnostic(string message)
+            {
+                this.Message = message;
+            }
+
+            public override IReadOnlyList<Location> AdditionalLocations
+            {
+                get { throw new NotImplementedException(); }
+            }
+
+            public override DiagnosticDescriptor Descriptor
+            {
+                get { throw new NotImplementedException(); }
+            }
+
+            public override string Id
+            {
+                get { throw new NotImplementedException(); }
+            }
+
+            public override Location Location
+            {
+                get { throw new NotImplementedException(); }
+            }
+
+            public override DiagnosticSeverity Severity
+            {
+                get { return DiagnosticSeverity.Error; }
+            }
+
+            public override int WarningLevel
+            {
+                get { throw new NotImplementedException(); }
+            }
+
+            public override bool Equals(Diagnostic obj)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override bool Equals(object obj)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override int GetHashCode()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override string GetMessage(IFormatProvider formatProvider = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            internal override Diagnostic WithLocation(Location location)
+            {
+                throw new NotImplementedException();
+            }
+
+            internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 }

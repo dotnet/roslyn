@@ -228,64 +228,50 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             InspectionContext inspectionContext,
             string expr,
             DkmEvaluationFlags compilationFlags,
-            DiagnosticFormatter formatter,
+            DiagnosticBag diagnostics,
             out ResultProperties resultProperties,
-            out string error,
-            out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities,
-            System.Globalization.CultureInfo preferredUICulture,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData)
         {
-            resultProperties = default(ResultProperties);
-            var diagnostics = DiagnosticBag.GetInstance();
-            try
+            ReadOnlyCollection<string> formatSpecifiers;
+            var syntax = Parse(expr, (compilationFlags & DkmEvaluationFlags.TreatAsExpression) != 0, diagnostics, out formatSpecifiers);
+            if (syntax == null)
             {
-                ReadOnlyCollection<string> formatSpecifiers;
-                var syntax = Parse(expr, (compilationFlags & DkmEvaluationFlags.TreatAsExpression) != 0, diagnostics, out formatSpecifiers);
-                if (syntax == null)
-                {
-                    error = GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out missingAssemblyIdentities);
-                    return default(CompileResult);
-                }
-
-                var context = this.CreateCompilationContext(syntax);
-                ResultProperties properties;
-                var moduleBuilder = context.CompileExpression(inspectionContext, TypeName, MethodName, testData, diagnostics, out properties);
-                if (moduleBuilder == null)
-                {
-                    error = GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out missingAssemblyIdentities);
-                    return default(CompileResult);
-                }
-
-                using (var stream = new MemoryStream())
-                {
-                    Cci.PeWriter.WritePeToStream(
-                        new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
-                        context.MessageProvider,
-                        () => stream,
-                        nativePdbWriterOpt: null,
-                        allowMissingMethodBodies: false,
-                        deterministic: false,
-                        cancellationToken: default(CancellationToken));
-
-                    if (diagnostics.HasAnyErrors())
-                    {
-                        error = GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out missingAssemblyIdentities);
-                        return default(CompileResult);
-                    }
-
-                    resultProperties = properties;
-                    error = null;
-                    missingAssemblyIdentities = ImmutableArray<AssemblyIdentity>.Empty;
-                    return new CompileResult(
-                        stream.ToArray(),
-                        typeName: TypeName,
-                        methodName: MethodName,
-                        formatSpecifiers: formatSpecifiers);
-                }
+                resultProperties = default(ResultProperties);
+                return default(CompileResult);
             }
-            finally
+
+            var context = this.CreateCompilationContext(syntax);
+            ResultProperties properties;
+            var moduleBuilder = context.CompileExpression(inspectionContext, TypeName, MethodName, testData, diagnostics, out properties);
+            if (moduleBuilder == null)
             {
-                diagnostics.Free();
+                resultProperties = default(ResultProperties);
+                return default(CompileResult);
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                Cci.PeWriter.WritePeToStream(
+                    new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
+                    context.MessageProvider,
+                    () => stream,
+                    nativePdbWriterOpt: null,
+                    allowMissingMethodBodies: false,
+                    deterministic: false,
+                    cancellationToken: default(CancellationToken));
+
+                if (diagnostics.HasAnyErrors())
+                {
+                    resultProperties = default(ResultProperties);
+                    return default(CompileResult);
+                }
+
+                resultProperties = properties;
+                return new CompileResult(
+                    stream.ToArray(),
+                    typeName: TypeName,
+                    methodName: MethodName,
+                    formatSpecifiers: formatSpecifiers);
             }
         }
 
@@ -328,65 +314,49 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             InspectionContext inspectionContext,
             string target,
             string expr,
-            DiagnosticFormatter formatter,
+            DiagnosticBag diagnostics,
             out ResultProperties resultProperties,
-            out string error,
-            out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities,
-            System.Globalization.CultureInfo preferredUICulture,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData)
         {
-            var diagnostics = DiagnosticBag.GetInstance();
-            try
+            var assignment = target.ParseAssignment(expr, diagnostics);
+            if (assignment == null)
             {
-                var assignment = target.ParseAssignment(expr, diagnostics);
-                if (assignment == null)
-                {
-                    error = GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out missingAssemblyIdentities);
-                    resultProperties = default(ResultProperties);
-                    return default(CompileResult);
-                }
-
-                var context = this.CreateCompilationContext(assignment);
-                ResultProperties properties;
-                var moduleBuilder = context.CompileAssignment(inspectionContext, TypeName, MethodName, testData, diagnostics, out properties);
-                if (moduleBuilder == null)
-                {
-                    error = GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out missingAssemblyIdentities);
-                    resultProperties = default(ResultProperties);
-                    return default(CompileResult);
-                }
-
-                using (var stream = new MemoryStream())
-                {
-                    Cci.PeWriter.WritePeToStream(
-                        new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
-                        context.MessageProvider,
-                        () => stream,
-                        nativePdbWriterOpt: null,
-                        allowMissingMethodBodies: false,
-                        deterministic: false,
-                        cancellationToken: default(CancellationToken));
-
-                    if (diagnostics.HasAnyErrors())
-                    {
-                        error = GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out missingAssemblyIdentities);
-                        resultProperties = default(ResultProperties);
-                        return default(CompileResult);
-                    }
-
-                    resultProperties = properties;
-                    error = null;
-                    missingAssemblyIdentities = ImmutableArray<AssemblyIdentity>.Empty;
-                    return new CompileResult(
-                        stream.ToArray(),
-                        typeName: TypeName,
-                        methodName: MethodName,
-                        formatSpecifiers: null);
-                }
+                resultProperties = default(ResultProperties);
+                return default(CompileResult);
             }
-            finally
+
+            var context = this.CreateCompilationContext(assignment);
+            ResultProperties properties;
+            var moduleBuilder = context.CompileAssignment(inspectionContext, TypeName, MethodName, testData, diagnostics, out properties);
+            if (moduleBuilder == null)
             {
-                diagnostics.Free();
+                resultProperties = default(ResultProperties);
+                return default(CompileResult);
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                Cci.PeWriter.WritePeToStream(
+                    new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
+                    context.MessageProvider,
+                    () => stream,
+                    nativePdbWriterOpt: null,
+                    allowMissingMethodBodies: false,
+                    deterministic: false,
+                    cancellationToken: default(CancellationToken));
+
+                if (diagnostics.HasAnyErrors())
+                {
+                    resultProperties = default(ResultProperties);
+                    return default(CompileResult);
+                }
+
+                resultProperties = properties;
+                return new CompileResult(
+                    stream.ToArray(),
+                    typeName: TypeName,
+                    methodName: MethodName,
+                    formatSpecifiers: null);
             }
         }
 
@@ -395,10 +365,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override ReadOnlyCollection<byte> CompileGetLocals(
             ArrayBuilder<LocalAndMethod> locals,
             bool argumentsOnly,
+            DiagnosticBag diagnostics,
             out string typeName,
-            Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData = null)
+            Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData)
         {
-            var diagnostics = DiagnosticBag.GetInstance();
             var context = this.CreateCompilationContext(null);
             var moduleBuilder = context.CompileGetLocals(TypeName, locals, argumentsOnly, testData, diagnostics);
             ReadOnlyCollection<byte> assembly = null;
@@ -422,8 +392,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
                 }
             }
-
-            diagnostics.Free();
 
             if (assembly == null)
             {

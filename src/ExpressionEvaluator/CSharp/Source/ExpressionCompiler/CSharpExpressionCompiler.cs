@@ -32,6 +32,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             int typeToken,
             bool useReferencedModulesOnly)
         {
+            if (useReferencedModulesOnly)
+            {
+                var compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId);
+                return EvaluationContext.CreateTypeContext(
+                    compilation,
+                    moduleVersionId,
+                    typeToken);
+            }
+
             var previous = appDomain.GetDataItem<CSharpMetadataContext>();
             var context = EvaluationContext.CreateTypeContext(
                 previous,
@@ -62,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (useReferencedModulesOnly)
             {
-                var compilation = metadataBlocks.ToCompilation(); 
+                var compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId);
                 return EvaluationContext.CreateMethodContext(
                     compilation,
                     symReader,
