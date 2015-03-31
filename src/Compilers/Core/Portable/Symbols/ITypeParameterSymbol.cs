@@ -7,6 +7,10 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a type parameter in a generic type or generic method.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface ITypeParameterSymbol : ITypeSymbol
     {
         /// <summary>

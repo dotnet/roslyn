@@ -334,20 +334,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void CheckCaptured(Symbol variable)
+        /// <summary>
+        /// Check if the variable is captured and, if so, add it to this._capturedVariables.
+        /// </summary>
+        /// <param name="variable">The variable to be checked</param>
+        /// <param name="rangeVariableUnderlyingParameter">If variable.Kind is RangeVariable, its underlying lambda parameter. Else null.</param>
+        private void CheckCaptured(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
         {
             switch (variable.Kind)
             {
                 case SymbolKind.Local:
                     if (((LocalSymbol)variable).IsConst) break;
-                    goto case SymbolKind.RangeVariable;
+                    goto case SymbolKind.Parameter;
                 case SymbolKind.Parameter:
-                case SymbolKind.RangeVariable:
                     if (currentMethodOrLambda != variable.ContainingSymbol)
                     {
-                        _capturedVariables.Add(variable);
+                        NoteCaptured(variable);
                     }
                     break;
+                case SymbolKind.RangeVariable:
+                    if (rangeVariableUnderlyingParameter != null && currentMethodOrLambda != rangeVariableUnderlyingParameter.ContainingSymbol)
+                    {
+                        NoteCaptured(variable);
+                    }
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Add the variable to the captured set. For range variables we only add it if inside the region.
+        /// </summary>
+        /// <param name="variable"></param>
+        private void NoteCaptured(Symbol variable)
+        {
+            if (variable.Kind != SymbolKind.RangeVariable || this.regionPlace == PreciseAbstractFlowPass<LocalState>.RegionPlace.Inside)
+            {
+                _capturedVariables.Add(variable);
             }
         }
 
@@ -365,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Tracking reads/writes of variables for warnings
 
-        protected virtual void NoteRead(Symbol variable)
+        protected virtual void NoteRead(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
         {
             var local = variable as LocalSymbol;
             if ((object)local != null)
@@ -380,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _sourceAssembly.NoteFieldAccess((FieldSymbol)variable.OriginalDefinition, read: true, write: false);
                 }
 
-                CheckCaptured(variable);
+                CheckCaptured(variable, rangeVariableUnderlyingParameter);
             }
         }
 

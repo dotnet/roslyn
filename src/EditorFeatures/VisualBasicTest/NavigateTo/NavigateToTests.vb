@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         End Function
 
         Private Sub SetupNavigateTo(workspace As TestWorkspace)
-            Dim aggregateListener = New AggregateAsynchronousOperationListener({}, FeatureAttribute.NavigateTo)
+            Dim aggregateListener = New AggregateAsynchronousOperationListener(Array.Empty(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))(), FeatureAttribute.NavigateTo)
             _provider = New NavigateToItemProvider(workspace, _glyphServiceMock.Object, aggregateListener)
             _aggregator = New NavigateToTestAggregator(_provider)
         End Sub

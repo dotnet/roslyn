@@ -9,6 +9,10 @@ namespace Microsoft.CodeAnalysis
     /// Represents a method or method-like symbol (including constructor,
     /// destructor, operator, or property/event accessor).
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IMethodSymbol : ISymbol
     {
         /// <summary>

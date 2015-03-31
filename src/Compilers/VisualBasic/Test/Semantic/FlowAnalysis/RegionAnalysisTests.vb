@@ -1172,6 +1172,36 @@ End Module
 
             Assert.True(analysis.Item1.Succeeded)
             Assert.True(analysis.Item2.Succeeded)
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysis.Item2.Captured))
+        End Sub
+
+        <WorkItem(1312, "https://github.com/dotnet/roslyn/issues/1312")>
+        <Fact()>
+        Public Sub Bug1312()
+            Dim analysis = CompileAndAnalyzeDataFlow(
+      <compilation name="Bug10172">
+          <file name="a.b">
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result1 = From a In {1}
+                    From b In {2}
+                    Where Z(Function() a+b)
+                    Select a
+        Dim result2 = From c In {1}
+                    From d In {2}
+                    Where Z(Function() [|c|]+d) > 0
+                    Select c
+    End Sub
+End Class</file>
+      </compilation>)
+            Assert.Equal("Me, c", GetSymbolNamesJoined(analysis.Captured))
         End Sub
 
         <WorkItem(543645, "DevDiv")>

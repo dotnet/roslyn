@@ -1453,5 +1453,37 @@ class C
                 state.AssertNoCompletionSession()
             End Using
         End Sub
+
+        <WorkItem(1594, "https://github.com/dotnet/roslyn/issues/1594")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoPreselectionOnSpaceWhenAbuttingWord()
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class Program
+{
+    void Main()
+    {
+        Program p = new $$Program();
+    }
+}]]></Document>)
+                state.SendTypeChars(" ")
+                state.AssertNoCompletionSession()
+            End Using
+        End Sub
+
+        <WorkItem(1594, "https://github.com/dotnet/roslyn/issues/1594")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SpacePreselectionAtEndOfFile()
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class Program
+{
+    void Main()
+    {
+        Program p = new $$]]></Document>)
+                state.SendTypeChars(" ")
+                state.AssertCompletionSession()
+            End Using
+        End Sub
     End Class
 End Namespace

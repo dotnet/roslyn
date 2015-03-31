@@ -15,6 +15,7 @@
     <AssemblyName>Roslyn.Test.PdbUtilities</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">

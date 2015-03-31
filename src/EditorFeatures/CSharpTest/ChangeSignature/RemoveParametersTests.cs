@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -132,7 +133,7 @@ public class DP20<T>
         E2 -= new D(M3);
     }
 }";
-            var updatedSignature = new int[] { };
+            var updatedSignature = Array.Empty<int>();
             var updatedCode = @"
 class DA
 {

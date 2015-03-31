@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal class CachedWeakValueSource<T> : ValueSource<T>
         where T : class
     {
-        private AsyncSemaphore _gateDoNotAccessDirectly; // Lazily created. Access via the Gate property
+        private SemaphoreSlim _gateDoNotAccessDirectly; // Lazily created. Access via the Gate property
         private readonly ValueSource<T> _source;
         private WeakReference<T> _reference;
 
@@ -27,13 +27,7 @@ namespace Microsoft.CodeAnalysis.Host
             _reference = s_noReference;
         }
 
-        private AsyncSemaphore Gate
-        {
-            get
-            {
-                return LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, AsyncSemaphore.Factory);
-            }
-        }
+        private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, SemaphoreSlimFactory.Instance);
 
         public override bool TryGetValue(out T value)
         {
