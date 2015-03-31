@@ -71,8 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Guid moduleVersionId,
             int typeToken)
         {
-            Debug.Assert(MetadataTokens.Handle(typeToken).Kind == HandleKind.TypeDefinition);
-
             // Re-use the previous compilation if possible.
             var compilation = previous.Matches(metadataBlocks) ?
                 previous.Compilation :
@@ -86,6 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Guid moduleVersionId,
             int typeToken)
         {
+            Debug.Assert(MetadataTokens.Handle(typeToken).Kind == HandleKind.TypeDefinition);
+
             MetadataDecoder metadataDecoder;
             var currentType = compilation.GetType(moduleVersionId, typeToken, out metadataDecoder);
             Debug.Assert((object)currentType != null);
@@ -123,8 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             int ilOffset,
             int localSignatureToken)
         {
-            Debug.Assert(MetadataTokens.Handle(methodToken).Kind == HandleKind.MethodDefinition);
-
             // Re-use the previous compilation if possible.
             CSharpCompilation compilation;
             if (previous.Matches(metadataBlocks))
@@ -163,6 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             int ilOffset,
             int localSignatureToken)
         {
+            Debug.Assert(MetadataTokens.Handle(methodToken).Kind == HandleKind.MethodDefinition);
+
             var typedSymReader = (ISymUnmanagedReader)symReader;
             var allScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
             var containingScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();

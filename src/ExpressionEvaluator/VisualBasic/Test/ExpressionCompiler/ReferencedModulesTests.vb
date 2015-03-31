@@ -225,24 +225,30 @@ End Class"
                 Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
                 Dim moduleVersionId As Guid = Nothing
                 Dim symReader As ISymUnmanagedReader = Nothing
+                Dim typeToken = 0
                 Dim methodToken = 0
                 Dim localSignatureToken = 0
-                GetContextState(runtime, "B.Main", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
-                Dim contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
-                Dim errorMessage As String = Nothing
+                GetContextState(runtime, "B", blocks, moduleVersionId, symReader, typeToken, localSignatureToken)
+                Dim contextFactory = CreateTypeContextFactory(moduleVersionId, typeToken)
 
-                ' Duplicate type in namespace.
-                Dim testData = New CompilationTestData()
+                ' Duplicate type in namespace, at type scope.
+                Dim testData As CompilationTestData = Nothing
+                Dim errorMessage As String = Nothing
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New N.C1()", contextFactory, errorMessage, testData)
+                Assert.Equal(errorMessage, "(1,6): error BC30560: 'C1' is ambiguous in the namespace 'N'.")
+
+                GetContextState(runtime, "B.Main", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
+
+                ' Duplicate type in namespace, at method scope.
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C1()", contextFactory, errorMessage, testData)
                 Assert.Equal(errorMessage, "(1,6): error BC30560: 'C1' is ambiguous in the namespace 'N'.")
 
-                ' Duplicate type in global namespace.
-                testData = New CompilationTestData()
+                ' Duplicate type in global namespace, at method scope.
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", contextFactory, errorMessage, testData)
                 Assert.Equal(errorMessage, "(1,6): error BC30554: 'C2' is ambiguous.")
 
-                ' Duplicate extension method. No ambiguity in VB.
-                testData = New CompilationTestData()
+                ' Duplicate extension method, at method scope. No ambiguity in VB.
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, errorMessage, testData)
                 Assert.Null(errorMessage)
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
@@ -257,25 +263,50 @@ End Class"
 }")
 
                 ' Same tests as above but in library that does not directly reference duplicates.
-                GetContextState(runtime, "A.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
-                contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
+                GetContextState(runtime, "A", blocks, moduleVersionId, symReader, typeToken, localSignatureToken)
+                contextFactory = CreateTypeContextFactory(moduleVersionId, typeToken)
 
-                ' Duplicate type in namespace.
-                testData = New CompilationTestData()
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C1()", contextFactory, errorMessage, testData)
+                ' Duplicate type in namespace, at type scope.
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New N.C1()", contextFactory, errorMessage, testData)
                 Assert.Null(errorMessage)
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
-  // Code size        7 (0x7)
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""Sub N.C1..ctor()""
+  IL_0005:  ret
+}")
+
+                GetContextState(runtime, "A.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
+
+                ' Duplicate type in global namespace, at method scope.
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", contextFactory, errorMessage, testData)
+                Assert.Null(errorMessage)
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size        6 (0x6)
   .maxstack  1
   .locals init (A V_0, //x
                 Object V_1) //y
-  IL_0000:  ldloc.0
-  IL_0001:  call       ""Function E.F(A) As Integer""
-  IL_0006:  ret
+  IL_0000:  newobj     ""Sub C2..ctor()""
+  IL_0005:  ret
 }")
             End Using
         End Sub
+
+        Private Shared Function CreateTypeContextFactory(
+            moduleVersionId As Guid,
+            typeToken As Integer) As ExpressionCompiler.CreateContextDelegate
+
+            Return Function(blocks, useReferencedModulesOnly)
+                       Dim compilation = If(useReferencedModulesOnly, blocks.ToCompilationReferencedModulesOnly(moduleVersionId), blocks.ToCompilation())
+                       Return EvaluationContext.CreateTypeContext(
+                           compilation,
+                           moduleVersionId,
+                           typeToken)
+                   End Function
+        End Function
 
         Private Shared Function CreateMethodContextFactory(
             moduleVersionId As Guid,
@@ -284,16 +315,16 @@ End Class"
             localSignatureToken As Integer) As ExpressionCompiler.CreateContextDelegate
 
             Return Function(blocks, useReferencedModulesOnly)
+                       Dim compilation = If(useReferencedModulesOnly, blocks.ToCompilationReferencedModulesOnly(moduleVersionId), blocks.ToCompilation())
                        Return EvaluationContext.CreateMethodContext(
-                        Nothing,
-                        blocks,
-                        MakeDummyLazyAssemblyReaders(),
-                        symReader,
-                        moduleVersionId,
-                        methodToken,
-                        methodVersion:=1,
-                        ilOffset:=0,
-                        localSignatureToken:=localSignatureToken)
+                            compilation,
+                            MakeDummyLazyAssemblyReaders(),
+                            symReader,
+                            moduleVersionId,
+                            methodToken,
+                            methodVersion:=1,
+                            ilOffset:=0,
+                            localSignatureToken:=localSignatureToken)
                    End Function
         End Function
 

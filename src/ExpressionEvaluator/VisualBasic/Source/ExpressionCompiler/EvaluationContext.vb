@@ -72,12 +72,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             moduleVersionId As Guid,
             typeToken As Integer) As EvaluationContext
 
-            Debug.Assert(MetadataTokens.Handle(typeToken).Kind = HandleKind.TypeDefinition)
-
             ' Re-use the previous compilation if possible.
             Dim compilation = If(previous.Matches(metadataBlocks),
                 previous.Compilation,
                 metadataBlocks.ToCompilation())
+
+            Return CreateTypeContext(compilation, moduleVersionId, typeToken)
+        End Function
+
+        Friend Shared Function CreateTypeContext(
+            compilation As VisualBasicCompilation,
+            moduleVersionId As Guid,
+            typeToken As Integer) As EvaluationContext
+
+            Debug.Assert(MetadataTokens.Handle(typeToken).Kind = HandleKind.TypeDefinition)
 
             Dim metadataDecoder As MetadataDecoder = Nothing
             Dim currentType = compilation.GetType(moduleVersionId, typeToken, metadataDecoder)
@@ -117,8 +125,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ilOffset As Integer,
             localSignatureToken As Integer) As EvaluationContext
 
-            Debug.Assert(MetadataTokens.Handle(methodToken).Kind = HandleKind.MethodDefinition)
-
             ' Re-use the previous compilation if possible.
             Dim compilation As VisualBasicCompilation
             If previous.Matches(metadataBlocks) Then
@@ -133,6 +139,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Else
                 compilation = metadataBlocks.ToCompilation()
             End If
+
+            Return CreateMethodContext(
+                compilation,
+                lazyAssemblyReaders,
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                ilOffset,
+                localSignatureToken)
+        End Function
+
+        Friend Shared Function CreateMethodContext(
+            compilation As VisualBasicCompilation,
+            lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)),
+            symReader As Object,
+            moduleVersionId As Guid,
+            methodToken As Integer,
+            methodVersion As Integer,
+            ilOffset As Integer,
+            localSignatureToken As Integer) As EvaluationContext
+
+            Debug.Assert(MetadataTokens.Handle(methodToken).Kind = HandleKind.MethodDefinition)
 
             Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader)
             Dim allScopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
@@ -546,8 +575,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides Function HasDuplicateTypesOrAssemblies(diagnostic As Diagnostic) As Boolean
             Select Case CType(diagnostic.Code, ERRID)
-                Case ERRID.ERR_DuplicateReferenceStrong
-                Case ERRID.ERR_AmbiguousInNamespace2
+                Case ERRID.ERR_DuplicateReferenceStrong,
+                     ERRID.ERR_AmbiguousInUnnamedNamespace1,
+                     ERRID.ERR_AmbiguousInNamespace2
                     Return True
                 Case Else
                     Return False

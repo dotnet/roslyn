@@ -33,6 +33,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             typeToken As Integer,
             useReferencedModulesOnly As Boolean) As EvaluationContextBase
 
+            If useReferencedModulesOnly Then
+                Dim compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
+                Return EvaluationContext.CreateTypeContext(
+                    compilation,
+                    moduleVersionId,
+                    typeToken)
+            End If
+
             Dim previous = appDomain.GetMetadataContext(Of VisualBasicMetadataContext)()
             Dim context = EvaluationContext.CreateTypeContext(
                 previous,
@@ -61,6 +69,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             localSignatureToken As Integer,
             useReferencedModulesOnly As Boolean) As EvaluationContextBase
 
+            If useReferencedModulesOnly Then
+                Dim compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
+                Return EvaluationContext.CreateMethodContext(
+                    compilation,
+                    lazyAssemblyReaders,
+                    symReader,
+                    moduleVersionId,
+                    methodToken,
+                    methodVersion,
+                    ilOffset,
+                    localSignatureToken)
+            End If
+
             Dim previous = appDomain.GetMetadataContext(Of VisualBasicMetadataContext)()
             Dim context = EvaluationContext.CreateMethodContext(
                 previous,
@@ -74,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 localSignatureToken)
 
             If context IsNot previous.EvaluationContext Then
-                appDomain.SetMetadataContext(Of VisualBasicMetadataContext)(New VisualBasicMetadataContext(metadataBlocks, context))
+                appDomain.SetMetadataContext(New VisualBasicMetadataContext(metadataBlocks, context))
             End If
 
             Return context
