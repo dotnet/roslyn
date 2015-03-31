@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Describes a command line analyzer assembly specification.
     /// </summary>
-    public struct CommandLineAnalyzerReference : IEquatable<CommandLineAnalyzerReference>
+    public struct CommandLineAnalyzerReference
     {
         private readonly string _path;
 
@@ -26,21 +26,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return _path;
             }
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is CommandLineAnalyzerReference && base.Equals((CommandLineAnalyzerReference)obj);
-        }
-
-        public bool Equals(CommandLineAnalyzerReference other)
-        {
-            return _path == other._path;
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(_path, 0);
         }
     }
 }

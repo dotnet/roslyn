@@ -4,7 +4,6 @@ Microsoft.CodeAnalysis.CommandLineAnalyzerDependency.Equals(Microsoft.CodeAnalys
 Microsoft.CodeAnalysis.CommandLineAnalyzerDependency.FilePath.get -> string
 Microsoft.CodeAnalysis.CommandLineAnalyzerReference
 Microsoft.CodeAnalysis.CommandLineAnalyzerReference.CommandLineAnalyzerReference(string path) -> void
-Microsoft.CodeAnalysis.CommandLineAnalyzerReference.Equals(Microsoft.CodeAnalysis.CommandLineAnalyzerReference other) -> bool
 Microsoft.CodeAnalysis.CommandLineAnalyzerReference.FilePath.get -> string
 Microsoft.CodeAnalysis.CommandLineArguments
 Microsoft.CodeAnalysis.CommandLineArguments.AdditionalFiles.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CommandLineSourceFile>
@@ -95,8 +94,6 @@ abstract Microsoft.CodeAnalysis.CommandLineParser.RegularFileExtension.get -> st
 abstract Microsoft.CodeAnalysis.CommandLineParser.ScriptFileExtension.get -> string
 override Microsoft.CodeAnalysis.CommandLineAnalyzerDependency.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CommandLineAnalyzerDependency.GetHashCode() -> int
-override Microsoft.CodeAnalysis.CommandLineAnalyzerReference.Equals(object obj) -> bool
-override Microsoft.CodeAnalysis.CommandLineAnalyzerReference.GetHashCode() -> int
 override Microsoft.CodeAnalysis.CommandLineReference.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CommandLineReference.GetHashCode() -> int
 override Microsoft.CodeAnalysis.DesktopStrongNameProvider.Equals(object obj) -> bool
