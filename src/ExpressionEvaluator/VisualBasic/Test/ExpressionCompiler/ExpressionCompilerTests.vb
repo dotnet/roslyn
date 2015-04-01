@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Globalization
+Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -11,11 +12,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.DiaSymReader
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
+Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources
-Imports Roslyn.Test.PdbUtilities
-Imports System.IO
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class ExpressionCompilerTests
@@ -36,7 +36,26 @@ End Class
         Public Sub UniqueModuleVersionId()
             Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M")
+
+            Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+            Dim moduleVersionId As Guid = Nothing
+            Dim symReader As ISymUnmanagedReader = Nothing
+            Dim methodToken = 0
+            Dim localSignatureToken = 0
+            GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            Const methodVersion = 1
+
+            Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader)
+            Dim context = EvaluationContext.CreateMethodContext(
+                Nothing,
+                blocks,
+                MakeDummyLazyAssemblyReaders(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                ilOffset,
+                localSignatureToken)
 
             Dim errorMessage As String = Nothing
             Dim result = context.CompileExpression("1", errorMessage)
@@ -44,7 +63,17 @@ End Class
             Dim name1 = result.Assembly.GetAssemblyName()
             Assert.NotEqual(mvid1, Guid.Empty)
 
-            context = CreateMethodContext(runtime, "C.M", previous:=New VisualBasicMetadataContext(context))
+            context = EvaluationContext.CreateMethodContext(
+                New VisualBasicMetadataContext(blocks, context),
+                blocks,
+                MakeDummyLazyAssemblyReaders(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                ilOffset,
+                localSignatureToken)
+
             result = context.CompileExpression("2", errorMessage)
             Dim mvid2 = result.Assembly.GetModuleVersionId()
             Dim name2 = result.Assembly.GetAssemblyName()
@@ -257,21 +286,21 @@ End Class"
             ' At start of outer scope.
             Dim context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, startOffset, localSignatureToken)
             Assert.Equal(Nothing, previous)
-            previous = New VisualBasicMetadataContext(context)
+            previous = New VisualBasicMetadataContext(methodBlocks, context)
 
             ' At end of outer scope - not reused because of the nested scope.
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken)
             Assert.NotEqual(context, previous.EvaluationContext) ' Not required, just documentary.
 
             ' At type context.
-            context = EvaluationContext.CreateTypeContext(previous, methodBlocks, moduleVersionId, typeToken)
+            context = EvaluationContext.CreateTypeContext(previous, typeBlocks, moduleVersionId, typeToken)
             Assert.NotEqual(context, previous.EvaluationContext)
             Assert.Null(context.MethodContextReuseConstraints)
             Assert.Equal(context.Compilation, previous.Compilation)
 
             ' Step through entire method.
             Dim previousScope As Scope = Nothing
-            previous = New VisualBasicMetadataContext(context)
+            previous = New VisualBasicMetadataContext(typeBlocks, context)
             For offset = startOffset To endOffset - 1
                 Dim scope = scopes.GetInnermostScope(offset)
                 Dim constraints = previous.EvaluationContext.MethodContextReuseConstraints
@@ -291,7 +320,7 @@ End Class"
                     End If
                 End If
                 previousScope = scope
-                previous = New VisualBasicMetadataContext(context)
+                previous = New VisualBasicMetadataContext(methodBlocks, context)
             Next
 
             ' With different references.
@@ -310,7 +339,7 @@ End Class"
             Assert.NotEqual(context, previous.EvaluationContext)
             Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset - 1))
             Assert.NotEqual(context.Compilation, previous.Compilation)
-            previous = New VisualBasicMetadataContext(context)
+            previous = New VisualBasicMetadataContext(methodBlocks, context)
 
             ' Different method. Should reuse Compilation.
             GetContextState(runtime, "C.G", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)

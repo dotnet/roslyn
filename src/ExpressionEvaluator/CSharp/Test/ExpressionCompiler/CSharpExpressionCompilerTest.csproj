@@ -103,6 +103,7 @@
     <Compile Include="HoistedThisTests.cs" />
     <Compile Include="ExpressionCompilerTests.cs" />
     <Compile Include="DynamicTests.cs" />
+    <Compile Include="ReferencedModulesTests.cs" />
     <Compile Include="ResultPropertiesTests.cs" />
     <Compile Include="ManagedAddressOfTests.cs" />
     <Compile Include="LocalsTests.cs" />

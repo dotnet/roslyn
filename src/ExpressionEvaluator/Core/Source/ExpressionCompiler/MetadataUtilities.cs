@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.DiaSymReader;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -20,9 +22,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         /// <summary>
         /// Group module metadata into assemblies.
+        /// If <paramref name="moduleVersionId"/> is set, the
+        /// assemblies are limited to those referenced by that module.
         /// </summary>
-        internal static ImmutableArray<MetadataReference> MakeAssemblyReferences(this ImmutableArray<MetadataBlock> metadataBlocks)
+        internal static ImmutableArray<MetadataReference> MakeAssemblyReferences(
+            this ImmutableArray<MetadataBlock> metadataBlocks,
+            Guid moduleVersionId,
+            AssemblyIdentityComparer identityComparer)
         {
+            Debug.Assert((identityComparer == null) || (moduleVersionId != default(Guid)));
+
             // Get metadata for each module.
             var metadataBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
             // Win8 applications contain a reference to Windows.winmd version >= 1.3
@@ -76,15 +85,40 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             // Build assembly references from modules in primary module manifests.
             var referencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
+            var identitiesBuilder = (identityComparer == null) ? null : ArrayBuilder<AssemblyIdentity>.GetInstance();
+
             foreach (var metadata in metadataBuilder)
             {
                 if (!IsPrimaryModule(metadata))
                 {
                     continue;
                 }
-                var mvid = metadata.GetModuleVersionId();
-                referencesBuilder.Add(MakeAssemblyMetadata(metadata, modulesByName));
+                if (identitiesBuilder != null)
+                {
+                    var identity = metadata.MetadataReader.ReadAssemblyIdentityOrThrow();
+                    identitiesBuilder.Add(identity);
+                }
+                var reference = MakeAssemblyMetadata(metadata, modulesByName);
+                referencesBuilder.Add(reference);
             }
+
+            if (identitiesBuilder != null)
+            {
+                // Remove assemblies not directly referenced by the target module.
+                var module = metadataBuilder.FirstOrDefault(m => m.MetadataReader.GetModuleVersionIdOrThrow() == moduleVersionId);
+                Debug.Assert(module != null);
+                if (module != null)
+                {
+                    var referencedModules = ArrayBuilder<AssemblyIdentity>.GetInstance();
+                    referencedModules.Add(module.MetadataReader.ReadAssemblyIdentityOrThrow());
+                    referencedModules.AddRange(module.MetadataReader.GetReferencedAssembliesOrThrow());
+                    RemoveUnreferencedModules(referencesBuilder, identitiesBuilder, identityComparer, referencedModules);
+                    referencedModules.Free();
+                }
+                identitiesBuilder.Free();
+            }
+
+            metadataBuilder.Free();
 
             // Any runtime winmd modules were separated out initially. Now add
             // those to a placeholder for the missing compile time module since
@@ -95,8 +129,77 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             runtimeWinMdBuilder.Free();
-            metadataBuilder.Free();
             return referencesBuilder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Remove any modules that are not in the set of referenced modules.
+        /// If there are duplicates of referenced modules, potentially differing by
+        /// version, one instance of the highest version is kept and others dropped.
+        /// </summary>
+        /// <remarks>
+        /// Binding against this reduced set of modules will not handle certain valid cases
+        /// where binding to full set would succeed (e.g.: binding to types outside the
+        /// referenced modules). And since duplicates are dropped, this will prevent resolving
+        /// ambiguities between two versions of the same assembly by using aliases. Also,
+        /// there is no attempt here to follow binding redirects or to use the CLR to determine
+        /// which version of an assembly to prefer when there are duplicate assemblies.
+        /// </remarks>
+        private static void RemoveUnreferencedModules(
+            ArrayBuilder<MetadataReference> modules,
+            ArrayBuilder<AssemblyIdentity> identities,
+            AssemblyIdentityComparer identityComparer,
+            ArrayBuilder<AssemblyIdentity> referencedModules)
+        {
+            Debug.Assert(modules.Count == identities.Count);
+
+            var referencedIndices = PooledHashSet<int>.GetInstance();
+
+            int n = identities.Count;
+            int index;
+            foreach (var referencedModule in referencedModules)
+            {
+                index = -1;
+                for (int i = 0; i < n; i++)
+                {
+                    var identity = identities[i];
+                    var compareResult = identityComparer.Compare(referencedModule, identity);
+                    switch (compareResult)
+                    {
+                        case AssemblyIdentityComparer.ComparisonResult.NotEquivalent:
+                            break;
+                        case AssemblyIdentityComparer.ComparisonResult.Equivalent:
+                        case AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion:
+                            if ((index < 0) || (identity.Version > identities[index].Version))
+                            {
+                                index = i;
+                            }
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(compareResult);
+                    }
+                }
+                if (index >= 0)
+                {
+                    referencedIndices.Add(index);
+                }
+            }
+
+            Debug.Assert(referencedIndices.Count <= modules.Count);
+            Debug.Assert(referencedIndices.Count <= referencedModules.Count);
+
+            index = 0;
+            for (int i = 0; i < n; i++)
+            {
+                if (referencedIndices.Contains(i))
+                {
+                    modules[index] = modules[i];
+                    index++;
+                }
+            }
+            modules.Clip(index);
+
+            referencedIndices.Free();
         }
 
         private static PortableExecutableReference MakeAssemblyMetadata(ModuleMetadata metadata, Dictionary<string, ModuleMetadata> modulesByName)

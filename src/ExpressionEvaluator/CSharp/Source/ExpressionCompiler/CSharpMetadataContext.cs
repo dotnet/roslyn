@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             this.EvaluationContext = null;
         }
 
-        internal CSharpMetadataContext(EvaluationContext evaluationContext)
+        internal CSharpMetadataContext(ImmutableArray<MetadataBlock> metadataBlocks, EvaluationContext evaluationContext)
         {
-            this.MetadataBlocks = evaluationContext.MetadataBlocks;
+            this.MetadataBlocks = metadataBlocks;
             this.Compilation = evaluationContext.Compilation;
             this.EvaluationContext = evaluationContext;
         }

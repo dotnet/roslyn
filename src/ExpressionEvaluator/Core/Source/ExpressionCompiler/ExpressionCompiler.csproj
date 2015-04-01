@@ -34,7 +34,6 @@
     <Compile Include="Placeholders.cs" />
     <Compile Include="ReflectionHelpers.cs" />
     <Compile Include="ImmutableArrayExtensions.cs" />
-    <Compile Include="MetadataContextItem.cs" />
     <Compile Include="CompileResult.cs" />
     <Compile Include="DateTimeUtilities.cs" />
     <Compile Include="FrameDecoder.cs" />
