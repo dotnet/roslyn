@@ -95,6 +95,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return p
         End Function
 
+        Friend Function TryPeek(at As Integer, ByRef ch As Char) As Boolean
+            ' CanGet(at)
+            Debug.Assert(_lineBufferOffset + at >= 0)
+            Debug.Assert(at >= -MaxCharsLookBehind)
+            If _lineBufferOffset + at >= _bufferLen Then Return False
+            ' Peek(at)
+            at += _lineBufferOffset
+            Dim page = _curPage
+            ch = page._arr(at And s_PAGE_MASK)
+            If page._pageStart <> (at And s_NOT_PAGE_MASK) Then
+                page = GetPage(at)
+                ch = page._arr(at And s_PAGE_MASK)
+            End If
+            Return True
+        End Function
+
+        Friend Function TryPeek(ByRef ch As Char) As Boolean
+            ' CanGet()
+            If _lineBufferOffset >= _bufferLen Then Return False
+            ' Peek()
+            Dim page = _curPage
+            Dim position = _lineBufferOffset
+            ch = page._arr(position And s_PAGE_MASK)
+            If page._pageStart <> (position And s_NOT_PAGE_MASK) Then
+                page = GetPage(position)
+                ch = page._arr(position And s_PAGE_MASK)
+            End If
+            Return True
+        End Function
+
         ' PERF CRITICAL
         Private Function Peek(skip As Integer) As Char
             Debug.Assert(CanGet(skip))
