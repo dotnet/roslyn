@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.ImplementsClauseUpdate,                    FeaturesResources.UpdatingTheImplementsClause) },
             { GetDescriptorPair(RudeEditKind.ConstraintKindUpdate,                      FeaturesResources.ChangingTheConstraintFromTo) },
             { GetDescriptorPair(RudeEditKind.InsertHandlesClause,                       FeaturesResources.AddingAWithTheHandlesClause) },
+            { GetDescriptorPair(RudeEditKind.UpdateStaticLocal,                         FeaturesResources.ModifyingAWhichContainsStaticLocal) },
         }.ToImmutableDictionary();
 
         private static KeyValuePair<RudeEditKind, DiagnosticDescriptor> GetDescriptorPair(RudeEditKind kind, string message)

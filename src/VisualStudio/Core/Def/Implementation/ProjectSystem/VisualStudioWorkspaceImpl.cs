@@ -644,6 +644,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             CloseDocumentCore(documentId);
         }
 
+        public bool TryGetInfoBarData(DocumentId documentId, out IVsWindowFrame frame, out IVsInfoBarUIFactory factory)
+        {
+            if (documentId == null)
+            {
+                frame = null;
+                factory = null;
+                return false;
+            }
+
+            var document = this.GetHostDocument(documentId);
+            if (TryGetFrame(document, out frame))
+            {
+                factory = ServiceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
+                return frame != null && factory != null;
+            }
+
+            frame = null;
+            factory = null;
+            return false;
+        }
+
         public void OpenDocumentCore(DocumentId documentId, bool activate = true)
         {
             if (documentId == null)

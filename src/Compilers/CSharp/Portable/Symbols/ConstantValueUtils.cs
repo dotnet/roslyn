@@ -130,33 +130,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return value;
         }
-
-        internal struct DecimalValue
-        {
-            internal readonly uint Low;
-            internal readonly uint Mid;
-            internal readonly uint High;
-            internal readonly byte Scale;
-            internal readonly bool IsNegative;
-
-            public DecimalValue(decimal value)
-            {
-                int[] bits = System.Decimal.GetBits(value);
-
-                // The return value is a four-element array of 32-bit signed integers.
-                // The first, second, and third elements of the returned array contain the low, middle, and high 32 bits of the 96-bit integer number.
-                Low = unchecked((uint)bits[0]);
-                Mid = unchecked((uint)bits[1]);
-                High = unchecked((uint)bits[2]);
-
-                // The fourth element of the returned array contains the scale factor and sign. It consists of the following parts:
-                // Bits 0 to 15, the lower word, are unused and must be zero.
-                // Bits 16 to 23 must contain an exponent between 0 and 28, which indicates the power of 10 to divide the integer number.
-                // Bits 24 to 30 are unused and must be zero.
-                // Bit 31 contains the sign; 0 meaning positive, and 1 meaning negative.
-                Scale = (byte)((bits[3] & 0xFF0000) >> 16);
-                IsNegative = ((bits[3] & 0x80000000) != 0);
-            }
-        }
     }
 }

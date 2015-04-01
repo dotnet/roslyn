@@ -1267,6 +1267,34 @@ class C
                 MainDescription("class System.String"));
         }
 
+        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void TestVerbatimStringLiteral()
+        {
+            TestInMethod(@"string f = @""cat""$$",
+                MainDescription("class System.String"));
+        }
+
+        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void TestInterpolatedStringLiteral()
+        {
+            TestInMethod(@"string f = $""cat""$$", MainDescription("class System.String"));
+            TestInMethod(@"string f = $""c$$at""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $""$$cat""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $""cat {1$$ + 2} dog""", MainDescription("struct System.Int32"));
+        }
+
+        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void TestVerbatimInterpolatedStringLiteral()
+        {
+            TestInMethod(@"string f = $@""cat""$$", MainDescription("class System.String"));
+            TestInMethod(@"string f = $@""c$$at""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $@""$$cat""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $@""cat {1$$ + 2} dog""", MainDescription("struct System.Int32"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestCharLiteral()
         {

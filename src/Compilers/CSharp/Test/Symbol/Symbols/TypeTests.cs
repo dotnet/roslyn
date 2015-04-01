@@ -1388,7 +1388,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, new[] { r }, emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(source, new[] { r }, emitters: TestEmitters.RefEmitBug);
         }
 
         [Fact, WorkItem(530171, "DevDiv")]

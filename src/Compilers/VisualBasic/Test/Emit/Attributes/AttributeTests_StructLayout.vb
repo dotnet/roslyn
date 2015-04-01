@@ -388,7 +388,7 @@ End Class
 
             CompileAndVerify(verifiable, validator:=validator)
             CompileAndVerify(unverifiable, validator:=validator, verify:=False)
-            CompileAndVerify(unloadable, emitOptions:=TestEmitters.CCI, validator:=validator, verify:=False)
+            CompileAndVerify(unloadable, emitters:=TestEmitters.CCI, validator:=validator, verify:=False)
         End Sub
 
         <Fact>
@@ -564,7 +564,7 @@ End Class
     </file>
 </compilation>
             ' type C can't be loaded
-            CompileAndVerify(source, emitOptions:=TestEmitters.CCI, verify:=False)
+            CompileAndVerify(source, emitters:=TestEmitters.CCI, verify:=False)
         End Sub
 
         <Fact>

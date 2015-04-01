@@ -16,6 +16,8 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Moq
 
+#Disable Warning RS0007 ' Avoid zero-length array allocations. This is non-shipping test code.
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
     Public Class SignatureHelpControllerTests

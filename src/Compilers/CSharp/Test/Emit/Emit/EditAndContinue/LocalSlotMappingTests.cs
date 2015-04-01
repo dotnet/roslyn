@@ -246,13 +246,13 @@ public class C
   </methods>
 </symbols>
 ");
-            var debugInfoProvider = v0.CreatePdbInfoProvider();
+            var symReader = v0.CreateSymReader();
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), debugInfoProvider.GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), symReader.GetEncMethodDebugInfo);
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
@@ -330,8 +330,6 @@ public class C
   IL_005a:  ret
 }
 ");
-
-            debugInfoProvider.Dispose();
         }
 
         /// <summary>

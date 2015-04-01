@@ -237,6 +237,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract bool IsClosureScope(SyntaxNode node);
         internal abstract bool ContainsLambda(SyntaxNode declaration);
         internal abstract SyntaxNode GetLambda(SyntaxNode lambdaBody);
+        internal abstract IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken);
+        internal abstract SyntaxNode GetContainingQueryExpression(SyntaxNode node);
+        internal abstract bool QueryClauseLambdasTypeEquivalent(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns true if the parameters of the symbol are lifted into a scope that is different from the symbol's body.
@@ -1940,7 +1943,47 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(AssemblyEqualityComparer.Instance);
+        protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(AssemblyEqualityComparer.Instance);
+
+        private static bool MethodSignaturesEquivalent(IMethodSymbol oldMethod, IMethodSymbol newMethod)
+        {
+            return oldMethod.Parameters.SequenceEqual(newMethod.Parameters, s_assemblyEqualityComparer.ParameterEquivalenceComparer) &&
+                   s_assemblyEqualityComparer.ReturnTypeEquals(oldMethod, newMethod);
+        }
+
+        private static bool PropertySignaturesEquivalent(IPropertySymbol oldProperty, IPropertySymbol newProperty)
+        {
+            return oldProperty.Parameters.SequenceEqual(newProperty.Parameters, s_assemblyEqualityComparer.ParameterEquivalenceComparer) &&
+                   s_assemblyEqualityComparer.Equals(oldProperty.Type, newProperty.Type);
+        }
+
+        protected static bool MemberSignaturesEquivalent(ISymbol oldMemberOpt, ISymbol newMemberOpt)
+        {
+            if (oldMemberOpt == newMemberOpt)
+            {
+                return true;
+            }
+
+            if (oldMemberOpt == null || newMemberOpt == null || oldMemberOpt.Kind != newMemberOpt.Kind)
+            {
+                return false;
+            }
+
+            switch (oldMemberOpt.Kind)
+            {
+                case SymbolKind.Field:
+                    return s_assemblyEqualityComparer.Equals(((IFieldSymbol)oldMemberOpt).Type, ((IFieldSymbol)newMemberOpt).Type);
+
+                case SymbolKind.Property:
+                    return PropertySignaturesEquivalent((IPropertySymbol)oldMemberOpt, (IPropertySymbol)newMemberOpt);
+
+                case SymbolKind.Method:
+                    return MethodSignaturesEquivalent((IMethodSymbol)oldMemberOpt, (IMethodSymbol)newMemberOpt);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(oldMemberOpt.Kind);
+            }
+        }
 
         // internal for testing
         internal void AnalyzeSemantics(
@@ -2579,8 +2622,39 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var newLambdaBody = entry.Value.NewBody;
 
                     bool hasErrors;
-                    ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaBody, diagnostics, out hasErrors);
+                    ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaBody, diagnostics, out hasErrors, cancellationToken);
                     anySignatureErrors |= hasErrors;
+                }
+
+                ArrayBuilder<SyntaxNode> lazyNewErroneousClauses = null;
+                foreach (var entry in map.Forward)
+                {
+                    var oldQueryClause = entry.Key;
+                    var newQueryClause = entry.Value;
+
+                    if (!QueryClauseLambdasTypeEquivalent(oldModel, oldQueryClause, newModel, newQueryClause, cancellationToken))
+                    {
+                        lazyNewErroneousClauses = lazyNewErroneousClauses ?? ArrayBuilder<SyntaxNode>.GetInstance();
+                        lazyNewErroneousClauses.Add(newQueryClause);
+                    }
+                }
+
+                if (lazyNewErroneousClauses != null)
+                {
+                    foreach (var newQueryClause in from clause in lazyNewErroneousClauses
+                                                   orderby clause.SpanStart
+                                                   group clause by GetContainingQueryExpression(clause) into clausesByQuery
+                                                   select clausesByQuery.First())
+                    {
+                        diagnostics.Add(new RudeEditDiagnostic(
+                            RudeEditKind.ChangingQueryLambdaType,
+                            GetDiagnosticSpan(newQueryClause, EditKind.Update),
+                            newQueryClause,
+                            new[] { GetStatementDisplayName(newQueryClause, EditKind.Update) }));
+                    }
+                    
+                    lazyNewErroneousClauses.Free();
+                    anySignatureErrors = true;
                 }
 
                 // only dig into captures if lambda signatures match
@@ -3173,10 +3247,29 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             oldLocalCapturesBySyntax.Free();
         }
 
-        private void ReportLambdaSignatureRudeEdits(SemanticModel oldModel, SyntaxNode oldLambdaBody, SemanticModel newModel, SyntaxNode newLambdaBody, List<RudeEditDiagnostic> diagnostics, out bool hasErrors)
+        private void ReportLambdaSignatureRudeEdits(
+            SemanticModel oldModel,
+            SyntaxNode oldLambdaBody,
+            SemanticModel newModel,
+            SyntaxNode newLambdaBody,
+            List<RudeEditDiagnostic> diagnostics, 
+            out bool hasErrors,
+            CancellationToken cancellationToken)
         {
-            var oldLambdaSymbol = (IMethodSymbol)oldModel.GetEnclosingSymbol(oldLambdaBody.SpanStart);
-            var newLambdaSymbol = (IMethodSymbol)newModel.GetEnclosingSymbol(newLambdaBody.SpanStart);
+            var newLambda = GetLambda(newLambdaBody);
+            var oldLambda = GetLambda(oldLambdaBody);
+
+            Debug.Assert(IsLambdaExpression(newLambda) == IsLambdaExpression(oldLambda));
+
+            // queries are analyzed separately
+            if (!IsLambdaExpression(newLambda))
+            {
+                hasErrors = false;
+                return;
+            }
+
+            var oldLambdaSymbol = GetLambdaExpressionSymbol(oldModel, oldLambda, cancellationToken);
+            var newLambdaSymbol = GetLambdaExpressionSymbol(newModel, newLambda, cancellationToken);
 
             RudeEditKind rudeEdit;
 
@@ -3192,13 +3285,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 hasErrors = false;
                 return;
-            }
-
-            var newLambda = GetLambda(newLambdaBody);
-
-            if (!IsLambdaExpression(newLambda))
-            {
-                rudeEdit = RudeEditKind.ChangingQueryLambdaType;
             }
 
             diagnostics.Add(new RudeEditDiagnostic(

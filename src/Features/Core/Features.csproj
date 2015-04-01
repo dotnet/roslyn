@@ -13,6 +13,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.Features</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
@@ -179,11 +180,13 @@
     <Compile Include="Diagnostics\AnalyzerDriverResources.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
+    <Compile Include="Diagnostics\DiagnosticAnalyzerService_BuildSynchronization.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.ProjectAnalyzerReferenceChangedEventArgs.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateManager.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateManager.HostStates.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateManager.ProjectStates.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateSet.cs" />
+    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer_BuildSynchronization.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer_GetLatestDiagnosticsForSpan.cs" />
     <Compile Include="Diagnostics\HostAnalyzerManager.cs" />
     <Compile Include="Diagnostics\Analyzers\IDEDiagnosticIds.cs" />
@@ -199,7 +202,7 @@
     <Compile Include="Diagnostics\DiagnosticProviderMetadata.cs" />
     <Compile Include="Diagnostics\DiagnosticService.cs" />
     <Compile Include="Diagnostics\DiagnosticsUpdatedArgs.cs" />
-    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.IncrementalAnalyzer.AnalyzerExecutor.cs" />
+    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.AnalyzerExecutor.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer_GetDiagnostics.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.NestedTypes.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateType.cs" />
@@ -508,7 +511,7 @@
     <Compile Include="SolutionCrawler\ISolutionCrawlerRegistrationService.cs" />
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerLogger.cs" />
-    <Compile Include="SolutionCrawler\SolutionCrawlerOptions.cs" />
+    <Compile Include="SolutionCrawler\InternalSolutionCrawlerOptions.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerProgressReporter.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerService.cs" />
     <Compile Include="SolutionCrawler\State\AbstractAnalyzerState.cs" />

@@ -26,22 +26,27 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         public readonly int ClosureOrdinal;
 
+        public readonly int Generation;
+
         public const int StaticClosureOrdinal = -1;
         public const int ThisOnlyClosureOrdinal = -2;
         public const int MinClosureOrdinal = ThisOnlyClosureOrdinal;
 
-        public LambdaDebugInfo(int syntaxOffset, int closureOrdinal)
+        public LambdaDebugInfo(int syntaxOffset, int closureOrdinal, int generation)
         {
             Debug.Assert(closureOrdinal >= MinClosureOrdinal);
+            Debug.Assert(generation >= 0);
 
-            this.SyntaxOffset = syntaxOffset;
-            this.ClosureOrdinal = closureOrdinal;
+            SyntaxOffset = syntaxOffset;
+            ClosureOrdinal = closureOrdinal;
+            Generation = generation;
         }
 
         public bool Equals(LambdaDebugInfo other)
         {
-            return this.SyntaxOffset == other.SyntaxOffset
-                && this.ClosureOrdinal == other.ClosureOrdinal;
+            return SyntaxOffset == other.SyntaxOffset
+                && ClosureOrdinal == other.ClosureOrdinal 
+                && Generation == other.Generation;
         }
 
         public override bool Equals(object obj)
@@ -51,15 +56,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override int GetHashCode()
         {
-            return Hash.Combine(ClosureOrdinal, SyntaxOffset);
+            return Hash.Combine(ClosureOrdinal, 
+                   Hash.Combine(SyntaxOffset, Generation));
         }
 
         public override string ToString()
         {
             return 
-                ClosureOrdinal == StaticClosureOrdinal ? $"({SyntaxOffset}, static)" :
-                ClosureOrdinal == ThisOnlyClosureOrdinal ? $"({SyntaxOffset}, this)" :
-                $"({SyntaxOffset}, {ClosureOrdinal})";
+                ClosureOrdinal == StaticClosureOrdinal ? $"(#{Generation} @{SyntaxOffset}, static)" :
+                ClosureOrdinal == ThisOnlyClosureOrdinal ? $"(#{Generation} @{SyntaxOffset}, this)" :
+                $"(#{Generation} @{SyntaxOffset} in {ClosureOrdinal})";
         }
     }
 }

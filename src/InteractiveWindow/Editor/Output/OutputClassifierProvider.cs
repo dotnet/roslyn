@@ -9,7 +9,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
@@ -63,7 +62,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 SortedSpans errorSpans;
                 if (!_buffer.Properties.TryGetProperty(s_textBufferPropertyKey, out errorSpans))
                 {
-                    return SpecializedCollections.EmptyList<ClassificationSpan>();
+                    return Array.Empty<ClassificationSpan>();
                 }
 
                 List<ClassificationSpan> classifications = new List<ClassificationSpan>();

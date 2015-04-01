@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.DiaSymReader
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
+Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 Imports Xunit
@@ -88,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             blocks = moduleInstances.SelectAsArray(Function(m) m.MetadataBlock)
 
             Dim compilation = blocks.ToCompilation()
-            Dim methodOrType = GetMethodOrTypeBySignature(Compilation, methodOrTypeName)
+            Dim methodOrType = GetMethodOrTypeBySignature(compilation, methodOrTypeName)
             Dim [module] = DirectCast(methodOrType.ContainingModule, PEModuleSymbol)
             Dim id = [module].Module.GetModuleVersionIdOrThrow()
             Dim moduleInstance = moduleInstances.First(Function(m) m.ModuleVersionId = id)
@@ -113,8 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             runtime As RuntimeInstance,
             methodName As String,
             Optional atLineNumber As Integer = -1,
-            Optional lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)) = Nothing,
-            Optional previous As VisualBasicMetadataContext = Nothing) As EvaluationContext
+            Optional lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)) = Nothing) As EvaluationContext
 
             Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
             Dim moduleVersionId As Guid = Nothing
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim ilOffset As Integer = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber)
 
             Return EvaluationContext.CreateMethodContext(
-                previous,
+                Nothing,
                 blocks,
                 If(lazyAssemblyReaders, MakeDummyLazyAssemblyReaders()),
                 symReader,

@@ -78,11 +78,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.EnterRegion();
         }
 
-        protected override void NoteRead(Symbol variable)
+        /// <summary>
+        /// Note that a variable is read.
+        /// </summary>
+        /// <param name="variable">The variable</param>
+        /// <param name="rangeVariableUnderlyingParameter">If variable.Kind is RangeVariable, its underlying lambda parameter. Else null.</param>
+        protected override void NoteRead(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
         {
             if ((object)variable == null) return;
             if (variable.Kind != SymbolKind.Field) (IsInside ? _readInside : _readOutside).Add(variable);
-            base.NoteRead(variable);
+            base.NoteRead(variable, rangeVariableUnderlyingParameter);
         }
 
         protected override void NoteWrite(Symbol variable, BoundExpression value, bool read)
@@ -220,7 +225,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitRangeVariable(BoundRangeVariable node)
         {
-            NoteRead(node.RangeVariableSymbol);
+            // Compute the "underlying symbol" for a read of the range variable
+            ParameterSymbol rangeVariableUnderlyingParameter = GetRangeVariableUnderlyingParameter(node.Value);
+            NoteRead(node.RangeVariableSymbol, rangeVariableUnderlyingParameter);
+            return null;
+        }
+
+        /// <summary>
+        /// Compute the underlying lambda parameter symbol for a range variable, if any.
+        /// </summary>
+        /// <param name="underlying">The bound node for the expansion of the range variable</param>
+        private ParameterSymbol GetRangeVariableUnderlyingParameter(BoundNode underlying)
+        {
+            while (underlying != null)
+            {
+                switch (underlying.Kind)
+                {
+                    case BoundKind.Parameter:
+                        return ((BoundParameter)underlying).ParameterSymbol;
+                    case BoundKind.PropertyAccess:
+                        underlying = ((BoundPropertyAccess)underlying).ReceiverOpt;
+                        continue;
+                    default:
+                        return null;
+                }
+            }
+
             return null;
         }
 

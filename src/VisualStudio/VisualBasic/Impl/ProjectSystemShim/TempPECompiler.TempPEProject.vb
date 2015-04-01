@@ -194,7 +194,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             End Sub
 
             Public Sub SetCompilerOptions(ByRef pCompilerOptions As VBCompilerOptions) Implements IVbCompilerProject.SetCompilerOptions
-                _compilerOptions = New ConvertedVisualBasicProjectOptions(pCompilerOptions, _compilerHost, {}, ImmutableArray(Of String).Empty, projectDirectoryOpt:=Nothing, ruleSetOpt:=Nothing)
+                _compilerOptions = New ConvertedVisualBasicProjectOptions(pCompilerOptions, _compilerHost, Array.Empty(Of GlobalImport)(), ImmutableArray(Of String).Empty, projectDirectoryOpt:=Nothing, ruleSetOpt:=Nothing)
             End Sub
 
             Public Sub SetModuleAssemblyName(wszName As String) Implements IVbCompilerProject.SetModuleAssemblyName

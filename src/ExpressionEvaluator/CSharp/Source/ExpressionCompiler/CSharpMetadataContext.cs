@@ -12,16 +12,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal readonly CSharpCompilation Compilation;
         internal readonly EvaluationContext EvaluationContext;
 
-        internal CSharpMetadataContext(ImmutableArray<MetadataBlock> metadataBlocks)
+        internal CSharpMetadataContext(ImmutableArray<MetadataBlock> metadataBlocks, CSharpCompilation compilation)
         {
             this.MetadataBlocks = metadataBlocks;
-            this.Compilation = metadataBlocks.ToCompilation();
+            this.Compilation = compilation;
             this.EvaluationContext = null;
         }
 
-        internal CSharpMetadataContext(EvaluationContext evaluationContext)
+        internal CSharpMetadataContext(ImmutableArray<MetadataBlock> metadataBlocks, EvaluationContext evaluationContext)
         {
-            this.MetadataBlocks = evaluationContext.MetadataBlocks;
+            this.MetadataBlocks = metadataBlocks;
             this.Compilation = evaluationContext.Compilation;
             this.EvaluationContext = evaluationContext;
         }

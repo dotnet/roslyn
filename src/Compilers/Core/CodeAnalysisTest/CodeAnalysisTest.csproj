@@ -16,10 +16,17 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>FusionAssemblyIdentity.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Helpers\InMemoryAssemblyProvider.cs">
+      <Link>InMemoryAssemblyProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Helpers\AssemblyIdentityExtensions.cs">
+      <Link>AssemblyIdentityExtensions.cs</Link>
     </Compile>
     <Compile Include="AnalyzerFileReferenceTests.cs" />
     <Compile Include="AsyncQueueTests.cs" />

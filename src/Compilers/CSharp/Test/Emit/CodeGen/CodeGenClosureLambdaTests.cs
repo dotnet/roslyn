@@ -2059,7 +2059,7 @@ static class M1
         (new D<C>()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F;D::F;", emitOptions: TestEmitters.RefEmitUnsupported_646042);
+            CompileAndVerify(source, expectedOutput: "B1::F;D::F;", emitters: TestEmitters.RefEmitUnsupported_646042);
         }
 
         [Fact]
@@ -4173,7 +4173,7 @@ class Program
             // we are not interested in testing that
             CompileAndVerify(source,
                 additionalRefs: new[] { LinqAssemblyRef },
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 expectedOutput: @"
 Void .ctor(System.Object, IntPtr)
 Int32 Invoke()

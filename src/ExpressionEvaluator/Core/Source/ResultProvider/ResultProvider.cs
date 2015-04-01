@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // If the declared type is Nullable<T>, the value should
             // have no expansion if null, or be expanded as a T.
             var lmrNullableTypeArg = declaredType.GetNullableTypeArgument();
-            if (lmrNullableTypeArg != null && !value.HasExceptionThrown(parent))
+            if (lmrNullableTypeArg != null && !value.HasExceptionThrown())
             {
                 Debug.Assert(value.Type.GetProxyType() == null);
 
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     this.Formatter.GetEditableValue(value, inspectionContext));
                 if (expansion == null)
                 {
-                    var expansionType = value.HasExceptionThrown(parent) ? value.Type.GetLmrType() : declaredType;
+                    var expansionType = value.HasExceptionThrown() ? value.Type.GetLmrType() : declaredType;
                     expansion = this.GetTypeExpansion(inspectionContext, expansionType, value, expansionFlags);
                 }
             }
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var value = dataItem.Value;
             string display;
-            if (value.HasExceptionThrown(parent))
+            if (value.HasExceptionThrown())
             {
                 display = dataItem.DisplayValue ?? value.GetExceptionMessage(dataItem.FullNameWithoutFormatSpecifiers, this.Formatter);
             }

@@ -14,6 +14,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.Workspaces</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -372,12 +373,14 @@
     <Compile Include="CodeRefactorings\CodeRefactoringContext.cs" />
     <Compile Include="Differencing\LongestCommonImmutableArraySubsequence.cs" />
     <Compile Include="Differencing\SequenceEdit.cs" />
+    <Compile Include="ExtensionManager\IErrorReportingService.cs" />
     <Compile Include="FindSymbols\DeclaredSymbolInfo.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeDeclarationInfo.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileMergeSessionResult.cs" />
     <Compile Include="LinkedFileDiffMerging\DefaultDocumentTextDifferencingService.cs" />
     <Compile Include="Log\AggregateLogger.cs" />
+    <Compile Include="Log\IErrorLogger.cs" />
     <Compile Include="Log\KeyValueLogMessage.cs" />
     <Compile Include="Log\LogAggregator.cs" />
     <Compile Include="Log\Logger.LogBlock.cs" />
@@ -553,6 +556,7 @@
     <Compile Include="Workspace\Host\Mef\MefWorkspaceServices.cs" />
     <Compile Include="Workspace\Host\Mef\ServiceLayer.cs" />
     <Compile Include="Workspace\Host\Documentation\IDocumentationProviderService.cs" />
+    <Compile Include="Workspace\Host\Metadata\IAnalyzerService.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\PersistentStorageOptionsProvider.cs" />
     <Compile Include="Workspace\Host\SyntaxTreeFactory\AbstractSyntaxTreeFactoryService.AbstractRecoverableSyntaxRoot.cs" />
     <Compile Include="Workspace\Host\SyntaxTreeFactory\AbstractSyntaxTreeFactoryService.cs" />
@@ -771,7 +775,7 @@
     <Compile Include="Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="Utilities\AnnotationTable.cs" />
     <Compile Include="Utilities\AsyncLazy`1.cs" />
-    <Compile Include="Utilities\AsyncSemaphore.cs" />
+    <Compile Include="Utilities\SemaphoreSlimFactory.cs" />
     <Compile Include="Utilities\BidirectionalMap.cs" />
     <Compile Include="Utilities\CancellableLazy.cs" />
     <Compile Include="Utilities\CancellableLazy`1.cs" />

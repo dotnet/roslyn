@@ -58,6 +58,17 @@ namespace Microsoft.Cci
         void DefineConstant2([MarshalAs(UnmanagedType.LPWStr)] string name, VariantStructure value, uint sigToken);
     }
 
+    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("98ECEE1E-752D-11d3-8D56-00C04F680B2B"), SuppressUnmanagedCodeSecurity]
+    internal interface IPdbWriter
+    {
+        int __SetPath(/*[in] const WCHAR* szFullPathName, [in] IStream* pIStream, [in] BOOL fFullBuild*/);
+        int __OpenMod(/*[in] const WCHAR* szModuleName, [in] const WCHAR* szFileName*/);
+        int __CloseMod();
+        int __GetPath(/*[in] DWORD ccData,[out] DWORD* pccData,[out, size_is(ccData),length_is(*pccData)] WCHAR szPath[]*/);
+
+        void GetSignatureAge(out uint sig, out uint age);
+    }
+
     internal static class ISymUnmanagedWriter2Helper
     {
         public static unsafe void DefineConstant2(this ISymUnmanagedWriter2 writer, string name, object value, uint sigToken)
@@ -133,6 +144,7 @@ namespace Microsoft.Cci
         void MapTokenToSourceSpan(uint token, ISymUnmanagedDocumentWriter document, uint startLine, uint startColumn, uint endLine, uint endColumn);
     }
 
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     internal struct ImageDebugDirectory
     {
         internal int Characteristics;
@@ -143,18 +155,5 @@ namespace Microsoft.Cci
         internal int SizeOfData;
         internal int AddressOfRawData;
         internal int PointerToRawData;
-
-        // only here to shut up warnings
-        internal ImageDebugDirectory(object dummy)
-        {
-            this.Characteristics = 0;
-            this.TimeDateStamp = 0;
-            this.MajorVersion = 0;
-            this.MinorVersion = 0;
-            this.Type = 0;
-            this.SizeOfData = 0;
-            this.AddressOfRawData = 0;
-            this.PointerToRawData = 0;
-        }
     }
 }

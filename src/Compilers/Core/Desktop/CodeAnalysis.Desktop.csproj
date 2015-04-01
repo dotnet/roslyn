@@ -16,6 +16,7 @@
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
@@ -49,7 +50,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AdditionalTextFile.cs" />
-    <Compile Include="AnalyzerFileReference.AssemblyPathHelper.cs" />
     <Compile Include="AnalyzerLoadFailureEventArgs.cs" />
     <Compile Include="AssemblyReferenceResolver.cs" />
     <Compile Include="CodeAnalysisDesktopResources.Designer.cs">
@@ -57,7 +57,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CodeAnalysisDesktopResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="AssemblyIdentityExtensions.cs" />
     <Compile Include="AssemblyPortabilityPolicy.cs" />
     <Compile Include="AssemblyVersion.cs" />
     <Compile Include="CommandLine\CommandLineReference.cs" />
@@ -88,8 +87,6 @@
     <Compile Include="EncodedStringText.cs" />
     <Compile Include="FileKey.cs" />
     <Compile Include="FileUtilities.cs" />
-    <Compile Include="AnalyzerAssemblyLoadEventArgs.cs" />
-    <Compile Include="AnalyzerFileReference.InMemoryAssemblyLoader.cs" />
     <Compile Include="Interop\ClrStrongName.cs" />
     <Compile Include="Interop\IClrMetaHost.cs" />
     <Compile Include="Interop\IClrRuntimeInfo.cs" />
@@ -100,9 +97,6 @@
     <Compile Include="MetadataFileReferenceResolver.cs" />
     <Compile Include="PathKind.cs" />
     <Compile Include="PathUtilities.cs" />
-    <Compile Include="SerializableCompilationOptions.cs" />
-    <Compile Include="SerializableParseOptions.cs" />
-    <Compile Include="SerializationInfoExtensions.cs" />
     <Compile Include="SourceFileResolver.cs" />
     <Compile Include="SqmServiceProvider.cs" />
     <Compile Include="XmlFileResolver.cs" />
@@ -174,10 +168,10 @@
       <SubType>Designer</SubType>
       <LastGenOutput>CodeAnalysisDesktopResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="CommandLine\RuleSet\RuleSetSchema.xsd">
+    <None Include="CommandLine\RuleSet\RuleSetSchema.xsd">
       <SubType>Designer</SubType>
       <LogicalName>Microsoft.CodeAnalysis.RuleSet.xsd</LogicalName>
-    </EmbeddedResource>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\CodeAnalysisRules.ruleset">

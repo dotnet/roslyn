@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         Inherits AbstractSemanticQuickInfoSourceTests
 
         Protected Overrides Sub Test(markup As String, ParamArray expectedResults() As Action(Of Object))
-            TestWithReferences(markup, {}, expectedResults)
+            TestWithReferences(markup, Array.Empty(Of String)(), expectedResults)
         End Sub
 
         Protected Sub TestShared(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of Object))
@@ -147,6 +147,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         Public Sub TestStringAtEndOfToken()
             TestInClass("Dim i As String$$",
              MainDescription("Class System.String"))
+        End Sub
+
+        <WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Sub TestStringLiteral()
+            TestInClass("Dim i = ""cat""$$",
+             MainDescription("Class System.String"))
+        End Sub
+
+        <WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Sub TestInterpolatedStringLiteral()
+            TestInClass("Dim i = $""cat""$$", MainDescription("Class System.String"))
+            TestInClass("Dim i = $""c$$at""", MainDescription("Class System.String"))
+            TestInClass("Dim i = $""$$cat""", MainDescription("Class System.String"))
+            TestInClass("Dim i = $""cat {1$$ + 2} dog""", MainDescription("Structure System.Int32"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>

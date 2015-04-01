@@ -252,10 +252,14 @@ namespace D
                         MethodDefinitionHandle methodHandle = metadataReader.MethodDefinitions.Single(mh => metadataReader.GetString(metadataReader.GetMethodDefinition(mh).Name) == methodName);
                         int methodToken = metadataReader.GetToken(methodHandle);
 
+                        // Create a SymReader, rather than a raw COM object, because
+                        // SymReader implements ISymUnmanagedReader3 and the COM object
+                        // might not.
                         pdbbits.Position = 0;
-                        ISymUnmanagedReader reader = (ISymUnmanagedReader)TempPdbReader.CreateUnmanagedReader(pdbbits);
-
-                        return reader.GetCSharpGroupedImportStrings(methodToken, methodVersion: 1, externAliasStrings: out externAliasStrings);
+                        using (var reader = new SymReader(pdbbits.ToArray()))
+                        {
+                            return reader.GetCSharpGroupedImportStrings(methodToken, methodVersion: 1, externAliasStrings: out externAliasStrings);
+                        }
                     }
                 }
             }

@@ -2167,7 +2167,7 @@ public class Test
             string source2 = @"public class B: A {}";
             var comp = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseModule);
             var metadataRef = ModuleMetadata.CreateFromStream(comp.EmitToStream()).GetReference();
-            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, emitOptions: TestEmitters.RefEmitBug, verify: false);
+            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, emitters: TestEmitters.RefEmitBug, verify: false);
         }
 
         [Fact]
@@ -2581,7 +2581,7 @@ public interface IUsePlatform
         {
             var comp = CreateCompilation("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, options: TestOptions.DebugDll);
             // modules not supported in ref emit
-            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug, verify: false);
+            CompileAndVerify(comp, emitters: TestEmitters.RefEmitBug, verify: false);
             Assert.NotSame(comp.Assembly.CorLibrary, comp.Assembly);
             comp.GetSpecialType(SpecialType.System_Int32);
         }
@@ -2632,6 +2632,62 @@ class Viewable
 
             Assert.NotEqual(0, P1RVA);
             Assert.Equal(P2RVA, P1RVA);
+        }
+
+        private static bool SequenceMatches(byte[] buffer, int startIndex, byte[] pattern)
+        {
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                if (buffer[startIndex + i] != pattern[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static int IndexOfPattern(byte[] buffer, int startIndex, byte[] pattern)
+        {
+            // Naive linear search for target within buffer
+            int end = buffer.Length - pattern.Length;
+            for (int i = startIndex; i < end; i++)
+            {
+                if (SequenceMatches(buffer, i, pattern))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        [Fact, WorkItem(1669, "https://github.com/dotnet/roslyn/issues/1669")]
+        public void FoldMethods2()
+        {
+            // Verifies that IL folding eliminates duplicate copies of small method bodies by
+            // examining the emitted binary.
+            string source = @"
+class C
+{
+    ulong M() => 0x8675309ABCDE4225UL; 
+    long P => -8758040459200282075L;
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, null, TestOptions.ReleaseDll);
+            using (var stream = compilation.EmitToStream())
+            {
+                var bytes = new byte[stream.Length];
+                Assert.Equal(bytes.Length, stream.Read(bytes, 0, bytes.Length));
+
+                // The constant should appear exactly once
+                byte[] pattern = new byte[] { 0x25, 0x42, 0xDE, 0xBC, 0x9A, 0x30, 0x75, 0x86 };
+                int firstMatch = IndexOfPattern(bytes, 0, pattern);
+                Assert.True(firstMatch >= 0, "Couldn't find the expected byte pattern in the output.");
+                int secondMatch = IndexOfPattern(bytes, firstMatch + 1, pattern);
+                Assert.True(secondMatch < 0, "Expected to find just one occurrence of the pattern in the output.");
+            }
         }
 
         [Fact]
@@ -2727,7 +2783,7 @@ public class Program
                 ////// error CS0101: The namespace '<global namespace>' already contains a definition for '<PrivateImplementationDetails>'
                 ////Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("<PrivateImplementationDetails>", "<global namespace>").WithLocation(1, 1)
                 );
-            CompileAndVerify(comp3, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "Hello, world!");
+            CompileAndVerify(comp3, emitters: TestEmitters.RefEmitBug, expectedOutput: "Hello, world!");
         }
 
         [Fact]
@@ -2770,7 +2826,7 @@ public class Program
 
             var comp3 = CreateCompilationWithMscorlib(s3, options: TestOptions.ReleaseExe.WithModuleName("C"), references: new[] { ref1, ref2 });
             comp3.VerifyDiagnostics();
-            CompileAndVerify(comp3, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "Hello, world!");
+            CompileAndVerify(comp3, emitters: TestEmitters.RefEmitBug, expectedOutput: "Hello, world!");
         }
 
         /// <summary>

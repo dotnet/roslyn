@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>";
 
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "There is a duplicate key sequence 'CA1012' for the 'UniqueRuleName' key or unique identity constraint."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetHasDuplicateRules, "CA1012", "Error", "Warn"));
         }
 
         [Fact]
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The 'Action' attribute is invalid - The value 'Default' is invalid according to its datatype 'TIncludeAllAction' - The Enumeration constraint failed."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetBadAttributeValue, "Action", "Default"));
         }
 
         [Fact]
@@ -303,8 +303,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            string locMessage = string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "");
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'Id' is missing."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetMissingAttribute, "Rule", "Id"));
         }
 
         [Fact]
@@ -318,7 +317,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'Action' is missing."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetMissingAttribute, "Rule", "Action"));
         }
 
         [Fact]
@@ -332,7 +331,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'AnalyzerId' is missing."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetMissingAttribute, "Rules", "AnalyzerId"));
         }
 
         [Fact]
@@ -346,7 +345,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'RuleNamespace' is missing."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetMissingAttribute, "Rules", "RuleNamespace"));
         }
 
         [Fact]
@@ -361,7 +360,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 </RuleSet>
 ";
 
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'ToolsVersion' is missing."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetMissingAttribute, "RuleSet", "ToolsVersion"));
         }
 
         [Fact]
@@ -375,7 +374,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'Name' is missing."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetMissingAttribute, "RuleSet", "Name"));
         }
 
         [Fact]
@@ -420,7 +419,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 </RuleSet>
 ";
 
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The 'Action' attribute is invalid - The value 'Default' is invalid according to its datatype 'TRuleAction' - The Enumeration constraint failed."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetBadAttributeValue, "Action", "Default"));
         }
 
         [Fact]
@@ -968,7 +967,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
                 catch (InvalidRuleSetException e)
                 {
-                    Assert.Contains(string.Format(CodeAnalysisResources.InvalidRuleSetInclude, newFile.Path, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "")), e.Message, StringComparison.Ordinal);
+                    Assert.Contains(string.Format(CodeAnalysisResources.InvalidRuleSetInclude, newFile.Path, string.Format(CodeAnalysisDesktopResources.RuleSetBadAttributeValue, "Action", "Default")), e.Message, StringComparison.Ordinal);
                 }
             }
         }

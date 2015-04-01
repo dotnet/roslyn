@@ -2571,7 +2571,7 @@ End Class
                 Diagnostic(RudeEditKind.NotCapturingVariable, "F", "Me"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        <Fact, WorkItem(1290)>
         Public Sub Lambdas_Update_Signature1()
             Dim src1 = "
 Imports System
@@ -2604,10 +2604,11 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", "lambda"))
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", "lambda"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        <Fact, WorkItem(1290)>
         Public Sub Lambdas_Update_Signature2()
             Dim src1 = "
 Imports System
@@ -2641,10 +2642,10 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(a, b)", "lambda"))
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a, b)", "lambda"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        <Fact, WorkItem(1290)>
         Public Sub Lambdas_Update_Signature3()
             Dim src1 = "
 Imports System
@@ -2678,7 +2679,89 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "a", "lambda"))
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "Function(a)", "lambda"))
+        End Sub
+
+        <Fact, WorkItem(1290)>
+        Public Sub Lambdas_Update_Signature_EmptyBody1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Action(Of Integer))
+    End Sub
+
+    Sub G2(f As Action(Of Long))
+    End Sub
+
+    Sub F()
+        G1(
+Sub(a)
+End Sub)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Action(Of Integer))
+    End Sub
+
+    Sub G2(f As Action(Of Long))
+    End Sub
+
+    Sub F()
+        G2(
+Sub(a)
+End Sub)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Sub(a)", "lambda"))
+        End Sub
+
+        <Fact, WorkItem(1290)>
+        Public Sub Lambdas_Update_Signature_EmptyBody2()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Action)
+    End Sub
+
+    Sub G2(f As Func(Of Object))
+    End Sub
+
+    Sub F()
+        G1(
+Sub()
+End Sub)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Action)
+    End Sub
+
+    Sub G2(f As Func(Of Object))
+    End Sub
+
+    Sub F()
+        G2(
+Function()
+End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "Function()", "lambda"))
         End Sub
 
         <Fact>
@@ -2717,7 +2800,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        <Fact, WorkItem(1290)>
         Public Sub Lambdas_Update_Signature_ReturnType1()
             Dim src1 = "
 Imports System
@@ -2754,7 +2837,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "a", "lambda"))
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "Sub(a)", "lambda"))
         End Sub
 
         <Fact>
@@ -2831,7 +2914,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        <Fact, WorkItem(1290)>
         Public Sub Lambdas_Update_Signature_ParameterRefness1()
             Dim src1 = "
 Imports System
@@ -2871,7 +2954,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(a As Integer)", "lambda"))
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a As Integer)", "lambda"))
         End Sub
 
         <Fact>
@@ -2960,7 +3043,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        <Fact, WorkItem(1290)>
         Public Sub Lambdas_Update_SourceType2()
             Dim src1 = "
 Imports System
@@ -3006,10 +3089,10 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", "lambda"))
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", "lambda"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        <Fact, WorkItem(1290)>
         Public Sub Lambdas_Update_SourceTypeAndMetadataType1()
             Dim src1 = "
 Namespace [System]
@@ -3058,7 +3141,7 @@ End Namespace
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", "lambda"))
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", "lambda"))
         End Sub
 
         <Fact>
@@ -3100,7 +3183,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1290"), WorkItem(1290)>
+        <Fact, WorkItem(1290)>
         Public Sub Lambdas_Update_Generic2()
             Dim src1 = "
 Delegate Function D1(Of S, T)(a As S, b As T) As Integer
@@ -3136,7 +3219,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(a, b)", "lambda"))
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a, b)", "lambda"))
         End Sub
 
         <Fact>
@@ -3862,8 +3945,89 @@ End Class
 #End Region
 
 #Region "Queries"
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1315"), WorkItem(1315)>
-        Public Sub Queries_Update_Signature1()
+        <Fact>
+        Public Sub Queries_Update_Signature_Select1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1.0} Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", "Select clause"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_Select2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Select b = a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1.0} Select b = a.ToString()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", "Select clause"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_Select3()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Select b = a, c = a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1.0} Select b = a, c = a.ToString()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", "Select clause"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_From1()
             Dim src1 = "
 Imports System
 Imports System.Linq
@@ -3886,7 +4050,755 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", "From clause"),
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", "From clause"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_From2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a As Long In {1} From b In {2} Select b
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a As System.Int64 In {1} From b In {2} Select b
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_From3()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} From b In {2} Select b
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In New List(Of Integer)() From b In New List(Of Integer)() Select b
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_FromInAggregate1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1} From b in {2}, c in {3} Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1.0} From b in {2}, c in {3} Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' no lambdas created
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", "From clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_FromInAggregate2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1} From b in {2}, c in {3} Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1} From b in {2.0}, c in {3} Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' no lambdas created
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", "From clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_FromInAggregate3()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1} From b in {2}, c in {3} Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1} From b in {2}, c in {3.0} Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' no lambdas created
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", "From clause"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_Let1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Let b = 1 Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Let b = 1.0 Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Let", "Let clause"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_OrderBy1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Order By a + 1 Descending, a + 2 Ascending Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Order By a + 1.0 Descending, a + 2 Ascending Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 1.0 Descending", "ordering clause"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_OrderBy2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Order By a + 1 Descending, a + 2 Ascending Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Order By a + 1 Descending, a + 2.0 Ascending Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 2.0 Ascending", "ordering clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Join1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b In {2} On a Equals b Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b In {2.0} On a Equals b Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Join2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b In {2} On a Equals b Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b In {2} On a + 1.0 Equals b Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Join3()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b In {2} On a Equals b Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b In {2} On a Equals b + 1.0 Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Join4()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b1 In {2} Join b2 In {2.0} On b1 Equals b2 On b1 Equals a Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Join5()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b1 In {2} Join b2 In {2} On b1 + 1.0 Equals b2 On b1 Equals a Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Join()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b1 In {2} Join b2 In {2} On b1 Equals b2 + 1.0 On b1 Equals a Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_GroupJoin1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Into Count(a) Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2.0} Join b2 In {2} On b1 Equals b2 On b1 Equals a Into Count(a) Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group Join", "Group Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_GroupJoin2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Into Count(a) Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2} Join b2 In {2.0} On b1 Equals b2 On b1 Equals a Into Count(a) Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group Join", "Group Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_GroupJoin3()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Into Count(a) Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2} Join b2 In {2} On b1 + 1.0 Equals b2 On b1 Equals a Into Count(a) Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group Join", "Group Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_GroupJoin4()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Into Count(a) Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Into Count(a + 1.0) Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' no change in type
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_GroupBy1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result1 = From a In {1} Group x = 1, y = 2 By z = a, u = a Into Group Select Group
+        Dim result2 = From a In {1} Group x = 1, y = 2 By z = a, u = a Into Group Select Group
+        Dim result3 = From a In {1} Group x = 1, y = 2 By z = a, u = a Into Group Select Group
+        Dim result4 = From a In {1} Group x = 1, y = 2 By z = a, u = a Into Group Select Group
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result1 = From a In {1} Group x = 1.0, y = 2 By z = a, u = a Into Group Select Group
+        Dim result2 = From a In {1} Group x = 1, y = 2.0 By z = a, u = a Into Group Select Group
+        Dim result3 = From a In {1} Group x = 1, y = 2 By z = a + 1.0, u = a Into Group Select Group
+        Dim result4 = From a In {1} Group x = 1, y = 2 By z = a, u = a + 1.0 Into Group Select Group
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group", "Group By clause"),
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group", "Group By clause"),
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group", "Group By clause"),
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group", "Group By clause"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_Partition1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result1 = From a In {1} Take 1 Select a
+        Dim result2 = From a In {1} Skip 1 Select a
+        Dim result3 = From a In {1} Take While a Select a
+        Dim result4 = From a In {1} Skip While a Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result1 = From a In {1} Take 1.0 Select a
+        Dim result2 = From a In {1} Skip 1.0 Select a
+        Dim result3 = From a In {1} Take While a + 1.0 Select a
+        Dim result4 = From a In {1} Skip While a + 1.0 Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' no change in lambda types
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Aggregate1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1} Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1.0} Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' no lambdas created
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Aggregate2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Aggregate b In {2} Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Aggregate b In {2.0} Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' change is in the aggregate lambda body, but not in its signature
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Aggregate3()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Aggregate b In {2}, c In {3} Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Aggregate b In {2}, c In {3.0} Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Aggregate", "Aggregate clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Aggregate4()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Aggregate b In {2} Join c In {3} On c Equals b Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Aggregate b In {2} Join c In {3.0} On c Equals b Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Aggregate5()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate b In {2} Select b Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate b In {2} Select b + 1.0 Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", "Select clause"))
         End Sub
 

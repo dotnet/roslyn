@@ -284,7 +284,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Public Overrides Function VisitArrayType(symbol As ArrayTypeSymbol) As Symbol
                 Dim otherElementType As TypeSymbol = DirectCast(Me.Visit(symbol.ElementType), TypeSymbol)
-                Debug.Assert(otherElementType IsNot Nothing)
+                If otherElementType Is Nothing Then
+                    ' For a newly added type, there is no match in the previous generation, so it could be Nothing.
+                    Return Nothing
+                End If
                 Dim otherModifiers = VisitCustomModifiers(symbol.CustomModifiers)
                 Return New ArrayTypeSymbol(otherElementType, otherModifiers, symbol.Rank, Me._otherAssembly)
             End Function
@@ -341,7 +344,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                     Dim otherTypeParameters As ImmutableArray(Of TypeParameterSymbol) = otherDef.GetAllTypeParameters()
                     Dim otherTypeArguments As ImmutableArray(Of TypeSymbol) = typeArguments.SelectAsArray(Function(t, v) DirectCast(v.Visit(t), TypeSymbol), Me)
-                    Debug.Assert(otherTypeArguments.All(Function(t) t IsNot Nothing))
+                    If otherTypeArguments.Any(Function(t) t Is Nothing) Then
+                        ' For a newly added type, there is no match in the previous generation, so it could be Nothing.
+                        Return Nothing
+                    End If
 
                     Dim typeMap = TypeSubstitution.Create(otherDef, otherTypeParameters, otherTypeArguments, False)
                     Return otherDef.Construct(typeMap)

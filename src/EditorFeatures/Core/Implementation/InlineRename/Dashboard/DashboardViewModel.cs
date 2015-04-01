@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             Contract.ThrowIfNull(session);
             _session = session;
-            _searchText = "Searching...";
+            _searchText = EditorFeaturesResources.Searching;
 
             _renameOverloadsVisibility = session.HasRenameOverloads ? Visibility.Visible : Visibility.Collapsed;
             _isRenameOverloadsEditable = !session.ForceRenameOverloads;

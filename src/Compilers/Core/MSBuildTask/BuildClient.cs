@@ -24,18 +24,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     internal static class BuildClient
     {
-        private const string s_serverName = PipeName + ".exe";
+        private const string s_serverName = "VBCSCompiler.exe";
         // Spend up to 1s connecting to existing process (existing processes should be always responsive).
         private const int TimeOutMsExistingProcess = 1000;
         // Spend up to 20s connecting to a new process, to allow time for it to start.
         private const int TimeOutMsNewProcess = 20000; 
 
         /// <summary>
-        /// Try to get the directory this assembly is in.
+        /// Try to get the directory this assembly is in. Returns null if assembly
+        /// was in the GAC.
         /// </summary>
-        private static string GetExpectedServerExeDir()
+        private static string TryGetClientDir()
         {
-            var uri = new Uri(Assembly.GetExecutingAssembly().CodeBase);
+            var assembly = typeof(BuildClient).Assembly;
+
+            if (assembly.GlobalAssemblyCache)
+                return null;
+
+            var uri = new Uri(assembly.CodeBase);
             string assemblyPath = uri.IsFile 
                 ? uri.LocalPath
                 : Assembly.GetCallingAssembly().Location;
@@ -133,17 +139,22 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             IList<string> arguments,
             CancellationToken cancellationToken,
             string keepAlive = null,
-            string libEnvVariable = null)
+            string libEnvVariable = null,
+            string fallbackCompilerExeDir = null)
         {
             try
             {
                 NamedPipeClientStream pipe;
 
-                var expectedServerExePath = Path.Combine(GetExpectedServerExeDir(), s_serverName);
-                var mutexName = expectedServerExePath.Replace('\\', '/');
+                var clientDir = TryGetClientDir() ?? fallbackCompilerExeDir;
+
+                if (clientDir == null)
+                    return Task.FromResult<BuildResponse>(null);
+
+                var pipeName = GetPipeName(clientDir);
                 bool holdsMutex;
                 using (var mutex = new Mutex(initiallyOwned: true,
-                                             name: mutexName,
+                                             name: pipeName,
                                              createdNew: out holdsMutex))
                 {
                     try
@@ -153,8 +164,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         {
                             try
                             {
-                                holdsMutex = mutex.WaitOne(TimeOutMsNewProcess,
-                                    exitContext: false);
+                                holdsMutex = mutex.WaitOne(TimeOutMsNewProcess);
                             }
                             catch (AbandonedMutexException)
                             {
@@ -166,16 +176,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         {
                             var request = BuildRequest.Create(language, workingDir, arguments, keepAlive, libEnvVariable);
                             // Check for already running processes in case someone came in before us
-                            pipe = TryExistingProcesses(expectedServerExePath, cancellationToken);
-                            if (pipe != null)
+                            if (null != (pipe = TryConnectToProcess(pipeName,
+                                                                    TimeOutMsExistingProcess,
+                                                                    cancellationToken)))
                             {
                                 return TryCompile(pipe, request, cancellationToken);
                             }
                             else
                             {
-                                int processId = TryCreateServerProcess(expectedServerExePath);
-                                if (processId != 0 &&
-                                    null != (pipe = TryConnectToProcess(processId,
+                                if (TryCreateServerProcess(clientDir) &&
+                                    null != (pipe = TryConnectToProcess(pipeName,
                                                                         TimeOutMsNewProcess,
                                                                         cancellationToken)))
                                 {
@@ -265,35 +275,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// Tries to connect to existing servers on the system.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="NamedPipeClientStream"/> on success, null on failure.
-        /// </returns>
-        private static NamedPipeClientStream TryExistingProcesses(
-            string expectedProcessPath,
-            CancellationToken cancellationToken)
-        {
-            Log("Trying existing processes.");
-            foreach (int processId in GetAllProcessIds(expectedProcessPath))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var pipeStream = TryConnectToProcess(
-                    processId,
-                    TimeOutMsExistingProcess,
-                    cancellationToken);
-                if (pipeStream != null)
-                {
-                    Log("Found existing process");
-                    return pipeStream;
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
         /// The IsConnected property on named pipes does not detect when the client has disconnected
         /// if we don't attempt any new I/O after the client disconnects. We start an async I/O here
         /// which serves to check the pipe for disconnection. 
@@ -347,73 +328,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private const int MAX_PATH_SIZE = 260;
 
         /// <summary>
-        /// Get all process IDs on the current machine that have executable names matching
-        /// the pipe name and started from the <paramref name="expectedPath" />.
-        /// </summary>
-        private static IEnumerable<int> GetAllProcessIds(string expectedPath)
-        {
-            // Get all the processes with the right base name.
-            var allProcesses = Process.GetProcessesByName(PipeName);
-            Log("Found {0} existing processes with matching base name", allProcesses.Length);
-
-            try
-            {
-                foreach (Process process in allProcesses)
-                {
-                    int processId = 0;
-                    try
-                    {
-                        var exeNameBuffer = new StringBuilder(MAX_PATH_SIZE);
-                        int pathSize = MAX_PATH_SIZE;
-                        string fullFileName = null;
-
-                        if (QueryFullProcessImageName(process.Handle,
-                                                      0, // Win32 path format
-                                                      exeNameBuffer,
-                                                      ref pathSize))
-                        {
-                            fullFileName = exeNameBuffer.ToString();
-                            Log("Process file path: {0}", fullFileName);
-                        }
-
-                        if (string.Equals(fullFileName,
-                                          expectedPath,
-                                          StringComparison.OrdinalIgnoreCase))
-                        {
-                            processId = process.Id;
-                        }
-                    }
-                    // If any exception occurs (e.g., accessing the process handle
-                    // fails because the process is exiting), we should simply fail
-                    // to connect and let the loop fall through
-                    catch
-                    { }
-
-                    if (processId != 0)
-                        yield return processId;
-                }
-            }
-            finally
-            {
-                foreach (var p in allProcesses)
-                {
-                    p.Dispose();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Connect to the given process id and return a pipe.
+        /// Connect to the pipe for a given directory and return it.
         /// Throws on cancellation.
         /// </summary>
-        /// <param name="processId">Process id to try to connect to.</param>
+        /// <param name="pipeName">Name of the named pipe to connect to.</param>
         /// <param name="timeoutMs">Timeout to allow in connecting to process.</param>
         /// <param name="cancellationToken">Cancellation token to cancel connection to server.</param>
         /// <returns>
         /// An open <see cref="NamedPipeClientStream"/> to the server process or null on failure.
         /// </returns>
         private static NamedPipeClientStream TryConnectToProcess(
-            int processId,
+            string pipeName,
             int timeoutMs,
             CancellationToken cancellationToken)
         {
@@ -421,9 +346,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             try
             {
                 // Machine-local named pipes are named "\\.\pipe\<pipename>".
-                // We use the pipe name followed by the process id.
+                // We use the SHA1 of the directory the compiler exes live in as the pipe name.
                 // The NamedPipeClientStream class handles the "\\.\pipe\" part for us.
-                string pipeName = PipeName + processId.ToString();
                 Log("Attempt to open named pipe '{0}'", pipeName);
 
                 pipeStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
@@ -455,11 +379,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// Create a new instance of the server process, returning its process ID.
-        /// Returns 0 on failure.
+        /// Create a new instance of the server process, returning true on success
+        /// and false otherwise.
         /// </summary>
-        private static int TryCreateServerProcess(string expectedPath)
+        private static bool TryCreateServerProcess(string clientDir)
         {
+            // The server should be in the same directory as the client
+            string expectedPath = Path.Combine(clientDir, s_serverName);
+
+            if (!File.Exists(expectedPath))
+                return false;
+
             // As far as I can tell, there isn't a way to use the Process class to 
             // create a process with no stdin/stdout/stderr, so we use P/Invoke.
             // This code was taken from MSBuild task starting code.
@@ -493,13 +423,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 Log("Successfully created process with process id {0}", processInfo.dwProcessId);
                 CloseHandle(processInfo.hProcess);
                 CloseHandle(processInfo.hThread);
-                return processInfo.dwProcessId;
             }
             else
             {
                 Log("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
-                return 0;
             }
+            return success;
         }
     }
 }

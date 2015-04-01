@@ -386,7 +386,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsLiteral
-            Return SyntaxFacts.IsLiteralExpressionToken(CType(token.Kind, SyntaxKind))
+            Select Case token.Kind()
+                Case _
+                        SyntaxKind.IntegerLiteralToken,
+                        SyntaxKind.CharacterLiteralToken,
+                        SyntaxKind.DecimalLiteralToken,
+                        SyntaxKind.FloatingLiteralToken,
+                        SyntaxKind.DateLiteralToken,
+                        SyntaxKind.StringLiteralToken,
+                        SyntaxKind.DollarSignDoubleQuoteToken,
+                        SyntaxKind.DoubleQuoteToken,
+                        SyntaxKind.InterpolatedStringTextToken,
+                        SyntaxKind.TrueKeyword,
+                        SyntaxKind.FalseKeyword,
+                        SyntaxKind.NothingKeyword
+                    Return True
+            End Select
+
+            Return False
         End Function
 
         Public Function IsStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteral
@@ -1026,6 +1043,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         node = parent
                         Exit While
                     End If
+                End If
+
+                ' The inside of an interpolated string is treated as its own token so we
+                ' need to force navigation to the parent expression syntax.
+                If TypeOf node Is InterpolatedStringTextSyntax AndAlso TypeOf parent Is InterpolatedStringExpressionSyntax Then
+                    node = parent
+                    Exit While
                 End If
 
                 ' If this node is not parented by a name, we're done.
