@@ -34,8 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 ";
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code))
             {
+                var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetService<IErrorLoggerService>()));
                 var fixService = new CodeFixService(
-                    diagnosticService, workspace.Services.GetService<IErrorLoggerService>(), fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
+                    diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
 
                 var incrementalAnalzyer = (IIncrementalAnalyzerProvider)diagnosticService;
 
@@ -147,9 +148,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
             var code = @"class Program { }";
             var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code);
-            errorLogger = new TestErrorLogger();
+            var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => new TestErrorLogger()));
+            errorLogger = logger.First().Value;
             fixService = new CodeFixService(
-                    diagnosticService, errorLogger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
+                    diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
             return workspace;
         }
 
