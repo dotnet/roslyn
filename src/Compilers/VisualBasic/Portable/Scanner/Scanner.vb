@@ -485,11 +485,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function LengthOfLineBreak(StartCharacter As Char, Optional here As Integer = 0) As Integer
+#If DEBUG Then
             Dim c As Char
             Dim res = TryPeek(here, c)
             Debug.Assert(res)
             Debug.Assert(IsNewLine(StartCharacter))
-            Debug.Assert(StartCharacter = Peek(here))
+            Debug.Assert(StartCharacter = c)
+#End If
             If StartCharacter = CARRIAGE_RETURN AndAlso NextIs(here + 1, LINE_FEED) Then
                 Return 2
             End If
@@ -900,12 +902,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Sub EatWhitespace()
             Dim c As Char
+#If DEBUG Then
             Dim ok = TryPeek(c)
             Debug.Assert(ok)
             Debug.Assert(IsWhitespace(c))
-
+#End If
             AdvanceChar()
-
             ' eat until linebreak or nonwhitespace
             While TryPeek(c) AndAlso IsWhitespace(c)
                 AdvanceChar()
@@ -986,8 +988,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case CARRIAGE_RETURN, LINE_FEED
                     Return ScanNewlineAsStatementTerminator(ch, precedingTrivia)
                 Case NEXT_LINE, LINE_SEPARATOR, PARAGRAPH_SEPARATOR
-                    If fullWidth Then Exit Select
-                    Return ScanNewlineAsStatementTerminator(ch, precedingTrivia)
+                    If Not fullWidth Then
+                        Return ScanNewlineAsStatementTerminator(ch, precedingTrivia)
+                    End If
                 Case " "c, CHARACTER_TABULATION, "'"c
                     Debug.Assert(False, String.Format("Unexpected char: &H{0:x}", AscW(ch)))
                     Return Nothing ' trivia cannot start a token
@@ -1079,27 +1082,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case "A"c
                     If NextAre(1, "s ") Then
                         ' TODO: do we allow widechars in keywords?
-                        Dim spelling = "As"
-                        If fullWidth Then spelling = GetText(2) Else AdvanceChar(2)
-                        Return MakeKeyword(SyntaxKind.AsKeyword, spelling, precedingTrivia)
+                        AdvanceChar(2)
+                        Return MakeKeyword(SyntaxKind.AsKeyword, "As", precedingTrivia)
                     Else
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
                 Case "E"c
                     If NextAre(1, "nd ") Then
                         ' TODO: do we allow widechars in keywords?
-                        Dim spelling = "End"
-                        If fullWidth Then spelling = GetText(3) Else AdvanceChar(3)
-                        Return MakeKeyword(SyntaxKind.EndKeyword, spelling, precedingTrivia)
+                        AdvanceChar(3)
+                        Return MakeKeyword(SyntaxKind.EndKeyword, "End", precedingTrivia)
                     Else
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
                 Case "I"c
                     If NextAre(1, "f ") Then
                         ' TODO: do we allow widechars in keywords?
-                        Dim spelling = "If"
-                        If fullWidth Then spelling = GetText(2) Else AdvanceChar(2)
-                        Return MakeKeyword(SyntaxKind.IfKeyword, spelling, precedingTrivia)
+                        AdvanceChar(2)
+                        Return MakeKeyword(SyntaxKind.IfKeyword, "If", precedingTrivia)
                     Else
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
@@ -1129,8 +1129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return XmlMakeEndEmbeddedToken(precedingTrivia, _scanSingleLineTriviaFunc)
                     End If
                 Case "$"c, FULLWIDTH_DOLLAR_SIGN
-                    If fullWidth Then Exit Select
-                    If TryPeek(1, c) AndAlso IsDoubleQuote(c) Then
+                    If Not fullWidth AndAlso TryPeek(1, c) AndAlso IsDoubleQuote(c) Then
                         Return MakePunctuationToken(precedingTrivia, 2, SyntaxKind.DollarSignDoubleQuoteToken)
                     End If
             End Select
@@ -1191,9 +1190,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ScanRightAngleBracket(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As SyntaxToken
             Dim c As Char
+#If DEBUG Then
             Dim ok = TryPeek(c)
             Debug.Assert(ok)  ' >
             Debug.Assert(c.IsAnyOf(">"c, FULLWIDTH_GREATER_THAN_SIGN))
+#End If
+
             Dim length As Integer = 1
 
             ' // Allow whitespace between the characters of a two-character token.
@@ -1217,9 +1219,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ScanLeftAngleBracket(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean, scanTrailingTrivia As ScanTriviaFunc) As SyntaxToken
             Dim c As Char
+#If DEBUG Then
             Dim ok = TryPeek(c)
             Debug.Assert(ok)  ' <
             Debug.Assert(c.IsAnyOf("<"c, FULLWIDTH_LESS_THAN_SIGN))
+#End If
             Dim length As Integer = 1
 
             ' Check for XML tokens
@@ -1251,8 +1255,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' // Allow whitespace between the characters of a two-character token.
             length = GetWhitespaceLength(length)
-
-
             If TryPeek(length, c) Then
                 If c.IsAnyOf("="c, FULLWIDTH_EQUALS_SIGN) Then
                     length += 1
@@ -1309,7 +1311,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ScanIdentifierOrKeyword(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Dim ch As Char
-            Dim ok = TryPeek(ch)
+            Dim ok = TryPeek(ch) ' Non DEBUG usage see:= If IsConnectorPunctuation(ch) 
+
             Debug.Assert(ok)
             Debug.Assert(IsIdentifierStartCharacter(ch))
             Debug.Assert(PeekStartComment(0) = 0) ' comment should be handled by caller
@@ -1422,9 +1425,11 @@ FullWidthRepeat:
 
         Private Function ScanBracketedIdentifier(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Dim ch As Char
+#If DEBUG Then
             Dim ok = TryPeek(ch)
             Debug.Assert(ok)  ' [
             Debug.Assert(ch.IsAnyOf("["c, FULLWIDTH_LEFT_SQUARE_BRACKET))
+#End If
 
             Dim IdStart As Integer = 1
             Dim Here As Integer = IdStart
@@ -1914,7 +1919,6 @@ FullWidthRepeat2:
             ' // The first thing has to be an integer, although it's not clear what it is yet
             If Not ScanIntLiteral(FirstValue, Here) Then
                 Return Nothing
-
             End If
 
             ' // If we see a /, then it's a date

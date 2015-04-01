@@ -774,14 +774,14 @@ CleanUp:
         End Function
 
         Friend Function ScanXmlStringUnQuoted() As SyntaxToken
-            Dim c As Char
-            If Not TryPeek(c) Then
+            If Not CanGet() Then
                 Return MakeEofToken()
             End If
 
             ' This can never happen as this token cannot cross lines.
             Debug.Assert(Not (IsScanningXmlDoc AndAlso IsAtNewLine()))
 
+            Dim c As Char
             Dim Here = 0
             Dim scratch = GetScratch()
 
@@ -1113,7 +1113,7 @@ CreateNCNameToken:
 
         Private Function ScanXmlReference(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As XmlTextTokenSyntax
             Debug.Assert( NextIs(0,"&"c))
-            Dim c,c1 As Char
+            Dim c, c1 As Char
             ' skip 1 char for "&"
             If TryPeek(1, c) Then
                  Select Case (c)

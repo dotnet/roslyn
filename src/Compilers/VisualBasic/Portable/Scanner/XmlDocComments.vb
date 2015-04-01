@@ -498,7 +498,7 @@ CleanUp:
                         Return XmlMakeDoubleQuoteToken(precedingTrivia, c, isOpening:=True)
 
                     Case "<"c
-                        Dim ch,c2 As Char
+                        Dim ch, c2 As Char
                         If TryPeek(1, ch) Then
                             Select Case ch
                                 Case "!"c

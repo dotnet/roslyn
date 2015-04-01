@@ -113,19 +113,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function IsInterpolatedStringPunctuation(Optional offset As Integer = 0) As Boolean
             Dim c, c1 As Char
             If Not TryPeek(offset, c) Then Return False
-            Dim ok = TryPeek(offset + 1, c1)
             If IsLeftCurlyBracket(c) Then
-                Return Not ok OrElse Not IsLeftCurlyBracket(c1)
+                Return Not TryPeek(offset + 1, c1) OrElse Not IsLeftCurlyBracket(c1)
 
             ElseIf IsRightCurlyBracket(c) Then
-                Return Not ok OrElse Not IsRightCurlyBracket(c1)
+                Return Not TryPeek(offset + 1, c1) OrElse Not IsRightCurlyBracket(c1)
 
             ElseIf IsDoubleQuote(c)
                 'A subtle difference between this case and the one above.
                 ' In both interpolated and literal strings the two quote characters used in an escape sequence don't have to match.
                 ' It's enough that the next character is *a* quote char. It doesn't have to be the same quote.
                 ' If we want to preserve consistency the quotes need to be special cased.
-                Return Not ok OrElse Not IsDoubleQuote(c1)
+                Return Not TryPeek(offset + 1, c1) OrElse Not IsDoubleQuote(c1)
 
             Else
                 Return False
@@ -144,10 +143,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' Any combination of fullwidth and ASCII curly braces of the same direction is an escaping sequence for the corresponding ASCII curly brace.
                 ' We insert that curly brace doubled and because this is the escaping sequence understood by String.Format, that will be replaced by a single brace.
                 ' This is deliberate design and it aligns with existing rules for double quote escaping in strings.
-                Dim ok = TryPeek(offset+1, c1)
                 If IsLeftCurlyBracket(c) Then
 
-                    If ok AndAlso IsLeftCurlyBracket(c1) Then
+                    If TryPeek(offset + 1, c1) AndAlso IsLeftCurlyBracket(c1) Then
                         ' This is an escape sequence.
 
                         valueBuilder.Append("{{")
@@ -161,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 ElseIf IsRightCurlyBracket(c) Then
 
-                    If ok AndAlso IsRightCurlyBracket(c1) Then
+                    If TryPeek(offset + 1, c1) AndAlso IsRightCurlyBracket(c1) Then
                         ' This is an escape sequence.
 
                         valueBuilder.Append("}}")
@@ -175,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 ElseIf IsDoubleQuote(c)
 
-                    If ok AndAlso IsDoubleQuote(c1) Then
+                    If TryPeek(offset + 1, c1) AndAlso IsDoubleQuote(c1) Then
                         ' This is a VB double quote escape. Oddly enough this logic allows mixing and matching of
                         ' smart and dumb double quotes in any order. Regardless we always emit as a standard double quote.
                         ' This is consistent with their handling in string literals.

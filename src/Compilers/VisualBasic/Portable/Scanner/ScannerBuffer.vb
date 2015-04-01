@@ -4,6 +4,7 @@
 ' Contains the definition of the Scanner, which produces tokens from text
 '-----------------------------------------------------------------------------
 
+Imports System.Runtime.InteropServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -95,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return p
         End Function
 
-        Friend Function TryPeek(at As Integer, ByRef ch As Char) As Boolean
+        Friend Function TryPeek(at As Integer, <Out()> ByRef ch As Char) As Boolean
             ' CanGet(at)
             Debug.Assert(_lineBufferOffset + at >= 0)
             Debug.Assert(at >= -MaxCharsLookBehind)
@@ -111,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
-        Friend Function TryPeek(ByRef ch As Char) As Boolean
+        Friend Function TryPeek(<Out()> ByRef ch As Char) As Boolean
             ' CanGet()
             If _lineBufferOffset >= _bufferLen Then Return False
             ' Peek()
