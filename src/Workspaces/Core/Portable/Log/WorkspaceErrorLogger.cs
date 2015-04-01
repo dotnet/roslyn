@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ErrorLogger
     {
         public void LogError(string source, string message)
         {
-            Logger.GetLogger()?.Log(FunctionId.Extension_Excpetion, LogMessage.Create(source + " : " + message));
+            Logger.GetLogger()?.Log(FunctionId.Extension_Exception, LogMessage.Create(source + " : " + message));
         }
 
         public bool TryLogError(string source, string message)
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ErrorLogger
             var logger = Logger.GetLogger();
             if (logger != null)
             {
-                logger.Log(FunctionId.Extension_Excpetion, LogMessage.Create(source + " : " + message));
+                logger.Log(FunctionId.Extension_Exception, LogMessage.Create(source + " : " + message));
                 return true;
             }
 
