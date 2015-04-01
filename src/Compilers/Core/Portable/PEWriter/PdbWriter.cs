@@ -577,7 +577,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public unsafe Guid GetDebugDirectoryGuid()
+        public unsafe void GetDebugDirectoryGuidAndStamp(out Guid guid, out uint stamp)
         {
             // See symwrite.cpp - the data byte[] doesn't depend on the content of metadata tables or IL.
             // The writer only sets two values of the ImageDebugDirectory struct.
@@ -626,7 +626,13 @@ namespace Microsoft.Cci
             byte[] guidBytes = new byte[GuidSize];
             Buffer.BlockCopy(data, 4, guidBytes, 0, guidBytes.Length);
 
-            return new Guid(guidBytes);
+            guid = new Guid(guidBytes);
+
+            // Retrieve the timestamp the PDB writer generates when creating a new PDB stream.
+            // Note that ImageDebugDirectory.TimeDateStamp is not set by GetDebugInfo, 
+            // we need to go thru IPdbWriter interface to get it.
+            uint age;
+            ((IPdbWriter)_symWriter).GetSignatureAge(out stamp, out age);
         }
 
         public void SetEntryPoint(uint entryMethodToken)
