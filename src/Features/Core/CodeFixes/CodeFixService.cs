@@ -40,18 +40,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider>.CreateValueCallback _createProjectCodeFixProvider;
 
         private readonly ImmutableDictionary<LanguageKind, Lazy<ISuppressionFixProvider>> _suppressionProvidersMap;
-        private readonly IErrorLoggerService _errorLogger;
+        private readonly IEnumerable<Lazy<IErrorLoggerService>> _errorLoggers;
 
         private ImmutableDictionary<CodeFixProvider, FixAllProviderInfo> _fixAllProviderMap;
 
         [ImportingConstructor]
         public CodeFixService(
             IDiagnosticAnalyzerService service,
-            IErrorLoggerService logger,
+            [ImportMany]IEnumerable<Lazy<IErrorLoggerService>> loggers,
             [ImportMany]IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
             [ImportMany]IEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>> suppressionProviders)
         {
-            _errorLogger = logger;
+            _errorLoggers = loggers;
             _diagnosticService = service;
             var fixersPerLanguageMap = fixers.ToPerLanguageMapWithMultipleLanguages();
             var suppressionProvidersPerLanguageMap = suppressionProviders.ToPerLanguageMapWithMultipleLanguages();
@@ -416,7 +416,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
             catch (Exception e)
             {
-                _errorLogger?.LogError(fixer.GetType().Name, e.Message + Environment.NewLine + e.StackTrace);
+                foreach (var logger in _errorLoggers)
+                {
+                    logger.Value.LogError(fixer.GetType().Name, e.Message + Environment.NewLine + e.StackTrace);
+                }
                 return ImmutableArray<DiagnosticId>.Empty;
             }
         }
