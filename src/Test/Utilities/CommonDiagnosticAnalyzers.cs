@@ -89,9 +89,6 @@ namespace Microsoft.CodeAnalysis
                 var root = tree.GetRoot();
                 var expectedLineSpan = root.GetLocation().GetLineSpan();
 
-                // Pending Design: What should be the URI to emit for diagnostics with no location?
-                var noLocationUri = "<None>";
-                
                 return @"
   ""issues"": [
     {
@@ -128,19 +125,6 @@ namespace Microsoft.CodeAnalysis
     {
       ""ruleId"": """ + Descriptor2.Id + @""",
       ""locations"": [
-        {
-          ""analysisTarget"": [
-            {
-              ""uri"": """ + noLocationUri + @""",
-              ""region"": {
-                ""startLine"": 0,
-                ""startColumn"": 0,
-                ""endLine"": 0,
-                ""endColumn"": 0
-              }
-            }
-          ]
-        }
       ],
       ""shortMessage"": """ + Descriptor2.MessageFormat + @""",
       ""fullMessage"": """ + Descriptor2.Description + @""",
