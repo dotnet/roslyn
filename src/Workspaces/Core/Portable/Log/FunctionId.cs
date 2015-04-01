@@ -299,6 +299,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SuggestedActions_GetSuggestedActions,
         AnalyzerDependencyCheckingService_CheckForConflictsAsync,
         VirtualMemory_MemoryLow,
-        Extension_Excpetion,
+        Extension_Exception,
     }
 }
