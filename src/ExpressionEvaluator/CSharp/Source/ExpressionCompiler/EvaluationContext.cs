@@ -14,8 +14,8 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.DiaSymReader;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal readonly ImmutableArray<MetadataBlock> MetadataBlocks;
         internal readonly MethodContextReuseConstraints? MethodContextReuseConstraints;
         internal readonly CSharpCompilation Compilation;
+        internal readonly Guid ModuleVersionId;
 
         private readonly MetadataDecoder _metadataDecoder;
         private readonly MethodSymbol _currentFrame;
@@ -39,17 +40,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ImmutableArray<MetadataBlock> metadataBlocks,
             MethodContextReuseConstraints? methodContextReuseConstraints,
             CSharpCompilation compilation,
+            Guid moduleVersionId,
             MetadataDecoder metadataDecoder,
             MethodSymbol currentFrame,
             ImmutableArray<LocalSymbol> locals,
             InScopeHoistedLocals inScopeHoistedLocals,
             MethodDebugInfo methodDebugInfo)
         {
+            Debug.Assert(moduleVersionId != Guid.Empty);
             Debug.Assert(inScopeHoistedLocals != null);
 
             this.MetadataBlocks = metadataBlocks;
             this.MethodContextReuseConstraints = methodContextReuseConstraints;
             this.Compilation = compilation;
+            this.ModuleVersionId = moduleVersionId;
             _metadataDecoder = metadataDecoder;
             _currentFrame = currentFrame;
             _locals = locals;
@@ -77,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(MetadataTokens.Handle(typeToken).Kind == HandleKind.TypeDefinition);
 
             // Re-use the previous compilation if possible.
-            var compilation = previous.Matches(metadataBlocks) ?
+            var compilation = previous.Matches(metadataBlocks, moduleVersionId) ?
                 previous.Compilation :
-                metadataBlocks.ToCompilation();
+                metadataBlocks.ToCompilation(moduleVersionId);
 
             MetadataDecoder metadataDecoder;
             var currentType = compilation.GetType(moduleVersionId, typeToken, out metadataDecoder);
@@ -90,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 metadataBlocks,
                 null,
                 compilation,
+                moduleVersionId,
                 metadataDecoder,
                 currentFrame,
                 default(ImmutableArray<LocalSymbol>),
@@ -123,13 +128,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // Re-use the previous compilation if possible.
             CSharpCompilation compilation;
-            if (previous.Matches(metadataBlocks))
+            if (previous.Matches(metadataBlocks, moduleVersionId))
             {
                 // Re-use entire context if method scope has not changed.
                 var previousContext = previous.EvaluationContext;
                 if (previousContext != null &&
                     previousContext.MethodContextReuseConstraints.HasValue &&
-                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, ilOffset))
+                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(methodToken, methodVersion, ilOffset))
                 {
                     return previousContext;
                 }
@@ -137,14 +142,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             else
             {
-                compilation = metadataBlocks.ToCompilation();
+                compilation = metadataBlocks.ToCompilation(moduleVersionId);
             }
 
             var typedSymReader = (ISymUnmanagedReader)symReader;
             var allScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
             var containingScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
             typedSymReader.GetScopes(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes);
-            var methodContextReuseConstraints = allScopes.GetReuseConstraints(moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive);
+            var methodContextReuseConstraints = allScopes.GetReuseConstraints(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive);
             allScopes.Free();
 
             var localNames = containingScopes.GetLocalNames();
@@ -184,6 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 metadataBlocks,
                 methodContextReuseConstraints,
                 compilation,
+                moduleVersionId,
                 metadataDecoder,
                 currentFrame,
                 locals,

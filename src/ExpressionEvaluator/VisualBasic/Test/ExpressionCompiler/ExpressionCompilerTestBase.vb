@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim moduleInstances = runtime.Modules
             blocks = moduleInstances.SelectAsArray(Function(m) m.MetadataBlock)
 
-            Dim compilation = blocks.ToCompilation()
+            Dim compilation = blocks.ToCompilation(runtime.GetLastModuleVersionId()) ' Assume target module is the last module.
             Dim methodOrType = GetMethodOrTypeBySignature(compilation, methodOrTypeName)
             Dim [module] = DirectCast(methodOrType.ContainingModule, PEModuleSymbol)
             Dim id = [module].Module.GetModuleVersionIdOrThrow()

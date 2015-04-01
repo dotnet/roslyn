@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -21,8 +22,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// <summary>
         /// Group module metadata into assemblies.
         /// </summary>
-        internal static ImmutableArray<MetadataReference> MakeAssemblyReferences(this ImmutableArray<MetadataBlock> metadataBlocks)
+        internal static ImmutableArray<MetadataReference> MakeAssemblyReferences(
+            this ImmutableArray<MetadataBlock> metadataBlocks,
+            AssemblyIdentityComparer identityComparer,
+            Guid moduleVersionId)
         {
+            Debug.Assert(moduleVersionId != Guid.Empty);
+
             // Get metadata for each module.
             var metadataBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
             // Win8 applications contain a reference to Windows.winmd version >= 1.3
@@ -76,15 +82,31 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             // Build assembly references from modules in primary module manifests.
             var referencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
+            var identitiesBuilder = ArrayBuilder<AssemblyIdentity>.GetInstance();
             foreach (var metadata in metadataBuilder)
             {
                 if (!IsPrimaryModule(metadata))
                 {
                     continue;
                 }
-                var mvid = metadata.GetModuleVersionId();
-                referencesBuilder.Add(MakeAssemblyMetadata(metadata, modulesByName));
+                var identity = metadata.MetadataReader.ReadAssemblyIdentityOrThrow();
+                identitiesBuilder.Add(identity);
+                var reference = MakeAssemblyMetadata(metadata, modulesByName);
+                referencesBuilder.Add(reference);
             }
+
+            var module = metadataBuilder.FirstOrDefault(m => m.MetadataReader.GetModuleVersionIdOrThrow() == moduleVersionId);
+            if (module != null)
+            {
+                // Search for duplicate assemblies comparing against the
+                // target assembly and any referenced assemblies.
+                var referencedModules = ArrayBuilder<AssemblyIdentity>.GetInstance();
+                referencedModules.Add(module.MetadataReader.ReadAssemblyIdentityOrThrow());
+                referencedModules.AddRange(module.MetadataReader.GetReferencedAssembliesOrThrow());
+                AddAliasesToDuplicateAssemblies(referencesBuilder, identitiesBuilder, identityComparer, referencedModules);
+                referencedModules.Free();
+            }
+            identitiesBuilder.Free();
 
             // Any runtime winmd modules were separated out initially. Now add
             // those to a placeholder for the missing compile time module since
@@ -97,6 +119,62 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             runtimeWinMdBuilder.Free();
             metadataBuilder.Free();
             return referencesBuilder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Add aliases to any strong-named duplicate assemblies that differ
+        /// by version, preferring the version referenced from the target module.
+        /// </summary>
+        private static void AddAliasesToDuplicateAssemblies(
+            ArrayBuilder<MetadataReference> references,
+            ArrayBuilder<AssemblyIdentity> identities,
+            AssemblyIdentityComparer identityComparer,
+            ArrayBuilder<AssemblyIdentity> referencedModules)
+        {
+            Debug.Assert(references.Count == identities.Count);
+
+            // Dictionary to ensure exactly one unique alias
+            // is added to each AssemblyIdentity.
+            var duplicateIdentities = PooledDictionary<AssemblyIdentity, string>.GetInstance();
+
+            // Find duplicate pairs.
+            int n = identities.Count;
+            foreach (var referencedModule in referencedModules)
+            {
+                if (!referencedModule.IsStrongName)
+                {
+                    continue;
+                }
+                for (int i = 0; i < n; i++)
+                {
+                    var identity = identities[i];
+                    var compareResult = identityComparer.Compare(referencedModule, identity);
+                    // Only need to handle assemblies that differ by version since
+                    // ReferenceManager will drop equivalent assemblies.
+                    if (compareResult != AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion)
+                    {
+                        continue;
+                    }
+                    duplicateIdentities[identity] = Guid.NewGuid().ToString();
+                }
+            }
+
+            Debug.Assert(references.All(r => r.Properties.Aliases.IsEmpty));
+
+            // Add aliases to duplicate references.
+            if (duplicateIdentities.Count > 0)
+            {
+                for (int i = 0; i < n; i++)
+                {
+                    string alias;
+                    if (duplicateIdentities.TryGetValue(identities[i], out alias))
+                    {
+                        references[i] = references[i].WithAliases(ImmutableArray.Create(alias));
+                    }
+                }
+            }
+
+            duplicateIdentities.Free();
         }
 
         private static PortableExecutableReference MakeAssemblyMetadata(ModuleMetadata metadata, Dictionary<string, ModuleMetadata> modulesByName)
@@ -296,9 +374,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             symMethod.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive);
         }
 
-        internal static MethodContextReuseConstraints GetReuseConstraints(this ArrayBuilder<ISymUnmanagedScope> scopes, Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset, bool isEndInclusive)
+        internal static MethodContextReuseConstraints GetReuseConstraints(this ArrayBuilder<ISymUnmanagedScope> scopes, int methodToken, int methodVersion, int ilOffset, bool isEndInclusive)
         {
-            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset, isEndInclusive);
+            var builder = new MethodContextReuseConstraints.Builder(methodToken, methodVersion, ilOffset, isEndInclusive);
             foreach (ISymUnmanagedScope scope in scopes)
             {
                 builder.AddRange((uint)scope.GetStartOffset(), (uint)scope.GetEndOffset());

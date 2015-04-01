@@ -424,7 +424,8 @@ class C
             var runtime = CreateRuntimeInstance(compilation);
             var moduleInstances = runtime.Modules;
             var blocks = moduleInstances.SelectAsArray(m => m.MetadataBlock);
-            compilation = blocks.ToCompilation();
+            var moduleVersionId = runtime.GetLastModuleVersionId();
+            compilation = blocks.ToCompilation(moduleVersionId);
             var frame = (PEMethodSymbol)GetMethodOrTypeBySignature(compilation, methodName);
 
             // Once we have the method token, we want to look up the method (again)

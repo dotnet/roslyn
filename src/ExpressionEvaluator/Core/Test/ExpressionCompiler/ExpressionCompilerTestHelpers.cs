@@ -267,16 +267,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
+        internal static ModuleMetadata GetModuleMetadata(this MetadataReference reference)
+        {
+            var metadata = ((MetadataImageReference)reference).GetMetadata();
+            var assemblyMetadata = metadata as AssemblyMetadata;
+            Assert.True((assemblyMetadata == null) || (assemblyMetadata.GetModules().Length == 1));
+            return (assemblyMetadata == null) ? (ModuleMetadata)metadata : assemblyMetadata.GetModules()[0];
+        }
+
         internal static ModuleInstance ToModuleInstance(
             this MetadataReference reference,
             byte[] fullImage,
             object symReader,
             bool includeLocalSignatures = true)
         {
-            var metadata = ((MetadataImageReference)reference).GetMetadata();
-            var assemblyMetadata = metadata as AssemblyMetadata;
-            Assert.True((assemblyMetadata == null) || (assemblyMetadata.GetModules().Length == 1));
-            var moduleMetadata = (assemblyMetadata == null) ? (ModuleMetadata)metadata : assemblyMetadata.GetModules()[0];
+            var moduleMetadata = reference.GetModuleMetadata();
             var moduleId = moduleMetadata.Module.GetModuleVersionIdOrThrow();
             // The Expression Compiler expects metadata only, no headers or IL.
             var metadataBytes = moduleMetadata.Module.PEReaderOpt.GetMetadata().GetContent().ToArray();
@@ -288,6 +293,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 metadataBytes,
                 symReader,
                 includeLocalSignatures);
+        }
+
+        internal static AssemblyIdentity GetAssemblyIdentity(this MetadataReference reference)
+        {
+            var moduleMetadata = reference.GetModuleMetadata();
+            var reader = moduleMetadata.MetadataReader;
+            return reader.ReadAssemblyIdentityOrThrow();
+        }
+
+        internal static Guid GetModuleVersionId(this MetadataReference reference)
+        {
+            var moduleMetadata = reference.GetModuleMetadata();
+            var reader = moduleMetadata.MetadataReader;
+            return reader.GetModuleVersionIdOrThrow();
         }
 
         internal static void VerifyLocal<TMethodSymbol>(
