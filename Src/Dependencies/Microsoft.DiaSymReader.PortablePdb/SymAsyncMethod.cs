@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.DiaSymReader.PortablePdb
 {
-    [ComVisible(true)]
+    [ComVisible(false)]
     public sealed class SymAsyncMethod : ISymUnmanagedAsyncMethod
     {
         public int GetAsyncStepInfo(int bufferLength, out int count, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] yieldOffsets, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] breakpointOffset, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] breakpointMethod)
