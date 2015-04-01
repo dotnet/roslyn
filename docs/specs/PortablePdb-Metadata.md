@@ -17,6 +17,7 @@ The ECMA-335-II standard is amended by an addition of the following tables to th
 * [ImportScope](#ImportScopeTable)
 * [AsyncMethod](#AsyncMethodTable)
 * [CustomDebugInformation](#CustomDebugInformationTable)
+    * [EntryPoint](#EntryPoint)
     * [StateMachineHoistedLocalScopes](#StateMachineHoistedLocalScopes)
     * [DynamicLocalVariables](#DynamicLocalVariables)
     * [DefaultNamespace](#DefaultNamespace)
@@ -39,7 +40,9 @@ The Document table has the following columns:
 
 The table is not required to be sorted.
 
-There shall be no duplicate rows in the _Document_ table, based upon _Name_.
+There shall be no duplicate rows in the _Document_ table, based upon document name. 
+
+_Name_ shall not be nil. It can however encode an empty name string.
 
 The values for which field _Language_ has a defined meaning are listed in the following tables along with the corresponding interpretation:
 
@@ -67,7 +70,7 @@ Document name blob is a sequence:
 where
 
 * _separator_ is a UTF8 encoded character, or byte 0 to represent an empty separator.
-* _part_ is a compressed integer into the #Blob heap, where the part is stored in UTF8 encoding (0 represents and empty string).
+* _part_ is a compressed integer into the #Blob heap, where the part is stored in UTF8 encoding (0 represents an empty string).
 
 The document name is a concatenation of the _parts_ separated by the _separator_.
 - - -
@@ -181,13 +184,17 @@ The LocalScope table has the following columns:
 
     The scope length in bytes.
 
-The table is required to be sorted first by _Method_ and then by _StartOffset_.
+The table is required to be sorted first by _Method_ in ascending order, then by _StartOffset_ in ascending order, then by _Length_ in descending order.
+
+_StartOffset_ + _Length_ shall be in range (0..0x80000000).
 
 Each scope spans IL instructions in range [_StartOffset_, _StartOffset_ + _Length_).
 
 _StartOffset_ shall point to the starting byte of an instruction of the _Method_.
 
 _StartOffset_ + _Length_ shall point to the starting byte of an instruction of the _Method_ or be equal to the size of the IL stream of the _Method_.
+
+For each pair of scopes belonging to the same _Method_ the intersection of their respective ranges _R1_ and _R2_ shall be either _R1_ or _R2_ or empty.
 
 ### <a name="LocalVariableTable"></a>LocalVariable Table: 0x33
 
@@ -216,11 +223,47 @@ The LocalConstant table has the following columns:
 
 * _Name_ (String heap index)
 * _Value_ (Blob heap index)
-* _TypeCode_ (see ECMA-335-II §23.1.16; encoding: uint8)
+* _TypeCode_ (type code; encoding: uint8)
 
 Conceptually, every row in the LocalConstant table is owned by one, and only one, row in the LocalScope table.
 
 There shall be no duplicate rows in the LocalConstant table, based upon owner and _Name_.
+
+_TypeCode_ shall be exactly one of 
+
+| _TypeCode_                | value | _Value_ encoding         |
+|:--------------------------|:------|:-------------------------|
+| Custom                    | 0x00  | [Custom constant blob](#CustomConstantBlob) |
+| ```ELEMENT_TYPE_BOOLEAN```| 0x02  | |
+| ```ELEMENT_TYPE_CHAR```   | 0x03  | |
+| ```ELEMENT_TYPE_I1```     | 0x04  | |
+| ```ELEMENT_TYPE_U1```     | 0x05  | |
+| ```ELEMENT_TYPE_I2```     | 0x06  | |
+| ```ELEMENT_TYPE_U2```     | 0x07  | |
+| ```ELEMENT_TYPE_I4```     | 0x08  | |
+| ```ELEMENT_TYPE_U4```     | 0x09  | |
+| ```ELEMENT_TYPE_I8```     | 0x0a  | |
+| ```ELEMENT_TYPE_U8```     | 0x0b  | |
+| ```ELEMENT_TYPE_R4```     | 0x0c  | |
+| ```ELEMENT_TYPE_R8```     | 0x0d  | |
+| ```ELEMENT_TYPE_STRING``` | 0x0e  | | 
+| ```ELEMENT_TYPE_CLASS```  | 0x12  | _Value_ must be 0. |
+| Decimal                   | 0x22  | sign (highest bit), scale (bits 0..7), low (uint32), mid (uint32), high (uint32) |
+| DateTime                  | 0x23  | ticks (int64)
+
+Values and encoding of ```ELEMENT_TYPE_*``` constants are defined in ECMA-335 §II.23.1.16.
+
+####<a name="CustomConstantBlob"></a>Custom Constant Blob
+Custom constant blob represents a value of a constant whose encoding is language/tool specific.
+
+The blob has the following structure:
+
+	Blob ::= kind value
+
+| terminal   | value                        | description                          |
+|:-----------|:-----------------------------|:-------------------------------------|
+| _kind_     | Compressed unsigned integer  | GUID heap index                      |
+| _value_    | Sequence of bytes            | Value                                |
 
 ###<a name="ImportScopeTable"></a>ImportScope Table: 0x35
 The ImportScope table has the following columns:
@@ -332,6 +375,21 @@ Kind is an id defined by the tool producing the information.
 #### Language Specific Custom Debug Information Records
 
 The following _Custom Debug Information_ records are currently produced by C#, VB and F# compilers. In future the compilers and other tools may define new records. Once specified they may not change. If a change is needed the owner has to define a new record with a new kind (GUID).
+
+##### <a name="EntryPoint"></a>Entry Point (C# & VB compilers)
+Parent: AssemblyDef
+
+Kind: {22DEB650-BB47-4D8A-B2A4-1BBA47FEB7F1}
+
+Specifies the entry-point MethodDef.
+
+Structure:
+
+    Blob ::= method
+
+| terminal  | encoding                    | description       |
+|:----------|:----------------------------|:------------------|
+| _method_  | Compressed unsigned integer | MethodDef row id. |
 
 ##### <a name="StateMachineHoistedLocalScopes"></a>State Machine Hoisted Local Scopes (C# & VB compilers)
 Parent: MethodDef
