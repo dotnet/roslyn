@@ -175,20 +175,18 @@ Imports N
 Namespace N
     Class C1
     End Class
+    Public Module E
+        <Extension>
+        Public Function F(o As A) As Integer
+            Return 2
+        End Function
+    End Module
 End Namespace
 Class C2
 End Class
-Public Module E
-    <Extension>
-    Public Function F(o As A) As Integer
-        Return 2
-    End Function
-End Module
 Class B
     Shared Sub Main()
         Dim x As New A()
-        Dim y As Object = x.F()
-        A.M()
     End Sub
 End Class"
             Dim assemblyNameA = ExpressionCompilerUtilities.GenerateUniqueName()
@@ -221,7 +219,7 @@ End Class"
             moduleBuilder.Add(moduleB)
             Dim modules = moduleBuilder.ToImmutableAndFree()
 
-            Using runtime = CreateRuntimeInstance(modules)
+            Using runtime = New RuntimeInstance(modules)
                 Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
                 Dim moduleVersionId As Guid = Nothing
                 Dim symReader As ISymUnmanagedReader = Nothing
@@ -248,19 +246,11 @@ End Class"
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", contextFactory, errorMessage, testData)
                 Assert.Equal(errorMessage, "(1,6): error BC30554: 'C2' is ambiguous.")
 
-                ' Duplicate extension method, at method scope. No ambiguity in VB.
+                ' Duplicate extension method, at method scope.
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, errorMessage, testData)
-                Assert.Null(errorMessage)
-                testData.GetMethodData("<>x.<>m0").VerifyIL(
-"{
-  // Code size        7 (0x7)
-  .maxstack  1
-  .locals init (A V_0, //x
-                Object V_1) //y
-  IL_0000:  ldloc.0
-  IL_0001:  call       ""Function E.F(A) As Integer""
-  IL_0006:  ret
-}")
+                Assert.Equal(errorMessage, "(1,4): error BC30521: Overload resolution failed because no accessible 'F' is most specific for these arguments:
+    Extension method 'Public Function F() As Integer' defined in 'E': Not most specific.
+    Extension method 'Public Function F() As Integer' defined in 'E': Not most specific.")
 
                 ' Same tests as above but in library that does not directly reference duplicates.
                 GetContextState(runtime, "A", blocks, moduleVersionId, symReader, typeToken, localSignatureToken)
@@ -291,6 +281,20 @@ End Class"
                 Object V_1) //y
   IL_0000:  newobj     ""Sub C2..ctor()""
   IL_0005:  ret
+}")
+
+                ' Duplicate extension method, at method scope.
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, errorMessage, testData)
+                Assert.Null(errorMessage)
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (A V_0, //x
+                Object V_1) //y
+  IL_0000:  ldloc.0
+  IL_0001:  call       ""Function N.E.F(A) As Integer""
+  IL_0006:  ret
 }")
             End Using
         End Sub

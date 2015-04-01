@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -305,6 +306,175 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var uniqueIdentities = actualIdentities.Distinct();
                 Assert.Equal(actualIdentities.Length, uniqueIdentities.Length);
             }
+        }
+
+        [Fact]
+        public void DuplicateTypesAndMethodsDifferentAssemblies()
+        {
+            var sourceA =
+@"using N;
+namespace N
+{
+    class C1 { }
+    public static class E
+    {
+        public static int F(this A o) { return 1; }
+    }
+}
+class C2 { }
+public class A
+{
+    public static void M()
+    {
+        var x = new A();
+        var y = x.F();
+    }
+}";
+            var sourceB =
+@"using N;
+namespace N
+{
+    class C1 { }
+    public static class E
+    {
+        public static int F(this A o) { return 2; }
+    }
+}
+class C2 { }
+public class B
+{
+    static void M()
+    {
+        var x = new A();
+    }
+}";
+            var assemblyNameA = ExpressionCompilerUtilities.GenerateUniqueName();
+            var compilationA = CreateCompilationWithMscorlibAndSystemCore(sourceA, options: TestOptions.DebugDll, assemblyName: assemblyNameA);
+            byte[] exeBytesA;
+            byte[] pdbBytesA;
+            ImmutableArray<MetadataReference> referencesA;
+            compilationA.EmitAndGetReferences(out exeBytesA, out pdbBytesA, out referencesA);
+            var referenceA = AssemblyMetadata.CreateFromImage(exeBytesA).GetReference(display: assemblyNameA);
+            var moduleA = referenceA.ToModuleInstance(exeBytesA, new SymReader(pdbBytesA));
+
+            var assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName();
+            var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, assemblyName: assemblyNameB, references: new[] { referenceA });
+            byte[] exeBytesB;
+            byte[] pdbBytesB;
+            ImmutableArray<MetadataReference> referencesB;
+            compilationB.EmitAndGetReferences(out exeBytesB, out pdbBytesB, out referencesB);
+            var referenceB = AssemblyMetadata.CreateFromImage(exeBytesB).GetReference(display: assemblyNameB);
+            var moduleB = referenceB.ToModuleInstance(exeBytesB, new SymReader(pdbBytesB));
+
+            var moduleBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
+            moduleBuilder.AddRange(referencesA.Select(r => r.ToModuleInstance(null, null)));
+            moduleBuilder.Add(moduleA);
+            moduleBuilder.Add(moduleB);
+            var modules = moduleBuilder.ToImmutableAndFree();
+
+            using (var runtime = new RuntimeInstance(modules))
+            {
+                ImmutableArray<MetadataBlock> blocks;
+                Guid moduleVersionId;
+                ISymUnmanagedReader symReader;
+                int typeToken;
+                int methodToken;
+                int localSignatureToken;
+                GetContextState(runtime, "B", out blocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
+                string errorMessage;
+                CompilationTestData testData;
+                var contextFactory = CreateTypeContextFactory(moduleVersionId, typeToken);
+
+                // Duplicate type in namespace, at type scope.
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new N.C1()", contextFactory, out errorMessage, out testData);
+                Assert.True(errorMessage.StartsWith("error CS0433: The type 'C1' exists in both "));
+
+                GetContextState(runtime, "B.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+                contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken);
+
+                // Duplicate type in namespace, at method scope.
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C1()", contextFactory, out errorMessage, out testData);
+                Assert.True(errorMessage.StartsWith("error CS0433: The type 'C1' exists in both "));
+
+                // Duplicate type in global namespace, at method scope.
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C2()", contextFactory, out errorMessage, out testData);
+                Assert.True(errorMessage.StartsWith("error CS0433: The type 'C2' exists in both "));
+
+                // Duplicate extension method, at method scope.
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, out errorMessage, out testData);
+                Assert.Equal(errorMessage, "(1,3): error CS0121: The call is ambiguous between the following methods or properties: 'N.E.F(A)' and 'N.E.F(A)'");
+
+                // Same tests as above but in library that does not directly reference duplicates.
+                GetContextState(runtime, "A", out blocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
+                contextFactory = CreateTypeContextFactory(moduleVersionId, typeToken);
+
+                // Duplicate type in namespace, at type scope.
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new N.C1()", contextFactory, out errorMessage, out testData);
+                Assert.Null(errorMessage);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""N.C1..ctor()""
+  IL_0005:  ret
+}");
+
+                GetContextState(runtime, "A.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+                contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken);
+
+                // Duplicate type in global namespace, at method scope.
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C2()", contextFactory, out errorMessage, out testData);
+                Assert.Null(errorMessage);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  .locals init (A V_0, //x
+                int V_1) //y
+  IL_0000:  newobj     ""C2..ctor()""
+  IL_0005:  ret
+}");
+
+                // Duplicate extension method, at method scope.
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, out errorMessage, out testData);
+                Assert.Null(errorMessage);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (A V_0, //x
+                int V_1) //y
+  IL_0000:  ldloc.0
+  IL_0001:  call       ""int N.E.F(A)""
+  IL_0006:  ret
+}");
+            }
+        }
+
+        private static ExpressionCompiler.CreateContextDelegate CreateTypeContextFactory(
+            Guid moduleVersionId,
+            int typeToken)
+        {
+            return (blocks, useReferencedModulesOnly) => EvaluationContext.CreateTypeContext(
+                useReferencedModulesOnly ? blocks.ToCompilationReferencedModulesOnly(moduleVersionId) : blocks.ToCompilation(),
+                moduleVersionId,
+                typeToken);
+        }
+
+        private static ExpressionCompiler.CreateContextDelegate CreateMethodContextFactory(
+            Guid moduleVersionId,
+            ISymUnmanagedReader symReader,
+            int methodToken,
+            int localSignatureToken)
+        {
+            return (blocks, useReferencedModulesOnly) => EvaluationContext.CreateMethodContext(
+                useReferencedModulesOnly ? blocks.ToCompilationReferencedModulesOnly(moduleVersionId) : blocks.ToCompilation(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion: 1,
+                ilOffset: 0,
+                localSignatureToken: localSignatureToken);
         }
     }
 }

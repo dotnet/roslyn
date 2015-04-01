@@ -577,7 +577,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Select Case CType(diagnostic.Code, ERRID)
                 Case ERRID.ERR_DuplicateReferenceStrong,
                      ERRID.ERR_AmbiguousInUnnamedNamespace1,
-                     ERRID.ERR_AmbiguousInNamespace2
+                     ERRID.ERR_AmbiguousInNamespace2,
+                     ERRID.ERR_NoMostSpecificOverload2
                     Return True
                 Case Else
                     Return False
