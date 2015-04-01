@@ -1485,9 +1485,9 @@ class Program
                 state.AssertCompletionSession()
             End Using
         End Sub
-		
+
         <WorkItem(1659, "https://github.com/dotnet/roslyn/issues/1659")>
-<Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub DismissOnSelectAllCommand()
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -1500,6 +1500,7 @@ class C
                 ' of the caret to the end of the selection isn't responsible for 
                 ' dismissing the session.
                 state.SendInvokeCompletionList()
+                state.AssertCompletionSession()
                 state.SendSelectAll()
                 state.AssertNoCompletionSession()
             End Using
