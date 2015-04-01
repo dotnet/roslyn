@@ -1,55 +1,91 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.DiaSymReader.PortablePdb
 {
-    [ComVisible(true)]
+    [ComVisible(false)]
     public sealed class SymVariable : ISymUnmanagedVariable
     {
-        public int GetAddressField1(out int value)
-        {
-            throw new NotImplementedException();
-        }
+        private const int ADDR_IL_OFFSET = 1;
 
-        public int GetAddressField2(out int value)
-        {
-            throw new NotImplementedException();
-        }
+        private readonly SymReader _symReader;
+        private readonly LocalVariableHandle _handle;
 
-        public int GetAddressField3(out int value)
+        internal SymVariable(SymReader symReader, LocalVariableHandle handle)
         {
-            throw new NotImplementedException();
-        }
-
-        public int GetAddressKind(out int kind)
-        {
-            throw new NotImplementedException();
+            Debug.Assert(symReader != null);
+            _symReader = symReader;
+            _handle = handle;
         }
 
         public int GetAttributes(out int attributes)
         {
-            throw new NotImplementedException();
+            var variable = _symReader.MetadataReader.GetLocalVariable(_handle);
+            attributes = (int)variable.Attributes;
+            return HResult.S_OK;
         }
 
-        public int GetEndOffset(out int offset)
+        public int GetAddressField1(out int value)
         {
-            throw new NotImplementedException();
+            var variable = _symReader.MetadataReader.GetLocalVariable(_handle);
+            value = variable.Index;
+            return HResult.S_OK;
         }
 
-        public int GetName(int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]char[] name)
+        public int GetAddressField2(out int value)
         {
-            throw new NotImplementedException();
+            // not implemented by DiaSymReader
+            value = 0;
+            return HResult.E_NOTIMPL;
         }
 
-        public int GetSignature(int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]byte[] signature)
+        public int GetAddressField3(out int value)
         {
-            throw new NotImplementedException();
+            // not implemented by DiaSymReader
+            value = 0;
+            return HResult.E_NOTIMPL;
         }
 
         public int GetStartOffset(out int offset)
         {
+            // not implemented by DiaSymReader
+            offset = 0;
+            return HResult.E_NOTIMPL;
+        }
+
+        public int GetEndOffset(out int offset)
+        {
+            // not implemented by DiaSymReader
+            offset = 0;
+            return HResult.E_NOTIMPL;
+        }
+
+        public int GetAddressKind(out int kind)
+        {
+            kind = ADDR_IL_OFFSET;
+            return HResult.S_OK;
+        }
+
+        public int GetName(
+            int bufferLength, 
+            out int count, 
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]char[] name)
+        {
+            var variable = _symReader.MetadataReader.GetLocalVariable(_handle);
+            var str = _symReader.MetadataReader.GetString(variable.Name);
+            return InteropUtilities.StringToBuffer(str, bufferLength, out count, name);
+        }
+
+        public int GetSignature(
+            int bufferLength,
+            out int count,
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]byte[] signature)
+        {
+            // TODO:
             throw new NotImplementedException();
         }
     }
