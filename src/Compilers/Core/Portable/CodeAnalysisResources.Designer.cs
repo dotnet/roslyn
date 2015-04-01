@@ -809,15 +809,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The file does not conform to the rule set schema - {0}.
-        /// </summary>
-        internal static string RuleSetSchemaViolation {
-            get {
-                return ResourceManager.GetString("RuleSetSchemaViolation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to error.
         /// </summary>
         internal static string SeverityError {

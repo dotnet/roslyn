@@ -16,6 +16,7 @@
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\..\packages\System.Reflection.Metadata.1.1.0-alpha-00001\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
@@ -167,10 +168,10 @@
       <SubType>Designer</SubType>
       <LastGenOutput>CodeAnalysisDesktopResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="CommandLine\RuleSet\RuleSetSchema.xsd">
+    <None Include="CommandLine\RuleSet\RuleSetSchema.xsd">
       <SubType>Designer</SubType>
       <LogicalName>Microsoft.CodeAnalysis.RuleSet.xsd</LogicalName>
-    </EmbeddedResource>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\CodeAnalysisRules.ruleset">

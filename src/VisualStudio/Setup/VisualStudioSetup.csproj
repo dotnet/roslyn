@@ -22,6 +22,7 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OfficialBuild)' == 'true'">
     <DefineConstants>$(DefineConstants);OFFICIAL_BUILD</DefineConstants>

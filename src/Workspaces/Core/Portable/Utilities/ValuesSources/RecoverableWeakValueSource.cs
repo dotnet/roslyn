@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal abstract class RecoverableWeakValueSource<T> : ValueSource<T> where T : class
     {
-        private AsyncSemaphore _gateDoNotAccessDirectly; // Lazily created. Access via the Gate property
+        private SemaphoreSlim _gateDoNotAccessDirectly; // Lazily created. Access via the Gate property
         private bool _saved;
         private WeakReference<T> _weakInstance;
         private ValueSource<T> _recoverySource;
@@ -62,13 +62,7 @@ namespace Microsoft.CodeAnalysis.Host
         private static Task s_latestTask = SpecializedTasks.EmptyTask;
         private static readonly NonReentrantLock s_taskGuard = new NonReentrantLock();
 
-        private AsyncSemaphore Gate
-        {
-            get
-            {
-                return LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, AsyncSemaphore.Factory);
-            }
-        }
+        private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, SemaphoreSlimFactory.Instance);
 
         public override bool TryGetValue(out T value)
         {
@@ -125,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 saveTask.SafeContinueWith(t =>
                 {
-                    using (this.Gate.DisposableWait())
+                    using (this.Gate.DisposableWait(CancellationToken.None))
                     {
                         _recoverySource = new AsyncLazy<T>(this.RecoverAsync, this.Recover, cacheResult: false);
 

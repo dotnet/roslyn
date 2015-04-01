@@ -122,7 +122,7 @@ index: 2);
             TestAddDocument(
 @"class Program { void Main ( ) { [|Foo|] f ; } } ",
 @"internal class Foo { } ",
-expectedContainers: new string[0],
+expectedContainers: Array.Empty<string>(),
 expectedDocumentName: "Foo.cs");
         }
 
@@ -1511,7 +1511,7 @@ string.Format(FeaturesResources.GenerateForInNewFile, "class", "Foo", FeaturesRe
             TestAddDocument(
 @"class C : [|Foo|]",
 "internal class Foo { }",
-new string[] { },
+Array.Empty<string>(),
 "Foo.cs");
         }
 
@@ -1671,7 +1671,7 @@ namespace Namespace1.Namespace2
 
             TestAddDocument(code,
                 expected,
-                expectedContainers: new string[0],
+                expectedContainers: Array.Empty<string>(),
                 expectedDocumentName: "ClassB.cs",
                 compareTokens: false,
                 isLine: false);

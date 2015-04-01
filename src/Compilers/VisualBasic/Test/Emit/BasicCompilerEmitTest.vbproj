@@ -14,6 +14,7 @@
     <AssemblyName>Roslyn.Compilers.VisualBasic.Emit.UnitTests</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
@@ -160,6 +161,7 @@
     <Compile Include="Emit\EditAndContinue\EditAndContinueStateMachineTests.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTests.vb" />
+    <Compile Include="Emit\EditAndContinue\SymbolMatcherTests.vb" />
     <Compile Include="Emit\EmitCustomModifiers.vb" />
     <Compile Include="Emit\EmitErrorTests.vb" />
     <Compile Include="Emit\EmitMetadata.vb" />

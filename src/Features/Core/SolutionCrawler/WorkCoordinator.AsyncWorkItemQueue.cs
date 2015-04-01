@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 where TKey : class
             {
                 private readonly object _gate;
-                private readonly AsyncSemaphore _semaphore;
+                private readonly SemaphoreSlim _semaphore;
                 private readonly SolutionCrawlerProgressReporter _progressReporter;
 
                 // map containing cancellation source for the item given out.
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 public AsyncWorkItemQueue(SolutionCrawlerProgressReporter progressReporter)
                 {
                     _gate = new object();
-                    _semaphore = new AsyncSemaphore(initialCount: 0);
+                    _semaphore = new SemaphoreSlim(initialCount: 0);
                     _cancellationMap = new Dictionary<object, CancellationTokenSource>();
                     _progressReporter = progressReporter;
                 }

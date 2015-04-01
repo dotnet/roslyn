@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.ErrorLogger
 Imports Microsoft.CodeAnalysis.Host
 Imports Roslyn.Utilities
 
@@ -46,6 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim codefixService = New CodeFixService(
                                         diagnosticService,
+                                        workspace.Services.GetService(Of IErrorLoggerService),
                                         {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
                                             Function() workspaceCodeFixProvider,
                                             New Mef.CodeChangeProviderMetadata(New Dictionary(Of String, Object)() From {{"Name", "C#"}, {"Languages", {LanguageNames.CSharp}}}))},
@@ -109,6 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
                 Dim codefixService = New CodeFixService(
                                         diagnosticService,
+                                        workspace.Services.GetService(Of IErrorLoggerService),
                                         {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
                                             Function() workspaceCodeFixProvider,
                                             New Mef.CodeChangeProviderMetadata(New Dictionary(Of String, Object)() From {{"Name", "C#"}, {"Languages", {LanguageNames.CSharp}}}))},

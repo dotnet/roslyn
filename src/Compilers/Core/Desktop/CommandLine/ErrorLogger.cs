@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis
             // End dictionary for log file key-value pairs.
             EndGroup();
 
-            _writer.Close();
+            _writer.Dispose();
         }
     }
 }

@@ -163,7 +163,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public async Task WriteAsync(Stream outStream, CancellationToken cancellationToken)
         {
-            using (var writer = new BinaryWriter(new MemoryStream(), Encoding.Unicode))
+            using (var memoryStream = new MemoryStream())
+            using (var writer = new BinaryWriter(memoryStream, Encoding.Unicode))
             {
                 // Format the request.
                 Log("Formatting request");
@@ -179,15 +180,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-
-                // Grab the MemoryStream and its internal buffer
-                // to prevent making another copy.
-                var stream = (MemoryStream)writer.BaseStream;
                 // Write the length of the request
-                int length = (int)stream.Length;
+                int length = checked((int)memoryStream.Length);
 
                 // Back out if the request is > 1 MB
-                if (stream.Length > 0x100000)
+                if (memoryStream.Length > 0x100000)
                 {
                     Log("Request is over 1MB in length, cancelling write");
                     throw new ArgumentOutOfRangeException();
@@ -200,8 +197,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 Log("Writing request of size {0}", length);
                 // Write the request
-                await outStream.WriteAsync(stream.GetBuffer(), 0, length,
-                                           cancellationToken).ConfigureAwait(false);
+                memoryStream.Position = 0;
+                await memoryStream.CopyToAsync(outStream, bufferSize: length, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -276,7 +273,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public async Task WriteAsync(Stream outStream,
                                CancellationToken cancellationToken)
         {
-            using (var writer = new BinaryWriter(new MemoryStream(), Encoding.Unicode))
+            using (var memoryStream = new MemoryStream())
+            using (var writer = new BinaryWriter(memoryStream, Encoding.Unicode))
             {
                 // Format the response
                 Log("Formatting Response");
@@ -289,11 +287,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 // Send the response to the client
 
-                // Grab the MemoryStream and its internal buffer to prevent
-                // making another copy.
-                var stream = (MemoryStream)writer.BaseStream;
                 // Write the length of the response
-                uint length = (uint)stream.Length;
+                int length = checked((int)memoryStream.Length);
+
                 Log("Writing response length");
                 // There is no way to know the number of bytes written to
                 // the pipe stream. We just have to assume all of them are written.
@@ -304,12 +300,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 // Write the response
                 Log("Writing response of size {0}", length);
-                // There is no way to know the number of bytes written to
-                // the pipe stream. We just have to assume all of them are written.
-                await outStream.WriteAsync(stream.GetBuffer(),
-                                           0,
-                                           (int)length,
-                                           cancellationToken).ConfigureAwait(false);
+                memoryStream.Position = 0;
+                await memoryStream.CopyToAsync(outStream, bufferSize: length, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
 

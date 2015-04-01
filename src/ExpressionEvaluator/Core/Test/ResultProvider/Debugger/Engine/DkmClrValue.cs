@@ -580,6 +580,11 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
         public DkmClrValue InstantiateResultsViewProxy(DkmInspectionContext inspectionContext, DkmClrType enumerableType)
         {
+            if (EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown))
+            {
+                throw new InvalidOperationException();
+            }
+
             if (inspectionContext == null)
             {
                 throw new ArgumentNullException("inspectionContext");

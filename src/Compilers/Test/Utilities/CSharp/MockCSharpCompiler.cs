@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return analyzers;
         }
 
-        protected override Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger)
+        public override Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger)
         {
             Compilation = base.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger);
             return Compilation;

@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return tree
         End Function
 
-        Protected Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger) As Compilation
+        Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger) As Compilation
             Dim parseOptions = Arguments.ParseOptions
             Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
 
@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Print compiler logo
         ''' </summary>
         ''' <param name="consoleOutput"></param>
-        Protected Overrides Sub PrintLogo(consoleOutput As TextWriter)
+        Public Overrides Sub PrintLogo(consoleOutput As TextWriter)
             consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_LogoLine1, Culture), GetToolName(), GetAssemblyFileVersion())
             consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_LogoLine2, Culture))
             consoleOutput.WriteLine()
@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Print Commandline help message (up to 80 English characters per line)
         ''' </summary>
         ''' <param name="consoleOutput"></param>
-        Protected Overrides Sub PrintHelp(consoleOutput As TextWriter)
+        Public Overrides Sub PrintHelp(consoleOutput As TextWriter)
             consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_VBCHelp, Culture))
         End Sub
 
