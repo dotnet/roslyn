@@ -155,8 +155,8 @@ Namespace N
     End Class
     Public Module E
         <Extension>
-        Public Function F(o As A) As Integer
-            Return 1
+        Public Function F(o As A) As A
+            Return o
         End Function
     End Module
 End Namespace
@@ -199,6 +199,7 @@ End Class"
             Dim referencesA As ImmutableArray(Of MetadataReference) = Nothing
             compilationA.EmitAndGetReferences(exeBytesA, pdbBytesA, referencesA)
             Dim referenceA = AssemblyMetadata.CreateFromImage(exeBytesA).GetReference(display:=assemblyNameA)
+            Dim identityA = referenceA.GetAssemblyIdentity()
             Dim moduleA = referenceA.ToModuleInstance(exeBytesA, New SymReader(pdbBytesA))
 
             Dim assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName()
@@ -248,9 +249,7 @@ End Class"
 
                 ' Duplicate extension method, at method scope.
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, errorMessage, testData)
-                Assert.Equal(errorMessage, "(1,4): error BC30521: Overload resolution failed because no accessible 'F' is most specific for these arguments:
-    Extension method 'Public Function F() As Integer' defined in 'E': Not most specific.
-    Extension method 'Public Function F() As Integer' defined in 'E': Not most specific.")
+                Assert.True(errorMessage.StartsWith("(1,4): error BC30521: Overload resolution failed because no accessible 'F' is most specific for these arguments:"))
 
                 ' Same tests as above but in library that does not directly reference duplicates.
                 GetContextState(runtime, "A", blocks, moduleVersionId, symReader, typeToken, localSignatureToken)
@@ -259,13 +258,15 @@ End Class"
                 ' Duplicate type in namespace, at type scope.
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New N.C1()", contextFactory, errorMessage, testData)
                 Assert.Null(errorMessage)
-                testData.GetMethodData("<>x.<>m0").VerifyIL(
+                Dim methodData = testData.GetMethodData("<>x.<>m0")
+                methodData.VerifyIL(
 "{
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  newobj     ""Sub N.C1..ctor()""
   IL_0005:  ret
 }")
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName())
 
                 GetContextState(runtime, "A.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
                 contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
@@ -273,7 +274,8 @@ End Class"
                 ' Duplicate type in global namespace, at method scope.
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", contextFactory, errorMessage, testData)
                 Assert.Null(errorMessage)
-                testData.GetMethodData("<>x.<>m0").VerifyIL(
+                methodData = testData.GetMethodData("<>x.<>m0")
+                methodData.VerifyIL(
 "{
   // Code size        6 (0x6)
   .maxstack  1
@@ -282,20 +284,23 @@ End Class"
   IL_0000:  newobj     ""Sub C2..ctor()""
   IL_0005:  ret
 }")
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName())
 
                 ' Duplicate extension method, at method scope.
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, errorMessage, testData)
                 Assert.Null(errorMessage)
-                testData.GetMethodData("<>x.<>m0").VerifyIL(
+                methodData = testData.GetMethodData("<>x.<>m0")
+                methodData.VerifyIL(
 "{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (A V_0, //x
                 Object V_1) //y
   IL_0000:  ldloc.0
-  IL_0001:  call       ""Function N.E.F(A) As Integer""
+  IL_0001:  call       ""Function N.E.F(A) As A""
   IL_0006:  ret
 }")
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName())
             End Using
         End Sub
 
