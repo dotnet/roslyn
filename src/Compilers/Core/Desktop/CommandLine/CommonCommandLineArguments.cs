@@ -111,6 +111,11 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<CommandLineAnalyzerReference> AnalyzerReferences { get; internal set; }
 
         /// <summary>
+        /// References to analyzer dependencies supplied on the command line.
+        /// </summary>
+        public ImmutableArray<CommandLineAnalyzerDependency> AnalyzerDependencies { get; internal set; }
+
+        /// <summary>
         /// A set of additional non-code text files that can be used by analyzers.
         /// </summary>
         public ImmutableArray<CommandLineSourceFile> AdditionalFiles { get; internal set; }

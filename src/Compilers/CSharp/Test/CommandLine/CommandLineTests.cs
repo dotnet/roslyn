@@ -7472,6 +7472,47 @@ class C {
 
             CleanupAllGeneratedFiles(src.Path);
         }
+
+        [Fact]
+        public void ParseAnalyzerDependencies()
+        {
+            var parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/analyzerdependency:foo.dll", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(1, parsedArgs.AnalyzerDependencies.Length);
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerDependencies[0].FilePath);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/ad:foo.dll", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(1, parsedArgs.AnalyzerDependencies.Length);
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerDependencies[0].FilePath);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { "/analyzerdependency:\"foo.dll\"", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(1, parsedArgs.AnalyzerDependencies.Length);
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerDependencies[0].FilePath);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/analyzerdependency:foo.dll;bar.dll", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(2, parsedArgs.AnalyzerDependencies.Length);
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerDependencies[0].FilePath);
+            Assert.Equal("bar.dll", parsedArgs.AnalyzerDependencies[1].FilePath);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/analyzerdependency:alpha.dll;beta.dll", @"/analyzerdependency:delta.dll,gamma.dll", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(4, parsedArgs.AnalyzerDependencies.Length);
+            Assert.Equal("alpha.dll", parsedArgs.AnalyzerDependencies[0].FilePath);
+            Assert.Equal("beta.dll", parsedArgs.AnalyzerDependencies[1].FilePath);
+            Assert.Equal("delta.dll", parsedArgs.AnalyzerDependencies[2].FilePath);
+            Assert.Equal("gamma.dll", parsedArgs.AnalyzerDependencies[3].FilePath);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/analyzerdependency:", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("/analyzerdependency:"));
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { "/analyzerdependency", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/analyzerdependency"));
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]

@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var defines = ArrayBuilder<string>.GetInstance();
             List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
             List<CommandLineAnalyzerReference> analyzers = new List<CommandLineAnalyzerReference>();
+            List<CommandLineAnalyzerDependency> analyzerDependencies = new List<CommandLineAnalyzerDependency>();
             List<string> libPaths = new List<string>();
             List<string> keyFileSearchPaths = new List<string>();
             List<string> usings = new List<string>();
@@ -149,6 +150,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case "a":
                     case "analyzer":
                         analyzers.AddRange(ParseAnalyzers(arg, value, diagnostics));
+                        continue;
+
+                    case "ad":
+                    case "analyzerdependency":
+                        analyzerDependencies.AddRange(ParseAnalyzerDependencies(arg, value, diagnostics));
                         continue;
 
                     case "d":
@@ -1075,6 +1081,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ChecksumAlgorithm = checksumAlgorithm,
                 MetadataReferences = metadataReferences.AsImmutable(),
                 AnalyzerReferences = analyzers.AsImmutable(),
+                AnalyzerDependencies = analyzerDependencies.AsImmutable(),
                 AdditionalFiles = additionalFiles.AsImmutable(),
                 ReferencePaths = referencePaths,
                 KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
@@ -1352,6 +1359,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (string path in paths)
             {
                 yield return new CommandLineAnalyzerReference(path);
+            }
+        }
+
+        private IEnumerable<CommandLineAnalyzerDependency> ParseAnalyzerDependencies(string arg, string value, List<Diagnostic> diagnostics)
+        {
+            if (value == null)
+            {
+                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
+                yield break;
+            }
+            else if (value.Length == 0)
+            {
+                AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
+                yield break;
+            }
+
+            List<string> paths = ParseSeparatedPaths(value).Where((path) => !string.IsNullOrWhiteSpace(path)).ToList();
+
+            foreach (string path in paths)
+            {
+                yield return new CommandLineAnalyzerDependency(path);
             }
         }
 

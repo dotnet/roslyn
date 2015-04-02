@@ -112,6 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim defines As IReadOnlyDictionary(Of String, Object) = Nothing
             Dim metadataReferences = New List(Of CommandLineReference)()
             Dim analyzers = New List(Of CommandLineAnalyzerReference)()
+            Dim analyzerDependencies = New List(Of CommandLineAnalyzerDependency)()
             Dim sdkPaths As New List(Of String)()
             Dim libPaths As New List(Of String)()
             Dim keyFileSearchPaths = New List(Of String)()
@@ -189,6 +190,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Case "a", "analyzer"
                         analyzers.AddRange(ParseAnalyzers(name, value, diagnostics))
+                        Continue For
+
+                    Case "ad", "analyzerdependency"
+                        analyzerDependencies.AddRange(ParseAnalyzerDependencies(name, value, diagnostics))
                         Continue For
 
                     Case "d", "define"
@@ -1185,6 +1190,7 @@ lVbRuntimePlus:
                     .ChecksumAlgorithm = checksumAlgorithm,
                     .MetadataReferences = metadataReferences.AsImmutable(),
                     .AnalyzerReferences = analyzers.AsImmutable(),
+                    .AnalyzerDependencies = analyzerDependencies.AsImmutable(),
                     .AdditionalFiles = additionalFiles.AsImmutable(),
                     .ReferencePaths = searchPaths,
                     .KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
@@ -1385,6 +1391,19 @@ lVbRuntimePlus:
             Return ParseSeparatedPaths(value).
                    Select(Function(path)
                               Return New CommandLineAnalyzerReference(path)
+                          End Function)
+        End Function
+
+        Private Function ParseAnalyzerDependencies(name As String, value As String, diagnostics As IList(Of Diagnostic)) As IEnumerable(Of CommandLineAnalyzerDependency)
+            If String.IsNullOrEmpty(value) Then
+                ' TODO: localize <file_list>?
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
+                Return SpecializedCollections.EmptyEnumerable(Of CommandLineAnalyzerDependency)()
+            End If
+
+            Return ParseSeparatedPaths(value).
+                   Select(Function(path)
+                              Return New CommandLineAnalyzerDependency(path)
                           End Function)
         End Function
 

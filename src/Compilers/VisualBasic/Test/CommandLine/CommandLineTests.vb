@@ -7100,6 +7100,44 @@ out
             Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
+        <Fact>
+        Public Sub ParseAnalyzerDependencies()
+            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/analyzerdependency:foo.dll", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(1, parsedArgs.AnalyzerDependencies.Length)
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerDependencies(0).FilePath)
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/ad:foo.dll", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(1, parsedArgs.AnalyzerDependencies.Length)
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerDependencies(0).FilePath)
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/analyzerdependency:""foo.dll""", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(1, parsedArgs.AnalyzerDependencies.Length)
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerDependencies(0).FilePath)
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/analyzerdependency:foo.dll,bar.dll", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(2, parsedArgs.AnalyzerDependencies.Length)
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerDependencies(0).FilePath)
+            Assert.Equal("bar.dll", parsedArgs.AnalyzerDependencies(1).FilePath)
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/analyzerdependency:alpha.dll,beta.dll", "/analyzerdependency:gamma.dll;delta.dll", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(4, parsedArgs.AnalyzerDependencies.Length)
+            Assert.Equal("alpha.dll", parsedArgs.AnalyzerDependencies(0).FilePath)
+            Assert.Equal("beta.dll", parsedArgs.AnalyzerDependencies(1).FilePath)
+            Assert.Equal("gamma.dll", parsedArgs.AnalyzerDependencies(2).FilePath)
+            Assert.Equal("delta.dll", parsedArgs.AnalyzerDependencies(3).FilePath)
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/analyzerdependency:", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("analyzerdependency", ":<file_list>"))
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/analyzerdependency", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("analyzerdependency", ":<file_list>"))
+        End Sub
+
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
