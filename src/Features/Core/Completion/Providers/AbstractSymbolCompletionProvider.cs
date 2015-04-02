@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return await CreateItemsAsync(position, itemsForCurrentDocument, context, null, null, preselect, cancellationToken).ConfigureAwait(false);
             }
 
-            var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, relatedDocumentIds.Concat(document.Id), preselect, cancellationToken).ConfigureAwait(false);
+            var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
 
             Dictionary<ISymbol, AbstractSyntaxContext> orignatingContextMap = null;
             var unionedSymbolsList = UnionSymbols(contextAndSymbolLists, out orignatingContextMap);
@@ -238,12 +238,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             originDictionary = new Dictionary<ISymbol, AbstractSyntaxContext>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
             // We don't care about assembly identity when creating the union.
-            var set = new HashSet<ISymbol>(LinkedFilesSymbolEquivalenceComparer.IgnoreAssembliesInstance);
+            var set = new HashSet<ISymbol>(LinkedFilesSymbolEquivalenceComparer.Instance);
             foreach (var linkedContextSymbolList in linkedContextSymbolLists)
             {
                 // We need to use the SemanticModel any particular symbol came from in order to generate its description correctly.
                 // Therefore, when we add a symbol to set of union symbols, add a mapping from it to its SyntaxContext.
-                foreach (var symbol in linkedContextSymbolList.Item3)
+                foreach (var symbol in linkedContextSymbolList.Item3.GroupBy(s => new { s.Name, s.Kind }).Select(g => g.First()))
                 {
                     if (set.Add(symbol))
                     {
@@ -320,11 +320,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <returns>The list of projects each recommended symbol did NOT appear in.</returns>
         protected Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(HashSet<ISymbol> expectedSymbols, IEnumerable<Tuple<DocumentId, AbstractSyntaxContext, IEnumerable<ISymbol>>> linkedContextSymbolLists)
         {
-            var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.IgnoreAssembliesInstance);
+            var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
             foreach (var linkedContextSymbolList in linkedContextSymbolLists)
             {
-                var symbolsMissingInLinkedContext = expectedSymbols.Except(linkedContextSymbolList.Item3, LinkedFilesSymbolEquivalenceComparer.IgnoreAssembliesInstance);
+                var symbolsMissingInLinkedContext = expectedSymbols.Except(linkedContextSymbolList.Item3, LinkedFilesSymbolEquivalenceComparer.Instance);
                 foreach (var missingSymbol in symbolsMissingInLinkedContext)
                 {
                     missingSymbols.GetOrAdd(missingSymbol, (m) => new List<ProjectId>()).Add(linkedContextSymbolList.Item1.ProjectId);
