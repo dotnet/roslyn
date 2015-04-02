@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(nameof(id));
             }
 
-            return new ProjectId(debugName);
+            return new ProjectId(id, debugName);
         }
 
         private string GetDebuggerDisplay()
