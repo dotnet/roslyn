@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private CancellationTokenSource _sharedCompileCts = null;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
+        public ManagedCompiler()
+        {
+            this.TaskResources = ErrorString.ResourceManager;
+        }
+
         #region Properties
 
         // Please keep these alphabetized.
