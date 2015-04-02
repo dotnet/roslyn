@@ -24,6 +24,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static readonly Option<bool> BuildErrorIsTheGod = new Option<bool>(OptionName, "Make build errors to take over everything", defaultValue: false);
 
         [ExportOption]
-        public static readonly Option<bool> BuildErrorWinLiveError = new Option<bool>(OptionName, "Errors from build will win live errors from same analyzer", defaultValue: true);
+        public static readonly Option<bool> ClearLiveErrorsForProjectBuilt = new Option<bool>(OptionName, "Clear all live errors of projects that got built", defaultValue: false);
+
+        [ExportOption]
+        public static readonly Option<bool> PreferLiveErrorsOnOpenedFiles = new Option<bool>(OptionName, "Live errors will be prefered over errors from build on opened files from same analyzer", defaultValue: true);
+
+        [ExportOption]
+        public static readonly Option<bool> PreferBuildErrorsOverLiveErrors = new Option<bool>(OptionName, "Errors from build will be prefered over live errors from same analyzer", defaultValue: true);
     }
 }
