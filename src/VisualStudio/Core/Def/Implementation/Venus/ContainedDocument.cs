@@ -115,6 +115,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             _vbHelperFormattingRule = vbHelperFormattingRule;
         }
 
+        public IVsHierarchy SharedHierarchy
+        {
+            get { return null; }
+        }
+
         private HostType GetHostType()
         {
             var projectionBuffer = _containedLanguage.DataBuffer as IProjectionBuffer;
