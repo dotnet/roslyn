@@ -578,7 +578,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Case ERRID.ERR_DuplicateReferenceStrong,
                      ERRID.ERR_AmbiguousInUnnamedNamespace1,
                      ERRID.ERR_AmbiguousInNamespace2,
-                     ERRID.ERR_NoMostSpecificOverload2
+                     ERRID.ERR_NoMostSpecificOverload2,
+                     ERRID.ERR_AmbiguousInModules2
                     Return True
                 Case Else
                     Return False

@@ -304,6 +304,91 @@ End Class"
             End Using
         End Sub
 
+        <Fact>
+        Public Sub DuplicateTypesAndMethodsDifferentAssemblies_2()
+            Const sourceA =
+"Namespace N
+    Public Module M
+        Public Function F()
+            Return 1
+        End Function
+    End Module
+End Namespace"
+            Const sourceB =
+"Imports N
+Class C
+    Shared Sub M()
+        F()
+    End Sub
+End Class"
+            Dim assemblyNameA = ExpressionCompilerUtilities.GenerateUniqueName()
+            Dim compilationA1 = CreateCompilation(
+                New AssemblyIdentity(assemblyNameA, New Version(1, 1, 1, 1)),
+                {sourceA},
+                options:=TestOptions.DebugDll,
+                references:={MscorlibRef, SystemRef, MsvbRef})
+            Dim referenceA1 = compilationA1.EmitToImageReference()
+
+            Dim compilationA2 = CreateCompilation(
+                New AssemblyIdentity(assemblyNameA, New Version(2, 1, 1, 2)),
+                {sourceA},
+                options:=TestOptions.DebugDll,
+                references:={MscorlibRef, SystemRef, MsvbRef})
+            Dim referenceA2 = compilationA2.EmitToImageReference()
+
+            Dim assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName()
+            Dim compilationB = CreateCompilation(
+                New AssemblyIdentity(assemblyNameB, New Version(1, 1, 1, 1)),
+                {sourceB},
+                options:=TestOptions.DebugDll,
+                references:={MscorlibRef, referenceA1})
+            Dim exeBytesB As Byte() = Nothing
+            Dim pdbBytesB As Byte() = Nothing
+            Dim referencesB As ImmutableArray(Of MetadataReference) = Nothing
+            compilationB.EmitAndGetReferences(exeBytesB, pdbBytesB, referencesB)
+
+            Using runtime = CreateRuntimeInstance(
+                assemblyNameB,
+                ImmutableArray.Create(MscorlibRef, SystemRef, MsvbRef, referenceA1, referenceA2),
+                exeBytesB,
+                New SymReader(pdbBytesB))
+
+                Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+                Dim moduleVersionId As Guid = Nothing
+                Dim symReader As ISymUnmanagedReader = Nothing
+                Dim typeToken = 0
+                Dim methodToken = 0
+                Dim localSignatureToken = 0
+                GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+
+                Dim context = EvaluationContext.CreateMethodContext(
+                    Nothing,
+                    blocks,
+                    MakeDummyLazyAssemblyReaders(),
+                    symReader,
+                    moduleVersionId,
+                    methodToken,
+                    methodVersion:=1,
+                    ilOffset:=0,
+                    localSignatureToken:=localSignatureToken)
+                Dim errorMessage As String = Nothing
+                Dim testData As New CompilationTestData()
+                context.CompileExpression("F()", errorMessage, testData)
+                Assert.Equal(errorMessage, "(1,2): error BC30562: 'F' is ambiguous between declarations in Modules 'N.M, N.M'.")
+
+                Dim contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "F()", contextFactory, errorMessage, testData)
+                Assert.Null(errorMessage)
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  call       ""Function N.M.F() As Object""
+  IL_0005:  ret
+}")
+            End Using
+        End Sub
+
         Private Shared Function CreateTypeContextFactory(
             moduleVersionId As Guid,
             typeToken As Integer) As ExpressionCompiler.CreateContextDelegate
