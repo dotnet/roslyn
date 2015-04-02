@@ -130,6 +130,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (project != null)
                 {
                     CompilationResult compilationResult = GetCompilationResult(project, vintage);
+                    if (compilationResult == null || compilationResult.ProjectVersion.Equals(VersionStamp.Default))
+                    {
+                        // There has been no request to analyze the project. Initiate one now.
+                        // The cancellation token provided here is actually not necessarily appropriate for
+                        // the analysis, because cancelling this diagnostics request should not necessarily
+                        // cancel the analysis.
+                        await AnalyzeProjectAsync(project, false, cancellationToken).ConfigureAwait(false);
+                        compilationResult = GetCompilationResult(project, vintage);
+                    }
+
                     if (compilationResult != null && !compilationResult.ProjectVersion.Equals(VersionStamp.Default))
                     {
                         if (documentId != null)
@@ -367,7 +377,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _project = project;
                 this.ProjectVersion = projectVersion;
 
-                _noDocument = new DocumentId(project.Id, Guid.Empty, "No document");
+                if (project != null)
+                {
+                    _noDocument = new DocumentId(project.Id, Guid.Empty, "No document");
+                }
             }
 
             public bool CompletionStarted
@@ -389,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         _completionTask = Task.Run(async () =>
                         {
-                            diagnostics = await _compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
+                            diagnostics = await _compilationWithAnalyzers.GetAllNonredundantDiagnosticsAsync().ConfigureAwait(false);
                             DistributeDiagnostics(diagnostics);
 
                             // Enable the compilation and project to be collected.
