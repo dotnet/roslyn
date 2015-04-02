@@ -162,6 +162,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             try
             {
                 analyzerTypeNameMap = GetAnalyzerTypeNameMap();
+                if (analyzerTypeNameMap.Count == 0)
+                {
+                    return;
+                }
+
                 analyzerAssembly = GetAssembly();
             }
             catch (Exception e)
@@ -208,13 +213,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // If there are no analyzers, don't load the assembly at all.
                 if (!analyzerTypeNameMap.ContainsKey(language))
                 {
-                    this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, null, null));
                     return;
                 }
 
                 analyzerAssembly = GetAssembly();
             }
-            catch (Exception e) when (e is IOException || e is BadImageFormatException || e is SecurityException || e is ArgumentException)
+            catch (Exception e)
             {
                 this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e, null));
                 return;
