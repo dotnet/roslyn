@@ -1538,7 +1538,7 @@ class C
             var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/preferreduilang:en", "/t:library", "/a:" + typeof(object).Assembly.Location, "a.cs" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal("warning CS8033: The assembly " + typeof(object).Assembly.Location + " does not contain any analyzers.", outWriter.ToString().Trim());
+            Assert.DoesNotContain("warning", outWriter.ToString());
 
             CleanupAllGeneratedFiles(file.Path);
         }
