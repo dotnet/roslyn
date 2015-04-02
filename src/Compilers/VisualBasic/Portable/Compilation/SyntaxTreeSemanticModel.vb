@@ -314,7 +314,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf SyntaxFacts.IsHandlesProperty(node) Then
                     Return GetHandlesPropertyTypeInfo(DirectCast(node.Parent.Parent, HandlesClauseItemSyntax))
                 ElseIf IsInCrefOrNameAttributeInterior(node) Then
-                    Return GetTypeInfoForCrefOrNameAttributeReference(DirectCast(node, TypeSyntax))
+                    Dim typeSyntax = TryCast(node, TypeSyntax)
+                    If typeSyntax IsNot Nothing Then
+                        Return GetTypeInfoForCrefOrNameAttributeReference(typeSyntax)
+                    End If
                 ElseIf SyntaxFacts.IsInNamespaceOrTypeContext(node) Then
                     ' Bind the type or namespace name.
                     Return GetTypeOrNamespaceTypeInfoNotInMember(DirectCast(node, TypeSyntax))

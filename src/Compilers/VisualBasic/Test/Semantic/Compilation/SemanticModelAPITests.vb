@@ -4274,5 +4274,30 @@ End Class
         End Sub
 #End Region
 
+        <Fact, WorkItem(1146124, "DevDiv")>
+        Public Sub GetTypeInfoForXmlStringInCref()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="GetSemanticInfo">
+    <file name="a.vb"><![CDATA[
+Module Program
+    ''' <summary>
+    ''' <see cref=""/>
+    ''' </summary>
+    Sub Main(args As String())
+
+    End Sub
+End Module
+    ]]></file>
+</compilation>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim root = tree.GetCompilationUnitRoot
+            Dim xmlString = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of XmlStringSyntax).Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+
+            Dim typelInfo = semanticModel.GetTypeInfo(xmlString)
+            Assert.Null(typelInfo.Type)
+        End Sub
+
     End Class
 End Namespace
