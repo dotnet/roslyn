@@ -29,11 +29,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             DkmClrAppDomain appDomain,
             ImmutableArray<MetadataBlock> metadataBlocks,
             Guid moduleVersionId,
-            int typeToken)
+            int typeToken,
+            bool useReferencedModulesOnly)
         {
+            if (useReferencedModulesOnly)
+            {
+                // Avoid using the cache for referenced assemblies only
+                // since this should be the exceptional case.
+                var compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId);
+                return EvaluationContext.CreateTypeContext(
+                    compilation,
+                    moduleVersionId,
+                    typeToken);
+            }
+
             var previous = appDomain.GetDataItem<CSharpMetadataContext>();
             var context = EvaluationContext.CreateTypeContext(
-                appDomain.GetDataItem<CSharpMetadataContext>(),
+                previous,
                 metadataBlocks,
                 moduleVersionId,
                 typeToken);
@@ -56,8 +68,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             int methodToken,
             int methodVersion,
             int ilOffset,
-            int localSignatureToken)
+            int localSignatureToken,
+            bool useReferencedModulesOnly)
         {
+            if (useReferencedModulesOnly)
+            {
+                // Avoid using the cache for referenced assemblies only
+                // since this should be the exceptional case.
+                var compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId);
+                return EvaluationContext.CreateMethodContext(
+                    compilation,
+                    symReader,
+                    moduleVersionId,
+                    methodToken,
+                    methodVersion,
+                    ilOffset,
+                    localSignatureToken);
+            }
+
             var previous = appDomain.GetDataItem<CSharpMetadataContext>();
             var context = EvaluationContext.CreateMethodContext(
                 previous,
@@ -71,15 +99,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (previous == null || context != previous.EvaluationContext)
             {
-                appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, new CSharpMetadataContext(context));
+                appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, new CSharpMetadataContext(metadataBlocks, context));
             }
 
             return context;
         }
 
-        internal override bool RemoveDataItem(DkmClrAppDomain appDomain)
+        internal override void RemoveDataItem(DkmClrAppDomain appDomain)
         {
-            return appDomain.RemoveDataItem<CSharpMetadataContext>();
+            appDomain.RemoveDataItem<CSharpMetadataContext>();
         }
     }
 }
