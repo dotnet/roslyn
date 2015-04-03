@@ -505,11 +505,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // Show static and instance members.
             if (context.IsNameOfContext)
             {
-                if (symbol != null && !(symbol.MatchesKind(SymbolKind.NamedType) || symbol.MatchesKind(SymbolKind.Namespace)))
-                {
-                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
-                }
-
                 excludeInstance = false;
                 excludeStatic = false;
             }
