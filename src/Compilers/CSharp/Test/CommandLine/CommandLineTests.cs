@@ -6048,6 +6048,39 @@ class Program
         }
 
         [Fact]
+        public void ExistingPdb()
+        {
+            var dir = Temp.CreateDirectory();
+
+            var source1 = dir.CreateFile("program1.cs").WriteAllText(@"
+class Program1
+{
+        public static void Main() { }
+}");
+            var source2 = dir.CreateFile("program2.cs").WriteAllText(@"
+class Program2
+{
+        public static void Main() { }
+}");
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            int exitCode1 = new MockCSharpCompiler(null, dir.Path, new[] { "/debug:full", "/out:Program.exe", source1.Path }).Run(outWriter);
+            Assert.Equal(0, exitCode1);
+
+            int exitCode2 = new MockCSharpCompiler(null, dir.Path, new[] { "/debug:full", "/out:Program.exe", source2.Path }).Run(outWriter);
+            Assert.Equal(0, exitCode2);
+
+            var pePath = Path.Combine(dir.Path, "Program.exe");
+            var pdbPath = Path.Combine(dir.Path, "Program.pdb");
+
+            using (var peFile = File.OpenRead(pePath))
+            {
+                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdbPath);
+            }
+        }
+
+        [Fact]
         public void IOFailure_OpenOutputFile()
         {
             string sourcePath = MakeTrivialExe();
