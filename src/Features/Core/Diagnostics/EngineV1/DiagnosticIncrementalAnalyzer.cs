@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 diagnostic.ProjectId,
                 diagnostic.DocumentId,
                 newSpan,
-                mappedFilePath: mappedLineInfo.HasMappedPath ? mappedLineInfo.Path : null,
+                mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist(),
                 mappedStartLine: mappedLineInfo.StartLinePosition.Line,
                 mappedStartColumn: mappedLineInfo.StartLinePosition.Character,
                 mappedEndLine: mappedLineInfo.EndLinePosition.Line,
