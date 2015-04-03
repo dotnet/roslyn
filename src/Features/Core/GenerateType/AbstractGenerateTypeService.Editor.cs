@@ -328,7 +328,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     documentId,
                     documentName,
                     containers,
-                    sourceCodeKind));
+                    sourceCodeKind,
+                    filePath: Path.Combine(Path.GetDirectoryName(generatingDocument.FilePath), documentName)));
 
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(documentId, root, PreservationMode.PreserveIdentity);
 
