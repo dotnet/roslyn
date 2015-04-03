@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return csharpTree.IsInNonUserCode(position, cancellationToken);
         }
 
-        public bool IsEntirelyWithinStringOrCharLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        public bool IsEntirelyWithinStringOrCharOrNumericLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var csharpTree = syntaxTree as SyntaxTree;
             if (csharpTree == null)
