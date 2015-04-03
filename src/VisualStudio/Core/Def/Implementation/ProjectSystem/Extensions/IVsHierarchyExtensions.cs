@@ -63,6 +63,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return hierarchy.TryGetItemProperty(itemId, __VSHPROPID.VSHPROPID_Name, out name);
         }
 
+        public static bool TryGetCanonicalName(this IVsHierarchy hierarchy, uint itemId, out string name)
+        {
+            return ErrorHandler.Succeeded(hierarchy.GetCanonicalName(itemId, out name));
+        }
+
         public static bool TryGetParentHierarchy(this IVsHierarchy hierarchy, out IVsHierarchy parentHierarchy)
         {
             return hierarchy.TryGetProperty(__VSHPROPID.VSHPROPID_ParentHierarchy, out parentHierarchy);
