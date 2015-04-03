@@ -1459,7 +1459,7 @@ namespace Microsoft.Cci
             // characteristics:
             writer.WriteUint(0);
 
-            // timestamp from NT headers
+            // PDB stamp
             timestampOffset = writer.BaseStream.Position + peStream.Position;
             writer.WriteUint(pdbStamp);
 
