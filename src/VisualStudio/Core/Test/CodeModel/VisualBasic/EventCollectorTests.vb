@@ -1522,6 +1522,7 @@ End Class
                  ArgChange("System.CLSCompliant"))
         End Sub
 
+        <WorkItem(1147865)>
         <WorkItem(844611)>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_ChangeAttributeOnTwoFields()
@@ -1545,8 +1546,53 @@ End Class
 
             Test(code, changedCode,
                  Unknown(""),
-                 ArgChange("System.CLSCompliant"),
-                 ArgChange("System.CLSCompliant"))
+                 ArgChange("System.CLSCompliant", "foo"),
+                 ArgChange("System.CLSCompliant", "bar"))
+        End Sub
+
+        <WorkItem(1147865)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Sub TestField_AddOneMoreAttribute()
+            Dim code =
+<Code>
+Class C
+    &lt;System.CLSCompliant(False)&gt;
+    Dim foo, bar As Integer
+End Class
+</Code>
+
+            Dim changedCode =
+<Code>
+Class C
+    &lt;System.CLSCompliant(False), System.NonSerialized()&gt;
+    Dim foo, bar As Integer
+End Class
+</Code>
+            Test(code, changedCode,
+                 Add("System.NonSerialized", "foo"),
+                 Add("System.NonSerialized", "bar"))
+        End Sub
+
+        <WorkItem(1147865)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Sub TestField_RemoveOneAttribute()
+            Dim code =
+<Code>
+Class C
+    &lt;System.CLSCompliant(False), System.NonSerialized()&gt;
+    Dim foo, bar As Integer
+End Class
+</Code>
+            Dim changedCode =
+<Code>
+Class C
+    &lt;System.CLSCompliant(False)&gt;
+    Dim foo, bar As Integer
+End Class
+</Code>
+            Test(code, changedCode,
+                 Remove("System.NonSerialized", "foo"),
+                 Remove("System.NonSerialized", "bar"))
         End Sub
 
 #End Region
