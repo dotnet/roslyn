@@ -72,11 +72,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly string _itemMoniker;
 
         public AbstractProject Project { get { return _containedLanguage.Project; } }
-        public DocumentId Id { get; private set; }
-        public IReadOnlyList<string> Folders { get; private set; }
-        public TextLoader Loader { get; private set; }
-        public DocumentKey Key { get; private set; }
         public bool SupportsRename { get { return _hostType == HostType.Razor; } }
+
+        public DocumentId Id { get; }
+        public IReadOnlyList<string> Folders { get; }
+        public TextLoader Loader { get; }
+        public DocumentKey Key { get; }
+        public IVsHierarchy SharedHierarchy { get; }
 
         public ContainedDocument(
             AbstractContainedLanguage containedLanguage,
@@ -99,6 +101,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var rdt = (IVsRunningDocumentTable)componentModel.GetService<SVsServiceProvider>().GetService(typeof(SVsRunningDocumentTable));
             var filePath = rdt.GetMonikerForHierarchyAndItemId(hierarchy, itemId);
 
+            this.SharedHierarchy = hierarchy == null ? null : LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
+
             if (Project.Hierarchy != null)
             {
                 string moniker;
@@ -113,11 +117,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             _differenceSelectorService = componentModel.GetService<ITextDifferencingSelectorService>();
             _snapshotTracker = new ReiteratedVersionSnapshotTracker(_containedLanguage.SubjectBuffer);
             _vbHelperFormattingRule = vbHelperFormattingRule;
-        }
-
-        public IVsHierarchy SharedHierarchy
-        {
-            get { return null; }
         }
 
         private HostType GetHostType()
