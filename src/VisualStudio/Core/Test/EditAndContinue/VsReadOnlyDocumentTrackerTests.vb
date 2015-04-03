@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.IO
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.EditAndContinue
@@ -113,6 +114,61 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason) AndAlso allowsReadOnly
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), isReadOnly)
             Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags) ' Editable
+        End Sub
+
+        <WorkItem(1147868, "DevDiv")>
+        <Fact>
+        Public Sub InvalidDocumentTest1()
+            Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
+            Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
+            Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
+            Dim currentSolution = workspace.CurrentSolution
+            Dim project = currentSolution.Projects(0)
+
+            Dim mockVsBuffer = New VsTextBufferMock()
+            Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags)
+
+            Dim mockEditorAdaptersFactoryService = New VsEditorAdaptersFactoryServiceMock(mockVsBuffer)
+            Dim readOnlyDocumentTracker As VsReadOnlyDocumentTracker
+
+            ' start debugging & readOnlyDocumentTracker
+            encService.StartDebuggingSession(workspace.CurrentSolution)
+            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService, Nothing)
+
+            ' valid document
+            readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), False)
+            Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags) ' Editable
+
+            ' invlid documentId
+            readOnlyDocumentTracker.SetReadOnly(Nothing, False) ' Check no NRE
+        End Sub
+
+        <WorkItem(1147868, "DevDiv")>
+        <Fact>
+        Public Sub InvalidDocumentTest2()
+            Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
+            Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
+            Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
+            Dim currentSolution = workspace.CurrentSolution
+            Dim project = currentSolution.Projects(0)
+
+            Dim mockVsBuffer = New VsTextBufferMock()
+            Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags)
+
+            Dim mockEditorAdaptersFactoryService = New VsEditorAdaptersFactoryServiceMock(mockVsBuffer)
+            Dim readOnlyDocumentTracker As VsReadOnlyDocumentTracker
+
+            ' start debugging & readOnlyDocumentTracker
+            encService.StartDebuggingSession(workspace.CurrentSolution)
+            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService, Nothing)
+
+            ' valid document
+            readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), False)
+            Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags) ' Editable
+
+            ' the given project does not contain this document
+            Dim newDocumentId = New DocumentId(New ProjectId(New Guid(), "TestProject"), New Guid(), "TestDoc")
+            readOnlyDocumentTracker.SetReadOnly(newDocumentId, False) ' Check no NRE
         End Sub
 
 #Region "Helper Methods"
