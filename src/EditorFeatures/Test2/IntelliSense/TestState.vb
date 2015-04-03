@@ -233,6 +233,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendSave(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
+        Public Overloads Sub SendSelectAll()
+            Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of SelectAllCommandArgs))
+            MyBase.SendSelectAll(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
+        End Sub
+
         Public Sub AssertNoCompletionSession(Optional block As Boolean = True)
             If block Then
                 WaitForAsynchronousOperations()

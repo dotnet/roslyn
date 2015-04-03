@@ -454,6 +454,7 @@
     <Compile Include="Implementation\Intellisense\Completion\Controller.Session_SetModelSelectedItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller.Session_Wait.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_AutomaticLineEnder.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Controller_SelectAll.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_Delete.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_Backspace.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_CaretPositionChanged.cs" />
