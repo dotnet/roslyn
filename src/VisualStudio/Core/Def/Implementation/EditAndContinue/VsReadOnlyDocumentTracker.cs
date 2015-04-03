@@ -147,6 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             var doc = workspace.CurrentSolution.GetDocument(documentId);
             if (doc == null)
             {
+                // TODO (https://github.com/dotnet/roslyn/issues/1204): this check should be unnecessary.
                 log.Write($"GetTextBuffer: document not found for '{documentId?.GetDebuggerDisplay()}'");
                 return null;
             }
