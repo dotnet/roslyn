@@ -190,23 +190,25 @@ namespace Microsoft.Cci
 
             var namespaceScopes = methodBody.ImportScope;
 
-            // NOTE: All extern aliases are stored on the outermost namespace scope.
             PooledHashSet<string> lazyDeclaredExternAliases = null;
             if (!isVisualBasic)
             {
-                foreach (var import in GetLastScope(namespaceScopes).GetUsedNamespaces(Context))
+                for (var scope = namespaceScopes; scope != null; scope = scope.Parent)
                 {
-                    if (import.TargetNamespaceOpt == null && import.TargetTypeOpt == null)
+                    foreach (var import in scope.GetUsedNamespaces(Context))
                     {
-                        Debug.Assert(import.AliasOpt != null);
-                        Debug.Assert(import.TargetAssemblyOpt == null);
-
-                        if (lazyDeclaredExternAliases == null)
+                        if (import.TargetNamespaceOpt == null && import.TargetTypeOpt == null)
                         {
-                            lazyDeclaredExternAliases = PooledHashSet<string>.GetInstance();
-                        }
+                            Debug.Assert(import.AliasOpt != null);
+                            Debug.Assert(import.TargetAssemblyOpt == null);
 
-                        lazyDeclaredExternAliases.Add(import.AliasOpt);
+                            if (lazyDeclaredExternAliases == null)
+                            {
+                                lazyDeclaredExternAliases = PooledHashSet<string>.GetInstance();
+                            }
+
+                            lazyDeclaredExternAliases.Add(import.AliasOpt);
+                        }
                     }
                 }
             }
@@ -253,20 +255,6 @@ namespace Microsoft.Cci
 
                 // VB current namespace -- VB appends the namespace of the container without prefixes
                 UsingNamespace(GetOrCreateSerializedNamespaceName(method.ContainingNamespace), method);
-            }
-        }
-
-        private static IImportScope GetLastScope(IImportScope scope)
-        {
-            while (true)
-            {
-                var parent = scope.Parent;
-                if (parent == null)
-                {
-                    return scope;
-                }
-
-                scope = parent;
             }
         }
 

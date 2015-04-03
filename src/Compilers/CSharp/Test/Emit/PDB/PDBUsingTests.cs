@@ -557,6 +557,43 @@ class A { void M() {  } }
         }
 
         [Fact]
+        public void ExternAliases4()
+        {
+            var src1 = @"
+namespace N
+{
+    public class C { }
+}";
+            var dummyCompilation = CreateCompilationWithMscorlib(src1, assemblyName: "A", options: TestOptions.DebugDll);
+
+            var src2 = @"
+namespace M
+{
+    extern alias A;
+    using A::N;
+    
+    public class D
+    {
+        public C P
+        {
+            get { return new C(); }
+            set { }
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(src2,
+                assemblyName: GetUniqueName(),
+                options: TestOptions.DebugDll,
+                references: new[]
+                {
+                    new CSharpCompilationReference(dummyCompilation, ImmutableArray.Create("A", "A")),
+                });
+
+            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void TestExternAliases_ExplicitAndGlobal()
         {
             var dummySource = @"
