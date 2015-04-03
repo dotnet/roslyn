@@ -266,10 +266,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     foreach (var diagnosticItem in group)
                     {
                         ReportDiagnostic ruleSetSeverity;
-                        if (specificOptions.TryGetValue(diagnosticItem.Descriptor.Id, out ruleSetSeverity) &&
-                            ruleSetSeverity != ReportDiagnostic.Default)
+                        if (specificOptions.TryGetValue(diagnosticItem.Descriptor.Id, out ruleSetSeverity))
                         {
                             selectedItemSeverities.Add(ruleSetSeverity);
+                        }
+                        else
+                        {
+                            // The rule has no setting.
+                            selectedItemSeverities.Add(ReportDiagnostic.Default);
                         }
                     }
                 }
