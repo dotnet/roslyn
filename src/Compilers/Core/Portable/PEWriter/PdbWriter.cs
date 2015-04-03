@@ -75,8 +75,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// Close the PDB writer and write the contents to the stream provided by <see cref="_streamProvider"/> 
-        /// or file name specified by <see cref="_fileName"/> value if no stream has been provided. 
+        /// Close the PDB writer and write the PDB data to the stream provided by <see cref="_streamProvider"/>.
         /// </summary>
         public void WritePdbToOutput()
         {
@@ -559,14 +558,17 @@ namespace Microsoft.Cci
 
         public void SetMetadataEmitter(MetadataWriter metadataWriter)
         {
-            Stream streamOpt = _streamProvider();
+            Stream stream = _streamProvider() ?? new System.IO.MemoryStream();
 
             try
             {
                 var instance = (ISymUnmanagedWriter2)(_symWriterFactory != null ? _symWriterFactory() : Activator.CreateInstance(GetCorSymWriterSxSType()));
-                var comStream = (streamOpt != null) ? new ComStreamWrapper(streamOpt) : null;
 
-                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, comStream, fullBuild: true);
+                // Important: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
+                // and the resulting PDB has Age = existing_age + 1.
+                Debug.Assert(stream.Length == 0);
+
+                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, new ComStreamWrapper(stream), fullBuild: true);
 
                 _metadataWriter = metadataWriter;
                 _symWriter = instance;
