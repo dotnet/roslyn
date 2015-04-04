@@ -1632,6 +1632,8 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
+                metadataDiagnostics = DiagnosticBag.GetInstance();
+
                 if (pdbOutputInfo.IsValid)
                 {
                     // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
@@ -1646,7 +1648,7 @@ namespace Microsoft.CodeAnalysis
                     // It checks for length to determine whether the given stream has existing data to be updated,
                     // or whether it should start writing PDB data from scratch. Thus if not writing to a seekable empty stream ,
                     // let's create an in-memory temp stream for the PDB writer and copy all data to the actual stream at once at the end.
-                    if (pdbOutputInfo.Stream != null && (!pdbOutputInfo.Stream.CanSeek || pdbOutputInfo.Stream.Length != 0))
+                    if (pdbOutputInfo.Stream == null || !pdbOutputInfo.Stream.CanSeek || pdbOutputInfo.Stream.Length != 0)
                     {
                         pdbOriginalStream = pdbOutputInfo.Stream;
                         pdbTempStream = new MemoryStream();
@@ -1660,10 +1662,15 @@ namespace Microsoft.CodeAnalysis
 
                 Func<Stream> getPeStream = () =>
                 {
-                    peStream = peStreamProvider.GetStream(diagnostics);
+                    if (metadataDiagnostics.HasAnyErrors())
+                    {
+                        return null;
+                    }
+
+                    peStream = peStreamProvider.GetStream(metadataDiagnostics);
                     if (peStream == null)
                     {
-                        Debug.Assert(diagnostics.HasAnyErrors());
+                        Debug.Assert(metadataDiagnostics.HasAnyErrors());
                         return null;
                     }
 
@@ -1696,32 +1703,37 @@ namespace Microsoft.CodeAnalysis
                     return retStream;
                 };
 
-                metadataDiagnostics = DiagnosticBag.GetInstance();
                 try
                 {
-                    Cci.PeWriter.WritePeToStream(
+                    if (Cci.PeWriter.WritePeToStream(
                         new EmitContext((Cci.IModule)moduleBeingBuilt, null, metadataDiagnostics),
                         this.MessageProvider,
                         getPeStream,
                         nativePdbWriter,
                         metadataOnly,
                         deterministic,
-                        cancellationToken);
-
-                    if (peTempStream != null)
+                        cancellationToken))
                     {
-                        peTempStream.Position = 0;
-                        peTempStream.CopyTo(peStream);
-                    }
+                        if (peTempStream != null)
+                        {
+                            peTempStream.Position = 0;
+                            peTempStream.CopyTo(peStream);
+                        }
 
-                    if (pdbTempStream != null)
-                    {
-                        // Note: Native PDB writer may operate on the underlying stream during disposal.
-                        // So close it here before we read data from the underlying stream.
-                        nativePdbWriter.WritePdbToOutput();
+                        if (pdbTempStream != null)
+                        {
+                            // Note: Native PDB writer may operate on the underlying stream during disposal.
+                            // So close it here before we read data from the underlying stream.
+                            nativePdbWriter.Dispose();
 
-                        pdbTempStream.Position = 0;
-                        pdbTempStream.CopyTo(pdbOriginalStream);
+                            if (pdbOriginalStream == null)
+                            {
+                                pdbOriginalStream = pdbOutputInfo.StreamFactory(metadataDiagnostics);
+                            }
+
+                            pdbTempStream.Position = 0;
+                            pdbTempStream.CopyTo(pdbOriginalStream);
+                        }
                     }
                 }
                 catch (Cci.PdbWritingException ex)
@@ -1763,9 +1775,9 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
+                nativePdbWriter?.Dispose();
                 peTempStream?.Dispose();
                 pdbTempStream?.Dispose();
-                nativePdbWriter?.Dispose();
                 signingInputStream?.Dispose();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();

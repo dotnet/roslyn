@@ -408,12 +408,13 @@ namespace Microsoft.CodeAnalysis
                         WithOutputNameOverride(outputName).
                         WithPdbFilePath(finalPdbFilePath);
 
-                    var pdbOutputInfo = Arguments.EmitPdb
-                        ? new Cci.PdbOutputInfo(finalPdbFilePath)
-                        : Cci.PdbOutputInfo.None;
-
+                    using (var pdbStreamProvider = Arguments.EmitPdb ? new CompilerEmitStreamProvider(this, touchedFilesLogger, finalPdbFilePath) : null)
                     using (var peStreamProvider = new CompilerEmitStreamProvider(this, touchedFilesLogger, finalOutputPath))
                     {
+                        var pdbOutputInfo = (pdbStreamProvider != null) ?
+                            new Cci.PdbOutputInfo(finalPdbFilePath, (diagnosticBag) => pdbStreamProvider.GetStream(diagnosticBag)) :
+                            Cci.PdbOutputInfo.None;
+
                         emitResult = compilation.Emit(
                             peStreamProvider,
                             pdbOutputInfo,

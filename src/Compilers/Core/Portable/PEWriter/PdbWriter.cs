@@ -47,6 +47,7 @@ namespace Microsoft.Cci
 
         internal readonly string FileName;
         internal readonly Stream Stream;
+        internal readonly Func<DiagnosticBag, Stream> StreamFactory;
 
         internal bool IsNone
         {
@@ -58,17 +59,22 @@ namespace Microsoft.Cci
             get { return !IsNone; }
         }
 
-        internal PdbOutputInfo(string fileName)
+        private PdbOutputInfo(string fileName, Stream stream, Func<DiagnosticBag, Stream> streamFactory)
+        {
+            FileName = fileName;
+            Stream = stream;
+            StreamFactory = streamFactory;
+        }
+
+        internal PdbOutputInfo(string fileName, Func<DiagnosticBag, Stream> streamFactory)
+             : this(fileName, null, streamFactory)
         {
             Debug.Assert(fileName != null);
-            FileName = fileName;
-            Stream = null;
         }
 
         internal PdbOutputInfo(Stream stream)
+             : this(null, stream, null)
         {
-            FileName = null;
-            Stream = stream;
         }
 
         internal PdbOutputInfo(string fileName, Stream stream)
@@ -77,13 +83,12 @@ namespace Microsoft.Cci
             Debug.Assert(stream != null && stream.CanWrite);
             FileName = fileName;
             Stream = stream;
+            StreamFactory = null;
         }
 
         internal PdbOutputInfo WithStream(Stream stream)
         {
-            return FileName != null
-                ? new PdbOutputInfo(FileName, stream)
-                : new PdbOutputInfo(stream);
+            return new PdbOutputInfo(FileName, stream, StreamFactory);
         }
     }
 
@@ -121,20 +126,20 @@ namespace Microsoft.Cci
 
         public void Dispose()
         {
-            this.WritePdbToOutput();
+            Close();
             GC.SuppressFinalize(this);
         }
 
         ~PdbWriter()
         {
-            this.WritePdbToOutput();
+            Close();
         }
 
         /// <summary>
         /// Close the PDB writer and write the contents to the location specified by the <see cref="PdbOutputInfo"/>
         /// value.  If a file name was specified this is the method which will cause it to be created.
         /// </summary>
-        public void WritePdbToOutput()
+        private void Close()
         {
             try
             {
@@ -622,8 +627,10 @@ namespace Microsoft.Cci
             try
             {
                 var instance = (ISymUnmanagedWriter2)(_symWriterFactory != null ? _symWriterFactory() : Activator.CreateInstance(GetCorSymWriterSxSType()));
-                var comStream = _pdbOutputInfo.Stream != null ? new ComStreamWrapper(_pdbOutputInfo.Stream) : null;
-                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _pdbOutputInfo.FileName, comStream, fullBuild: true);
+
+                Debug.Assert(_pdbOutputInfo.Stream.Length == 0);
+                Debug.Assert(_pdbOutputInfo.Stream != null);
+                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _pdbOutputInfo.FileName, new ComStreamWrapper(_pdbOutputInfo.Stream), fullBuild: true);
 
                 _metadataWriter = metadataWriter;
                 _symWriter = instance;
