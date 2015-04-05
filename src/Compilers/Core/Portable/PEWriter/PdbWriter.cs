@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
@@ -41,6 +42,7 @@ namespace Microsoft.Cci
         private readonly Func<object> _symWriterFactory;
         private MetadataWriter _metadataWriter;
         private ISymUnmanagedWriter2 _symWriter;
+        private IStream _unmanagedStream;
 
         private readonly Dictionary<DebugSourceDocument, ISymUnmanagedDocumentWriter> _documentMap = new Dictionary<DebugSourceDocument, ISymUnmanagedDocumentWriter>();
 
@@ -53,6 +55,9 @@ namespace Microsoft.Cci
         private uint[] _sequencePointStartColumns;
         private uint[] _sequencePointEndLines;
         private uint[] _sequencePointEndColumns;
+
+        [DllImport("shlwapi.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
+        extern static IStream SHCreateMemStream([In] IntPtr pInit, [In] uint cbInit);
 
         public PdbWriter(Func<Stream> streamProvider, string fileName, Func<object> symWriterFactory = null)
         {
@@ -83,6 +88,35 @@ namespace Microsoft.Cci
             {
                 _symWriter?.Close();
                 _symWriter = null;
+
+                Stream stream = _streamProvider();
+                if (stream != null)
+                {
+                    // Important: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
+                    // and the resulting PDB has Age = existing_age + 1.
+                    Debug.Assert(stream.Length == 0);
+
+                    var statStg = default(STATSTG);
+                    _unmanagedStream.Stat(out statStg, grfStatFlag: 3 /*STATFLAG_NONAME | STATFLAG_NOOPEN*/);
+                    _unmanagedStream.Seek(0L, 0, IntPtr.Zero);
+
+                    // Copy unmanagedStream contents to stream in chunks
+                    var len = (int)statStg.cbSize;
+                    stream.SetLength(len);
+                    const int maxChunkSize = 4096;
+                    var buffer = new byte[Math.Min(len, maxChunkSize)];
+                    while (len > 0)
+                    {
+                        int chunkSize = Math.Min(len, maxChunkSize);
+                        _unmanagedStream.Read(buffer, chunkSize, IntPtr.Zero);
+                        stream.Write(buffer, 0, chunkSize);
+                        len -= chunkSize;
+                    }
+
+                    stream.Flush();
+                }
+
+                _unmanagedStream = null;
             }
             catch (Exception ex)
             {
@@ -558,17 +592,12 @@ namespace Microsoft.Cci
 
         public void SetMetadataEmitter(MetadataWriter metadataWriter)
         {
-            Stream stream = _streamProvider() ?? new System.IO.MemoryStream();
-
             try
             {
                 var instance = (ISymUnmanagedWriter2)(_symWriterFactory != null ? _symWriterFactory() : Activator.CreateInstance(GetCorSymWriterSxSType()));
 
-                // Important: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
-                // and the resulting PDB has Age = existing_age + 1.
-                Debug.Assert(stream.Length == 0);
-
-                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, new ComStreamWrapper(stream), fullBuild: true);
+                _unmanagedStream = SHCreateMemStream(IntPtr.Zero, 0u);
+                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _unmanagedStream, fullBuild: true);
 
                 _metadataWriter = metadataWriter;
                 _symWriter = instance;
