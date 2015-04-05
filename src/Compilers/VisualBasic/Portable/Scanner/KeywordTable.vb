@@ -304,9 +304,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Private Shared Function EnsureHalfWidth(s As String) As String
             Dim result As Char() = Nothing
-            Dim ch As Char
             For i As Integer = 0 To s.Length - 1
-                ch = s(i)
+             Dim ch As Char = s(i)
 
                 If SyntaxFacts.IsFullWidth(ch) Then
                     ch = SyntaxFacts.MakeHalfWidth(ch)

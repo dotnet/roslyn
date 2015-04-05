@@ -318,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function XmlMakeEndEmbeddedToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), scanTrailingTrivia As ScanTriviaFunc) As PunctuationSyntax
             Dim c = Peek
-            Debug.Assert(c.IsAnyOf("%"c, FULLWIDTH_PERCENT_SIGN))
+            Debug.Assert(c.IsFrom("%"c, FULLWIDTH_PERCENT_SIGN))
             Debug.Assert(Peek(1) = ">"c)
 
             Dim spelling As String

@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(IsAtNewLine)
             ' leading whitespace until we see ''' should be regular whitespace
             Dim c As Char
-            If TryPeek(c) AndAlso IsWhitespace(c) Then
+            If Peep(c) AndAlso IsWhitespace(c) Then
                 Dim ws = ScanWhitespace()
                 tList.Add(ws)
             End If
@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function TrySkipXmlDocMarker(ByRef len As Integer) As Boolean
             Dim c As Char
             Dim Here = len
-            While TryPeek(Here, c) AndAlso IsWhitespace(c)
+            While Peep(Here, c) AndAlso IsWhitespace(c)
                 Here += 1
             End While
 
@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim len = 0
             Do
-                If c.IsAnyOf(" "c, CHARACTER_TABULATION) Then
+                If c.IsFrom(" "c, CHARACTER_TABULATION) Then
                     len += 1
 
                 ElseIf IsNewLine(c) Then
@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim Here As Integer = 0
             Dim scratch = GetScratch()
             Dim c As Char
-            While TryPeek(Here, c)
+            While Peep(Here, c)
 
                 Select Case (c)
                     Case CARRIAGE_RETURN, LINE_FEED
@@ -277,23 +277,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         End If
 
                         Debug.Assert(Here = 0)
-                        Dim ch As Char
-                        If TryPeek(1, ch) Then
-                            Select Case ch
+                        If Peep(1, c) Then
+                            Select Case c
                                 Case "!"c
-                                    Dim c2 As Char
-                                    If TryPeek(2, c2) Then
-                                        Select Case c2
+                                    If Peep(2, c) Then
+                                        Select Case c
                                             Case "-"c
-                                                If NextIs(3,"-"c) Then
+                                                If NextIs(3, "-"c) Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "["c
-                                                If NextAre(3,"CDATA[") Then
+                                                If NextAre(3, "CDATA[") Then
                                                     Return XmlMakeBeginCDataToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
-                                                If  NextAre(3,"OCTYPE") Then
+                                                If NextAre(3, "OCTYPE") Then
                                                     Return XmlMakeBeginDTDToken(precedingTrivia)
                                                 End If
                                         End Select
@@ -366,7 +364,7 @@ ScanChars:
             End If
 
             Dim c As Char
-            If state = ScannerState.StartProcessingInstruction AndAlso TryPeek(c) Then
+            If state = ScannerState.StartProcessingInstruction AndAlso Peep(c) Then
                 ' // Whitespace
                 ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
                 Select Case c
@@ -382,7 +380,7 @@ ScanChars:
             End If
 
             Dim Here = 0
-            While TryPeek(Here, c)
+            While Peep(Here, c)
                 Select Case (c)
 
                     Case CARRIAGE_RETURN, LINE_FEED
@@ -455,7 +453,7 @@ CleanUp:
             End If
 
             Dim c As Char
-            While TryPeek(c)
+            While Peep(c)
                 If Not precedingTrivia.Any AndAlso IsAtNewLine() AndAlso Not Me._doNotRequireXmlDocCommentPrefix Then
                     ' this would indicate that we looked at Trivia, but did not find
                     ' XmlDoc prefix (or we would not be at the line start)
@@ -498,22 +496,21 @@ CleanUp:
                         Return XmlMakeDoubleQuoteToken(precedingTrivia, c, isOpening:=True)
 
                     Case "<"c
-                        Dim ch, c2 As Char
-                        If TryPeek(1, ch) Then
-                            Select Case ch
+                        If Peep(1, c) Then
+                            Select Case c
                                 Case "!"c
-                                    If TryPeek(2, c2) Then
-                                        Select Case c2
+                                    If Peep(2, c) Then
+                                        Select Case c
                                             Case "-"c
-                                                If NextIs(3,"-"c) Then
+                                                If NextIs(3, "-"c) Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "["c
-                                                If NextAre(3,"CDATA[") Then
+                                                If NextAre(3, "CDATA[") Then
                                                     Return XmlMakeBeginCDataToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
-                                                If NextAre(3,"OCTYPE") Then
+                                                If NextAre(3, "OCTYPE") Then
                                                     Return XmlMakeBeginDTDToken(precedingTrivia)
                                                 End If
                                         End Select
@@ -542,11 +539,7 @@ CleanUp:
                     Case ")"c
                         Return XmlMakeRightParenToken(precedingTrivia)
 
-                    Case "!"c,
-                        ";"c,
-                        "#"c,
-                        ","c,
-                        "}"c
+                    Case "!"c, ";"c, "#"c, ","c, "}"c
                         Return XmlMakeBadToken(precedingTrivia, 1, ERRID.ERR_IllegalXmlNameChar)
 
                     Case ":"c
