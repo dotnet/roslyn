@@ -113,14 +113,19 @@ namespace Microsoft.Cci
 
                         stream.Flush();
                     }
-
-                    Marshal.ReleaseComObject(_nativeStream);
-                    _nativeStream = null;
                 }
             }
             catch (Exception ex)
             {
                 throw new PdbWritingException(ex);
+            }
+            finally
+            {
+                if (_nativeStream != null)
+                {
+                    Marshal.ReleaseComObject(_nativeStream);
+                    _nativeStream = null;
+                }
             }
         }
 

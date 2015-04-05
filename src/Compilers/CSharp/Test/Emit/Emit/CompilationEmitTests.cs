@@ -2726,7 +2726,8 @@ class C
 
             Assert.Equal((int)ErrorCode.FTL_DebugEmitFailure, err.Code);
             Assert.Equal(1, err.Arguments.Count);
-            Assert.True(((string)err.Arguments[0]).EndsWith(" HRESULT: 0x806D0004", StringComparison.Ordinal));
+            var ioExceptionMessage = new IOException().Message;
+            Assert.Equal(ioExceptionMessage, (string)err.Arguments[0]);
 
             pdb.Dispose();
             result = compilation.Emit(output, pdb);
@@ -2736,7 +2737,7 @@ class C
 
             Assert.Equal((int)ErrorCode.FTL_DebugEmitFailure, err.Code);
             Assert.Equal(1, err.Arguments.Count);
-            Assert.True(((string)err.Arguments[0]).EndsWith(" HRESULT: 0x806D0004", StringComparison.Ordinal));
+            Assert.Equal(ioExceptionMessage, (string)err.Arguments[0]);
         }
 
         [Fact]

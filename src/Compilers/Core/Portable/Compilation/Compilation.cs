@@ -1709,6 +1709,10 @@ namespace Microsoft.CodeAnalysis
                         peTempStream.Position = 0;
                         peTempStream.CopyTo(peStream);
                     }
+
+                    // Note: Native PDB writer may operate on the underlying stream during disposal.
+                    // So close it here before we read data from the underlying stream.
+                    nativePdbWriter?.WritePdbToOutput();
                 }
                 catch (Cci.PdbWritingException ex)
                 {
