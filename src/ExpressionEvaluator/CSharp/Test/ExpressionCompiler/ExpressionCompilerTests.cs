@@ -5993,5 +5993,59 @@ public class C
                 AssertEx.SetEqual(locals.Select(l => l.LocalName), "x", "y");
             }
         }
+
+        /// <summary>
+        /// Ignore accessibility in lambda rewriter.
+        /// </summary>
+        [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
+        [Fact]
+        public void LambdaRewriterIgnoreAccessibility()
+        {
+            var source =
+@"using System.Linq;
+class C
+{
+    static void M()
+    {
+        var q = new[] { new C() }.AsQueryable();
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(
+                source,
+                options: TestOptions.DebugDll,
+                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(runtime, methodName: "C.M");
+            var testData = new CompilationTestData();
+            string error;
+            context.CompileExpression("q.Where(c => true)", out error, testData);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       64 (0x40)
+  .maxstack  6
+  .locals init (System.Linq.IQueryable<C> V_0, //q
+                System.Linq.Expressions.ParameterExpression V_1)
+  IL_0000:  ldloc.0
+  IL_0001:  ldtoken    ""C""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""c""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.1
+  IL_0016:  ldc.i4.1
+  IL_0017:  box        ""bool""
+  IL_001c:  ldtoken    ""bool""
+  IL_0021:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0026:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_002b:  ldc.i4.1
+  IL_002c:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0031:  dup
+  IL_0032:  ldc.i4.0
+  IL_0033:  ldloc.1
+  IL_0034:  stelem.ref
+  IL_0035:  call       ""System.Linq.Expressions.Expression<System.Func<C, bool>> System.Linq.Expressions.Expression.Lambda<System.Func<C, bool>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003a:  call       ""System.Linq.IQueryable<C> System.Linq.Queryable.Where<C>(System.Linq.IQueryable<C>, System.Linq.Expressions.Expression<System.Func<C, bool>>)""
+  IL_003f:  ret
+}");
+        }
     }
 }
