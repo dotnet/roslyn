@@ -4149,27 +4149,42 @@ End Class"
         ''' <summary>
         ''' Ignore accessibility in async rewriter.
         ''' </summary>
-        <Fact>
+        <WorkItem(1813, "https://github.com/dotnet/roslyn/issues/1813")>
+        <Fact(Skip:="1813")>
         Public Sub AsyncRewriterIgnoreAccessibility()
             Const source =
 "Imports System
 Imports System.Threading.Tasks
 Class C
-    Shared Sub F(Of T)(f As Func(Of Task(Of T)))
+End Class
+Module M
+    Sub F(Of T)(f As Func(Of Task(Of T)))
     End Sub
     Sub M()
     End Sub
-End Class"
+End Module"
             Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source), options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(runtime, methodName:="C.M")
+            Dim context = CreateMethodContext(runtime, methodName:="M.M")
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression("F(Async Function() New C())", resultProperties, errorMessage, testData)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
-  ...
+  // Code size       42 (0x2a)
+  .maxstack  2
+  IL_0000:  ldsfld     ""<>x._Closure$__.$I0-0 As System.Func(Of System.Threading.Tasks.Task(Of C))""
+  IL_0005:  brfalse.s  IL_000e
+  IL_0007:  ldsfld     ""<>x._Closure$__.$I0-0 As System.Func(Of System.Threading.Tasks.Task(Of C))""
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     ""<>x._Closure$__.$I As <>x._Closure$__""
+  IL_0013:  ldftn      ""Function <>x._Closure$__._Lambda$__0-0() As System.Threading.Tasks.Task(Of C)""
+  IL_0019:  newobj     ""Sub System.Func(Of System.Threading.Tasks.Task(Of C))..ctor(Object, System.IntPtr)""
+  IL_001e:  dup
+  IL_001f:  stsfld     ""<>x._Closure$__.$I0-0 As System.Func(Of System.Threading.Tasks.Task(Of C))""
+  IL_0024:  call       ""Sub M.F(Of C)(System.Func(Of System.Threading.Tasks.Task(Of C)))""
+  IL_0029:  ret
 }")
         End Sub
 
