@@ -16,69 +16,66 @@ namespace Roslyn.Test.Utilities
             _canWrite = canWrite;
         }
 
-        public override bool CanRead
-        {
-            get
-            {
-                return _canRead;
-            }
-        }
+        public override bool CanRead => _canRead;
 
-        public override bool CanSeek
-        {
-            get
-            {
-                return _canSeek;
-            }
-        }
+        public override bool CanSeek => _canSeek;
 
-        public override bool CanWrite
-        {
-            get
-            {
-                return _canWrite;
-            }
-        }
+        public override bool CanWrite => _canWrite;
 
-        public override long Length
-        {
-            get
-            {
-                throw new NotSupportedException();
-            }
-        }
+        public override long Length => 0L;
 
         public override long Position
         {
             get
             {
-                throw new NotSupportedException();
+                return 0L;
             }
 
             set
             {
-                throw new NotSupportedException();
+                if (!CanSeek)
+                {
+                    throw new NotSupportedException();
+                }
             }
         }
 
         public override void Flush()
         {
-            throw new NotSupportedException();
+        }
+
+        public override int ReadByte()
+        {
+            if (!CanRead)
+            {
+                throw new NotSupportedException();
+            }
+
+            return -1;
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            throw new NotSupportedException();
+            if (!CanRead)
+            {
+                throw new NotSupportedException();
+            }
+
+            return 0;
         }
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            throw new NotSupportedException();
+            if (!CanSeek)
+            {
+                throw new NotSupportedException();
+            }
+
+            return 0L;
         }
 
         public override void SetLength(long value)
         {
-            throw new NotSupportedException();
         }
 
         public override void Write(byte[] buffer, int offset, int count)

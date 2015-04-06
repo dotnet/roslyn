@@ -1625,7 +1625,6 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag metadataDiagnostics = null;
             DiagnosticBag pdbBag = null;
             Stream pdbStream = null;
-            Stream pdbTempStream = null;
             Stream peStream = null;
             Stream peTempStream = null;
 
@@ -1645,18 +1644,7 @@ namespace Microsoft.CodeAnalysis
                             return null;
                         }
 
-                        var retStream = pdbStream;
-
-                        // Native PDB writer is able to update an existing stream.
-                        // It checks for length to determine whether the given stream has existing data to be updated,
-                        // or whether it should start writing PDB data from scratch. Thus if not writing to a seekable empty stream,
-                        // we have to create an in-memory temp stream for the PDB writer and copy all data to the actual stream at once at the end.
-                        if (!retStream.CanSeek || retStream.Length != 0)
-                        {
-                            retStream = pdbTempStream = new MemoryStream();
-                        }
-
-                        return retStream;
+                        return pdbStream;
                     };
 
                     // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
@@ -1722,15 +1710,9 @@ namespace Microsoft.CodeAnalysis
                         peTempStream.CopyTo(peStream);
                     }
 
-                    if (pdbTempStream != null)
-                    {
-                        // Note: Native PDB writer may operate on the underlying stream during disposal.
-                        // So close it here before we read data from the underlying stream.
-                        nativePdbWriter?.WritePdbToOutput();
-
-                        pdbTempStream.Position = 0;
-                        pdbTempStream.CopyTo(pdbStream);
-                    }
+                    // Note: Native PDB writer may operate on the underlying stream during disposal.
+                    // So close it here before we read data from the underlying stream.
+                    nativePdbWriter?.WritePdbToOutput();
                 }
                 catch (Cci.PdbWritingException ex)
                 {
@@ -1772,7 +1754,6 @@ namespace Microsoft.CodeAnalysis
             finally
             {
                 peTempStream?.Dispose();
-                pdbTempStream?.Dispose();
                 nativePdbWriter?.Dispose();
                 signingInputStream?.Dispose();
                 pdbBag?.Free();
