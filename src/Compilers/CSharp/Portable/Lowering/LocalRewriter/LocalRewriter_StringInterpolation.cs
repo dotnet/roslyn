@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using System;
 using System.Diagnostics;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -23,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the arguments first in this situation because we do not know what conversions will be
             // produced for the arguments until after we've done overload resolution. So we produce the invocation
             // and then lower it along with its arguments.
-            var binderFlags = _allowOmissionOfConditionalCalls ? BinderFlags.IgnoreAccessibility : BinderFlags.None; // TODO (acasey): more, cleaner
-            var result = _factory.StaticCall(binderFlags, stringFactory, "Create", expressions.ToImmutableAndFree(),
+            var result = _factory.StaticCall(BinderFlags.None, stringFactory, "Create", expressions.ToImmutableAndFree(),
                 allowUnexpandedForm: false // if an interpolation expression is the null literal, it should not match a params parameter.
                 );
             if (!result.HasAnyErrors)
@@ -119,8 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and then lower it along with its arguments.
             expressions.Insert(0, format);
             var stringType = node.Type;
-            var binderFlags = _allowOmissionOfConditionalCalls ? BinderFlags.IgnoreAccessibility : BinderFlags.None; // TODO (acasey): more, cleaner
-            var result = _factory.StaticCall(binderFlags, stringType, "Format", expressions.ToImmutableAndFree(),
+            var result = _factory.StaticCall(BinderFlags.None, stringType, "Format", expressions.ToImmutableAndFree(),
                 allowUnexpandedForm: false // if an interpolation expression is the null literal, it should not match a params parameter.
                 );
             if (!result.HasAnyErrors)
