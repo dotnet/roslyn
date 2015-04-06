@@ -667,17 +667,30 @@ class AnonymousFunctions
                 Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
-                Dim incrementalAnalyzer = DirectCast(DirectCast(diagnosticService.CreateIncrementalAnalyzer(workspace), DiagnosticAnalyzerService.IncrementalAnalyzerDelegatee).Analyzer, DiagnosticIncrementalAnalyzer)
+                Dim baseIncrementalAnalyzer = DirectCast(DirectCast(diagnosticService.CreateIncrementalAnalyzer(workspace), DiagnosticAnalyzerService.IncrementalAnalyzerDelegatee).Analyzer, BaseDiagnosticIncrementalAnalyzer)
 
-                ' Verify that for an analyzer which has a registered compilation start action such that the start action registered an end action,
-                ' we go and force complete all document diagnostics for entire project and then invoke and report end action diagnostics.
-                Dim driver = New DiagnosticAnalyzerDriver(project, project.LanguageServices.GetService(Of ISyntaxNodeAnalyzerService)(), Nothing)
-                Dim projectDiagnostics = driver.GetProjectDiagnosticsAsync(analyzer, AddressOf incrementalAnalyzer.ForceAnalyzeAllDocuments).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(1, projectDiagnostics.Count())
-                Dim diagnostic = projectDiagnostics.Single()
-                Assert.Equal(StatefulCompilationAnalyzer.Descriptor.Id, diagnostic.Id)
-                Dim expectedMessage = String.Format(StatefulCompilationAnalyzer.Descriptor.MessageFormat.ToString(), 1)
-                Assert.Equal(expectedMessage, diagnostic.GetMessage)
+                Dim incrementalAnalyzer = TryCast(baseIncrementalAnalyzer, DiagnosticIncrementalAnalyzer)
+                If incrementalAnalyzer IsNot Nothing Then
+                    ' Verify that for an analyzer which has a registered compilation start action such that the start action registered an end action,
+                    ' we go and force complete all document diagnostics for entire project and then invoke and report end action diagnostics.
+                    Dim driver = New DiagnosticAnalyzerDriver(project, project.LanguageServices.GetService(Of ISyntaxNodeAnalyzerService)(), Nothing)
+                    Dim projectDiagnostics = driver.GetProjectDiagnosticsAsync(analyzer, AddressOf incrementalAnalyzer.ForceAnalyzeAllDocuments).WaitAndGetResult(CancellationToken.None)
+                    Assert.Equal(1, projectDiagnostics.Count())
+                    Dim diagnostic = projectDiagnostics.Single()
+                    Assert.Equal(StatefulCompilationAnalyzer.Descriptor.Id, diagnostic.Id)
+                    Dim expectedMessage = String.Format(StatefulCompilationAnalyzer.Descriptor.MessageFormat.ToString(), 1)
+                    Assert.Equal(expectedMessage, diagnostic.GetMessage)
+                End If
+
+                Dim v2IncrementalAnalyzer = TryCast(baseIncrementalAnalyzer, Microsoft.CodeAnalysis.Diagnostics.EngineV2.DiagnosticIncrementalAnalyzer)
+                If v2IncrementalAnalyzer IsNot Nothing Then
+                    Dim projectDiagnostics = v2IncrementalAnalyzer.GetDiagnosticsAsync(project.Solution, project.Id, Nothing, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                    Assert.Equal(1, projectDiagnostics.Count())
+                    Dim diagnostic = projectDiagnostics.Single()
+                    Assert.Equal(StatefulCompilationAnalyzer.Descriptor.Id, diagnostic.Id)
+                    Dim expectedMessage = String.Format(StatefulCompilationAnalyzer.Descriptor.MessageFormat.ToString(), 1)
+                    Assert.Equal(expectedMessage, diagnostic.Message)
+                End If
             End Using
         End Sub
 

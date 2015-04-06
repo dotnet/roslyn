@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CancellationToken _cancellationToken;
         private readonly ConcurrentSet<Diagnostic> _exceptionDiagnostics;
         private ImmutableHashSet<SyntaxTree> _analyzedSyntaxTrees = ImmutableHashSet<SyntaxTree>.Empty;
-        private ImmutableArray<Diagnostic> _documentDiagnostics = ImmutableArray<Diagnostic>.Empty;
 
         public Compilation Compilation
         {
@@ -72,41 +71,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns diagnostics produced by compilation and by diagnostic analyzers,
-        /// excluding those returned by a prior invocation of GetDiagnosticsFromDocumentAsync.
-        /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetAllNonredundantDiagnosticsAsync()
-        {
-            _driver.StartCompleteAnalysis(_analyzedSyntaxTrees, _cancellationToken);
-
-            // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
-            ImmutableArray<Diagnostic> compilerDiagnostics = _compilation.GetDiagnostics(_cancellationToken);
-
-            if (_documentDiagnostics.Length > 0)
-            {
-                HashSet<Diagnostic> documentDiagnostics = new HashSet<Diagnostic>(_documentDiagnostics);
-                compilerDiagnostics = compilerDiagnostics.Where((d) => !documentDiagnostics.Contains(d)).ToImmutableArrayOrEmpty();
-            }
-
-            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
-            return compilerDiagnostics.AddRange(analyzerDiagnostics).AddRange(_exceptionDiagnostics);
-        }
-
-        /// <summary>
-        /// Returns diagnostics produced by compilation and by diagnostic analyzers from analyzing a single document.
+        /// Returns diagnostics produced by diagnostic analyzers from analyzing a single document.
         /// <param name="model">Semantic model for the document.</param>
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsFromDocumentAsync(SemanticModel model)
+        public async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsFromDocumentAsync(SemanticModel model)
         {
             SyntaxTree documentTree = model.SyntaxTree;
             _analyzedSyntaxTrees = _analyzedSyntaxTrees.Add(documentTree);
 
             // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
-            ImmutableArray<Diagnostic> compilerDiagnostics = model.GetDiagnostics(null, _cancellationToken);
-            _documentDiagnostics = _documentDiagnostics.AddRange(compilerDiagnostics);
+            // Discard the returned diagnostics.
+            model.GetDiagnostics(null, _cancellationToken);
 
-            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetPartialDiagnosticsAsync(documentTree, _cancellationToken).ConfigureAwait(false);
-            return compilerDiagnostics.AddRange(analyzerDiagnostics).AddRange(_exceptionDiagnostics);
+            return await _driver.GetPartialDiagnosticsAsync(documentTree, _cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

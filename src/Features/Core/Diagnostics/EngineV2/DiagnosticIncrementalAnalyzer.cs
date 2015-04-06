@@ -202,6 +202,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, DocumentId documentId, ImmutableHashSet<string> diagnosticIds, CancellationToken cancellationToken)
         {
             ImmutableArray<DiagnosticData> diagnostics = await GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken).ConfigureAwait(false);
+            if (diagnosticIds == null)
+            {
+                return diagnostics;
+            }
+
             return diagnostics.Where(d => diagnosticIds.Contains(d.Id)).ToImmutableArrayOrEmpty();
         }
 
@@ -323,10 +328,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // The requested project version is not the same as that of the current compilation.
                     // Assume that the requested version is newer.
 
-                    CompilationWithAnalyzers newCompilationWithAnalyzers = compilation.WithAnalyzers(Flatten(_hostAnalyzerManager.GetHostDiagnosticAnalyzersPerReference(project.Language).Values), project.AnalyzerOptions, cancellationToken);
-                    CompilationResult newCompilation = new CompilationResult(project, projectVersion, newCompilationWithAnalyzers);
-                    
-                    results.CurrentCompilation = newCompilation;
+                    ImmutableArray<DiagnosticAnalyzer> analyzers = Flatten(_hostAnalyzerManager.CreateDiagnosticAnalyzersPerReference(project).Values);
+                    CompilationWithAnalyzers newCompilationWithAnalyzers = !analyzers.IsEmpty ? compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, cancellationToken) : null;
+                    results.CurrentCompilation = new CompilationResult(project, projectVersion, newCompilationWithAnalyzers);
                 }
 
                 return results.CurrentCompilation;
@@ -396,51 +400,57 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public async Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(CancellationToken cancellationToken)
             {
                 ImmutableArray<Diagnostic> diagnostics = ImmutableArray<Diagnostic>.Empty;
-                lock (_updateDiagnosticsLock)
+                if (_compilationWithAnalyzers != null)
                 {
-                    if (!this.CompletionStarted)
+                    lock (_updateDiagnosticsLock)
                     {
-                        _completionTask = Task.Run(async () =>
+                        if (!this.CompletionStarted)
                         {
-                            diagnostics = await _compilationWithAnalyzers.GetAllNonredundantDiagnosticsAsync().ConfigureAwait(false);
-                            DistributeDiagnostics(diagnostics);
-
-                            // Enable the compilation and project to be collected.
-                            _compilationWithAnalyzers = null;
-                            _project = null;
-
-                            if (cancellationToken.IsCancellationRequested)
+                            _completionTask = Task.Run(async () =>
                             {
-                                _completionCanceled = true;
-                            }
+                                diagnostics = await _compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false);
+                                DistributeDiagnostics(diagnostics);
 
-                        }, cancellationToken);
+                                // Enable the compilation and project to be collected.
+                                _compilationWithAnalyzers = null;
+                                _project = null;
+
+                                if (cancellationToken.IsCancellationRequested)
+                                {
+                                    _completionCanceled = true;
+                                }
+
+                            }, cancellationToken);
+                        }
                     }
+
+                    await _completionTask.ConfigureAwait(false);
                 }
 
-                await _completionTask.ConfigureAwait(false);
                 return diagnostics;
             }
 
             public async Task<ImmutableArray<Diagnostic>> AnalyzeDocumentAsync(DocumentId documentId, SemanticModel documentModel, CancellationToken cancellationToken)
             {
                 ImmutableArray<Diagnostic> diagnostics = ImmutableArray<Diagnostic>.Empty;
-
-                lock (_updateDiagnosticsLock)
+                if (_compilationWithAnalyzers != null)
                 {
-                    if (!DocumentAnalyzed(documentId) && !CompletionStarted)
+                    lock (_updateDiagnosticsLock)
                     {
-                        _analyzedDocuments[documentId] = Task.Run(async () =>
+                        if (!DocumentAnalyzed(documentId) && !CompletionStarted)
                         {
-                            diagnostics = await _compilationWithAnalyzers.GetDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
-                            DistributeDiagnostics(diagnostics);
-                        }, cancellationToken);
+                            _analyzedDocuments[documentId] = Task.Run(async () =>
+                            {
+                                diagnostics = await _compilationWithAnalyzers.GetAnalyzerDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
+                                DistributeDiagnostics(diagnostics);
+                            }, cancellationToken);
+                        }
                     }
-                }
 
-                if (DocumentAnalyzed(documentId))
-                {
-                    await _analyzedDocuments[documentId].ConfigureAwait(false);
+                    if (DocumentAnalyzed(documentId))
+                    {
+                        await _analyzedDocuments[documentId].ConfigureAwait(false);
+                    }
                 }
 
                 return diagnostics;
@@ -469,13 +479,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document)
             {
-                if (DocumentAnalyzed(document.Id))
+                if (_compilationWithAnalyzers != null)
                 {
-                    await _analyzedDocuments[document.Id].ConfigureAwait(false);
-                }
-                else if (CompletionStarted)
-                {
-                    await _completionTask.ConfigureAwait(false);
+                    if (DocumentAnalyzed(document.Id))
+                    {
+                        await _analyzedDocuments[document.Id].ConfigureAwait(false);
+                    }
+                    else if (CompletionStarted)
+                    {
+                        await _completionTask.ConfigureAwait(false);
+                    }
                 }
 
                 ImmutableArray<Diagnostic> documentDiagnostics;
@@ -489,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public bool CompletedSuccessfully
             {
-                get { return CompletionStarted && _completionTask.IsCompleted && !_completionCanceled; }
+                get { return (CompletionStarted && _completionTask.IsCompleted && !_completionCanceled) || _compilationWithAnalyzers == null; }
             }
 
             // Divide a set of diagnostics into per-document groups.
