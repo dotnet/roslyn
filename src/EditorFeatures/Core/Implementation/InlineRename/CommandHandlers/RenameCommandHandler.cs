@@ -7,11 +7,14 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.Rename,
-       ContentTypeNames.RoslynContentType)]
+    // Line commit and rename are both executed on Save. Ensure any rename session is committed
+    // before line commit runs to ensure changes from both are correctly applied.
+    [Order(Before = PredefinedCommandHandlerNames.Commit)]
+    [ExportCommandHandler(PredefinedCommandHandlerNames.Rename, ContentTypeNames.RoslynContentType)]
     internal partial class RenameCommandHandler
     {
         private readonly InlineRenameService _renameService;

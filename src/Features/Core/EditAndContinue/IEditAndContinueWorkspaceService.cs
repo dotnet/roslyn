@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         EditSession EditSession { get; }
         DebuggingSession DebuggingSession { get; }
 
+        event EventHandler<DebuggingStateChangedEventArgs> BeforeDebuggingStateChanged;
+        void OnBeforeDebuggingStateChanged(DebuggingState before, DebuggingState after);
+
         void StartDebuggingSession(Solution currentSolution);
 
         void StartEditSession(
