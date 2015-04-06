@@ -169,51 +169,35 @@ End Class
                 source,
                 TestOptions.DebugDll)
 
-            compilation.VerifyDiagnostics(
-                 Diagnostic(ERRID.WRN_UnusedLocalConst, "o").WithArguments("o"),
-                 Diagnostic(ERRID.WRN_UnusedLocalConst, "s").WithArguments("s"),
-                 Diagnostic(ERRID.WRN_UnusedLocalConst, "f").WithArguments("f"),
-                 Diagnostic(ERRID.WRN_UnusedLocalConst, "d").WithArguments("d"),
-                 Diagnostic(ERRID.WRN_UnusedLocalConst, "dec").WithArguments("dec"),
-                 Diagnostic(ERRID.WRN_UnusedLocalConst, "dt").WithArguments("dt"))
-
-            Dim actual As XElement = GetPdbXml(compilation, "C.M")
-            Dim invariantStr = actual.ToString()
-            invariantStr = invariantStr.Replace("-3,402823E+38", "-3.402823E+38")
-            invariantStr = invariantStr.Replace("1,79769313486232E+308", "1.79769313486232E+308")
-            invariantStr = invariantStr.Replace("2,98187743664301E-266", "2.98187743664301E-266")
-            invariantStr = invariantStr.Replace("value=""1,5""", "value=""1.5""")
-            Dim expected = <symbols>
-                               <methods>
-                                   <method containingType="C" name="M">
-                                       <sequencePoints>
-                                           <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="12" document="0"/>
-                                           <entry offset="0x1" startLine="10" startColumn="5" endLine="10" endColumn="12" document="0"/>
-                                       </sequencePoints>
-                                       <locals>
-                                           <constant name="o" value="0" type="Int32"/>
-                                           <constant name="s" value="hello" type="String"/>
-                                           <constant name="f" value="-3.402823E+38" type="Single"/>
-                                           <constant name="d" value="1.79769313486232E+308" type="Double"/>
-                                           <constant name="dec" value="1.5" type="Decimal"/>
-                                           <constant name="dt" value="2.98187743664301E-266" type="Double"/>
-                                       </locals>
-                                       <scope startOffset="0x0" endOffset="0x2">
-                                           <namespace name="System" importlevel="file"/>
-                                           <currentnamespace name=""/>
-                                           <constant name="o" value="0" type="Int32"/>
-                                           <constant name="s" value="hello" type="String"/>
-                                           <constant name="f" value="-3.402823E+38" type="Single"/>
-                                           <constant name="d" value="1.79769313486232E+308" type="Double"/>
-                                           <constant name="dec" value="1.5" type="Decimal"/>
-                                           <constant name="dt" value="2.98187743664301E-266" type="Double"/>
-                                       </scope>
-                                   </method>
-                               </methods>
-                           </symbols>
-
-            'AssertXmlEqual(expected, actual)
-            Assert.Equal(expected.ToString(), invariantStr)
+            compilation.VerifyPdb("C.M",
+<symbols>
+    <methods>
+        <method containingType="C" name="M">
+            <sequencePoints>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="12" document="0"/>
+                <entry offset="0x1" startLine="10" startColumn="5" endLine="10" endColumn="12" document="0"/>
+            </sequencePoints>
+            <locals>
+                <constant name="o" value="null" type="Object"/>
+                <constant name="s" value="hello" type="String"/>
+                <constant name="f" value="-3.402823E+38" type="Single"/>
+                <constant name="d" value="1.79769313486232E+308" type="Double"/>
+                <constant name="dec" value="1.5" type="Decimal"/>
+                <constant name="dt" value="02/29/2012 00:00:00" type="DateTime"/>
+            </locals>
+            <scope startOffset="0x0" endOffset="0x2">
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
+                <constant name="o" value="null" type="Object"/>
+                <constant name="s" value="hello" type="String"/>
+                <constant name="f" value="-3.402823E+38" type="Single"/>
+                <constant name="d" value="1.79769313486232E+308" type="Double"/>
+                <constant name="dec" value="1.5" type="Decimal"/>
+                <constant name="dt" value="02/29/2012 00:00:00" type="DateTime"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
         End Sub
 
     End Class

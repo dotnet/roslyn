@@ -5932,10 +5932,14 @@ public class C
                 Assert.True(comp1.Emit(peStream1Unused, pdbStream1).Success);
                 Assert.True(comp2.Emit(peStream2, pdbStream2).Success);
 
+                pdbStream1.Position = 0;
+                pdbStream2.Position = 0;
+                peStream2.Position = 0;
+
                 // Note: This SymReader will behave differently from the ISymUnmanagedReader
                 // we receive during real debugging.  We're just using it as a rough
                 // approximation of ISymUnmanagedReader3, which is unavailable here.
-                var symReader = new SymReader(new[] { pdbStream1, pdbStream2 });
+                var symReader = new SymReader(new[] { pdbStream1, pdbStream2 }, peStream2, null);
 
                 var runtime = CreateRuntimeInstance(
                     GetUniqueName(),
