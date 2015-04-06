@@ -108,6 +108,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal ImmutableArray<TTypeSymbol> GetTypeSymbols(TCompilation compilation, TMethodSymbol method, string[] serializedTypeNames)
         {
+            if (serializedTypeNames == null)
+            {
+                return ImmutableArray<TTypeSymbol>.Empty;
+            }
+
             var builder = ArrayBuilder<TTypeSymbol>.GetInstance();
             foreach (var name in serializedTypeNames)
             {
