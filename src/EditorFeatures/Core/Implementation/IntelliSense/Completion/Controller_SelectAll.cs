@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             AssertIsForeground();
             DismissSessionIfActive();
+            nextHandler();
         }
     }
 }
