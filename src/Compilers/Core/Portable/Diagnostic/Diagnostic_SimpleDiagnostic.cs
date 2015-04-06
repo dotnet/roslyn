@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -130,8 +131,18 @@ namespace Microsoft.CodeAnalysis
             public override bool Equals(Diagnostic obj)
             {
                 var other = obj as SimpleDiagnostic;
-                return other != null
-                    && _descriptor.Equals(other._descriptor)
+                if (other == null)
+                {
+                    return false;
+                }
+
+                if (AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(this))
+                {
+                    // We have custom Equals logic for diagnostics generated for analyzer exceptions.
+                    return AnalyzerExecutor.AreEquivalentAnalyzerExceptionDiagnostics(this, other);
+                }
+
+                return _descriptor.Equals(other._descriptor)
                     && _messageArgs.SequenceEqual(other._messageArgs, (a, b) => a == b)
                     && _location == other._location
                     && _severity == other._severity

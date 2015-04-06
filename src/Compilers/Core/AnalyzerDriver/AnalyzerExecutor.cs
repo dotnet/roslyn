@@ -529,6 +529,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
+        internal static bool AreEquivalentAnalyzerExceptionDiagnostics(Diagnostic exceptionDiagnostic, Diagnostic other)
+        {
+            // We need to have custom de-duplication logic for diagnostics generated for analyzer exceptions.
+            // We create a new descriptor instance per each analyzer exception diagnostic instance (see comments in method "GetAnalyzerExceptionDiagnostic" above).
+            // This is primarily to allow us to embed exception stack trace in the diagnostic description.
+            // However, this might mean that two exception diagnostics which are equivalent in terms of ID and Message, might not have equal description strings.
+            // We want to classify such diagnostics as equal for de-duplication purpose to reduce the noise in output.
+
+            Debug.Assert(IsAnalyzerExceptionDiagnostic(exceptionDiagnostic));
+
+            if (!IsAnalyzerExceptionDiagnostic(other))
+            {
+                return false;
+            }
+
+            return exceptionDiagnostic.Id == other.Id && 
+                exceptionDiagnostic.Severity == other.Severity &&
+                exceptionDiagnostic.GetMessage() == other.GetMessage();
+        }
+
         private bool IsSupportedDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
         {
             Debug.Assert(_isCompilerAnalyzer != null);
