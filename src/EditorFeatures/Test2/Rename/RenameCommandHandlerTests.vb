@@ -992,5 +992,46 @@ partial class [|Program|]
                 Assert.Equal(String.Empty, view.Caret.Position.BufferPosition.GetContainingLine.GetText())
             End Using
         End Sub
+
+        <Fact>
+        <WorkItem(1142095)>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub SaveDuringRenameCommits()
+            Using workspace = CreateWorkspaceWithWaiter(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                                class [|$$Foo|]
+                                {
+                                    [|Foo|] f;
+                                }
+                            </Document>
+                    </Project>
+                </Workspace>)
+
+                Dim view = workspace.Documents.Single().GetTextView()
+
+                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
+                                                               workspace.GetService(Of IEditorOperationsFactoryService),
+                                                               workspace.GetService(Of IWaitIndicator))
+
+                Dim session = StartSession(workspace)
+                WaitForRename(workspace)
+                Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
+
+                ' Type first in the main identifier
+                view.Selection.Clear()
+                view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "B"c), Sub() editorOperations.InsertText("B"))
+
+                ' Now save the document, which should commit Rename
+                commandHandler.ExecuteCommand(New SaveCommandArgs(view, view.TextBuffer), Sub() Exit Sub)
+
+                VerifyTagsAreCorrect(workspace, "BFoo")
+
+                ' Rename session was indeed commited and is no longer active
+                Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
+            End Using
+        End Sub
     End Class
 End Namespace

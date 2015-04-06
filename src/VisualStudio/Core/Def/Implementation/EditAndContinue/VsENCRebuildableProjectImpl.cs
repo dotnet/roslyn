@@ -220,6 +220,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     Debug.Assert(s_breakStateProjectCount == 0);
                     Debug.Assert(s_breakStateEnteredProjects.Count == 0);
 
+                    _encService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run);
+
                     _encService.StartDebuggingSession(_vsProject.VisualStudioWorkspace.CurrentSolution);
                     s_encDebuggingSessionInfo = new EncDebuggingSessionInfo();
 
@@ -297,6 +299,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // Avoid ending the debug session if it has already been ended.
                 if (_encService.DebuggingSession != null)
                 {
+                    _encService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Design);
+
                     _encService.EndDebuggingSession();
                     LogEncSession();
 
@@ -424,6 +428,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 using (NonReentrantContext)
                 {
                     log.Write("Enter {2}Break Mode: project '{0}', AS#: {1}", _vsProject.DisplayName, pActiveStatements != null ? pActiveStatements.Length : -1, encBreakReason == Interop.ENC_BREAKSTATE_REASON.ENC_BREAK_EXCEPTION ? "Exception " : "");
+
                     Debug.Assert(cActiveStatements == (pActiveStatements != null ? pActiveStatements.Length : 0));
                     Debug.Assert(s_breakStateProjectCount < s_debugStateProjectCount);
                     Debug.Assert(s_breakStateProjectCount > 0 || _exceptionRegions.Count == 0);
@@ -432,6 +437,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     if (s_breakStateEntrySolution == null)
                     {
+                        _encService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
+
                         s_breakStateEntrySolution = _vsProject.VisualStudioWorkspace.CurrentSolution;
                     }
 
@@ -867,6 +874,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     if (_encService.EditSession != null)
                     {
                         Debug.Assert(s_breakStateProjectCount == s_debugStateProjectCount);
+
+                        _encService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
 
                         _encService.EditSession.LogEditSession(s_encDebuggingSessionInfo);
                         _encService.EndEditSession();
