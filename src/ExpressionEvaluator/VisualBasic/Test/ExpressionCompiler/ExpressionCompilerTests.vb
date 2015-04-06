@@ -4146,6 +4146,33 @@ End Class"
 }")
         End Sub
 
+        ''' <summary>
+        ''' Ignore accessibility in async rewriter.
+        ''' </summary>
+        <Fact>
+        Public Sub AsyncRewriterIgnoreAccessibility()
+            Const source =
+"Imports System
+Imports System.Threading.Tasks
+Class C
+    Shared Sub F(Of T)(f As Func(Of Task(Of T)))
+    End Sub
+    Sub M()
+    End Sub
+End Class"
+            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source), options:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(compilation0)
+            Dim context = CreateMethodContext(runtime, methodName:="C.M")
+            Dim resultProperties As ResultProperties = Nothing
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("F(Async Function() New C())", resultProperties, errorMessage, testData)
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  ...
+}")
+        End Sub
+
     End Class
 
 End Namespace
