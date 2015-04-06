@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return type;
             }
 
-            var method = (IMethodSymbol)symbol;
+            var method = symbol as IMethodSymbol;
             if (method != null && !method.Parameters.Any(p => p.RefKind != RefKind.None))
             {
                 // Convert the symbol to Func<...> or Action<...>
