@@ -34,6 +34,7 @@
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractEncProject.cs" />
+    <Compile Include="Implementation\ProjectSystem\Interop\IAnalyzerDependencyHost.cs" />
     <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkingFolder.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioAnalyzerServiceFactory.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
@@ -46,6 +47,7 @@
     <Compile Include="Implementation\ProjectSystem\Interop\IVsUndoState.cs" />
     <Compile Include="Implementation\Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Implementation\SolutionSize\SolutionSizeTracker.cs" />
+    <Compile Include="Implementation\TableDataSource\AbstractTableDataSource.cs" />
     <Compile Include="Implementation\TableDataSource\MiscDiagnosticTableControlEventProcessorProvider.cs" />
     <Compile Include="Implementation\TableDataSource\MiscellaneousDiagnosticListTable.cs" />
     <Compile Include="Implementation\TableDataSource\MiscellaneousTodoListTable.cs" />
@@ -360,7 +362,7 @@
     <Compile Include="Implementation\ProjectSystem\RuleSets\VisualStudioRuleSetManager.RuleSetFile.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTable.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTableControlEventProcessorProvider.cs" />
-    <Compile Include="Implementation\TableDataSource\AbstractTableDataSource.cs" />
+    <Compile Include="Implementation\TableDataSource\AbstractRoslynTableDataSource.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTableEntriesFactory.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTableEntriesSnapshot.cs" />
     <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.cs" />

@@ -385,9 +385,11 @@
     <Compile Include="Log\LogAggregator.cs" />
     <Compile Include="Log\Logger.LogBlock.cs" />
     <Compile Include="Log\LogMessage.cs" />
+    <Compile Include="Log\WorkspaceErrorLogger.cs" />
     <Compile Include="Rename\TokenRenameInfo.cs" />
     <Compile Include="Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Serialization\IAssemblySerializationInfoService.cs" />
+    <Compile Include="Shared\Extensions\FileLinePositionSpanExtensions.cs" />
     <Compile Include="Shared\Extensions\TextDocumentExtensions.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.ReplaceTypeParameterBasedOnTypeConstraintVisitor.cs" />
     <Compile Include="Shared\Utilities\SymbolEquivalenceComparer.AssemblyComparers.cs" />

@@ -1565,7 +1565,7 @@ class C
             var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/preferreduilang:en", "/t:library", "/a:" + typeof(object).Assembly.Location, "a.cs" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal("warning CS8033: The assembly " + typeof(object).Assembly.Location + " does not contain any analyzers.", outWriter.ToString().Trim());
+            Assert.DoesNotContain("warning", outWriter.ToString());
 
             CleanupAllGeneratedFiles(file.Path);
         }
@@ -6072,6 +6072,39 @@ class Program
             Assert.Equal("", outWriter.ToString().Trim());
 
             CleanupAllGeneratedFiles(source);
+        }
+
+        [Fact]
+        public void ExistingPdb()
+        {
+            var dir = Temp.CreateDirectory();
+
+            var source1 = dir.CreateFile("program1.cs").WriteAllText(@"
+class Program1
+{
+        public static void Main() { }
+}");
+            var source2 = dir.CreateFile("program2.cs").WriteAllText(@"
+class Program2
+{
+        public static void Main() { }
+}");
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            int exitCode1 = new MockCSharpCompiler(null, dir.Path, new[] { "/debug:full", "/out:Program.exe", source1.Path }).Run(outWriter);
+            Assert.Equal(0, exitCode1);
+
+            int exitCode2 = new MockCSharpCompiler(null, dir.Path, new[] { "/debug:full", "/out:Program.exe", source2.Path }).Run(outWriter);
+            Assert.Equal(0, exitCode2);
+
+            var pePath = Path.Combine(dir.Path, "Program.exe");
+            var pdbPath = Path.Combine(dir.Path, "Program.pdb");
+
+            using (var peFile = File.OpenRead(pePath))
+            {
+                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdbPath);
+            }
         }
 
         [Fact]

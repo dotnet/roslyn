@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         {
             Guid corSymReaderSxS = new Guid("0A3976C5-4529-4ef8-B0B0-42EED37082CD");
             var rawReader = (ISymUnmanagedReader)Activator.CreateInstance(Type.GetTypeFromCLSID(corSymReaderSxS));
-            int hr = rawReader.Initialize(DummyMetadataImport.Instance, null, null, new ComStreamWrapper(new MemoryStream(pdbImage)));
+            int hr = rawReader.Initialize(new DummyMetadataImport(metadataReaderOpt: null), null, null, new ComStreamWrapper(new MemoryStream(pdbImage)));
             Marshal.ThrowExceptionForHR(hr);
             return new SymbolReaderProvider(rawReader);
         }

@@ -5,6 +5,7 @@ Imports System.IO
 Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.EngineV1
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
@@ -1416,5 +1417,64 @@ public class B
                                              End Sub, SymbolKind.Method)
             End Sub
         End Class
+
+        <Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
+        Public Sub TestCodeBlockAction()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>
+class C
+{
+    public void M() {}
+}
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            TestCodeBlockActionCore(test)
+
+            test = <Workspace>
+                       <Project Language="Visual Basic" CommonReferences="true">
+                           <Document>
+Class C 
+    Public Sub M()
+    End Sub
+End Class
+                            </Document>
+                       </Project>
+                   </Workspace>
+
+            TestCodeBlockActionCore(test)
+        End Sub
+
+        Private Sub TestCodeBlockActionCore(test As XElement)
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Add analyzer
+                Dim analyzer = New CodeBlockActionAnalyzer()
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+
+                Dim document = project.Documents.Single()
+
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
+                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
+                                                                        CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Assert.Equal(2, diagnostics.Count())
+
+                Dim diagnostic = diagnostics.Single(Function(d) d.Id = CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id)
+                Assert.Equal("CodeBlock : M", diagnostic.Message)
+
+                diagnostic = diagnostics.Single(Function(d) d.Id = CodeBlockActionAnalyzer.CodeBlockPerCompilationRule.Id)
+                Assert.Equal("CodeBlock : M", diagnostic.Message)
+            End Using
+        End Sub
     End Class
 End Namespace

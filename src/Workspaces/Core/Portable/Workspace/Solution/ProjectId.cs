@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// An identifier that can be used to refer to the same <see cref="Project"/> across versions.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public class ProjectId : IEquatable<ProjectId>
+    public sealed class ProjectId : IEquatable<ProjectId>
     {
         private string _debugName;
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(nameof(id));
             }
 
-            return new ProjectId(debugName);
+            return new ProjectId(id, debugName);
         }
 
         private string GetDebuggerDisplay()

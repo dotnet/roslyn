@@ -115,11 +115,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 return;
             }
 
+            // get local copy of inprogress state
+            var inprogressState = _state;
+
+            // building is done. reset the state.
+            _state = null;
+
+            // enqueue build/live sync in the queue.
             var asyncToken = _listener.BeginAsyncOperation("OnSolutionBuild");
             _taskQueue.ScheduleTask(async () =>
             {
                 // nothing to do
-                if (_state == null)
+                if (inprogressState == null)
                 {
                     return;
                 }
@@ -133,9 +140,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     // result of the race will be us dropping some diagnostics from the build to the floor.
                     var solution = _workspace.CurrentSolution;
 
-                    await CleanupAllLiveErrorsIfNeededAsync(solution).ConfigureAwait(false);
+                    await CleanupAllLiveErrorsIfNeededAsync(solution, inprogressState).ConfigureAwait(false);
 
-                    var supportedIdMap = GetSupportedLiveDiagnosticId(solution, _state);
+                    var supportedIdMap = GetSupportedLiveDiagnosticId(solution, inprogressState);
                     Func<DiagnosticData, bool> liveDiagnosticChecker = d =>
                     {
                         // REVIEW: we probably need a better design on de-duplicating live and build errors. or don't de-dup at all.
@@ -165,24 +172,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                         return false;
                     };
 
-                    await SyncBuildErrorsAndReportAsync(solution, liveDiagnosticChecker, _state.GetDocumentAndErrors(solution)).ConfigureAwait(false);
-                    await SyncBuildErrorsAndReportAsync(solution, liveDiagnosticChecker, _state.GetProjectAndErrors(solution)).ConfigureAwait(false);
-
-                    // we are done. set inprogress state to null
-                    _state = null;
+                    await SyncBuildErrorsAndReportAsync(solution, liveDiagnosticChecker, inprogressState.GetDocumentAndErrors(solution)).ConfigureAwait(false);
+                    await SyncBuildErrorsAndReportAsync(solution, liveDiagnosticChecker, inprogressState.GetProjectAndErrors(solution)).ConfigureAwait(false);
                 }
             }).CompletesAsyncOperation(asyncToken);
         }
 
-        private async System.Threading.Tasks.Task CleanupAllLiveErrorsIfNeededAsync(Solution solution)
+        private async System.Threading.Tasks.Task CleanupAllLiveErrorsIfNeededAsync(Solution solution, InprogressState state)
         {
-            if (!_workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorIsTheGod))
+            var buildErrorIsTheGod = _workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorIsTheGod);
+            var clearProjectErrors = _workspace.Options.GetOption(InternalDiagnosticsOptions.ClearLiveErrorsForProjectBuilt);
+
+            if (!buildErrorIsTheGod && !clearProjectErrors)
             {
                 return;
             }
 
-            // clear all existing live errors
-            foreach (var project in solution.Projects)
+            var projects = buildErrorIsTheGod ? solution.Projects :
+                            (clearProjectErrors ? state.GetProjectsBuilt(solution) : SpecializedCollections.EmptyEnumerable<Project>());
+
+            // clear all live errors
+            foreach (var project in projects)
             {
                 foreach (var document in project.Documents)
                 {
@@ -266,7 +276,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public void ClearErrors(ProjectId projectId)
         {
             var asyncToken = _listener.BeginAsyncOperation("ClearErrors");
-            _taskQueue.ScheduleTask(() => ClearProjectErrors(projectId)).CompletesAsyncOperation(asyncToken);
+            _taskQueue.ScheduleTask(() =>
+            {
+                var state = GetOrCreateInprogressState();
+                state.Built(projectId);
+
+                ClearProjectErrors(projectId);
+            }).CompletesAsyncOperation(asyncToken);
         }
 
         private void ClearProjectErrors(ProjectId projectId, Solution solution = null)
@@ -349,8 +365,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private class InprogressState
         {
+            private readonly HashSet<ProjectId> _builtProjects = new HashSet<ProjectId>();
             private readonly Dictionary<ProjectId, HashSet<DiagnosticData>> _projectMap = new Dictionary<ProjectId, HashSet<DiagnosticData>>();
             private readonly Dictionary<DocumentId, HashSet<DiagnosticData>> _documentMap = new Dictionary<DocumentId, HashSet<DiagnosticData>>();
+
+            public void Built(ProjectId projectId)
+            {
+                _builtProjects.Add(projectId);
+            }
+
+            public IEnumerable<Project> GetProjectsBuilt(Solution solution)
+            {
+                return solution.Projects.Where(p => _builtProjects.Contains(p.Id));
+            }
 
             public IEnumerable<Project> GetProjectsWithErrors(Solution solution)
             {

@@ -219,6 +219,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.DestructorDeclaration:
                     return true;
 
+                case SyntaxKind.IndexerDeclaration:
+                    // expression bodied indexer
+                    return ((IndexerDeclarationSyntax)declaration).ExpressionBody != null;
+
                 default:
                     return false;
             }

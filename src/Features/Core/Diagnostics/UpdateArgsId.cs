@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override int GetHashCode()
         {
-            return Analyzer.GetHashCode();
+            return Analyzer == null ? 0 : Analyzer.GetHashCode();
         }
     }
 }

@@ -15,6 +15,9 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Xml;
+using Microsoft.CodeAnalysis;
+using Microsoft.DiaSymReader;
+using Roslyn.Utilities;
 using CDI = Microsoft.CodeAnalysis.CustomDebugInfoReader;
 using CDIC = Microsoft.Cci.CustomDebugInfoConstants;
 using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
@@ -133,7 +136,7 @@ namespace Roslyn.Test.PdbUtilities
             XmlDocument doc = new XmlDocument();
             XmlWriter writer = doc.CreateNavigator().AppendChild();
 
-            using (SymReader symReader = new SymReader(pdbStream))
+            using (SymReader symReader = new SymReader(pdbStream, metadataReaderOpt))
             {
                 var converter = new PdbToXmlConverter(writer, symReader, metadataReaderOpt, options);
 
@@ -313,7 +316,7 @@ namespace Roslyn.Test.PdbUtilities
         {
             _writer.WriteStartElement("unknown");
             _writer.WriteAttributeString("kind", record.Kind.ToString());
-            _writer.WriteAttributeString("version", record.Version.ToString());
+            _writer.WriteAttributeString("version", CultureInvariantToString(record.Version));
 
             PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
             StringBuilder builder = pooled.Builder;
@@ -345,7 +348,7 @@ namespace Roslyn.Test.PdbUtilities
             foreach (short importCount in counts)
             {
                 _writer.WriteStartElement("namespace");
-                _writer.WriteAttributeString("usingCount", importCount.ToString());
+                _writer.WriteAttributeString("usingCount", CultureInvariantToString(importCount));
                 _writer.WriteEndElement(); //namespace
             }
 
@@ -466,9 +469,9 @@ namespace Roslyn.Test.PdbUtilities
                 }
 
                 _writer.WriteStartElement("bucket");
-                _writer.WriteAttributeString("flagCount", flagCount.ToString());
+                _writer.WriteAttributeString("flagCount", CultureInvariantToString(flagCount));
                 _writer.WriteAttributeString("flags", pooled.ToStringAndFree());
-                _writer.WriteAttributeString("slotId", bucket.SlotId.ToString());
+                _writer.WriteAttributeString("slotId", CultureInvariantToString(bucket.SlotId));
                 _writer.WriteAttributeString("localName", bucket.Name);
                 _writer.WriteEndElement(); //bucket
             }
@@ -524,12 +527,12 @@ namespace Roslyn.Test.PdbUtilities
                             int ordinal = 0;
                             bool badOrdinal = hasOrdinal && !blobReader.TryReadCompressedInteger(out ordinal);
 
-                            _writer.WriteAttributeString("kind", synthesizedKind.ToString());
-                            _writer.WriteAttributeString("offset", badSyntaxOffset ? "?" : syntaxOffset.ToString());
+                            _writer.WriteAttributeString("kind", CultureInvariantToString(synthesizedKind));
+                            _writer.WriteAttributeString("offset", badSyntaxOffset ? "?" : CultureInvariantToString(syntaxOffset));
 
                             if (badOrdinal || hasOrdinal)
                             {
-                                _writer.WriteAttributeString("ordinal", badOrdinal ? "?" : ordinal.ToString());
+                                _writer.WriteAttributeString("ordinal", badOrdinal ? "?" : CultureInvariantToString(ordinal));
                             }
                         }
 
@@ -572,7 +575,7 @@ namespace Roslyn.Test.PdbUtilities
 
                     // [-1, inf)
                     methodOrdinal--;
-                    _writer.WriteElementString("methodOrdinal", methodOrdinal.ToString());
+                    _writer.WriteElementString("methodOrdinal", CultureInvariantToString(methodOrdinal));
 
                     if (!blobReader.TryReadCompressedInteger(out syntaxOffsetBaseline))
                     {
@@ -601,7 +604,7 @@ namespace Roslyn.Test.PdbUtilities
                                 break;
                             }
 
-                            _writer.WriteAttributeString("offset", (syntaxOffset + syntaxOffsetBaseline).ToString());
+                            _writer.WriteAttributeString("offset", CultureInvariantToString(syntaxOffset + syntaxOffsetBaseline));
                         }
                         finally
                         {
@@ -621,7 +624,7 @@ namespace Roslyn.Test.PdbUtilities
                                 return;
                             }
 
-                            _writer.WriteAttributeString("offset", (syntaxOffset + syntaxOffsetBaseline).ToString());
+                            _writer.WriteAttributeString("offset", CultureInvariantToString(syntaxOffset + syntaxOffsetBaseline));
 
                             int closureOrdinal;
                             if (!blobReader.TryReadCompressedInteger(out closureOrdinal))
@@ -639,7 +642,7 @@ namespace Roslyn.Test.PdbUtilities
                             else if (closureOrdinal != -1)
                             {
                                 _writer.WriteAttributeString("closure",
-                                    closureOrdinal.ToString() + (closureOrdinal >= closureCount ? " (invalid)" : ""));
+                                    CultureInvariantToString(closureOrdinal) + (closureOrdinal >= closureCount ? " (invalid)" : ""));
                             }
                         }
                         finally
@@ -955,7 +958,7 @@ namespace Roslyn.Test.PdbUtilities
                     // Provide scope range
                     _writer.WriteAttributeString("il_start", AsILOffset(scope.GetStartOffset()));
                     _writer.WriteAttributeString("il_end", AsILOffset(scope.GetEndOffset()));
-                    _writer.WriteAttributeString("attributes", l.GetAttributes().ToString());
+                    _writer.WriteAttributeString("attributes", CultureInvariantToString(l.GetAttributes()));
 
                     if (reusingSlot)
                     {
@@ -965,47 +968,96 @@ namespace Roslyn.Test.PdbUtilities
                 _writer.WriteEndElement(); // </local>
             }
 
-            foreach (ISymUnmanagedConstant c in scope.GetConstants())
+            foreach (ISymUnmanagedConstant constant in scope.GetConstants())
             {
-                // Note: We can retrieve constant tokens by saving it into signature blob
-                // in our implementation of IMetadataImport.GetSigFromToken.
+                string name = constant.GetName();
+                var signature = constant.GetSignature();
+                object value = constant.GetValue();
+
                 _writer.WriteStartElement("constant");
+                _writer.WriteAttributeString("name", name);
+
+                if (value is int &&
+                    (int)value == 0 &&
+                    (signature[0] == (byte)ConstantTypeCode.NullReference ||
+                     signature[0] == (int)SignatureTypeCode.Object ||
+                     signature[0] == (int)SignatureTypeCode.String ||
+                     signature[0] == (int)SignatureTypeCode.GenericTypeInstance))
                 {
-                    _writer.WriteAttributeString("name", c.GetName());
+                    // TODO: 0 for enums nested in a generic class, null for reference type
+                    // We need to decode the signature and see if the target type is enum.
+                    _writer.WriteAttributeString("value", "null");
 
-                    object value = c.GetValue();
-                    string typeName = value.GetType().Name;
-
-                    // certain Unicode characters will give Xml writers fits...in order to avoid this, we'll replace
-                    // problematic characters/sequences with their hexadecimal equivalents, like U+0000, etc...
-                    var chars = value as string;
-                    if (chars != null)
+                    if (signature[0] == (int)SignatureTypeCode.String)
                     {
-                        PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
-                        var valueWithPlaceholders = pooled.Builder;
-                        foreach (var ch in chars)
-                        {
-                            // if we end up with more, we can add them here
-                            if (0 == (int)ch)
-                            {
-                                valueWithPlaceholders.AppendFormat("U+{0:X4}", (int)ch);
-                            }
-                            else
-                            {
-                                valueWithPlaceholders.Append(ch);
-                            }
-                        }
-                        if (valueWithPlaceholders.Length > chars.Length)
-                        {
-                            value = valueWithPlaceholders.ToString();
-                        }
-                        pooled.Free();
+                        _writer.WriteAttributeString("type", "String");
                     }
-
-                    _writer.WriteAttributeString("value", value.ToString());
-                    _writer.WriteAttributeString("type", typeName);
+                    else if (signature[0] == (int)SignatureTypeCode.Object)
+                    {
+                        _writer.WriteAttributeString("type", "Object");
+                    }
+                    else
+                    {
+                        // TODO:
+                        // A null reference, the type is encoded in the signature. 
+                        // Ideally we would parse the signature and display the target type name. 
+                        // That requires MetadataReader vNext though.
+                        _writer.WriteAttributeString("signature", BitConverter.ToString(signature.ToArray()));
+                    }
                 }
-                _writer.WriteEndElement(); // </constant>
+                else if (value == null)
+                {
+                    // empty string
+                    if (signature[0] == (byte)SignatureTypeCode.String)
+                    {
+                        _writer.WriteAttributeString("value", "");
+                        _writer.WriteAttributeString("type", "String");
+                    }
+                    else
+                    {
+                        _writer.WriteAttributeString("value", "null");
+                        _writer.WriteAttributeString("unknown-signature", BitConverter.ToString(signature.ToArray()));
+                    }
+                }
+                else if (value is decimal)
+                {
+                    // TODO: check that the signature is a TypeRef
+                    _writer.WriteAttributeString("value", ((decimal)value).ToString(CultureInfo.InvariantCulture));
+                    _writer.WriteAttributeString("type", value.GetType().Name);
+                }
+                else if (value is double && signature[0] != (byte)SignatureTypeCode.Double)
+                {
+                    // TODO: check that the signature is a TypeRef
+                    _writer.WriteAttributeString("value", DateTimeUtilities.ToDateTime((double)value).ToString(CultureInfo.InvariantCulture));
+                    _writer.WriteAttributeString("type", "DateTime");
+                }
+                else
+                {
+                    _writer.WriteAttributeString("value", (value as string)?.Replace("\0", "U+0000") ?? string.Format(CultureInfo.InvariantCulture, "{0}", value));
+
+                    var runtimeType = GetConstantRuntimeType(signature);
+                    if (runtimeType == null && 
+                        (value is sbyte || value is byte || value is short || value is ushort ||
+                         value is int || value is uint || value is long || value is ulong))
+                    {
+                        // TODO:
+                        // Enum.
+                        // Ideally we would parse the signature and display the target type name. 
+                        // That requires MetadataReader vNext though.
+                        _writer.WriteAttributeString("signature", BitConverter.ToString(signature.ToArray()));
+                    }
+                    else if (runtimeType == value.GetType())
+                    {
+                        _writer.WriteAttributeString("type", ((SignatureTypeCode)signature[0]).ToString());
+                    }
+                    else
+                    {
+                        _writer.WriteAttributeString("runtime-type", value.GetType().Name);
+                        _writer.WriteAttributeString("unknown-signature", BitConverter.ToString(signature.ToArray()));
+                    }
+                }
+
+                _writer.WriteEndElement();
             }
 
             if (includeChildScopes)
@@ -1015,6 +1067,45 @@ namespace Roslyn.Test.PdbUtilities
                     WriteLocalsHelper(childScope, slotNames, includeChildScopes);
                 }
             }
+        }
+
+        private static Type GetConstantRuntimeType(ImmutableArray<byte> signature)
+        {
+            switch ((SignatureTypeCode)signature[0])
+            {
+                case SignatureTypeCode.Boolean:
+                case SignatureTypeCode.Byte:
+                case SignatureTypeCode.SByte:
+                case SignatureTypeCode.Int16:
+                    return typeof(short);
+
+                case SignatureTypeCode.Char:
+                case SignatureTypeCode.UInt16:
+                    return typeof(ushort);
+
+                case SignatureTypeCode.Int32:
+                    return typeof(int);
+
+                case SignatureTypeCode.UInt32:
+                    return typeof(uint);
+
+                case SignatureTypeCode.Int64:
+                    return typeof(long);
+
+                case SignatureTypeCode.UInt64:
+                    return typeof(ulong);
+
+                case SignatureTypeCode.Single:
+                    return typeof(float);
+
+                case SignatureTypeCode.Double:
+                    return typeof(double);
+
+                case SignatureTypeCode.String:
+                    return typeof(string);
+            }
+
+            return null;
         }
 
         // Write the sequence points for the given method

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
         private readonly SyntaxGenerator _g = SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp);
 
         private readonly CSharpCompilation _emptyCompilation = CSharpCompilation.Create("empty",
-                references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System });
 
         private readonly INamedTypeSymbol _ienumerableInt;
 
@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
             Assert.Equal(expectedText, normalized);
         }
 
+        #region Expressions and Statements
         [Fact]
         public void TestLiteralExpressions()
         {
@@ -559,7 +560,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
                 _g.VoidReturningLambdaExpression(new[] { _g.LambdaParameter("x", _g.IdentifierName("y")), _g.LambdaParameter("a", _g.IdentifierName("b")) }, _g.IdentifierName("z")),
                 "(y x, b a) => z");
         }
+        #endregion
 
+        #region Declarations
         [Fact]
         public void TestFieldDeclarations()
         {
@@ -1376,6 +1379,24 @@ public class C { } // end").Members[0];
                     "a", _g.IdentifierName("x")),
             "delegate void d<a, b>()where a : x;");
         }
+
+        [Fact]
+        public void TestInterfaceDeclarationWithEventFromSymbol()
+        {
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                _g.Declaration(_emptyCompilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged")),
+@"public interface INotifyPropertyChanged
+{
+    event global::System.ComponentModel.PropertyChangedEventHandler PropertyChanged
+    {
+        add;
+        remove;
+    }
+}");
+        }
+        #endregion
+
+        #region Add/Insert/Remove/Get declarations & members/elements
 
         private void AssertNamesEqual(string[] expectedNames, IEnumerable<SyntaxNode> actualNodes)
         {
@@ -2750,5 +2771,6 @@ public void M()
 {
 }");
         }
+        #endregion
     }
 }

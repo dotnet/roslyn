@@ -1667,7 +1667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_NullPropagatingOpInExpressionTree = 37240
         ERR_TooLongOrComplexExpression = 37241
 
-        ' available: 37242
+        ERR_BadPdbData = 37242
         ERR_AutoPropertyCantBeWriteOnly = 37243
 
         ERR_ExpressionDoesntHaveName = 37244

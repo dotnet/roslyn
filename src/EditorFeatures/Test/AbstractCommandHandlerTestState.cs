@@ -340,6 +340,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             commandHandler(new SaveCommandArgs(TextView, SubjectBuffer), nextHandler);
         }
 
+        public void SendSelectAll(Action<SelectAllCommandArgs, Action> commandHandler, Action nextHandler)
+        {
+            commandHandler(new SelectAllCommandArgs(TextView, SubjectBuffer), nextHandler);
+        }
+
         #endregion
     }
 }

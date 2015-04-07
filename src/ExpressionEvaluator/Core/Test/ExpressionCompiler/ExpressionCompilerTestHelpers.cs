@@ -2,10 +2,11 @@
 
 extern alias PDB;
 
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -20,6 +21,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -53,6 +55,91 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
     internal static class ExpressionCompilerTestHelpers
     {
+        internal static CompileResult CompileAssignment(
+            this EvaluationContextBase context,
+            InspectionContext inspectionContext,
+            string target,
+            string expr,
+            DiagnosticFormatter formatter,
+            out ResultProperties resultProperties,
+            out string error,
+            out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities,
+            CultureInfo preferredUICulture,
+            CompilationTestData testData)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            var result = context.CompileAssignment(inspectionContext, target, expr, diagnostics, out resultProperties, testData);
+            if (diagnostics.HasAnyErrors())
+            {
+                bool useReferencedModulesOnly;
+                error = context.GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out useReferencedModulesOnly, out missingAssemblyIdentities);
+            }
+            else
+            {
+                error = null;
+                missingAssemblyIdentities = ImmutableArray<AssemblyIdentity>.Empty;
+            }
+            diagnostics.Free();
+            return result;
+        }
+
+        internal static ReadOnlyCollection<byte> CompileGetLocals(
+            this EvaluationContextBase context,
+            ArrayBuilder<LocalAndMethod> locals,
+            bool argumentsOnly,
+            out string typeName,
+            CompilationTestData testData,
+            DiagnosticDescription[] expectedDiagnostics = null)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            var result = context.CompileGetLocals(locals, argumentsOnly, diagnostics, out typeName, testData);            
+            diagnostics.Verify(expectedDiagnostics ?? DiagnosticDescription.None);
+            diagnostics.Free();
+            return result;
+        }
+
+        internal static CompileResult CompileExpressionWithRetry(
+            ImmutableArray<MetadataBlock> metadataBlocks,
+            string expr,
+            ExpressionCompiler.CreateContextDelegate createContext,
+            out string errorMessage,
+            out CompilationTestData testData)
+        {
+            var r = ExpressionCompiler.CompileWithRetry(
+                metadataBlocks,
+                DiagnosticFormatter.Instance,
+                createContext,
+                (context, diagnostics) =>
+                {
+                    var td = new CompilationTestData();
+                    ResultProperties resultProperties;
+                    var compileResult = context.CompileExpression(
+                        InspectionContextFactory.Empty,
+                        expr,
+                        DkmEvaluationFlags.TreatAsExpression,
+                        diagnostics,
+                        out resultProperties,
+                        td);
+                    return new CompileExpressionResult(compileResult, td);
+                },
+                getMetaDataBytesPtr: null,
+                errorMessage: out errorMessage);
+            testData = r.TestData;
+            return r.CompileResult;
+        }
+
+        private struct CompileExpressionResult
+        {
+            internal readonly CompileResult CompileResult;
+            internal readonly CompilationTestData TestData;
+
+            internal CompileExpressionResult(CompileResult compileResult, CompilationTestData testData)
+            {
+                this.CompileResult = compileResult;
+                this.TestData = testData;
+            }
+        }
+
         internal static TypeDefinition GetTypeDef(this MetadataReader reader, string typeName)
         {
             return reader.TypeDefinitions.Select(reader.GetTypeDefinition).First(t => reader.StringComparer.Equals(t.Name, typeName));
@@ -267,16 +354,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
+        internal static ModuleMetadata GetModuleMetadata(this MetadataReference reference)
+        {
+            var metadata = ((MetadataImageReference)reference).GetMetadata();
+            var assemblyMetadata = metadata as AssemblyMetadata;
+            Assert.True((assemblyMetadata == null) || (assemblyMetadata.GetModules().Length == 1));
+            return (assemblyMetadata == null) ? (ModuleMetadata)metadata : assemblyMetadata.GetModules()[0];
+        }
+
         internal static ModuleInstance ToModuleInstance(
             this MetadataReference reference,
             byte[] fullImage,
             object symReader,
             bool includeLocalSignatures = true)
         {
-            var metadata = ((MetadataImageReference)reference).GetMetadata();
-            var assemblyMetadata = metadata as AssemblyMetadata;
-            Assert.True((assemblyMetadata == null) || (assemblyMetadata.GetModules().Length == 1));
-            var moduleMetadata = (assemblyMetadata == null) ? (ModuleMetadata)metadata : assemblyMetadata.GetModules()[0];
+            var moduleMetadata = reference.GetModuleMetadata();
             var moduleId = moduleMetadata.Module.GetModuleVersionIdOrThrow();
             // The Expression Compiler expects metadata only, no headers or IL.
             var metadataBytes = moduleMetadata.Module.PEReaderOpt.GetMetadata().GetContent().ToArray();
@@ -288,6 +380,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 metadataBytes,
                 symReader,
                 includeLocalSignatures);
+        }
+
+        internal static AssemblyIdentity GetAssemblyIdentity(this MetadataReference reference)
+        {
+            var moduleMetadata = reference.GetModuleMetadata();
+            var reader = moduleMetadata.MetadataReader;
+            return reader.ReadAssemblyIdentityOrThrow();
+        }
+
+        internal static Guid GetModuleVersionId(this MetadataReference reference)
+        {
+            var moduleMetadata = reference.GetModuleMetadata();
+            var reader = moduleMetadata.MetadataReader;
+            return reader.GetModuleVersionIdOrThrow();
         }
 
         internal static void VerifyLocal<TMethodSymbol>(
@@ -479,7 +585,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return metadata.GetReference(filePath: path);
         }
 
-        internal static int GetOffset(int methodToken, ISymUnmanagedReader symReader, int atLineNumber)
+        internal static int GetOffset(int methodToken, ISymUnmanagedReader symReader, int atLineNumber = -1)
         {
             int ilOffset;
             if (symReader == null)

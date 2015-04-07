@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             ISymbol orderSymbol, SignatureHelpItem item, SemanticModel semanticModel, int position, ISymbolDisplayService symbolDisplayService, IAnonymousTypeDisplayService anonymousTypeDisplayService)
         {
             var currentItem = new SymbolKeySignatureHelpItem(
-                orderSymbol, item.IsVariadic, item.DocumenationFactory,
+                orderSymbol, item.IsVariadic, item.DocumentationFactory,
                 anonymousTypeDisplayService.InlineDelegateAnonymousTypes(item.PrefixDisplayParts, semanticModel, position, symbolDisplayService),
                 anonymousTypeDisplayService.InlineDelegateAnonymousTypes(item.SeparatorDisplayParts, semanticModel, position, symbolDisplayService),
                 anonymousTypeDisplayService.InlineDelegateAnonymousTypes(item.SuffixDisplayParts, semanticModel, position, symbolDisplayService),
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 currentItem = new SymbolKeySignatureHelpItem(
                     orderSymbol,
                     currentItem.IsVariadic,
-                    currentItem.DocumenationFactory,
+                    currentItem.DocumentationFactory,
                     info.ReplaceAnonymousTypes(currentItem.PrefixDisplayParts),
                     info.ReplaceAnonymousTypes(currentItem.SeparatorDisplayParts),
                     info.ReplaceAnonymousTypes(currentItem.SuffixDisplayParts),
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     continue;
                 }
 
-                var invalidProjectsForCurrentSymbol = candidateLinkedProjectsAndSymbolSets.Where(c => !c.Item2.Contains(expectedSymbol, LinkedFilesSymbolEquivalenceComparer.IgnoreAssembliesInstance))
+                var invalidProjectsForCurrentSymbol = candidateLinkedProjectsAndSymbolSets.Where(c => !c.Item2.Contains(expectedSymbol, LinkedFilesSymbolEquivalenceComparer.Instance))
                                                                         .Select(c => c.Item1)
                                                                         .ToList();
 

@@ -117,6 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Compiler_UnexpectedException" xml:space="preserve">
+    <value>MSB3883: Unexpected exception: </value>
+    <comment>{StrBegin="MSB3883: "}</comment>
+  </data>
   <data name="Csc_AssemblyAliasContainsIllegalCharacters" xml:space="preserve">
     <value>MSB3053: The assembly alias "{1}" on reference "{0}" contains illegal characters.</value>
     <comment>{StrBegin="MSB3053: "}</comment>
@@ -132,8 +136,42 @@
   <data name="General_CannotConvertStringToBool" xml:space="preserve">
     <value>The string "{0}" cannot be converted to a boolean (true/false) value.</value>
   </data>
+  <data name="General_CouldNotSetHostObjectParameter" xml:space="preserve">
+    <value>MSB3081: A problem occurred while trying to set the "{0}" parameter for the IDE's in-process compiler. {1}</value>
+    <comment>{StrBegin="MSB3081: "}</comment>
+  </data>
+  <data name="General_DuplicateItemsNotSupported" xml:space="preserve">
+    <value>MSB3105: The item "{0}" was specified more than once in the "{1}" parameter.  Duplicate items are not supported by the "{1}" parameter.</value>
+    <comment>{StrBegin="MSB3105: "}</comment>
+  </data>
+  <data name="General_DuplicateItemsNotSupportedWithMetadata" xml:space="preserve">
+    <value>MSB3083: The item "{0}" was specified more than once in the "{1}" parameter and both items had the same value "{2}" for the "{3}" metadata.  Duplicate items are not supported by the "{1}" parameter unless they have different values for the "{3}" metadata.</value>
+    <comment>{StrBegin="MSB3083: "}</comment>
+  </data>
+  <data name="General_ExpectedFileMissing" xml:space="preserve">
+    <value>Expected file "{0}" does not exist.</value>
+  </data>
+  <data name="General_FrameworksFileNotFound" xml:space="preserve">
+    <value>MSB3082: Task failed because "{0}" was not found, or the .NET Framework {1} is not installed.  Please install the .NET Framework {1}.</value>
+    <comment>{StrBegin="MSB3082: "}</comment>
+  </data>
+  <data name="General_IncorrectHostObject" xml:space="preserve">
+    <value>MSB3087: An incompatible host object was passed into the "{0}" task.  The host object for this task must implement the "{1}" interface.</value>
+    <comment>{StrBegin="MSB3087: "}</comment>
+  </data>
   <data name="General_InvalidAttributeMetadata" xml:space="preserve">
     <value>Item "{0}" has attribute "{1}" with value "{2}" that could not be converted to "{3}".</value>
+  </data>
+  <data name="General_ParameterUnsupportedOnHostCompiler" xml:space="preserve">
+    <value>The IDE's in-process compiler does not support the specified values for the "{0}" parameter.  Therefore, this task will fallback to using the command-line compiler.</value>
+  </data>
+  <data name="General_ReferenceDoesNotExist" xml:space="preserve">
+    <value>MSB3104: The referenced assembly "{0}" was not found. If this assembly is produced by another one of your projects, please make sure to build that project before building this one.</value>
+    <comment>{StrBegin="MSB3104: "}</comment>
+  </data>
+  <data name="Vbc_EnumParameterHasInvalidValue" xml:space="preserve">
+    <value>MSB3401: "{1}" is an invalid value for the "{0}" parameter.  The valid values are: {2}</value>
+    <comment>{StrBegin="MSB3401: "}</comment>
   </data>
   <data name="Vbc_ParameterHasInvalidValue" xml:space="preserve">
     <value>"{1}" is an invalid value for the "{0}" parameter.</value>

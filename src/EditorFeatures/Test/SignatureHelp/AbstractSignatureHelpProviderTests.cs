@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
             if (expectedTestItem.MethodDocumentation != null)
             {
-                Assert.Equal(expectedTestItem.MethodDocumentation, actualSignatureHelpItem.DocumenationFactory(CancellationToken.None).GetFullText());
+                Assert.Equal(expectedTestItem.MethodDocumentation, actualSignatureHelpItem.DocumentationFactory(CancellationToken.None).GetFullText());
             }
 
             if (expectedTestItem.ParameterDocumentation != null)

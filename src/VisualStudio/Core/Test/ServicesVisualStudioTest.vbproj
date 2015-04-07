@@ -319,6 +319,7 @@
     </Compile>
     <Compile Include="Diagnostics\DiagnosticTableDataSourceTests.vb" />
     <Compile Include="Diagnostics\ExternalDiagnosticUpdateSourceTests.vb" />
+    <Compile Include="Diagnostics\MiscDiagnosticUpdateSourceTests.vb" />
     <Compile Include="Diagnostics\TestTableManagerProvider.vb" />
     <Compile Include="Diagnostics\TodoListTableDataSourceTests.vb" />
     <Compile Include="EditAndContinue\EditAndContinueTestHelper.vb" />

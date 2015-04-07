@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
         {
         }
 
-        internal static int Run(string[] args)
+        internal static int Run(string clientDir, string[] args)
         {
             FatalError.Handler = FailFast.OnFatalException;
 
-            var responseFile = CommonCompiler.GetResponseFileFullPath(CSharpCompiler.ResponseFileName);
+            var responseFile = Path.Combine(clientDir, CSharpCompiler.ResponseFileName);
             Csc compiler = new Csc(responseFile, Directory.GetCurrentDirectory(), args);
 
             // We store original encoding and restore it later to revert 

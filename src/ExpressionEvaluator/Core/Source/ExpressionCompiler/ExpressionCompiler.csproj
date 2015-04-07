@@ -23,6 +23,9 @@
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
+      <Link>Shared\DateTimeUtilities.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
       <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
     </Compile>
@@ -34,9 +37,7 @@
     <Compile Include="Placeholders.cs" />
     <Compile Include="ReflectionHelpers.cs" />
     <Compile Include="ImmutableArrayExtensions.cs" />
-    <Compile Include="MetadataContextItem.cs" />
     <Compile Include="CompileResult.cs" />
-    <Compile Include="DateTimeUtilities.cs" />
     <Compile Include="FrameDecoder.cs" />
     <Compile Include="InstructionDecoder.cs" />
     <Compile Include="LanguageInstructionDecoder.cs" />
@@ -63,7 +64,6 @@
     <Compile Include="MetadataUtilities.cs" />
     <Compile Include="AbstractTypeParameterChecker.cs" />
     <Compile Include="MethodContextReuseConstraints.cs" />
-    <Compile Include="NamedLocalConstant.cs" />
     <Compile Include="PseudoVariableUtilities.cs" />
     <Compile Include="RuntimeInspectionContext.cs" />
   </ItemGroup>

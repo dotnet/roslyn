@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         internal override IReadOnlyCollection<string> Columns { get { return s_columns; } }
 
-        private class TableDataSource : AbstractTableDataSource<TaskListEventArgs, TodoTaskItem>
+        private class TableDataSource : AbstractRoslynTableDataSource<TaskListEventArgs, TodoTaskItem>
         {
             private readonly Workspace _workspace;
             private readonly Guid _identifier;
@@ -110,7 +110,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private readonly Workspace _workspace;
                 private readonly DocumentId _documentId;
 
-                public TableEntriesFactory(TableDataSource source, Workspace workspace, DocumentId documentId)
+                public TableEntriesFactory(TableDataSource source, Workspace workspace, DocumentId documentId) :
+                    base(source)
                 {
                     _source = source;
                     _workspace = workspace;
@@ -187,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = GetProjectName(_factory._workspace, _factory._documentId.ProjectId);
                                 return content != null;
                             case StandardTableKeyNames.Project:
-                                content = GetHierarchy(_factory._workspace, _factory._documentId.ProjectId);
+                                content = GetHierarchy(_factory._workspace, _factory._documentId.ProjectId, _factory._documentId);
                                 return content != null;
                             case StandardTableKeyNames.TaskCategory:
                                 content = VSTASKCATEGORY.CAT_COMMENTS;

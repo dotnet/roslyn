@@ -3607,6 +3607,152 @@ class C
              * */
         }
 
+        [Fact]
+        public void Constant_AllTypes()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class X {}
+
+public class C<S>
+{
+    enum EnumI1 : sbyte  { A }
+    enum EnumU1 : byte   { A }
+    enum EnumI2 : short  { A }
+    enum EnumU2 : ushort { A }
+    enum EnumI4 : int    { A }
+    enum EnumU4 : uint   { A }
+    enum EnumI8 : long   { A }
+    enum EnumU8 : ulong  { A }
+
+    public static void F<T>()
+    {
+        const bool B = false;
+        const char C = '\0';
+        const sbyte I1 = 0;
+        const byte U1 = 0;
+        const short I2 = 0;
+        const ushort U2 = 0;
+        const int I4 = 0;
+        const uint U4 = 0;
+        const long I8 = 0;
+        const ulong U8 = 0;
+        const float R4 = 0;
+        const double R8 = 0;
+
+        const C<int>.EnumI1 EI1 = 0;
+        const C<int>.EnumU1 EU1 = 0;
+        const C<int>.EnumI2 EI2 = 0;
+        const C<int>.EnumU2 EU2 = 0;
+        const C<int>.EnumI4 EI4 = 0;
+        const C<int>.EnumU4 EU4 = 0;
+        const C<int>.EnumI8 EI8 = 0;
+        const C<int>.EnumU8 EU8 = 0;
+
+        const string StrWithNul = ""\0"";
+        const string EmptyStr = """";
+        const string NullStr = null;
+        const object NullObject = null;
+        const dynamic NullDynamic = null;
+        const X NullTypeDef = null;
+        const Action NullTypeRef = null;
+        const Func<Dictionary<int, C<int>>, dynamic, T, List<S>> NullTypeSpec = null;
+        
+        const decimal D = 0M;
+        // DateTime const not expressible in C#
+    }
+}";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+
+            c.VerifyPdb("C`1.F", @"
+<symbols>
+  <methods>
+    <method containingType=""C`1"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
+        <dynamicLocals>
+          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""NullDynamic"" />
+          <bucket flagCount=""9"" flags=""000001000"" slotId=""0"" localName=""NullTypeSpec"" />
+        </dynamicLocals>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""53"" startColumn=""5"" endLine=""53"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <locals>
+        <constant name=""B"" value=""0"" type=""Boolean"" />
+        <constant name=""C"" value=""0"" type=""Char"" />
+        <constant name=""I1"" value=""0"" type=""SByte"" />
+        <constant name=""U1"" value=""0"" type=""Byte"" />
+        <constant name=""I2"" value=""0"" type=""Int16"" />
+        <constant name=""U2"" value=""0"" type=""UInt16"" />
+        <constant name=""I4"" value=""0"" type=""Int32"" />
+        <constant name=""U4"" value=""0"" type=""UInt32"" />
+        <constant name=""I8"" value=""0"" type=""Int64"" />
+        <constant name=""U8"" value=""0"" type=""UInt64"" />
+        <constant name=""R4"" value=""0"" type=""Single"" />
+        <constant name=""R8"" value=""0"" type=""Double"" />
+        <constant name=""EI1"" value=""0"" signature=""15-11-10-01-08"" />
+        <constant name=""EU1"" value=""0"" signature=""15-11-14-01-08"" />
+        <constant name=""EI2"" value=""0"" signature=""15-11-18-01-08"" />
+        <constant name=""EU2"" value=""0"" signature=""15-11-1C-01-08"" />
+        <constant name=""EI4"" value=""null"" signature=""15-11-20-01-08"" />
+        <constant name=""EU4"" value=""0"" signature=""15-11-24-01-08"" />
+        <constant name=""EI8"" value=""0"" signature=""15-11-28-01-08"" />
+        <constant name=""EU8"" value=""0"" signature=""15-11-2C-01-08"" />
+        <constant name=""StrWithNul"" value=""U+0000"" type=""String"" />
+        <constant name=""EmptyStr"" value="""" type=""String"" />
+        <constant name=""NullStr"" value=""null"" type=""String"" />
+        <constant name=""NullObject"" value=""null"" type=""Object"" />
+        <constant name=""NullDynamic"" value=""null"" type=""Object"" />
+        <constant name=""NullTypeDef"" value=""null"" signature=""12-08"" />
+        <constant name=""NullTypeRef"" value=""null"" signature=""12-1D"" />
+        <constant name=""NullTypeSpec"" value=""null"" signature=""15-12-21-04-15-12-25-02-08-15-12-0C-01-08-1C-1E-00-15-12-29-01-13-00"" />
+        <constant name=""D"" value=""0"" type=""Decimal"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <namespace name=""System"" />
+        <namespace name=""System.Collections.Generic"" />
+        <constant name=""B"" value=""0"" type=""Boolean"" />
+        <constant name=""C"" value=""0"" type=""Char"" />
+        <constant name=""I1"" value=""0"" type=""SByte"" />
+        <constant name=""U1"" value=""0"" type=""Byte"" />
+        <constant name=""I2"" value=""0"" type=""Int16"" />
+        <constant name=""U2"" value=""0"" type=""UInt16"" />
+        <constant name=""I4"" value=""0"" type=""Int32"" />
+        <constant name=""U4"" value=""0"" type=""UInt32"" />
+        <constant name=""I8"" value=""0"" type=""Int64"" />
+        <constant name=""U8"" value=""0"" type=""UInt64"" />
+        <constant name=""R4"" value=""0"" type=""Single"" />
+        <constant name=""R8"" value=""0"" type=""Double"" />
+        <constant name=""EI1"" value=""0"" signature=""15-11-10-01-08"" />
+        <constant name=""EU1"" value=""0"" signature=""15-11-14-01-08"" />
+        <constant name=""EI2"" value=""0"" signature=""15-11-18-01-08"" />
+        <constant name=""EU2"" value=""0"" signature=""15-11-1C-01-08"" />
+        <constant name=""EI4"" value=""null"" signature=""15-11-20-01-08"" />
+        <constant name=""EU4"" value=""0"" signature=""15-11-24-01-08"" />
+        <constant name=""EI8"" value=""0"" signature=""15-11-28-01-08"" />
+        <constant name=""EU8"" value=""0"" signature=""15-11-2C-01-08"" />
+        <constant name=""StrWithNul"" value=""U+0000"" type=""String"" />
+        <constant name=""EmptyStr"" value="""" type=""String"" />
+        <constant name=""NullStr"" value=""null"" type=""String"" />
+        <constant name=""NullObject"" value=""null"" type=""Object"" />
+        <constant name=""NullDynamic"" value=""null"" type=""Object"" />
+        <constant name=""NullTypeDef"" value=""null"" signature=""12-08"" />
+        <constant name=""NullTypeRef"" value=""null"" signature=""12-1D"" />
+        <constant name=""NullTypeSpec"" value=""null"" signature=""15-12-21-04-15-12-25-02-08-15-12-0C-01-08-1C-1E-00-15-12-29-01-13-00"" />
+        <constant name=""D"" value=""0"" type=""Decimal"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
         #endregion
 
         #region Nested Types

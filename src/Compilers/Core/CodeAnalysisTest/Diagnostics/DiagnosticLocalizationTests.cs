@@ -2,19 +2,19 @@
 
 using System;
 using System.Collections.Generic;
-using Xunit;
-using System.Resources;
-using System.Globalization;
-using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
+using System.Globalization;
+using System.Resources;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     public partial class DiagnosticLocalizationTests
     {
-        [Fact]
+        [Fact, WorkItem(1006, "https://github.com/dotnet/roslyn/issues/1006")]
         public void TestDiagnosticLocalization()
         {
             var resourceManager = GetTestResourceManagerInstance();

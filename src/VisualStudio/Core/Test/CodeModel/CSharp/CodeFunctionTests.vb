@@ -2158,6 +2158,40 @@ class A
 
 #End Region
 
+#Region "Parameter name tests"
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters()
+            Dim code =
+<Code>
+public class C
+{
+    public void $$Foo(int @int)
+    {
+    }
+}
+</Code>
+            TestAllParameterNames(code, "@int")
+        End Sub
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters_2()
+            Dim code =
+<Code>
+public class C
+{
+    public void $$Foo(int @int, string @string)
+    {
+    }
+}
+</Code>
+            TestAllParameterNames(code, "@int", "@string")
+        End Sub
+
+#End Region
+
         Private Function GetExtensionMethodExtender(codeElement As EnvDTE80.CodeFunction2) As ICSExtensionMethodExtender
             Return CType(codeElement.Extender(ExtenderNames.ExtensionMethod), ICSExtensionMethodExtender)
         End Function

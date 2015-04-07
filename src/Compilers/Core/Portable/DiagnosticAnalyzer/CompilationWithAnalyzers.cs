@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var suppressMessageState = AnalyzerDriver.SuppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
-            foreach (var diagnostic in diagnostics)
+            foreach (var diagnostic in diagnostics.ToImmutableArray())
             {
                 if (diagnostic != null)
                 {

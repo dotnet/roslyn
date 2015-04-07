@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return csharpTree.IsInNonUserCode(position, cancellationToken);
         }
 
-        public bool IsEntirelyWithinStringOrCharLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        public bool IsEntirelyWithinStringOrCharOrNumericLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var csharpTree = syntaxTree as SyntaxTree;
             if (csharpTree == null)
@@ -965,6 +965,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string GetContainer(SyntaxNode node, bool immediate)
         {
+            if (node == null)
+            {
+                return string.Empty;
+            }
+
             var name = GetNodeName(node, includeTypeParameters: immediate);
             var names = new List<string> { name };
 
