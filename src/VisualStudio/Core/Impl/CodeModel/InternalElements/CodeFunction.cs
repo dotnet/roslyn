@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -73,9 +72,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             get { return (IMethodSymbol)LookupSymbol(); }
         }
 
-        internal override ImmutableArray<IParameterSymbol> GetParameters()
+        internal override ImmutableArray<SyntaxNode> GetParameters()
         {
-            return MethodSymbol.Parameters;
+            return ImmutableArray.CreateRange(CodeModelService.GetParameterNodes(LookupNode()));
         }
 
         protected override object GetExtenderNames()

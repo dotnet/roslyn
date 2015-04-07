@@ -1076,6 +1076,28 @@ public interface I
 
 #End Region
 
+#Region "Parameter name tests"
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters()
+            Dim code =
+<Code>
+class Program
+{
+    public int $$this[int @int]
+    {
+        get { return @int; }
+        set { }
+    }
+}
+</Code>
+
+            TestAllParameterNames(code, "@int")
+        End Sub
+
+#End Region
+
         Private Function GetAutoImplementedPropertyExtender(codeElement As EnvDTE80.CodeProperty2) As ICSAutoImplementedPropertyExtender
             Return CType(codeElement.Extender(ExtenderNames.AutoImplementedProperty), ICSAutoImplementedPropertyExtender)
         End Function
