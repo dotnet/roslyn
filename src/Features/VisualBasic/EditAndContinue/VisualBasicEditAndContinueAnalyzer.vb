@@ -190,13 +190,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function GetVariableUseSites(roots As IEnumerable(Of SyntaxNode), localOrParameter As ISymbol, model As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
-            Debug.Assert(TypeOf localOrParameter Is IParameterSymbol OrElse TypeOf localOrParameter Is ILocalSymbol)
+            Debug.Assert(TypeOf localOrParameter Is IParameterSymbol OrElse TypeOf localOrParameter Is ILocalSymbol OrElse TypeOf localOrParameter Is IRangeVariableSymbol)
 
             ' Not supported (it's non trivial to find all places where "this" is used):
             Debug.Assert(Not localOrParameter.IsThisParameter())
 
             Return From root In roots
-                   From node In root.DescendantNodes()
+                   From node In root.DescendantNodesAndSelf()
                    Where node.IsKind(SyntaxKind.IdentifierName)
                    Let identifier = DirectCast(node, IdentifierNameSyntax)
                    Where String.Equals(DirectCast(identifier.Identifier.Value, String), localOrParameter.Name, StringComparison.OrdinalIgnoreCase) AndAlso
