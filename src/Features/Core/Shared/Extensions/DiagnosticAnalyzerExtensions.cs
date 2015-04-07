@@ -54,7 +54,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         category |= DiagnosticAnalyzerCategory.ProjectAnalysis;
                     }
 
-                    if (!cantSupportSemanticSpanAnalysis)
+                    // Current DiagnosticAnalyzer API has no restriction on any analyzer action reporting diagnostics anywhere within a compilation.
+                    // Hence, we must conservatively assume they can't support incremental span based analysis across compilations.
+                    // GitHub issue https://github.com/dotnet/roslyn/issues/1565 tracks adding support for marking an analyzer incremental.
+                    // Until then, we just assume that all public/non-built in analyzers can never support incremental analysis.
+
+                    if ((analyzer is IBuiltInAnalyzer) && !cantSupportSemanticSpanAnalysis)
                     {
                         if (analyzerActions.SymbolActionsCount > 0 ||
                             analyzerActions.CodeBlockStartActionsCount > 0 ||
