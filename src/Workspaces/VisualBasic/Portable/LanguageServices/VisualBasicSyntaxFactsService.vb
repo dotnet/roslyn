@@ -739,15 +739,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 Case SyntaxKind.ConstructorBlock
                     Dim constructor = CType(node, ConstructorBlockSyntax)
-                    Dim typeBlock = CType(constructor.Parent, TypeBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
-                        typeBlock.BlockStatement.Identifier.ValueText,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Constructor,
-                        constructor.SubNewStatement.NewKeyword.Span,
-                        parameterCount:=CType(If(constructor.SubNewStatement.ParameterList?.Parameters.Count, 0), UShort))
-                    Return True
+                    Dim typeBlock = TryCast(constructor.Parent, TypeBlockSyntax)
+                    If typeBlock IsNot Nothing Then
+                        declaredSymbolInfo = New DeclaredSymbolInfo(
+                            typeBlock.BlockStatement.Identifier.ValueText,
+                            GetContainerDisplayName(node.Parent),
+                            GetFullyQualifiedContainerName(node.Parent),
+                            DeclaredSymbolInfoKind.Constructor,
+                            constructor.SubNewStatement.NewKeyword.Span,
+                            parameterCount:=CType(If(constructor.SubNewStatement.ParameterList?.Parameters.Count, 0), UShort))
+
+                        Return True
+                    End If
                 Case SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement
                     Dim delegateDecl = CType(node, DelegateStatementSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(delegateDecl.Identifier.ValueText,
