@@ -7898,5 +7898,59 @@ End Module
 ]]>).VerifyDiagnostics()
         End Sub
 
+        <Fact, WorkItem(1190, "https://github.com/dotnet/roslyn/issues/1190")>
+        Public Sub CollectionInitializers()
+
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq.Expressions
+Imports System.Runtime.CompilerServices
+
+Namespace ConsoleApplication31
+    Module Program
+        Sub Main()
+            Try
+                Dim e1 As Expression(Of Func(Of Stack(Of Integer))) = Function() New Stack(Of Integer) From {42}
+                System.Console.WriteLine("e1 => {0}", e1.ToString())
+            Catch
+                System.Console.WriteLine("In catch")
+            End Try
+
+            Dim e2 As Expression(Of Func(Of MyStack(Of Integer))) = Function() New MyStack(Of Integer) From {42}
+            System.Console.WriteLine("e2 => {0}", e2.ToString())
+            System.Console.WriteLine(e2.Compile()().Pop())
+        End Sub
+    End Module
+
+    Module StackExtensions
+        <Extension()>
+        Public Sub Add(Of T)(s As Stack(Of T), x As T)
+            s.Push(x)
+        End Sub
+    End Module
+
+    Class MyStack(Of T)
+        Inherits System.Collections.Generic.Stack(Of T)
+
+        Public Sub Add(x As T)
+            Me.Push(x)
+        End Sub
+    End Class
+End Namespace
+                            ]]></file>
+                         </compilation>
+
+            CompileAndVerify(source,
+                 additionalRefs:={SystemCoreRef},
+                 options:=TestOptions.ReleaseExe,
+                 expectedOutput:=<![CDATA[
+In catch
+e2 => () => new MyStack`1() {Void Add(Int32)(42)}
+42
+]]>).VerifyDiagnostics()
+        End Sub
+
     End Class
 End Namespace
