@@ -260,8 +260,8 @@ The encoding of the _Value_ is determined from _Type_ as follows.
 | reference type            | The constant represents a null reference. _Value_ is not present. |
 | array type                | The constant represents a null reference. _Value_ is not present. |
 | pointer type              | The constant represents a null pointer. _Value_ is not present. |
-| other value types         | Illegal. |
-| type parameter            | Illegal. |
+| other value types         | The constant represents the default value of the type. _Value_ is not present. |
+| type parameter            | The constant represents the default value of the type. _Value_ is not present. |
 
 Types System.Decimal and System.DateTime are be encoded as ```VALUETYPE TypeDefOrRefOrSpecEncoded```, where ```TypeDefOrRefOrSpecEncoded``` encodes a TypeDef/TypeRef with namespace 'System' and type name 'Decimal' and 'DateTime', respectively.
 
