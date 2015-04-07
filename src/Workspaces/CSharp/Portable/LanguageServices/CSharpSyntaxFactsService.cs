@@ -965,6 +965,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string GetContainer(SyntaxNode node, bool immediate)
         {
+            if (node == null)
+            {
+                return string.Empty;
+            }
+
             var name = GetNodeName(node, includeTypeParameters: immediate);
             var names = new List<string> { name };
 
