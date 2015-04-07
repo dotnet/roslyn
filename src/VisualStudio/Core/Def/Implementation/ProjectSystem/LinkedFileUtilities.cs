@@ -152,5 +152,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ? intellisenseProjectName as string
                 : null;
         }
+
+        public static bool TryGetItemIdInSharedHierarchy(IVsHierarchy hierarchy, uint itemId, IVsHierarchy sharedHierarchy, out uint itemIdInSharedHierarchy)
+        {
+            string fullPath;
+            int found;
+            VSDOCUMENTPRIORITY[] priority = new VSDOCUMENTPRIORITY[1];
+
+            if (ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemId, out fullPath))
+                && ErrorHandler.Succeeded(((IVsProject)sharedHierarchy).IsDocumentInProject(fullPath, out found, priority, out itemIdInSharedHierarchy))
+                && found != 0
+                && itemIdInSharedHierarchy != (uint)VSConstants.VSITEMID.Nil)
+            {
+                return true;
+            }
+
+            itemIdInSharedHierarchy = (uint)VSConstants.VSITEMID.Nil;
+            return false;
+        }
     }
 }
