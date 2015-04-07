@@ -3986,7 +3986,7 @@ End Class"
             Dim compilation0 = CreateCompilationWithMscorlib(
                 {source},
                 references:={SystemCoreRef},
-                options:=TestOptions.DebugDll,
+                compOptions:=TestOptions.DebugDll,
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(compilation0)
             Dim context = CreateMethodContext(runtime, "C.M")
