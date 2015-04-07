@@ -5899,5 +5899,50 @@ class C
   IL_003f:  ret
 }");
         }
+
+        /// <summary>
+        /// Ignore accessibility in async rewriter.
+        /// </summary>
+        [Fact]
+        public void AsyncRewriterIgnoreAccessibility()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static void F<T>(Func<Task<T>> f)
+    {
+    }
+    static void M()
+    {
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(
+                source,
+                options: TestOptions.DebugDll,
+                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(runtime, methodName: "C.M");
+            var testData = new CompilationTestData();
+            string error;
+            context.CompileExpression("F(async () => new C())", out error, testData);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       37 (0x25)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<System.Threading.Tasks.Task<C>> <>x.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_000e:  ldftn      ""System.Threading.Tasks.Task<C> <>x.<>c.<<>m0>b__0_0()""
+  IL_0014:  newobj     ""System.Func<System.Threading.Tasks.Task<C>>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Func<System.Threading.Tasks.Task<C>> <>x.<>c.<>9__0_0""
+  IL_001f:  call       ""void C.F<C>(System.Func<System.Threading.Tasks.Task<C>>)""
+  IL_0024:  ret
+}");
+        }
     }
 }
