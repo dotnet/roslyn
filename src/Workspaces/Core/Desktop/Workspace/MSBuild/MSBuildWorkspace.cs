@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             this.ClearSolution();
 
-            var absoluteSolutionPath = this.GetAbsoluteSolutionPath(solutionFilePath, Environment.CurrentDirectory);
+            var absoluteSolutionPath = this.GetAbsoluteSolutionPath(solutionFilePath, Directory.GetCurrentDirectory());
 
             using (_dataGuard.DisposableWait(cancellationToken))
             {
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             string fullPath;
-            if (this.TryGetAbsoluteProjectPath(projectFilePath, Environment.CurrentDirectory, ReportMode.Throw, out fullPath))
+            if (this.TryGetAbsoluteProjectPath(projectFilePath, Directory.GetCurrentDirectory(), ReportMode.Throw, out fullPath))
             {
                 IProjectFileLoader loader;
                 if (this.TryGetLoaderFromProjectPath(projectFilePath, ReportMode.Throw, out loader))

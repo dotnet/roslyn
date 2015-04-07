@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         private static string MSBuildExecutable { get; } = Path.Combine(MSBuildDirectory, "MSBuild.exe");
 
-        private static readonly string s_workingDirectory = Environment.CurrentDirectory;
+        private static readonly string s_workingDirectory = Directory.GetCurrentDirectory();
         private static string ResolveAssemblyPath(string exeName)
         {
             var path = Path.Combine(s_workingDirectory, exeName);
@@ -1949,7 +1949,7 @@ class Hello
             ProcessStartInfo processStartInfo = new ProcessStartInfo();
             processStartInfo.CreateNoWindow = true;
             processStartInfo.FileName = pathToProcDump;
-            processStartInfo.WorkingDirectory = Environment.CurrentDirectory;
+            processStartInfo.WorkingDirectory = Directory.GetCurrentDirectory();
             processStartInfo.UseShellExecute = false;
 
             processStartInfo.Arguments = " -accepteula -c 0 -ma " + pid.ToString();
