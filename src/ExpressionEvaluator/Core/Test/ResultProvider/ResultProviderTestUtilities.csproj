@@ -68,8 +68,8 @@
     <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs">
       <Link>Compiler\Symbols\WellKnownMemberNames.cs</Link>
     </Compile>
-    <Compile Include="..\..\Source\ExpressionCompiler\DateTimeUtilities.cs">
-      <Link>ExpressionCompiler\DateTimeUtilities.cs</Link>
+    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
+      <Link>DateTimeUtilities.cs</Link>
     </Compile>
     <Compile Include="..\..\Source\ExpressionCompiler\ExpressionCompilerConstants.cs">
       <Link>ExpressionCompiler\ExpressionCompilerConstants.cs</Link>

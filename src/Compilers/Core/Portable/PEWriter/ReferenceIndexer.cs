@@ -103,6 +103,10 @@ namespace Microsoft.Cci
                         {
                             VisitImports(scope.GetUsedNamespaces(Context));
                         }
+                        else
+                        {
+                            break;
+                        }
                     }
                 }
                 else if (!metadataWriter.allowMissingMethodBodies)

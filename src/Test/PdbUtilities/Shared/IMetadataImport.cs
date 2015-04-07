@@ -69,7 +69,13 @@ namespace Roslyn.Test.PdbUtilities
         unsafe uint GetFieldMarshal(uint tk, out byte* ppvNativeType);
         uint GetRVA(uint tk, out uint pulCodeRVA);
         unsafe uint GetPermissionSetProps(uint pm, out uint pdwAction, out void* ppvPermission);
-        unsafe uint GetSigFromToken(uint memberDefSig, out byte* ppvSig);
+
+        [PreserveSig]
+        unsafe int GetSigFromToken(
+            int tkSignature,    // Signature token.
+            out byte* ppvSig,   // return pointer to signature blob
+            out int pcbSig);    // return size of signature
+
         uint GetModuleRefProps(uint mur, StringBuilder stringName, uint cchName);
         uint EnumModuleRefs(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] uint[] arrayModuleRefs, uint cmax);
         unsafe uint GetTypeSpecFromToken(uint typespec, out byte* ppvSig);

@@ -404,9 +404,10 @@ End Class
   .locals init (Integer V_0, //F
                 Boolean V_1,
                 String V_2)
-  IL_0000:  ldc.i4.0
+  IL_0000:  ldnull
   IL_0001:  ret
-}")
+}
+")
 
             context = CreateMethodContext(
                 runtime,
@@ -458,8 +459,7 @@ End Class"
             Dim pdbBytes As Byte() = Nothing
             Dim references As ImmutableArray(Of MetadataReference) = Nothing
             comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim constantSignatures = ImmutableDictionary.CreateRange(New Dictionary(Of String, Byte()) From {{"y", {&H11, &H08}}})
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, New SymReader(pdbBytes, constantSignatures))
+            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, New SymReader(pdbBytes, exeBytes))
             Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.M")
@@ -515,8 +515,7 @@ End Class"
             Dim pdbBytes As Byte() = Nothing
             Dim references As ImmutableArray(Of MetadataReference) = Nothing
             comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim constantSignatures = ImmutableDictionary.CreateRange(New Dictionary(Of String, Byte()) From {{"t", {&H15, &H11, &H10, &H01, &H13, &H00}}, {"u", {&H15, &H11, &H10, &H01, &H1E, &H00}}})
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, New SymReader(pdbBytes, constantSignatures))
+            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, New SymReader(pdbBytes, exeBytes))
             Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.M")
@@ -1569,13 +1568,19 @@ End Class"
                 ImmutableArray.Create(MscorlibRef), ' no reference to compilation0
                 exeBytes,
                 New SymReader(pdbBytes))
+
             Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.M")
+
             Dim testData = New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
-            context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
+            context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData, expectedDiagnostics:=
+            {
+                Diagnostic(ERRID.ERR_TypeRefResolutionError3, "a").WithArguments("A", "Test.dll").WithLocation(1, 1)
+            })
+
             Assert.Equal(0, locals.Count)
             locals.Free()
         End Sub
@@ -1637,10 +1642,7 @@ End Class
             Dim references As ImmutableArray(Of MetadataReference) = Nothing
             comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
 
-            ' Our mock implementation of ISymUnmanagedReader (etc) isn't smart enough to recognize d as
-            ' a DateTime constant - it just inspects the value and concludes that it must have been a double.
-            Dim constantSignatures = ImmutableDictionary.CreateRange(New Dictionary(Of String, Byte()) From {{"d", {&H11, &H19}}})
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, New SymReader(pdbBytes, constantSignatures))
+            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, New SymReader(pdbBytes, exeBytes))
             Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.M")
@@ -1689,8 +1691,7 @@ End Class
             Dim references As ImmutableArray(Of MetadataReference) = Nothing
             comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
 
-            Dim constantSignatures = ImmutableDictionary.CreateRange(New Dictionary(Of String, Byte()) From {{"d", {&H11, &H19}}})
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, New SymReader(pdbBytes, constantSignatures))
+            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, New SymReader(pdbBytes, exeBytes))
             Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.M")

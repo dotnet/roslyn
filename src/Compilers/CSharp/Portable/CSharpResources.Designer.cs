@@ -1682,6 +1682,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error reading debug information for &apos;{0}&apos;.
+        /// </summary>
+        internal static string ERR_BadPdbData {
+            get {
+                return ResourceManager.GetString("ERR_BadPdbData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /platform; must be anycpu, x86, Itanium or x64.
         /// </summary>
         internal static string ERR_BadPlatformType {

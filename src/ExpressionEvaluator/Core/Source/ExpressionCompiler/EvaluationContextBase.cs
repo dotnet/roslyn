@@ -7,8 +7,10 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.VisualStudio.Debugger.Evaluation;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -75,13 +77,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DiagnosticBag diagnostics,
             out string typeName,
             CompilationTestData testData);
-
-        internal static ConstantValue ReinterpretConstantValue(ConstantValue raw, SpecialType specialType)
-        {
-            return specialType == SpecialType.System_DateTime
-                ? ConstantValue.Create(DateTimeUtilities.ToDateTime((double)raw.Value))
-                : raw;
-        }
 
         internal string GetErrorMessageAndMissingAssemblyIdentities(DiagnosticBag diagnostics, DiagnosticFormatter formatter, CultureInfo preferredUICulture, out bool useReferencedModulesOnly, out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
         {

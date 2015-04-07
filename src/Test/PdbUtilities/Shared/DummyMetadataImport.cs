@@ -1,14 +1,46 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Collections.Generic;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Roslyn.Test.PdbUtilities
 {
-    internal sealed class DummyMetadataImport : IMetadataImport
+    internal sealed class DummyMetadataImport : IMetadataImport, IDisposable
     {
-        internal static readonly DummyMetadataImport Instance = new DummyMetadataImport();
+        private readonly MetadataReader _metadataReaderOpt;
+        private readonly List<GCHandle> _pinnedBuffers;
+
+        public DummyMetadataImport(MetadataReader metadataReaderOpt)
+        {
+            _metadataReaderOpt = metadataReaderOpt;
+            _pinnedBuffers = new List<GCHandle>();
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            Dispose(true);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            foreach (var pinnedBuffer in _pinnedBuffers)
+            {
+                pinnedBuffer.Free();
+            }
+        }
+
+        ~DummyMetadataImport()
+        {
+            Dispose(false);
+        }
+
+        #region Not Implemented
 
         public void CloseEnum(uint handleEnum)
         {
@@ -275,10 +307,31 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public unsafe uint GetSigFromToken(uint memberDefSig, out byte* ppvSig)
+        #endregion
+
+        [PreserveSig]
+        public unsafe int GetSigFromToken(
+            int tkSignature,    // Signature token.
+            out byte* ppvSig,   // return pointer to signature blob
+            out int pcbSig)     // return size of signature
         {
-            throw new NotImplementedException();
+            if (_metadataReaderOpt == null)
+            {
+                throw new NotSupportedException("Metadata not available");
+            }
+
+            var sig = _metadataReaderOpt.GetStandaloneSignature((StandaloneSignatureHandle)MetadataTokens.Handle(tkSignature));
+            var signature = _metadataReaderOpt.GetBlobBytes(sig.Signature);
+            
+            GCHandle pinnedBuffer = GCHandle.Alloc(signature, GCHandleType.Pinned);
+            ppvSig = (byte*)pinnedBuffer.AddrOfPinnedObject();
+            pcbSig = signature.Length;
+
+            _pinnedBuffers.Add(pinnedBuffer);
+            return 0;
         }
+
+        #region Not implemented
 
         public uint GetTypeDefProps(uint td, IntPtr stringTypeDef, uint cchTypeDef, out uint pchTypeDef, IntPtr pdwTypeDefFlags)
         {
@@ -320,5 +373,7 @@ namespace Roslyn.Test.PdbUtilities
         {
             throw new NotImplementedException();
         }
+
+        #endregion
     }
 }
