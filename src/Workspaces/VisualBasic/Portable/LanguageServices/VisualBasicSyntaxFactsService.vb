@@ -849,6 +849,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function GetContainer(node As SyntaxNode, immediate As Boolean) As String
+            If node Is Nothing Then
+                Return String.Empty
+            End If
+
             Dim name = GetNodeName(node, includeTypeParameters:=immediate)
             Dim names = New List(Of String) From {name}
 
