@@ -50,11 +50,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 }
             }
 
-            // Uh, OK, that's probably not good that we're supposedly an open file but not in the RDT. We'll fall back
-            // to the IVsHierarchy's name property for this item.
-            return GetDocumentNameForHierarchyAndItemId(hierarchy, itemid);
+            // Uh, OK, that's probably not good that we're supposedly an open file but not in the RDT.
+            return null;
         }
 
+        // Gets the IVsHierarchy's name property for this item.
         public static string GetDocumentNameForHierarchyAndItemId(this IVsHierarchy hierarchy, uint itemid)
         {
             object property;
