@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
-' Contains the definition of the Scanner, which produces tokens from text 
+' Contains the definition of the Scanner, which produces tokens from text
 '-----------------------------------------------------------------------------
 Option Compare Binary
 Option Strict On
@@ -151,8 +151,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ''' <summary>
         ''' Gets current reusable syntax node.
-        ''' If node is returned its start will be aligned with the start of current token. 
-        ''' NOTE: Line offset may not match start of current token because of lookahead. 
+        ''' If node is returned its start will be aligned with the start of current token.
+        ''' NOTE: Line offset may not match start of current token because of lookahead.
         ''' </summary>
         Friend Overridable Function GetCurrentSyntaxNode() As VisualBasicSyntaxNode
             Return Nothing
@@ -161,12 +161,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Indicates that previously returned node has been consumed
         ''' and scanner needs to advance by the size of the node.
-        ''' 
+        '''
         ''' NOTE: the advancement is done relative to the start of the current token.
-        ''' Line offset may not match start of current token because of lookahead. 
-        ''' 
-        ''' This operation will discard lookahead tokens and reset preprocessor state 
-        ''' to the state of current token. 
+        ''' Line offset may not match start of current token because of lookahead.
+        '''
+        ''' This operation will discard lookahead tokens and reset preprocessor state
+        ''' to the state of current token.
         ''' </summary>
         Friend Overridable Sub MoveToNextSyntaxNode()
             ' do not use prev token after consuming a nonterminal
@@ -180,14 +180,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Indicates that previously returned node has been consumed
         ''' and scanner needs to advance by the size of the node.
-        ''' 
+        '''
         ''' NOTE: the advancement is done relative to the _lineBufferOffset.
         ''' Line offset will likely not match start of current token because this operation
         ''' is done while constructing the content of current token.
-        ''' 
+        '''
         ''' NOTE: This operation assumes that there is no tokens read ahead.
-        ''' 
-        ''' NOTE: This operation does not change preprocessor state. 
+        '''
+        ''' NOTE: This operation does not change preprocessor state.
         ''' The assumption is that it is responsibility of the node consumer to update preprocessor
         ''' state if needed when using nodes that change preprocessor state.
         ''' </summary>
@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If state <> _currentToken.State Then
 
                 ' this is a special case for switching from VB to Xml
-                ' we need to keep preceding trivia as it was scanned 
+                ' we need to keep preceding trivia as it was scanned
                 If _currentToken.State = ScannerState.VB AndAlso state = ScannerState.Content Then
 
                     Dim vbTk = GetCurrentToken()

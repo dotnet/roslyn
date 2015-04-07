@@ -307,6 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Case "]"c
                         If NextAre(Here + 1, "]>") Then
+
                             ' // If valid characters found then return them.
                             If Here <> 0 Then
                                 Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)

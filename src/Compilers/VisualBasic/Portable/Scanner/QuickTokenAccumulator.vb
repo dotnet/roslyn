@@ -16,16 +16,16 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     '' The QuickTokenAccumulator is a small mini-tokenizer that may fail. It consumes characters and
     '' eventually either decides that either it found a complete token (including the trivia on either
-    '' side), or it gives up and says that the full scanner should take an attempt. It also accumulates the 
+    '' side), or it gives up and says that the full scanner should take an attempt. It also accumulates the
     '' token into a character buffer and computes a hash code. The entire tokenization is done by a single
     '' routine without any memory allocations to keep it very fast.
-    '' 
+    ''
     '' Currently it only handles two cases:
     ''     optional-whitespace keyword-or-identifier optional-whitespace
     ''     optional-whitespace single-char-punctuation optional-whitespace
-    '' 
+    ''
     '' where the whitespace does not include newlines.
-    ' 
+    ''
     '' The VB tokenization rules are complex, and care needs to be taken in constructing the quick
     '' tokenization. For example "REM" begins a comment, so it can't be tokenized as a keyword or identifier.
     '' Similar problems arise with multi-character punctuation tokens, which can have embedded spaces.
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         'TODO: why : and ; are complex?  (8th row, 3 and 4)
 
-        ' The following table classifies the first &H180 Unicode characters. 
+        ' The following table classifies the first &H180 Unicode characters.
         ' R and r are marked as COMPLEX so that quick-scanning doesn't stop after "REM".
         ' # is marked complex as it may start directives.
         ' PERF: Use UShort instead of CharFlags so the compiler can use array literal initialization.
@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' Attempt to scan a single token.
         ' If it succeeds, return True, and the characters, length, and hashcode of the token
-        ' can be retrieved by other functions. 
+        ' can be retrieved by other functions.
         ' If it fails (the token is too complex), return False.
         Public Function QuickScanToken(allowLeadingMultilineTrivia As Boolean) As QuickScanResult
             Dim state As AccumulatorState = If(allowLeadingMultilineTrivia, AccumulatorState.InitialAllowLeadingMultilineTrivia, AccumulatorState.Initial)
@@ -330,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 index += 1
 
-                'FNV-like hash should work here 
+                'FNV-like hash should work here
                 'since these strings are short and mostly ASCII
                 hashCode = (hashCode Xor unicodeValue) * Hash.FnvPrime
             End While

@@ -233,8 +233,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 If _badTokenCount < BadTokenCountLimit Then
                     ' // Don't break up surrogate pairs
-                    Dim c = Peek()
-                    Dim length = If(IsHighSurrogate(c) AndAlso CanGet(1) AndAlso IsLowSurrogate(Peek(1)), 2, 1)
+                    c = Peek()
+                    Dim length = If(IsHighSurrogate(c) AndAlso Peep(1, c) AndAlso IsLowSurrogate(c), 2, 1)
                     token = MakeBadToken(leadingTrivia, length, ERRID.ERR_IllegalChar)
                 Else
                     ' If we get too many characters that we cannot make sense of, absorb the rest of the input.
@@ -397,10 +397,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 #Region "Buffer helpers"
 
+        <Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
         Private Function NextAre(chars As String) As Boolean
             Return NextAre(0, chars)
         End Function
 
+        <Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
         Private Function NextAre(offset As Integer, chars As String) As Boolean
             Debug.Assert(Not String.IsNullOrEmpty(chars))
             Dim n = chars.Length
@@ -411,14 +413,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
+        <Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
         Private Function NextIs(offset As Integer, c As Char) As Boolean
             Return CanGet(offset) AndAlso (Peek(offset) = c)
         End Function
 
+        <Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
         Private Function CanGet() As Boolean
             Return _lineBufferOffset < _bufferLen
         End Function
 
+        <Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
         Private Function CanGet(num As Integer) As Boolean
             Debug.Assert(_lineBufferOffset + num >= 0)
             Debug.Assert(num >= -MaxCharsLookBehind)
@@ -566,7 +571,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' include the new line and any additional spaces as trivia.
 
                 If startComment = 0 AndAlso Peep(Here, ch) AndAlso Not IsNewLine(ch) Then
-
                     tList.Add(MakeEndOfLineTrivia(GetText(newLine)))
                     If spaces > 0 Then
                         tList.Add(MakeWhiteSpaceTrivia(GetText(spaces)))
@@ -1148,7 +1152,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
             Return Nothing
         End Function
-
 
         ' at this point it is very likely that we are located at
         ' the beginning of a token

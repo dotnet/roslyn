@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
-' Contains the definition of the Scanner, which produces tokens from text 
+' Contains the definition of the Scanner, which produces tokens from text
 '-----------------------------------------------------------------------------
 Option Strict On
 Option Explicit On
@@ -339,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates a half width form Unicode character string. 
+        ''' Creates a half width form Unicode character string.
         ''' </summary>
         ''' <param name="text">The text representing the original identifier.  This can be in full width or half width Unicode form.  </param>
         ''' <returns>A string representing the text in a half width Unicode form.</returns>
@@ -519,6 +519,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function IsntFrom(c As Char, c0 As Char, c1 As Char, c2 As Char, c3 As Char) As Boolean
             Return (c <> c0) AndAlso (c <> c1) AndAlso (c <> c2) AndAlso (c <> c3)
         End Function
+
     End Module
 
 End Namespace

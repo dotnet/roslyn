@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ''' <summary>
-        ''' 
+        ''' Peep at the index position, if it is reachable pass the char back
         ''' </summary>
         ''' <param name="at">How far in front do what to try "peeking" at?</param>
         ''' <param name="ch">(Passback) the character at that location if possible.
@@ -105,6 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' NOTE: This is different behaviour to the Try methods that always return a value.
         ''' </param>
         ''' <returns>Returns True if it possible to peek at, otherwise returns False.</returns>
+        <Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
         Friend Function Peep(at As Integer, ByRef ch As Char) As Boolean
             ' CanGet(at)
             Debug.Assert(_lineBufferOffset + at >= 0)
@@ -122,14 +123,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
             Return True
         End Function
+
         ''' <summary>
-        ''' 
+        ''' Peep at the next index position, if it is reachable pass the char back
         ''' </summary>
         ''' <param name="ch">(Passback) the character at that location if possible.
         ''' If not the contents are left unaffected.
         ''' NOTE: This is different behaviour to the Try methods that always return a value.
         ''' </param>
         ''' <returns>Returns True if it possible to peek at, otherwise returns False.</returns>
+        <Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
         Friend Function Peep(ByRef ch As Char) As Boolean
             ' CanGet()
             If _lineBufferOffset >= _bufferLen Then
@@ -265,5 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
             Return result
         End Function
+
     End Class
+
 End Namespace
