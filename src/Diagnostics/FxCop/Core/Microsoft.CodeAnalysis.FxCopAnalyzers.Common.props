@@ -21,8 +21,6 @@
       -Microsoft.Naming#CA1708;
       -Microsoft.Naming#CA1715;
 
-      -Microsoft.Performance#CA1813;
-
       -Microsoft.Usage#CA2229;
       -Microsoft.Usage#CA2235;
       -Microsoft.Usage#CA2237;
