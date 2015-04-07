@@ -592,6 +592,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Build.
+        /// </summary>
+        internal static string ErrorSourceBuild {
+            get {
+                return ResourceManager.GetString("ErrorSourceBuild", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit And Continue.
+        /// </summary>
+        internal static string ErrorSourceEnC {
+            get {
+                return ResourceManager.GetString("ErrorSourceEnC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IntelliSense Build.
+        /// </summary>
+        internal static string ErrorSourceIntelliSense {
+            get {
+                return ResourceManager.GetString("ErrorSourceIntelliSense", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Exceptions:.
         /// </summary>
         internal static string Exceptions {
