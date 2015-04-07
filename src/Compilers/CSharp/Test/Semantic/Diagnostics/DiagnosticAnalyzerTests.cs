@@ -1014,6 +1014,24 @@ public class B
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false, expected: Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id));
         }
 
+        [Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")]
+        public void TestCodeBlockAction()
+        {
+            string source = @"
+class C
+{
+    public void M() {}
+}";
+            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockActionAnalyzer() };
 
+            // Verify, code block action diagnostics.
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
+                    expected: new[] {
+                        Diagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, "M").WithArguments("M").WithLocation(4, 17),
+                        Diagnostic(CodeBlockActionAnalyzer.CodeBlockPerCompilationRule.Id, "M").WithArguments("M").WithLocation(4, 17)
+                    });
+        }
     }
 }

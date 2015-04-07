@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
                 helpLinkUri: "HelpLink2",
                 customTags: new[] { "2_CustomTag1", "2_CustomTag2" });
 
-            private static readonly ImmutableDictionary<string, string> _properties = 
+            private static readonly ImmutableDictionary<string, string> _properties =
                 new Dictionary<string, string> { { "Key1", "Value1" }, { "Key2", "Value2" } }.ToImmutableDictionary();
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -186,5 +186,49 @@ namespace Microsoft.CodeAnalysis
                 });
             }
         }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class CodeBlockActionAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor CodeBlockTopLevelRule = new DiagnosticDescriptor(
+                "CodeBlockTopLevelRuleId",
+                "CodeBlockTopLevelRuleTitle",
+                "CodeBlock : {0}",
+                "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public static readonly DiagnosticDescriptor CodeBlockPerCompilationRule = new DiagnosticDescriptor(
+                "CodeBlockPerCompilationRuleId",
+                "CodeBlockPerCompilationRuleTitle",
+                "CodeBlock : {0}",
+                "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get
+                {
+                    return ImmutableArray.Create(CodeBlockTopLevelRule, CodeBlockPerCompilationRule);
+                }
+            }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCodeBlockAction(codeBlockContext =>
+                {
+                    codeBlockContext.ReportDiagnostic(Diagnostic.Create(CodeBlockTopLevelRule, codeBlockContext.OwningSymbol.Locations[0], codeBlockContext.OwningSymbol.Name));
+                });
+
+                context.RegisterCompilationStartAction(compilationStartContext =>
+                {
+                    compilationStartContext.RegisterCodeBlockAction(codeBlockContext =>
+                    {
+                        codeBlockContext.ReportDiagnostic(Diagnostic.Create(CodeBlockPerCompilationRule, codeBlockContext.OwningSymbol.Locations[0], codeBlockContext.OwningSymbol.Name));
+                    });
+                });
+            }
         }
+    }
 }
