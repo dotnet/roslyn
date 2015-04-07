@@ -98,10 +98,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             _optionService = _workspace.Services.GetService<IOptionService>();
             _hostType = GetHostType();
 
-            var rdt = (IVsRunningDocumentTable)componentModel.GetService<SVsServiceProvider>().GetService(typeof(SVsRunningDocumentTable));
-            var filePath = rdt.GetMonikerForHierarchyAndItemId(hierarchy, itemId);
-
             this.SharedHierarchy = hierarchy == null ? null : LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
+
+            var rdt = (IVsRunningDocumentTable)componentModel.GetService<SVsServiceProvider>().GetService(typeof(SVsRunningDocumentTable));
+
+            string filePath = null;
+            if (this.SharedHierarchy == null)
+            {
+                // this is not a shared item, look up the hierarchy/itemid pair in the RDT
+                filePath = rdt.GetMonikerForHierarchyAndItemId(hierarchy, itemId);
+            }
+            else
+            {
+                // this *is* a shared item, map from itemId to shared itemId and look up the 
+                // sharedHierarchy/sharedItemId pair in the RDT.
+                uint itemIdInSharedHierarchy;
+                if (LinkedFileUtilities.TryGetItemIdInSharedHierarchy(hierarchy, itemId, this.SharedHierarchy, out itemIdInSharedHierarchy))
+                {
+                    filePath = rdt.GetMonikerForHierarchyAndItemId(this.SharedHierarchy, itemIdInSharedHierarchy);
+                }
+
+                // This is a shared item. But we either couldn't to map an itemId in its shared hierarchy or 
+                // we couldn't look up the document moniker in RDT for a shared hierarchy/item pair
+                // Since we only use this moniker as a key, we could fall back to something else, like the document name,
+                // which is the same fall back we have for a non-shared item. we use the headHierarchy/itemId pair for that.
+                if (filePath == null)
+                {
+                    Debug.Assert(false,"Could not get itemId in SharedHierarchy or could not find the document moniker for a shared item in its SharedHierarchy.");
+
+                    filePath = hierarchy.GetDocumentNameForHierarchyAndItemId(itemId);
+                }
+            }
+
 
             if (Project.Hierarchy != null)
             {
