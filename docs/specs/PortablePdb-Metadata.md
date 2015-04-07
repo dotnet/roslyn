@@ -253,7 +253,7 @@ The encoding of the _Value_ is determined from _Type_ as follows.
 | ```ELEMENT_TYPE_U8```     | uint64         |
 | ```ELEMENT_TYPE_R4```     | float32        |
 | ```ELEMENT_TYPE_R8```     | float64        |
-| ```ELEMENT_TYPE_STRING``` | compressed integer: #US heap index | 
+| ```ELEMENT_TYPE_STRING``` | compressed integer N followed by N UTF16 characters. | 
 | type System.Decimal       | sign (highest bit), scale (bits 0..7), low (uint32), mid (uint32), high (uint32) |
 | type System.DateTime      | int64: ticks
 | enum type                 | Derived from the underlying type of the enum (one of I1, U1, I2, U2, I4, U4 above) |
@@ -261,7 +261,7 @@ The encoding of the _Value_ is determined from _Type_ as follows.
 | array type                | The constant represents a null reference. _Value_ is not present. |
 | pointer type              | The constant represents a null pointer. _Value_ is not present. |
 | other value types         | Illegal. |
-| generic type parameter    | Illegal. |
+| type parameter            | Illegal. |
 
 Types System.Decimal and System.DateTime are be encoded as ```VALUETYPE TypeDefOrRefOrSpecEncoded```, where ```TypeDefOrRefOrSpecEncoded``` encodes a TypeDef/TypeRef with namespace 'System' and type name 'Decimal' and 'DateTime', respectively.
 
