@@ -84,7 +84,7 @@
                     </imaging:CrispImage>
 
                     <!-- description text -->
-                    <TextBlock Grid.Column="1" Text="{Binding Path=Description}" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                    <TextBlock Grid.Column="1" Text="{Binding Path=Description, Mode=OneTime}" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Stretch">
                         
                         <!-- if severity is error, make the description text red -->
                         <TextBlock.Style>
