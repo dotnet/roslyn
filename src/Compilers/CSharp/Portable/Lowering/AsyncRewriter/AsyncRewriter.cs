@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bodyBuilder.Add(
                     F.Assignment(
                         F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType)),
-                        F.StaticCall(methodScopeAsyncMethodBuilderMemberCollection.BuilderType, "Create", ImmutableArray<TypeSymbol>.Empty)));
+                        F.StaticCall(BinderFlags.IgnoreAccessibility, methodScopeAsyncMethodBuilderMemberCollection.BuilderType, "Create", ImmutableArray<TypeSymbol>.Empty)));
 
                 // local.$stateField = NotStartedStateMachine
                 bodyBuilder.Add(
