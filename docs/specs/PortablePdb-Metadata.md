@@ -253,7 +253,7 @@ The encoding of the _Value_ is determined from _Type_ as follows.
 | ```ELEMENT_TYPE_U8```     | uint64         |
 | ```ELEMENT_TYPE_R4```     | float32        |
 | ```ELEMENT_TYPE_R8```     | float64        |
-| ```ELEMENT_TYPE_STRING``` | compressed integer N followed by N UTF16 characters. | 
+| ```ELEMENT_TYPE_STRING``` | Either not present (represents a null string reference), or a single byte 0xff (represents an empty string), or a UTF-16 little-endian encoded string. | 
 | type System.Decimal       | sign (highest bit), scale (bits 0..7), low (uint32), mid (uint32), high (uint32) |
 | type System.DateTime      | int64: ticks
 | enum type                 | Derived from the underlying type of the enum (one of I1, U1, I2, U2, I4, U4 above) |
