@@ -810,6 +810,20 @@ public class P
                 Test(markup, expectedOrderedItems);
             }
 
+            [WorkItem(32, "https://github.com/dotnet/roslyn/issues/32")]
+            [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+            public void NonIdentifierConditionalIndexer()
+            {
+                var expected = new[] { new SignatureHelpTestItem("char string[int index]") };
+                Test(@"class C { void M() { """"?[$$ } }", expected); // inline with a string literal
+                Test(@"class C { void M() { """"?[/**/$$ } }", expected); // inline with a string literal and multiline comment
+                Test(@"class C { void M() { ("""")?[$$ } }", expected); // parenthesized expression
+                Test(@"class C { void M() { new System.String(' ', 1)?[$$ } }", expected); // new object expression
+
+                // more complicated parenthesized expression
+                Test(@"class C { void M() { (null as System.Collections.Generic.List<int>)?[$$ } }", new[] { new SignatureHelpTestItem("int System.Collections.Generic.List<int>[int index]") });
+            }
+
             [WorkItem(1067933)]
             [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
             public void InvokedWithNoToken()
