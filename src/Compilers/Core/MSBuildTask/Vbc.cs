@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             catch (Exception e) when (Utilities.IsIoRelatedException(e))
             {
-                Log.LogErrorWithCodeFromResources("VBC.RenamePDB", PdbFile, e.Message);
+                Log.LogErrorWithCodeFromResources("VBC_RenamePDB", PdbFile, e.Message);
             }
         }
 
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 if (null == pathToTool)
                 {
-                    Log.LogErrorWithCodeFromResources("General.FrameworksFileNotFound", ToolName, ToolLocationHelper.GetDotNetFrameworkVersionFolderPrefix(TargetDotNetFrameworkVersion.VersionLatest));
+                    Log.LogErrorWithCodeFromResources("General_FrameworksFileNotFound", ToolName, ToolLocationHelper.GetDotNetFrameworkVersionFolderPrefix(TargetDotNetFrameworkVersion.VersionLatest));
                 }
             }
 
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     (0 != String.Compare(Verbosity, "quiet", StringComparison.OrdinalIgnoreCase)) &&
                     (0 != String.Compare(Verbosity, "verbose", StringComparison.OrdinalIgnoreCase)))
                 {
-                    Log.LogErrorWithCodeFromResources("Vbc.EnumParameterHasInvalidValue", "Verbosity", this.Verbosity, "Quiet, Normal, Verbose");
+                    Log.LogErrorWithCodeFromResources("Vbc_EnumParameterHasInvalidValue", "Verbosity", this.Verbosity, "Quiet, Normal, Verbose");
                     return false;
                 }
             }
@@ -974,7 +974,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     // shelling out to the command-line compiler anyway.  That means the command-line
                     // compiler will log the error.  So here, we only log the error if we would've
                     // tried to use the host compiler.
-                    Log.LogErrorWithCodeFromResources("General.CouldNotSetHostObjectParameter", param, e.Message);
+                    Log.LogErrorWithCodeFromResources("General_CouldNotSetHostObjectParameter", param, e.Message);
                 }
 
                 return false;
@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     }
                     else
                     {
-                        Log.LogErrorWithCodeFromResources("General.IncorrectHostObject", "Vbc", "IVbcHostObject");
+                        Log.LogErrorWithCodeFromResources("General_IncorrectHostObject", "Vbc", "IVbcHostObject");
                     }
                 }
             }

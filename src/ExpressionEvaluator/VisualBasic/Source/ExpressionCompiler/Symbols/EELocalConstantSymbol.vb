@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Utilities
 
@@ -70,9 +71,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Property
 
         Friend Overrides Function GetConstantValue(binder As Binder) As ConstantValue
+            ' TODO (https://github.com/dotnet/roslyn/issues/1815): report diagnostics if the value is bad
             Return _constantValue
         End Function
-
     End Class
 End Namespace
 

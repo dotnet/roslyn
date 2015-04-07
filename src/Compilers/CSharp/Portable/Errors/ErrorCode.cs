@@ -1270,7 +1270,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NoAnalyzerInAssembly = 8033,
         WRN_UnableToLoadAnalyzer = 8034,
         ERR_CantReadRulesetFile = 8035,
-        // available 8036-8039
+        ERR_BadPdbData = 8036,
+        // available 8037-8039
         INF_UnableToLoadSomeTypesInAnalyzer = 8040,
         // available 8041-8049
         ERR_InitializerOnNonAutoProperty = 8050,

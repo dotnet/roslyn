@@ -123,10 +123,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private DiagnosticsUpdatedArgs MakeArgs(DiagnosticAnalyzer analyzer, ImmutableHashSet<DiagnosticData> items, Project project)
         {
-            var id = analyzer.GetUniqueId();
-
             return new DiagnosticsUpdatedArgs(
-                id: Tuple.Create(this, id, project?.Id),
+                id: Tuple.Create(this, analyzer, project?.Id),
                 workspace: this.Workspace,
                 solution: project?.Solution,
                 projectId: project?.Id,

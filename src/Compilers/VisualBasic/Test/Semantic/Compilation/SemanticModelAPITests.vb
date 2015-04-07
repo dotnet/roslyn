@@ -4299,5 +4299,57 @@ End Module
             Assert.Null(typelInfo.Type)
         End Sub
 
+        <WorkItem(1104539, "DevDiv")>
+        <Fact()>
+        Public Sub GetDiagnosticsWithRootNamespace()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
+Imports System.Threading
+
+Module TestModule
+    Sub Main()
+        DoesntExist()
+    End Sub
+
+    <Extension>
+    Public Function ToFullWidth(c As Char) As Char
+        Return If(IsHalfWidth(c), MakeFullWidth(c), c)
+    End Function
+End Module
+    ]]></file>
+    <file name="b.vb"><![CDATA[
+Imports Microsoft.VisualBasic.Strings
+
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic
+
+    Partial Public Class SyntaxFacts
+
+        Friend Shared Function MakeFullWidth(c As Char) As Char
+            Return c
+        End Function
+
+        Friend Shared Function IsHalfWidth(c As Char) As Boolean
+            Return c >= ChrW(&H21S) AndAlso c <= ChrW(&H7ES)
+        End Function
+    End Class
+End Namespace
+    ]]></file>
+</compilation>, {SystemCoreRef}, options:=TestOptions.DebugDll.WithRootNamespace("Microsoft.CodeAnalysis.VisualBasic.UnitTests"))
+
+            Dim semanticModel = CompilationUtils.GetSemanticModel(compilation, "a.vb")
+
+            semanticModel.GetDiagnostics().AssertTheseDiagnostics(<errors>
+BC50001: Unused import statement.
+Imports System.Threading
+~~~~~~~~~~~~~~~~~~~~~~~~
+BC30451: 'DoesntExist' is not declared. It may be inaccessible due to its protection level.
+        DoesntExist()
+        ~~~~~~~~~~~
+                                                                  </errors>, suppressInfos:=False)
+        End Sub
+
     End Class
 End Namespace

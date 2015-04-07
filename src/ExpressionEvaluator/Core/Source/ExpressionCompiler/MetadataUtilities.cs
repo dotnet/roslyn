@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static LocalInfo<TTypeSymbol> GetLocalInfo<TModuleSymbol, TTypeSymbol, TMethodSymbol, TFieldSymbol, TSymbol>(
             this MetadataDecoder<TModuleSymbol, TTypeSymbol, TMethodSymbol, TFieldSymbol, TSymbol> metadataDecoder,
-                byte[] signature)
+                ImmutableArray<byte> signature)
             where TModuleSymbol : class
             where TTypeSymbol : class, TSymbol, ITypeSymbol
             where TMethodSymbol : class, TSymbol, IMethodSymbol
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             unsafe
             {
-                fixed (byte* ptr = signature)
+                fixed (byte* ptr = signature.ToArray())
                 {
                     var blobReader = new BlobReader(ptr, signature.Length);
                     return metadataDecoder.DecodeLocalVariableOrThrow(ref blobReader);
@@ -435,98 +435,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
             return builder.ToImmutableAndFree();
-        }
-
-        internal static ImmutableArray<NamedLocalConstant> GetConstantSignatures(this ArrayBuilder<ISymUnmanagedScope> scopes)
-        {
-            var builder = ArrayBuilder<NamedLocalConstant>.GetInstance();
-            foreach (var scope in scopes)
-            {
-                var constants = ((ISymUnmanagedScope2)scope).GetConstants();
-                if (constants == null)
-                {
-                    continue;
-                }
-                foreach (var constant in constants)
-                {
-                    NamedLocalConstant value;
-                    if (constant.TryGetConstantValue(out value))
-                    {
-                        builder.Add(value);
-                    }
-                }
-            }
-            return builder.ToImmutableAndFree();
-        }
-
-        private static ISymUnmanagedConstant[] GetConstants(this ISymUnmanagedScope2 scope)
-        {
-            int length;
-            scope.GetConstants(0, out length, null);
-            if (length == 0)
-            {
-                return null;
-            }
-
-            var constants = new ISymUnmanagedConstant[length];
-            scope.GetConstants(length, out length, constants);
-            return constants;
-        }
-
-        private static bool TryGetConstantValue(this ISymUnmanagedConstant constant, out NamedLocalConstant value)
-        {
-            value = default(NamedLocalConstant);
-
-            int length;
-            int hresult = constant.GetName(0, out length, null);
-            SymUnmanagedReaderExtensions.ThrowExceptionForHR(hresult);
-            Debug.Assert(length > 0);
-            if (length == 0)
-            {
-                return false;
-            }
-
-            var chars = new char[length];
-            hresult = constant.GetName(length, out length, chars);
-            SymUnmanagedReaderExtensions.ThrowExceptionForHR(hresult);
-            Debug.Assert(chars[length - 1] == 0);
-            var name = new string(chars, 0, length - 1);
-
-            constant.GetSignature(0, out length, null);
-            Debug.Assert(length > 0);
-            if (length == 0)
-            {
-                return false;
-            }
-
-            var signature = new byte[length];
-            constant.GetSignature(length, out length, signature);
-
-            object val;
-            constant.GetValue(out val);
-
-            var constantValue = GetConstantValue(signature, val);
-            value = new NamedLocalConstant(name, signature, constantValue);
-            return true;
-        }
-
-        private static ConstantValue GetConstantValue(byte[] signature, object value)
-        {
-            if (signature.Length == 1)
-            {
-                switch ((SignatureTypeCode)signature[0])
-                {
-                    case SignatureTypeCode.Object:
-                        // Dev12 and Dev14 C#/VB compilers emit (int)0 for (object)null.
-                        Debug.Assert(object.Equals(value, 0) || (value == null));
-                        return ConstantValue.Null;
-                    case SignatureTypeCode.String:
-                        return ConstantValue.Create((string)value);
-                }
-            }
-
-            Debug.Assert(value != null);
-            return ConstantValue.Create(value, SpecialTypeExtensions.FromRuntimeTypeOfLiteralValue(value));
         }
 
         private static bool IsBadMetadataException(Exception e)

@@ -4031,10 +4031,14 @@ End Class
                 Assert.True(comp1.Emit(peStream1Unused, pdbStream1).Success)
                 Assert.True(comp2.Emit(peStream2, pdbStream2).Success)
 
+                pdbStream1.Position = 0
+                pdbStream2.Position = 0
+                peStream2.Position = 0
+
                 ' Note: This SymReader will behave differently from the ISymUnmanagedReader
                 ' we receive during real debugging.  We're just using it as a rough
                 ' approximation of ISymUnmanagedReader3, which is unavailable here.
-                Dim symReader = New SymReader({pdbStream1, pdbStream2})
+                Dim symReader = New SymReader({pdbStream1, pdbStream2}, peStream2, Nothing)
 
                 Dim runtime = CreateRuntimeInstance(
                     GetUniqueName(),
@@ -4093,6 +4097,99 @@ End Class
                     testData:=Nothing)
                 AssertEx.SetEqual(locals.Select(Function(l) l.LocalName), "x", "y")
             End Using
+        End Sub
+
+        ''' <summary>
+        ''' Ignore accessibility in lambda rewriter.
+        ''' </summary>
+        <Fact>
+        Public Sub LambdaRewriterIgnoreAccessibility()
+            Const source =
+"Imports System.Linq
+Class C
+    Shared Sub M()
+        Dim q = {New C()}.AsQueryable()
+    End Sub
+End Class"
+            Dim compilation0 = CreateCompilationWithMscorlib(
+                {source},
+                references:={SystemCoreRef},
+                options:=TestOptions.DebugDll,
+                assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim runtime = CreateRuntimeInstance(compilation0)
+            Dim context = CreateMethodContext(runtime, "C.M")
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("q.Where(Function(c) True)", errorMessage, testData)
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size       64 (0x40)
+  .maxstack  6
+  .locals init (System.Linq.IQueryable(Of C) V_0, //q
+                System.Linq.Expressions.ParameterExpression V_1)
+  IL_0000:  ldloc.0
+  IL_0001:  ldtoken    ""C""
+  IL_0006:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+  IL_000b:  ldstr      ""c""
+  IL_0010:  call       ""Function System.Linq.Expressions.Expression.Parameter(System.Type, String) As System.Linq.Expressions.ParameterExpression""
+  IL_0015:  stloc.1
+  IL_0016:  ldc.i4.1
+  IL_0017:  box        ""Boolean""
+  IL_001c:  ldtoken    ""Boolean""
+  IL_0021:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+  IL_0026:  call       ""Function System.Linq.Expressions.Expression.Constant(Object, System.Type) As System.Linq.Expressions.ConstantExpression""
+  IL_002b:  ldc.i4.1
+  IL_002c:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0031:  dup
+  IL_0032:  ldc.i4.0
+  IL_0033:  ldloc.1
+  IL_0034:  stelem.ref
+  IL_0035:  call       ""Function System.Linq.Expressions.Expression.Lambda(Of System.Func(Of C, Boolean))(System.Linq.Expressions.Expression, ParamArray System.Linq.Expressions.ParameterExpression()) As System.Linq.Expressions.Expression(Of System.Func(Of C, Boolean))""
+  IL_003a:  call       ""Function System.Linq.Queryable.Where(Of C)(System.Linq.IQueryable(Of C), System.Linq.Expressions.Expression(Of System.Func(Of C, Boolean))) As System.Linq.IQueryable(Of C)""
+  IL_003f:  ret
+}")
+        End Sub
+
+        ''' <summary>
+        ''' Ignore accessibility in async rewriter.
+        ''' </summary>
+        <WorkItem(1813, "https://github.com/dotnet/roslyn/issues/1813")>
+        <Fact(Skip:="1813")>
+        Public Sub AsyncRewriterIgnoreAccessibility()
+            Const source =
+"Imports System
+Imports System.Threading.Tasks
+Class C
+End Class
+Module M
+    Sub F(Of T)(f As Func(Of Task(Of T)))
+    End Sub
+    Sub M()
+    End Sub
+End Module"
+            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source), options:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(compilation0)
+            Dim context = CreateMethodContext(runtime, methodName:="M.M")
+            Dim resultProperties As ResultProperties = Nothing
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("F(Async Function() New C())", resultProperties, errorMessage, testData)
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size       42 (0x2a)
+  .maxstack  2
+  IL_0000:  ldsfld     ""<>x._Closure$__.$I0-0 As System.Func(Of System.Threading.Tasks.Task(Of C))""
+  IL_0005:  brfalse.s  IL_000e
+  IL_0007:  ldsfld     ""<>x._Closure$__.$I0-0 As System.Func(Of System.Threading.Tasks.Task(Of C))""
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     ""<>x._Closure$__.$I As <>x._Closure$__""
+  IL_0013:  ldftn      ""Function <>x._Closure$__._Lambda$__0-0() As System.Threading.Tasks.Task(Of C)""
+  IL_0019:  newobj     ""Sub System.Func(Of System.Threading.Tasks.Task(Of C))..ctor(Object, System.IntPtr)""
+  IL_001e:  dup
+  IL_001f:  stsfld     ""<>x._Closure$__.$I0-0 As System.Func(Of System.Threading.Tasks.Task(Of C))""
+  IL_0024:  call       ""Sub M.F(Of C)(System.Func(Of System.Threading.Tasks.Task(Of C)))""
+  IL_0029:  ret
+}")
         End Sub
 
     End Class

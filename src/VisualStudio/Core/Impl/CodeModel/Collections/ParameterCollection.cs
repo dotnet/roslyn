@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             if (index < parameters.Length)
             {
                 var parameter = parameters[index];
-                element = (EnvDTE.CodeElement)CodeParameter.Create(this.State, this.ParentElement, parameter.Name);
+                element = (EnvDTE.CodeElement)CodeParameter.Create(this.State, this.ParentElement, CodeModelService.GetParameterName(parameter));
                 return true;
             }
 
@@ -49,12 +49,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 
         protected override bool TryGetItemByName(string name, out EnvDTE.CodeElement element)
         {
-            foreach (var parameter in this.ParentElement.GetParameters())
+            var parentNode = this.ParentElement.LookupNode();
+            if (parentNode != null)
             {
-                var childName = parameter.Name;
-                if (childName == name)
+                SyntaxNode parameterNode;
+                if (CodeModelService.TryGetParameterNode(parentNode, name, out parameterNode))
                 {
-                    element = (EnvDTE.CodeElement)CodeParameter.Create(this.State, this.ParentElement, parameter.Name);
+                    // The name of the CodeElement should be just the identifier name associated with the element 
+                    // devoid of the type characters hence we use the just identifier name for both creation and 
+                    // later searches
+                    element = (EnvDTE.CodeElement)CodeParameter.Create(this.State, this.ParentElement, name);
                     return true;
                 }
             }

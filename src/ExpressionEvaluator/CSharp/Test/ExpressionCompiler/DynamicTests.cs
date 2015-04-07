@@ -150,13 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             ImmutableArray<MetadataReference> references;
             comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
 
-            // We're going to override the true signature (i.e. int32) with one indicating
-            // that the constant is a System.Object.
-            var constantSignatures = new Dictionary<string, byte[]>
-            {
-                { "d", new byte[] { 0x1c } },
-            }.ToImmutableDictionary();
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, new SymReader(pdbBytes, constantSignatures));
+            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, new SymReader(pdbBytes, exeBytes));
 
             var context = CreateMethodContext(runtime, "C.M");
             var testData = new CompilationTestData();
@@ -198,13 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             ImmutableArray<MetadataReference> references;
             comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
 
-            // We're going to override the true signature (i.e. int32) with one indicating
-            // that the constant is a System.Object[].
-            var constantSignatures = new Dictionary<string, byte[]>
-            {
-                { "d", new byte[] { 0x1d, 0x1c } },
-            }.ToImmutableDictionary();
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, new SymReader(pdbBytes, constantSignatures));
+            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, new SymReader(pdbBytes, exeBytes));
 
             var context = CreateMethodContext(runtime, "C.M");
             var testData = new CompilationTestData();
@@ -215,11 +203,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var method = testData.Methods.Single().Value.Method;
             AssertHasDynamicAttribute(method);
             Assert.Equal(TypeKind.Dynamic, ((ArrayTypeSymbol)method.ReturnType).ElementType.TypeKind);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "d", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-@"{
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "d", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
+{
   // Code size        2 (0x2)
   .maxstack  1
-  IL_0000:  ldc.i4.0
+  IL_0000:  ldnull
   IL_0001:  ret
 }");
         }
@@ -251,13 +239,7 @@ class Generic<T>
             ImmutableArray<MetadataReference> references;
             comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
 
-            // We're going to override the true signature (i.e. int32) with one indicating
-            // that the constant is a Generic<System.Object>.
-            var constantSignatures = new Dictionary<string, byte[]>
-            {
-                { "d", new byte[] { 0x15, 0x12, 0x0c, 0x01, 0x1c } },
-            }.ToImmutableDictionary();
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, new SymReader(pdbBytes, constantSignatures));
+            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, new SymReader(pdbBytes, exeBytes));
 
             var context = CreateMethodContext(runtime, "C.M");
             var testData = new CompilationTestData();
@@ -268,11 +250,11 @@ class Generic<T>
             var method = testData.Methods.Single().Value.Method;
             AssertHasDynamicAttribute(method);
             Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments.Single().TypeKind);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "d", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-@"{
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "d", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
+{
   // Code size        2 (0x2)
   .maxstack  1
-  IL_0000:  ldc.i4.0
+  IL_0000:  ldnull
   IL_0001:  ret
 }");
         }

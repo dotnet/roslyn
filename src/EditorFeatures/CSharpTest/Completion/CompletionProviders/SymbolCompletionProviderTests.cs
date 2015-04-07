@@ -7399,15 +7399,15 @@ class C
             VerifyItemExists(markup, "y");
         }
 
-        [WorkItem(1029522)]
+        [WorkItem(1663, "https://github.com/dotnet/roslyn/issues/1663")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NameOfMembersListedOnlyForNamespacesAndTypes1()
+        public void NameOfMembersListedForLocals()
         {
             var markup = @"class C
 {
     void M()
     {
-        var x = nameof(T.z$$)
+        var x = nameof(T.z.$$)
     }
 }
  
@@ -7421,12 +7421,12 @@ public class U
     public int nope;
 }
 ";
-            VerifyItemIsAbsent(markup, "nope");
+            VerifyItemExists(markup, "nope");
         }
 
         [WorkItem(1029522)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NameOfMembersListedOnlyForNamespacesAndTypes2()
+        public void NameOfMembersListedForNamespacesAndTypes2()
         {
             var markup = @"class C
 {
@@ -7451,7 +7451,7 @@ public class U
 
         [WorkItem(1029522)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NameOfMembersListedOnlyForNamespacesAndTypes3()
+        public void NameOfMembersListedForNamespacesAndTypes3()
         {
             var markup = @"class C
 {
@@ -7473,7 +7473,7 @@ public class U
 
         [WorkItem(1029522)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NameOfMembersListedOnlyForNamespacesAndTypes4()
+        public void NameOfMembersListedForNamespacesAndTypes4()
         {
             var markup = @"
 using z = System;

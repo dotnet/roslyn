@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal abstract partial class AbstractEncProject : AbstractProject
     {
-        internal readonly VsENCRebuildableProjectImpl EditAndContinueImplOpt;
+        internal VsENCRebuildableProjectImpl EditAndContinueImplOpt;
 
         public AbstractEncProject(
             VisualStudioProjectTracker projectTracker,
@@ -27,6 +27,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 this.EditAndContinueImplOpt = new VsENCRebuildableProjectImpl(this);
             }
+        }
+
+        public override void Disconnect()
+        {
+            // project is going away
+            this.EditAndContinueImplOpt = null;
+
+            base.Disconnect();
         }
     }
 }
