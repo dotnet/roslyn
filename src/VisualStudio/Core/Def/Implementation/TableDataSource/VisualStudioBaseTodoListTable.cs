@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         internal override IReadOnlyCollection<string> Columns { get { return s_columns; } }
 
-        private class TableDataSource : AbstractTableDataSource<TaskListEventArgs, TodoTaskItem>
+        private class TableDataSource : AbstractRoslynTableDataSource<TaskListEventArgs, TodoTaskItem>
         {
             private readonly Workspace _workspace;
             private readonly Guid _identifier;
@@ -110,7 +110,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private readonly Workspace _workspace;
                 private readonly DocumentId _documentId;
 
-                public TableEntriesFactory(TableDataSource source, Workspace workspace, DocumentId documentId)
+                public TableEntriesFactory(TableDataSource source, Workspace workspace, DocumentId documentId) : 
+                    base(source)
                 {
                     _source = source;
                     _workspace = workspace;
