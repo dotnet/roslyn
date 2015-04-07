@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Discard the returned diagnostics.
             _compilation.GetDiagnostics(_cancellationToken);
 
-            return await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
+            var analyzerDiagnostics = await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
+            return analyzerDiagnostics.AddRange(_exceptionDiagnostics);
         }
 
         /// <summary>

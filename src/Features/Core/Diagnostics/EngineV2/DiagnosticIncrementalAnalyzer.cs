@@ -129,7 +129,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (project != null)
                 {
-                    CompilationResult compilationResult = GetCompilationResult(project, vintage);
+                    VersionStamp projectVersion = vintage == CompilationVintage.Current ? await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false) : VersionStamp.Default;
+                    CompilationResult compilationResult = GetCompilationResult(project, projectVersion, vintage);
                     if (compilationResult == null || compilationResult.ProjectVersion.Equals(VersionStamp.Default))
                     {
                         // There has been no request to analyze the project. Initiate one now.
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // the analysis, because cancelling this diagnostics request should not necessarily
                         // cancel the analysis.
                         await AnalyzeProjectAsync(project, false, cancellationToken).ConfigureAwait(false);
-                        compilationResult = GetCompilationResult(project, vintage);
+                        compilationResult = GetCompilationResult(project, projectVersion, vintage);
                     }
 
                     if (compilationResult != null && !compilationResult.ProjectVersion.Equals(VersionStamp.Default))
@@ -212,8 +213,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public override async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, ImmutableHashSet<string> diagnosticIds, CancellationToken cancellationToken)
         {
-            ImmutableArray<DiagnosticData> diagnostics = await GetDiagnosticsForIdsAsync(solution, projectId, null, diagnosticIds, cancellationToken).ConfigureAwait(false);
-            return diagnostics.Where(d => d.DocumentId == null).ToImmutableArrayOrEmpty();
+            return await GetDiagnosticsForIdsAsync(solution, projectId, null, diagnosticIds, cancellationToken).ConfigureAwait(false);
         }
 
         public override async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> result, CancellationToken cancellationToken)
@@ -291,14 +291,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Current
         }
 
-        private CompilationResult GetCompilationResult(Project project, CompilationVintage vintage)
+        private CompilationResult GetCompilationResult(Project project, VersionStamp projectVersion, CompilationVintage vintage)
         {
             lock (_compilationResults)
             {
                 CompilationResults results;
                 if (_compilationResults.TryGetValue(project.Id, out results))
                 {
-                    return vintage == CompilationVintage.Completed ? results.CompletedCompilation : results.CurrentCompilation;
+                    if (vintage == CompilationVintage.Completed)
+                    {
+                        return results.CompletedCompilation;
+                    }
+
+                    if (results.CurrentCompilation.ProjectVersion == projectVersion)
+                    {
+                        return results.CurrentCompilation;
+                    }
                 }
             }
 
