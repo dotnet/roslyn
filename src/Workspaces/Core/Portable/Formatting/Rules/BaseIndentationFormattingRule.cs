@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
                 }
 
                 // now we have an interesting case where indentation block intersects with us.
-                // this can happen if code is splitted in two different script blocks or nuggets.
+                // this can happen if code is split in two different script blocks or nuggets.
                 // here, we will re-adjust block to be contained within our span.
                 if (operation.TextSpan.IntersectsWith(_span))
                 {
