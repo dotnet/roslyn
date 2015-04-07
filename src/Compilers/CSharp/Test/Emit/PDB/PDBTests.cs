@@ -4225,5 +4225,48 @@ public class C
   </methods>
 </symbols>");
         }
+
+        [Fact]
+        public void DuplicateDocuments()
+        {
+            var source1 = @"class C { static void F() { } }";
+            var source2 = @"class D { static void F() { } }";
+
+            var tree1 = Parse(source1, @"foo.cs");
+            var tree2 = Parse(source2, @"foo.cs");
+
+            var comp = CreateCompilationWithMscorlib(new[] { tree1, tree2 });
+
+            // the first file wins (checksum CB 22 ...)
+            comp.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name=""foo.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""CB, 22, D8,  3, D3, 27, 32, 64, 2C, BC, 7D, 67, 5D, E3, CB, AC, D1, 64, 25, 83, "" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""29"" endLine=""1"" endColumn=""30"" document=""1"" />
+      </sequencePoints>
+      <locals />
+    </method>
+    <method containingType=""D"" name=""F"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""29"" endLine=""1"" endColumn=""30"" document=""1"" />
+      </sequencePoints>
+      <locals />
+    </method>
+  </methods>
+</symbols>
+");
+        }
     }
 }
