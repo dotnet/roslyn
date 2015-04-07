@@ -173,7 +173,48 @@ public sealed class InternalGetterTestAttribute : Attribute
     public string Name
     {
         get { return m_name; }
-        set { m_name = value; }
+
+        internal set { m_name = value; }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CSharp_CA1019_MakeGetterPublic3()
+        {
+            VerifyCSharpFix(@"
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+public sealed class InternalGetterTestAttribute : Attribute
+{
+    private string m_name;
+
+    public InternalGetterTestAttribute(string name)
+    {
+        m_name = name;
+    }
+
+    internal string Name
+    {
+        get { return m_name; }
+    }
+}", @"
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+public sealed class InternalGetterTestAttribute : Attribute
+{
+    private string m_name;
+
+    public InternalGetterTestAttribute(string name)
+    {
+        m_name = name;
+    }
+
+    public string Name
+    {
+        get { return m_name; }
     }
 }");
         }
@@ -381,9 +422,49 @@ Public NotInheritable Class InternalGetterTestAttribute
         Get
             Return m_name
         End Get
-        Set
+        Friend Set
             m_name = value
         End Set
+    End Property
+End Class", allowNewCompilerDiagnostics: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void VisualBasic_CA1019_MakeGetterPublic3()
+        {
+            VerifyBasicFix(@"
+Imports System
+
+<AttributeUsage(AttributeTargets.All)> _
+Public NotInheritable Class InternalGetterTestAttribute
+    Inherits Attribute
+    Private m_name As String
+    
+    Public Sub New(name As String)
+        m_name = name
+    End Sub
+
+    Friend Property Name() As String
+        Get
+            Return m_name
+        End Get
+    End Property
+End Class", @"
+Imports System
+
+<AttributeUsage(AttributeTargets.All)> _
+Public NotInheritable Class InternalGetterTestAttribute
+    Inherits Attribute
+    Private m_name As String
+    
+    Public Sub New(name As String)
+        m_name = name
+    End Sub
+
+    Public Property Name() As String
+        Get
+            Return m_name
+        End Get
     End Property
 End Class", allowNewCompilerDiagnostics: true);
         }

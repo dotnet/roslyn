@@ -119,6 +119,18 @@ namespace System.Runtime.Analyzers
             if (propertyAccessibility != Accessibility.Public)
             {
                 editor.SetAccessibility(property, Accessibility.Public);
+
+                // Having just made the property public, if it has a setter with no accesibility set, then we've just made the setter public. 
+                // Instead restore the setter's original accessibility so that we don't fire a violation with the generated code.
+                var setter = editor.Generator.GetAccessor(property, DeclarationKind.SetAccessor);
+                if (setter != null)
+                {
+                    var setterAccesibility = editor.Generator.GetAccessibility(setter);
+                    if (setterAccesibility == Accessibility.NotApplicable)
+                    {
+                        editor.SetAccessibility(setter, propertyAccessibility);
+                    }
+                }
             }
 
             return editor.GetChangedDocument();
