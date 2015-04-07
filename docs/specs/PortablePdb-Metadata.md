@@ -221,45 +221,51 @@ There shall be no duplicate rows in the LocalVariable table, based upon owner an
 The LocalConstant table has the following columns:
 
 * _Name_ (String heap index)
-* _Value_ (Blob heap index)
-* _TypeCode_ (type code; encoding: uint8)
+* _Signature_ (Blob heap index, [LocalConstantSig blob](#LocalConstantSig))
 
 Conceptually, every row in the LocalConstant table is owned by one, and only one, row in the LocalScope table.
 
 There shall be no duplicate rows in the LocalConstant table, based upon owner and _Name_.
-
-_TypeCode_ shall be exactly one of 
-
-| _TypeCode_                | value | _Value_ encoding         |
-|:--------------------------|:------|:-------------------------|
-| ```ELEMENT_TYPE_BOOLEAN```| 0x02  | |
-| ```ELEMENT_TYPE_CHAR```   | 0x03  | |
-| ```ELEMENT_TYPE_I1```     | 0x04  | |
-| ```ELEMENT_TYPE_U1```     | 0x05  | |
-| ```ELEMENT_TYPE_I2```     | 0x06  | |
-| ```ELEMENT_TYPE_U2```     | 0x07  | |
-| ```ELEMENT_TYPE_I4```     | 0x08  | |
-| ```ELEMENT_TYPE_U4```     | 0x09  | |
-| ```ELEMENT_TYPE_I8```     | 0x0a  | |
-| ```ELEMENT_TYPE_U8```     | 0x0b  | |
-| ```ELEMENT_TYPE_R4```     | 0x0c  | |
-| ```ELEMENT_TYPE_R8```     | 0x0d  | |
-| ```ELEMENT_TYPE_STRING``` | 0x0e  | | 
-| ```ELEMENT_TYPE_CLASS```  | 0x12  | The constant represents a null reference. _Value_ contains the signature of its type encoded as [LocalConstantSig blob](#LocalConstantSig). |
-| Decimal                   | 0x22  | sign (highest bit), scale (bits 0..7), low (uint32), mid (uint32), high (uint32) |
-| DateTime                  | 0x23  | ticks (int64)
-
-Values and encoding of ```ELEMENT_TYPE_*``` constants are defined in ECMA-335 §II.23.1.16.
 
 ####<a name="LocalConstantSig"></a>LocalConstantSig Blob
 
 The structure of the blob is
 
 ```
-    Blob ::= CustomMod* Type
+    Blob ::= CustomMod* Type Value?
 ```
 
 Where _CustomMod_ and _Type_ are encoded as specified in ECMA-335 §II.23.2.7 and §II.23.2.12, respectively.
+
+The encoding of the _Value_ is determined from _Type_ as follows.
+
+| _Type_                    | _Value_ encoding                          |
+|:--------------------------|:------------------------------------------|
+| ```ELEMENT_TYPE_BOOLEAN```| uint8: 0 represents false, 1 represents true |
+| ```ELEMENT_TYPE_CHAR```   | uint16         |
+| ```ELEMENT_TYPE_I1```     | int8           |
+| ```ELEMENT_TYPE_U1```     | uint8          |
+| ```ELEMENT_TYPE_I2```     | int16          |
+| ```ELEMENT_TYPE_U2```     | uint16         |
+| ```ELEMENT_TYPE_I4```     | int32          |
+| ```ELEMENT_TYPE_U4```     | uint32         |
+| ```ELEMENT_TYPE_I8```     | int64          |
+| ```ELEMENT_TYPE_U8```     | uint64         |
+| ```ELEMENT_TYPE_R4```     | float32        |
+| ```ELEMENT_TYPE_R8```     | float64        |
+| ```ELEMENT_TYPE_STRING``` | compressed integer: #US heap index | 
+| type System.Decimal       | sign (highest bit), scale (bits 0..7), low (uint32), mid (uint32), high (uint32) |
+| type System.DateTime      | int64: ticks
+| enum type                 | Derived from the underlying type of the enum (one of I1, U1, I2, U2, I4, U4 above) |
+| reference type            | The constant represents a null reference. _Value_ is not present. |
+| array type                | The constant represents a null reference. _Value_ is not present. |
+| pointer type              | The constant represents a null pointer. _Value_ is not present. |
+| other value types         | Illegal. |
+| generic type parameter    | Illegal. |
+
+Types System.Decimal and System.DateTime are be encoded as ```VALUETYPE TypeDefOrRefOrSpecEncoded```, where ```TypeDefOrRefOrSpecEncoded``` encodes a TypeDef/TypeRef with namespace 'System' and type name 'Decimal' and 'DateTime', respectively.
+
+Enum type is encoded as ```VALUETYPE TypeDefOrRefOrSpecEncoded```, where ```TypeDefOrRefOrSpecEncoded``` encodes a TypeDef/TypeRef whose base class is System.Enum.
 
 ###<a name="ImportScopeTable"></a>ImportScope Table: 0x35
 The ImportScope table has the following columns:
