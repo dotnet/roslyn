@@ -992,7 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var newType = VisitType(node.Type);
                 var newBody = (BoundBlock)Visit(node.Body);
                 node = node.Update(node.Symbol, newBody, node.Diagnostics, node.Binder, newType);
-                var result0 = wasInExpressionLambda ? node : ExpressionLambdaRewriter.RewriteLambda(node, CompilationState, TypeMap, Diagnostics);
+                var result0 = wasInExpressionLambda ? node : ExpressionLambdaRewriter.RewriteLambda(node, CompilationState, TypeMap, BinderFlags.IgnoreAccessibility, Diagnostics); //TODO (acasey): ignore accessibility
                 _inExpressionLambda = wasInExpressionLambda;
                 return result0;
             }
