@@ -4192,6 +4192,227 @@ End Module"
 }")
         End Sub
 
+        <WorkItem(1145125)>
+        <Fact>
+        Public Sub LocalInLambda()
+            Dim source = "
+Imports System
+Class C
+    Sub M(f As Func(Of Integer))
+        Dim x = 42
+    End Sub
+End Class"
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source), options:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C.M")
+
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("M(Function() x)", errorMessage, testData)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL("
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  .locals init (Integer V_0, //x
+                <>x._Closure$__0-0 V_1) //$VB$Closure_0
+  IL_0000:  newobj     ""Sub <>x._Closure$__0-0..ctor()""
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.1
+  IL_0007:  ldloc.0
+  IL_0008:  stfld      ""<>x._Closure$__0-0.$VB$Local_x As Integer""
+  IL_000d:  ldarg.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldftn      ""Function <>x._Closure$__0-0._Lambda$__0() As Integer""
+  IL_0015:  newobj     ""Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)""
+  IL_001a:  callvirt   ""Sub C.M(System.Func(Of Integer))""
+  IL_001f:  ret
+}")
+        End Sub
+
+        <WorkItem(1145125)>
+        <Fact>
+        Public Sub CapturedLocalInLambda()
+            Dim source = "
+Imports System
+Class C
+    Sub M(f As Func(Of Integer))
+        Dim x = 42
+        M(Function() x)
+    End Sub
+End Class"
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source))
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C.M")
+
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("M(Function() x)", errorMessage, testData)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL("
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  .locals init (C._Closure$__1-0 V_0, //$VB$Closure_0
+                <>x._Closure$__0-0 V_1) //$VB$Closure_0
+  IL_0000:  newobj     ""Sub <>x._Closure$__0-0..ctor()""
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.1
+  IL_0007:  ldloc.0
+  IL_0008:  stfld      ""<>x._Closure$__0-0.$VB$Local_$VB$Closure_0 As C._Closure$__1-0""
+  IL_000d:  ldarg.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldftn      ""Function <>x._Closure$__0-0._Lambda$__0() As Integer""
+  IL_0015:  newobj     ""Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)""
+  IL_001a:  callvirt   ""Sub C.M(System.Func(Of Integer))""
+  IL_001f:  ret
+}")
+        End Sub
+
+        <WorkItem(1145125)>
+        <Fact>
+        Public Sub CapturedParameterAndLocalInLambda()
+            Dim source = "
+Imports System
+Class C
+    Sub M(x As Integer)
+        F(Function() x)
+        If True Then
+            Dim y = 42.0
+            F(Function() y)
+        End If
+    End Sub
+    Function F(p As Func(Of Integer)) As Integer
+        Return p()
+    End Function
+End Class"
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source))
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C.M", atLineNumber:=6)
+
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("F(Function() x + y)", errorMessage, testData)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL("
+{
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (C._Closure$__1-0 V_0, //$VB$Closure_0
+                C._Closure$__1-1 V_1, //$VB$Closure_1
+                <>x._Closure$__0-0 V_2) //$VB$Closure_0
+  IL_0000:  newobj     ""Sub <>x._Closure$__0-0..ctor()""
+  IL_0005:  stloc.2
+  IL_0006:  ldloc.2
+  IL_0007:  ldloc.0
+  IL_0008:  stfld      ""<>x._Closure$__0-0.$VB$Local_$VB$Closure_0 As C._Closure$__1-0""
+  IL_000d:  ldloc.2
+  IL_000e:  ldloc.1
+  IL_000f:  stfld      ""<>x._Closure$__0-0.$VB$Local_$VB$Closure_1 As C._Closure$__1-1""
+  IL_0014:  ldarg.0
+  IL_0015:  ldloc.2
+  IL_0016:  ldftn      ""Function <>x._Closure$__0-0._Lambda$__0() As Integer""
+  IL_001c:  newobj     ""Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)""
+  IL_0021:  callvirt   ""Function C.F(System.Func(Of Integer)) As Integer""
+  IL_0026:  ret
+}")
+            testData.GetMethodData("<>x._Closure$__0-0._Lambda$__0").VerifyIL("
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""<>x._Closure$__0-0.$VB$Local_$VB$Closure_0 As C._Closure$__1-0""
+  IL_0006:  ldfld      ""C._Closure$__1-0.$VB$Local_x As Integer""
+  IL_000b:  conv.r8
+  IL_000c:  ldarg.0
+  IL_000d:  ldfld      ""<>x._Closure$__0-0.$VB$Local_$VB$Closure_1 As C._Closure$__1-1""
+  IL_0012:  ldfld      ""C._Closure$__1-1.$VB$Local_y As Double""
+  IL_0017:  add
+  IL_0018:  call       ""Function System.Math.Round(Double) As Double""
+  IL_001d:  conv.ovf.i4
+  IL_001e:  ret
+}")
+        End Sub
+
+        <WorkItem(1145125)>
+        <Fact>
+        Public Sub CapturedParameterAndLocalInNestedLambda()
+            Dim source = "
+Imports System
+Class C
+    Sub M(x As Integer)
+        F(Function() x)
+        If True Then
+            Dim y = 42.0
+            F(Function()
+                  Dim z = 2600
+                  Return F(Function() x + y + z)
+              End Function)
+        End If
+    End Sub
+    Function F(p As Func(Of Integer)) As Integer
+        Return p()
+    End Function
+End Class"
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source))
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C._Closure$__1-2._Lambda$__2")
+
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("F(Function() x + y + z)", errorMessage, testData)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL("
+{
+  // Code size       52 (0x34)
+  .maxstack  3
+  .locals init (<>x._Closure$__0-0 V_0) //$VB$Closure_0
+  IL_0000:  newobj     ""Sub <>x._Closure$__0-0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  stfld      ""<>x._Closure$__0-0.$VB$Local_$VB$Me As C._Closure$__1-2""
+  IL_000d:  ldloc.0
+  IL_000e:  ldfld      ""<>x._Closure$__0-0.$VB$Local_$VB$Me As C._Closure$__1-2""
+  IL_0013:  ldfld      ""C._Closure$__1-2.$VB$NonLocal_$VB$Closure_3 As C._Closure$__1-1""
+  IL_0018:  ldfld      ""C._Closure$__1-1.$VB$NonLocal_$VB$Closure_2 As C._Closure$__1-0""
+  IL_001d:  ldfld      ""C._Closure$__1-0.$VB$Me As C""
+  IL_0022:  ldloc.0
+  IL_0023:  ldftn      ""Function <>x._Closure$__0-0._Lambda$__0() As Integer""
+  IL_0029:  newobj     ""Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)""
+  IL_002e:  callvirt   ""Function C.F(System.Func(Of Integer)) As Integer""
+  IL_0033:  ret
+}")
+            testData.GetMethodData("<>x._Closure$__0-0._Lambda$__0").VerifyIL("
+{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""<>x._Closure$__0-0.$VB$Local_$VB$Me As C._Closure$__1-2""
+  IL_0006:  ldfld      ""C._Closure$__1-2.$VB$NonLocal_$VB$Closure_3 As C._Closure$__1-1""
+  IL_000b:  ldfld      ""C._Closure$__1-1.$VB$NonLocal_$VB$Closure_2 As C._Closure$__1-0""
+  IL_0010:  ldfld      ""C._Closure$__1-0.$VB$Local_x As Integer""
+  IL_0015:  conv.r8
+  IL_0016:  ldarg.0
+  IL_0017:  ldfld      ""<>x._Closure$__0-0.$VB$Local_$VB$Me As C._Closure$__1-2""
+  IL_001c:  ldfld      ""C._Closure$__1-2.$VB$NonLocal_$VB$Closure_3 As C._Closure$__1-1""
+  IL_0021:  ldfld      ""C._Closure$__1-1.$VB$Local_y As Double""
+  IL_0026:  add
+  IL_0027:  ldarg.0
+  IL_0028:  ldfld      ""<>x._Closure$__0-0.$VB$Local_$VB$Me As C._Closure$__1-2""
+  IL_002d:  ldfld      ""C._Closure$__1-2.$VB$Local_z As Integer""
+  IL_0032:  conv.r8
+  IL_0033:  add
+  IL_0034:  call       ""Function System.Math.Round(Double) As Double""
+  IL_0039:  conv.ovf.i4
+  IL_003a:  ret
+}")
+        End Sub
+
     End Class
 
 End Namespace
