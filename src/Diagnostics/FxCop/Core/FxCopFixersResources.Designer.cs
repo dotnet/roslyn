@@ -97,24 +97,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Avoid unsealed attributes..
-        /// </summary>
-        internal static string AvoidUnsealedAttributes {
-            get {
-                return ResourceManager.GetString("AvoidUnsealedAttributes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Seal attribute type..
-        /// </summary>
-        internal static string AvoidUnsealedAttributesCodeFix {
-            get {
-                return ResourceManager.GetString("AvoidUnsealedAttributesCodeFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Disposable fields should be disposed.
         /// </summary>
         internal static string DisposableFieldsShouldBeDisposed {

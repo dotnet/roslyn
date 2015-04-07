@@ -129,9 +129,6 @@
   <data name="StaticHolderTypeIsNotStatic" xml:space="preserve">
     <value>Type '{0}' is a static holder type but is neither static nor NotInheritable</value>
   </data>
-  <data name="SealAttributeTypesForImprovedPerf" xml:space="preserve">
-    <value>Seal attribute types for improved performance. Sealing attribute types speeds up performance during reflection on custom attributes.</value>
-  </data>
   <data name="StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase" xml:space="preserve">
     <value>String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase</value>
   </data>
@@ -197,9 +194,6 @@
   </data>
   <data name="StaticHolderTypesShouldNotHaveConstructorsMessage" xml:space="preserve">
     <value>Type '{0}' is a static holder type and should not contain Instance Constructors</value>
-  </data>
-  <data name="AvoidUnsealedAttributes" xml:space="preserve">
-    <value>Avoid unsealed attributes.</value>
   </data>
   <data name="DoNotLockOnObjectsWithWeakIdentity" xml:space="preserve">
     <value>Do not lock on objects with weak identity.</value>

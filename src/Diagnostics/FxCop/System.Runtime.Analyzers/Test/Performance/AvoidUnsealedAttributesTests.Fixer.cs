@@ -1,38 +1,36 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Performance;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Performance;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Performance;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace System.Runtime.Analyzers.UnitTests
 {
-    public partial class CA1813FixerTests : CodeFixTestBase
+    public partial class AvoidUnsealedAttributeFixerTests : CodeFixTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return new CA1813DiagnosticAnalyzer();
+            return new AvoidUnsealedAttributesAnalyzer();
         }
 
         [WorkItem(858655)]
         protected override CodeFixProvider GetBasicCodeFixProvider()
         {
-            return new CA1813BasicCodeFixProvider();
+            return new AvoidUnsealedAttributesFixer();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CA1813DiagnosticAnalyzer();
+            return new AvoidUnsealedAttributesAnalyzer();
         }
 
         [WorkItem(858655)]
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new CA1813CSharpCodeFixProvider();
+            return new AvoidUnsealedAttributesFixer();
         }
 
         #region CodeFix Tests

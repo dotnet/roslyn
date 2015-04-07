@@ -213,4 +213,13 @@
   <data name="CA1017_NoAttribute" xml:space="preserve">
     <value>Because {0} exposes externally visible types, mark it with ComVisible(false) at the assembly level and then mark all types within the assembly that should be exposed to COM clients with ComVisible(true).</value>
   </data>
+  <data name="AvoidUnsealedAttributes" xml:space="preserve">
+    <value>Avoid unsealed attributes.</value>
+  </data>
+  <data name="SealAttributeTypesForImprovedPerf" xml:space="preserve">
+    <value>Seal attribute types for improved performance. Sealing attribute types speeds up performance during reflection on custom attributes.</value>
+  </data>
+  <data name="AvoidUnsealedAttributesCodeFix" xml:space="preserve">
+    <value>Seal attribute type.</value>
+  </data>
 </root>
