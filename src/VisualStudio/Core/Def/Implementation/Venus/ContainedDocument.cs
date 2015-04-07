@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             // Since we only use this moniker as a key, we could fall back to something else, like the document name.
             if (filePath == null)
             {
-                Debug.Assert(false, "Could not get itemId in SharedHierarchy or could not find the document moniker for a shared item in its SharedHierarchy.");
+                Debug.Assert(false, "Could not get the document moniker for an item in its hierarchy.");
                 filePath = hierarchy.GetDocumentNameForHierarchyAndItemId(itemId);
             }
 
