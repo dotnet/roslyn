@@ -26,39 +26,14 @@ namespace Microsoft.CodeAnalysis
         internal const int Failed = 1;
         internal const int Succeeded = 0;
 
-        /// <summary>
-        /// Return the path in which to look for response files.  This should only be called 
-        /// on EXE entry points as the implementation relies on managed entry points.
-        /// </summary>
-        /// <returns></returns>
-        internal static string GetResponseFileDirectory()
-        {
-            var exePath = Assembly.GetEntryAssembly().Location;
-
-            // This assert will fire when this method is called from places like xUnit and certain
-            // types of AppDomains.  It should only be called on EXE entry points to help guarantee
-            // this is being called from an executed assembly.
-            Debug.Assert(exePath != null);
-            return Path.GetDirectoryName(exePath);
-        }
-
-        /// <summary>
-        /// Called from a compiler exe entry point to get the full path to the response file for
-        /// the given name.  Will return a fully qualified path.
-        /// </summary>
-        internal static string GetResponseFileFullPath(string responseFileName)
-        {
-            return Path.Combine(GetResponseFileDirectory(), responseFileName);
-        }
-
         public CommonMessageProvider MessageProvider { get; private set; }
         public CommandLineArguments Arguments { get; private set; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
 
-        protected abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger);
-        protected abstract void PrintLogo(TextWriter consoleOutput);
-        protected abstract void PrintHelp(TextWriter consoleOutput);
+        public abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger);
+        public abstract void PrintLogo(TextWriter consoleOutput);
+        public abstract void PrintHelp(TextWriter consoleOutput);
         internal abstract string GetToolName();
         internal abstract Version GetAssemblyVersion();
         internal abstract string GetAssemblyFileVersion();
@@ -193,7 +168,7 @@ namespace Microsoft.CodeAnalysis
             return diagnosticInfo;
         }
 
-        protected bool ReportErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, ErrorLogger errorLogger)
+        public bool ReportErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, ErrorLogger errorLogger)
         {
             bool hasErrors = false;
             foreach (var diag in diagnostics)
@@ -230,7 +205,7 @@ namespace Microsoft.CodeAnalysis
             return hasErrors;
         }
 
-        protected bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLogger)
+        public bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLogger)
         {
             bool hasErrors = false;
             if (diagnostics != null && diagnostics.Any())
@@ -261,7 +236,7 @@ namespace Microsoft.CodeAnalysis
             consoleOutput.WriteLine(diagnostic.ToString(Culture));
         }
 
-        private ErrorLogger GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)
+        public ErrorLogger GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)
         {
             Debug.Assert(Arguments.ErrorLogPath != null);
 
@@ -441,8 +416,8 @@ namespace Microsoft.CodeAnalysis
                         WithOutputNameOverride(outputName).
                         WithPdbFilePath(finalPdbFilePath);
 
-                    using (var peStreamProvider = new CompilerEmitStreamProvider(this, finalOutputPath, streamCreatedByNativePdbWriter: false))
-                    using (var pdbStreamProviderOpt = Arguments.EmitPdb ? new CompilerEmitStreamProvider(this, finalOutputPath, streamCreatedByNativePdbWriter: true) : null)
+                    using (var peStreamProvider = new CompilerEmitStreamProvider(this, finalOutputPath))
+                    using (var pdbStreamProviderOpt = Arguments.EmitPdb ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null)
                     {
                         emitResult = compilation.Emit(
                             peStreamProvider,
@@ -763,105 +738,6 @@ namespace Microsoft.CodeAnalysis
         {
             code = 0;
             return diagnosticId.StartsWith(expectedPrefix, StringComparison.Ordinal) && uint.TryParse(diagnosticId.Substring(expectedPrefix.Length), out code);
-        }
-
-        /// <summary>
-        /// csi.exe and vbi.exe entry point.
-        /// </summary>
-        internal int RunInteractive(TextWriter consoleOutput)
-        {
-            ErrorLogger errorLogger = null;
-            if (Arguments.ErrorLogPath != null)
-            {
-                errorLogger = GetErrorLogger(consoleOutput, CancellationToken.None);
-                if (errorLogger == null)
-                {
-                    return Failed;
-                }
-            }
-
-            using (errorLogger)
-            {
-                return RunInteractiveCore(consoleOutput, errorLogger);
-            }
-        }
-
-        /// <summary>
-        /// csi.exe and vbi.exe entry point.
-        /// </summary>
-        private int RunInteractiveCore(TextWriter consoleOutput, ErrorLogger errorLogger)
-        {
-            Debug.Assert(Arguments.IsInteractive);
-
-            var hasScriptFiles = Arguments.SourceFiles.Any(file => file.IsScript);
-
-            if (Arguments.DisplayLogo && !hasScriptFiles)
-            {
-                PrintLogo(consoleOutput);
-            }
-
-            if (Arguments.DisplayHelp)
-            {
-                PrintHelp(consoleOutput);
-                return 0;
-            }
-
-            // TODO (tomat):
-            // When we have command line REPL enabled we'll launch it if there are no input files. 
-            IEnumerable<Diagnostic> errors = Arguments.Errors;
-            if (!hasScriptFiles)
-            {
-                errors = errors.Concat(new[] { Diagnostic.Create(MessageProvider, MessageProvider.ERR_NoScriptsSpecified) });
-            }
-
-            if (ReportErrors(errors, consoleOutput, errorLogger))
-            {
-                return Failed;
-            }
-
-            // arguments are always available when executing script code:
-            Debug.Assert(Arguments.ScriptArguments != null);
-
-            var compilation = CreateCompilation(consoleOutput, touchedFilesLogger: null, errorLogger: errorLogger);
-            if (compilation == null)
-            {
-                return Failed;
-            }
-
-            byte[] compiledAssembly;
-            using (MemoryStream output = new MemoryStream())
-            {
-                EmitResult emitResult = compilation.Emit(output);
-                if (ReportErrors(emitResult.Diagnostics, consoleOutput, errorLogger))
-                {
-                    return Failed;
-                }
-
-                compiledAssembly = output.ToArray();
-            }
-
-            var assembly = Assembly.Load(compiledAssembly);
-
-            return Execute(assembly, Arguments.ScriptArguments.ToArray());
-        }
-
-        private static int Execute(Assembly assembly, string[] scriptArguments)
-        {
-            var parameters = assembly.EntryPoint.GetParameters();
-            object[] arguments;
-
-            if (parameters.Length == 0)
-            {
-                arguments = SpecializedCollections.EmptyObjects;
-            }
-            else
-            {
-                Debug.Assert(parameters.Length == 1);
-                arguments = new object[] { scriptArguments };
-            }
-
-            object result = assembly.EntryPoint.Invoke(null, arguments);
-            return result is int ? (int)result : Succeeded;
         }
 
         /// <summary>

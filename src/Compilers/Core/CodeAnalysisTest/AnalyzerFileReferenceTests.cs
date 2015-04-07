@@ -181,8 +181,7 @@ Delta: Gamma: Beta: Test B
 
             File.Delete(alphaDll.Path);
 
-            Assert.Equal(1, errors.Count);
-            Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, errors.First().ErrorCode);
+            Assert.Equal(0, errors.Count);
         }
 
         [Fact]

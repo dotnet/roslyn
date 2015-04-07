@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        private class TableDataSource : AbstractTableDataSource<DiagnosticsUpdatedArgs, DiagnosticData>
+        private class TableDataSource : AbstractRoslynTableDataSource<DiagnosticsUpdatedArgs, DiagnosticData>
         {
             private readonly Guid _identifier;
             private readonly IDiagnosticService _diagnosticService;
@@ -182,7 +182,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private readonly DocumentId _documentId;
                 private readonly object _id;
 
-                public TableEntriesFactory(TableDataSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id)
+                public TableEntriesFactory(TableDataSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id) : 
+                    base(source)
                 {
                     _source = source;
                     _workspace = workspace;
@@ -302,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = GetProjectName(_factory._workspace, _factory._projectId);
                                 return content != null;
                             case StandardTableKeyNames.Project:
-                                content = GetHierarchy(_factory._workspace, _factory._projectId);
+                                content = GetHierarchy(_factory._workspace, _factory._projectId, _factory._documentId);
                                 return content != null;
                             default:
                                 content = null;

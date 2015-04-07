@@ -1,9 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Imports Microsoft.DiaSymReader
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
@@ -1388,21 +1390,45 @@ End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.VB$StateMachine_1_M.MoveNext",
-                atLineNumber:=100)
+
+            Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+            Dim moduleVersionId As Guid = Nothing
+            Dim symReader As ISymUnmanagedReader = Nothing
+            Dim methodToken = 0
+            Dim localSignatureToken = 0
+            GetContextState(runtime, "C.VB$StateMachine_1_M.MoveNext", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            Const methodVersion = 1
+
+            Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber:=100)
+            Dim context = EvaluationContext.CreateMethodContext(
+                Nothing,
+                blocks,
+                MakeDummyLazyAssemblyReaders(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                ilOffset,
+                localSignatureToken)
+
             Dim errorMessage As String = Nothing
             context.CompileExpression("x", errorMessage)
             Assert.Null(errorMessage)
             context.CompileExpression("y", errorMessage)
             Assert.Equal("(1,2): error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
-            context = CreateMethodContext(
-                runtime,
-                methodName:="C.VB$StateMachine_1_M.MoveNext",
-                atLineNumber:=200,
-                previous:=New VisualBasicMetadataContext(context))
+            ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber:=200)
+            context = EvaluationContext.CreateMethodContext(
+                New VisualBasicMetadataContext(blocks, context),
+                blocks,
+                MakeDummyLazyAssemblyReaders(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                ilOffset,
+                localSignatureToken)
+
             context.CompileExpression("x", errorMessage)
             Assert.Null(errorMessage)
             context.CompileExpression("y", errorMessage)

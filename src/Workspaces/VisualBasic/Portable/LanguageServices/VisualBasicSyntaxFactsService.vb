@@ -82,13 +82,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return vbTree.IsInNonUserCode(position, cancellationToken)
         End Function
 
-        Public Function IsEntirelyWithinStringOrCharLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsEntirelyWithinStringOrCharLiteral
+        Public Function IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsEntirelyWithinStringOrCharOrNumericLiteral
             Dim vbTree = TryCast(syntaxTree, SyntaxTree)
             If vbTree Is Nothing Then
                 Return False
             End If
 
-            Return vbTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken)
+            Return vbTree.IsEntirelyWithinStringOrCharOrNumericLiteral(position, cancellationToken)
         End Function
 
         Public Function IsDirective(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDirective

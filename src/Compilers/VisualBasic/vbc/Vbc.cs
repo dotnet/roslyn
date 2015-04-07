@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
         {
         }
 
-        internal static int Run(string[] args)
+        internal static int Run(string clientDir, string[] args)
         {
             FatalError.Handler = FailFast.OnFatalException;
 
-            var responseFile = CommonCompiler.GetResponseFileFullPath(VisualBasicCompiler.ResponseFileName);
+            var responseFile = Path.Combine(clientDir, VisualBasicCompiler.ResponseFileName);
             Vbc compiler = new Vbc(responseFile, Directory.GetCurrentDirectory(), args);
 
             // We store original encoding and restore it later to revert 

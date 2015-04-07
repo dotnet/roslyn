@@ -31,7 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Protected Overrides Function IsSnippetExpansionContext(document As Document, startPosition As Integer, cancellationToken As CancellationToken) As Boolean
             Dim syntaxTree = document.GetVisualBasicSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(cancellationToken)
 
-            Return Not syntaxTree.IsEntirelyWithinStringOrCharLiteral(startPosition, cancellationToken) AndAlso
+            Return Not syntaxTree.IsEntirelyWithinStringOrCharOrNumericLiteral(startPosition, cancellationToken) AndAlso
                 Not syntaxTree.IsEntirelyWithinComment(startPosition, cancellationToken) AndAlso
                 Not syntaxTree.FindTokenOnRightOfPosition(startPosition, cancellationToken).HasAncestor(Of XmlElementSyntax)()
         End Function

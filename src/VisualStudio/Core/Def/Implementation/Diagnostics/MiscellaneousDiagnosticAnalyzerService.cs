@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 Contract.Requires(document.Project.Solution.Workspace == _workspace);
 
                 var diagnosticData = diagnostics == null ? ImmutableArray<DiagnosticData>.Empty : diagnostics.Select(d => DiagnosticData.Create(document, d)).ToImmutableArrayOrEmpty();
-                _service.RaiseDiagnosticsUpdated(new DiagnosticsUpdatedArgs(ValueTuple.Create(this, document.Id), _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
+                _service.RaiseDiagnosticsUpdated(new DiagnosticsUpdatedArgs(new MiscUpdateArgsId(document.Id), _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
             }
 
             public void RemoveDocument(DocumentId documentId)
@@ -135,6 +135,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             public void RemoveProject(ProjectId projectId)
             {
+            }
+
+            private class MiscUpdateArgsId : UpdateArgsId
+            {
+                private readonly DocumentId _documentId;
+
+                public MiscUpdateArgsId(DocumentId documentId) : base(null)
+                {
+                    _documentId = documentId;
+                }
+
+                public override bool Equals(object obj)
+                {
+                    var other = obj as MiscUpdateArgsId;
+                    if (other == null)
+                    {
+                        return false;
+                    }
+
+                    return _documentId == other._documentId && base.Equals(obj);
+                }
+
+                public override int GetHashCode()
+                {
+                    return Hash.Combine(_documentId.GetHashCode(), base.GetHashCode());
+                }
             }
         }
     }

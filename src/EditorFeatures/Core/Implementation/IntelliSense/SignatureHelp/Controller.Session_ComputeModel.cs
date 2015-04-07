@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     return items.Items[items.SelectedItemIndex.Value];
                 }
 
-                // If teh provider did not pick a default, and it's hte same provider as the previous
+                // If the provider did not pick a default, and it's the same provider as the previous
                 // model we have, then try to return the same item that we had before. 
                 if (currentModel != null && currentModel.Provider == provider)
                 {

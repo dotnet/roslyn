@@ -1442,12 +1442,26 @@ namespace Microsoft.Cci
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
 
+            Guid pdbId;
+            uint pdbStamp;
+            uint age;
+            if (_nativePdbWriterOpt != null)
+            {
+                _nativePdbWriterOpt.GetDebugDirectoryGuidAndStampAndAge(out pdbId, out pdbStamp, out age);
+            }
+            else
+            {
+                pdbId = Guid.NewGuid();
+                pdbStamp = 0;
+                age = 1;
+            } 
+
             // characteristics:
             writer.WriteUint(0);
 
-            // timestamp from NT headers
+            // PDB stamp
             timestampOffset = writer.BaseStream.Position + peStream.Position;
-            writer.WriteUint(_ntHeader.TimeDateStamp);
+            writer.WriteUint(pdbStamp);
 
             // version
             writer.WriteUint(0);
@@ -1472,13 +1486,11 @@ namespace Microsoft.Cci
             writer.WriteByte((byte)'D');
             writer.WriteByte((byte)'S');
 
-            // TODO: use deterministic hash
-            Guid guid = _nativePdbWriterOpt?.GetDebugDirectoryGuid() ?? Guid.NewGuid();
-            writer.WriteBytes(guid.ToByteArray());
+            // PDB id:
+            writer.WriteBytes(pdbId.ToByteArray());
 
-            // Age (EnC generation + 1): always 0x00000001.
-            // We don't emit PE files when emitting EnC deltas.
-            writer.WriteUint(1);
+            // age
+            writer.WriteUint(age);
 
             // UTF-8 encoded zero-terminated path to PDB
             writer.WriteString(_pdbPathOpt, emitNullTerminator: true);

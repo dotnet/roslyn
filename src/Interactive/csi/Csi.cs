@@ -27,8 +27,8 @@ namespace CSharpInteractive
         {
             try
             {
-                var responseFile = CommonCompiler.GetResponseFileFullPath(InteractiveResponseFileName);
-                return new Csi(responseFile, Directory.GetCurrentDirectory(), args).RunInteractive(Console.Out);
+                var responseFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, InteractiveResponseFileName);
+                return ScriptCompilerUtil.RunInteractive(new Csi(responseFile, Directory.GetCurrentDirectory(), args), Console.Out);
             }
             catch (Exception ex)
             {
@@ -48,7 +48,7 @@ namespace CSharpInteractive
             return new GacFileResolver(Arguments.ReferencePaths, Arguments.BaseDirectory, GacFileResolver.Default.Architectures, CultureInfo.CurrentCulture);
         }
 
-        protected override void PrintLogo(TextWriter consoleOutput)
+        public override void PrintLogo(TextWriter consoleOutput)
         {
             Assembly thisAssembly = typeof(Csi).Assembly;
             consoleOutput.WriteLine(CsiResources.LogoLine1, FileVersionInfo.GetVersionInfo(thisAssembly.Location).FileVersion);
@@ -56,7 +56,7 @@ namespace CSharpInteractive
             consoleOutput.WriteLine();
         }
 
-        protected override void PrintHelp(TextWriter consoleOutput)
+        public override void PrintHelp(TextWriter consoleOutput)
         {
             // TODO: format with word wrapping
             consoleOutput.WriteLine(

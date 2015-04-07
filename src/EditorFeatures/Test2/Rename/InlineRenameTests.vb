@@ -4,9 +4,9 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CSharp.CodeRefactorings.IntroduceVariable
+Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Options
@@ -1223,6 +1223,88 @@ class C
                     </Workspace>)
 
                 VerifyRenameOptionChangedSessionCommit(workspace, "M", "Sa", renameOverloads:=True)
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(1142095)>
+        Public Sub RenameCommitsWhenDebuggingStarts()
+            Using workspace = CreateWorkspaceWithWaiter(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class [|$$Foo|]
+                            {
+                                void Blah()
+                                {
+                                    [|Foo|] f = new [|Foo|]();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().TextBuffer
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                ' Make sure the RenameService's ActiveSession is still there
+                Dim renameService = workspace.GetService(Of IInlineRenameService)()
+                Assert.NotNull(renameService.ActiveSession)
+
+                ' Simulate starting a debugging session
+                Dim editAndContinueWorkspaceService = workspace.Services.GetService(Of IEditAndContinueWorkspaceService)
+                editAndContinueWorkspaceService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run)
+
+                ' Ensure the rename was committed
+                Assert.Null(renameService.ActiveSession)
+                VerifyTagsAreCorrect(workspace, "BarFoo")
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(1142095)>
+        Public Sub RenameCommitsWhenExitingDebuggingBreakMode()
+            Using workspace = CreateWorkspaceWithWaiter(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class [|$$Foo|]
+                            {
+                                void Blah()
+                                {
+                                    [|Foo|] f = new [|Foo|]();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().TextBuffer
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                ' Make sure the RenameService's ActiveSession is still there
+                Dim renameService = workspace.GetService(Of IInlineRenameService)()
+                Assert.NotNull(renameService.ActiveSession)
+
+                ' Simulate ending break mode in the debugger (by stepping or continuing)
+                Dim editAndContinueWorkspaceService = workspace.Services.GetService(Of IEditAndContinueWorkspaceService)
+                editAndContinueWorkspaceService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run)
+
+                ' Ensure the rename was committed
+                Assert.Null(renameService.ActiveSession)
+                VerifyTagsAreCorrect(workspace, "BarFoo")
             End Using
         End Sub
     End Class

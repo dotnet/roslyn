@@ -46,9 +46,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         public override async Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics)
         {
-            if (!PreferBuildErrors(document.Project.Solution.Workspace))
+            var workspace = document.Project.Solution.Workspace;
+            if (!PreferBuildErrors(workspace))
             {
                 // prefer live errors over build errors
+                return;
+            }
+
+            // check whether, for opened documents, we want to prefer live diagnostics
+            if (PreferLiveErrorsOnOpenedFiles(workspace) && workspace.IsDocumentOpen(document.Id))
+            {
+                // enqueue re-analysis of open documents.
+                this.Owner.Reanalyze(workspace, documentIds: SpecializedCollections.SingletonEnumerable(document.Id));
                 return;
             }
 
@@ -80,7 +89,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private bool PreferBuildErrors(Workspace workspace)
         {
-            return workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorIsTheGod) || workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorWinLiveError);
+            return workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorIsTheGod) || workspace.Options.GetOption(InternalDiagnosticsOptions.PreferBuildErrorsOverLiveErrors);
+        }
+
+        private bool PreferLiveErrorsOnOpenedFiles(Workspace workspace)
+        {
+            return !workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorIsTheGod) && workspace.Options.GetOption(InternalDiagnosticsOptions.PreferLiveErrorsOnOpenedFiles);
         }
 
         private async Task PersistAndReportAsync(

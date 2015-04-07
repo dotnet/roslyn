@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -11,7 +12,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class AbstractProject : IAnalyzerHost
+    internal partial class AbstractProject : IAnalyzerHost, IAnalyzerDependencyHost
     {
         private AnalyzerFileWatcherService _analyzerFileWatcherService = null;
         private AnalyzerDependencyCheckingService _dependencyCheckingService = null;
@@ -108,6 +109,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             RemoveAdditionalDocument(document);
         }
 
+
+        public void AddAnalyzerDependency(string analyzerDependencyFullPath)
+        {
+        }
+
+        public void RemoveAnalyzerDependency(string analyzerDependencyFullPath)
+        {
+        }
+
         private void ResetAnalyzerRuleSet(string ruleSetFileFullPath)
         {
             ClearAnalyzerRuleSet();
@@ -163,5 +173,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return _dependencyCheckingService;
         }
+
     }
 }

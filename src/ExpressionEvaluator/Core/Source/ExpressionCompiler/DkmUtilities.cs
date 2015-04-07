@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
@@ -235,6 +236,36 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static bool Includes(this DkmVariableInfoFlags flags, DkmVariableInfoFlags desired)
         {
             return (flags & desired) == desired;
+        }
+
+        internal static TMetadataContext GetMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain)
+            where TMetadataContext : struct
+        {
+            var dataItem = appDomain.GetDataItem<MetadataContextItem<TMetadataContext>>();
+            return (dataItem == null) ? default(TMetadataContext) : dataItem.MetadataContext;
+        }
+
+        internal static void SetMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain, TMetadataContext context)
+            where TMetadataContext : struct
+        {
+            appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, new MetadataContextItem<TMetadataContext>(context));
+        }
+
+        internal static void RemoveMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain)
+            where TMetadataContext : struct
+        {
+            appDomain.RemoveDataItem<MetadataContextItem<TMetadataContext>>();
+        }
+
+        private sealed class MetadataContextItem<TMetadataContext> : DkmDataItem
+            where TMetadataContext : struct
+        {
+            internal readonly TMetadataContext MetadataContext;
+
+            internal MetadataContextItem(TMetadataContext metadataContext)
+            {
+                this.MetadataContext = metadataContext;
+            }
         }
     }
 }

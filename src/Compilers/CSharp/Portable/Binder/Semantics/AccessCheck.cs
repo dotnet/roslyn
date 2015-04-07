@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // Is a member with declared accessibility "declaredAccessiblity" accessible from within
+        // Is a member with declared accessibility "declaredAccessibility" accessible from within
         // "within", which must be a named type or an assembly.
         private static bool IsMemberAccessible(
             NamedTypeSymbol containingType,              // the symbol's containing type

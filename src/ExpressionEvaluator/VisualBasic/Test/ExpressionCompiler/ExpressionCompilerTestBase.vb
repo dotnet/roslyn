@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 references.AddIntrinsicAssembly(),
                 exeBytes,
-                If(includeSymbols, New SymReader(pdbBytes), Nothing))
+                If(includeSymbols, New SymReader(pdbBytes, exeBytes), Nothing))
         End Function
 
         Friend Function CreateRuntimeInstance(
@@ -114,8 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             runtime As RuntimeInstance,
             methodName As String,
             Optional atLineNumber As Integer = -1,
-            Optional lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)) = Nothing,
-            Optional previous As VisualBasicMetadataContext = Nothing) As EvaluationContext
+            Optional lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)) = Nothing) As EvaluationContext
 
             Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
             Dim moduleVersionId As Guid = Nothing
@@ -128,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim ilOffset As Integer = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber)
 
             Return EvaluationContext.CreateMethodContext(
-                previous,
+                Nothing,
                 blocks,
                 If(lazyAssemblyReaders, MakeDummyLazyAssemblyReaders()),
                 symReader,

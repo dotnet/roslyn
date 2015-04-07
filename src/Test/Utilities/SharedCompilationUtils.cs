@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return actual;
         }
 
-        private static void ValidateDebugDirectory(MemoryStream peStream, string pdbPath)
+        public static void ValidateDebugDirectory(Stream peStream, string pdbPath)
         {
             peStream.Seek(0, SeekOrigin.Begin);
             PEReader peReader = new PEReader(peStream);

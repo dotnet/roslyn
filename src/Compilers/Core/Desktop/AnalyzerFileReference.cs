@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Security;
 using System.Threading;
 using Roslyn.Utilities;
@@ -117,6 +118,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        private static string GetAssemblyNameFromPath(string path)
+        {
+            // AssemblyName.GetAssemblyName(path) is not available on CoreCLR.
+            // Use our metadata reader to do the equivalent thing.
+            using (var reader = new PEReader(FileUtilities.OpenRead(path)))
+            {
+                var metadataReader = reader.GetMetadataReader();
+                var assemblyDefinition = metadataReader.GetAssemblyDefinition();
+                return metadataReader.GetString(assemblyDefinition.Name);
+            }
+        }
+
         public override string Display
         {
             get
@@ -125,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     try
                     {
-                        _lazyDisplayName = GetAssembly()?.GetName().Name;
+                        _lazyDisplayName = GetAssemblyNameFromPath(_fullPath);
                     }
                     catch (Exception)
                     { }
@@ -149,6 +162,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             try
             {
                 analyzerTypeNameMap = GetAnalyzerTypeNameMap();
+                if (analyzerTypeNameMap.Count == 0)
+                {
+                    return;
+                }
+
                 analyzerAssembly = GetAssembly();
             }
             catch (Exception e)
@@ -195,13 +213,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // If there are no analyzers, don't load the assembly at all.
                 if (!analyzerTypeNameMap.ContainsKey(language))
                 {
-                    this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, null, null));
                     return;
                 }
 
                 analyzerAssembly = GetAssembly();
             }
-            catch (Exception e) when (e is IOException || e is BadImageFormatException || e is SecurityException || e is ArgumentException)
+            catch (Exception e)
             {
                 this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e, null));
                 return;
@@ -378,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool DerivesFromDiagnosticAnalyzer(Type type)
         {
-            return type.IsSubclassOf(typeof(DiagnosticAnalyzer));
+            return type.GetTypeInfo().IsSubclassOf(typeof(DiagnosticAnalyzer));
         }
 
         public override bool Equals(object obj)

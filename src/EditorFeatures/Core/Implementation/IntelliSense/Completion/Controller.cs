@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         ICommandHandler<SurroundWithCommandArgs>,
         ICommandHandler<AutomaticLineEnderCommandArgs>,
         ICommandHandler<SaveCommandArgs>,
-        ICommandHandler<DeleteKeyCommandArgs>
+        ICommandHandler<DeleteKeyCommandArgs>,
+        ICommandHandler<SelectAllCommandArgs>
     {
         private static readonly object s_controllerPropertyKey = new object();
 

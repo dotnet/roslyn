@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Globalization
+Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -11,11 +12,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.DiaSymReader
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
+Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources
-Imports Roslyn.Test.PdbUtilities
-Imports System.IO
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class ExpressionCompilerTests
@@ -36,7 +36,26 @@ End Class
         Public Sub UniqueModuleVersionId()
             Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M")
+
+            Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+            Dim moduleVersionId As Guid = Nothing
+            Dim symReader As ISymUnmanagedReader = Nothing
+            Dim methodToken = 0
+            Dim localSignatureToken = 0
+            GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            Const methodVersion = 1
+
+            Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader)
+            Dim context = EvaluationContext.CreateMethodContext(
+                Nothing,
+                blocks,
+                MakeDummyLazyAssemblyReaders(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                ilOffset,
+                localSignatureToken)
 
             Dim errorMessage As String = Nothing
             Dim result = context.CompileExpression("1", errorMessage)
@@ -44,7 +63,17 @@ End Class
             Dim name1 = result.Assembly.GetAssemblyName()
             Assert.NotEqual(mvid1, Guid.Empty)
 
-            context = CreateMethodContext(runtime, "C.M", previous:=New VisualBasicMetadataContext(context))
+            context = EvaluationContext.CreateMethodContext(
+                New VisualBasicMetadataContext(blocks, context),
+                blocks,
+                MakeDummyLazyAssemblyReaders(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                ilOffset,
+                localSignatureToken)
+
             result = context.CompileExpression("2", errorMessage)
             Dim mvid2 = result.Assembly.GetModuleVersionId()
             Dim name2 = result.Assembly.GetAssemblyName()
@@ -257,21 +286,21 @@ End Class"
             ' At start of outer scope.
             Dim context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, startOffset, localSignatureToken)
             Assert.Equal(Nothing, previous)
-            previous = New VisualBasicMetadataContext(context)
+            previous = New VisualBasicMetadataContext(methodBlocks, context)
 
             ' At end of outer scope - not reused because of the nested scope.
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken)
             Assert.NotEqual(context, previous.EvaluationContext) ' Not required, just documentary.
 
             ' At type context.
-            context = EvaluationContext.CreateTypeContext(previous, methodBlocks, moduleVersionId, typeToken)
+            context = EvaluationContext.CreateTypeContext(previous, typeBlocks, moduleVersionId, typeToken)
             Assert.NotEqual(context, previous.EvaluationContext)
             Assert.Null(context.MethodContextReuseConstraints)
             Assert.Equal(context.Compilation, previous.Compilation)
 
             ' Step through entire method.
             Dim previousScope As Scope = Nothing
-            previous = New VisualBasicMetadataContext(context)
+            previous = New VisualBasicMetadataContext(typeBlocks, context)
             For offset = startOffset To endOffset - 1
                 Dim scope = scopes.GetInnermostScope(offset)
                 Dim constraints = previous.EvaluationContext.MethodContextReuseConstraints
@@ -291,7 +320,7 @@ End Class"
                     End If
                 End If
                 previousScope = scope
-                previous = New VisualBasicMetadataContext(context)
+                previous = New VisualBasicMetadataContext(methodBlocks, context)
             Next
 
             ' With different references.
@@ -310,7 +339,7 @@ End Class"
             Assert.NotEqual(context, previous.EvaluationContext)
             Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset - 1))
             Assert.NotEqual(context.Compilation, previous.Compilation)
-            previous = New VisualBasicMetadataContext(context)
+            previous = New VisualBasicMetadataContext(methodBlocks, context)
 
             ' Different method. Should reuse Compilation.
             GetContextState(runtime, "C.G", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
@@ -4002,10 +4031,14 @@ End Class
                 Assert.True(comp1.Emit(peStream1Unused, pdbStream1).Success)
                 Assert.True(comp2.Emit(peStream2, pdbStream2).Success)
 
+                pdbStream1.Position = 0
+                pdbStream2.Position = 0
+                peStream2.Position = 0
+
                 ' Note: This SymReader will behave differently from the ISymUnmanagedReader
                 ' we receive during real debugging.  We're just using it as a rough
                 ' approximation of ISymUnmanagedReader3, which is unavailable here.
-                Dim symReader = New SymReader({pdbStream1, pdbStream2})
+                Dim symReader = New SymReader({pdbStream1, pdbStream2}, peStream2, Nothing)
 
                 Dim runtime = CreateRuntimeInstance(
                     GetUniqueName(),
@@ -4064,6 +4097,99 @@ End Class
                     testData:=Nothing)
                 AssertEx.SetEqual(locals.Select(Function(l) l.LocalName), "x", "y")
             End Using
+        End Sub
+
+        ''' <summary>
+        ''' Ignore accessibility in lambda rewriter.
+        ''' </summary>
+        <Fact>
+        Public Sub LambdaRewriterIgnoreAccessibility()
+            Const source =
+"Imports System.Linq
+Class C
+    Shared Sub M()
+        Dim q = {New C()}.AsQueryable()
+    End Sub
+End Class"
+            Dim compilation0 = CreateCompilationWithMscorlib(
+                {source},
+                references:={SystemCoreRef},
+                options:=TestOptions.DebugDll,
+                assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim runtime = CreateRuntimeInstance(compilation0)
+            Dim context = CreateMethodContext(runtime, "C.M")
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("q.Where(Function(c) True)", errorMessage, testData)
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size       64 (0x40)
+  .maxstack  6
+  .locals init (System.Linq.IQueryable(Of C) V_0, //q
+                System.Linq.Expressions.ParameterExpression V_1)
+  IL_0000:  ldloc.0
+  IL_0001:  ldtoken    ""C""
+  IL_0006:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+  IL_000b:  ldstr      ""c""
+  IL_0010:  call       ""Function System.Linq.Expressions.Expression.Parameter(System.Type, String) As System.Linq.Expressions.ParameterExpression""
+  IL_0015:  stloc.1
+  IL_0016:  ldc.i4.1
+  IL_0017:  box        ""Boolean""
+  IL_001c:  ldtoken    ""Boolean""
+  IL_0021:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+  IL_0026:  call       ""Function System.Linq.Expressions.Expression.Constant(Object, System.Type) As System.Linq.Expressions.ConstantExpression""
+  IL_002b:  ldc.i4.1
+  IL_002c:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0031:  dup
+  IL_0032:  ldc.i4.0
+  IL_0033:  ldloc.1
+  IL_0034:  stelem.ref
+  IL_0035:  call       ""Function System.Linq.Expressions.Expression.Lambda(Of System.Func(Of C, Boolean))(System.Linq.Expressions.Expression, ParamArray System.Linq.Expressions.ParameterExpression()) As System.Linq.Expressions.Expression(Of System.Func(Of C, Boolean))""
+  IL_003a:  call       ""Function System.Linq.Queryable.Where(Of C)(System.Linq.IQueryable(Of C), System.Linq.Expressions.Expression(Of System.Func(Of C, Boolean))) As System.Linq.IQueryable(Of C)""
+  IL_003f:  ret
+}")
+        End Sub
+
+        ''' <summary>
+        ''' Ignore accessibility in async rewriter.
+        ''' </summary>
+        <WorkItem(1813, "https://github.com/dotnet/roslyn/issues/1813")>
+        <Fact(Skip:="1813")>
+        Public Sub AsyncRewriterIgnoreAccessibility()
+            Const source =
+"Imports System
+Imports System.Threading.Tasks
+Class C
+End Class
+Module M
+    Sub F(Of T)(f As Func(Of Task(Of T)))
+    End Sub
+    Sub M()
+    End Sub
+End Module"
+            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source), options:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(compilation0)
+            Dim context = CreateMethodContext(runtime, methodName:="M.M")
+            Dim resultProperties As ResultProperties = Nothing
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("F(Async Function() New C())", resultProperties, errorMessage, testData)
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size       42 (0x2a)
+  .maxstack  2
+  IL_0000:  ldsfld     ""<>x._Closure$__.$I0-0 As System.Func(Of System.Threading.Tasks.Task(Of C))""
+  IL_0005:  brfalse.s  IL_000e
+  IL_0007:  ldsfld     ""<>x._Closure$__.$I0-0 As System.Func(Of System.Threading.Tasks.Task(Of C))""
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     ""<>x._Closure$__.$I As <>x._Closure$__""
+  IL_0013:  ldftn      ""Function <>x._Closure$__._Lambda$__0-0() As System.Threading.Tasks.Task(Of C)""
+  IL_0019:  newobj     ""Sub System.Func(Of System.Threading.Tasks.Task(Of C))..ctor(Object, System.IntPtr)""
+  IL_001e:  dup
+  IL_001f:  stsfld     ""<>x._Closure$__.$I0-0 As System.Func(Of System.Threading.Tasks.Task(Of C))""
+  IL_0024:  call       ""Sub M.F(Of C)(System.Func(Of System.Threading.Tasks.Task(Of C)))""
+  IL_0029:  ret
+}")
         End Sub
 
     End Class

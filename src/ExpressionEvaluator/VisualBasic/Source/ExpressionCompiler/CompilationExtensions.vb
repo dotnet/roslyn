@@ -90,18 +90,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         <Extension>
         Friend Function ToCompilation(metadataBlocks As ImmutableArray(Of MetadataBlock)) As VisualBasicCompilation
+            Dim references = metadataBlocks.MakeAssemblyReferences(moduleVersionId:=Nothing, identityComparer:=Nothing)
+            Return references.ToCompilation()
+        End Function
+
+        <Extension>
+        Friend Function ToCompilationReferencedModulesOnly(metadataBlocks As ImmutableArray(Of MetadataBlock), moduleVersionId As Guid) As VisualBasicCompilation
+            Dim references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer)
+            Return references.ToCompilation()
+        End Function
+
+        <Extension>
+        Friend Function ToCompilation(references As ImmutableArray(Of MetadataReference)) As VisualBasicCompilation
             Return VisualBasicCompilation.Create(
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
-                references:=metadataBlocks.MakeAssemblyReferences(),
+                references:=references,
                 options:=s_compilationOptions)
         End Function
+
+        Friend ReadOnly IdentityComparer As AssemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default
 
         ' XML file references, #r directives not supported:
         Private ReadOnly s_compilationOptions As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(
             outputKind:=OutputKind.DynamicallyLinkedLibrary,
             platform:=Platform.AnyCpu, ' Platform should match PEModule.Machine, in this case I386.
             optimizationLevel:=OptimizationLevel.Release,
-            assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default).
+            assemblyIdentityComparer:=IdentityComparer).
             WithMetadataImportOptions(MetadataImportOptions.All).
             WithSuppressEmbeddedDeclarations(True)
 

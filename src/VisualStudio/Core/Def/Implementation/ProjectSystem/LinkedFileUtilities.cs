@@ -3,6 +3,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -62,7 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            var hierarchy = document.Project.Hierarchy;
             var itemId = document.GetItemId();
             if (itemId == (uint)VSConstants.VSITEMID.Nil)
             {
@@ -70,7 +70,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            var sharedHierarchy = GetSharedHierarchyForItem(hierarchy, itemId);
+            var sharedHierarchy = document.SharedHierarchy;
+            Contract.Requires(GetSharedHierarchyForItem(document.Project.Hierarchy, itemId) == sharedHierarchy);
+
             if (sharedHierarchy == null)
             {
                 return null;

@@ -68,6 +68,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             TimeSpan? keepAliveTimeout = null;
 
+            // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
+            // location of the response files.
+            var compilerExeDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
             try
             {
                 int keepAliveValue;
@@ -99,9 +103,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             CompilerServerLogger.Log("Keep alive timeout is: {0} milliseconds.", keepAliveTimeout?.TotalMilliseconds ?? 0);
             FatalError.Handler = FailFast.OnFatalException;
 
-            // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
-            // location of the response files.
-            var compilerExeDirectory = CommonCompiler.GetResponseFileDirectory();
             var dispatcher = new ServerDispatcher(new CompilerRequestHandler(compilerExeDirectory), new EmptyDiagnosticListener());
 
             dispatcher.ListenAndDispatchConnections(

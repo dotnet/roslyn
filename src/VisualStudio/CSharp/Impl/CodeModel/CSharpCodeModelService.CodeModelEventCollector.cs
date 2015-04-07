@@ -893,18 +893,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     foreach (var attribute in ((AttributeListSyntax)node).Attributes)
                     {
-                        if (parent is BaseFieldDeclarationSyntax)
-                        {
-                            foreach (var variableDeclarator in ((BaseFieldDeclarationSyntax)parent).Declaration.Variables)
-                            {
-                                eventQueue.EnqueueAddEvent(attribute, variableDeclarator);
-                            }
-                        }
-                        else
-                        {
-                            eventQueue.EnqueueAddEvent(attribute, parent);
-                        }
+                        AddEventToEventQueueForAttributes(attribute, parent, eventQueue.EnqueueAddEvent);
                     }
+                }
+                else if (node is AttributeSyntax)
+                {
+                    AddEventToEventQueueForAttributes((AttributeSyntax)node, parent, eventQueue.EnqueueAddEvent);
                 }
                 else
                 {
@@ -935,22 +929,31 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     foreach (var attribute in ((AttributeListSyntax)node).Attributes)
                     {
-                        if (parent is BaseFieldDeclarationSyntax)
-                        {
-                            foreach (var variableDeclarator in ((BaseFieldDeclarationSyntax)parent).Declaration.Variables)
-                            {
-                                eventQueue.EnqueueChangeEvent(attribute, variableDeclarator, eventType);
-                            }
-                        }
-                        else
-                        {
-                            eventQueue.EnqueueChangeEvent(attribute, parent, eventType);
-                        }
+                        ChangeEventQueueForAttributes(attribute, parent, eventType, eventQueue);
                     }
+                }
+                else if (node is AttributeSyntax)
+                {
+                    ChangeEventQueueForAttributes((AttributeSyntax)node, parent, eventType, eventQueue);
                 }
                 else
                 {
                     eventQueue.EnqueueChangeEvent(node, parent, eventType);
+                }
+            }
+
+            private static void ChangeEventQueueForAttributes(AttributeSyntax attribute, SyntaxNode parent, CodeModelEventType eventType, CodeModelEventQueue eventQueue)
+            {
+                if (parent is BaseFieldDeclarationSyntax)
+                {
+                    foreach (var variableDeclarator in ((BaseFieldDeclarationSyntax)parent).Declaration.Variables)
+                    {
+                        eventQueue.EnqueueChangeEvent(attribute, variableDeclarator, eventType);
+                    }
+                }
+                else
+                {
+                    eventQueue.EnqueueChangeEvent(attribute, parent, eventType);
                 }
             }
 
@@ -977,22 +980,31 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     foreach (var attribute in ((AttributeListSyntax)node).Attributes)
                     {
-                        if (parent is BaseFieldDeclarationSyntax)
-                        {
-                            foreach (var variableDeclarator in ((BaseFieldDeclarationSyntax)parent).Declaration.Variables)
-                            {
-                                eventQueue.EnqueueRemoveEvent(attribute, variableDeclarator);
-                            }
-                        }
-                        else
-                        {
-                            eventQueue.EnqueueRemoveEvent(attribute, parent);
-                        }
+                        AddEventToEventQueueForAttributes(attribute, parent, eventQueue.EnqueueRemoveEvent);
                     }
+                }
+                else if (node is AttributeSyntax)
+                {
+                    AddEventToEventQueueForAttributes((AttributeSyntax)node, parent, eventQueue.EnqueueRemoveEvent);
                 }
                 else
                 {
                     eventQueue.EnqueueRemoveEvent(node, parent);
+                }
+            }
+
+            private void AddEventToEventQueueForAttributes(AttributeSyntax attribute, SyntaxNode parent, Action<SyntaxNode, SyntaxNode> enqueueAddOrRemoveEvent)
+            {
+                if (parent is BaseFieldDeclarationSyntax)
+                {
+                    foreach (var variableDeclarator in ((BaseFieldDeclarationSyntax)parent).Declaration.Variables)
+                    {
+                        enqueueAddOrRemoveEvent(attribute, variableDeclarator);
+                    }
+                }
+                else
+                {
+                    enqueueAddOrRemoveEvent(attribute, parent);
                 }
             }
         }
