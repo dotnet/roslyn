@@ -152,8 +152,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var document = _baseSolution.GetDocument(d);
                     SourceText text;
                     Contract.ThrowIfFalse(document.TryGetText(out text));
+                    Contract.ThrowIfNull(text);
 
-                    openBuffers.Add(text.FindCorrespondingEditorTextSnapshot().TextBuffer);
+                    var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
+                    Contract.ThrowIfNull(textSnapshot);
+                    Contract.ThrowIfNull(textSnapshot.TextBuffer);
+
+                    openBuffers.Add(textSnapshot.TextBuffer);
                 }
 
                 foreach (var buffer in openBuffers)
