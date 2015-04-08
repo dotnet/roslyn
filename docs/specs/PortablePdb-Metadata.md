@@ -112,7 +112,7 @@ _Sequence points blob_ has the following structure:
 
     Blob ::= first-point-record SubsequentRecord*
     SubsequentRecord ::= subsequent-point-record |
-	                     subsequent-hidden-point-record |
+	                 subsequent-hidden-point-record |
                          subsequent-document-record
 
 #####first-point-record
@@ -231,41 +231,52 @@ There shall be no duplicate rows in the LocalConstant table, based upon owner an
 
 The structure of the blob is
 
-```
-    Blob ::= CustomMod* Type Value?
-```
+    Blob ::= PrimitiveConstant |
+             EnumConstant |
+             DefaultValueConstant
+             
+    PrimitiveConstant ::= PrimitiveTypeCode Value CustomMod* 
+    PrimitiveTypeCode ::= BOOLEAN | CHAR | I1 | U1 | I2 | U2 | I4 | U4 | I8 | U8 |  
+                          R4 | R8 | STRING | DECIMAL | DATETIME
+    
+    EnumConstant ::= EnumTypeCode Value CustomMod* EnumType 
+    EnumTypeCode ::= BOOLEAN | CHAR | I1 | U1 | I2 | U2 | I4 | U4 | I8 | U8
+    EnumType ::= Type
+    
+    DefaultValueConstant ::= CustomMod* Type
 
-Where _CustomMod_ and _Type_ are encoded as specified in ECMA-335 §II.23.2.7 and §II.23.2.12, respectively.
+| component           | description                                         |
+|:--------------------|:----------------------------------------------------|
+| _TypeCode_          | A 1-byte constant describing the structure of the _Value_. |
+| _Value_             | The value of the constant.                          |
+| _CustomMod_         | Custom modifier as specified by ECMA-335 §II.23.2.7 |
+| _Type_              | Type signature as specified by ECMA-335 §II.23.2.12 |
 
-The encoding of the _Value_ is determined from _Type_ as follows.
+The encoding of the _Value_ is determined from the corresponding type code as follows.
 
-| _Type_                    | _Value_ encoding                          |
-|:--------------------------|:------------------------------------------|
-| ```ELEMENT_TYPE_BOOLEAN```| uint8: 0 represents false, 1 represents true |
-| ```ELEMENT_TYPE_CHAR```   | uint16         |
-| ```ELEMENT_TYPE_I1```     | int8           |
-| ```ELEMENT_TYPE_U1```     | uint8          |
-| ```ELEMENT_TYPE_I2```     | int16          |
-| ```ELEMENT_TYPE_U2```     | uint16         |
-| ```ELEMENT_TYPE_I4```     | int32          |
-| ```ELEMENT_TYPE_U4```     | uint32         |
-| ```ELEMENT_TYPE_I8```     | int64          |
-| ```ELEMENT_TYPE_U8```     | uint64         |
-| ```ELEMENT_TYPE_R4```     | float32        |
-| ```ELEMENT_TYPE_R8```     | float64        |
-| ```ELEMENT_TYPE_STRING``` | Either not present (represents a null string reference), or a single byte 0xff (represents an empty string), or a UTF-16 little-endian encoded string. | 
-| type System.Decimal       | sign (highest bit), scale (bits 0..7), low (uint32), mid (uint32), high (uint32) |
-| type System.DateTime      | int64: ticks
-| enum type                 | Derived from the underlying type of the enum (one of I1, U1, I2, U2, I4, U4 above) |
-| reference type            | The constant represents a null reference. _Value_ is not present. |
-| array type                | The constant represents a null reference. _Value_ is not present. |
-| pointer type              | The constant represents a null pointer. _Value_ is not present. |
-| other value types         | The constant represents the default value of the type. _Value_ is not present. |
-| type parameter            | The constant represents the default value of the type. _Value_ is not present. |
+| Type code     | _Value_ encoding           |
+|:--------------|:---------------------------|
+| ```BOOLEAN``` | uint8: 0 represents false, 1 represents true |
+| ```CHAR```    | uint16                     |
+| ```I1```      | int8                       |
+| ```U1```      | uint8                      |
+| ```I2```      | int16                      |
+| ```U2```      | uint16                     |
+| ```I4```      | int32                      |
+| ```U4```      | uint32                     |
+| ```I8```      | int64                      |
+| ```U8```      | uint64                     |
+| ```R4```      | float32                    |
+| ```R8```      | float64                    |
+| ```STRING```  | Either not present (represents a null string reference), or a single byte 0xff (represents an empty string), or a UTF-16 little-endian encoded string. | 
+| ```DECIMAL``` | sign (highest bit), scale (bits 0..7), low (uint32), mid (uint32), high (uint32) |
+| ```DATETIME```| int64: ticks |
 
-Types System.Decimal and System.DateTime are be encoded as ```VALUETYPE TypeDefOrRefOrSpecEncoded```, where ```TypeDefOrRefOrSpecEncoded``` encodes a TypeDef/TypeRef with namespace 'System' and type name 'Decimal' and 'DateTime', respectively.
+The numeric values of the type codes are defined by ECMA-335 §II.23.1.16 with the exception of ```DECIMAL``` and ```DATETIME``` defined as 0x22 and 0x23, respectively.
 
-Enum type is encoded as ```VALUETYPE TypeDefOrRefOrSpecEncoded```, where ```TypeDefOrRefOrSpecEncoded``` encodes a TypeDef/TypeRef whose base class is System.Enum.
+_EnumType_ must be an enum type as defined in ECMA-335 §II.14.3. The value of _EnumTypeCode_ must match the underlying type of the _EnumType_.
+
+The constant value of a _DefaultValueConstant_ is the default value of its _Type_. If the type is a reference type the value is a null reference, if the type is a pointer type the value is a null pointer, etc. 
 
 ###<a name="ImportScopeTable"></a>ImportScope Table: 0x35
 The ImportScope table has the following columns:
