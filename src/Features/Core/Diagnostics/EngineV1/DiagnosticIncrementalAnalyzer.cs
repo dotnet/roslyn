@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private readonly MemberRangeMap _memberRangeMap;
         private readonly AnalyzerExecutor _executor;
         private readonly StateManager _stateManger;
+        private readonly HostAnalyzerManager _hostAnalyzerManager;
         private readonly SimpleTaskQueue _eventQueue;
 
         private DiagnosticLogAggregator _diagnosticLogAggregator;
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _memberRangeMap = new MemberRangeMap();
             _executor = new AnalyzerExecutor(this);
             _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
+            _hostAnalyzerManager = analyzerManager;
 
             _stateManger = new StateManager(analyzerManager);
             _stateManger.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // we remove whatever information we used to have on document open/close and re-calculate diagnostics
                 // we had to do this since some diagnostic analyzer changes its behavior based on whether the document is opened or not.
                 // so we can't use cached information.
-                ClearDocumentStates(document, _stateManger.GetStateSets(document.Project), cancellationToken);
+                ClearDocumentStates(document, _stateManger.GetStateSets(document.Project), raiseEvent: true, cancellationToken: cancellationToken);
                 return SpecializedTasks.EmptyTask;
             }
         }
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // we remove whatever information we used to have on document open/close and re-calculate diagnostics
                 // we had to do this since some diagnostic analyzer changes its behavior based on whether the document is opened or not.
                 // so we can't use cached information.
-                ClearDocumentStates(document, _stateManger.GetStateSets(document.Project), cancellationToken);
+                ClearDocumentStates(document, _stateManger.GetStateSets(document.Project), raiseEvent: false, cancellationToken: cancellationToken);
                 return SpecializedTasks.EmptyTask;
             }
         }
@@ -816,7 +818,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private void ClearDocumentStates(Document document, IEnumerable<StateSet> states, CancellationToken cancellationToken)
+        private void ClearDocumentStates(Document document, IEnumerable<StateSet> states, bool raiseEvent, CancellationToken cancellationToken)
         {
             // Compiler + User diagnostics
             foreach (var state in states)
@@ -824,28 +826,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 for (var stateType = 0; stateType < s_stateTypeCount; stateType++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    ClearDocumentState(document, state.Analyzer, (StateType)stateType, state.GetState((StateType)stateType));
+                    ClearDocumentState(document, state.Analyzer, (StateType)stateType, state.GetState((StateType)stateType), raiseEvent);
                 }
             }
         }
 
-        private void ClearDocumentState(Document document, DiagnosticAnalyzer analyzer, StateType type, DiagnosticState state)
+        private void ClearDocumentState(Document document, DiagnosticAnalyzer analyzer, StateType type, DiagnosticState state, bool raiseEvent)
         {
             // remove saved info
             state.Remove(document.Id);
 
-            // raise diagnostic updated event
-            var documentId = document.Id;
-            var solutionArgs = new SolutionArgument(document);
+            if (raiseEvent)
+            {
+                // raise diagnostic updated event
+                var documentId = document.Id;
+                var solutionArgs = new SolutionArgument(document);
 
-            RaiseDiagnosticsUpdated(type, document.Id, analyzer, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
+                RaiseDiagnosticsUpdated(type, document.Id, analyzer, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
+            }
         }
 
         private void ClearProjectStatesAsync(Project project, IEnumerable<StateSet> states, CancellationToken cancellationToken)
         {
             foreach (var document in project.Documents)
             {
-                ClearDocumentStates(document, states, cancellationToken);
+                ClearDocumentStates(document, states, raiseEvent: true, cancellationToken: cancellationToken);
             }
 
             foreach (var state in states)
@@ -871,7 +876,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             var existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
             if (existingData?.Items.Length > 0)
             {
-                ClearDocumentState(document, stateSet.Analyzer, type, state);
+                ClearDocumentState(document, stateSet.Analyzer, type, state, raiseEvent: true);
             }
         }
 

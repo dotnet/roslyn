@@ -90,6 +90,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Public Function GetDiagnosticDescriptors(analyzer As DiagnosticAnalyzer) As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzerService.GetDiagnosticDescriptors
                 Return ImmutableArray(Of DiagnosticDescriptor).Empty
             End Function
+
+            Public Function IsCompilerDiagnostic(language As String, diagnostic As DiagnosticData) As Boolean Implements IDiagnosticAnalyzerService.IsCompilerDiagnostic
+                Return False
+            End Function
         End Class
 
     End Class

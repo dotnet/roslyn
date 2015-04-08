@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
@@ -172,6 +171,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public override Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, CancellationToken cancellationToken)
             {
                 return Analyzer.GetDiagnosticsForSpanAsync(document, range, cancellationToken);
+            }
+            #endregion
+
+            #region build synchronization
+            public override Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics)
+            {
+                return Analyzer.SynchronizeWithBuildAsync(project, diagnostics);
+            }
+
+            public override Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics)
+            {
+                return Analyzer.SynchronizeWithBuildAsync(document, diagnostics);
             }
             #endregion
 

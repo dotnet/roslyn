@@ -53,6 +53,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
+        /// <summary>
+        /// map to compiler diagnostic analyzer.
+        /// </summary>
+        private ImmutableDictionary<string, DiagnosticAnalyzer> _compilerDiagnosticAnalyzerMap;
+
+        /// <summary>
+        /// map to compiler diagnostic analyzer descriptor.
+        /// </summary>
+        private ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>> _compilerDiagnosticAnalyzerDescriptorMap;
+
         public HostAnalyzerManager(IEnumerable<string> hostAnalyzerAssemblies, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
             this(CreateAnalyzerReferencesFromAssemblies(hostAnalyzerAssemblies), hostDiagnosticUpdateSource)
         {
@@ -65,6 +75,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _hostAnalyzerReferencesMap = hostAnalyzerReferences.IsDefault ? ImmutableDictionary<string, AnalyzerReference>.Empty : CreateAnalyzerReferencesMap(hostAnalyzerReferences);
             _hostDiagnosticAnalyzersPerLanguageMap = new ConcurrentDictionary<string, ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>>(concurrencyLevel: 2, capacity: 2);
             _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap), isThreadSafe: true);
+
+            _compilerDiagnosticAnalyzerMap = ImmutableDictionary<string, DiagnosticAnalyzer>.Empty;
+            _compilerDiagnosticAnalyzerDescriptorMap = ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>>.Empty;
 
             DiagnosticAnalyzerLogger.LogWorkspaceAnalyzers(hostAnalyzerReferences);
         }
@@ -140,6 +153,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analyzersPerReferences.SelectMany(kv => kv.Value).ToImmutableArray();
         }
 
+        /// <summary>
+        /// Check whether given <see cref="DiagnosticData"/> belong to compiler diagnostic analyzer
+        /// </summary>
+        public bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic)
+        {
+            var map = GetHostDiagnosticAnalyzersPerReference(language);
+
+            HashSet<string> idMap;
+            DiagnosticAnalyzer compilerAnalyzer;
+            if (_compilerDiagnosticAnalyzerMap.TryGetValue(language, out compilerAnalyzer) &&
+                _compilerDiagnosticAnalyzerDescriptorMap.TryGetValue(compilerAnalyzer, out idMap) &&
+                idMap.Contains(diagnostic.Id))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         private ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(
             ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
         {
@@ -179,11 +211,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     continue;
                 }
 
+                UpdateCompilerAnalyzerMapIfNeeded(language, analyzers);
+
                 // there can't be duplication since _hostAnalyzerReferenceMap is already de-duplicated.
-                builder.Add(referenceIdenity, reference.GetAnalyzers(language));
+                builder.Add(referenceIdenity, analyzers);
             }
 
             return builder.ToImmutable();
+        }
+
+        private void UpdateCompilerAnalyzerMapIfNeeded(string language, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            if (_compilerDiagnosticAnalyzerMap.ContainsKey(language))
+            {
+                return;
+            }
+
+            foreach (var analyzer in analyzers)
+            {
+                if (analyzer.IsCompilerAnalyzer())
+                {
+                    ImmutableInterlocked.GetOrAdd(ref _compilerDiagnosticAnalyzerDescriptorMap, analyzer, a => new HashSet<string>(GetDiagnosticDescriptors(a).Select(d => d.Id)));
+                    ImmutableInterlocked.GetOrAdd(ref _compilerDiagnosticAnalyzerMap, language, _ => analyzer);
+                    return;
+                }
+            }
         }
 
         private static string GetAnalyzerReferenceId(AnalyzerReference reference)
