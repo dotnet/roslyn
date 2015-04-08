@@ -45,29 +45,35 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         // It is not possible to know what actions a compilation start action will register without executing it,
                         // so return a worst-case categorization.
-                        category |= DiagnosticAnalyzerCategory.SyntaxAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis;
+                        category |= (DiagnosticAnalyzerCategory.SyntaxAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis);
                         cantSupportSemanticSpanAnalysis = true;
                     }
 
-                    if (analyzerActions.CompilationEndActionsCount > 0 || analyzerActions.CompilationActionsCount > 0 || analyzerActions.CompilationStartActionsCount > 0)
+                    if (analyzerActions.CompilationActionsCount > 0 || analyzerActions.CompilationStartActionsCount > 0)
                     {
                         category |= DiagnosticAnalyzerCategory.ProjectAnalysis;
                     }
 
-                    if (!cantSupportSemanticSpanAnalysis)
+                    if (HasSemanticDocumentActions(analyzerActions))
                     {
-                        if (analyzerActions.SymbolActionsCount > 0 ||
-                            analyzerActions.CodeBlockStartActionsCount > 0 ||
-                            analyzerActions.CodeBlockEndActionsCount > 0 ||
-                            analyzerActions.SyntaxNodeActionsCount > 0)
-                        {
-                            category |= DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-                        }
+                        var semanticDocumentAnalysisCategory = cantSupportSemanticSpanAnalysis ?
+                            DiagnosticAnalyzerCategory.SemanticDocumentAnalysis :
+                            DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+                        category |= semanticDocumentAnalysisCategory;
                     }
                 }
             }
 
             return category;
+        }
+
+        private static bool HasSemanticDocumentActions(AnalyzerActions analyzerActions)
+        {
+            return analyzerActions.SymbolActionsCount > 0 ||
+                analyzerActions.SyntaxNodeActionsCount > 0 ||
+                analyzerActions.SemanticModelActionsCount > 0 ||
+                analyzerActions.CodeBlockActionsCount > 0 ||
+                analyzerActions.CodeBlockStartActionsCount > 0;
         }
 
         public static bool SupportsSyntaxDiagnosticAnalysis(this DiagnosticAnalyzer analyzer, DiagnosticAnalyzerDriver driver)
