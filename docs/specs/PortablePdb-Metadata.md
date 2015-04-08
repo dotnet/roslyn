@@ -231,19 +231,17 @@ There shall be no duplicate rows in the LocalConstant table, based upon owner an
 
 The structure of the blob is
 
-    Blob ::= PrimitiveConstant |
-             EnumConstant |
-             DefaultValueConstant
+    Blob ::= CustomMod* (PrimitiveConstant | EnumConstant | DefaultValueConstant)
              
-    PrimitiveConstant ::= PrimitiveTypeCode Value CustomMod* 
+    PrimitiveConstant ::= PrimitiveTypeCode Value 
     PrimitiveTypeCode ::= BOOLEAN | CHAR | I1 | U1 | I2 | U2 | I4 | U4 | I8 | U8 |  
                           R4 | R8 | STRING | DECIMAL | DATETIME
     
-    EnumConstant ::= EnumTypeCode Value CustomMod* EnumType 
+    EnumConstant ::= EnumTypeCode Value EnumType 
     EnumTypeCode ::= BOOLEAN | CHAR | I1 | U1 | I2 | U2 | I4 | U4 | I8 | U8
     EnumType ::= Type
     
-    DefaultValueConstant ::= CustomMod* Type
+    DefaultValueConstant ::= Type
 
 | component           | description                                         |
 |:--------------------|:----------------------------------------------------|
