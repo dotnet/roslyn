@@ -2260,7 +2260,7 @@ class Test
     IL_0033:  callvirt   ""System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)""
     IL_0038:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_003d:  stloc.2
-    IL_003e:  ldloca.s   V_2
+   ~IL_003e:  ldloca.s   V_2
     IL_0040:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
     IL_0045:  brtrue.s   IL_0088
     IL_0047:  ldarg.0
@@ -3214,7 +3214,7 @@ class Test
     IL_0035:  call       ""System.Threading.Tasks.Task<int> Test.G()""
     IL_003a:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_003f:  stloc.3
-    IL_0040:  ldloca.s   V_3
+   ~IL_0040:  ldloca.s   V_3
     IL_0042:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
     IL_0047:  brtrue.s   IL_008a
     IL_0049:  ldarg.0

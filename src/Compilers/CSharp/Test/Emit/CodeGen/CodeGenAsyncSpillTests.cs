@@ -654,7 +654,7 @@ public class Test
     IL_0056:  call       ""System.Threading.Tasks.Task<int> Test.G()""
     IL_005b:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0060:  stloc.s    V_5
-    IL_0062:  ldloca.s   V_5
+   ~IL_0062:  ldloca.s   V_5
     IL_0064:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
     IL_0069:  brtrue.s   IL_00b1
     IL_006b:  ldarg.0

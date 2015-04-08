@@ -1395,7 +1395,8 @@ class C
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_1,
                 object V_2,
                 C.<M>d__1 V_3,
-                System.Exception V_4)
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_4,
+                System.Exception V_5)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.x""
   IL_0006:  ret
@@ -1408,7 +1409,8 @@ class C
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_1,
                 object V_2,
                 C.<M>d__1 V_3,
-                System.Exception V_4)
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_4,
+                System.Exception V_5)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.<y>5__1""
   IL_0006:  ret
