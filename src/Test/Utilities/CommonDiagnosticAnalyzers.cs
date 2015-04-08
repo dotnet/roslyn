@@ -190,6 +190,13 @@ namespace Microsoft.CodeAnalysis
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public class CodeBlockActionAnalyzer : DiagnosticAnalyzer
         {
+            private readonly bool _onlyStatelessAction;
+
+            public CodeBlockActionAnalyzer(bool onlyStatelessAction = false)
+            {
+                _onlyStatelessAction = onlyStatelessAction;
+            }
+
             public static readonly DiagnosticDescriptor CodeBlockTopLevelRule = new DiagnosticDescriptor(
                 "CodeBlockTopLevelRuleId",
                 "CodeBlockTopLevelRuleTitle",
@@ -221,13 +228,16 @@ namespace Microsoft.CodeAnalysis
                     codeBlockContext.ReportDiagnostic(Diagnostic.Create(CodeBlockTopLevelRule, codeBlockContext.OwningSymbol.Locations[0], codeBlockContext.OwningSymbol.Name));
                 });
 
-                context.RegisterCompilationStartAction(compilationStartContext =>
+                if (!_onlyStatelessAction)
                 {
-                    compilationStartContext.RegisterCodeBlockAction(codeBlockContext =>
+                    context.RegisterCompilationStartAction(compilationStartContext =>
                     {
-                        codeBlockContext.ReportDiagnostic(Diagnostic.Create(CodeBlockPerCompilationRule, codeBlockContext.OwningSymbol.Locations[0], codeBlockContext.OwningSymbol.Name));
+                        compilationStartContext.RegisterCodeBlockAction(codeBlockContext =>
+                        {
+                            codeBlockContext.ReportDiagnostic(Diagnostic.Create(CodeBlockPerCompilationRule, codeBlockContext.OwningSymbol.Locations[0], codeBlockContext.OwningSymbol.Name));
+                        });
                     });
-                });
+                }
             }
         }
     }
