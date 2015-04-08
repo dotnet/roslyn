@@ -2420,8 +2420,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      MethodKind.DeclareMethod
                     Return If(symbol.ReturnsVoid, EnvDTE.vsCMFunction.vsCMFunctionSub, EnvDTE.vsCMFunction.vsCMFunctionFunction)
 
-                Case MethodKind.Constructor
-                Case MethodKind.StaticConstructor
+                Case MethodKind.Constructor,
+                     MethodKind.StaticConstructor
                     Return EnvDTE.vsCMFunction.vsCMFunctionConstructor
 
                 Case MethodKind.UserDefinedOperator

@@ -349,6 +349,22 @@ End Class
 
 #Region "FunctionKind tests"
 
+        <WorkItem(1843, "https://github.com/dotnet/roslyn/issues/1843")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FunctionKind_Constructor()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub $$New()
+   End Sub
+
+End Clas
+</Code>
+
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionConstructor)
+        End Sub
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub FunctionKind_Destructor()
             Dim code =
