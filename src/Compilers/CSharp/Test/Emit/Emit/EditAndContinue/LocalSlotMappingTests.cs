@@ -2978,7 +2978,7 @@ class C
     IL_0066:  callvirt   ""System.Threading.Tasks.Task<int> C.F()""
     IL_006b:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0070:  stloc.2
-    IL_0071:  ldloca.s   V_2
+   ~IL_0071:  ldloca.s   V_2
     IL_0073:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
     IL_0078:  brtrue.s   IL_00ba
     IL_007a:  ldarg.0

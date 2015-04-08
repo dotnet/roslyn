@@ -993,7 +993,7 @@ End Class
           <slot kind=""27"" offset=""-1"" />
           <slot kind=""0"" offset=""-1"" />
           <slot kind=""temp"" />
-          <slot kind=""temp"" />
+          <slot kind=""33"" offset=""38"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
@@ -1008,6 +1008,7 @@ End Class
         <entry offset=""0x2f"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
         <entry offset=""0x4b"" hidden=""true"" document=""1"" />
         <entry offset=""0x4c"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x5b"" hidden=""true"" document=""1"" />
         <entry offset=""0xbb"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""17"" document=""1"" />
         <entry offset=""0xbf"" hidden=""true"" document=""1"" />
         <entry offset=""0xc7"" hidden=""true"" document=""1"" />

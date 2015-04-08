@@ -445,7 +445,7 @@ namespace ConsoleApplication1
         <forward declaringType=""ConsoleApplication1.Program"" methodName=""Main"" parameterNames=""args"" />
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
-          <slot kind=""temp"" />
+          <slot kind=""33"" offset=""15"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
@@ -455,6 +455,7 @@ namespace ConsoleApplication1
         <entry offset=""0x7"" hidden=""true"" document=""0"" />
         <entry offset=""0xe"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""0"" />
         <entry offset=""0xf"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""26"" document=""0"" />
+        <entry offset=""0x20"" hidden=""true"" document=""0"" />
         <entry offset=""0x7b"" hidden=""true"" document=""0"" />
         <entry offset=""0x93"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""10"" document=""0"" />
         <entry offset=""0x9b"" hidden=""true"" document=""0"" />
@@ -479,7 +480,7 @@ namespace ConsoleApplication1
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
           <slot kind=""20"" offset=""0"" />
-          <slot kind=""temp"" />
+          <slot kind=""33"" offset=""141"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
@@ -496,6 +497,7 @@ namespace ConsoleApplication1
         <entry offset=""0x41"" startLine=""22"" startColumn=""22"" endLine=""22"" endColumn=""27"" document=""0"" />
         <entry offset=""0x54"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""14"" document=""0"" />
         <entry offset=""0x55"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""55"" document=""0"" />
+        <entry offset=""0x6b"" hidden=""true"" document=""0"" />
         <entry offset=""0xdb"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""39"" document=""0"" />
         <entry offset=""0xed"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""14"" document=""0"" />
         <entry offset=""0xee"" hidden=""true"" document=""0"" />
@@ -628,6 +630,7 @@ class C
         <entry offset=""0x1e"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
         <entry offset=""0x25"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""0"" />
         <entry offset=""0x36"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""31"" document=""0"" />
+        <entry offset=""0x55"" hidden=""true"" document=""0"" />
         <entry offset=""0xab"" hidden=""true"" document=""0"" />
         <entry offset=""0xc2"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""0"" />
         <entry offset=""0xca"" hidden=""true"" document=""0"" />
@@ -718,7 +721,7 @@ class C
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
-          <slot kind=""temp"" />
+          <slot kind=""33"" offset=""129"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
@@ -733,6 +736,7 @@ class C
         <entry offset=""0x35"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
         <entry offset=""0x41"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""0"" />
         <entry offset=""0x58"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""31"" document=""0"" />
+        <entry offset=""0x86"" hidden=""true"" document=""0"" />
         <entry offset=""0xe1"" hidden=""true"" document=""0"" />
         <entry offset=""0xf9"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""0"" />
         <entry offset=""0x101"" hidden=""true"" document=""0"" />
@@ -825,6 +829,7 @@ class C
         <entry offset=""0x2d"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
         <entry offset=""0x39"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""0"" />
         <entry offset=""0x4f"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x5b"" hidden=""true"" document=""0"" />
         <entry offset=""0xaf"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""31"" document=""0"" />
         <entry offset=""0xc1"" hidden=""true"" document=""0"" />
         <entry offset=""0xd8"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""0"" />
@@ -908,7 +913,7 @@ class C
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
-          <slot kind=""temp"" />
+          <slot kind=""33"" offset=""129"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
@@ -923,6 +928,7 @@ class C
         <entry offset=""0x35"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
         <entry offset=""0x41"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""0"" />
         <entry offset=""0x58"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x64"" hidden=""true"" document=""0"" />
         <entry offset=""0xbd"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""31"" document=""0"" />
         <entry offset=""0xd0"" hidden=""true"" document=""0"" />
         <entry offset=""0xe8"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""0"" />
@@ -1003,7 +1009,7 @@ class C
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
-          <slot kind=""temp"" />
+          <slot kind=""33"" offset=""35"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
@@ -1014,6 +1020,7 @@ class C
         <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
         <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" document=""0"" />
         <entry offset=""0x1b"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x27"" hidden=""true"" document=""0"" />
         <entry offset=""0x83"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""22"" document=""0"" />
         <entry offset=""0xdd"" hidden=""true"" document=""0"" />
         <entry offset=""0xf5"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
@@ -1093,6 +1100,7 @@ class C
         <entry offset=""0xd"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" document=""0"" />
         <entry offset=""0x14"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""22"" document=""0"" />
         <entry offset=""0x64"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x70"" hidden=""true"" document=""0"" />
         <entry offset=""0xc6"" hidden=""true"" document=""0"" />
         <entry offset=""0xdd"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
         <entry offset=""0xe5"" hidden=""true"" document=""0"" />
@@ -1172,7 +1180,7 @@ class C
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
-          <slot kind=""temp"" />
+          <slot kind=""33"" offset=""58"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
@@ -1184,6 +1192,7 @@ class C
         <entry offset=""0x12"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" document=""0"" />
         <entry offset=""0x1e"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""22"" document=""0"" />
         <entry offset=""0x76"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x82"" hidden=""true"" document=""0"" />
         <entry offset=""0xdd"" hidden=""true"" document=""0"" />
         <entry offset=""0xf5"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
         <entry offset=""0xfd"" hidden=""true"" document=""0"" />
@@ -1367,7 +1376,7 @@ class C
    -IL_0034:  call       ""System.Threading.Tasks.Task<int> C.G()""
     IL_0039:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_003e:  stloc.3
-    IL_003f:  ldloca.s   V_3
+   ~IL_003f:  ldloca.s   V_3
     IL_0041:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
     IL_0046:  brtrue.s   IL_008c
     IL_0048:  ldarg.0
@@ -1476,7 +1485,7 @@ class C
           <slot kind=""27"" offset=""0"" />
           <slot kind=""20"" offset=""0"" />
           <slot kind=""temp"" />
-          <slot kind=""temp"" />
+          <slot kind=""33"" offset=""105"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
@@ -1494,6 +1503,7 @@ class C
         <entry offset=""0x29"" hidden=""true"" document=""0"" />
         <entry offset=""0x33"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""0"" />
         <entry offset=""0x34"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""27"" document=""0"" />
+        <entry offset=""0x3f"" hidden=""true"" document=""0"" />
         <entry offset=""0xb1"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""0"" />
         <entry offset=""0xb2"" hidden=""true"" document=""0"" />
         <entry offset=""0xe5"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""18"" document=""0"" />
