@@ -76,6 +76,140 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=25, lineLength:=31)))
         End Sub
 
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_DeclareFunction_WithoutAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    Declare Function $$getUserName Lib "My1.dll" () As String
+End Class
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=2, lineOffset:=22, absoluteOffset:=38, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)))
+        End Sub
+
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_DeclareFunction_WithAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    &lt;System.CLSCompliant(True)&gt;
+    Declare Function $$getUserName Lib "My1.dll" () As String
+End Class
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=22, absoluteOffset:=70, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)))
+        End Sub
+
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_DeclareSub_WithoutAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    Public Declare Sub $$MethodName Lib "My1.dll"
+End Class
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=2, lineOffset:=24, absoluteOffset:=40, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)))
+        End Sub
+
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_DeclareSub_WithAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    &lt;System.CLSCompliant(True)&gt;
+    Public Declare Sub $$MethodName Lib "My1.dll"
+End Class
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=24, absoluteOffset:=72, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)))
+        End Sub
+
 #End Region
 
 #Region "GetEndPoint() tests"
@@ -143,6 +277,140 @@ End Class
                      TextPoint(line:=3, lineOffset:=25, absoluteOffset:=77, lineLength:=24)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=25, absoluteOffset:=77, lineLength:=24)))
+        End Sub
+
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_DeclareFunction_WithoutAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    Declare Function $$getUserName Lib "My1.dll" () As String
+End Class
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=2, lineOffset:=33, absoluteOffset:=49, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)))
+        End Sub
+
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_DeclareFunction_WithAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    &lt;System.CLSCompliant(True)&gt;
+    Declare Function $$getUserName Lib "My1.dll" () As String
+End Class
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     TextPoint(line:=2, lineOffset:=32, absoluteOffset:=48, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=32, absoluteOffset:=48, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=33, absoluteOffset:=81, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)))
+        End Sub
+
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_DeclareSub_WithoutAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    Declare Sub $$getUserName Lib "My1.dll" ()
+End Class
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=2, lineOffset:=28, absoluteOffset:=44, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)))
+        End Sub
+
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_DeclareSub_WithAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    &lt;System.CLSCompliant(True)&gt;
+    Declare Sub $$getUserName Lib "My1.dll" ()
+End Class
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     TextPoint(line:=2, lineOffset:=32, absoluteOffset:=48, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=32, absoluteOffset:=48, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=28, absoluteOffset:=76, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)))
         End Sub
 
 #End Region
