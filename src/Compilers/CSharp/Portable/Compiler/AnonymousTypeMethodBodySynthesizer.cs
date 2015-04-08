@@ -274,9 +274,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         arguments[i] = F.Convert(manager.System_Object,
                                                  new BoundLoweredConditionalAccess(F.Syntax,
                                                                             F.Field(F.This(), property.BackingField),
-                                                                            F.Call(new BoundConditionalReceiver(F.Syntax, property.BackingField.Type), manager.System_Object__ToString),
+                                                                            F.Call(new BoundConditionalReceiver(
+                                                                                F.Syntax, 
+                                                                                iD: i, 
+                                                                                type: property.BackingField.Type), manager.System_Object__ToString),
                                                                             null,
-                                                                            manager.System_String),
+                                                                            iD: i,
+                                                                            type: manager.System_String),
                                                  ConversionKind.ImplicitReference);
                     }
                     formatString.Builder.Append(" }}");

@@ -897,11 +897,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var whenNotNull = VisitExpression(ref whenNotNullBuilder, node.WhenNotNull);
 
             BoundSpillSequenceBuilder whenNullBuilder = null;
-            var whenNull = VisitExpression(ref whenNullBuilder, node.WhenNullOpt);
+            var whenNullOpt = VisitExpression(ref whenNullBuilder, node.WhenNullOpt);
 
             if (whenNotNullBuilder == null && whenNullBuilder == null)
             {
-                return UpdateExpression(receiverBuilder, node.Update(receiver, whenNotNull, whenNull, node.Type));
+                return UpdateExpression(receiverBuilder, node.Update(receiver, whenNotNull, whenNullOpt, node.ID, node.Type));
             }
 
             if (receiverBuilder == null) receiverBuilder = new BoundSpillSequenceBuilder();
@@ -943,15 +943,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver = _F.ComplexConditionalReceiver(receiver, _F.Local(clone));
             }
 
+
+            whenNullOpt = whenNullOpt ?? _F.Default(node.Type);
+
             if (node.Type.SpecialType == SpecialType.System_Void)
             {
                 var wnenNotNullStatement = UpdateStatement(whenNotNullBuilder, _F.ExpressionStatement(whenNotNull), substituteTemps: false);
-                wnenNotNullStatement = ConditionalReceiverReplacer.Replace(wnenNotNullStatement, receiver);
+                wnenNotNullStatement = ConditionalReceiverReplacer.Replace(wnenNotNullStatement, receiver, node.ID);
 
                 receiverBuilder.AddStatement(
                     _F.If(condition,
                         wnenNotNullStatement,
-                        UpdateStatement(whenNullBuilder, _F.ExpressionStatement(whenNull), substituteTemps: false)));
+                        UpdateStatement(whenNullBuilder, _F.ExpressionStatement(whenNullOpt), substituteTemps: false)));
 
                 return receiverBuilder.Update(_F.Default(node.Type));
             }
@@ -960,13 +963,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(_F.Syntax.IsKind(SyntaxKind.AwaitExpression));
                 var tmp = _F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.AwaitSpill, syntax: _F.Syntax);
                 var wnenNotNullStatement = UpdateStatement(whenNotNullBuilder, _F.Assignment(_F.Local(tmp), whenNotNull), substituteTemps: false);
-                wnenNotNullStatement = ConditionalReceiverReplacer.Replace(wnenNotNullStatement, receiver);
+                wnenNotNullStatement = ConditionalReceiverReplacer.Replace(wnenNotNullStatement, receiver, node.ID);
 
                 receiverBuilder.AddLocal(tmp, _F.Diagnostics);
                 receiverBuilder.AddStatement(
                     _F.If(condition,
                         wnenNotNullStatement,
-                        UpdateStatement(whenNullBuilder, _F.Assignment(_F.Local(tmp), whenNull), substituteTemps: false)));
+                        UpdateStatement(whenNullBuilder, _F.Assignment(_F.Local(tmp), whenNullOpt), substituteTemps: false)));
 
                 return receiverBuilder.Update(_F.Local(tmp));
             }
@@ -975,20 +978,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         private class ConditionalReceiverReplacer: BoundTreeRewriter
         {
             private readonly BoundExpression _receiver;
+            private readonly int _receiverID;
 
 #if DEBUG
             // we must replace exatly one node
             private int _replaced;
 #endif
                        
-            private ConditionalReceiverReplacer(BoundExpression receiver)
+            private ConditionalReceiverReplacer(BoundExpression receiver, int receiverID)
             {
                 this._receiver = receiver;
+                this._receiverID = receiverID;
             }
 
-            public static BoundStatement Replace(BoundNode node, BoundExpression receiver)
+            public static BoundStatement Replace(BoundNode node, BoundExpression receiver, int receiverID)
             {
-                var replacer = new ConditionalReceiverReplacer(receiver);
+                var replacer = new ConditionalReceiverReplacer(receiver, receiverID);
                 var result = (BoundStatement)replacer.Visit(node);
 #if DEBUG
                 Debug.Assert(replacer._replaced == 1, "should have replaced exactly one node");
@@ -999,10 +1004,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
             {
+                if (node.ID == this._receiverID)
+                {
 #if DEBUG
-                _replaced++;
+                    _replaced++;
 #endif
-                return _receiver;
+                    return _receiver;
+                }
+
+                return node;
             }
         }
 

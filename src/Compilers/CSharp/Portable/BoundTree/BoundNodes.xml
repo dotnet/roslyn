@@ -973,11 +973,22 @@
     <Field Name="Receiver" Type="BoundExpression"/>
     <Field Name="WhenNotNull" Type="BoundExpression"/>
     <Field Name="WhenNullOpt" Type="BoundExpression" Null="allow"/>
+    <!-- 
+    Async rewriter needs to replace receivers with their spilled values
+    and for that it needs to match receivers and the containing conditional 
+    expressions.
+    To be able to do that, during lowering, we will assign 
+    BoundLoweredConditionalAccess and corresponding BoundConditionalReceiver 
+    matching ID that are integers unique for the containing method body.
+    -->
+    <Field Name="ID" Type="int"/>
   </Node>
   
   <!-- represents the receiver of a conditional access expression -->
   <Node Name="BoundConditionalReceiver" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <!-- See the comment in BoundLoweredConditionalAccess -->
+    <Field Name="ID" Type="int"/>
   </Node>
 
   <!--  This node represents a complex receiver for a conditional access.  

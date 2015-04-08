@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             conditionalAccess.Receiver,
                             whenNotNull: notNullAccess,
                             whenNullOpt: whenNullOpt,
+                            iD: conditionalAccess.ID,
                             type: rewrittenResultType
                         );
                     }

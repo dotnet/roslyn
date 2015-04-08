@@ -5786,5 +5786,279 @@ class C
   IL_000e:  ret
 }");
         }
+
+        [Fact]
+        public void ConditionalBoolExpr02()
+        {
+            var source = @"
+class C 
+{ 
+    public static void Main() 
+    { 
+        System.Console.Write(HasLength(null, 0));
+        System.Console.Write(HasLength(null, 3));
+        System.Console.Write(HasLength(""q"", 2));
+    }
+
+    static bool HasLength(string s, int len)
+    {
+        return (s?.Length ?? 2) + 1 == len;
+    }
+}
+
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"FalseTrueTrue");
+
+            verifier.VerifyIL("C.HasLength", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldc.i4.2
+  IL_0004:  br.s       IL_000c
+  IL_0006:  ldarg.0
+  IL_0007:  call       ""int string.Length.get""
+  IL_000c:  ldc.i4.1
+  IL_000d:  add
+  IL_000e:  ldarg.1
+  IL_000f:  ceq
+  IL_0011:  ret
+}");
+        }
+
+        [Fact]
+        public void ConditionalBoolExpr03()
+        {
+            var source = @"
+    using System.Threading.Tasks;
+    static class C
+    {
+        public static void Main()
+        {
+            System.Console.Write(HasLength(null, 0).Result);
+            System.Console.Write(HasLength(null, 3).Result);
+            System.Console.Write(HasLength(""q"", 2).Result);
+        }
+
+        static async Task<bool> HasLength(string s, int len)
+        {
+            return (s?.Foo(await Bar()) ?? await Bar() + await Bar()) + 1 == len;
+        }
+
+        static int Foo(this string s, int arg)
+        {
+            return s.Length;
+        }
+
+        static async Task<int> Bar()
+        {
+            await Task.Yield();
+            return 1;
+        }
+    }
+
+
+";
+            var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CompileAndVerify(c, expectedOutput: @"FalseTrueTrue");
+        }
+
+        [Fact]
+        public void ConditionalBoolExpr04()
+        {
+            var source = @"
+    using System.Threading.Tasks;
+    static class C
+    {
+       public static void Main()
+        {
+            System.Console.Write(HasLength((string)null, 0).Result);
+            System.Console.Write(HasLength((string)null, 3).Result);
+            System.Console.Write(HasLength(""q"", 2).Result);
+        }
+
+        static async Task<bool> HasLength<T>(T s, int len)
+        {
+            return (s?.Foo(await Bar()) ?? 2) + 1 == len;
+        }
+
+        static int Foo<T>(this T s, int arg)
+        {
+            return ((string)(object)s).Length;
+        }
+
+        static async Task<int> Bar()
+        {
+            await Task.Yield();
+            return 1;
+        }
+    }
+
+
+";
+            var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CompileAndVerify(c, expectedOutput: @"FalseTrueTrue");
+        }
+
+        [Fact]
+        public void ConditionalBoolExpr05()
+        {
+            var source = @"
+    using System.Threading.Tasks;
+    static class C
+    {
+       public static void Main()
+        {
+            System.Console.Write(HasLength((string)null, 0).Result);
+            System.Console.Write(HasLength((string)null, 3).Result);
+            System.Console.Write(HasLength(""q"", 2).Result);
+        }
+
+        static async Task<bool> HasLength<T>(T s, int len)
+        {
+            return (s?.Foo(await Bar(await Bar())) ?? 2) + 1 == len;
+        }
+
+        static int Foo<T>(this T s, int arg)
+        {
+            return ((string)(object)s).Length;
+        }
+
+        static async Task<int> Bar()
+        {
+            await Task.Yield();
+            return 1;
+        }
+
+        static async Task<int> Bar(int arg)
+        {
+            await Task.Yield();
+            return arg;
+        }
+    }
+
+
+";
+            var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CompileAndVerify(c, expectedOutput: @"FalseTrueTrue");
+        }
+
+
+        [Fact]
+        public void ConditionalBoolExpr06()
+        {
+            var source = @"
+    using System.Threading.Tasks;
+    static class C
+    {
+        public static void Main()
+        {
+            System.Console.Write(HasLength(null, 0).Result);
+            System.Console.Write(HasLength(null, 7).Result);
+            System.Console.Write(HasLength(""q"", 7).Result);
+        }
+
+        static async Task<bool> HasLength(string s, int len)
+        {
+            System.Console.WriteLine(s?.Foo(await Bar())?.Foo(await Bar()) + ""#"");
+            return s?.Foo(await Bar())?.Foo(await Bar()).Length == len;
+        }
+
+        static string Foo(this string s, string arg)
+        {
+            return s + arg;
+        }
+
+        static async Task<string> Bar()
+        {
+            await Task.Yield();
+            return ""Bar"";
+        }
+    }
+";
+            var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CompileAndVerify(c, expectedOutput: @"#
+False#
+FalseqBarBar#
+True");
+        }
+
+        [Fact]
+        public void ConditionalBoolExpr07()
+        {
+            var source = @"
+    using System.Threading.Tasks;
+    static class C
+    {
+        public static void Main()
+        {
+            System.Console.WriteLine(Test(null).Result);
+            System.Console.WriteLine(Test(""q"").Result);
+        }
+
+        static async Task<bool> Test(string s)
+        {
+            return (await Bar(s))?.Foo(await Bar())?.ToString()?.Length > 1;
+        }
+
+        static string Foo(this string s, string arg1)
+        {
+            return s + arg1;
+        }
+
+        static async Task<string> Bar()
+        {
+            await Task.Yield();
+            return ""Bar"";
+        }
+
+        static async Task<string> Bar(string arg)
+        {
+            await Task.Yield();
+            return arg;
+        }
+    }
+";
+            var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CompileAndVerify(c, expectedOutput: @"False
+True");
+        }
+
+        [Fact]
+        public void ConditionalBoolExpr08()
+        {
+            var source = @"
+    using System.Threading.Tasks;
+    static class C
+    {
+        public static void Main()
+        {
+            System.Console.WriteLine(Test(null).Result);
+            System.Console.WriteLine(Test(""q"").Result);
+        }
+
+        static async Task<bool> Test(string s)
+        {
+            return (await Bar(s))?.Insert(0, await Bar())?.ToString()?.Length > 1;
+        }
+
+        static async Task<string> Bar()
+        {
+            await Task.Yield();
+            return ""Bar"";
+        }
+
+        static async Task<dynamic> Bar(string arg)
+        {
+            await Task.Yield();
+            return arg;
+        }
+    }";
+            var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CompileAndVerify(c, expectedOutput: @"False
+True");
+        }
+
     }
 }

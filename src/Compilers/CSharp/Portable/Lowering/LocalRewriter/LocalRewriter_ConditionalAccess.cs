@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // null when currently enclosing conditional access node
         // is not supposed to be lowered.
         private BoundExpression _currentConditionalAccessTarget = null;
+        private int _currentConditionalAccessID = 0;
 
         private enum ConditionalAccessLoweringKind
         {
@@ -63,13 +64,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
             var previousConditionalAccesTarget = _currentConditionalAccessTarget;
+            var currentConditionalAccessID = ++this._currentConditionalAccessID;
+
             LocalSymbol temp = null;
             BoundExpression unconditionalAccess = null;
 
             switch (loweringKind)
             {
                 case ConditionalAccessLoweringKind.LoweredConditionalAccess:
-                    _currentConditionalAccessTarget = null;
+                    _currentConditionalAccessTarget = new BoundConditionalReceiver(
+                        loweredReceiver.Syntax, 
+                        currentConditionalAccessID, 
+                        receiverType);
+
                     break;
 
                 case ConditionalAccessLoweringKind.Ternary:
@@ -130,7 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node.Syntax, 
                         loweredReceiver, 
                         loweredAccessExpression, 
-                        rewrittenWhenNull, type);
+                        rewrittenWhenNull,
+                        currentConditionalAccessID,
+                        type);
 
                     break;
 
@@ -176,14 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
         {
-            if (_currentConditionalAccessTarget == null)
-            {
-                return node;
-            }
-
             var newtarget = _currentConditionalAccessTarget;
+
             if (newtarget.Type.IsNullableType())
             {
+                Debug.Assert(newtarget.Kind != BoundKind.ConditionalReceiver);
                 newtarget = MakeOptimizedGetValueOrDefault(node.Syntax, newtarget);
             }
 

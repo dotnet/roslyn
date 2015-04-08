@@ -510,6 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conditionalLeft.Receiver,
                     whenNotNull: result,
                     whenNullOpt: whenNullOpt,
+                    iD: conditionalLeft.ID,
                     type: result.Type
                 );
             }
@@ -1749,7 +1750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var whenNull = kind == BinaryOperatorKind.NullableNullEqual ? MakeBooleanConstant(syntax, true) : null;
 
-                return conditionalAccess.Update(conditionalAccess.Receiver, whenNotNull, whenNull, whenNotNull.Type);
+                return conditionalAccess.Update(conditionalAccess.Receiver, whenNotNull, whenNull, conditionalAccess.ID, whenNotNull.Type);
             }
 
             MethodSymbol get_HasValue = GetNullableMethod(syntax, nullable.Type, SpecialMember.System_Nullable_T_get_HasValue);

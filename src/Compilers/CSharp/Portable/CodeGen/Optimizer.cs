@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EnsureStackState(cookie);   // implicit label here
             }
 
-            return node.Update(receiver, whenNotNull, whenNull, node.Type);
+            return node.Update(receiver, whenNotNull, whenNull, node.ID, node.Type);
         }
 
         public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)

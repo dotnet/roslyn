@@ -6437,7 +6437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiverType = receiverType.GetNullableUnderlyingType();
             }
 
-            receiver = new BoundConditionalReceiver(receiver.Syntax, receiverType) { WasCompilerGenerated = true };
+            receiver = new BoundConditionalReceiver(receiver.Syntax, 0, receiverType) { WasCompilerGenerated = true };
             return receiver;
         }
 
