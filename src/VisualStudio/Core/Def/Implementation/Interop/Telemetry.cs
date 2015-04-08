@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
  
 namespace Microsoft.Internal.VisualStudio.Shell.Interop
 {
-    [Guid("B567D0C0-9334-4EFB-811B-F12AEE408A3D")]
+    [Guid("2C1F9C40-19AE-4697-A459-226943802123")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IVsTelemetrySession
     {
@@ -21,6 +21,8 @@ namespace Microsoft.Internal.VisualStudio.Shell.Interop
         void PostDoublePiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, double varValue);
         void PostDoubleProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, double value);
         void PostEvent(IVsTelemetryEvent eventObject);
+		void PostGuidProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, Guid value);
+		void PostGuidPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, Guid varValue);
         void PostIntPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, int varValue);
         void PostIntProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, int value);
         void PostLongPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, long varValue);
@@ -37,6 +39,8 @@ namespace Microsoft.Internal.VisualStudio.Shell.Interop
         void SetSharedBoolProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, bool value);
         void SetSharedDoublePiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, double varValue);
         void SetSharedDoubleProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, double value);
+		void SetSharedGuidProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, Guid value);
+		void SetSharedGuidPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, Guid varValue);
         void SetSharedIntPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, int varValue);
         void SetSharedIntProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, int value);
         void SetSharedLongPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, long varValue);
@@ -50,7 +54,7 @@ namespace Microsoft.Internal.VisualStudio.Shell.Interop
         void UnregisterPropertyBag([ComAliasName("OLE.LPCOLESTR")]string szPropertyBagName);
     }
 
-    [Guid("82CB18EA-5330-4ADB-BD79-EB964F30749D")]
+    [Guid("DEB68DE7-7104-4168-AB7D-F8CDE0C19DA4")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IVsTelemetryContext
     {
@@ -61,7 +65,9 @@ namespace Microsoft.Internal.VisualStudio.Shell.Interop
         object GetProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName);
         void PostBoolProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, bool value);
         void PostDoublePiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, double varValue);
-        void PostDoubleProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, double value);
+        void PostDoubleProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, double varValue);
+		void PostGuidProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, Guid value);
+		void PostGuidPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, Guid varValue);
         void PostIntPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, int varValue);
         void PostIntProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, int value);
         void PostLongPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, long varValue);
@@ -75,6 +81,8 @@ namespace Microsoft.Internal.VisualStudio.Shell.Interop
         void SetSharedBoolProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, bool value);
         void SetSharedDoublePiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, double varValue);
         void SetSharedDoubleProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, double value);
+		void SetSharedGuidProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, Guid szValue);
+		void SetSharedGuidPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, Guid varValue);
         void SetSharedIntPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, int varValue);
         void SetSharedIntProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, int value);
         void SetSharedLongPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, long varValue);
@@ -86,7 +94,7 @@ namespace Microsoft.Internal.VisualStudio.Shell.Interop
         void SetSharedStringProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, [ComAliasName("OLE.LPCOLESTR")]string szValue);
     }
 
-    [Guid("FC1510D1-1CE5-4EE9-B861-66714C95A242")]
+    [Guid("09FCE009-9ADE-4210-A7C9-7842B7607660")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IVsTelemetryPropertyBag
     {
@@ -98,6 +106,7 @@ namespace Microsoft.Internal.VisualStudio.Shell.Interop
         void RemoveProperty([ComAliasName("OLE.LPOLESTR")]string szPropertyName);
         void SetBoolProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, bool value);
         void SetDoubleProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, double value);
+		void SetGuidProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, Guid szValue);
         void SetIntProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, int value);
         void SetLongProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, long value);
         void SetProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, object varValue);
@@ -105,7 +114,7 @@ namespace Microsoft.Internal.VisualStudio.Shell.Interop
         void SetStringProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, [ComAliasName("OLE.LPCOLESTR")]string szValue);
     }
 
-    [Guid("5DC5F85E-C49B-4CF6-97B7-BDEF7AD0ADE3")]
+    [Guid("4DC591E8-7970-47FD-917E-624A8684D2D0")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IVsTelemetryEvent
     {
@@ -120,6 +129,8 @@ namespace Microsoft.Internal.VisualStudio.Shell.Interop
         void SetBoolProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, bool value);
         void SetDoublePiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, double varValue);
         void SetDoubleProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, double value);
+		void SetGuidProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, Guid szValue);
+		void SetGuidPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, Guid varValue);
         void SetIntPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, int varValue);
         void SetIntProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, int value);
         void SetLongPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, long varValue);
@@ -162,6 +173,8 @@ namespace Microsoft.Internal.VisualStudio.Shell.Interop
         void SetBoolProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, bool value);
         void SetDoublePiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, double varValue);
         void SetDoubleProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, double value);
+		void SetGuidProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, Guid szValue);
+		void SetGuidPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, Guid varValue);
         void SetIntPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, int varValue);
         void SetIntProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, int value);
         void SetLongPiiProperty([ComAliasName("OLE.LPCOLESTR")]string szPropertyName, long varValue);
