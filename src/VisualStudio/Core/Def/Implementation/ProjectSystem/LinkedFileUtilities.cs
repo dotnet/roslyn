@@ -152,5 +152,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ? intellisenseProjectName as string
                 : null;
         }
+
+        public static bool TryGetSharedHierarchyAndItemId(IVsHierarchy hierarchy, uint itemId, out IVsHierarchy sharedHierarchy, out uint itemIdInSharedHierarchy)
+        {
+            return s_singleton.TryGetSharedHierarchyAndItemIdInternal(hierarchy, itemId, out sharedHierarchy, out itemIdInSharedHierarchy);
+        }
+
+        private bool TryGetSharedHierarchyAndItemIdInternal(IVsHierarchy hierarchy, uint itemId, out IVsHierarchy sharedHierarchy, out uint itemIdInSharedHierarchy)
+        {
+            AssertIsForeground();
+
+            sharedHierarchy = null;
+            itemIdInSharedHierarchy = (uint)VSConstants.VSITEMID.Nil;
+
+            if (hierarchy == null)
+            {
+                return false;
+            }
+
+            sharedHierarchy = s_singleton.GetSharedHierarchyForItemInternal(hierarchy, itemId);
+
+            return sharedHierarchy == null
+                ? false
+                : s_singleton.TryGetItemIdInSharedHierarchyInternal(hierarchy, itemId, sharedHierarchy, out itemIdInSharedHierarchy);
+        }
+
+        private bool TryGetItemIdInSharedHierarchyInternal(IVsHierarchy hierarchy, uint itemId, IVsHierarchy sharedHierarchy, out uint itemIdInSharedHierarchy)
+        {
+            string fullPath;
+            int found;
+            VSDOCUMENTPRIORITY[] priority = new VSDOCUMENTPRIORITY[1];
+
+            if (ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemId, out fullPath))
+                && ErrorHandler.Succeeded(((IVsProject)sharedHierarchy).IsDocumentInProject(fullPath, out found, priority, out itemIdInSharedHierarchy))
+                && found != 0
+                && itemIdInSharedHierarchy != (uint)VSConstants.VSITEMID.Nil)
+            {
+                return true;
+            }
+
+            itemIdInSharedHierarchy = (uint)VSConstants.VSITEMID.Nil;
+            return false;
+        }
     }
 }

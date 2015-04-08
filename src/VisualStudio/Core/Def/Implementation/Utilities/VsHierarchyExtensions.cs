@@ -2,7 +2,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
@@ -51,8 +50,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 }
             }
 
-            // Uh, OK, that's probably not good that we're supposedly an open file but not in the RDT. We'll fall back
-            // to the IVsHierarchy's name property for this item.
+            // Uh, OK, that's probably not good that we're supposedly an open file but not in the RDT.
+            return null;
+        }
+
+        // Gets the IVsHierarchy's name property for this item.
+        public static string GetDocumentNameForHierarchyAndItemId(this IVsHierarchy hierarchy, uint itemid)
+        {
             object property;
             Marshal.ThrowExceptionForHR(hierarchy.GetProperty(itemid, (int)__VSHPROPID.VSHPROPID_Name, out property));
             return (string)property;
