@@ -551,6 +551,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
+        <WorkItem(1834, "https://github.com/dotnet/roslyn/issues/1834")>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        Public Sub ConstructorNotParentedByTypeBlock()
+            Using worker = SetupWorkspace("Module Program", "End Module", "Public Sub New()", "End Sub")
+                SetupVerifableGlyph(StandardGlyphGroup.GlyphGroupModule, StandardGlyphItem.GlyphItemFriend)
+                Assert.Equal(0, _aggregator.GetItems("New").Count)
+                Dim item = _aggregator.GetItems("Program").Single
+                VerifyNavigateToResultItem(item, "Program", MatchKind.Exact, NavigateToItemKind.Module, displayName:="Program")
+            End Using
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub StartStopSanity()
             ' Verify that mutliple calls to start/stop don't blow up

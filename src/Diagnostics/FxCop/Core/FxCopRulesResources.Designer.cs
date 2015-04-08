@@ -88,15 +88,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Avoid unsealed attributes..
-        /// </summary>
-        internal static string AvoidUnsealedAttributes {
-            get {
-                return ResourceManager.GetString("AvoidUnsealedAttributes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Design.
         /// </summary>
         internal static string CategoryDesign {
@@ -471,15 +462,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         internal static string RethrowToPreserveStackDetails {
             get {
                 return ResourceManager.GetString("RethrowToPreserveStackDetails", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Seal attribute types for improved performance. Sealing attribute types speeds up performance during reflection on custom attributes..
-        /// </summary>
-        internal static string SealAttributeTypesForImprovedPerf {
-            get {
-                return ResourceManager.GetString("SealAttributeTypesForImprovedPerf", resourceCulture);
             }
         }
         

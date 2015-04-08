@@ -106,7 +106,6 @@
     <Compile Include="Globalization\CodeFixes\CA1309BasicCodeFixProvider.vb" />
     <Compile Include="Globalization\CodeFixes\CA2101BasicCodeFixProvider.vb" />
     <Compile Include="Performance\BasicCA1821DiagnosticAnalyzer.vb" />
-    <Compile Include="Performance\CodeFixes\CA1813BasicCodeFixProvider.vb" />
     <Compile Include="Reliability\BasicCA2002DiagnosticAnalyzer.vb" />
     <Compile Include="Usage\BasicCA2200DiagnosticAnalyzer.vb" />
     <Compile Include="Usage\BasicCA2213DiagnosticAnalyzer.vb" />
