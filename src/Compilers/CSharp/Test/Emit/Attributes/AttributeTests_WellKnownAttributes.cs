@@ -7857,5 +7857,121 @@ public class C
         }
 
         #endregion
+
+        [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]
+        public void TestAttributePropagationForAsyncAndIterators()
+        {
+            var source = CreateCompilationWithMscorlib45(@"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+
+    [MyAttribute]
+    [System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [System.Diagnostics.DebuggerHiddenAttribute]
+    [System.Diagnostics.DebuggerStepperBoundaryAttribute]
+    [System.Diagnostics.DebuggerStepThroughAttribute]
+    public async Task<int> test1()
+    {
+        return await DoNothing();
+    }
+
+    public async Task<int> test2()
+    {
+        return await DoNothing();
+    }
+
+    async Task<int> DoNothing()
+    {
+        return 1;
+    }
+
+    [MyAttribute]
+    [System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [System.Diagnostics.DebuggerHiddenAttribute]
+    [System.Diagnostics.DebuggerStepperBoundaryAttribute]
+    [System.Diagnostics.DebuggerStepThroughAttribute]
+    public IEnumerable<int> Test3()
+    {
+        yield return 1;
+        yield return 2;
+    }
+
+    public IEnumerable<int> Test4()
+    {
+        yield return 1;
+        yield return 2;
+    }
+}
+
+class MyAttribute : System.Attribute
+{ }
+");
+
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
+            {
+                var program = m.GlobalNamespace.GetTypeMember("Program");
+
+                Assert.Equal("", CheckAttributePropagation(((NamedTypeSymbol)program.GetMember<MethodSymbol>("test1").
+                                                                             GetAttribute("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").
+                                                                             ConstructorArguments.Single().Value).
+                                                                             GetMember<MethodSymbol>("MoveNext")));
+
+                Assert.Equal(0, ((NamedTypeSymbol)program.GetMember<MethodSymbol>("test2").
+                                                                             GetAttribute("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").
+                                                                             ConstructorArguments.Single().Value).
+                                                                             GetMember<MethodSymbol>("MoveNext").GetAttributes().Length);
+
+                Assert.Equal("", CheckAttributePropagation(((NamedTypeSymbol)program.GetMember<MethodSymbol>("Test3").
+                                                                             GetAttribute("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").
+                                                                             ConstructorArguments.Single().Value).
+                                                                             GetMember<MethodSymbol>("MoveNext")));
+
+                Assert.Equal(0, ((NamedTypeSymbol)program.GetMember<MethodSymbol>("Test4").
+                                                                             GetAttribute("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").
+                                                                             ConstructorArguments.Single().Value).
+                                                                             GetMember<MethodSymbol>("MoveNext").GetAttributes().Length);
+            };
+
+            CompileAndVerify(source, symbolValidator: attributeValidator);
+        }
+
+        private static string CheckAttributePropagation(MethodSymbol moveNext)
+        {
+            string result = "";
+
+            if (moveNext.GetAttributes("", "MyAttribute").Any())
+            {
+                result += "MyAttribute is present\n";
+            }
+
+            if (!moveNext.GetAttributes("System.Diagnostics", "DebuggerNonUserCodeAttribute").Any())
+            {
+                result += "DebuggerNonUserCodeAttribute is missing\n";
+            }
+
+            if (!moveNext.GetAttributes("System.Diagnostics", "DebuggerHiddenAttribute").Any())
+            {
+                result += "DebuggerHiddenAttribute is missing\n";
+            }
+
+            if (!moveNext.GetAttributes("System.Diagnostics", "DebuggerStepperBoundaryAttribute").Any())
+            {
+                result += "DebuggerStepperBoundaryAttribute is missing\n";
+            }
+
+            if (!moveNext.GetAttributes("System.Diagnostics", "DebuggerStepThroughAttribute").Any())
+            {
+                result += "DebuggerStepThroughAttribute is missing\n";
+            }
+
+            return result;
+        }
     }
 }
