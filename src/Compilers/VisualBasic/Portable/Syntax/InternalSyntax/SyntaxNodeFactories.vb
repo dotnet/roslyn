@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case Else
-                    Throw New ArgumentException("typeSuffix")
+                    Throw New ArgumentException(NameOf(text))
             End Select
         End Function
 
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case TypeCharacter.SingleLiteral, TypeCharacter.Single
                     Return New FloatingLiteralTokenSyntax(Of Single)(SyntaxKind.FloatingLiteralToken, text, leadingTrivia, trailingTrivia, typeSuffix, CSng(value))
                 Case Else
-                    Throw New ArgumentException("typeSuffix")
+                    Throw New ArgumentException(NameOf(text))
             End Select
         End Function
 

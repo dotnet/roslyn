@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException("Must resolve overloads on PropertySymbol or MethodSymbol", "TMember")
             End If
             If isProperties And Not typeArguments.IsEmpty Then
-                Throw New ArgumentException(VBResources.PropertiesCanNotHaveTypeArguments, "typeArguments")
+                Throw New ArgumentException(VBResources.PropertiesCanNotHaveTypeArguments, NameOf(members))
             End If
 
             Dim boundArguments As ImmutableArray(Of BoundExpression) = Nothing

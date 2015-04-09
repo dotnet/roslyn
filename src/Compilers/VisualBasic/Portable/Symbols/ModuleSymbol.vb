@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Function GetModuleNamespace(namespaceSymbol As INamespaceSymbol) As NamespaceSymbol
             If namespaceSymbol Is Nothing Then
-                Throw New ArgumentNullException("namespaceSymbol")
+                Throw New ArgumentNullException(NameOf(namespaceSymbol))
             End If
 
             Dim moduleNs = TryCast(namespaceSymbol, NamespaceSymbol)

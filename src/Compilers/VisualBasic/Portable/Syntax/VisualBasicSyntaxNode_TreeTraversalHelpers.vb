@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If Not Me.FullSpan.Contains(position) Then
-                    Throw New IndexOutOfRangeException("position")
+                    Throw New IndexOutOfRangeException(NameOf(position))
                 End If
 
                 Return FindTokenInternal(position)

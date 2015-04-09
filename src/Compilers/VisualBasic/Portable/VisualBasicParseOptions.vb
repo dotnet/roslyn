@@ -38,14 +38,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If(preprocessorSymbols Is Nothing, DefaultPreprocessorSymbols, ImmutableArray.CreateRange(preprocessorSymbols)))
 
             If Not languageVersion.IsValid Then
-                Throw New ArgumentOutOfRangeException("languageVersion")
+                Throw New ArgumentOutOfRangeException(NameOf(languageVersion))
             End If
 
             If Not kind.IsValid Then
-                Throw New ArgumentOutOfRangeException("kind")
+                Throw New ArgumentOutOfRangeException(NameOf(languageVersion))
             End If
 
-            ValidatePreprocessorSymbols(preprocessorSymbols, "preprocessorSymbols")
+            ValidatePreprocessorSymbols(preprocessorSymbols, NameOf(languageVersion))
         End Sub
 
         Private Shared Sub ValidatePreprocessorSymbols(preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)),
@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not version.IsValid Then
-                Throw New ArgumentOutOfRangeException("version")
+                Throw New ArgumentOutOfRangeException(NameOf(version))
             End If
 
             Return New VisualBasicParseOptions(Me) With {._languageVersion = version}
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not kind.IsValid Then
-                Throw New ArgumentOutOfRangeException("kind")
+                Throw New ArgumentOutOfRangeException(NameOf(kind))
             End If
 
             Return New VisualBasicParseOptions(Me) With {.Kind = kind}
@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not documentationMode.IsValid() Then
-                Throw New ArgumentOutOfRangeException("documentationMode")
+                Throw New ArgumentOutOfRangeException(NameOf(documentationMode))
             End If
 
             Return New VisualBasicParseOptions(Me) With {.DocumentationMode = documentationMode}
@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me
             End If
 
-            ValidatePreprocessorSymbols(symbols, "symbols")
+            ValidatePreprocessorSymbols(symbols, NameOf(symbols))
 
             Return New VisualBasicParseOptions(Me) With {._preprocessorSymbols = symbols}
         End Function

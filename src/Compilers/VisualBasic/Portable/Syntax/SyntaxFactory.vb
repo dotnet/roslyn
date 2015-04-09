@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.EndOfInterpolatedStringToken
 
                 Case Else
-                    Throw New ArgumentOutOfRangeException("kind")
+                    Throw New ArgumentOutOfRangeException(NameOf(kind))
             End Select
         End Sub
 
