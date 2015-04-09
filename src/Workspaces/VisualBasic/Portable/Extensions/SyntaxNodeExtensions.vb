@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Case TypeCharacter.String
                     Return "$"
                 Case Else
-                    Throw New ArgumentException("Unexpected TypeCharacter.", "type")
+                    Throw New ArgumentException("Unexpected TypeCharacter.", NameOf(type))
             End Select
         End Function
 
@@ -724,7 +724,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End While
 
             Debug.Assert(Not self.FullSpan.Contains(position), "Position is valid. How could we not find a child?")
-            Throw New ArgumentOutOfRangeException("position")
+            Throw New ArgumentOutOfRangeException(NameOf(position))
         End Function
 
 
