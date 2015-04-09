@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 _formatter,
                 evalFlags,
                 valueFlags,
-                isComObject);
+                isComObject: isComObject);
         }
 
         internal DkmClrValue CreateErrorValue(
