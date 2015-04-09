@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -70,9 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            var sharedHierarchy = document.SharedHierarchy;
-            Contract.Requires(GetSharedHierarchyForItem(document.Project.Hierarchy, itemId) == sharedHierarchy);
-
+            var sharedHierarchy = GetSharedHierarchyForItem(document.Project.Hierarchy, itemId);
             if (sharedHierarchy == null)
             {
                 return null;
@@ -193,6 +192,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             itemIdInSharedHierarchy = (uint)VSConstants.VSITEMID.Nil;
             return false;
+        }
+
+        /// <summary>
+        /// Check whether given project is project k project.
+        /// </summary>
+        public static bool IsProjectKProject(Project project)
+        {
+            // TODO: we need better way to see whether a project is project k project or not.
+            if (project.FilePath == null)
+            {
+                return false;
+            }
+
+            return project.FilePath.EndsWith(".xproj", StringComparison.InvariantCultureIgnoreCase) ||
+                   project.FilePath.EndsWith(".kproj", StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
