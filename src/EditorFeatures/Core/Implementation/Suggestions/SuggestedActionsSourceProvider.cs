@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
                 {
                     // Get the selection while on the UI thread.
-                    var selection = TryGetCodeRefactoringSelection(range);
+                    var selection = TryGetCodeRefactoringSelection(_subjectBuffer, _textView, range);
                     if (!selection.HasValue)
                     {
                         // this is here to fail test and see why it is failed.
@@ -349,9 +349,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public async Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
-                // Explicitly hold onto below fields in locals and use these locals throughout this code path to avoid races
+                // Explicitly hold onto below fields in locals and use these locals throughout this code path to avoid crashes
                 // if these fields happen to be cleared by Dispose() below. This is required since this code path involves
-                // code that runs asynchronously from background thread.
+                // code that can run asynchronously from background thread.
                 var view = _textView;
                 var buffer = _subjectBuffer;
                 var provider = _owner;
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                             supportSuggestion, requestedActionCategories, provider, document, range,
                             cancellationToken).ConfigureAwait(false) ||
                         await HasRefactoringsAsync(
-                            supportSuggestion, requestedActionCategories, provider, document, range,
+                            supportSuggestion, requestedActionCategories, provider, document, buffer, view, range,
                             cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -424,7 +424,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 IDocumentSupportsSuggestionService supportSuggestion,
                 ISuggestedActionCategorySet requestedActionCategories,
                 SuggestedActionsSourceProvider provider,
-                Document document, SnapshotSpan range,
+                Document document,
+                ITextBuffer buffer,
+                ITextView view,
+                SnapshotSpan range,
                 CancellationToken cancellationToken)
             {
                 var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
@@ -438,14 +441,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     if (IsForeground())
                     {
                         // This operation needs to happen on UI thread because it needs to access textView.Selection.
-                        selection = TryGetCodeRefactoringSelection(range);
+                        selection = TryGetCodeRefactoringSelection(buffer, view, range);
                     }
                     else
                     {
                         await InvokeBelowInputPriority(() =>
                         {
                             // This operation needs to happen on UI thread because it needs to access textView.Selection.
-                            selection = TryGetCodeRefactoringSelection(range);
+                            selection = TryGetCodeRefactoringSelection(buffer, view, range);
                         }).ConfigureAwait(false);
                     }
 
@@ -465,11 +468,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return false;
             }
 
-            private TextSpan? TryGetCodeRefactoringSelection(SnapshotSpan range)
+            private static TextSpan? TryGetCodeRefactoringSelection(ITextBuffer buffer, ITextView view, SnapshotSpan range)
             {
-                var selectedSpans = _textView.Selection.SelectedSpans
-                    .SelectMany(ss => _textView.BufferGraph.MapDownToBuffer(ss, SpanTrackingMode.EdgeExclusive, _subjectBuffer))
-                    .Where(ss => !_textView.IsReadOnlyOnSurfaceBuffer(ss))
+                var selectedSpans = view.Selection.SelectedSpans
+                    .SelectMany(ss => view.BufferGraph.MapDownToBuffer(ss, SpanTrackingMode.EdgeExclusive, buffer))
+                    .Where(ss => !view.IsReadOnlyOnSurfaceBuffer(ss))
                     .ToList();
 
                 // We only support refactorings when there is a single selection in the document.
@@ -572,12 +575,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private void OnSuggestedActionsChanged(Workspace currentWorkspace, DocumentId currentDocumentId, int solutionVersion, DiagnosticsUpdatedArgs args = null)
             {
-                if (_subjectBuffer == null)
+                // Explicitly hold onto the _subjectBuffer field in a local and use this local in this function to avoid crashes
+                // if this field happens to be cleared by Dispose() below. This is required since this code path involves code
+                // that can run on background thread.
+                var buffer = _subjectBuffer;
+                if (buffer == null)
                 {
                     return;
                 }
 
-                var workspace = _subjectBuffer.GetWorkspace();
+                var workspace = buffer.GetWorkspace();
 
                 // workspace is not ready, nothing to do.
                 if (workspace == null || workspace != currentWorkspace)
@@ -585,7 +592,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return;
                 }
 
-                if (currentDocumentId != workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer()) ||
+                if (currentDocumentId != workspace.GetDocumentIdInCurrentContext(buffer.AsTextContainer()) ||
                     solutionVersion == Volatile.Read(ref _lastSolutionVersionReported))
                 {
                     return;
