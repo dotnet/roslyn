@@ -250,5 +250,27 @@ End Class
 
             VerifyHighlights(input)
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Sub TestWrittenReference2()
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+Class Foo
+    Public Sub New()
+        Dim {|Definition:$$x|} As Integer
+        Foo({|WrittenReference:x|})
+    End Sub
+
+    Public Sub Foo(ByRef a as Integer)
+    End Sub
+End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            VerifyHighlights(input)
+        End Sub
     End Class
 End Namespace
