@@ -214,7 +214,7 @@ class Structs
             CompileAndVerify(unverifiable, assemblyValidator: validator, verify: false);
 
             // CLR limitation on type size, not a RefEmit bug:
-            CompileAndVerify(unloadable, emitOptions: TestEmitters.CCI, assemblyValidator: validator, verify: false);
+            CompileAndVerify(unloadable, emitters: TestEmitters.CCI, assemblyValidator: validator, verify: false);
         }
 
         [Fact]
@@ -332,7 +332,7 @@ public class C : B
 }
 ";
             // type C can't be loaded
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, verify: false);
+            CompileAndVerify(source, emitters: TestEmitters.CCI, verify: false);
         }
 
         [Fact]

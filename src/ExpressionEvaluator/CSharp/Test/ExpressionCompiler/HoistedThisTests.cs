@@ -12,6 +12,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
+using Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -641,7 +642,7 @@ class C : I<int>
                 assemblyName: GetUniqueName(),
                 references: ImmutableArray.Create(MscorlibRef),
                 exeBytes: ilBytes.ToArray(),
-                symReader: new SymReader(ilPdbBytes.ToArray()));
+                symReader: new SymReader(ilPdbBytes.ToArray(), ilBytes.ToArray()));
 
             var context = CreateMethodContext(runtime, "C.<I<System.Int32>.F>d__0.MoveNext");
             VerifyHasThis(context, "C", @"

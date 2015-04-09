@@ -7,10 +7,9 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -25,32 +24,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal class VisualStudioBaseDiagnosticListTable : AbstractTable<DiagnosticsUpdatedArgs, DiagnosticData>
     {
-        // predefined name of diagnostic property which shows in what compilation stage the diagnostic is created.
-        private const string Origin = "Origin";
-
-        // key for new errorrank data. we will remove this once we get official vs base drop update.
-        private const string ErrorRankKey = "errorrank";
-
-        // predefined error ranks. we are going to start with this predefined error ranks for now and can be extended to support additional languages
-        // this predefined ranks will be moved from roslyn to table control in next base drop update.
-        private static class ErrorRank
-        {
-            public const int Lexical = 0;
-            public const int Syntactic = 100;
-            public const int Declaration = 200;
-            public const int Semantic = 300;
-            public const int Emit = 400;
-            public const int PostBuild = 500;
-            public const int Other = int.MaxValue;
-        }
-
         private static readonly string[] s_columns = new string[]
         {
-            ShimTableColumnDefinitions.ErrorSeverity,
-            ShimTableColumnDefinitions.ErrorCode,
+            StandardTableColumnDefinitions.ErrorSeverity,
+            StandardTableColumnDefinitions.ErrorCode,
             StandardTableColumnDefinitions.Text,
-            ShimTableColumnDefinitions.ErrorCategory,
-            ShimTableColumnDefinitions.ProjectName,
+            StandardTableColumnDefinitions.ErrorCategory,
+            StandardTableColumnDefinitions.ProjectName,
             StandardTableColumnDefinitions.DocumentName,
             StandardTableColumnDefinitions.Line,
             StandardTableColumnDefinitions.Column,
@@ -93,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        private class TableDataSource : AbstractTableDataSource<DiagnosticsUpdatedArgs, DiagnosticData>
+        private class TableDataSource : AbstractRoslynTableDataSource<DiagnosticsUpdatedArgs, DiagnosticData>
         {
             private readonly Guid _identifier;
             private readonly IDiagnosticService _diagnosticService;
@@ -168,13 +148,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return;
                 }
 
-                if (e.Diagnostics.Length == 0 || !e.Diagnostics.Any(ShouldInclude))
+                if (e.Diagnostics.Length == 0)
                 {
                     OnDataRemoved(e.Id);
                     return;
                 }
 
-                OnDataAddedOrChanged(e.Id, e);
+                var count = e.Diagnostics.Where(ShouldInclude).Count();
+                if (count <= 0)
+                {
+                    OnDataRemoved(e.Id);
+                    return;
+                }
+
+                OnDataAddedOrChanged(e.Id, e, count);
             }
 
             private static bool ShouldInclude(DiagnosticData diagnostic)
@@ -195,7 +182,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private readonly DocumentId _documentId;
                 private readonly object _id;
 
-                public TableEntriesFactory(TableDataSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id)
+                public TableEntriesFactory(TableDataSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id) : 
+                    base(source)
                 {
                     _source = source;
                     _workspace = workspace;
@@ -250,7 +238,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     private readonly int _projectRank;
 
                     private FrameworkElement[] _descriptions;
-                    private FrameworkElement[] _errorCodes;
 
                     public TableEntriesSnapshot(
                         TableEntriesFactory factory, int version,
@@ -282,22 +269,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                         switch (columnName)
                         {
-                            case ShimTableKeyNames.ProjectRank:
+                            case StandardTableKeyNames.ProjectRank:
                                 content = _projectRank;
                                 return true;
-                            case ErrorRankKey:
+                            case StandardTableKeyNames.ErrorRank:
                                 content = GetErrorRank(item);
                                 return true;
-                            case ShimTableKeyNames.ErrorSeverity:
+                            case StandardTableKeyNames.ErrorSeverity:
                                 content = GetErrorCategory(item.Severity);
                                 return true;
-                            case ShimTableKeyNames.ErrorCode:
+                            case StandardTableKeyNames.ErrorCode:
                                 content = item.Id;
                                 return true;
                             case StandardTableKeyNames.HelpLink:
                                 content = GetHelpLink(item);
                                 return content != null;
-                            case ShimTableKeyNames.ErrorCategory:
+                            case StandardTableKeyNames.ErrorCategory:
                                 content = item.Category;
                                 return true;
                             case StandardTableKeyNames.Text:
@@ -312,11 +299,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case StandardTableKeyNames.Column:
                                 content = item.MappedStartColumn;
                                 return true;
-                            case ShimTableKeyNames.ProjectName:
+                            case StandardTableKeyNames.ProjectName:
                                 content = GetProjectName(_factory._workspace, _factory._projectId);
                                 return content != null;
-                            case ShimTableKeyNames.Project:
-                                content = GetHierarchy(_factory._workspace, _factory._projectId);
+                            case StandardTableKeyNames.Project:
+                                content = GetHierarchy(_factory._workspace, _factory._projectId, _factory._documentId);
                                 return content != null;
                             default:
                                 content = null;
@@ -324,16 +311,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         }
                     }
 
-                    private int GetErrorRank(DiagnosticData item)
+                    private ErrorRank GetErrorRank(DiagnosticData item)
                     {
                         string value;
-                        if (!item.Properties.TryGetValue(Origin, out value))
+                        if (!item.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out value))
                         {
                             return ErrorRank.Other;
                         }
 
                         switch (value)
                         {
+                            case WellKnownDiagnosticTags.Build:
+                                // any error from build is highest priority
+                                return ErrorRank.Lexical;
                             case nameof(ErrorRank.Lexical):
                                 return ErrorRank.Lexical;
                             case nameof(ErrorRank.Syntactic):
@@ -475,60 +465,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return null;
                     }
 
-                    public bool TryCreateColumnContent(int index, string columnName, bool singleColumnView, out FrameworkElement content)
-                    {
-                        content = default(FrameworkElement);
-                        if (columnName != ShimTableColumnDefinitions.ErrorCode)
-                        {
-                            return false;
-                        }
-
-                        var item = GetItem(index);
-                        if (item == null)
-                        {
-                            return false;
-                        }
-
-                        Uri unused;
-                        if (BrowserHelper.TryGetUri(item.HelpLink, out unused))
-                        {
-                            content = GetOrCreateTextBlock(ref _errorCodes, this.Count, index, item, i => GetHyperLinkTextBlock(i, new Uri(i.HelpLink, UriKind.Absolute), bingLink: false));
-                            return true;
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(item.Id))
-                        {
-                            // TODO: once we link descriptor with diagnostic, get en-us message for Uri creation
-                            content = GetOrCreateTextBlock(ref _errorCodes, this.Count, index, item, i => GetHyperLinkTextBlock(i, BrowserHelper.CreateBingQueryUri(item.Id, item.MessageFormat), bingLink: true));
-                            return true;
-                        }
-
-                        return false;
-                    }
-
-                    private FrameworkElement GetHyperLinkTextBlock(DiagnosticData item, Uri uri, bool bingLink)
-                    {
-                        // currently, we can't do pooling since there is no event saying when this got out of view.
-                        var content = new TextBlock()
-                        {
-                            Background = null,
-                            ToolTip = item.Id,
-                        };
-
-                        var hyperlink = new Hyperlink();
-
-                        hyperlink.Inlines.Add(item.Id);
-                        hyperlink.NavigateUri = uri;
-                        content.Inlines.Add(hyperlink);
-
-                        // hyperlink will go away as soon as it goes out of view or updated.
-                        hyperlink.Tag = item;
-
-                        // use small event handler singleton object so that leaking ui doesnt make snapshot to leak.
-                        UriNavigator.AttachRequestNaviateEventHandler(hyperlink, _factory._source._serviceProvider);
-                        return content;
-                    }
-
                     private static FrameworkElement GetOrCreateTextBlock(
                         ref FrameworkElement[] caches, int count, int index, DiagnosticData item, Func<DiagnosticData, FrameworkElement> elementCreator)
                     {
@@ -546,6 +482,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
 
                     // unused ones                    
+                    public bool TryCreateColumnContent(int index, string columnName, bool singleColumnView, out FrameworkElement content)
+                    {
+                        content = default(FrameworkElement);
+                        return false;
+                    }
+
                     public bool TryCreateImageContent(int index, string columnName, bool singleColumnView, out ImageMoniker content)
                     {
                         content = default(ImageMoniker);

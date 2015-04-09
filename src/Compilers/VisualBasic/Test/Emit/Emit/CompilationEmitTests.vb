@@ -70,14 +70,14 @@ End Module
             ' Compilation with quoted Rootnamespace and MainTypename still produces diagnostics.
             ' we do not unquote the options on WithRootnamespace or WithMainTypeName functions 
             CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("""Test""").WithMainTypeName("""Test.Module1""")).VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("""Test""", "RootNamespace").WithLocation(1, 1),
+                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("RootNamespace", """Test""").WithLocation(1, 1),
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("""Test.Module1""").WithLocation(1, 1))
 
             ' Use of Cyrillic rootnamespace and maintypename
             CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("решения").WithMainTypeName("решения.Module1")).VerifyDiagnostics()
 
             CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("""решения""").WithMainTypeName("""решения.Module1""")).VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("""решения""", "RootNamespace").WithLocation(1, 1),
+                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("RootNamespace", """решения""").WithLocation(1, 1),
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("""решения.Module1""").WithLocation(1, 1))
 
         End Sub
@@ -2760,7 +2760,7 @@ End interface
 
             Dim compilation = CreateCompilationWithReferences(source, {TestReferences.SymbolsTests.netModule.x64COFF}, TestOptions.DebugDll)
 
-            CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug, verify:=False)
+            CompileAndVerify(compilation, emitters:=TestEmitters.RefEmitBug, verify:=False)
             Assert.NotSame(compilation.Assembly.CorLibrary, compilation.Assembly)
             compilation.GetSpecialType(SpecialType.System_Int32)
         End Sub
@@ -2820,5 +2820,108 @@ End interface
             Assert.NotEqual(0, P1RVA)
             Assert.Equal(P2RVA, P1RVA)
         End Sub
+
+        Private Shared Function SequenceMatches(buffer As Byte(), startIndex As Integer, pattern As Byte()) As Boolean
+            For i = 0 To pattern.Length - 1
+                If buffer(startIndex + i) <> pattern(i) Then Return False
+            Next
+            Return True
+        End Function
+
+        Private Shared Function IndexOfPattern(buffer As Byte(), startIndex As Integer, pattern As Byte()) As Integer
+            Dim [end] = buffer.Length - pattern.Length
+            For i = startIndex To [end] - 1
+                If SequenceMatches(buffer, i, pattern) Then Return i
+            Next
+            Return -1
+        End Function
+
+        <Fact, WorkItem(1669, "https://github.com/dotnet/roslyn/issues/1669")>
+        Public Sub FoldMethods2()
+            ' Verifies that IL folding eliminates duplicate copies of small method bodies by
+            ' examining the emitted binary.
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Class C
+    Function M() As ULong
+        Return &amp;H8675309ABCDE4225UL
+    End Function
+    ReadOnly Property P As Long 
+        Get
+            Return -8758040459200282075
+        End Get
+    End Property
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
+            Using stream As Stream = compilation.EmitToStream()
+                Dim len As Integer = CType(stream.Length, Integer)
+                Dim bytes(len) As Byte
+                Assert.Equal(len, stream.Read(bytes, 0, len))
+
+                ' The constant should appear exactly once
+                Dim pattern() As Byte = {&H25, &H42, &HDE, &HBC, &H9A, &H30, &H75, &H86}
+                Dim firstMatch = IndexOfPattern(bytes, 0, pattern)
+                Assert.True(firstMatch >= 0, "Couldn't find the expected byte pattern in the output.")
+                Dim secondMatch = IndexOfPattern(bytes, firstMatch + 1, pattern)
+                Assert.True(secondMatch < 0, "Expected to find just one occurrence of the pattern in the output.")
+            End Using
+
+        End Sub
+
+        ''' <summary>
+        ''' Ordering of anonymous type definitions
+        ''' in metadata should be deterministic.
+        ''' </summary>
+        <Fact>
+        Public Sub AnonymousTypeMetadataOrder()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Class C1
+    Private F As Object = New With {.C = 1, .D = 2}
+End Class
+Class C2
+    Private F As Object = New With {.A = 3, .B = 4}
+End Class
+Class C3
+    Private F As Object = New With {.AB = 5}
+End Class
+Class C4
+    Private F As Object = New With {.E = 6, .F = 2}
+End Class
+Class C5
+    Private F As Object = New With {.E = 7, .F = 8}
+End Class
+Class C6
+    Private F As Object = New With {.AB = 9}
+End Class
+    </file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
+            Dim bytes = compilation.EmitToArray()
+            Using metadata = ModuleMetadata.CreateFromImage(bytes)
+                Dim reader = metadata.MetadataReader
+                Dim actualNames = reader.GetTypeDefNames().Select(Function(h) reader.GetString(h))
+                Dim expectedNames = {
+                    "<Module>",
+                    "VB$AnonymousType_0`2",
+                    "VB$AnonymousType_1`2",
+                    "VB$AnonymousType_2`1",
+                    "VB$AnonymousType_3`2",
+                    "C1",
+                    "C2",
+                    "C3",
+                    "C4",
+                    "C5",
+                    "C6"
+                    }
+                AssertEx.Equal(expectedNames, actualNames)
+            End Using
+        End Sub
+
     End Class
 End Namespace

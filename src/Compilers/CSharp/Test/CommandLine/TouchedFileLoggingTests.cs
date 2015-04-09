@@ -215,8 +215,7 @@ public class C { }").Path;
                 var cmd = new CSharpCompilerServer(null,
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
                     _baseDirectory,
-                    s_libDirectory,
-                    Path.GetTempPath());
+                    s_libDirectory);
 
                 List<string> expectedReads;
                 List<string> expectedWrites;
@@ -263,11 +262,6 @@ public class C { }").Path;
             var writes = new List<string>();
             writes.Add(outputPath);
 
-            // Hook temporary file creation
-            cmd.OnCreateTempFile += (tempPath, stream) =>
-                                    {
-                                        writes.Add(tempPath);
-                                    };
             expectedWrites = writes;
         }
 

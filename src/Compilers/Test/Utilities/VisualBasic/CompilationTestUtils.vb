@@ -15,16 +15,16 @@ Imports Xunit
 
 Friend Module CompilationUtils
 
-    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of String), Optional references As IEnumerable(Of MetadataReference) = Nothing, Optional compOptions As VisualBasicCompilationOptions = Nothing, Optional assemblyName As String = Nothing) As VisualBasicCompilation
-        Return VisualBasicCompilation.Create(If(assemblyName, "Test"), sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s)), If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), compOptions)
+    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of String), Optional references As IEnumerable(Of MetadataReference) = Nothing, Optional options As VisualBasicCompilationOptions = Nothing, Optional assemblyName As String = Nothing) As VisualBasicCompilation
+        Return VisualBasicCompilation.Create(If(assemblyName, "Test"), sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s)), If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), options)
     End Function
 
-    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of SyntaxTree), Optional compOptions As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
-        Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, {MscorlibRef}, compOptions)
+    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of SyntaxTree), Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+        Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, {MscorlibRef}, options)
     End Function
 
-    Public Function CreateCompilationWithMscorlib(sourceTrees As SyntaxTree, Optional compOptions As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
-        Return VisualBasicCompilation.Create(GetUniqueName(), {sourceTrees}, {MscorlibRef}, compOptions)
+    Public Function CreateCompilationWithMscorlib(sourceTrees As SyntaxTree, Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+        Return VisualBasicCompilation.Create(GetUniqueName(), {sourceTrees}, {MscorlibRef}, options)
     End Function
 
 
@@ -114,9 +114,6 @@ Friend Module CompilationUtils
     ''' &lt;/file&gt;
     ''' &lt;/compilation&gt;
     ''' </param>
-    ''' <param name="additionalRefs"></param>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
     Public Function CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
         sources As XElement,
         Optional additionalRefs As IEnumerable(Of MetadataReference) = Nothing,
@@ -182,6 +179,13 @@ Friend Module CompilationUtils
     Public Function ToSourceTrees(compilationSources As XElement, Optional parseOptions As VisualBasicParseOptions = Nothing) As IEnumerable(Of SyntaxTree)
         Dim sourcesTreesAndSpans = From f In compilationSources.<file> Select CreateParseTreeAndSpans(f, parseOptions)
         Return From t In sourcesTreesAndSpans Select t.Item1
+    End Function
+
+    Public Function CreateCompilationWithReferences(sourceTree As SyntaxTree,
+                                                    references As IEnumerable(Of MetadataReference),
+                                                    Optional options As VisualBasicCompilationOptions = Nothing,
+                                                    Optional assemblyName As String = Nothing) As VisualBasicCompilation
+        Return CreateCompilationWithReferences({sourceTree}, references, options, assemblyName)
     End Function
 
     Public Function CreateCompilationWithReferences(sourceTrees As IEnumerable(Of SyntaxTree),
@@ -401,7 +405,7 @@ Friend Module CompilationUtils
 
         Assert.NotNull(node)  ' If this trips, then node  wasn't found
         Assert.IsAssignableFrom(GetType(TNode), node)
-        Assert.Contains(bindText, node.ToString())
+        Assert.Contains(bindText, node.ToString(), StringComparison.Ordinal)
 
         Return DirectCast(node, TNode)
     End Function

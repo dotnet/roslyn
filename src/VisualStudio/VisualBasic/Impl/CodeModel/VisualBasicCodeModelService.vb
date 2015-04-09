@@ -28,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
     Partial Friend Class VisualBasicCodeModelService
         Inherits AbstractCodeModelService
 
-        Private ReadOnly commitBufferManagerFactory As CommitBufferManagerFactory
+        Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
 
         Friend Sub New(provider As HostLanguageServices, editorOptionsFactoryService As IEditorOptionsFactoryService, refactorNotifyServices As IEnumerable(Of IRefactorNotifyService), commitBufferManagerFactory As CommitBufferManagerFactory)
             MyBase.New(
@@ -38,35 +38,35 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 New LineAdjustmentFormattingRule(),
                 New EndRegionFormattingRule())
 
-            Me.commitBufferManagerFactory = commitBufferManagerFactory
+            Me._commitBufferManagerFactory = commitBufferManagerFactory
         End Sub
 
-        Private Shared ReadOnly codeTypeRefAsFullNameFormat As SymbolDisplayFormat =
+        Private Shared ReadOnly s_codeTypeRefAsFullNameFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.ExpandNullable)
 
-        Private Shared ReadOnly codeTypeRefAsStringFormat As SymbolDisplayFormat =
+        Private Shared ReadOnly s_codeTypeRefAsStringFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
-        Private Shared ReadOnly fullNameFormat As SymbolDisplayFormat =
+        Private Shared ReadOnly s_fullNameFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions:=SymbolDisplayMemberOptions.IncludeContainingType,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.ExpandNullable)
 
-        Private Shared ReadOnly setTypeFormat As SymbolDisplayFormat =
+        Private Shared ReadOnly s_setTypeFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.ExpandNullable Or SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
-        Private Shared ReadOnly raiseEventSignatureFormat As SymbolDisplayFormat =
+        Private Shared ReadOnly s_raiseEventSignatureFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -771,11 +771,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Public Overrides Function GetAsFullNameForCodeTypeRef(typeSymbol As ITypeSymbol) As String
-            Return typeSymbol.ToDisplayString(codeTypeRefAsFullNameFormat)
+            Return typeSymbol.ToDisplayString(s_codeTypeRefAsFullNameFormat)
         End Function
 
         Public Overrides Function GetAsStringForCodeTypeRef(typeSymbol As ITypeSymbol) As String
-            Return typeSymbol.ToDisplayString(codeTypeRefAsStringFormat)
+            Return typeSymbol.ToDisplayString(s_codeTypeRefAsStringFormat)
         End Function
 
         Public Overrides Function IsParameterNode(node As SyntaxNode) As Boolean
@@ -1021,7 +1021,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Throw Exceptions.ThrowEFail()
             End If
 
-            Return symbol.ToDisplayString(fullNameFormat)
+            Return symbol.ToDisplayString(s_fullNameFormat)
         End Function
 
         Public Overrides Function IsAccessorNode(node As SyntaxNode) As Boolean
@@ -1098,7 +1098,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
         Public Overrides Function TryGetParameterNode(parentNode As SyntaxNode, name As String, ByRef parameterNode As SyntaxNode) As Boolean
             For Each parameter As ParameterSyntax In GetParameterNodes(parentNode)
-                If String.Equals(parameter.Identifier.Identifier.ValueText, name, StringComparison.OrdinalIgnoreCase) Then
+                Dim parameterName = GetNameFromParameter(parameter)
+                If String.Equals(parameterName, name, StringComparison.OrdinalIgnoreCase) Then
                     parameterNode = parameter
                     Return True
                 End If
@@ -1851,7 +1852,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End Select
         End Function
 
-        Overrides Sub GetImportParentAndName(node As SyntaxNode, ByRef parentNode As SyntaxNode, ByRef name As String)
+        Public Overrides Sub GetImportParentAndName(node As SyntaxNode, ByRef parentNode As SyntaxNode, ByRef name As String)
             parentNode = Nothing
 
             Select Case node.Kind
@@ -1865,10 +1866,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Public Overrides Function GetParameterName(node As SyntaxNode) As String
             Dim parameter = TryCast(node, ParameterSyntax)
             If parameter IsNot Nothing Then
-                Return parameter.Identifier.Identifier.ValueText
+                Return GetNameFromParameter(parameter)
             End If
 
             Throw New InvalidOperationException()
+        End Function
+
+        Private Function GetNameFromParameter(parameter As ParameterSyntax) As String
+            Dim parameterName As String = parameter.Identifier.Identifier.ToString()
+            Return If(Not String.IsNullOrEmpty(parameterName) AndAlso SyntaxFactsService.IsTypeCharacter(parameterName.Last()),
+                parameterName.Substring(0, parameterName.Length - 1),
+                parameterName)
         End Function
 
         Public Overrides Function GetParameterFullName(node As SyntaxNode) As String
@@ -2420,8 +2428,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      MethodKind.DeclareMethod
                     Return If(symbol.ReturnsVoid, EnvDTE.vsCMFunction.vsCMFunctionSub, EnvDTE.vsCMFunction.vsCMFunctionFunction)
 
-                Case MethodKind.Constructor
-                Case MethodKind.StaticConstructor
+                Case MethodKind.Constructor,
+                     MethodKind.StaticConstructor
                     Return EnvDTE.vsCMFunction.vsCMFunctionConstructor
 
                 Case MethodKind.UserDefinedOperator
@@ -2824,18 +2832,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                          TypeOf memberNode Is PropertyStatementSyntax)
 
             Dim propertyStatement = TryCast(memberNode, PropertyStatementSyntax)
-            If propertyStatement IsNot Nothing Then
-                Debug.Assert(Not propertyStatement.IsParentKind(SyntaxKind.PropertyBlock))
 
-                ' Auto property
-                Return EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite
+            If propertyStatement Is Nothing Then
+                Dim propertyBlock = TryCast(memberNode, PropertyBlockSyntax)
+                If propertyBlock IsNot Nothing Then
+                    propertyStatement = propertyBlock.PropertyStatement
+                End If
             End If
 
-            Dim propertyBlock = TryCast(memberNode, PropertyBlockSyntax)
-            If propertyBlock IsNot Nothing Then
-                If propertyBlock.PropertyStatement.Modifiers.Any(SyntaxKind.WriteOnlyKeyword) Then
+            If propertyStatement IsNot Nothing Then
+                If propertyStatement.Modifiers.Any(SyntaxKind.WriteOnlyKeyword) Then
                     Return EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly
-                ElseIf propertyBlock.PropertyStatement.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) Then
+                ElseIf propertyStatement.Modifiers.Any(SyntaxKind.ReadOnlyKeyword)
                     Return EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly
                 Else
                     Return EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite
@@ -2866,7 +2874,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         asClause:=Nothing)
                 End If
             Else
-                Dim typeName = typeSymbol.ToDisplayString(setTypeFormat)
+                Dim typeName = typeSymbol.ToDisplayString(s_setTypeFormat)
                 Dim newType = SyntaxFactory.ParseTypeName(typeName)
 
                 ' If this is a Sub, convert to a Function
@@ -2906,7 +2914,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithLeadingTrivia(SyntaxTriviaList.Empty) _
                 .WithTrailingTrivia(SyntaxTriviaList.Empty)
 
-            Dim typeName = typeSymbol.ToDisplayString(setTypeFormat)
+            Dim typeName = typeSymbol.ToDisplayString(s_setTypeFormat)
             Dim newType = SyntaxFactory.ParseTypeName(typeName)
 
             ' If the event has a parameter list, we need to remove it.
@@ -2933,7 +2941,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Throw Exceptions.ThrowEInvalidArg()
             End If
 
-            Dim typeName = typeSymbol.ToDisplayString(setTypeFormat)
+            Dim typeName = typeSymbol.ToDisplayString(s_setTypeFormat)
             Dim newType = SyntaxFactory.ParseTypeName(typeName)
 
             ' Update the event statement
@@ -2991,7 +2999,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     If namedTypeSymbol IsNot Nothing Then
                         Dim invokeMethod = namedTypeSymbol.DelegateInvokeMethod
                         If invokeMethod IsNot Nothing Then
-                            Dim parameterStrings = invokeMethod.Parameters.Select(Function(p) p.ToDisplayString(raiseEventSignatureFormat))
+                            Dim parameterStrings = invokeMethod.Parameters.Select(Function(p) p.ToDisplayString(s_raiseEventSignatureFormat))
                             Dim parameterListString = "("c & String.Join(", ", parameterStrings) & ")"c
                             Dim newParameterList = SyntaxFactory.ParseParameterList(parameterListString)
 
@@ -3032,7 +3040,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         implementsClause:=methodStatement.ImplementsClause)
                 End If
             Else
-                Dim typeName = typeSymbol.ToDisplayString(setTypeFormat)
+                Dim typeName = typeSymbol.ToDisplayString(s_setTypeFormat)
                 Dim newType = SyntaxFactory.ParseTypeName(typeName)
 
                 ' If this is a Sub, convert to a Function
@@ -3104,7 +3112,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithLeadingTrivia(SyntaxTriviaList.Empty) _
                 .WithTrailingTrivia(SyntaxTriviaList.Empty)
 
-            Dim typeName = typeSymbol.ToDisplayString(setTypeFormat)
+            Dim typeName = typeSymbol.ToDisplayString(s_setTypeFormat)
             Dim newType = SyntaxFactory.ParseTypeName(typeName)
 
             If parameter.AsClause IsNot Nothing Then
@@ -3133,7 +3141,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithLeadingTrivia(SyntaxTriviaList.Empty) _
                 .WithTrailingTrivia(SyntaxTriviaList.Empty)
 
-            Dim typeName = typeSymbol.ToDisplayString(setTypeFormat)
+            Dim typeName = typeSymbol.ToDisplayString(s_setTypeFormat)
             Dim newType = SyntaxFactory.ParseTypeName(typeName)
 
             If propertyStatement.AsClause IsNot Nothing Then
@@ -3165,7 +3173,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Dim propertyStatement = SetPropertyType(propertyBlock.PropertyStatement, typeSymbol)
             propertyBlock = propertyBlock.WithPropertyStatement(propertyStatement)
 
-            Dim typeName = typeSymbol.ToDisplayString(setTypeFormat)
+            Dim typeName = typeSymbol.ToDisplayString(s_setTypeFormat)
             Dim newType = SyntaxFactory.ParseTypeName(typeName)
 
             For i = 0 To propertyBlock.Accessors.Count - 1
@@ -3216,7 +3224,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithLeadingTrivia(SyntaxTriviaList.Empty) _
                 .WithTrailingTrivia(SyntaxTriviaList.Empty)
 
-            Dim typeName = typeSymbol.ToDisplayString(setTypeFormat)
+            Dim typeName = typeSymbol.ToDisplayString(s_setTypeFormat)
             Dim newType = SyntaxFactory.ParseTypeName(typeName)
 
             If variableDeclarator.AsClause IsNot Nothing Then
@@ -4213,15 +4221,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Public Overrides Sub AttachFormatTrackingToBuffer(buffer As ITextBuffer)
-            commitBufferManagerFactory.CreateForBuffer(buffer).AddReferencingView()
+            _commitBufferManagerFactory.CreateForBuffer(buffer).AddReferencingView()
         End Sub
 
         Public Overrides Sub DetachFormatTrackingToBuffer(buffer As ITextBuffer)
-            commitBufferManagerFactory.CreateForBuffer(buffer).RemoveReferencingView()
+            _commitBufferManagerFactory.CreateForBuffer(buffer).RemoveReferencingView()
         End Sub
 
         Public Overrides Sub EnsureBufferFormatted(buffer As ITextBuffer)
-            commitBufferManagerFactory.CreateForBuffer(buffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=Nothing)
+            _commitBufferManagerFactory.CreateForBuffer(buffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=Nothing)
         End Sub
     End Class
 End Namespace

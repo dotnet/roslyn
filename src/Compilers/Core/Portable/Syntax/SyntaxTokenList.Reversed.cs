@@ -4,10 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -15,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     public partial struct SyntaxTokenList
     {
         /// <summary>
-        /// reversed enumerable
+        /// Reversed enumerable.
         /// </summary>
         public struct Reversed : IEnumerable<SyntaxToken>, IEquatable<Reversed>
         {
@@ -41,7 +38,7 @@ namespace Microsoft.CodeAnalysis
                 return new EnumeratorImpl(ref _list);
             }
 
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            IEnumerator IEnumerable.GetEnumerator()
             {
                 if (_list.Count == 0)
                 {
@@ -67,6 +64,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
+            [StructLayout(LayoutKind.Auto)]
             public struct Enumerator
             {
                 private readonly SyntaxNode _parent;
@@ -84,7 +82,7 @@ namespace Microsoft.CodeAnalysis
                     if (list.Any())
                     {
                         _parent = list._parent;
-                        _singleNodeOrList = list._node;
+                        _singleNodeOrList = list.Node;
                         _baseIndex = list._index;
                         _count = list.Count;
 
@@ -146,15 +144,9 @@ namespace Microsoft.CodeAnalysis
                     _enumerator = new Enumerator(ref list);
                 }
 
-                public SyntaxToken Current
-                {
-                    get { return _enumerator.Current; }
-                }
+                public SyntaxToken Current => _enumerator.Current;
 
-                object IEnumerator.Current
-                {
-                    get { return _enumerator.Current; }
-                }
+                object IEnumerator.Current => _enumerator.Current;
 
                 public bool MoveNext()
                 {

@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -102,6 +103,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 var newName = _snapshotSpan.GetText();
                 var optionSet = document.Project.Solution.Workspace.Options;
+
+                if (_stateMachine.TrackingSession.ForceRenameOverloads)
+                {
+                    optionSet = optionSet.WithChangedOption(RenameOptions.RenameOverloads, true);
+                }
 
                 var renamedSolution = Renamer.RenameSymbolAsync(solutionWithOriginalName, symbol, newName, optionSet, cancellationToken).WaitAndGetResult(cancellationToken);
 
@@ -213,10 +219,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 var semanticModel = documentWithOriginalName.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
                 var token = syntaxTreeWithOriginalName.GetTouchingWord(_snapshotSpan.Start, syntaxFacts, cancellationToken);
+                var tokenRenameInfo = RenameUtilities.GetTokenRenameInfo(semanticFacts, semanticModel, token, cancellationToken);
 
-                symbol = semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken);
-                symbol = symbol ?? semanticModel.GetSymbolInfo(token, cancellationToken).Symbol;
-
+                symbol = tokenRenameInfo.HasSymbols ? tokenRenameInfo.Symbols.First() : null;
                 return symbol != null;
             }
 

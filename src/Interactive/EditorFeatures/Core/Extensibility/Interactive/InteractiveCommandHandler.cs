@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         void ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, Action nextHandler)
         {
             var window = OpenInteractiveWindow(focus: false);
-            window.Submit(new[] { GetSelectedText(args) });
+            window.SubmitAsync(new[] { GetSelectedText(args) });
         }
 
         CommandState ICommandHandler<CopyToInteractiveCommandArgs>.GetCommandState(CopyToInteractiveCommandArgs args, Func<CommandState> nextHandler)

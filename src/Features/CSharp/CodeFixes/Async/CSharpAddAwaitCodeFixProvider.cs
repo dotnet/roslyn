@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Async;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Roslyn.Utilities;
 using Resources = Microsoft.CodeAnalysis.CSharp.CSharpFeaturesResources;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
@@ -51,17 +52,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 case CS4016:
                     if (expression == null)
                     {
-                        return Task.FromResult<SyntaxNode>(null);
+                        return SpecializedTasks.Default<SyntaxNode>();
                     }
 
                     if (!IsCorrectReturnType(expression, semanticModel))
                     {
-                        return Task.FromResult<SyntaxNode>(null);
+                        return SpecializedTasks.Default<SyntaxNode>();
                     }
 
                     return Task.FromResult(root.ReplaceNode(oldNode, ConvertToAwaitExpression(expression)));
                 default:
-                    return Task.FromResult<SyntaxNode>(null);
+                    return SpecializedTasks.Default<SyntaxNode>();
             }
         }
 

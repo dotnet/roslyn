@@ -7,7 +7,7 @@
   <PropertyGroup>
     <StartupObject />
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -193,6 +193,8 @@
     <Compile Include="CodeActions\InvertIf\InvertIfTests.cs" />
     <Compile Include="CodeActions\LambdaSimplifier\LambdaSimplifierTests.cs" />
     <Compile Include="CodeActions\MoveDeclarationNearReference\MoveDeclarationNearReferenceTests.cs" />
+    <Compile Include="CodeActions\Preview\ErrorCases\ExceptionInCodeAction.cs" />
+    <Compile Include="CodeActions\Preview\PreviewExceptionTests.cs" />
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
     <Compile Include="CommentSelection\CSharpCommentSelectionTests.cs" />
     <Compile Include="Completion\CompletionProviders\AbstractCSharpCompletionProviderTests.cs" />
@@ -539,6 +541,9 @@
     <None Include="PerfTests\CSharpPgoTyping.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="PerfTests\CSharpVenusPgoTyping.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="PerfTests\MiniPicassoPgo.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -644,6 +649,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Content Include="PerfTests\Sources\CSharpPgoTypingInput.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PerfTests\Sources\CSharpVenusPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ReportDiagnostics(diagnostics, context.ReportDiagnostic, IsSourceLocation, s_syntactic);
             }
 
-            public void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
+            public static void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
             {
                 var declDiagnostics = context.SemanticModel.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(declDiagnostics, context.ReportDiagnostic, IsSourceLocation, s_declaration);
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ReportDiagnostics(bodyDiagnostics, context.ReportDiagnostic, IsSourceLocation);
             }
 
-            public static void AnalyzeCompilation(CompilationEndAnalysisContext context)
+            public static void AnalyzeCompilation(CompilationAnalysisContext context)
             {
                 var diagnostics = context.Compilation.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(diagnostics, context.ReportDiagnostic, location => !IsSourceLocation(location), s_declaration);

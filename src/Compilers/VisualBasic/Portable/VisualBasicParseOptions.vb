@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements IEquatable(Of VisualBasicParseOptions)
 
         Public Shared ReadOnly [Default] As VisualBasicParseOptions = New VisualBasicParseOptions()
-        Private Shared _defaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
+        Private Shared s_defaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
 
         Private _preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
         Private _languageVersion As LanguageVersion
@@ -94,11 +94,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly Property DefaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
             Get
-                If _defaultPreprocessorSymbols.IsDefaultOrEmpty Then
-                    _defaultPreprocessorSymbols = ImmutableArray.Create(KeyValuePair.Create("_MYTYPE", CObj("Empty")))
+                If s_defaultPreprocessorSymbols.IsDefaultOrEmpty Then
+                    s_defaultPreprocessorSymbols = ImmutableArray.Create(KeyValuePair.Create("_MYTYPE", CObj("Empty")))
                 End If
 
-                Return _defaultPreprocessorSymbols
+                Return s_defaultPreprocessorSymbols
             End Get
         End Property
 
@@ -248,11 +248,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shadows Function WithFeatures(features As IEnumerable(Of KeyValuePair(Of String, String))) As VisualBasicParseOptions
             ' there are currently no parse options for experimental features
             If features Is Nothing Then
-                Throw New ArgumentException(NameOf (features))
+                Throw New ArgumentException(NameOf(features))
             End If
 
             If features.Any() Then
-                Throw New ArgumentException("Experimental features are not supported", NameOf (features))
+                Throw New ArgumentException("Experimental features are not supported", NameOf(features))
             End If
 
             Return Me

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     severity, severity, isEnabledByDefault, warningLevel,
                     ImmutableArray<string>.Empty, ImmutableDictionary<string, string>.Empty,
                     workspace, projectId, documentId, span,
-                    originalFilePath, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
+                    null, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
                     originalFilePath, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
                     title, description, helpLink)
         {
@@ -284,6 +285,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static DiagnosticData Create(Workspace workspace, Diagnostic diagnostic)
         {
+            Contract.Requires(diagnostic.Location == null || !diagnostic.Location.IsInSource);
+
             return new DiagnosticData(
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
@@ -304,15 +307,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static DiagnosticData Create(Project project, Diagnostic diagnostic)
         {
-            if (diagnostic.Location.IsInSource)
-            {
-                // Project diagnostic reported at a document location (e.g. compilation end action diagnostics).
-                var document = project.GetDocument(diagnostic.Location.SourceTree);
-                if (document != null)
-                {
-                    return Create(document, diagnostic);
-                }
-            }
+            Contract.Requires(diagnostic.Location == null || !diagnostic.Location.IsInSource);
 
             return new DiagnosticData(
                 diagnostic.Id,
@@ -366,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 document.Project.Id,
                 document.Id,
                 sourceSpan,
-                mappedLineInfo.Path,
+                mappedLineInfo.GetMappedFilePathIfExist(),
                 mappedStartLine,
                 mappedStartColumn,
                 mappedEndLine,

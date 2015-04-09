@@ -13,12 +13,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Friend NotInheritable Class SynthesizedLambdaMethod
         Inherits SynthesizedMethod
+        Implements ISynthesizedMethodBodyImplementationSymbol
 
-        Private ReadOnly m_lambda As LambdaSymbol
-        Private ReadOnly m_parameters As ImmutableArray(Of ParameterSymbol)
-        Private ReadOnly m_locations As ImmutableArray(Of Location)
-        Private ReadOnly m_typeParameters As ImmutableArray(Of TypeParameterSymbol)
-        Private ReadOnly m_typeMap As TypeSubstitution
+        Private ReadOnly _lambda As LambdaSymbol
+        Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
+        Private ReadOnly _locations As ImmutableArray(Of Location)
+        Private ReadOnly _typeParameters As ImmutableArray(Of TypeParameterSymbol)
+        Private ReadOnly _typeMap As TypeSubstitution
+        Private ReadOnly _topLevelMethod As MethodSymbol
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
@@ -28,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides ReadOnly Property TypeMap As TypeSubstitution
             Get
-                Return Me.m_typeMap
+                Return Me._typeMap
             End Get
         End Property
 
@@ -39,40 +41,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' - it is either Frame or enclosing class in a case if we do not lift anything.</param>
         ''' <param name="topLevelMethod">Method that contains lambda expression for which we do the rewrite.</param>
         ''' <param name="lambdaNode">Lambda expression which is represented by this method.</param>
-        Friend Sub New(slotAllocatorOpt As VariableSlotAllocator,
-                       compilationState As TypeCompilationState,
-                       containingType As InstanceTypeSymbol,
+        Friend Sub New(containingType As InstanceTypeSymbol,
                        closureKind As ClosureKind,
                        topLevelMethod As MethodSymbol,
-                       topLevelMethodOrdinal As Integer,
+                       topLevelMethodId As DebugId,
                        lambdaNode As BoundLambda,
-                       lambdaOrdinal As Integer,
+                       lambdaId As DebugId,
                        diagnostics As DiagnosticBag)
 
             MyBase.New(lambdaNode.Syntax,
                        containingType,
-                       MakeName(slotAllocatorOpt, compilationState, closureKind, topLevelMethodOrdinal, lambdaNode.LambdaSymbol.SynthesizedKind, lambdaOrdinal),
+                       MakeName(topLevelMethodId, closureKind, lambdaNode.LambdaSymbol.SynthesizedKind, lambdaId),
                        isShared:=False)
 
-            Me.m_lambda = lambdaNode.LambdaSymbol
-            Me.m_locations = ImmutableArray.Create(lambdaNode.Syntax.GetLocation())
+            Me._lambda = lambdaNode.LambdaSymbol
+            Me._locations = ImmutableArray.Create(lambdaNode.Syntax.GetLocation())
 
             If Not topLevelMethod.IsGenericMethod Then
-                Me.m_typeMap = Nothing
-                Me.m_typeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
+                Me._typeMap = Nothing
+                Me._typeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
             Else
                 Dim containingTypeAsFrame = TryCast(containingType, LambdaFrame)
                 If containingTypeAsFrame IsNot Nothing Then
-                    Me.m_typeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
-                    Me.m_typeMap = containingTypeAsFrame.TypeMap
+                    Me._typeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
+                    Me._typeMap = containingTypeAsFrame.TypeMap
                 Else
-                    Me.m_typeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(topLevelMethod.TypeParameters, Me, LambdaFrame.CreateTypeParameter)
-                    Me.m_typeMap = TypeSubstitution.Create(topLevelMethod, topLevelMethod.TypeParameters, Me.TypeArguments)
+                    Me._typeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(topLevelMethod.TypeParameters, Me, LambdaFrame.CreateTypeParameter)
+                    Me._typeMap = TypeSubstitution.Create(topLevelMethod, topLevelMethod.TypeParameters, Me.TypeArguments)
                 End If
             End If
 
             Dim params = ArrayBuilder(Of ParameterSymbol).GetInstance
-            For Each curParam In m_lambda.Parameters
+            For Each curParam In _lambda.Parameters
                 params.Add(
                     WithNewContainerAndType(
                     Me,
@@ -80,31 +80,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     curParam))
             Next
 
-            Me.m_parameters = params.ToImmutableAndFree
+            Me._parameters = params.ToImmutableAndFree
+            Me._topLevelMethod = topLevelMethod
         End Sub
 
-        Private Shared Function MakeName(slotAllocatorOpt As VariableSlotAllocator,
-                                         compilationState As TypeCompilationState,
+        Private Shared Function MakeName(topLevelMethodId As DebugId,
                                          closureKind As ClosureKind,
-                                         topLevelMethodOrdinal As Integer,
                                          lambdaKind As SynthesizedLambdaKind,
-                                         lambdaOrdinal As Integer) As String
-
-            ' TODO: slotAllocatorOpt?.GetPrevious()
-
+                                         lambdaId As DebugId) As String
             ' Lambda method name must contain the declaring method ordinal to be unique unless the method is emitted into a closure class exclusive to the declaring method.
             ' Lambdas that only close over "Me" are emitted directly into the top-level method containing type.
             ' Lambdas that don't close over anything (static) are emitted into a shared closure singleton.
             Return GeneratedNames.MakeLambdaMethodName(
-                If(closureKind = ClosureKind.General, -1, topLevelMethodOrdinal),
-                If(compilationState.ModuleBuilderOpt?.CurrentGenerationOrdinal, 0), ' Note: module builder is not available only when testing emit diagnostics
-                lambdaOrdinal,
+                If(closureKind = ClosureKind.General, -1, topLevelMethodId.Ordinal),
+                topLevelMethodId.Generation,
+                lambdaId.Ordinal,
+                lambdaId.Generation,
                 lambdaKind)
         End Function
 
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
-                Return m_typeParameters
+                Return _typeParameters
             End Get
         End Property
 
@@ -121,19 +118,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return m_locations
+                Return _locations
             End Get
         End Property
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                Return m_parameters
+                Return _parameters
             End Get
         End Property
 
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
-                Return m_lambda.ReturnType.InternalSubstituteTypeParameters(TypeMap)
+                Return _lambda.ReturnType.InternalSubstituteTypeParameters(TypeMap)
             End Get
         End Property
 
@@ -145,14 +142,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property IsVararg As Boolean
             Get
-                Debug.Assert(Not m_lambda.IsVararg)
+                Debug.Assert(Not _lambda.IsVararg)
                 Return False
             End Get
         End Property
 
         Public Overrides ReadOnly Property Arity As Integer
             Get
-                Return m_typeParameters.Length
+                Return _typeParameters.Length
             End Get
         End Property
 
@@ -164,13 +161,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property IsAsync As Boolean
             Get
-                Return Me.m_lambda.IsAsync
+                Return Me._lambda.IsAsync
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsIterator As Boolean
             Get
-                Return Me.m_lambda.IsIterator
+                Return Me._lambda.IsIterator
             End Get
         End Property
 
@@ -204,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
             Get
-                Return m_lambda.GenerateDebugInfoImpl
+                Return _lambda.GenerateDebugInfoImpl
             End Get
         End Property
 
@@ -226,5 +223,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(localPosition >= bodyStart)
             Return localPosition - bodyStart
         End Function
+
+        ' The lambda method body needs to be updated when the containing top-level method body is updated.
+        Public ReadOnly Property HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+            Get
+                Return True
+            End Get
+        End Property
+
+        Public ReadOnly Property Method As IMethodSymbol Implements ISynthesizedMethodBodyImplementationSymbol.Method
+            Get
+                Return _topLevelMethod
+            End Get
+        End Property
+
     End Class
 End Namespace

@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return MyBase.ProcessSyntax(node)
                     End If
 
-                    ' multi-line if handled after select
+                ' multi-line if handled after select
 
                 Case SyntaxKind.ElseIfStatement
                     ' ElseIf ends the context. This is an error case. Let the outer context process them.

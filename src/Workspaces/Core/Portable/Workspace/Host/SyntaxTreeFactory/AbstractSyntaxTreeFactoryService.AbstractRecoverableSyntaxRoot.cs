@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -15,13 +16,15 @@ namespace Microsoft.CodeAnalysis.Host
             public readonly string FilePath;
             public readonly ParseOptions Options;
             public readonly ValueSource<TextAndVersion> TextSource;
+            public readonly Encoding Encoding;
             public readonly int Length;
 
-            public SyntaxTreeInfo(string filePath, ParseOptions options, ValueSource<TextAndVersion> textSource, int length)
+            public SyntaxTreeInfo(string filePath, ParseOptions options, ValueSource<TextAndVersion> textSource, Encoding encoding, int length)
             {
                 FilePath = filePath;
                 Options = options;
                 TextSource = textSource;
+                Encoding = encoding;
                 Length = length;
             }
 
@@ -48,16 +51,16 @@ namespace Microsoft.CodeAnalysis.Host
 
             internal SyntaxTreeInfo WithFilePath(string path)
             {
-                return new SyntaxTreeInfo(path, this.Options, this.TextSource, this.Length);
+                return new SyntaxTreeInfo(path, this.Options, this.TextSource, this.Encoding, this.Length);
             }
 
             internal SyntaxTreeInfo WithOptionsAndLength(ParseOptions options, int length)
             {
-                return new SyntaxTreeInfo(this.FilePath, options, this.TextSource, length);
+                return new SyntaxTreeInfo(this.FilePath, options, this.TextSource, this.Encoding, length);
             }
         }
 
-        internal sealed class RecoverableSyntaxRoot<TRoot> : RecoverableCachedObjectSource<TRoot>
+        internal sealed class RecoverableSyntaxRoot<TRoot> : RecoverableWeakValueSource<TRoot>
             where TRoot : SyntaxNode
         {
             private ITemporaryStreamStorage _storage;

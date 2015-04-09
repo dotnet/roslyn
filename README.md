@@ -1,8 +1,11 @@
 ## Welcome to the .NET Compiler Platform ("Roslyn")
 
+|Windows|Linux|
+|:--:|:--:|
+|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/)|
+
 [![Join the chat at https://gitter.im/dotnet/roslyn](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/roslyn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/)
 
 The .NET Compiler Platform ("Roslyn") provides open-source C# and Visual Basic compilers 
 with rich code analysis APIs.  It enables building code analysis tools with the same APIs 
@@ -27,31 +30,13 @@ which installs on top of Visual Studio 2013. *(Note: The VS 2013 preview is quit
 
 Get started building diagnostics, code fixes, refactorings, and other code-aware tools!
 
-To get started on **Visual Studio 2015 Preview**:
+Click on the version of Visual Studio you are using for installation instructions.
 
-1. Set up a box with Visual Studio 2015 Preview. Either 
-[install  Visual Studio 2015 Preview](http://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs), 
-or grab a [prebuilt Azure VM image](http://blogs.msdn.com/b/visualstudioalm/archive/2014/06/04/visual-studio-14-ctp-now-available-in-the-virtual-machine-azure-gallery.aspx).
-2. Install the [Visual Studio 2015 Preview SDK](http://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs). 
-You'll need to do this even if you're using the Azure VM image. 
-3. Install the [SDK Templates VSIX package](http://visualstudiogallery.msdn.microsoft.com/849f3ab1-05cf-4682-b4af-ef995e2aa1a5) 
-to get the Visual Studio project templates. 
-4. Install the [Syntax Visualizer VSIX package](http://visualstudiogallery.msdn.microsoft.com/70e184da-9b3a-402f-b210-d62a898e2887) 
-to get a [Syntax Visualizer tool window](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer) 
-to help explore the syntax trees you'll be analyzing.
+- [**Visual Studio 2015 Preview**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-Preview)
 
-To get started on **Visual Studio 2015 CTP 5**:
+- [**Visual Studio 2015 CTP 5**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-CTP-5)
 
-1. Set up a box with Visual Studio 2015 CTP 5. Either 
-[install  Visual Studio 2015 CTP 5](http://go.microsoft.com/fwlink/?LinkId=400496), 
-or grab a [prebuilt Azure VM image](http://blogs.msdn.com/b/visualstudioalm/archive/2014/06/04/visual-studio-14-ctp-now-available-in-the-virtual-machine-azure-gallery.aspx).
-2. Install the [Visual Studio 2015 CTP 5 SDK](http://go.microsoft.com/fwlink/?LinkId=400496). 
-You'll need to do this even if you're using the Azure VM image. 
-3. Install the [SDK Templates VSIX package](https://visualstudiogallery.msdn.microsoft.com/ae1cf421-54bf-4406-b48c-76a182819fb7) 
-to get the Visual Studio project templates. 
-4. Install the [Syntax Visualizer VSIX package](https://visualstudiogallery.msdn.microsoft.com/b5104545-29ed-46b2-beb0-351af9ca2d21) 
-to get a [Syntax Visualizer tool window](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer) 
-to help explore the syntax trees you'll be analyzing.
+- [**Visual Studio 2015 CTP 6**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-CTP-6)
 
 Or, you can grab the latest [NuGet Roslyn compiler package](http://www.nuget.org/packages/Microsoft.CodeAnalysis). 
 From the NuGet package manager console:
@@ -71,7 +56,7 @@ From the NuGet package manager console:
 * [Syntax Visualizer Tool](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer)
 * [Roadmap](https://github.com/dotnet/roslyn/wiki/Roadmap) 
 * [Language Feature Status](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14)
-* [Language Design Notes](https://github.com/dotnet/roslyn/issues?q=label%3A%22Area-Design+Notes%22+)
+* [Language Design Notes](https://github.com/dotnet/roslyn/issues?q=label%3A%22Design+Notes%22+)
 * [FAQ](https://github.com/dotnet/roslyn/wiki/FAQ)
 
 ### Contribute!

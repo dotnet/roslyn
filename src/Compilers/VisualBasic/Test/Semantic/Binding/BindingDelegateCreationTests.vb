@@ -1244,7 +1244,7 @@ End Class
         End Sub
 
         <Fact, WorkItem(17302)>
-        Sub InvalidDelegateRelaxationForSharednessMismatch()
+        Public Sub InvalidDelegateRelaxationForSharednessMismatch()
             Dim compilationDef = <compilation>
                                      <file name="a.vb"><![CDATA[
 Option Strict On
@@ -1273,7 +1273,7 @@ End Module
         End Sub
 
         <Fact, WorkItem(17302)>
-        Sub InvalidDelegateRelaxationForSharednessMismatch_2()
+        Public Sub InvalidDelegateRelaxationForSharednessMismatch_2()
             Dim compilationDef = <compilation>
                                      <file name="a.vb"><![CDATA[
 Option Strict On
@@ -1315,7 +1315,7 @@ BC30518: Overload resolution failed because no accessible 'Foo' can be called wi
         End Sub
 
         <Fact, WorkItem(17302)>
-        Sub InvalidDelegateRelaxationForMyClassMismatch()
+        Public Sub InvalidDelegateRelaxationForMyClassMismatch()
             Dim compilationDef = <compilation>
                                      <file name="a.vb"><![CDATA[
 Option Strict On

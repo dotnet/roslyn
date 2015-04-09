@@ -1794,7 +1794,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source, emitOptions:=TestEmitters.CCI, validator:=
+            CompileAndVerify(source, emitters:=TestEmitters.CCI, validator:=
                 Sub(assembly, _omitted)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef))
@@ -1824,7 +1824,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            CompileAndVerify(source, emitOptions:=TestEmitters.CCI, validator:=
+            CompileAndVerify(source, emitters:=TestEmitters.CCI, validator:=
                 Sub(assembly, _omitted)
                     Dim reader = assembly.GetMetadataReader()
 
@@ -1927,7 +1927,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            CompileAndVerify(source, emitOptions:=TestEmitters.CCI, validator:=
+            CompileAndVerify(source, emitters:=TestEmitters.CCI, validator:=
                 Sub(assembly, _omitted)
                     Dim peFileReader = assembly.GetMetadataReader()
                     For Each typeDef In peFileReader.TypeDefinitions
@@ -2617,7 +2617,7 @@ End Class
 
         <WorkItem(545199, "DevDiv")>
         <Fact>
-        Sub Serializable_NonSerialized_CustomEvents()
+        Public Sub Serializable_NonSerialized_CustomEvents()
             Dim source =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -2909,7 +2909,7 @@ end structure
                     typeAttribute.VerifyNamedArgumentValue(0, "MayLeakOnAbort", TypedConstantKind.Primitive, True)
                 End Sub
 
-            CompileAndVerify(source, emitOptions:=TestEmitters.RefEmitBug, sourceSymbolValidator:=attributeValidator)
+            CompileAndVerify(source, emitters:=TestEmitters.RefEmitBug, sourceSymbolValidator:=attributeValidator)
         End Sub
 
         <Fact()>
@@ -4308,7 +4308,7 @@ End Class
             ' Dev10 Runtime Exception:
             ' Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            Dim validator = CompileAndVerify(source, emitOptions:=TestEmitters.CCI, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=False)
+            Dim validator = CompileAndVerify(source, emitters:=TestEmitters.CCI, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=False)
             validator.EmitAndVerify("Type load failed.")
         End Sub
 

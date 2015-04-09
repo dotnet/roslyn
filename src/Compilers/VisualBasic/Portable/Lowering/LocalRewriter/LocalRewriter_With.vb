@@ -23,13 +23,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim type As TypeSymbol = rewrittenExpression.Type
             Dim statementSyntax = DirectCast(node.Syntax, WithBlockSyntax).WithStatement
 
-            Dim doNotUseByRefLocal = Me.currentMethodOrLambda.IsIterator OrElse
-                                    Me.currentMethodOrLambda.IsAsync OrElse
+            Dim doNotUseByRefLocal = Me._currentMethodOrLambda.IsIterator OrElse
+                                    Me._currentMethodOrLambda.IsAsync OrElse
                                     node.Binder.ExpressionIsAccessedFromNestedLambda
 
             ' What the placeholder should be replaced with
             Dim result As WithExpressionRewriter.Result =
-                (New WithExpressionRewriter(statementSyntax)).AnalyzeWithExpression(Me.currentMethodOrLambda,
+                (New WithExpressionRewriter(statementSyntax)).AnalyzeWithExpression(Me._currentMethodOrLambda,
                                                              rewrittenExpression,
                                                              doNotUseByRefLocal,
                                                              Nothing)

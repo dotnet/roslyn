@@ -24,16 +24,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     {
         public const string WorkspaceName = "Test";
 
-        public ExportProvider ExportProvider { get; private set; }
+        public ExportProvider ExportProvider { get; }
 
         public bool CanApplyChangeDocument { get; set; }
 
         internal override bool CanChangeActiveContextDocument { get { return true; } }
 
-        public IList<TestHostProject> Projects { get; private set; }
-        public IList<TestHostDocument> Documents { get; private set; }
-        public IList<TestHostDocument> AdditionalDocuments { get; private set; }
-        public IList<TestHostDocument> ProjectionDocuments { get; private set; }
+        public IList<TestHostProject> Projects { get; }
+        public IList<TestHostDocument> Documents { get; }
+        public IList<TestHostDocument> AdditionalDocuments { get; }
+        public IList<TestHostDocument> ProjectionDocuments { get; }
 
         private readonly BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;

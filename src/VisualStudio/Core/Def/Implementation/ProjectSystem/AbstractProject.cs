@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -88,8 +88,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly EventHandler<bool> s_additionalDocumentClosingEventHandler = OnAdditionalDocumentClosing;
         private static readonly EventHandler s_additionalDocumentUpdatedOnDiskEventHandler = OnAdditionalDocumentUpdatedOnDisk;
 
-        internal readonly VsENCRebuildableProjectImpl EditAndContinueImplOpt;
-
         public AbstractProject(
             VisualStudioProjectTracker projectTracker,
             Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
@@ -134,11 +132,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (reportExternalErrorCreatorOpt != null)
             {
                 _externalErrorReporter = reportExternalErrorCreatorOpt(_id);
-            }
-
-            if (visualStudioWorkspaceOpt != null)
-            {
-                this.EditAndContinueImplOpt = new VsENCRebuildableProjectImpl(this);
             }
 
             ConnectHierarchyEvents();
@@ -762,42 +755,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public virtual void Disconnect()
         {
-            // Unsubscribe IVsHierarchyEvents
-            DisconnectHierarchyEvents();
-
-            // The project is going away, so let's remove ourselves from the host. First, we
-            // close and dispose of any remaining documents
-            foreach (var document in this.GetCurrentDocuments())
+            using (_visualStudioWorkspaceOpt?.Services.GetService<IGlobalOperationNotificationService>()?.Start("Disconnect Project"))
             {
-                UninitializeDocument(document);
+                // Unsubscribe IVsHierarchyEvents
+                DisconnectHierarchyEvents();
+
+                // The project is going away, so let's remove ourselves from the host. First, we
+                // close and dispose of any remaining documents
+                foreach (var document in this.GetCurrentDocuments())
+                {
+                    UninitializeDocument(document);
+                }
+
+                // Dispose metadata references.
+                foreach (var reference in _metadataReferences)
+                {
+                    reference.Dispose();
+                }
+
+                foreach (var analyzer in _analyzers.Values)
+                {
+                    analyzer.Dispose();
+                }
+
+                // Make sure we clear out any external errors left when closing the project.
+                if (_externalErrorReporter != null)
+                {
+                    _externalErrorReporter.ClearAllErrors();
+                }
+
+                // Make sure we clear out any host errors left when closing the project.
+                if (_hostDiagnosticUpdateSourceOpt != null)
+                {
+                    _hostDiagnosticUpdateSourceOpt.ClearAllDiagnosticsForProject(this.Id);
+                }
+
+                ClearAnalyzerRuleSet();
+
+                this.ProjectTracker.RemoveProject(this);
             }
-
-            // Dispose metadata references.
-            foreach (var reference in _metadataReferences)
-            {
-                reference.Dispose();
-            }
-
-            foreach (var analyzer in _analyzers.Values)
-            {
-                analyzer.Dispose();
-            }
-
-            // Make sure we clear out any external errors left when closing the project.
-            if (_externalErrorReporter != null)
-            {
-                _externalErrorReporter.ClearAllErrors();
-            }
-
-            // Make sure we clear out any host errors left when closing the project.
-            if (_hostDiagnosticUpdateSourceOpt != null)
-            {
-                _hostDiagnosticUpdateSourceOpt.ClearAllDiagnosticsForProject(this.Id);
-            }
-
-            ClearAnalyzerRuleSet();
-
-            this.ProjectTracker.RemoveProject(this);
         }
 
         internal void TryProjectConversionForIntroducedOutputPath(string binPath, AbstractProject projectToReference)
@@ -1282,7 +1278,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            var delta = vsproject.References.Count - noReferenceOutputAssemblies.Count - (_projectReferences.Count + _metadataReferences.Count);
+            var set = new HashSet<string>(vsproject.References.OfType<Reference>().Select(r => PathUtilities.IsAbsolute(r.Name) ? Path.GetFileNameWithoutExtension(r.Name) : r.Name), StringComparer.OrdinalIgnoreCase);
+            var delta = set.Count - noReferenceOutputAssemblies.Count - (_projectReferences.Count + _metadataReferences.Count);
             if (delta == 0)
             {
                 return;
@@ -1294,8 +1291,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 //// Contract.Requires(false, "different set of references!!!");
                 return;
             }
-
-            var set = new HashSet<string>(vsproject.References.OfType<Reference>().Select(r => PathUtilities.IsAbsolute(r.Name) ? Path.GetFileNameWithoutExtension(r.Name) : r.Name), StringComparer.OrdinalIgnoreCase);
 
             set.ExceptWith(noReferenceOutputAssemblies);
             set.ExceptWith(_projectReferences.Select(r => ProjectTracker.GetProject(r.ProjectId).DisplayName));

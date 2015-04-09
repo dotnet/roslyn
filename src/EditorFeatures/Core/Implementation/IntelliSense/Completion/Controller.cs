@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         ICommandHandler<SurroundWithCommandArgs>,
         ICommandHandler<AutomaticLineEnderCommandArgs>,
         ICommandHandler<SaveCommandArgs>,
-        ICommandHandler<DeleteKeyCommandArgs>
+        ICommandHandler<DeleteKeyCommandArgs>,
+        ICommandHandler<SelectAllCommandArgs>
     {
         private static readonly object s_controllerPropertyKey = new object();
 
@@ -111,6 +112,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             AssertIsForeground();
             return this.TextView.Caret.Position.BufferPosition;
+        }
+
+        private SnapshotPoint GetCaretPointInSubjectBuffer()
+        {
+            AssertIsForeground();
+            return this.TextView.BufferGraph.MapUpOrDownToBuffer(this.TextView.Caret.Position.BufferPosition, this.SubjectBuffer).GetValueOrDefault();
         }
 
         internal override void OnModelUpdated(Model modelOpt)

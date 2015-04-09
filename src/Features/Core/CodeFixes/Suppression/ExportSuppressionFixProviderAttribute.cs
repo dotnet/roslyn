@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         /// <summary>
         /// The name of the <see cref="ISuppressionFixProvider"/>.  
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; }
 
         /// <summary>
         /// The source languages this provider can provide fixes for.  See <see cref="LanguageNames"/>.
         /// </summary>
-        public string[] Languages { get; private set; }
+        public string[] Languages { get; }
 
         public ExportSuppressionFixProviderAttribute(
             string name,

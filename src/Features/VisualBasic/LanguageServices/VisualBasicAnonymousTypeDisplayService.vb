@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
     Friend Class VisualBasicAnonymousTypeDisplayService
         Inherits AbstractAnonymousTypeDisplayService
 
-        Private Shared ReadOnly AnonymousDelegateFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
+        Private Shared ReadOnly s_anonymousDelegateFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
             globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
             genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
             memberOptions:=
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             members.Add(Punctuation("<"))
             members.AddRange(MassageDelegateParts(
                 method,
-                displayService.ToMinimalDisplayParts(semanticModel, position, method, AnonymousDelegateFormat)))
+                displayService.ToMinimalDisplayParts(semanticModel, position, method, s_anonymousDelegateFormat)))
             members.Add(Punctuation(">"))
 
             Return members

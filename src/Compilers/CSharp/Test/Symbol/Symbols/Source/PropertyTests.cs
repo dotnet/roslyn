@@ -118,12 +118,15 @@ struct S
 }
 
 ").VerifyDiagnostics(
-    // (27,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
-    //         Ps = 5;
-    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("S.Ps").WithLocation(27, 9),
+    // (24,12): error CS0568: Structs cannot contain explicit parameterless constructors
+    //     public S()
+    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S").WithLocation(24, 12),
     // (9,9): error CS0200: Property or indexer 'C.Ps' cannot be assigned to -- it is read only
     //         Ps = 3;
     Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("C.Ps").WithLocation(9, 9),
+    // (27,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
+    //         Ps = 5;
+    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("S.Ps").WithLocation(27, 9),
     // (14,9): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
     //         P = 10;
     Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(14, 9),
@@ -136,6 +139,7 @@ struct S
     // (33,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
     //         S.Ps = 1;
     Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "S.Ps").WithArguments("S.Ps").WithLocation(33, 9)
+
     );
         }
 
@@ -2653,7 +2657,7 @@ public interface IA
                  // We should see the same members from both source and metadata
                  var verifier = CompileAndVerify(
                       libSrc,
-                      emitOptions: TestEmitters.RefEmitBug,
+                      emitters: TestEmitters.RefEmitBug,
                       sourceSymbolValidator: validator,
                       symbolValidator: validator,
                       options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll);

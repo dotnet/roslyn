@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static readonly PerLanguageOption<IndentStyle> SmartIndent = new PerLanguageOption<IndentStyle>(FormattingFeatureName, "SmartIndent", defaultValue: IndentStyle.Smart);
 
-        public static readonly PerLanguageOption<bool> UseTabOnlyForIndentation = new PerLanguageOption<bool>(InternalTabFeatureName, "UseTabOnlyForIndentation", defaultValue: false);
-
         public static readonly PerLanguageOption<string> NewLine = new PerLanguageOption<string>(FormattingFeatureName, "NewLine", defaultValue: "\r\n");
 
         internal static readonly PerLanguageOption<bool> DebugMode = new PerLanguageOption<bool>(FormattingFeatureName, "DebugMode", defaultValue: false);

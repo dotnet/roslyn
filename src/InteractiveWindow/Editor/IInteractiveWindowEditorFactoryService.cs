@@ -30,6 +30,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// <summary>
         /// Creates a new input buffer for the interactive window.
         /// </summary>
-        ITextBuffer CreateAndActivateBuffer(IInteractiveWindow window, IContentType contentType);
+        ITextBuffer CreateAndActivateBuffer(IInteractiveWindow window);
     }
 }

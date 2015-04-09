@@ -1996,7 +1996,7 @@ End Class
                 </compilation>
             Dim compilation1 = CreateCompilationWithMscorlib(vbSource1)
             compilation1.AssertNoErrors()
-            Dim compilationVerifier = CompileAndVerify(compilation1, emitOptions:=TestEmitters.CCI)
+            Dim compilationVerifier = CompileAndVerify(compilation1, emitters:=TestEmitters.CCI)
             Dim reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
             Dim vbSource2 =
                 <compilation name="B">
@@ -2013,7 +2013,7 @@ End Class
                 </compilation>
             Dim compilation2 = CreateCompilationWithMscorlibAndReferences(vbSource2, {reference1})
             compilation2.AssertNoErrors()
-            compilationVerifier = CompileAndVerify(compilation2, emitOptions:=TestEmitters.CCI)
+            compilationVerifier = CompileAndVerify(compilation2, emitters:=TestEmitters.CCI)
             Dim reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
             Dim vbSource3 =
                 <compilation name="C">
@@ -2048,7 +2048,7 @@ End Class
                 </compilation>
             Dim compilation1 = CreateCompilationWithMscorlib(vbSource1)
             compilation1.AssertNoErrors()
-            Dim compilationVerifier = CompileAndVerify(compilation1, emitOptions:=TestEmitters.CCI)
+            Dim compilationVerifier = CompileAndVerify(compilation1, emitters:=TestEmitters.CCI)
             Dim reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
             Dim vbSource2 =
                 <compilation name="B">
@@ -2065,7 +2065,7 @@ End Class
                 </compilation>
             Dim compilation2 = CreateCompilationWithMscorlibAndReferences(vbSource2, {reference1})
             compilation2.AssertNoErrors()
-            compilationVerifier = CompileAndVerify(compilation2, emitOptions:=TestEmitters.CCI)
+            compilationVerifier = CompileAndVerify(compilation2, emitters:=TestEmitters.CCI)
             Dim reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
             Dim vbSource3 =
                 <compilation name="C">

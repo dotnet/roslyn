@@ -96,8 +96,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
                             {
                                 foreach (var command in commands.GetCommands())
                                 {
-                                    list.Add(new CSharpCompletionItem(
-                                        workspace, this, command.Name, textChangeSpan, c => Task.FromResult(command.Description.ToSymbolDisplayParts()), glyph: Glyph.Intrinsic));
+                                    foreach (var commandName in command.Names)
+                                    {
+                                        list.Add(new CSharpCompletionItem(
+                                            workspace, this, commandName, textChangeSpan, c => Task.FromResult(command.Description.ToSymbolDisplayParts()), glyph: Glyph.Intrinsic));
+                                    }
                                 }
                             }
 

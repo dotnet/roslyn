@@ -224,7 +224,7 @@ End Module</text>.Value, "local", True)
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(538819)>
         Public Sub TestDebugInfo1()
-            TestLanguageDebugInfoTryGetProximityExpressions("$$Module M : End Module", {}, False)
+            TestLanguageDebugInfoTryGetProximityExpressions("$$Module M : End Module", Array.Empty(Of String)(), False)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>

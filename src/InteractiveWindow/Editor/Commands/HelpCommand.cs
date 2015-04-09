@@ -22,9 +22,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             get { return "Display help on specified REPL command, or all available REPL commands and key bindings if none specified."; }
         }
 
-        public override string Name
+        public override IEnumerable<string> Names
         {
-            get { return CommandName; }
+            get { yield return CommandName; }
         }
 
         public override string CommandLine

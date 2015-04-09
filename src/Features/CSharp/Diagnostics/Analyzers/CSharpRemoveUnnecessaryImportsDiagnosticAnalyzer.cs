@@ -16,6 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryImports
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer : RemoveUnnecessaryImportsDiagnosticAnalyzerBase
     {
+        private static readonly LocalizableString s_TitleAndMessageFormat =
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.RemoveUnnecessaryUsingsDiagnosticTitle), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+
+        protected override LocalizableString GetTitleAndMessageFormatForClassificationIdDescriptor()
+        {
+            return s_TitleAndMessageFormat;
+        }
+
         protected override IEnumerable<SyntaxNode> GetUnnecessaryImports(SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken = default(CancellationToken))
         {
             return CSharpRemoveUnnecessaryImportsService.GetUnnecessaryImports(semanticModel, root, cancellationToken);

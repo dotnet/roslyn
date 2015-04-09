@@ -16,6 +16,7 @@
     <VBRuntime>Default</VBRuntime>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
@@ -101,6 +102,7 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeGeneration\AddImportsTests.vb" />
     <Compile Include="CodeGeneration\SyntaxGeneratorTests.vb" />
     <Compile Include="Formatting\FormattingTests.vb" />
     <Compile Include="Formatting\VisualBasicFormattingTestBase.vb" />

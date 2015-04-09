@@ -20,24 +20,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Class PathSyntaxReference
                 Inherits SyntaxReference
 
-                Private ReadOnly tree As SyntaxTree
+                Private ReadOnly _tree As SyntaxTree
 
-                Private ReadOnly kind As SyntaxKind
+                Private ReadOnly _kind As SyntaxKind
 
                 Private ReadOnly _span As TextSpan
 
-                Private ReadOnly pathFromRoot As ImmutableArray(Of Integer)
+                Private ReadOnly _pathFromRoot As ImmutableArray(Of Integer)
 
                 Public Sub New(tree As SyntaxTree, node As SyntaxNode)
-                    Me.tree = tree
-                    Me.kind = node.Kind()
+                    Me._tree = tree
+                    Me._kind = node.Kind()
                     Me._span = node.Span
-                    Me.pathFromRoot = ComputePathFromRoot(node)
+                    Me._pathFromRoot = ComputePathFromRoot(node)
                 End Sub
 
                 Public Overrides ReadOnly Property SyntaxTree As SyntaxTree
                     Get
-                        Return Me.tree
+                        Return Me._tree
                     End Get
                 End Property
 
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Private Function ComputePathFromRoot(node As SyntaxNode) As ImmutableArray(Of Integer)
                     Dim path = New List(Of Integer)()
-                    Dim root = tree.GetRoot()
+                    Dim root = _tree.GetRoot()
                     While node IsNot root
                         While node.Parent IsNot Nothing
                             Dim index = GetChildIndex(node)
@@ -121,26 +121,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Overrides Function GetSyntax(Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode
-                    Return DirectCast(Me.GetNode(Me.tree.GetRoot(cancellationToken)), SyntaxNode)
+                    Return DirectCast(Me.GetNode(Me._tree.GetRoot(cancellationToken)), SyntaxNode)
                 End Function
 
                 Public Overrides Async Function GetSyntaxAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxNode)
-                    Dim root = Await Me.tree.GetRootAsync(cancellationToken).ConfigureAwait(False)
+                    Dim root = Await Me._tree.GetRootAsync(cancellationToken).ConfigureAwait(False)
                     Return Me.GetNode(root)
                 End Function
 
                 Private Function GetNode(root As SyntaxNode) As SyntaxNode
                     Dim node = root
                     Dim i As Integer = 0
-                    Dim n As Integer = Me.pathFromRoot.Count
+                    Dim n As Integer = Me._pathFromRoot.Count
 
                     While i < n
-                        Dim child = node.ChildNodesAndTokens().ElementAt(Me.pathFromRoot(i))
+                        Dim child = node.ChildNodesAndTokens().ElementAt(Me._pathFromRoot(i))
 
                         If child.IsToken Then
                             i = i + 1
                             System.Diagnostics.Debug.Assert(i < n)
-                            Dim triviaIndex = Me.pathFromRoot(i)
+                            Dim triviaIndex = Me._pathFromRoot(i)
                             Dim trivia = GetTrivia(child.AsToken(), triviaIndex)
                             node = trivia.GetStructure()
                         Else
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         i = i + 1
                     End While
 
-                    System.Diagnostics.Debug.Assert(node.Kind = Me.kind)
+                    System.Diagnostics.Debug.Assert(node.Kind = Me._kind)
                     System.Diagnostics.Debug.Assert(node.Span = Me._span)
                     Return node
 

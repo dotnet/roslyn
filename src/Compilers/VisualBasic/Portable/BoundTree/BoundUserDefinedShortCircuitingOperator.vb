@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundUserDefinedShortCircuitingOperator
+    Friend Partial Class BoundUserDefinedShortCircuitingOperator
 
 #If DEBUG Then
         Private Sub Validate()

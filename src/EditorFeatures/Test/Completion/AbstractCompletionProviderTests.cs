@@ -461,11 +461,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
                     if (expectedSymbols == 1)
                     {
-                        Assert.DoesNotContain("+", description.GetFullText());
+                        Assert.DoesNotContain("+", description.GetFullText(), StringComparison.Ordinal);
                     }
                     else
                     {
-                        Assert.Contains(GetExpectedOverloadSubstring(expectedSymbols), description.GetFullText());
+                        Assert.Contains(GetExpectedOverloadSubstring(expectedSymbols), description.GetFullText(), StringComparison.Ordinal);
                     }
                 }
                 else

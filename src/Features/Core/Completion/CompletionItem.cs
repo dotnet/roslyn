@@ -19,23 +19,23 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// An appropriate icon to present to the user for this completion item.
         /// </summary>
-        public Glyph? Glyph { get; private set; }
+        public Glyph? Glyph { get; }
 
         /// <summary>
         /// The ICompletionProvider that this CompletionItem was created from.
         /// </summary>
-        public virtual ICompletionProvider CompletionProvider { get; private set; }
+        public virtual ICompletionProvider CompletionProvider { get; }
 
         /// <summary>
         /// The text for the completion item should be presented to the user (for example, in a
         /// completion list in an IDE).
         /// </summary>
-        public string DisplayText { get; private set; }
+        public string DisplayText { get; }
 
         /// <summary>
         /// Text to compare against when filtering completion items against user entered text.
         /// </summary>
-        public string FilterText { get; private set; }
+        public string FilterText { get; }
 
         /// <summary>
         /// A string that is used for comparing completion items so that they can be ordered.  This
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// "int" so that it would appear next to other items with similar names instead of
         /// appearing before, or after all the items due to the leading @ character.
         /// </summary>
-        public string SortText { get; private set; }
+        public string SortText { get; }
 
         /// <summary>
         /// Whether or not this item should be preselected when presented to the user.  It is up to
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// preferred over another item if the ICompletionRules currently in effect deem them
         /// otherwise identical.
         /// </summary>
-        public bool Preselect { get; private set; }
+        public bool Preselect { get; }
 
         /// <summary>
         /// The span(respective to the original document text when this completion item was created)
@@ -66,13 +66,13 @@ namespace Microsoft.CodeAnalysis.Completion
         /// However, the text change may extend further backward so that if that item is committed
         /// the resultant text becomes "((int)foo).
         /// </summary>
-        public TextSpan FilterSpan { get; private set; }
+        public TextSpan FilterSpan { get; }
 
         /// <summary>
         /// A CompletionItem marked as a builder will be presented as an Intellisense Builder,
         /// initially with its display text, which will be replaced as the user types.
         /// </summary>
-        public bool IsBuilder { get; private set; }
+        public bool IsBuilder { get; }
 
         /// <summary>
         /// When this property is true, the completion list will display a warning icon to the
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// available in every project a linked file is linked into.
         /// </summary>
         /// <returns></returns>
-        public bool ShowsWarningIcon { get; private set; }
+        public bool ShowsWarningIcon { get; }
 
         /// <summary>
         /// When this property is true, after performing the action associated with the item, 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public virtual Task<ImmutableArray<SymbolDisplayPart>> GetDescriptionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             return this.LazyDescription == null
-                ? Task.FromResult(ImmutableArray.Create<SymbolDisplayPart>())
+                ? SpecializedTasks.EmptyImmutableArray<SymbolDisplayPart>()
                 : this.LazyDescription.GetValueAsync(cancellationToken);
         }
 

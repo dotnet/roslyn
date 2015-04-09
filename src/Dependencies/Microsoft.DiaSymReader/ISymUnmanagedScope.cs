@@ -11,8 +11,10 @@ namespace Microsoft.DiaSymReader
     [ComVisible(false)]
     public interface ISymUnmanagedScope
     {
+        [PreserveSig]
         int GetMethod([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedMethod method);
 
+        [PreserveSig]
         int GetParent([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedScope scope);
 
         [PreserveSig]

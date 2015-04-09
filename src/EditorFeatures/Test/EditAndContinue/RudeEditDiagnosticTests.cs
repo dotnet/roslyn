@@ -22,18 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
             var arg0 = new HashSet<RudeEditKind>()
             {
                 RudeEditKind.ActiveStatementUpdate,
-                RudeEditKind.STMT_MID_DELETE,
-                RudeEditKind.STMT_NON_LEAF_DELETE,
-                RudeEditKind.STMT_CTOR_CALL,
-                RudeEditKind.STMT_FIELD_INIT,
-                RudeEditKind.STMT_DELETE,
-                RudeEditKind.STMT_DELETE_REMAP,
-                RudeEditKind.STMT_READONLY,
-                RudeEditKind.RUDE_NO_ACTIVE_STMT,
-                RudeEditKind.RUDE_ACTIVE_STMT_DELETED,
-                RudeEditKind.EXC_HANDLER_ERROR,
-                RudeEditKind.EXC_FINALLY_ERROR,
-                RudeEditKind.EXC_CATCH_ERROR,
+                RudeEditKind.DeleteActiveStatement,
+                RudeEditKind.UpdateExceptionHandlerOfActiveTry,
+                RudeEditKind.UpdateTryOrCatchWithActiveFinally,
+                RudeEditKind.UpdateCatchHandlerAroundActiveStatement,
                 RudeEditKind.FieldKindUpdate,
                 RudeEditKind.TypeKindUpdate,
                 RudeEditKind.AccessorKindUpdate,
@@ -48,23 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.GenericTypeUpdate,
                 RudeEditKind.ExperimentalFeaturesEnabled,
                 RudeEditKind.AwaitStatementUpdate,
-                RudeEditKind.RUDE_EDIT_MODIFY_ANON_METHOD,
-                RudeEditKind.RUDE_EDIT_ADD_ANON_METHOD,
-                RudeEditKind.RUDE_EDIT_DELETE_ANON_METHOD,
-                RudeEditKind.RUDE_EDIT_MOVE_ANON_METHOD,
-                RudeEditKind.RUDE_EDIT_MODIFY_LAMBDA_EXPRESSION,
-                RudeEditKind.RUDE_EDIT_ADD_LAMBDA_EXPRESSION,
-                RudeEditKind.RUDE_EDIT_DELETE_LAMBDA_EXPRESSION,
-                RudeEditKind.RUDE_EDIT_MOVE_LAMBDA_EXPRESSION,
-                RudeEditKind.RUDE_EDIT_MODIFY_QUERY_EXPRESSION,
-                RudeEditKind.RUDE_EDIT_ADD_QUERY_EXPRESSION,
-                RudeEditKind.RUDE_EDIT_DELETE_QUERY_EXPRESSION,
-                RudeEditKind.RUDE_EDIT_MOVE_QUERY_EXPRESSION,
-                RudeEditKind.RUDE_EDIT_MODIFY_ANONYMOUS_TYPE,
-                RudeEditKind.RUDE_EDIT_ADD_ANONYMOUS_TYPE,
-                RudeEditKind.RUDE_EDIT_DELETE_ANONYMOUS_TYPE,
-                RudeEditKind.RUDE_EDIT_MOVE_ANONYMOUS_TYPE,
-                RudeEditKind.RUDE_EDIT_ADD_NEW_FILE,
+                RudeEditKind.InsertFile,
             };
 
             var arg2 = new HashSet<RudeEditKind>()
@@ -73,6 +49,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.InsertIntoStruct,
                 RudeEditKind.ConstraintKindUpdate,
                 RudeEditKind.InsertIntoStruct,
+                RudeEditKind.ChangingCapturedVariableType,
+                RudeEditKind.AccessingCapturedVariableInLambda,
+                RudeEditKind.NotAccessingCapturedVariableInLambda,
+            };
+
+            var arg3 = new HashSet<RudeEditKind>()
+            {
+                RudeEditKind.InsertLambdaWithMultiScopeCapture,
+                RudeEditKind.DeleteLambdaWithMultiScopeCapture,
             };
 
             List<RudeEditKind> errors = new List<RudeEditKind>();
@@ -95,6 +80,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                     var d = re.ToDiagnostic(tree);
                     Assert.True(d.GetMessage().Contains("<1>"), value.ToString());
                     Assert.True(d.GetMessage().Contains("<2>"), value.ToString());
+                    Assert.False(d.GetMessage().Contains("{"), value.ToString());
+                }
+                else if (arg3.Contains(value))
+                {
+                    var re = new RudeEditDiagnostic(value, TextSpan.FromBounds(1, 2), syntaxNode, new[] { "<1>", "<2>", "<3>" });
+                    var d = re.ToDiagnostic(tree);
+                    Assert.True(d.GetMessage().Contains("<1>"), value.ToString());
+                    Assert.True(d.GetMessage().Contains("<2>"), value.ToString());
+                    Assert.True(d.GetMessage().Contains("<3>"), value.ToString());
                     Assert.False(d.GetMessage().Contains("{"), value.ToString());
                 }
                 else

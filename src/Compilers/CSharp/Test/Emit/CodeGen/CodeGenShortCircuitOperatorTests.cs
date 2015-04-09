@@ -4176,7 +4176,7 @@ class Program
             var comp = CompileAndVerify(source, expectedOutput: @"Success");
         }
 
-        [Fact(Skip = "836"), WorkItem(836, "GitHub")]
+        [Fact(), WorkItem(836, "GitHub")]
         public void ConditionalMemberAccessRace002()
         {
             var source = @"
@@ -4218,24 +4218,29 @@ class Program
             }
         };
 
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
+        var tasks = new List<Task>();
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
 
         a();
+
+        // wait for all tasks to exit or we may have
+        // test issues when unloading ApDomain while threads still running in it
+        Task.WaitAll(tasks.ToArray());
 
         System.Console.WriteLine(""Success"");
     }
@@ -5541,6 +5546,58 @@ M1(Action<C<T>> x)
 M1(Action<C<T>> x)
 M
 ---");
+        }
+
+        [WorkItem(74, "https://github.com/dotnet/roslyn/issues/74")]
+        [Fact]
+        public void ConditionalInAsyncTask()
+        {
+            var source = @"
+#pragma warning disable CS1998 // suppress 'no await in async' warning
+using System;
+using System.Threading.Tasks;
+
+class Foo<T>
+{
+    public T Method(int i)
+    {
+        Console.Write(i);
+        return default(T); // returns value of unconstrained type parameter type
+    }
+    public void M1(Foo<T> x) => x?.Method(4);
+    public async void M2(Foo<T> x) => x?.Method(5);
+    public async Task M3(Foo<T> x) => x?.Method(6);
+    public async Task M4() {
+        Foo<T> a = new Foo<T>();
+        Foo<T> b = null;
+
+        Action f1 = async () => a?.Method(1);
+        f1();
+        f1 = async () => b?.Method(0);
+        f1();
+
+        Func<Task> f2 = async () => a?.Method(2);
+        await f2();
+        Func<Task> f3 = async () => b?.Method(3);
+        await f3();
+
+        M1(a); M1(b);
+        M2(a); M2(b);
+        await M3(a);
+        await M3(b);
+    }
+}
+class Program
+{
+    public static void Main()
+    {
+        // this will complete synchronously as there are no truly async ops.
+        new Foo<int>().M4();
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(
+                source, references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: "12456");
         }
     }
 }

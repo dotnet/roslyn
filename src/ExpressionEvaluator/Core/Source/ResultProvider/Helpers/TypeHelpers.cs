@@ -3,16 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
 using Roslyn.Utilities;
-using BindingFlags = System.Reflection.BindingFlags;
-using MemberTypes = System.Reflection.MemberTypes;
 using MethodAttributes = System.Reflection.MethodAttributes;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
+using TypeCode = Microsoft.VisualStudio.Debugger.Metadata.TypeCode;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -257,6 +255,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return type.IsMscorlibType("System", "Void") && !type.IsGenericType;
         }
 
+        internal static bool IsIEnumerable(this Type type)
+        {
+            return type.IsMscorlibType("System.Collections", "IEnumerable");
+        }
+
+        internal static bool IsIEnumerableOfT(this Type type)
+        {
+            return type.IsMscorlibType("System.Collections.Generic", "IEnumerable`1");
+        }
+
         internal static bool IsTypeVariables(this Type type)
         {
             return type.IsType(null, "<>c__TypeVariables");
@@ -434,18 +442,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return result;
         }
 
-        internal static void EvaluateDebuggerDisplayStringAndContinue(this DkmClrValue value, DkmWorkList workList, DkmInspectionContext inspectionContext, DkmClrType targetType, string str, DkmCompletionRoutine<DkmEvaluateDebuggerDisplayStringAsyncResult> completionRoutine)
-        {
-            if (str == null)
-            {
-                completionRoutine(default(DkmEvaluateDebuggerDisplayStringAsyncResult));
-            }
-            else
-            {
-                value.EvaluateDebuggerDisplayString(workList, inspectionContext, targetType, str, completionRoutine);
-            }
-        }
-
         internal static DkmClrType GetProxyType(this DkmClrType type)
         {
             DkmClrType attributeTarget;
@@ -533,7 +529,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 foreach (var @interface in t.GetInterfacesOnType())
                 {
-                    if (@interface.IsMscorlibType("System.Collections.Generic", "IEnumerable`1"))
+                    if (@interface.IsIEnumerableOfT())
                     {
                         // Return the first implementation of IEnumerable<T>.
                         return @interface;
@@ -544,7 +540,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             foreach (var @interface in type.GetInterfaces())
             {
-                if (@interface.IsMscorlibType("System.Collections", "IEnumerable"))
+                if (@interface.IsIEnumerable())
                 {
                     return @interface;
                 }

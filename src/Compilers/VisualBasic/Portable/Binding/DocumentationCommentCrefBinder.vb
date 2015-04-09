@@ -353,7 +353,7 @@ lAgain:
                         arity = generic.TypeArgumentList.Arguments.Count
                     End If
 
-                    ' Fall through
+                ' Fall through
 
                 Case SyntaxKind.CrefOperatorReference
                     If parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.QualifiedCrefOperatorReference Then
@@ -361,7 +361,7 @@ lAgain:
                         parent = name.Parent
                         GoTo lAgain
                     End If
-                    ' Fall through
+                ' Fall through
 
                 Case SyntaxKind.QualifiedName,
                      SyntaxKind.QualifiedCrefOperatorReference

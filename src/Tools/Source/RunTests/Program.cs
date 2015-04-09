@@ -23,7 +23,7 @@ namespace RunTests
             var xunitPath = args[0];
             var index = 1;
             var test64 = false;
-            var useHtml = false;
+            var useHtml = true;
             ParseArgs(args, ref index, ref test64, ref useHtml);
 
             var list = new List<string>(args.Skip(index));

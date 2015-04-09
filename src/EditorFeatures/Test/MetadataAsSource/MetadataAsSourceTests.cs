@@ -18,18 +18,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             var metadataSource = "public class C {}";
             var symbolName = "C";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public class [|C|]
-{
+{{
     public C();
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Class [|C|]
@@ -44,17 +44,17 @@ End Class");
             var metadataSource = "public interface I {}";
             var symbolName = "I";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public interface [|I|]
-{
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+{{
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Interface [|I|]
@@ -67,18 +67,18 @@ End Interface");
             var metadataSource = "public class C {}";
             var symbolName = "C..ctor";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public class C
-{
+{{
     public [|C|]();
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Class C
@@ -92,20 +92,20 @@ End Class");
             var metadataSource = "public class C { public void Foo() {} }";
             var symbolName = "C.Foo";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public class C
-{
+{{
     public C();
 
     public void [|Foo|]();
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Class C
@@ -121,20 +121,20 @@ End Class");
             var metadataSource = "public class C { public string S; }";
             var symbolName = "C.S";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public class C
-{
+{{
     public string [|S|];
 
     public C();
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Class C
@@ -151,20 +151,20 @@ End Class");
             var metadataSource = "public class C { public string S { get; protected set; } }";
             var symbolName = "C.S";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public class C
-{
+{{
     public C();
 
-    public string [|S|] { get; protected set; }
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+    public string [|S|] {{ get; protected set; }}
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Class C
@@ -182,22 +182,22 @@ End Class");
             var metadataSource = "using System; public class C { public event Action E; }";
             var symbolName = "C.E";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 using System;
 
 public class C
-{
+{{
     public C();
 
     public event Action [|E|];
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Imports System
@@ -215,23 +215,23 @@ End Class");
             var metadataSource = "public class C { protected class D { } }";
             var symbolName = "C+D";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public class C
-{
+{{
     public C();
 
     protected class [|D|]
-    {
+    {{
         public D();
-    }
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+    }}
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Class C
@@ -250,20 +250,20 @@ End Class");
             var metadataSource = "public enum E { A, B, C }";
             var symbolName = "E.C";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public enum E
-{
+{{
     A,
     B,
     [|C|]
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Enum E
@@ -280,20 +280,20 @@ End Enum");
             var metadataSource = "public enum E : short { A = 0, B = 1, C = 2 }";
             var symbolName = "E.C";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public enum E : short
-{
+{{
     A,
     B,
     [|C|]
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Enum E As Short
@@ -310,18 +310,18 @@ End Enum");
             var metadataSource = "public enum E : ulong { A = 9223372036854775808 }";
             var symbolName = "E.A";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public enum E : ulong
-{
+{{
     [|A|] = 9223372036854775808
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Enum E As ULong
@@ -335,20 +335,20 @@ End Enum");
             var metadataSource = "public enum E : short { A = 1, B = 2, C = 3 }";
             var symbolName = "E.C";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public enum E : short
-{
+{{
     A = 1,
     B = 2,
     [|C|] = 3
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Enum E As Short
@@ -365,21 +365,21 @@ End Enum");
             var metadataSource = "namespace N { public class C {} }";
             var symbolName = "N.C";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 namespace N
-{
+{{
     public class [|C|]
-    {
+    {{
         public C();
-    }
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+    }}
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Namespace N
@@ -396,20 +396,20 @@ End Namespace");
             var metadataSource = @"public class C { public const string S = ""Hello mas""; }";
             var symbolName = "C.S";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public class C
-{
+{{
     public const string [|S|] = ""Hello mas"";
 
     public C();
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Class C
@@ -436,19 +436,19 @@ public class C {}";
 
             var symbolName = "C";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 [MyType(typeof(string))]
 public class [|C|]
-{
+{{
     public C();
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 <MyType(GetType(String))>
@@ -464,17 +464,17 @@ End Class");
             var metadataSource = "public struct S {}";
             var symbolName = "S";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public struct [|S|]
-{
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+{{
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Structure [|S|]
@@ -487,20 +487,20 @@ End Structure");
             var metadataSource = "public class C { public static C Create() { return new C(); } }";
             var symbolName = "C";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public class [|C|]
-{
+{{
     public C();
 
     public static C Create();
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Class [|C|]
@@ -517,20 +517,20 @@ End Class");
             var metadataSource = "public class G<SomeType> { public SomeType S; }";
             var symbolName = "G`1";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public class [|G|]<SomeType>
-{
+{{
     public SomeType S;
 
     public G();
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Class [|G|](Of SomeType)
@@ -547,20 +547,20 @@ End Class");
             var metadataSource = "public class C { public delegate void D<SomeType>(SomeType s); }";
             var symbolName = "C+D`1";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public class C
-{
+{{
     public C();
 
     public delegate void [|D|]<SomeType>(SomeType s);
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Class C
@@ -590,21 +590,21 @@ public class C {}";
 
             var symbolName = "C";
 
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 using N;
 
 [Working(true)]
 public class [|C|]
-{
+{{
     public C();
-}");
-            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Imports N
@@ -637,16 +637,16 @@ End Class");
             using (var context = new TestContext())
             {
                 Assert.Throws<ArgumentException>(() =>
-        {
-            try
-            {
-                context.GenerateSource(namespaceSymbol);
-            }
-            catch (AggregateException ae)
-            {
-                throw ae.InnerException;
-            }
-        });
+                {
+                    try
+                    {
+                        context.GenerateSource(namespaceSymbol);
+                    }
+                    catch (AggregateException ae)
+                    {
+                        throw ae.InnerException;
+                    }
+                });
             }
         }
 
@@ -733,18 +733,18 @@ Public Class C
         End Set
     End Property
 End Class";
-            var expected = @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            var expected = $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public class C
-{
+{{
     public C();
 
     public string [|get_IndexProp|](int p1);
     public void set_IndexProp(int p1, string value);
-}";
+}}";
             var symbolName = "C.get_IndexProp";
             GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, expected);
         }
@@ -767,15 +767,15 @@ public class MyAttribute : Attribute
     public MyAttribute(Type t) { }
 }";
 
-            var expected = @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            var expected = $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 [My(typeof(D))]
 public class [|C|]
-{
+{{
     public C();
-}";
+}}";
             var symbolName = "C";
             GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, expected);
         }
@@ -823,9 +823,9 @@ public class C
     public static C operator + (C c1, C c2) { return new C(); }
 }
 ";
-            var expectedCS = @"
-#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            var expectedCS = $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 using System;
@@ -835,7 +835,7 @@ using System.Runtime.CompilerServices;
 [DefaultMember(""Item"")]
 [Obsolete]
 public class [|C|]
-{
+{{
     [Obsolete]
     [ThreadStatic]
     public int field1;
@@ -847,12 +847,12 @@ public class [|C|]
     ~C();
 
     [Obsolete]
-    public int this[int x] { get; set; }
+    public int this[int x] {{ get; set; }}
 
     [Obsolete]
-    public int prop1 { get; set; }
+    public int prop1 {{ get; set; }}
     [Obsolete]
-    public int prop2 { get; set; }
+    public int prop2 {{ get; set; }}
 
     [Obsolete]
     public event Action event1;
@@ -865,14 +865,14 @@ public class [|C|]
 
     [Obsolete]
     public static C operator +(C c1, C c2);
-}
+}}
 ";
             var symbolName = "C";
             GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, expectedCS);
 
-            var expectedVB = @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+            var expectedVB = $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 Imports System
 Imports System.Reflection
@@ -931,8 +931,8 @@ public class C
     public static C operator - (C c1, C c2) { return new C(); }
 }
 ";
-            var expectedCS = @"#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            var expectedCS = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 using System;
@@ -941,7 +941,7 @@ using System.Runtime.CompilerServices;
 
 [DefaultMember(""Item"")]
 public class [|C|]
-{
+{{
     public int field1;
     public int field2;
 
@@ -949,10 +949,10 @@ public class [|C|]
 
     ~C();
 
-    public int this[int x] { get; set; }
+    public int this[int x] {{ get; set; }}
 
-    public int prop1 { get; set; }
-    public int prop2 { get; set; }
+    public int prop1 {{ get; set; }}
+    public int prop2 {{ get; set; }}
 
     public event Action event1;
     public event Action event2;
@@ -962,13 +962,13 @@ public class [|C|]
 
     public static C operator +(C c1, C c2);
     public static C operator -(C c1, C c2);
-}
+}}
 ";
             var symbolName = "C";
             GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, expectedCS, compareTokens: false);
 
-            var expectedVB = @"#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+            var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Imports System
@@ -1016,47 +1016,47 @@ public interface IFoo
 }
 ";
             var symbolName = "IFoo";
-            var expectedCS = @"#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            var expectedCS = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 using System;
 
 //
-// Summary:
+// {FeaturesResources.Summary}
 //     T:IFoo
 public interface [|IFoo|]
-{
+{{
     //
-    // Summary:
+    // {FeaturesResources.Summary}
     //     P:IFoo.Prop1
-    Uri Prop1 { get; set; }
+    Uri Prop1 {{ get; set; }}
 
     //
-    // Summary:
+    // {FeaturesResources.Summary}
     //     M:IFoo.Method1
     Uri Method1();
-}
+}}
 ";
             GenerateAndVerifySource(source, symbolName, LanguageNames.CSharp, expectedCS, compareTokens: false, includeXmlDocComments: true);
 
-            var expectedVB = @"#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+            var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Imports System
 
 '
-' Summary:
+' {FeaturesResources.Summary}
 '     T:IFoo
 Public Interface [|IFoo|]
     '
-    ' Summary:
+    ' {FeaturesResources.Summary}
     '     P:IFoo.Prop1
     Property Prop1 As Uri
 
     '
-    ' Summary:
+    ' {FeaturesResources.Summary}
     '     M:IFoo.Method1
     Function Method1() As Uri
 End Interface
@@ -1077,23 +1077,23 @@ public class Test
 }
 ";
             var symbolName = "Test";
-            var expectedCS = @"#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            var expectedCS = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 using System.IO;
 
 public class [|Test|] 
-{ 
+{{
     public Test(); 
     public void foo(FileOptions options = FileOptions.None);
-}
+}}
 ";
             GenerateAndVerifySource(source, symbolName, LanguageNames.CSharp, expectedCS);
 
-            var expectedVB = @"#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" 
-' <in-memory assembly> 
-#End Region 
+            var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" 
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
 Imports System.IO 
 
 Public Class [|Test|] 
@@ -1118,23 +1118,23 @@ public class TestAttribute : Attribute
     }
 }";
             var symbolName = "TestAttribute";
-            var expectedCS = @"#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            var expectedCS = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 using System;
  
 [Test(null)]
 public class [|TestAttribute|] : Attribute
-{
+{{
     public TestAttribute(int[] i);
-}
+}}
 ";
             GenerateAndVerifySource(source, symbolName, LanguageNames.CSharp, expectedCS);
 
-            var expectedVB = @"#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" 
-' <in-memory assembly> 
-#End Region 
+            var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" 
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
 Imports System 
 
 <Test(Nothing)>
@@ -1163,14 +1163,14 @@ class C
         new object().[|M|](5);
     }
 }";
-            var expected = @"#region Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// <in-memory assembly>
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
 #endregion
  
 public static class ObjectExtensions
-{
+{{
     public static void [|M|](this object o, int x);
-}
+}}
 ";
 
             using (var context = new TestContext(
@@ -1205,9 +1205,9 @@ Public Module C
         s.[|M|](1)
     End Sub
 End Module";
-            var expected = @"#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly> 
-#End Region 
+            var expected = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
 Imports System.Runtime.CompilerServices
 
 Namespace NS

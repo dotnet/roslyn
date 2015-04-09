@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Shared.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Class AdvancedOptionPageControl
-        Sub New(serviceProvider As IServiceProvider)
+        Public Sub New(serviceProvider As IServiceProvider)
             MyBase.New(serviceProvider)
 
             InitializeComponent()

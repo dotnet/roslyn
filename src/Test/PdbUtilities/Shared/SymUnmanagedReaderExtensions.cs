@@ -4,12 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.SymbolStore;
-using System.IO;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.SymReaderInterop
+namespace Microsoft.DiaSymReader
 {
     internal struct AsyncStepInfo : IEquatable<AsyncStepInfo>
     {
@@ -57,6 +55,8 @@ namespace Microsoft.VisualStudio.SymReaderInterop
 
         #region Interop Helpers
 
+        // PERF: The purpose of all this code duplication is to avoid allocating any display class instances.
+        // Effectively, we will use the stack frames themselves as display classes.
         private delegate int CountGetter<TEntity>(TEntity entity, out int count);
         private delegate int ItemsGetter<TEntity, TItem>(TEntity entity, int bufferLength, out int count, TItem[] buffer);
         private delegate int ItemsGetter<TEntity, TArg1, TItem>(TEntity entity, TArg1 arg1, int bufferLength, out int count, TItem[] buffer);
@@ -151,28 +151,28 @@ namespace Microsoft.VisualStudio.SymReaderInterop
 
         #endregion
 
-        public static ISymUnmanagedReader CreateReader(Stream pdbStream, object metadataImporter)
-        {
-            Guid corSymReaderSxS = new Guid("0A3976C5-4529-4ef8-B0B0-42EED37082CD");
-            var reader = (ISymUnmanagedReader)Activator.CreateInstance(Type.GetTypeFromCLSID(corSymReaderSxS));
-            int hr = reader.Initialize(metadataImporter, null, null, new ComStreamWrapper(pdbStream));
-            ThrowExceptionForHR(hr);
-            return reader;
-        }
-
         /// <summary>
         /// Get the blob of binary custom debug info for a given method.
-        /// TODO: consume <paramref name="methodVersion"/> (DevDiv #1068138).
         /// </summary>
         public static byte[] GetCustomDebugInfoBytes(this ISymUnmanagedReader reader, int methodToken, int methodVersion)
         {
-            return GetItems(reader, new SymbolToken(methodToken), CdiAttributeName,
-                (ISymUnmanagedReader a, SymbolToken b, string c, int d, out int e, byte[] f) => a.GetSymAttribute(b, c, d, out e, f));
+            return GetItems(
+                reader,
+                methodToken,
+                methodVersion,
+                (ISymUnmanagedReader pReader, int pMethodToken, int pMethodVersion, int pBufferLength, out int pCount, byte[] pCustomDebugInfo) =>
+                {
+                    // TODO (DevDiv #1145183): cast should always succeed.
+                    var pReader3 = pReader as ISymUnmanagedReader3;
+                    return pReader3 == null
+                        ? pReader.GetSymAttribute(pMethodToken, CdiAttributeName, pBufferLength, out pCount, pCustomDebugInfo)
+                        : pReader3.GetSymAttributeByVersion(pMethodToken, pMethodVersion, CdiAttributeName, pBufferLength, out pCount, pCustomDebugInfo);
+                });
         }
 
         public static int GetUserEntryPoint(this ISymUnmanagedReader symReader)
         {
-            SymbolToken entryPoint;
+            int entryPoint;
             int hr = symReader.GetUserEntryPoint(out entryPoint);
             if (hr == E_FAIL)
             {
@@ -182,7 +182,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             }
 
             ThrowExceptionForHR(hr);
-            return entryPoint.GetToken();
+            return entryPoint;
         }
 
         public static ImmutableArray<ISymUnmanagedDocument> GetDocuments(this ISymUnmanagedReader reader)
@@ -193,22 +193,22 @@ namespace Microsoft.VisualStudio.SymReaderInterop
 
         public static int GetToken(this ISymUnmanagedMethod method)
         {
-            SymbolToken token;
+            int token;
             int hr = method.GetToken(out token);
             ThrowExceptionForHR(hr);
-            return token.GetToken();
+            return token;
         }
 
         public static ImmutableArray<ISymUnmanagedDocument> GetDocumentsForMethod(this ISymUnmanagedMethod method)
         {
-            return ToImmutableOrEmpty(GetItems((ISymENCUnmanagedMethod)method,
-                (ISymENCUnmanagedMethod a, out int b) => a.GetDocumentsForMethodCount(out b),
-                (ISymENCUnmanagedMethod a, int b, out int c, ISymUnmanagedDocument[] d) => a.GetDocumentsForMethod(b, out c, d)));
+            return ToImmutableOrEmpty(GetItems((ISymEncUnmanagedMethod)method,
+                (ISymEncUnmanagedMethod a, out int b) => a.GetDocumentsForMethodCount(out b),
+                (ISymEncUnmanagedMethod a, int b, out int c, ISymUnmanagedDocument[] d) => a.GetDocumentsForMethod(b, out c, d)));
         }
 
         public static void GetSourceExtentInDocument(this ISymUnmanagedMethod method, ISymUnmanagedDocument document, out int startLine, out int endLine)
         {
-            var symMethodEnc = (ISymENCUnmanagedMethod)method;
+            var symMethodEnc = (ISymEncUnmanagedMethod)method;
             int hr = symMethodEnc.GetSourceExtentInDocument(document, out startLine, out endLine);
             ThrowExceptionForHR(hr);
         }
@@ -216,13 +216,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         public static ImmutableArray<ISymUnmanagedMethod> GetMethodsInDocument(this ISymUnmanagedReader reader, ISymUnmanagedDocument symDocument)
         {
             return ToImmutableOrEmpty(GetItems((ISymUnmanagedReader2)reader, symDocument,
-                (ISymUnmanagedReader2 a, ISymUnmanagedDocument b, int c, out int d, ISymUnmanagedMethod[] e) =>
-                {
-                    uint ud;
-                    var result = a.GetMethodsInDocument(b, (uint)c, out ud, e);
-                    d = (int)ud;
-                    return result;
-                }));
+                (ISymUnmanagedReader2 a, ISymUnmanagedDocument b, int c, out int d, ISymUnmanagedMethod[] e) => a.GetMethodsInDocument(b, c, out d, e)));
         }
 
         public static ISymUnmanagedMethod GetMethod(this ISymUnmanagedReader reader, int methodToken)
@@ -233,7 +227,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         public static ISymUnmanagedMethod GetMethodByVersion(this ISymUnmanagedReader reader, int methodToken, int methodVersion)
         {
             ISymUnmanagedMethod method = null;
-            int hr = reader.GetMethodByVersion(new SymbolToken(methodToken), methodVersion, out method);
+            int hr = reader.GetMethodByVersion(methodToken, methodVersion, out method);
             ThrowExceptionForHR(hr);
 
             if (hr < 0)
@@ -249,13 +243,13 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         internal static string GetName(this ISymUnmanagedDocument document)
         {
             return ToString(GetItems(document,
-                (ISymUnmanagedDocument a, int b, out int c, char[] d) => a.GetURL(b, out c, d)));
+                (ISymUnmanagedDocument a, int b, out int c, char[] d) => a.GetUrl(b, out c, d)));
         }
 
-        public static ImmutableArray<byte> GetCheckSum(this ISymUnmanagedDocument document)
+        public static ImmutableArray<byte> GetChecksum(this ISymUnmanagedDocument document)
         {
             return ToImmutableOrEmpty(GetItems(document,
-                (ISymUnmanagedDocument a, int b, out int c, byte[] d) => a.GetCheckSum(b, out c, d)));
+                (ISymUnmanagedDocument a, int b, out int c, byte[] d) => a.GetChecksum(b, out c, d)));
         }
 
         public static Guid GetLanguage(this ISymUnmanagedDocument document)
@@ -285,7 +279,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         public static Guid GetHashAlgorithm(this ISymUnmanagedDocument document)
         {
             Guid result = default(Guid);
-            int hr = document.GetCheckSumAlgorithmId(ref result);
+            int hr = document.GetChecksumAlgorithmId(ref result);
             ThrowExceptionForHR(hr);
             return result;
         }
@@ -566,23 +560,23 @@ namespace Microsoft.VisualStudio.SymReaderInterop
                 return -1;
             }
 
-            uint result;
+            int result;
             hr = asyncMethod.GetCatchHandlerILOffset(out result);
             ThrowExceptionForHR(hr);
-            return (int)result;
+            return result;
         }
 
         public static int GetKickoffMethod(this ISymUnmanagedAsyncMethod asyncMethod)
         {
-            uint result;
+            int result;
             int hr = asyncMethod.GetKickoffMethod(out result);
             ThrowExceptionForHR(hr);
-            return (int)result;
+            return result;
         }
 
         public static IEnumerable<AsyncStepInfo> GetAsyncStepInfos(this ISymUnmanagedAsyncMethod asyncMethod)
         {
-            uint count;
+            int count;
             int hr = asyncMethod.GetAsyncStepInfoCount(out count);
             ThrowExceptionForHR(hr);
             if (count == 0)
@@ -590,18 +584,18 @@ namespace Microsoft.VisualStudio.SymReaderInterop
                 yield break;
             }
 
-            var yieldOffsets = new uint[count];
-            var breakpointOffsets = new uint[count];
-            var breakpointMethods = new uint[count];
+            var yieldOffsets = new int[count];
+            var breakpointOffsets = new int[count];
+            var breakpointMethods = new int[count];
             hr = asyncMethod.GetAsyncStepInfo(count, out count, yieldOffsets, breakpointOffsets, breakpointMethods);
             ThrowExceptionForHR(hr);
-            ValidateItems((int)count, yieldOffsets.Length);
-            ValidateItems((int)count, breakpointOffsets.Length);
-            ValidateItems((int)count, breakpointMethods.Length);
+            ValidateItems(count, yieldOffsets.Length);
+            ValidateItems(count, breakpointOffsets.Length);
+            ValidateItems(count, breakpointMethods.Length);
 
             for (int i = 0; i < count; i++)
             {
-                yield return new AsyncStepInfo((int)yieldOffsets[i], (int)breakpointOffsets[i], (int)breakpointMethods[i]);
+                yield return new AsyncStepInfo(yieldOffsets[i], breakpointOffsets[i], breakpointMethods[i]);
             }
         }
     }

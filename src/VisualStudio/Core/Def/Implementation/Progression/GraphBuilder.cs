@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
     internal sealed partial class GraphBuilder
     {
         private readonly Graph _graph = new Graph();
-        private readonly AsyncSemaphore _gate = new AsyncSemaphore(initialCount: 1);
+        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
         private readonly ISet<GraphNode> _createdNodes = new HashSet<GraphNode>();
         private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = new List<Tuple<GraphNode, GraphProperty, object>>();

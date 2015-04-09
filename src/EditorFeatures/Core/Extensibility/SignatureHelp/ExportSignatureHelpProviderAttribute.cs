@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.Editor
     [AttributeUsage(AttributeTargets.Class)]
     internal class ExportSignatureHelpProviderAttribute : ExportAttribute
     {
-        public string Name { get; private set; }
-        public string Language { get; private set; }
+        public string Name { get; }
+        public string Language { get; }
 
         public ExportSignatureHelpProviderAttribute(string name, string language)
             : base(typeof(ISignatureHelpProvider))

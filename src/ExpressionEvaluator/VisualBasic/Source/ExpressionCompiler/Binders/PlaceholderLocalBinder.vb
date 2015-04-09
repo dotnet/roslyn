@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             _inspectionContext = inspectionContext
             _typeNameDecoder = typeNameDecoder
             _containingMethod = containingMethod
-            ' TODO (acasey): pass comparer (GH #878).  Until then, there is no need for a comparer,
+            ' TODO (https://github.com/dotnet/roslyn/issues/878): pass comparer.  Until then, there is no need for a comparer,
             ' since we're going to canonicalize all names.
             _implicitDeclarations = If(allowImplicitDeclarations, New Dictionary(Of String, LocalSymbol)(), Nothing)
         End Sub
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return
             End If
 
-            ' TODO (acasey): use name (GH #878)
+            ' TODO (https://github.com/dotnet/roslyn/issues/878): use name
             Dim canonicalName = Canonicalize(name)
 
             Dim local As LocalSymbol = Nothing
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim typeChar As String = Nothing
             Dim specialType = GetSpecialTypeForTypeCharacter(identifier.GetTypeCharacter(), typeChar)
             Dim type = Compilation.GetSpecialType(If(specialType = SpecialType.None, SpecialType.System_Object, specialType))
-            ' TODO (acasey): don't canonicalize name (GH #878)
+            ' TODO (https://github.com/dotnet/roslyn/issues/878): don't canonicalize name
             Dim canonicalName = Canonicalize(identifier.GetIdentifierText())
             Dim local = LocalSymbol.Create(
                 _containingMethod,

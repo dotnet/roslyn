@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {
@@ -39,15 +40,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
         private IOleCommandTarget _commandTarget;
         private IInteractiveEvaluator _evaluator;
         private IWpfTextViewHost _textViewHost;
-        private readonly IVsInteractiveWindowEditorsFactoryService _editorFactoryService;
 
-        internal VsInteractiveWindow(IComponentModel model, Guid providerId, int instanceId, string title, IInteractiveEvaluator evaluator)
+        internal VsInteractiveWindow(IComponentModel model, Guid providerId, int instanceId, string title, IInteractiveEvaluator evaluator, __VSCREATETOOLWIN creationFlags)
         {
             _componentModel = model;
             this.Caption = title;
             _editorAdapters = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _evaluator = evaluator;
-            _editorFactoryService = model.GetService<IVsInteractiveWindowEditorsFactoryService>();
 
             // The following calls this.OnCreate:
             Guid clsId = this.ToolClsid;
@@ -61,7 +60,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 
             ErrorHandler.ThrowOnFailure(
                 vsShell.CreateToolWindow(
-                    (uint)(__VSCREATETOOLWIN.CTW_fInitNew | __VSCREATETOOLWIN.CTW_fForceCreate | __VSCREATETOOLWIN.CTW_fToolbarHost),
+                    (uint)(__VSCREATETOOLWIN.CTW_fInitNew | __VSCREATETOOLWIN.CTW_fToolbarHost | creationFlags),
                     (uint)instanceId,
                     this.GetIVsWindowPane(),
                     ref clsId,
@@ -77,9 +76,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             this.Frame = frame;
         }
 
-        public void SetLanguage(Guid languageServiceGuid)
+        public void SetLanguage(Guid languageServiceGuid, IContentType contentType)
         {
-            _editorFactoryService.SetLanguage(_window, languageServiceGuid);
+            _window.SetLanguage(languageServiceGuid, contentType);
         }
 
         public IInteractiveWindow InteractiveWindow { get { return _window; } }
@@ -90,7 +89,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
         {
             _window = _componentModel.GetService<IInteractiveWindowFactoryService>().CreateWindow(_evaluator);
             _window.SubmissionBufferAdded += SubmissionBufferAdded;
-            _textViewHost = _editorFactoryService.GetTextViewHost(_window);
+            _textViewHost = _window.GetTextViewHost();
             var viewAdapter = _editorAdapters.GetViewAdapter(_textViewHost.TextView);
             _findTarget = viewAdapter as IVsFindTarget;
             _commandTarget = viewAdapter as IOleCommandTarget;

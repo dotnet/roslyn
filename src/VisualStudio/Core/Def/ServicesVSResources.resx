@@ -451,6 +451,15 @@ Use the dropdown to view and switch to other projects this file may belong to.</
     <value>{0} references</value>
   </data>
   <data name="ReferenceCountSingular" xml:space="preserve">
-    <value>{0} reference</value>
+    <value>1 reference</value>
+  </data>
+  <data name="CodefixOrRefactoringEncounteredError" xml:space="preserve">
+    <value>'{0}' encountered an error and has been disabled.</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="EnableAndIgnore" xml:space="preserve">
+    <value>Enable and ignore future errors</value>
   </data>
 </root>

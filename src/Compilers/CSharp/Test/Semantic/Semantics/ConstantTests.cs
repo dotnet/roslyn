@@ -178,6 +178,9 @@ class Program
 ";
             var comp = CreateExperimentalCompilationWithMscorlib45(source);
             comp.VerifyDiagnostics(
+    // (10,12): error CS0568: Structs cannot contain explicit parameterless constructors
+    //     public S2()
+    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S2").WithLocation(10, 12),
     // (26,28): error CS1736: Default parameter value for 's' must be a compile-time constant
     //     static void Foo(S2 s = new S2())
     Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new S2()").WithArguments("s").WithLocation(26, 28)

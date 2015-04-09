@@ -15,23 +15,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.DesignerAttribute
     Friend Class BasicDesignerAttributeIncrementalAnalyzerProvider
         Implements IPerLanguageIncrementalAnalyzerProvider
 
-        Private ReadOnly serviceProvider As IServiceProvider
-        Private ReadOnly notificationService As IForegroundNotificationService
-        Private ReadOnly asyncListeners As IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))
+        Private ReadOnly _serviceProvider As IServiceProvider
+        Private ReadOnly _notificationService As IForegroundNotificationService
+        Private ReadOnly _asyncListeners As IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))
 
         <ImportingConstructor>
         Public Sub New(
             serviceProvider As SVsServiceProvider,
             notificationService As IForegroundNotificationService,
             <ImportMany> asyncListeners As IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata)))
-            Me.serviceProvider = serviceProvider
-            Me.notificationService = notificationService
-            Me.asyncListeners = asyncListeners
+            Me._serviceProvider = serviceProvider
+            Me._notificationService = notificationService
+            Me._asyncListeners = asyncListeners
         End Sub
 
         Public Function CreatePerLanguageIncrementalAnalyzer(workspace As Workspace, provider As IIncrementalAnalyzerProvider) As IIncrementalAnalyzer Implements IPerLanguageIncrementalAnalyzerProvider.CreatePerLanguageIncrementalAnalyzer
             Dim optionService = workspace.Services.GetService(Of IOptionService)()
-            Return New DesignerAttributeIncrementalAnalyzer(Me.serviceProvider, optionService, Me.notificationService, Me.asyncListeners)
+            Return New DesignerAttributeIncrementalAnalyzer(Me._serviceProvider, optionService, Me._notificationService, Me._asyncListeners)
         End Function
 
         Private Class DesignerAttributeIncrementalAnalyzer

@@ -185,8 +185,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim expr = SyntaxFactory.ParseExpression("a + b")
             Dim twoSpaces = SyntaxFactory.Whitespace("  ")
             Dim trivia = (From tr In expr.DescendantTrivia()
-                         Where tr.Kind = SyntaxKind.WhitespaceTrivia
-                         Select tr).ToList
+                          Where tr.Kind = SyntaxKind.WhitespaceTrivia
+                          Select tr).ToList
 
             Dim replaced As ExpressionSyntax = expr.ReplaceTrivia(trivia, Function(tr, tr2) twoSpaces)
             Dim rtext = replaced.ToFullString()
@@ -198,8 +198,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim expr = SyntaxFactory.ParseExpression("a + (c - b)")
             Dim twoSpaces = SyntaxFactory.Whitespace("  ")
             Dim trivia = (From tr In expr.DescendantTrivia()
-                         Where tr.Kind = SyntaxKind.WhitespaceTrivia
-                         Select tr).ToList
+                          Where tr.Kind = SyntaxKind.WhitespaceTrivia
+                          Select tr).ToList
 
             Dim replaced As ExpressionSyntax = expr.ReplaceTrivia(trivia, Function(tr, tr2) twoSpaces)
             Dim rtext = replaced.ToFullString()

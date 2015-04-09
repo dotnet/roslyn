@@ -115,6 +115,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; encountered an error and has been disabled..
+        /// </summary>
+        internal static string CodefixOrRefactoringEncounteredError {
+            get {
+                return ResourceManager.GetString("CodefixOrRefactoringEncounteredError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find location of folder on disk.
         /// </summary>
         internal static string CouldNotFindLocationOfFol {
@@ -228,6 +237,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string ElementRenameFailed {
             get {
                 return ResourceManager.GetString("ElementRenameFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable.
+        /// </summary>
+        internal static string Enable {
+            get {
+                return ResourceManager.GetString("Enable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable and ignore future errors.
+        /// </summary>
+        internal static string EnableAndIgnore {
+            get {
+                return ResourceManager.GetString("EnableAndIgnore", resourceCulture);
             }
         }
         
@@ -850,7 +877,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} reference.
+        ///   Looks up a localized string similar to 1 reference.
         /// </summary>
         internal static string ReferenceCountSingular {
             get {

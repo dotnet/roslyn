@@ -247,13 +247,13 @@ class C
         <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
       <locals>
-        <constant name=""o"" value=""0"" type=""Int32"" />
+        <constant name=""o"" value=""null"" type=""Object"" />
         <constant name=""s"" value=""hello"" type=""String"" />
         <constant name=""f"" value=""-3.402823E+38"" type=""Single"" />
         <constant name=""d"" value=""1.79769313486232E+308"" type=""Double"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
-        <constant name=""o"" value=""0"" type=""Int32"" />
+        <constant name=""o"" value=""null"" type=""Object"" />
         <constant name=""s"" value=""hello"" type=""String"" />
         <constant name=""f"" value=""-3.402823E+38"" type=""Single"" />
         <constant name=""d"" value=""1.79769313486232E+308"" type=""Double"" />

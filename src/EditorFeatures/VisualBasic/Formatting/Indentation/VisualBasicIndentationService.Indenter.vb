@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
         Private Class Indenter
             Inherits AbstractIndenter
 
-            Sub New(document As Document, rules As IEnumerable(Of IFormattingRule), optionSet As OptionSet, line As ITextSnapshotLine, cancellationToken As CancellationToken)
+            Public Sub New(document As Document, rules As IEnumerable(Of IFormattingRule), optionSet As OptionSet, line As ITextSnapshotLine, cancellationToken As CancellationToken)
                 MyBase.New(document, rules, optionSet, line, cancellationToken)
             End Sub
 

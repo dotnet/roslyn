@@ -9,17 +9,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// The weight of a CamelCase match. A higher number indicates a more accurate match.
         /// </summary>
-        public int? CamelCaseWeight { get; private set; }
+        public int? CamelCaseWeight { get; }
 
         /// <summary>
         /// True if this was a case sensitive match.
         /// </summary>
-        public bool IsCaseSensitive { get; private set; }
+        public bool IsCaseSensitive { get; }
 
         /// <summary>
         /// The type of match that occurred.
         /// </summary>
-        public PatternMatchKind Kind { get; private set; }
+        public PatternMatchKind Kind { get; }
 
         private bool _punctuationStripped;
 

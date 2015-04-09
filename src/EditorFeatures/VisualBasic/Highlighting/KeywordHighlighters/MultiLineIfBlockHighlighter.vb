@@ -15,20 +15,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
             With ifBlock.IfStatement
                 ' ElseIf case
-                highlights.Add( .IfKeyword.Span)
+                highlights.Add(.IfKeyword.Span)
 
                 If .ThenKeyword.Kind <> SyntaxKind.None Then
-                    highlights.Add( .ThenKeyword.Span)
+                    highlights.Add(.ThenKeyword.Span)
                 End If
             End With
 
             Dim highlightElseIfPart = Sub(elseIfBlock As ElseIfBlockSyntax)
                                           With elseIfBlock.ElseIfStatement
                                               ' ElseIf case
-                                              highlights.Add( .ElseIfKeyword.Span)
+                                              highlights.Add(.ElseIfKeyword.Span)
 
                                               If .ThenKeyword.Kind <> SyntaxKind.None Then
-                                                  highlights.Add( .ThenKeyword.Span)
+                                                  highlights.Add(.ThenKeyword.Span)
                                               End If
                                           End With
                                       End Sub

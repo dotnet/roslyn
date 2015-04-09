@@ -12,7 +12,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.SolutionExplorer</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices.SolutionExplorer</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -27,7 +27,7 @@
     <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
     <Reference Include="Microsoft.VisualStudio.CodeAnalysis.Sdk.UI, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.CodeAnalysis.Sdk.UI.dll</HintPath>
-    </Reference> 
+    </Reference>
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -131,6 +131,7 @@
     <Compile Include="DiagnosticItem\DiagnosticItemSource.DiagnosticDescriptorComparer.cs" />
     <Compile Include="DiagnosticItem\RuleSelectionImage.cs" />
     <Compile Include="HierarchyItemToProjectIdMap.cs" />
+    <Compile Include="IAnalyzersCommandHandler.cs" />
     <Compile Include="IHierarchyItemToProjectIdMap.cs" />
     <Compile Include="ISolutionExplorerWorkspaceProvider.cs" />
     <Compile Include="LocalizableProperties.cs" />

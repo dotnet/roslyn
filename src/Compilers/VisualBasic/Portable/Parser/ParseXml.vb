@@ -10,7 +10,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Class Parser
+    Friend Partial Class Parser
 
         ' File: Parser.cpp
         ' Lines: 13261 - 13261
@@ -2064,7 +2064,7 @@ TryResync:
 
         Private _options As WhiteSpaceOptions
 
-        Sub New()
+        Public Sub New()
         End Sub
 
         Public Overrides Function VisitXmlDeclaration(node As XmlDeclarationSyntax) As VisualBasicSyntaxNode

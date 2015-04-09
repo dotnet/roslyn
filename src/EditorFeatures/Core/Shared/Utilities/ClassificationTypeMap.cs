@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         private readonly Dictionary<string, IClassificationType> _identityMap;
         private readonly IClassificationTypeRegistryService _registryService;
 
-        public IClassificationFormatMapService ClassificationFormatMapService { get; private set; }
+        public IClassificationFormatMapService ClassificationFormatMapService { get; }
 
         [ImportingConstructor]
         internal ClassificationTypeMap(

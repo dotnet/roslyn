@@ -19,6 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
+    using Microsoft.CodeAnalysis.ErrorLogger;
     using DiagnosticId = String;
     using LanguageKind = String;
 
@@ -39,21 +40,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider>.CreateValueCallback _createProjectCodeFixProvider;
 
         private readonly ImmutableDictionary<LanguageKind, Lazy<ISuppressionFixProvider>> _suppressionProvidersMap;
+        private readonly IEnumerable<Lazy<IErrorLoggerService>> _errorLoggers;
 
         private ImmutableDictionary<CodeFixProvider, FixAllProviderInfo> _fixAllProviderMap;
 
         [ImportingConstructor]
         public CodeFixService(
             IDiagnosticAnalyzerService service,
+            [ImportMany]IEnumerable<Lazy<IErrorLoggerService>> loggers,
             [ImportMany]IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
             [ImportMany]IEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>> suppressionProviders)
         {
+            _errorLoggers = loggers;
             _diagnosticService = service;
-
             var fixersPerLanguageMap = fixers.ToPerLanguageMapWithMultipleLanguages();
             var suppressionProvidersPerLanguageMap = suppressionProviders.ToPerLanguageMapWithMultipleLanguages();
 
-            _workspaceFixersMap = GetFixerPerLanguageMap(fixersPerLanguageMap);
+            _workspaceFixersMap = GetFixerPerLanguageMap(fixersPerLanguageMap, null);
             _suppressionProvidersMap = GetSuppressionProvidersPerLanguageMap(suppressionProvidersPerLanguageMap);
 
             // REVIEW: currently, fixer's priority is statically defined by the fixer itself. might considering making it more dynamic or configurable.
@@ -66,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _fixAllProviderMap = ImmutableDictionary<CodeFixProvider, FixAllProviderInfo>.Empty;
         }
 
-        public async Task<FirstDiagnosticResult> GetFirstDiagnosticWithFixAsync(Document document, TextSpan range, CancellationToken cancellationToken)
+        public async Task<FirstDiagnosticResult> GetFirstDiagnosticWithFixAsync(Document document, TextSpan range, bool considerSuppressionFixes, CancellationToken cancellationToken)
         {
             if (document == null || !document.IsOpen())
             {
@@ -92,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     //
                     // first approach is simpler, so I will implement that first. if the first approach turns out to be not good enough, then
                     // I will try the second approach which will be more complex but quicker
-                    var hasFix = await ContainsAnyFix(document, diagnostic, cancellationToken).ConfigureAwait(false);
+                    var hasFix = await ContainsAnyFix(document, diagnostic, considerSuppressionFixes, cancellationToken).ConfigureAwait(false);
                     if (hasFix)
                     {
                         return new FirstDiagnosticResult(!fullResult, hasFix, diagnostic);
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        public async Task<IEnumerable<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, CancellationToken cancellationToken)
+        public async Task<IEnumerable<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, bool includeSuppressionFixes, CancellationToken cancellationToken)
         {
             // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic service to give back
             // current diagnostics for the given span, and it will use that to get fixes. internally diagnostic service will either return cached information 
@@ -121,12 +124,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var result = new List<CodeFixCollection>();
-            if (aggregatedDiagnostics != null)
+            if (aggregatedDiagnostics == null)
             {
-                foreach (var spanAndDiagnostic in aggregatedDiagnostics)
-                {
-                    result = await AppendFixesAsync(document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, result, cancellationToken).ConfigureAwait(false);
-                }
+                return result;
+            }
+
+            foreach (var spanAndDiagnostic in aggregatedDiagnostics)
+            {
+                result = await AppendFixesAsync(document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, result, cancellationToken).ConfigureAwait(false);
             }
 
             if (result.Any())
@@ -136,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 result.Sort((d1, d2) => priorityMap.ContainsKey((CodeFixProvider)d1.Provider) ? (priorityMap.ContainsKey((CodeFixProvider)d2.Provider) ? priorityMap[(CodeFixProvider)d1.Provider] - priorityMap[(CodeFixProvider)d2.Provider] : -1) : 1);
             }
 
-            if (aggregatedDiagnostics != null)
+            if (includeSuppressionFixes)
             {
                 foreach (var spanAndDiagnostic in aggregatedDiagnostics)
                 {
@@ -185,14 +190,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
             var diagnostics = diagnosticDataCollection.Select(data => data.ToDiagnostic(tree)).ToImmutableArray();
+            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
             foreach (var fixer in allFixers.Distinct())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                Func<Diagnostic, bool> hasFix = (d) => this.GetFixableDiagnosticIds(fixer).Contains(d.Id);
+                Func<Diagnostic, bool> hasFix = (d) => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id);
                 Func<ImmutableArray<Diagnostic>, Task<IEnumerable<CodeFix>>> getFixes =
                     async (dxs) =>
                     {
@@ -216,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         return fixes;
                     };
                 await AppendFixesOrSuppressionsAsync(document, span, diagnostics, result, fixer,
-                    extensionManager, hasFix, getFixes, cancellationToken).ConfigureAwait(false);
+                    hasFix, getFixes, cancellationToken).ConfigureAwait(false);
             }
 
             return result;
@@ -232,12 +237,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
             var diagnostics = diagnosticDataCollection.Select(data => data.ToDiagnostic(tree));
 
             Func<Diagnostic, bool> hasFix = (d) => lazySuppressionProvider.Value.CanBeSuppressed(d);
             Func<ImmutableArray<Diagnostic>, Task<IEnumerable<CodeFix>>> getFixes = (dxs) => lazySuppressionProvider.Value.GetSuppressionsAsync(document, span, dxs, cancellationToken);
-            await AppendFixesOrSuppressionsAsync(document, span, diagnostics, result, lazySuppressionProvider.Value, extensionManager, hasFix, getFixes, cancellationToken).ConfigureAwait(false);
+            await AppendFixesOrSuppressionsAsync(document, span, diagnostics, result, lazySuppressionProvider.Value, hasFix, getFixes, cancellationToken).ConfigureAwait(false);
             return result;
         }
 
@@ -247,7 +251,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<Diagnostic> diagnosticsWithSameSpan,
             List<CodeFixCollection> result,
             object fixer,
-            IExtensionManager extensionManager,
             Func<Diagnostic, bool> hasFix,
             Func<ImmutableArray<Diagnostic>, Task<IEnumerable<CodeFix>>> getFixes,
             CancellationToken cancellationToken)
@@ -258,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 // this can happen for suppression case where all diagnostics can't be suppressed
                 return result;
             }
-
+            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
             var fixes = await extensionManager.PerformFunctionAsync(fixer, () => getFixes(diagnostics)).ConfigureAwait(false);
             if (fixes != null && fixes.Any())
             {
@@ -267,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (codeFixProvider != null)
                 {
                     // If the codeFixProvider supports fix all occurrences, then get the corresponding FixAllProviderInfo and fix all context.
-                    var fixAllProviderInfo = ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, codeFixProvider, FixAllProviderInfo.Create);
+                    var fixAllProviderInfo = extensionManager.PerformFunction(codeFixProvider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, codeFixProvider, FixAllProviderInfo.Create));
                     if (fixAllProviderInfo != null)
                     {
                         fixAllContext = new FixAllCodeActionContext(document, fixAllProviderInfo, codeFixProvider, diagnostics, this.GetDocumentDiagnosticsAsync, this.GetProjectDiagnosticsAsync, cancellationToken);
@@ -296,38 +299,36 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             Contract.ThrowIfNull(project);
 
-            var diagnostics = await _diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds, cancellationToken: cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId == null));
-            var dxs = diagnostics.Select(d => d.ToDiagnostic(null));
-
             if (includeAllDocumentDiagnostics)
             {
-                var list = new List<Diagnostic>();
-                list.AddRange(dxs);
-
-                foreach (var document in project.Documents)
-                {
-                    var docDiagnsotics = await GetDocumentDiagnosticsAsync(document, diagnosticIds, cancellationToken).ConfigureAwait(false);
-                    list.AddRange(docDiagnsotics);
-                }
-
-                return list;
+                // Get all diagnostics for the entire project, including document diagnostics.
+                var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds: diagnosticIds, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var documentIdsToTreeMap = await GetDocumentIdsToTreeMapAsync(project, cancellationToken).ConfigureAwait(false);
+                return diagnostics.Select(d => d.DocumentId != null ? d.ToDiagnostic(documentIdsToTreeMap[d.DocumentId]) : d.ToDiagnostic(null));
             }
             else
             {
-                return dxs;
+                // Get all no-location diagnostics for the project, doesn't include document diagnostics.
+                var diagnostics = await _diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds, cancellationToken: cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId == null));
+                return diagnostics.Select(d => d.ToDiagnostic(null));
             }
         }
 
-        private async Task<bool> ContainsAnyFix(Document document, DiagnosticData diagnostic, CancellationToken cancellationToken)
+        private static async Task<ImmutableDictionary<DocumentId, SyntaxTree>> GetDocumentIdsToTreeMapAsync(Project project, CancellationToken cancellationToken)
         {
-            // TODO: We don't return true here if the only available fixes are suppressions.
-            // This is to avoid the problem where lightbulb would show up for every green warning
-            // squiggle in the editor thereby diluting the promise of the light bulb from
-            // "I have a fix" to "I have some action". This is temporary until the editor team exposes
-            // some mechanism (e.g. a faded out lightbulb) that would allow us to say "I have an action
-            // but not a fix".
+            var builder = ImmutableDictionary.CreateBuilder<DocumentId, SyntaxTree>();
+            foreach (var document in project.Documents)
+            {
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                builder.Add(document.Id, tree);
+            }
 
+            return builder.ToImmutable();
+        }
+
+        private async Task<bool> ContainsAnyFix(Document document, DiagnosticData diagnostic, bool considerSuppressionFixes, CancellationToken cancellationToken)
+        {
             ImmutableArray<CodeFixProvider> workspaceFixers = ImmutableArray<CodeFixProvider>.Empty;
             List<CodeFixProvider> projectFixers = null;
 
@@ -335,7 +336,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             bool hasAnySharedFixer = _workspaceFixersMap.TryGetValue(document.Project.Language, out fixerMap) && fixerMap.Value.TryGetValue(diagnostic.Id, out workspaceFixers);
             var hasAnyProjectFixer = GetProjectFixers(document.Project).TryGetValue(diagnostic.Id, out projectFixers);
 
-            if (!hasAnySharedFixer && !hasAnyProjectFixer)
+            Lazy<ISuppressionFixProvider> lazySuppressionProvider = null;
+            var hasSuppressionFixer =
+                considerSuppressionFixes &&
+                _suppressionProvidersMap.TryGetValue(document.Project.Language, out lazySuppressionProvider) &&
+                lazySuppressionProvider.Value != null;
+
+            if (!hasAnySharedFixer && !hasAnyProjectFixer && !hasSuppressionFixer)
             {
                 return false;
             }
@@ -354,7 +361,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var dx = diagnostic.ToDiagnostic(tree);
 
-            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+            if (hasSuppressionFixer && lazySuppressionProvider.Value.CanBeSuppressed(dx))
+            {
+                return true;
+            }
 
             var fixes = new List<CodeFix>();
             var context = new CodeFixContext(document, dx,
@@ -370,6 +380,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 },
                 verifyArguments: false,
                 cancellationToken: cancellationToken);
+
+            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
             // we do have fixer. now let's see whether it actually can fix it
             foreach (var fixer in allFixers)
@@ -388,13 +400,39 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static readonly Func<DiagnosticId, List<CodeFixProvider>> s_createList = _ => new List<CodeFixProvider>();
 
-        private ImmutableArray<DiagnosticId> GetFixableDiagnosticIds(CodeFixProvider fixer)
+        private ImmutableArray<DiagnosticId> GetFixableDiagnosticIds(CodeFixProvider fixer, IExtensionManager extensionManager)
         {
-            return ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => f.FixableDiagnosticIds);
+            // If we are passed a null extension manager it means we do not have access to a document so there is nothing to 
+            // show the user.  In this case we will log any exceptions that occur, but the user will not see them.
+            if (extensionManager != null)
+            {
+                return extensionManager.PerformFunction(
+                    fixer,
+                    () => ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => f.FixableDiagnosticIds),
+                    ImmutableArray<DiagnosticId>.Empty);
+            }
+
+            try
+            {
+                return ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => f.FixableDiagnosticIds);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                foreach (var logger in _errorLoggers)
+                {
+                    logger.Value.LogError(fixer.GetType().Name, e.Message + Environment.NewLine + e.StackTrace);
+                }
+                return ImmutableArray<DiagnosticId>.Empty;
+            }
         }
 
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>> GetFixerPerLanguageMap(
-            Dictionary<LanguageKind, List<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> fixersPerLanguage)
+            Dictionary<LanguageKind, List<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> fixersPerLanguage,
+            IExtensionManager extensionManager)
         {
             var fixerMap = ImmutableDictionary.Create<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>>();
             foreach (var languageKindAndFixers in fixersPerLanguage)
@@ -405,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     foreach (var fixer in languageKindAndFixers.Value)
                     {
-                        foreach (var id in this.GetFixableDiagnosticIds(fixer.Value))
+                        foreach (var id in this.GetFixableDiagnosticIds(fixer.Value, extensionManager))
                         {
                             if (string.IsNullOrWhiteSpace(id))
                             {
@@ -477,13 +515,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private ImmutableDictionary<DiagnosticId, List<CodeFixProvider>> ComputeProjectFixers(Project project)
         {
+            var extensionManager = project.Solution.Workspace.Services.GetService<IExtensionManager>();
             ImmutableDictionary<DiagnosticId, List<CodeFixProvider>>.Builder builder = null;
             foreach (var reference in project.AnalyzerReferences)
             {
                 var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, _createProjectCodeFixProvider);
                 foreach (var fixer in projectCodeFixerProvider.GetFixers(project.Language))
                 {
-                    var fixableIds = this.GetFixableDiagnosticIds(fixer);
+                    var fixableIds = this.GetFixableDiagnosticIds(fixer, extensionManager);
                     foreach (var id in fixableIds)
                     {
                         if (string.IsNullOrWhiteSpace(id))

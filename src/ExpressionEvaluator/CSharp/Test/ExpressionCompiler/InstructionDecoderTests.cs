@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     public class InstructionDecoderTests : ExpressionCompilerTestBase
     {
         [Fact]
-        private void GetNameGenerics()
+        public void GetNameGenerics()
         {
             var source = @"
 using System;
@@ -59,9 +59,9 @@ class Class1<T>
                 "Class1<string>.M3<decimal>(System.Action<decimal> a)",
                 GetName(source, "Class1.M3", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, new[] { typeof(string), typeof(decimal) }));
         }
-        [Fact]
 
-        private void GetNameNullTypeArguments()
+        [Fact]
+        public void GetNameNullTypeArguments()
         {
             var source = @"
 using System;
@@ -84,9 +84,9 @@ class Class1<T>
                 "Class1<T>.M<U>(System.Action<U> a)",
                 GetName(source, "Class1.M", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, typeArguments: new[] { null, typeof(decimal) }));
         }
-        [Fact]
 
-        private void GetNameGenericArgumentTypeNotInReferences()
+        [Fact]
+        public void GetNameGenericArgumentTypeNotInReferences()
         {
             var source = @"
 class Class1
@@ -98,9 +98,9 @@ class Class1
                 "System.Collections.Generic.Comparer<Class1>.Create(System.Comparison<Class1> comparison)",
                 GetName(source, "System.Collections.Generic.Comparer.Create", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, typeArguments: new[] { serializedTypeArgumentName }));
         }
-        [Fact, WorkItem(1107977)]
 
-        private void GetNameGenericAsync()
+        [Fact, WorkItem(1107977)]
+        public void GetNameGenericAsync()
         {
             var source = @"
 using System.Threading.Tasks;
@@ -117,9 +117,9 @@ class C
                     "C.M<System.Exception>(System.Exception x)",
                     GetName(source, "C.<M>d__0.MoveNext", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, new[] { typeof(Exception) }));
         }
-        [Fact]
 
-        private void GetNameLambda()
+        [Fact]
+        public void GetNameLambda()
         {
             var source = @"
 using System;
@@ -135,9 +135,9 @@ class C
                 "C.M.AnonymousMethod__0_0()",
                 GetName(source, "C.<>c.<M>b__0_0", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
         }
-        [Fact]
 
-        private void GetNameGenericLambda()
+        [Fact]
+        public void GetNameGenericLambda()
         {
             var source = @"
 using System;
@@ -153,9 +153,9 @@ class C<T>
                 "C<System.Exception>.M.AnonymousMethod__0_0(System.ArgumentException u)",
                 GetName(source, "C.<>c__0.<M>b__0_0", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, new[] { typeof(Exception), typeof(ArgumentException) }));
         }
-        [Fact]
 
-        private void GetNameProperties()
+        [Fact]
+        public void GetNameProperties()
         {
             var source = @"
 class C
@@ -184,9 +184,9 @@ class C
                 "C.this[object].set(object x, int value)",
                 GetName(source, "C.set_Item", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
         }
-        [Fact]
 
-        private void GetNameExplicitInterfaceImplementation()
+        [Fact]
+        public void GetNameExplicitInterfaceImplementation()
         {
             var source = @"
 using System;
@@ -199,9 +199,9 @@ class C : IDisposable
                 "C.System.IDisposable.Dispose()",
                 GetName(source, "C.System.IDisposable.Dispose", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
         }
-        [Fact]
 
-        private void GetNameExtensionMethod()
+        [Fact]
+        public void GetNameExtensionMethod()
         {
             var source = @"
 static class Extensions
@@ -213,9 +213,9 @@ static class Extensions
                 "Extensions.M(string this)",
                 GetName(source, "Extensions.M", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
         }
-        [Fact]
 
-        private void GetNameArgumentFlagsNone()
+        [Fact]
+        public void GetNameArgumentFlagsNone()
         {
             var source = @"
 static class C
@@ -232,9 +232,9 @@ static class C
                 "C.M2",
                 GetName(source, "C.M2", DkmVariableInfoFlags.None));
         }
-        [Fact, WorkItem(1107978)]
 
-        private void GetNameRefAndOutParameters()
+        [Fact, WorkItem(1107978)]
+        public void GetNameRefAndOutParameters()
         {
             var source = @"
 class C
@@ -265,9 +265,9 @@ class C
                 "C.M(ref int x, out int y)",
                 GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names));
         }
-        [Fact]
 
-        private void GetNameParamsParameters()
+        [Fact]
+        public void GetNameParamsParameters()
         {
             var source = @"
 class C
@@ -281,9 +281,28 @@ class C
                 "C.M(int[] x)",
                 GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names));
         }
-        [Fact]
 
-        private void GetReturnTypeNamePrimitive()
+        [Fact, WorkItem(1134081, "DevDiv")]
+        public void GetFileNameWithoutExtension()
+        {
+            Assert.Equal(".", MetadataUtilities.GetFileNameWithoutExtension("."));
+            Assert.Equal(".a", MetadataUtilities.GetFileNameWithoutExtension(".a"));
+            Assert.Equal("a.", MetadataUtilities.GetFileNameWithoutExtension("a."));
+            Assert.Equal(".dll.", MetadataUtilities.GetFileNameWithoutExtension(".dll."));
+            Assert.Equal("a.b", MetadataUtilities.GetFileNameWithoutExtension("a.b"));
+            Assert.Equal("a", MetadataUtilities.GetFileNameWithoutExtension("a.dll"));
+            Assert.Equal("a", MetadataUtilities.GetFileNameWithoutExtension("a.exe"));
+            Assert.Equal("a", MetadataUtilities.GetFileNameWithoutExtension("a.netmodule"));
+            Assert.Equal("a", MetadataUtilities.GetFileNameWithoutExtension("a.winmd"));
+            Assert.Equal("a.b.c", MetadataUtilities.GetFileNameWithoutExtension("a.b.c"));
+            Assert.Equal("a.b.c", MetadataUtilities.GetFileNameWithoutExtension("a.b.c.dll"));
+            Assert.Equal("mscorlib.nlp", MetadataUtilities.GetFileNameWithoutExtension("mscorlib.nlp"));
+            Assert.Equal("Microsoft.CodeAnalysis", MetadataUtilities.GetFileNameWithoutExtension("Microsoft.CodeAnalysis"));
+            Assert.Equal("Microsoft.CodeAnalysis", MetadataUtilities.GetFileNameWithoutExtension("Microsoft.CodeAnalysis.dll"));
+        }
+
+        [Fact]
+        public void GetReturnTypeNamePrimitive()
         {
             var source = @"
 static class C
@@ -293,9 +312,9 @@ static class C
 
             Assert.Equal("uint", GetReturnTypeName(source, "C.M1"));
         }
-        [Fact]
 
-        private void GetReturnTypeNameNested()
+        [Fact]
+        public void GetReturnTypeNameNested()
         {
             var source = @"
 static class C
@@ -314,9 +333,9 @@ namespace N
 
             Assert.Equal("N.D.E", GetReturnTypeName(source, "C.M1"));
         }
-        [Fact]
 
-        private void GetReturnTypeNameGenericOfPrimitive()
+        [Fact]
+        public void GetReturnTypeNameGenericOfPrimitive()
         {
             var source = @"
 using System;
@@ -327,9 +346,9 @@ class C
 
             Assert.Equal("System.Action<int>", GetReturnTypeName(source, "C.M1"));
         }
-        [Fact]
 
-        private void GetReturnTypeNameGenericOfNested()
+        [Fact]
+        public void GetReturnTypeNameGenericOfNested()
         {
             var source = @"
 using System;
@@ -343,9 +362,9 @@ class C
 
             Assert.Equal("System.Action<C.D>", GetReturnTypeName(source, "C.M1"));
         }
-        [Fact]
 
-        private void GetReturnTypeNameGenericOfGeneric()
+        [Fact]
+        public void GetReturnTypeNameGenericOfGeneric()
         {
             var source = @"
 using System;

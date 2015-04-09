@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis
                 Hash.Combine(Hash.CombineValues(this.PreprocessorSymbolNames, StringComparer.Ordinal), 0))));
         }
 
-        private int HashFeatures(IReadOnlyDictionary<string, string> features)
+        private static int HashFeatures(IReadOnlyDictionary<string, string> features)
         {
             int value = 0;
             foreach (var kv in features)

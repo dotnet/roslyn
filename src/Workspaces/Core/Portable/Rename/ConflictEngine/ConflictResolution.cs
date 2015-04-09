@@ -190,11 +190,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// Whether the text that was resolved with was even valid. This may be false if the
         /// identifier was not valid in some language that was involved in the rename.
         /// </summary>
-        public bool ReplacementTextValid { get; private set; }
+        public bool ReplacementTextValid { get; }
 
         /// <summary>
         /// The original text that is the rename replacement.
         /// </summary>
-        public string ReplacementText { get; private set; }
+        public string ReplacementText { get; }
     }
 }

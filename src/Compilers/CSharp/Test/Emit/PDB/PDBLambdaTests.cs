@@ -569,7 +569,7 @@ class C : B
           <closure offset=""0"" />
           <lambda offset=""-2"" closure=""0"" />
           <lambda offset=""41"" closure=""0"" />
-          <lambda offset=""63"" />
+          <lambda offset=""63"" closure=""this"" />
           <lambda offset=""87"" closure=""1"" />
         </encLambdaMap>
       </customDebugInfo>
@@ -835,6 +835,591 @@ class C
     </method>
   </methods>
 </symbols>");
+        }
+
+        [Fact]
+        public void ForEachStatement_Array()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    void G(Func<int, int> f) {}
+
+    void F()                       
+    {                              
+        foreach (int x0 in new[] { 1 })  // Group #0             
+        {                                // Group #1
+            int x1 = 0;                  
+                                         
+            G(a => x0);   
+            G(a => x1);
+        }
+    }
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyDiagnostics();
+
+            // note that the two closures have a different syntax offset
+            c.VerifyPdb("C.F", @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""G"" parameterNames=""f"" />
+        <encLocalSlotMap>
+          <slot kind=""6"" offset=""41"" />
+          <slot kind=""8"" offset=""41"" />
+          <slot kind=""30"" offset=""41"" />
+          <slot kind=""30"" offset=""108"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>1</methodOrdinal>
+          <closure offset=""41"" />
+          <closure offset=""108"" />
+          <lambda offset=""259"" closure=""0"" />
+          <lambda offset=""287"" closure=""1"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""16"" document=""0"" />
+        <entry offset=""0x2"" startLine=""10"" startColumn=""28"" endLine=""10"" endColumn=""39"" document=""0"" />
+        <entry offset=""0xf"" hidden=""true"" document=""0"" />
+        <entry offset=""0x11"" hidden=""true"" document=""0"" />
+        <entry offset=""0x17"" startLine=""10"" startColumn=""18"" endLine=""10"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x20"" hidden=""true"" document=""0"" />
+        <entry offset=""0x26"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x27"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x2e"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x41"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x54"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x55"" hidden=""true"" document=""0"" />
+        <entry offset=""0x59"" startLine=""10"" startColumn=""25"" endLine=""10"" endColumn=""27"" document=""0"" />
+        <entry offset=""0x5f"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <locals>
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""2"" il_start=""0x11"" il_end=""0x55"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals1"" il_index=""3"" il_start=""0x20"" il_end=""0x55"" attributes=""0"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x60"">
+        <scope startOffset=""0x11"" endOffset=""0x55"">
+          <local name=""CS$&lt;&gt;8__locals0"" il_index=""2"" il_start=""0x11"" il_end=""0x55"" attributes=""0"" />
+          <scope startOffset=""0x20"" endOffset=""0x55"">
+            <local name=""CS$&lt;&gt;8__locals1"" il_index=""3"" il_start=""0x20"" il_end=""0x55"" attributes=""0"" />
+          </scope>
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [Fact]
+        public void ForEachStatement_MultidimensionalArray()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    void G(Func<int, int> f) {}
+
+    void F()                       
+    {                              
+        foreach (int x0 in new[,] { { 1 } })  // Group #0             
+        {                                     // Group #1
+            int x1 = 0;                  
+                                         
+            G(a => x0);   
+            G(a => x1);
+        }
+    }
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyDiagnostics();
+
+            // note that the two closures have a different syntax offset
+            c.VerifyPdb("C.F", @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""G"" parameterNames=""f"" />
+        <encLocalSlotMap>
+          <slot kind=""6"" offset=""41"" />
+          <slot kind=""7"" offset=""41"" />
+          <slot kind=""7"" offset=""41"" ordinal=""1"" />
+          <slot kind=""8"" offset=""41"" />
+          <slot kind=""8"" offset=""41"" ordinal=""1"" />
+          <slot kind=""30"" offset=""41"" />
+          <slot kind=""30"" offset=""113"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>1</methodOrdinal>
+          <closure offset=""41"" />
+          <closure offset=""113"" />
+          <lambda offset=""269"" closure=""0"" />
+          <lambda offset=""297"" closure=""1"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""16"" document=""0"" />
+        <entry offset=""0x2"" startLine=""10"" startColumn=""28"" endLine=""10"" endColumn=""44"" document=""0"" />
+        <entry offset=""0x2b"" hidden=""true"" document=""0"" />
+        <entry offset=""0x36"" hidden=""true"" document=""0"" />
+        <entry offset=""0x38"" hidden=""true"" document=""0"" />
+        <entry offset=""0x3f"" startLine=""10"" startColumn=""18"" endLine=""10"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x4f"" hidden=""true"" document=""0"" />
+        <entry offset=""0x56"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x57"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x5f"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x73"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x87"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x88"" hidden=""true"" document=""0"" />
+        <entry offset=""0x8e"" startLine=""10"" startColumn=""25"" endLine=""10"" endColumn=""27"" document=""0"" />
+        <entry offset=""0x93"" hidden=""true"" document=""0"" />
+        <entry offset=""0x97"" startLine=""10"" startColumn=""25"" endLine=""10"" endColumn=""27"" document=""0"" />
+        <entry offset=""0x9b"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <locals>
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""5"" il_start=""0x38"" il_end=""0x88"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals1"" il_index=""6"" il_start=""0x4f"" il_end=""0x88"" attributes=""0"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x9c"">
+        <scope startOffset=""0x38"" endOffset=""0x88"">
+          <local name=""CS$&lt;&gt;8__locals0"" il_index=""5"" il_start=""0x38"" il_end=""0x88"" attributes=""0"" />
+          <scope startOffset=""0x4f"" endOffset=""0x88"">
+            <local name=""CS$&lt;&gt;8__locals1"" il_index=""6"" il_start=""0x4f"" il_end=""0x88"" attributes=""0"" />
+          </scope>
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [Fact]
+        public void ForEachStatement_String()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    void G(Func<int, int> f) {}
+
+    void F()                       
+    {                              
+        foreach (int x0 in ""1"")  // Group #0             
+        {                          // Group #1
+            int x1 = 0;                  
+                                         
+            G(a => x0);   
+            G(a => x1);
+        }
+    }
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyDiagnostics();
+
+            // note that the two closures have a different syntax offset
+            c.VerifyPdb("C.F", @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""G"" parameterNames=""f"" />
+        <encLocalSlotMap>
+          <slot kind=""6"" offset=""41"" />
+          <slot kind=""8"" offset=""41"" />
+          <slot kind=""30"" offset=""41"" />
+          <slot kind=""30"" offset=""100"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>1</methodOrdinal>
+          <closure offset=""41"" />
+          <closure offset=""100"" />
+          <lambda offset=""245"" closure=""0"" />
+          <lambda offset=""273"" closure=""1"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""16"" document=""0"" />
+        <entry offset=""0x2"" startLine=""10"" startColumn=""28"" endLine=""10"" endColumn=""31"" document=""0"" />
+        <entry offset=""0xa"" hidden=""true"" document=""0"" />
+        <entry offset=""0xc"" hidden=""true"" document=""0"" />
+        <entry offset=""0x12"" startLine=""10"" startColumn=""18"" endLine=""10"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x1f"" hidden=""true"" document=""0"" />
+        <entry offset=""0x25"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x26"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x2d"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x40"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x53"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x54"" hidden=""true"" document=""0"" />
+        <entry offset=""0x58"" startLine=""10"" startColumn=""25"" endLine=""10"" endColumn=""27"" document=""0"" />
+        <entry offset=""0x61"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <locals>
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""2"" il_start=""0xc"" il_end=""0x54"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals1"" il_index=""3"" il_start=""0x1f"" il_end=""0x54"" attributes=""0"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x62"">
+        <scope startOffset=""0xc"" endOffset=""0x54"">
+          <local name=""CS$&lt;&gt;8__locals0"" il_index=""2"" il_start=""0xc"" il_end=""0x54"" attributes=""0"" />
+          <scope startOffset=""0x1f"" endOffset=""0x54"">
+            <local name=""CS$&lt;&gt;8__locals1"" il_index=""3"" il_start=""0x1f"" il_end=""0x54"" attributes=""0"" />
+          </scope>
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [Fact]
+        public void ForEachStatement_Enumerable()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    void G(Func<int, int> f) {}
+
+    void F()                       
+    {                              
+        foreach (int x0 in new List<int>())  // Group #0             
+        {                                     // Group #1
+            int x1 = 0;                  
+                                         
+            G(a => x0);   
+            G(a => x1);
+        }
+    }
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyDiagnostics();
+
+            // note that the two closures have a different syntax offset
+            c.VerifyPdb("C.F", @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""G"" parameterNames=""f"" />
+        <encLocalSlotMap>
+          <slot kind=""5"" offset=""41"" />
+          <slot kind=""30"" offset=""41"" />
+          <slot kind=""30"" offset=""112"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>1</methodOrdinal>
+          <closure offset=""41"" />
+          <closure offset=""112"" />
+          <lambda offset=""268"" closure=""0"" />
+          <lambda offset=""296"" closure=""1"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""16"" document=""0"" />
+        <entry offset=""0x2"" startLine=""11"" startColumn=""28"" endLine=""11"" endColumn=""43"" document=""0"" />
+        <entry offset=""0xd"" hidden=""true"" document=""0"" />
+        <entry offset=""0xf"" hidden=""true"" document=""0"" />
+        <entry offset=""0x15"" startLine=""11"" startColumn=""18"" endLine=""11"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x22"" hidden=""true"" document=""0"" />
+        <entry offset=""0x28"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x29"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x30"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x43"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x56"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x57"" startLine=""11"" startColumn=""25"" endLine=""11"" endColumn=""27"" document=""0"" />
+        <entry offset=""0x62"" hidden=""true"" document=""0"" />
+        <entry offset=""0x71"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <locals>
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""1"" il_start=""0xf"" il_end=""0x57"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals1"" il_index=""2"" il_start=""0x22"" il_end=""0x57"" attributes=""0"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x72"">
+        <scope startOffset=""0xf"" endOffset=""0x57"">
+          <local name=""CS$&lt;&gt;8__locals0"" il_index=""1"" il_start=""0xf"" il_end=""0x57"" attributes=""0"" />
+          <scope startOffset=""0x22"" endOffset=""0x57"">
+            <local name=""CS$&lt;&gt;8__locals1"" il_index=""2"" il_start=""0x22"" il_end=""0x57"" attributes=""0"" />
+          </scope>
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [Fact]
+        public void ForStatement1()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    bool G(Func<int, int> f) => true;
+
+    void F()                       
+    {                              
+        for (int x0 = 0, x1 = 0; G(a => x0) && G(a => x1);)
+        {
+            int x2 = 0;
+            G(a => x2); 
+        }
+    }
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyDiagnostics();
+
+            // note that the two closures have a different syntax offset
+            c.VerifyPdb("C.F", @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""41"" />
+          <slot kind=""30"" offset=""102"" />
+          <slot kind=""1"" offset=""41"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>1</methodOrdinal>
+          <closure offset=""102"" />
+          <closure offset=""41"" />
+          <lambda offset=""149"" closure=""0"" />
+          <lambda offset=""73"" closure=""1"" />
+          <lambda offset=""87"" closure=""1"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" hidden=""true"" document=""0"" />
+        <entry offset=""0x7"" startLine=""10"" startColumn=""14"" endLine=""10"" endColumn=""24"" document=""0"" />
+        <entry offset=""0xe"" startLine=""10"" startColumn=""26"" endLine=""10"" endColumn=""32"" document=""0"" />
+        <entry offset=""0x15"" hidden=""true"" document=""0"" />
+        <entry offset=""0x17"" hidden=""true"" document=""0"" />
+        <entry offset=""0x1d"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x1e"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x25"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x38"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x39"" startLine=""10"" startColumn=""34"" endLine=""10"" endColumn=""58"" document=""0"" />
+        <entry offset=""0x63"" hidden=""true"" document=""0"" />
+        <entry offset=""0x66"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <locals>
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x66"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x17"" il_end=""0x39"" attributes=""0"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x67"">
+        <namespace name=""System"" />
+        <scope startOffset=""0x1"" endOffset=""0x66"">
+          <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x66"" attributes=""0"" />
+          <scope startOffset=""0x17"" endOffset=""0x39"">
+            <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x17"" il_end=""0x39"" attributes=""0"" />
+          </scope>
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [Fact]
+        public void SwitchStatement1()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    bool G(Func<int> f) => true;
+
+    int a = 1;
+
+    void F()                       
+    {        
+        int x2 = 1;
+        G(() => x2);
+                      
+        switch (a)
+        {
+            case 1:
+                int x0 = 1;
+                G(() => x0);
+                break;
+
+            case 2:
+                int x1 = 1;
+                G(() => x1);
+                break;
+        }
+    }
+}
+";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyDiagnostics();
+
+            c.VerifyPdb("C.F", @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""0"" />
+          <slot kind=""30"" offset=""86"" />
+          <slot kind=""1"" offset=""86"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>2</methodOrdinal>
+          <closure offset=""0"" />
+          <closure offset=""86"" />
+          <lambda offset=""48"" closure=""0"" />
+          <lambda offset=""183"" closure=""1"" />
+          <lambda offset=""289"" closure=""1"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""0"" />
+        <entry offset=""0x6"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x7"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""20"" document=""0"" />
+        <entry offset=""0xe"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x21"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""19"" document=""0"" />
+        <entry offset=""0x2e"" hidden=""true"" document=""0"" />
+        <entry offset=""0x3a"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""28"" document=""0"" />
+        <entry offset=""0x41"" startLine=""19"" startColumn=""17"" endLine=""19"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x54"" startLine=""20"" startColumn=""17"" endLine=""20"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x56"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""28"" document=""0"" />
+        <entry offset=""0x5d"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x70"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x72"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <locals>
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x73"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x21"" il_end=""0x72"" attributes=""0"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x73"">
+        <namespace name=""System"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x73"" attributes=""0"" />
+        <scope startOffset=""0x21"" endOffset=""0x72"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x21"" il_end=""0x72"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [Fact]
+        public void UsingStatement1()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static int F(object a, object b) => 1;
+    static IDisposable D() => null;
+    
+    static void F()                       
+    {                              
+        using (IDisposable x0 = D(), y0 = D())
+        {
+            int x1 = 1;
+        
+            G(() => x0);
+            G(() => y0);
+            G(() => x1);
+        }
+    }
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyDiagnostics();
+
+            // note that the two closures have a different syntax offset
+            c.VerifyPdb("C.F", @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"" parameterNames=""a, b"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""41"" endLine=""7"" endColumn=""42"" document=""0"" />
+      </sequencePoints>
+      <locals />
+    </method>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""41"" />
+          <slot kind=""30"" offset=""89"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>3</methodOrdinal>
+          <closure offset=""41"" />
+          <closure offset=""89"" />
+          <lambda offset=""147"" closure=""0"" />
+          <lambda offset=""173"" closure=""0"" />
+          <lambda offset=""199"" closure=""1"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" hidden=""true"" document=""0"" />
+        <entry offset=""0x7"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""36"" document=""0"" />
+        <entry offset=""0x12"" startLine=""12"" startColumn=""38"" endLine=""12"" endColumn=""46"" document=""0"" />
+        <entry offset=""0x1d"" hidden=""true"" document=""0"" />
+        <entry offset=""0x23"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x24"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x2b"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""25"" document=""0"" />
+        <entry offset=""0x3d"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""25"" document=""0"" />
+        <entry offset=""0x4f"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""25"" document=""0"" />
+        <entry offset=""0x61"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x64"" hidden=""true"" document=""0"" />
+        <entry offset=""0x79"" hidden=""true"" document=""0"" />
+        <entry offset=""0x7b"" hidden=""true"" document=""0"" />
+        <entry offset=""0x90"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <locals>
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x90"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x1d"" il_end=""0x62"" attributes=""0"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x91"">
+        <namespace name=""System"" />
+        <scope startOffset=""0x1"" endOffset=""0x90"">
+          <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x90"" attributes=""0"" />
+          <scope startOffset=""0x1d"" endOffset=""0x62"">
+            <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x1d"" il_end=""0x62"" attributes=""0"" />
+          </scope>
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
         }
     }
 }

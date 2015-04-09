@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return DirectCast(document.Root, SyntaxNode).FindToken(startPosition).GetAncestor(Of T)()
         End Function
 
-        Private Shared ReadOnly comparisonInversesMap As Dictionary(Of SyntaxKind, Tuple(Of SyntaxKind, SyntaxKind)) =
+        Private Shared ReadOnly s_comparisonInversesMap As Dictionary(Of SyntaxKind, Tuple(Of SyntaxKind, SyntaxKind)) =
             New Dictionary(Of SyntaxKind, Tuple(Of SyntaxKind, SyntaxKind))(SyntaxFacts.EqualityComparer) From
             {
                 {SyntaxKind.EqualsExpression, Tuple.Create(SyntaxKind.NotEqualsExpression, SyntaxKind.LessThanGreaterThanToken)},
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 {SyntaxKind.IsNotExpression, Tuple.Create(SyntaxKind.IsExpression, SyntaxKind.IsKeyword)}
             }
 
-        Private Shared ReadOnly logicalInversesMap As Dictionary(Of SyntaxKind, Tuple(Of SyntaxKind, SyntaxKind)) =
+        Private Shared ReadOnly s_logicalInversesMap As Dictionary(Of SyntaxKind, Tuple(Of SyntaxKind, SyntaxKind)) =
             New Dictionary(Of SyntaxKind, Tuple(Of SyntaxKind, SyntaxKind))(SyntaxFacts.EqualityComparer) From
             {
                 {SyntaxKind.OrExpression, Tuple.Create(SyntaxKind.AndExpression, SyntaxKind.AndKeyword)},
@@ -116,12 +116,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 {SyntaxKind.AndAlsoExpression, Tuple.Create(SyntaxKind.OrElseExpression, SyntaxKind.OrElseKeyword)}
             }
 
-        Private Shared ReadOnly _ifNodeAnnotation As New SyntaxAnnotation
+        Private Shared ReadOnly s_ifNodeAnnotation As New SyntaxAnnotation
 
         Protected Shared Async Function FindIfNodeAsync(document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim result = root _
-                .GetAnnotatedNodesAndTokens(_ifNodeAnnotation) _
+                .GetAnnotatedNodesAndTokens(s_ifNodeAnnotation) _
                 .Single() _
                 .AsNode()
 
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
 
             ' Annotate the original node so we can get back to it.
             Dim ifNode = node
-            _updatedDocument = Await _updatedDocument.ReplaceNodeAsync(ifNode, ifNode.WithAdditionalAnnotations(_ifNodeAnnotation), cancellationToken).ConfigureAwait(False)
+            _updatedDocument = Await _updatedDocument.ReplaceNodeAsync(ifNode, ifNode.WithAdditionalAnnotations(s_ifNodeAnnotation), cancellationToken).ConfigureAwait(False)
             ifNode = Await FindIfNodeAsync(_updatedDocument, cancellationToken).ConfigureAwait(False)
 
             ' Complexify the top-most statement parenting this if-statement if necessary
@@ -380,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             ByRef result As ExpressionSyntax) As Boolean
 
             Dim inverses As Tuple(Of SyntaxKind, SyntaxKind) = Nothing
-            If comparisonInversesMap.TryGetValue(expression.Kind, inverses) Then
+            If s_comparisonInversesMap.TryGetValue(expression.Kind, inverses) Then
                 Dim binaryExpression = DirectCast(expression, BinaryExpressionSyntax)
                 Dim expressionType = inverses.Item1
                 Dim operatorType = inverses.Item2
@@ -419,7 +419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             ByRef result As ExpressionSyntax) As Boolean
 
             Dim inverses As Tuple(Of SyntaxKind, SyntaxKind) = Nothing
-            If logicalInversesMap.TryGetValue(expression.Kind, inverses) Then
+            If s_logicalInversesMap.TryGetValue(expression.Kind, inverses) Then
                 Dim binaryExpression = DirectCast(expression, BinaryExpressionSyntax)
 
                 ' NOTE: result must be parenthesized because And & AndAlso have higher precedence than Or & OrElse

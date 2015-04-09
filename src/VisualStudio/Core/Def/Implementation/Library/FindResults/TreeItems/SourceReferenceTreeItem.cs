@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -8,27 +9,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 {
     internal class SourceReferenceTreeItem : AbstractSourceTreeItem, IComparable<SourceReferenceTreeItem>
     {
-        public SourceReferenceTreeItem(Location location, Solution solution, ushort glyphIndex)
-            : this(solution.GetDocument(location.SourceTree), location.SourceSpan, glyphIndex)
+        public SourceReferenceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex, int commonPathElements = 0, string displayText = null)
+            : base(document, sourceSpan, glyphIndex, commonPathElements)
         {
+            if (displayText != null)
+            {
+                this.DisplayText = displayText;
+            }
+            else
+            {
+                SetDisplayProperties(
+                    _filePath,
+                    _mappedLineNumber,
+                    _mappedOffset,
+                    _offset,
+                    _textLineString,
+                    sourceSpan.Length,
+                    projectNameDisambiguator: string.Empty);
+            }
         }
 
-        public SourceReferenceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex)
-            : this(document, sourceSpan, glyphIndex, includeProjectNameDisambiguator: false)
+        public override bool UseGrayText
         {
-        }
-
-        public SourceReferenceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex, bool includeProjectNameDisambiguator)
-            : base(document, sourceSpan, glyphIndex)
-        {
-            SetDisplayProperties(
-                _filePath,
-                _mappedLineNumber,
-                _mappedOffset,
-                _offset,
-                _textLineString,
-                sourceSpan.Length,
-                projectNameDisambiguator: string.Empty);
+            get
+            {
+                return false;
+            }
         }
 
         public void AddProjectNameDisambiguator()

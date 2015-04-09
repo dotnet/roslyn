@@ -11,45 +11,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
         Inherits BoundTreeRewriter
 
-        Private ReadOnly topMethod As MethodSymbol
-        Private ReadOnly emitModule As PEModuleBuilder
-        Private ReadOnly compilationState As TypeCompilationState
-        Private ReadOnly previousSubmissionFields As SynthesizedSubmissionFields
-        Private ReadOnly globalGenerateDebugInfo As Boolean
-        Private ReadOnly diagnostics As DiagnosticBag
-        Private symbolsCapturedWithoutCopyCtor As ISet(Of Symbol)
+        Private ReadOnly _topMethod As MethodSymbol
+        Private ReadOnly _emitModule As PEModuleBuilder
+        Private ReadOnly _compilationState As TypeCompilationState
+        Private ReadOnly _previousSubmissionFields As SynthesizedSubmissionFields
+        Private ReadOnly _globalGenerateDebugInfo As Boolean
+        Private ReadOnly _diagnostics As DiagnosticBag
+        Private _symbolsCapturedWithoutCopyCtor As ISet(Of Symbol)
 
-        Private currentMethodOrLambda As MethodSymbol
-        Private rangeVariableMap As Dictionary(Of RangeVariableSymbol, BoundExpression)
-        Private placeholderReplacementMapDoNotUseDirectly As Dictionary(Of BoundValuePlaceholderBase, BoundExpression)
-        Private hasLambdas As Boolean
-        Private inExpressionLambda As Boolean ' Are we inside a lambda converted to expression tree?
-        Private staticLocalMap As Dictionary(Of LocalSymbol, KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField))
+        Private _currentMethodOrLambda As MethodSymbol
+        Private _rangeVariableMap As Dictionary(Of RangeVariableSymbol, BoundExpression)
+        Private _placeholderReplacementMapDoNotUseDirectly As Dictionary(Of BoundValuePlaceholderBase, BoundExpression)
+        Private _hasLambdas As Boolean
+        Private _inExpressionLambda As Boolean ' Are we inside a lambda converted to expression tree?
+        Private _staticLocalMap As Dictionary(Of LocalSymbol, KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField))
 
-        Private xmlFixupData As New XmlLiteralFixupData()
-        Private xmlImportedNamespaces As ImmutableArray(Of KeyValuePair(Of String, String))
+        Private _xmlFixupData As New XmlLiteralFixupData()
+        Private _xmlImportedNamespaces As ImmutableArray(Of KeyValuePair(Of String, String))
 
-        Private unstructuredExceptionHandling As UnstructuredExceptionHandlingState
-        Private currentLineTemporary As LocalSymbol
+        Private _unstructuredExceptionHandling As UnstructuredExceptionHandlingState
+        Private _currentLineTemporary As LocalSymbol
 
-        Private createSequencePointsForTopLevelNonCompilerGeneratedExpressions As Boolean
-        Private conditionalAccessReceiverPlaceholderId As Integer
+        Private _createSequencePointsForTopLevelNonCompilerGeneratedExpressions As Boolean
+        Private _conditionalAccessReceiverPlaceholderId As Integer
 
 #If DEBUG Then
         ''' <summary>
         ''' A map from SyntaxNode to corresponding visited BoundStatement.
         ''' Used to ensure correct generation of resumable code for Unstructured Exception Handling.
         ''' </summary>
-        Private unstructuredExceptionHandlingResumableStatements As New Dictionary(Of VisualBasicSyntaxNode, BoundStatement)(ReferenceEqualityComparer.Instance)
+        Private _unstructuredExceptionHandlingResumableStatements As New Dictionary(Of VisualBasicSyntaxNode, BoundStatement)(ReferenceEqualityComparer.Instance)
 
-        Private leaveRestoreUnstructuredExceptionHandlingContextTracker As New Stack(Of BoundNode)()
+        Private _leaveRestoreUnstructuredExceptionHandlingContextTracker As New Stack(Of BoundNode)()
 #End If
 
 #If DEBUG Then
         ''' <summary>
         ''' Used to prevent multiple rewrite of the same nodes.
         ''' </summary>
-        Private rewrittenNodes As New HashSet(Of BoundNode)(ReferenceEqualityComparer.Instance)
+        Private _rewrittenNodes As New HashSet(Of BoundNode)(ReferenceEqualityComparer.Instance)
 #End If
 
         ''' <summary>
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private ReadOnly Property PlaceholderReplacement(placeholder As BoundValuePlaceholderBase) As BoundExpression
             Get
-                Dim value = placeholderReplacementMapDoNotUseDirectly(placeholder)
+                Dim value = _placeholderReplacementMapDoNotUseDirectly(placeholder)
                 AssertPlaceholderReplacement(placeholder, value)
                 Return value
             End Get
@@ -84,11 +84,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub AddPlaceholderReplacement(placeholder As BoundValuePlaceholderBase, value As BoundExpression)
             AssertPlaceholderReplacement(placeholder, value)
 
-            If placeholderReplacementMapDoNotUseDirectly Is Nothing Then
-                placeholderReplacementMapDoNotUseDirectly = New Dictionary(Of BoundValuePlaceholderBase, BoundExpression)()
+            If _placeholderReplacementMapDoNotUseDirectly Is Nothing Then
+                _placeholderReplacementMapDoNotUseDirectly = New Dictionary(Of BoundValuePlaceholderBase, BoundExpression)()
             End If
 
-            placeholderReplacementMapDoNotUseDirectly.Add(placeholder, value)
+            _placeholderReplacementMapDoNotUseDirectly.Add(placeholder, value)
         End Sub
 
         ''' <summary>
@@ -97,8 +97,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Sub UpdatePlaceholderReplacement(placeholder As BoundValuePlaceholderBase, value As BoundExpression)
             AssertPlaceholderReplacement(placeholder, value)
-            Debug.Assert(placeholderReplacementMapDoNotUseDirectly.ContainsKey(placeholder))
-            placeholderReplacementMapDoNotUseDirectly(placeholder) = value
+            Debug.Assert(_placeholderReplacementMapDoNotUseDirectly.ContainsKey(placeholder))
+            _placeholderReplacementMapDoNotUseDirectly(placeholder) = value
         End Sub
 
         ''' <summary>
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Sub RemovePlaceholderReplacement(placeholder As BoundValuePlaceholderBase)
             Debug.Assert(placeholder IsNot Nothing)
-            Dim removed As Boolean = placeholderReplacementMapDoNotUseDirectly.Remove(placeholder)
+            Dim removed As Boolean = _placeholderReplacementMapDoNotUseDirectly.Remove(placeholder)
             Debug.Assert(removed)
         End Sub
 
@@ -120,14 +120,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As DiagnosticBag,
             flags As RewritingFlags
         )
-            Me.topMethod = topMethod
-            Me.currentMethodOrLambda = currentMethod
-            Me.globalGenerateDebugInfo = generateDebugInfo
-            Me.emitModule = compilationState.ModuleBuilderOpt
-            Me.compilationState = compilationState
-            Me.previousSubmissionFields = previousSubmissionFields
-            Me.diagnostics = diagnostics
-            Me.Flags = flags
+            Me._topMethod = topMethod
+            Me._currentMethodOrLambda = currentMethod
+            Me._globalGenerateDebugInfo = generateDebugInfo
+            Me._emitModule = compilationState.ModuleBuilderOpt
+            Me._compilationState = compilationState
+            Me._previousSubmissionFields = previousSubmissionFields
+            Me._diagnostics = diagnostics
+            Me._flags = flags
         End Sub
 
         Public ReadOnly Property OptimizationLevelIsDebug As Boolean
@@ -154,22 +154,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
             If rewrittenNodes IsNot Nothing Then
-                rewriter.rewrittenNodes = rewrittenNodes
+                rewriter._rewrittenNodes = rewrittenNodes
             Else
-                rewrittenNodes = rewriter.rewrittenNodes
+                rewrittenNodes = rewriter._rewrittenNodes
             End If
 
-            Debug.Assert(rewriter.leaveRestoreUnstructuredExceptionHandlingContextTracker.Count = 0)
+            Debug.Assert(rewriter._leaveRestoreUnstructuredExceptionHandlingContextTracker.Count = 0)
 #End If
 
             Dim result As BoundNode = rewriter.Visit(node)
 
-            If Not rewriter.xmlFixupData.IsEmpty Then
-                result = InsertXmlLiteralsPreamble(result, rewriter.xmlFixupData.MaterializeAndFree())
+            If Not rewriter._xmlFixupData.IsEmpty Then
+                result = InsertXmlLiteralsPreamble(result, rewriter._xmlFixupData.MaterializeAndFree())
             End If
 
-            hasLambdas = rewriter.hasLambdas
-            symbolsCapturedWithoutCtor = rewriter.symbolsCapturedWithoutCopyCtor
+            hasLambdas = rewriter._hasLambdas
+            symbolsCapturedWithoutCtor = rewriter._symbolsCapturedWithoutCopyCtor
             Return result
         End Function
 
@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return VisitExpression(expressionNode)
             Else
 #If DEBUG Then
-                Debug.Assert(node Is Nothing OrElse Not rewrittenNodes.Contains(node), "LocalRewriter: Rewritting the same node several times.")
+                Debug.Assert(node Is Nothing OrElse Not _rewrittenNodes.Contains(node), "LocalRewriter: Rewritting the same node several times.")
 
                 Dim result = MyBase.Visit(node)
 
@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         result = result.MemberwiseClone(Of BoundNode)()
                     End If
 
-                    rewrittenNodes.Add(result)
+                    _rewrittenNodes.Add(result)
                 End If
 
                 Return result
@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function VisitExpression(node As BoundExpression) As BoundExpression
 #If DEBUG Then
-            Debug.Assert(Not rewrittenNodes.Contains(node), "LocalRewriter: Rewritting the same node several times.")
+            Debug.Assert(Not _rewrittenNodes.Contains(node), "LocalRewriter: Rewritting the same node several times.")
             Dim originalNode = node
 #End If
 
@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As BoundExpression
 
             Dim createSequencePoint As Boolean =
-                    createSequencePointsForTopLevelNonCompilerGeneratedExpressions AndAlso
+                    _createSequencePointsForTopLevelNonCompilerGeneratedExpressions AndAlso
                     GenerateDebugInfo AndAlso
                     Not node.WasCompilerGenerated AndAlso
                     node.Syntax.Kind <> SyntaxKind.GroupAggregation AndAlso
@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      TypeOf node.Syntax Is ExpressionSyntax)
 
             If createSequencePoint Then
-                createSequencePointsForTopLevelNonCompilerGeneratedExpressions = False
+                _createSequencePointsForTopLevelNonCompilerGeneratedExpressions = False
             End If
 
             If constantValue IsNot Nothing Then
@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If createSequencePoint Then
-                createSequencePointsForTopLevelNonCompilerGeneratedExpressions = True
+                _createSequencePointsForTopLevelNonCompilerGeneratedExpressions = True
                 result = New BoundSequencePointExpression(node.Syntax, result, result.Type)
             End If
 
@@ -312,15 +312,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          BoundKind.RValuePlaceholder,
                          BoundKind.WithLValueExpressionPlaceholder,
                          BoundKind.WithRValueExpressionPlaceholder
-                    ' do not clone these as they have special semantics and may 
-                    ' be used for identity search after local rewriter is finished
+                        ' do not clone these as they have special semantics and may 
+                        ' be used for identity search after local rewriter is finished
 
                     Case Else
                         result = result.MemberwiseClone(Of BoundExpression)()
                 End Select
             End If
 
-            rewrittenNodes.Add(result)
+            _rewrittenNodes.Add(result)
 #End If
 
             Return result
@@ -328,19 +328,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property Compilation As VisualBasicCompilation
             Get
-                Return Me.topMethod.DeclaringCompilation
+                Return Me._topMethod.DeclaringCompilation
             End Get
         End Property
 
         Private ReadOnly Property ContainingAssembly As SourceAssemblySymbol
             Get
-                Return DirectCast(Me.topMethod.ContainingAssembly, SourceAssemblySymbol)
+                Return DirectCast(Me._topMethod.ContainingAssembly, SourceAssemblySymbol)
             End Get
         End Property
 
         Private ReadOnly Property GenerateDebugInfo As Boolean
             Get
-                Return globalGenerateDebugInfo AndAlso Not inExpressionLambda
+                Return _globalGenerateDebugInfo AndAlso Not _inExpressionLambda
             End Get
         End Property
 
@@ -448,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' NOTE: should be set to make sure we don't assert and rewrite the statement properly.
             ' NOTE: GenerateDebugInfo in this case should be False as all sequence points are 
             ' NOTE: supposed to be generated by this time
-            Debug.Assert((Me.Flags And RewritingFlags.AllowSequencePoints) <> 0 AndAlso Not GenerateDebugInfo, "are we trying to rewrite a node more than once?")
+            Debug.Assert((Me._flags And RewritingFlags.AllowSequencePoints) <> 0 AndAlso Not GenerateDebugInfo, "are we trying to rewrite a node more than once?")
             Return node.Update(DirectCast(Me.Visit(node.StatementOpt), BoundStatement), node.SequenceSpan)
         End Function
 
@@ -459,7 +459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' NOTE: should be set to make sure we don't assert and rewrite the statement properly.
             ' NOTE: GenerateDebugInfo in this case should be False as all sequence points are 
             ' NOTE: supposed to be generated by this time
-            Debug.Assert((Me.Flags And RewritingFlags.AllowSequencePoints) <> 0 AndAlso Not GenerateDebugInfo, "are we trying to rewrite a node more than once?")
+            Debug.Assert((Me._flags And RewritingFlags.AllowSequencePoints) <> 0 AndAlso Not GenerateDebugInfo, "are we trying to rewrite a node more than once?")
             Return node.Update(DirectCast(Me.Visit(node.StatementOpt), BoundStatement))
         End Function
 
@@ -564,17 +564,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="specialType">Special Type to get.</param><returns></returns>
         Private Function GetSpecialType(specialType As SpecialType) As NamedTypeSymbol
-            Dim result As NamedTypeSymbol = Me.topMethod.ContainingAssembly.GetSpecialType(specialType)
+            Dim result As NamedTypeSymbol = Me._topMethod.ContainingAssembly.GetSpecialType(specialType)
             Debug.Assert(Binder.GetUseSiteErrorForSpecialType(result) Is Nothing)
             Return result
         End Function
 
         Private Function GetSpecialTypeWithUseSiteDiagnostics(specialType As SpecialType, syntax As SyntaxNode) As NamedTypeSymbol
-            Dim result As NamedTypeSymbol = Me.topMethod.ContainingAssembly.GetSpecialType(specialType)
+            Dim result As NamedTypeSymbol = Me._topMethod.ContainingAssembly.GetSpecialType(specialType)
 
             Dim info = Binder.GetUseSiteErrorForSpecialType(result)
             If info IsNot Nothing Then
-                Binder.ReportDiagnostic(diagnostics, syntax, info)
+                Binder.ReportDiagnostic(_diagnostics, syntax, info)
             End If
 
             Return result
@@ -585,7 +585,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="specialMember">Member of the special type.</param><returns></returns>
         Private Function GetSpecialTypeMember(specialMember As SpecialMember) As Symbol
-            Return Me.topMethod.ContainingAssembly.GetSpecialTypeMember(specialMember)
+            Return Me._topMethod.ContainingAssembly.GetSpecialTypeMember(specialMember)
         End Function
 
         ''' <summary>
@@ -593,7 +593,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns True in case diagnostics was actually reported
         ''' </summary>
         Private Function ReportMissingOrBadRuntimeHelper(node As BoundNode, specialMember As SpecialMember, memberSymbol As Symbol) As Boolean
-            Return ReportMissingOrBadRuntimeHelper(node, specialMember, memberSymbol, Me.diagnostics, compilationState.Compilation.Options.EmbedVbCoreRuntime)
+            Return ReportMissingOrBadRuntimeHelper(node, specialMember, memberSymbol, Me._diagnostics, _compilationState.Compilation.Options.EmbedVbCoreRuntime)
         End Function
 
         ''' <summary>
@@ -629,7 +629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns True in case diagnostics was actually reported
         ''' </summary>
         Private Function ReportMissingOrBadRuntimeHelper(node As BoundNode, wellKnownMember As WellKnownMember, memberSymbol As Symbol) As Boolean
-            Return ReportMissingOrBadRuntimeHelper(node, wellKnownMember, memberSymbol, Me.diagnostics, compilationState.Compilation.Options.EmbedVbCoreRuntime)
+            Return ReportMissingOrBadRuntimeHelper(node, wellKnownMember, memberSymbol, Me._diagnostics, _compilationState.Compilation.Options.EmbedVbCoreRuntime)
         End Function
 
         ''' <summary>
@@ -678,7 +678,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub ReportBadType(node As BoundNode, typeSymbol As TypeSymbol)
             Dim useSiteError = typeSymbol.GetUseSiteErrorInfo()
             If useSiteError IsNot Nothing Then
-                ReportDiagnostic(node, useSiteError, Me.diagnostics)
+                ReportDiagnostic(node, useSiteError, Me._diagnostics)
             End If
         End Sub
         ''
@@ -810,7 +810,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GenerateSequenceValueSideEffects(node As BoundExpression,
                                                           temporaries As ImmutableArray(Of LocalSymbol),
                                                           sideEffects As ImmutableArray(Of BoundExpression)) As BoundExpression
-            Return GenerateSequenceValueSideEffects(Me.currentMethodOrLambda, node, temporaries, sideEffects)
+            Return GenerateSequenceValueSideEffects(Me._currentMethodOrLambda, node, temporaries, sideEffects)
         End Function
 
         ''' <summary>
@@ -822,7 +822,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitAwaitOperator(node As BoundAwaitOperator) As BoundNode
-            If Not inExpressionLambda Then
+            If Not _inExpressionLambda Then
 
                 ' Await operator expression will be rewritten in AsyncRewriter, to do 
                 ' so we need to keep placeholders unchanged in the bound Await operator
@@ -855,7 +855,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitStopStatement(node As BoundStopStatement) As BoundNode
-            Dim nodeFactory As New SyntheticBoundNodeFactory(topMethod, currentMethodOrLambda, node.Syntax, compilationState, diagnostics)
+            Dim nodeFactory As New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, node.Syntax, _compilationState, _diagnostics)
             Dim break As MethodSymbol = nodeFactory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Diagnostics_Debugger__Break)
 
             Dim rewritten As BoundStatement = node
@@ -875,7 +875,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitEndStatement(node As BoundEndStatement) As BoundNode
-            Dim nodeFactory As New SyntheticBoundNodeFactory(topMethod, currentMethodOrLambda, node.Syntax, compilationState, diagnostics)
+            Dim nodeFactory As New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, node.Syntax, _compilationState, _diagnostics)
             Dim endApp As MethodSymbol = nodeFactory.WellKnownMember(Of MethodSymbol)(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__EndApp)
 
             Dim rewritten As BoundStatement = node

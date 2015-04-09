@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared ReadOnly ElasticTab As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticTab, SyntaxTrivia)
 
         Public Shared ReadOnly ElasticMarker As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticZeroSpace, SyntaxTrivia)
-        Private Shared ReadOnly ElasticMarkerList As SyntaxTriviaList = SyntaxFactory.TriviaList(CType(InternalSyntax.SyntaxFactory.ElasticZeroSpace, SyntaxTrivia))
+        Private Shared ReadOnly s_elasticMarkerList As SyntaxTriviaList = SyntaxFactory.TriviaList(CType(InternalSyntax.SyntaxFactory.ElasticZeroSpace, SyntaxTrivia))
 
         Public Shared Function Whitespace(text As String, Optional elastic As Boolean = True) As SyntaxTrivia
             Return CType(InternalSyntax.SyntaxFactory.Whitespace(text, elastic), SyntaxTrivia)
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Creates a token with kind IntegerLiteralToken from the text and corresponding 4-byte signed integer value. </summary> 
         ''' <param name="text">The raw text of the literal.</param> <param name="value">The 4-byte signed integer value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As Integer) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from the text and corresponding 4-byte signed integer value. </summary> 
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal.</param>
         ''' <param name="value">The 4-byte unsigned integer value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As UInteger) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from the text and corresponding 4-byte unsigned integer value. </summary>
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal.</param>
         ''' <param name="value">The 8-byte signed integer value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As Long) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from the text and corresponding 8-byte signed integer value. </summary>
@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal.</param>
         ''' <param name="value">The 8-byte unsigned integer value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As ULong) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from the text and corresponding 8-byte unsigned integer value. </summary>
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal.</param>
         ''' <param name="value">The 4-byte floating point value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As Single) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind FloatingLiteralToken from the text and corresponding 4-byte floating point value. </summary>
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal.</param>
         ''' <param name="value">The 8-byte floating point value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As Double) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind FloatingLiteralToken from the text and corresponding 8-byte floating point value. </summary>
@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal.</param>
         ''' <param name="value">The decimal value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As Decimal) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind DecimalLiteralToken from the text and corresponding decimal value. </summary>
@@ -285,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal, including quotes and escape sequences.</param>
         ''' <param name="value">The string value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As String) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind StringLiteralToken from the text and corresponding string value. </summary>
@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal, including quotes and escape sequences.</param>
         ''' <param name="value">The character value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As Char) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind CharacterLiteralToken from the text and corresponding character value. </summary>

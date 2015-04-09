@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
-using MemberTypes = System.Reflection.MemberTypes;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 using Roslyn.Utilities;
 

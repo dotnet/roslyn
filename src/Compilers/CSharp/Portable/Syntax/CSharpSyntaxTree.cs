@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
@@ -380,19 +379,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException("path");
             }
 
-            using (Logger.LogBlock(FunctionId.CSharp_SyntaxTree_FullParse, path, text.Length, cancellationToken))
-            {
-                options = options ?? CSharpParseOptions.Default;
+            options = options ?? CSharpParseOptions.Default;
 
-                using (var lexer = new InternalSyntax.Lexer(text, options))
+            using (var lexer = new InternalSyntax.Lexer(text, options))
+            {
+                using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, cancellationToken: cancellationToken))
                 {
-                    using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, cancellationToken: cancellationToken))
-                    {
-                        var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
-                        var tree = new ParsedSyntaxTree(text, text.Encoding, text.ChecksumAlgorithm, path, options, compilationUnit, parser.Directives);
-                        tree.VerifySource();
-                        return tree;
-                    }
+                    var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
+                    var tree = new ParsedSyntaxTree(text, text.Encoding, text.ChecksumAlgorithm, path, options, compilationUnit, parser.Directives);
+                    tree.VerifySource();
+                    return tree;
                 }
             }
         }
@@ -411,25 +407,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public override SyntaxTree WithChangedText(SourceText newText)
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SyntaxTree_IncrementalParse, message: this.FilePath))
+            // try to find the changes between the old text and the new text.
+            SourceText oldText;
+            if (this.TryGetText(out oldText))
             {
-                // try to find the changes between the old text and the new text.
-                SourceText oldText;
-                if (this.TryGetText(out oldText))
+                var changes = newText.GetChangeRanges(oldText);
+
+                if (changes.Count == 0 && newText == oldText)
                 {
-                    var changes = newText.GetChangeRanges(oldText);
-
-                    if (changes.Count == 0 && newText == oldText)
-                    {
-                        return this;
-                    }
-
-                    return this.WithChanges(newText, changes);
+                    return this;
                 }
 
-                // if we do not easily know the old text, then specify entire text as changed so we do a full reparse.
-                return this.WithChanges(newText, new[] { new TextChangeRange(new TextSpan(0, this.Length), newText.Length) });
+                return this.WithChanges(newText, changes);
             }
+
+            // if we do not easily know the old text, then specify entire text as changed so we do a full reparse.
+            return this.WithChanges(newText, new[] { new TextChangeRange(new TextSpan(0, this.Length), newText.Length) });
         }
 
         private SyntaxTree WithChanges(SourceText newText, IReadOnlyList<TextChangeRange> changes)

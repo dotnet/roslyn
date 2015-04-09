@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal abstract class ExpressionCompiler :
+    public abstract class ExpressionCompiler :
         IDkmClrExpressionCompiler,
         IDkmClrExpressionCompilerCallback,
         IDkmModuleModifiedNotification
@@ -32,19 +32,31 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             try
             {
-                var references = instructionAddress.RuntimeInstance.GetMetadataBlocks(instructionAddress.ModuleInstance.AppDomain);
-                var context = this.CreateMethodContext(instructionAddress, references);
-                var builder = ArrayBuilder<LocalAndMethod>.GetInstance();
-                string typeName;
-                var assembly = context.CompileGetLocals(
-                    builder,
-                    argumentsOnly,
-                    out typeName,
-                    testData: null);
-                Debug.Assert((builder.Count == 0) == (assembly.Count == 0));
-                var locals = new ReadOnlyCollection<DkmClrLocalVariableInfo>(builder.SelectAsArray(l => DkmClrLocalVariableInfo.Create(l.LocalName, l.MethodName, l.Flags, DkmEvaluationResultCategory.Data)));
-                builder.Free();
-                return DkmCompiledClrLocalsQuery.Create(inspectionContext.RuntimeInstance, null, this.CompilerId, assembly, typeName, locals);
+                var moduleInstance = instructionAddress.ModuleInstance;
+                var runtimeInstance = instructionAddress.RuntimeInstance;
+                var runtimeInspectionContext = RuntimeInspectionContext.Create(inspectionContext);
+                string error;
+                var r = this.CompileWithRetry(
+                    moduleInstance,
+                    runtimeInstance.GetMetadataBlocks(moduleInstance.AppDomain),
+                    (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
+                    (context, diagnostics) =>
+                    {
+                        var builder = ArrayBuilder<LocalAndMethod>.GetInstance();
+                        string typeName;
+                        var assembly = context.CompileGetLocals(
+                            builder,
+                            argumentsOnly,
+                            diagnostics,
+                            out typeName,
+                            testData: null);
+                        Debug.Assert((builder.Count == 0) == (assembly.Count == 0));
+                        var locals = new ReadOnlyCollection<DkmClrLocalVariableInfo>(builder.SelectAsArray(ToLocalVariableInfo));
+                        builder.Free();
+                        return new GetLocalsResult(typeName, locals, assembly);
+                    },
+                    out error);
+                return DkmCompiledClrLocalsQuery.Create(runtimeInstance, null, this.CompilerId, r.Assembly, r.TypeName, r.Locals);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
@@ -61,28 +73,27 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             try
             {
-                var appDomain = instructionAddress.ModuleInstance.AppDomain;
-                var references = instructionAddress.RuntimeInstance.GetMetadataBlocks(appDomain);
-
-                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-                ResultProperties resultProperties;
-                CompileResult compileResult;
-                do
-                {
-                    var context = this.CreateMethodContext(instructionAddress, references);
-                    compileResult = context.CompileExpression(
-                        RuntimeInspectionContext.Create(inspectionContext),
-                        expression.Text,
-                        expression.CompilationFlags,
-                        this.DiagnosticFormatter,
-                        out resultProperties,
-                        out error,
-                        out missingAssemblyIdentities,
-                        preferredUICulture: null,
-                        testData: null);
-                } while (ShouldTryAgainWithMoreMetadataBlocks(appDomain, missingAssemblyIdentities, ref references));
-
-                result = compileResult.ToQueryResult(this.CompilerId, resultProperties, instructionAddress.RuntimeInstance);
+                var moduleInstance = instructionAddress.ModuleInstance;
+                var runtimeInstance = instructionAddress.RuntimeInstance;
+                var runtimeInspectionContext = RuntimeInspectionContext.Create(inspectionContext);
+                var r = this.CompileWithRetry(
+                    moduleInstance,
+                    runtimeInstance.GetMetadataBlocks(moduleInstance.AppDomain),
+                    (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
+                    (context, diagnostics) =>
+                    {
+                        ResultProperties resultProperties;
+                        var compileResult = context.CompileExpression(
+                            runtimeInspectionContext,
+                            expression.Text,
+                            expression.CompilationFlags,
+                            diagnostics,
+                            out resultProperties,
+                            testData: null);
+                        return new CompileExpressionResult(compileResult, resultProperties);
+                    },
+                    out error);
+                result = r.CompileResult.ToQueryResult(this.CompilerId, r.ResultProperties, runtimeInstance);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
@@ -99,29 +110,29 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             try
             {
-                var appDomain = instructionAddress.ModuleInstance.AppDomain;
-                var references = instructionAddress.RuntimeInstance.GetMetadataBlocks(appDomain);
+                var moduleInstance = instructionAddress.ModuleInstance;
+                var runtimeInstance = instructionAddress.RuntimeInstance;
+                var runtimeInspectionContext = RuntimeInspectionContext.Create(lValue.InspectionContext);
+                var r = this.CompileWithRetry(
+                    moduleInstance,
+                    runtimeInstance.GetMetadataBlocks(moduleInstance.AppDomain),
+                    (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
+                    (context, diagnostics) =>
+                    {
+                        ResultProperties resultProperties;
+                        var compileResult = context.CompileAssignment(
+                            runtimeInspectionContext,
+                            lValue.FullName,
+                            expression.Text,
+                            diagnostics,
+                            out resultProperties,
+                            testData: null);
+                        return new CompileExpressionResult(compileResult, resultProperties);
+                    },
+                    out error);
 
-                ResultProperties resultProperties;
-                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-                CompileResult compileResult;
-                do
-                {
-                    var context = this.CreateMethodContext(instructionAddress, references);
-                    compileResult = context.CompileAssignment(
-                        RuntimeInspectionContext.Create(lValue.InspectionContext),
-                        lValue.FullName,
-                        expression.Text,
-                        this.DiagnosticFormatter,
-                        out resultProperties,
-                        out error,
-                        out missingAssemblyIdentities,
-                        preferredUICulture: null,
-                        testData: null);
-                } while (ShouldTryAgainWithMoreMetadataBlocks(appDomain, missingAssemblyIdentities, ref references));
-
-                Debug.Assert((resultProperties.Flags & DkmClrCompilationResultFlags.PotentialSideEffect) == DkmClrCompilationResultFlags.PotentialSideEffect);
-                result = compileResult.ToQueryResult(this.CompilerId, resultProperties, instructionAddress.RuntimeInstance);
+                Debug.Assert((r.ResultProperties.Flags & DkmClrCompilationResultFlags.PotentialSideEffect) == DkmClrCompilationResultFlags.PotentialSideEffect);
+                result = r.CompileResult.ToQueryResult(this.CompilerId, r.ResultProperties, runtimeInstance);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
@@ -138,43 +149,31 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             try
             {
+                var runtimeInstance = moduleInstance.RuntimeInstance;
                 var appDomain = moduleInstance.AppDomain;
-                var references = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain);
-
-                ResultProperties unusedResultProperties;
-                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-                CompileResult compileResult;
-                do
-                {
-                    var context = this.CreateTypeContext(moduleInstance, references, token);
-                    compileResult = context.CompileExpression(
-                        RuntimeInspectionContext.Empty,
-                        expression.Text,
-                        DkmEvaluationFlags.TreatAsExpression,
-                        this.DiagnosticFormatter,
-                        out unusedResultProperties,
-                        out error,
-                        out missingAssemblyIdentities,
-                        preferredUICulture: null,
-                        testData: null);
-                } while (ShouldTryAgainWithMoreMetadataBlocks(appDomain, missingAssemblyIdentities, ref references));
-
-                result = compileResult.ToQueryResult(this.CompilerId, default(ResultProperties), moduleInstance.RuntimeInstance);
+                var compileResult = this.CompileWithRetry(
+                    moduleInstance,
+                    runtimeInstance.GetMetadataBlocks(appDomain),
+                    (blocks, useReferencedModulesOnly) => CreateTypeContext(appDomain, blocks, moduleInstance.Mvid, token, useReferencedModulesOnly),
+                    (context, diagnostics) =>
+                    {
+                        ResultProperties unusedResultProperties;
+                        return context.CompileExpression(
+                            RuntimeInspectionContext.Empty,
+                            expression.Text,
+                            DkmEvaluationFlags.TreatAsExpression,
+                            diagnostics,
+                            out unusedResultProperties,
+                            testData: null);
+                    },
+                    out error);
+                result = compileResult.ToQueryResult(this.CompilerId, default(ResultProperties), runtimeInstance);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
         }
-
-        private static bool ShouldTryAgainWithMoreMetadataBlocks(DkmClrAppDomain appDomain, ImmutableArray<AssemblyIdentity> missingAssemblyIdentities, ref ImmutableArray<MetadataBlock> references)
-        {
-            return ShouldTryAgainWithMoreMetadataBlocks(
-                (AssemblyIdentity assemblyIdentity, out uint size) => appDomain.GetMetaDataBytesPtr(assemblyIdentity.GetDisplayName(), out size),
-                missingAssemblyIdentities,
-                ref references);
-        }
-
 
         /// <remarks>
         /// Internal for testing.
@@ -212,7 +211,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrAppDomain appDomain,
             ImmutableArray<MetadataBlock> metadataBlocks,
             Guid moduleVersionId,
-            int typeToken);
+            int typeToken,
+            bool useReferencedModulesOnly);
 
         internal abstract EvaluationContextBase CreateMethodContext(
             DkmClrAppDomain appDomain,
@@ -223,20 +223,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             int methodToken,
             int methodVersion,
             int ilOffset,
-            int localSignatureToken);
+            int localSignatureToken,
+            bool useReferencedModulesOnly);
 
-        internal abstract bool RemoveDataItem(DkmClrAppDomain appDomain);
+        internal abstract void RemoveDataItem(DkmClrAppDomain appDomain);
 
-        private EvaluationContextBase CreateTypeContext(DkmClrModuleInstance moduleInstance, ImmutableArray<MetadataBlock> references, int typeToken)
-        {
-            return this.CreateTypeContext(
-                moduleInstance.AppDomain,
-                references,
-                moduleInstance.Mvid,
-                typeToken);
-        }
-
-        private EvaluationContextBase CreateMethodContext(DkmClrInstructionAddress instructionAddress, ImmutableArray<MetadataBlock> metadataBlocks)
+        private EvaluationContextBase CreateMethodContext(DkmClrInstructionAddress instructionAddress, ImmutableArray<MetadataBlock> metadataBlocks, bool useReferencedModulesOnly)
         {
             var moduleInstance = instructionAddress.ModuleInstance;
             var methodToken = instructionAddress.MethodId.Token;
@@ -264,7 +256,110 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 methodToken: methodToken,
                 methodVersion: (int)instructionAddress.MethodId.Version,
                 ilOffset: (int)instructionAddress.ILOffset,
-                localSignatureToken: localSignatureToken);
+                localSignatureToken: localSignatureToken,
+                useReferencedModulesOnly: useReferencedModulesOnly);
+        }
+
+        internal delegate EvaluationContextBase CreateContextDelegate(ImmutableArray<MetadataBlock> metadataBlocks, bool useReferencedModulesOnly);
+        internal delegate TResult CompileDelegate<TResult>(EvaluationContextBase context, DiagnosticBag diagnostics);
+
+        private TResult CompileWithRetry<TResult>(
+            DkmClrModuleInstance moduleInstance,
+            ImmutableArray<MetadataBlock> metadataBlocks,
+            CreateContextDelegate createContext,
+            CompileDelegate<TResult> compile,
+            out string errorMessage)
+        {
+            return CompileWithRetry(
+                metadataBlocks,
+                this.DiagnosticFormatter,
+                createContext,
+                compile,
+                (AssemblyIdentity assemblyIdentity, out uint size) => moduleInstance.AppDomain.GetMetaDataBytesPtr(assemblyIdentity.GetDisplayName(), out size),
+                out errorMessage);
+        }
+
+        internal static TResult CompileWithRetry<TResult>(
+            ImmutableArray<MetadataBlock> metadataBlocks,
+            DiagnosticFormatter formatter,
+            CreateContextDelegate createContext,
+            CompileDelegate<TResult> compile,
+            DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtr,
+            out string errorMessage)
+        {
+            errorMessage = null;
+            TResult compileResult;
+
+            bool tryAgain;
+            do
+            {
+                var context = createContext(metadataBlocks, useReferencedModulesOnly: false);
+                var diagnostics = DiagnosticBag.GetInstance();
+                compileResult = compile(context, diagnostics);
+                tryAgain = false;
+                if (diagnostics.HasAnyErrors())
+                {
+                    bool useReferencedModulesOnly;
+                    ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                    errorMessage = context.GetErrorMessageAndMissingAssemblyIdentities(
+                        diagnostics,
+                        formatter,
+                        preferredUICulture: null,
+                        useReferencedModulesOnly: out useReferencedModulesOnly,
+                        missingAssemblyIdentities: out missingAssemblyIdentities);
+                    if (useReferencedModulesOnly)
+                    {
+                        Debug.Assert(missingAssemblyIdentities.IsEmpty);
+                        var otherContext = createContext(metadataBlocks, useReferencedModulesOnly: true);
+                        var otherDiagnostics = DiagnosticBag.GetInstance();
+                        var otherResult = compile(otherContext, otherDiagnostics);
+                        if (!otherDiagnostics.HasAnyErrors())
+                        {
+                            errorMessage = null;
+                            compileResult = otherResult;
+                        }
+                        otherDiagnostics.Free();
+                    }
+                    else
+                    {
+                        tryAgain = ShouldTryAgainWithMoreMetadataBlocks(getMetaDataBytesPtr, missingAssemblyIdentities, ref metadataBlocks);
+                    }
+                }
+                diagnostics.Free();
+            } while (tryAgain);
+
+            return compileResult;
+        }
+
+        private static DkmClrLocalVariableInfo ToLocalVariableInfo(LocalAndMethod local)
+        {
+            return DkmClrLocalVariableInfo.Create(local.LocalName, local.MethodName, local.Flags, DkmEvaluationResultCategory.Data);
+        }
+
+        private struct GetLocalsResult
+        {
+            internal readonly string TypeName;
+            internal readonly ReadOnlyCollection<DkmClrLocalVariableInfo> Locals;
+            internal readonly ReadOnlyCollection<byte> Assembly;
+
+            internal GetLocalsResult(string typeName, ReadOnlyCollection<DkmClrLocalVariableInfo> locals, ReadOnlyCollection<byte> assembly)
+            {
+                this.TypeName = typeName;
+                this.Locals = locals;
+                this.Assembly = assembly;
+            }
+        }
+
+        private struct CompileExpressionResult
+        {
+            internal readonly CompileResult CompileResult;
+            internal readonly ResultProperties ResultProperties;
+
+            internal CompileExpressionResult(CompileResult compileResult, ResultProperties resultProperties)
+            {
+                this.CompileResult = compileResult;
+                this.ResultProperties = resultProperties;
+            }
         }
     }
 }

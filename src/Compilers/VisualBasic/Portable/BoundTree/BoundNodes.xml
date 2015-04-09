@@ -1751,6 +1751,17 @@
     <Field Name="WhenNullOpt" Type="BoundExpression" Null="allow"/>
   </Node>
 
+  <!-- This node represents a complex receiver for a conditional access. 
+       At runtime, when its type is a value type, ValueTypeReceiver should be used as a receiver.
+       Otherwise, ReferenceTypeReceiver should be used. 
+       This kind of receiver is created only by Async rewriter.
+  -->
+  <Node Name="BoundComplexConditionalAccessReceiver" Base="BoundExpression" HasValidate="true">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="ValueTypeReceiver" Type="BoundExpression" Null="disallow"/>
+    <Field Name="ReferenceTypeReceiver" Type="BoundExpression" Null="disallow"/>
+  </Node>
+  
   <Node Name="BoundNameOfOperator" Base="BoundExpression" HasValidate="true">
     <!-- Type is required for this node type; may not be null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>

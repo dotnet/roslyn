@@ -1,5 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Editor.CSharp
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class CSharpSignatureHelpCommandHandlerTests
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
@@ -354,6 +356,98 @@ class C
                 state.AssertSelectedSignatureHelpItem("void C.M()")
                 state.SendTypeChars("//")
                 state.AssertNoSignatureHelpSession()
+            End Using
+        End Sub
+
+        <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TestGenericNameSigHelpInTypeParameterListAfterConditionalAccess()
+            Using state = TestState.CreateCSharpTestState(
+                              <Document><![CDATA[
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M(object[] args)
+    {
+        var x = args?.OfType$$
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars("<")
+                state.AssertSelectedSignatureHelpItem($"({CSharpEditorResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
+            End Using
+        End Sub
+
+        <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TestGenericNameSigHelpInTypeParameterListAfterMultipleConditionalAccess()
+            Using state = TestState.CreateCSharpTestState(
+                              <Document><![CDATA[
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M(object[] args)
+    {
+        var x = args?.Select(a => a)?.OfType$$
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars("<")
+                state.AssertSelectedSignatureHelpItem($"({CSharpEditorResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
+            End Using
+        End Sub
+
+        <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TestGenericNameSigHelpInTypeParameterListMuchAfterConditionalAccess()
+            Using state = TestState.CreateCSharpTestState(
+                              <Document><![CDATA[
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M(object[] args)
+    {
+        var x = args?.Select(a => a).Where(_ => true).OfType$$
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars("<")
+                state.AssertSelectedSignatureHelpItem($"({CSharpEditorResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
+            End Using
+        End Sub
+
+        <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TestGenericNameSigHelpInTypeParameterListAfterConditionalAccessAndNullCoalesce()
+            Using state = TestState.CreateCSharpTestState(
+                              <Document><![CDATA[
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M(object[] args)
+    {
+        var x = (args ?? args)?.OfType$$
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars("<")
+                state.AssertSelectedSignatureHelpItem($"({CSharpEditorResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
             End Using
         End Sub
     End Class

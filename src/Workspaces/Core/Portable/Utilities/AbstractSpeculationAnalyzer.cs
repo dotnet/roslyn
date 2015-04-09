@@ -735,15 +735,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (originalTargetType != null)
             {
                 var newTargetType = this.SpeculativeSemanticModel.GetTypeInfo(newLeft).Type;
-                if (originalTargetType != newTargetType)
-                {
-                    return true;
-                }
-
-                if (!ImplicitConversionsAreCompatible(originalRight, originalTargetType, newRight, newTargetType))
-                {
-                    return true;
-                }
+                return !SymbolsAreCompatible(originalTargetType, newTargetType) ||
+                    !ImplicitConversionsAreCompatible(originalRight, originalTargetType, newRight, newTargetType);
             }
 
             return false;

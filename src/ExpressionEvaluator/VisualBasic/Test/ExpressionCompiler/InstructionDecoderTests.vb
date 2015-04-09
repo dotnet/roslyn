@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Public Class InstructionDecoderTests : Inherits ExpressionCompilerTestBase
 
         <Fact>
-        Sub GetNameArgumentCounts()
+        Public Sub GetNameArgumentCounts()
             Dim source = "
 Imports System
 Module Module1
@@ -52,7 +52,7 @@ End Module"
         End Sub
 
         <Fact>
-        Sub GetNameNullable()
+        Public Sub GetNameNullable()
             Dim source = "
 Imports System
 Module Module1
@@ -72,7 +72,7 @@ End Module"
         End Sub
 
         <Fact>
-        Sub GetNameGenerics()
+        Public Sub GetNameGenerics()
             Dim source = "
 Imports System
 Class Class1(Of T)
@@ -110,7 +110,7 @@ End Class"
         End Sub
 
         <Fact>
-        Sub GetNameNullTypeArguments()
+        Public Sub GetNameNullTypeArguments()
             Dim source = "
 Imports System
 Class Class1(Of T)
@@ -132,7 +132,7 @@ End Class"
         End Sub
 
         <Fact>
-        Sub GetNameGenericArgumentTypeNotInReferences()
+        Public Sub GetNameGenericArgumentTypeNotInReferences()
             Dim source = "
 Class Class1
 End Class"
@@ -144,7 +144,7 @@ End Class"
         End Sub
 
         <Fact>
-        Sub GetNameAsync()
+        Public Sub GetNameAsync()
             Dim source = "
 Imports System.Threading.Tasks
 Module Module1
@@ -162,7 +162,7 @@ End Module"
         End Sub
 
         <Fact, WorkItem(1107977)>
-        Sub GetNameGenericAsync()
+        Public Sub GetNameGenericAsync()
             Dim source = "
 Imports System.Threading.Tasks
 Class C
@@ -178,7 +178,7 @@ End Class"
         End Sub
 
         <Fact>
-        Sub GetNameIterator()
+        Public Sub GetNameIterator()
             Dim source = "
 Imports System.Collections.Generic
 Module Module1
@@ -196,7 +196,7 @@ End Module"
         End Sub
 
         <Fact>
-        Sub GetNameLambda()
+        Public Sub GetNameLambda()
             Dim source = "
 Module Module1
     Sub M()
@@ -205,12 +205,12 @@ Module Module1
 End Module"
 
             Assert.Equal(
-                "Module1.<closure>.<lambda0-1>()",
-                GetName(source, "Module1._Closure$__._Lambda$__0-1", DkmVariableInfoFlags.Names Or DkmVariableInfoFlags.Types))
+                "Module1.<closure>.<lambda0-0>()",
+                GetName(source, "Module1._Closure$__._Lambda$__0-0", DkmVariableInfoFlags.Names Or DkmVariableInfoFlags.Types))
         End Sub
 
         <Fact>
-        Sub GetNameGenericLambda()
+        Public Sub GetNameGenericLambda()
             Dim source = "
 Imports System
 Class Class1(Of T)
@@ -220,12 +220,12 @@ Class Class1(Of T)
 End Class"
 
             Assert.Equal(
-                "Class1(Of System.Exception).<closure>.<lambda1-1>(System.ArgumentException u2)",
-                GetName(source, "Class1._Closure$__1._Lambda$__1-1", DkmVariableInfoFlags.Names Or DkmVariableInfoFlags.Types, typeArguments:={GetType(Exception), GetType(ArgumentException)}))
+                "Class1(Of System.Exception).<closure>.<lambda1-0>(System.ArgumentException u2)",
+                GetName(source, "Class1._Closure$__1._Lambda$__1-0", DkmVariableInfoFlags.Names Or DkmVariableInfoFlags.Types, typeArguments:={GetType(Exception), GetType(ArgumentException)}))
         End Sub
 
         <Fact>
-        Sub GetNameOptionalParameter()
+        Public Sub GetNameOptionalParameter()
             Dim source = "
 Module Module1
     Function M(Optional d As Date = #1/1/1970#) As Integer
@@ -243,7 +243,7 @@ End Module"
         End Sub
 
         <Fact>
-        Sub GetNameProperties()
+        Public Sub GetNameProperties()
             Dim source = "
 Class Class1
     Property P As Integer
@@ -280,7 +280,7 @@ End Class"
         End Sub
 
         <Fact>
-        Sub GetNameInterfaceImplementation()
+        Public Sub GetNameInterfaceImplementation()
             Dim source = "
 Imports System
 Class C : Implements IDisposable
@@ -294,7 +294,7 @@ End Class"
         End Sub
 
         <Fact>
-        Sub GetNameExtensionMethod()
+        Public Sub GetNameExtensionMethod()
             Dim source = "
 Imports System.Runtime.CompilerServices
 Module Extensions
@@ -309,7 +309,7 @@ End Module"
         End Sub
 
         <Fact>
-        Sub GetNameArgumentFlagsNone()
+        Public Sub GetNameArgumentFlagsNone()
             Dim source = "
 Module Module1
     Sub M1()
@@ -328,7 +328,7 @@ End Module"
         End Sub
 
         <Fact, WorkItem(1107978)>
-        Sub GetNameRefAndOutParameters()
+        Public Sub GetNameRefAndOutParameters()
             Dim source = "
 Imports System.Runtime.InteropServices
 Class C
@@ -359,7 +359,7 @@ End Class"
         End Sub
 
         <Fact>
-        Sub GetNameParamsParameters()
+        Public Sub GetNameParamsParameters()
             Dim source = "
 Class C
     Shared Sub M(ParamArray x() As Integer)
@@ -372,7 +372,7 @@ End Class"
         End Sub
 
         <Fact>
-        Sub GetReturnTypeNamePrimitive()
+        Public Sub GetReturnTypeNamePrimitive()
             Dim source = "
 Class C
     Function M1() As UInteger
@@ -384,7 +384,7 @@ End Class"
         End Sub
 
         <Fact>
-        Sub GetReturnTypeNameNested()
+        Public Sub GetReturnTypeNameNested()
             Dim source = "
 Class C
     Function M1() As N.D.E
@@ -402,7 +402,7 @@ End Namespace"
         End Sub
 
         <Fact>
-        Sub GetReturnTypeNameGenericOfPrimitive()
+        Public Sub GetReturnTypeNameGenericOfPrimitive()
             Dim source = "
 Imports System
 Class C
@@ -415,7 +415,7 @@ End Class"
         End Sub
 
         <Fact>
-        Sub GetReturnTypeNameGenericOfNested()
+        Public Sub GetReturnTypeNameGenericOfNested()
             Dim source = "
 Imports System
 Class C
@@ -430,7 +430,7 @@ End Class"
         End Sub
 
         <Fact>
-        Sub GetReturnTypeNameGenericOfGeneric()
+        Public Sub GetReturnTypeNameGenericOfGeneric()
             Dim source = "
 Imports System
 Class C

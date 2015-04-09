@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 {
     internal sealed class Commands : IInteractiveWindowCommands
     {
-        private static readonly char[] s_commandNameSeparators = new[] { '\r', '\n', ' ', '\t' };
+        private const string _commandSeparator = ",";
 
         private readonly Dictionary<string, IInteractiveWindowCommand> _commands;
         private readonly int _maxCommandNameLength;
@@ -42,24 +42,31 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             Dictionary<string, IInteractiveWindowCommand> commandsDict = new Dictionary<string, IInteractiveWindowCommand>();
             foreach (var command in commands)
             {
-                if (command.Name == null)
+                int length = 0;
+                foreach (var name in command.Names)
                 {
-                    continue;
-                }
+                    if (commandsDict.ContainsKey(name))
+                    {
+                        throw new InvalidOperationException(string.Format(InteractiveWindowResources.DuplicateCommand, string.Join(", ", command.Names)));
+                    }
+                    if (length != 0)
+                    {
+                        length += _commandSeparator.Length;
+                    }
+                    length += name.Length;
 
-                if (commandsDict.ContainsKey(command.Name))
-                {
-                    throw new InvalidOperationException(string.Format(InteractiveWindowResources.DuplicateCommand, command.Name));
+                    commandsDict[name] = command;
                 }
-
-                commandsDict[command.Name] = command;
+                if (length == 0) {
+                    throw new InvalidOperationException(string.Format(InteractiveWindowResources.MissingCommandName, command.GetType().Name));
+                }
+                _maxCommandNameLength = Math.Max(_maxCommandNameLength, length);
             }
 
             _commands = commandsDict;
 
-            _maxCommandNameLength = (_commands.Count > 0) ? _commands.Values.Select(command => command.Name.Length).Max() : 0;
-
             _classificationRegistry = classificationRegistry;
+
             if (contentTypeRegistry != null)
             {
                 _commandContentType = contentTypeRegistry.GetContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
@@ -211,7 +218,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             }
             catch (Exception e)
             {
-                _window.ErrorOutputWriter.WriteLine(string.Format("Command '{0}' failed: {1}", command.Name, e.Message));
+                _window.ErrorOutputWriter.WriteLine(string.Format("Command '{0}' failed: {1}", command.Names.First(), e.Message));
                 return ExecutionResult.Failed;
             }
         }
@@ -262,7 +269,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             writer.WriteLine("Usage:");
             writer.Write(HelpIndent);
             writer.Write(CommandPrefix);
-            writer.Write(command.Name);
+            writer.Write(string.Join(_commandSeparator, command.Names));
 
             string commandLine = command.CommandLine;
             if (commandLine != null)

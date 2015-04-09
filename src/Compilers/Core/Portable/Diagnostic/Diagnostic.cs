@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (descriptor == null)
             {
-                throw new ArgumentNullException("descriptor");
+                throw new ArgumentNullException(nameof(descriptor));
             }
 
             var warningLevel = GetDefaultWarningLevel(descriptor.DefaultSeverity);
@@ -156,17 +156,17 @@ namespace Microsoft.CodeAnalysis
         {
             if (id == null)
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
 
             if (category == null)
             {
-                throw new ArgumentNullException("category");
+                throw new ArgumentNullException(nameof(category));
             }
 
             if (message == null)
             {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             return SimpleDiagnostic.Create(id, title ?? string.Empty, category, message, description ?? string.Empty, helpLink ?? string.Empty,

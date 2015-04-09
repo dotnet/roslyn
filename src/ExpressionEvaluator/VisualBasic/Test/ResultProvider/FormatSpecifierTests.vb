@@ -40,6 +40,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Verify(result,
                    EvalResult("s", """", "String", "s", editableValue:="""""""""", flags:=DkmEvaluationResultFlags.RawString))
 
+            ' "a" & vbCrLf & "b" & vbTab & vbVerticalTab & vbBack & "c"
+            value = CreateDkmClrValue("a" & vbCrLf & "b" & vbTab & vbVerticalTab & vbBack & "c", type:=stringType)
+            result = FormatResult("s", value, inspectionContext:=inspectionContext)
+            Verify(result,
+                   EvalResult("s", "a" & vbCrLf & "b" & vbTab & vbVerticalTab & vbBack & "c", "String", "s", editableValue:="""a"" & vbCrLf & ""b"" & vbTab & vbVerticalTab & vbBack & ""c""", flags:=DkmEvaluationResultFlags.RawString))
+
+            ' "a" & vbNullChar & "b"
+            value = CreateDkmClrValue("a" & vbNullChar & "b", type:=stringType)
+            result = FormatResult("s", value, inspectionContext:=inspectionContext)
+            Verify(result,
+                   EvalResult("s", "a" & vbNullChar & "b", "String", "s", editableValue:="""a"" & vbNullChar & ""b""", flags:=DkmEvaluationResultFlags.RawString))
+
             ' " " with alias
             value = CreateDkmClrValue(" ", type:=stringType, [alias]:="1", evalFlags:=DkmEvaluationResultFlags.HasObjectId)
             result = FormatResult("s", value, inspectionContext:=inspectionContext)
@@ -67,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim value = CreateDkmClrValue(ChrW(0), type:=charType)
             Dim result = FormatResult("c", value, inspectionContext:=inspectionContext)
             Verify(result,
-                   EvalResult("c", "vbNullChar", "Char", "c", editableValue:="vbNullChar", flags:=DkmEvaluationResultFlags.None))
+                   EvalResult("c", vbNullChar, "Char", "c", editableValue:="vbNullChar", flags:=DkmEvaluationResultFlags.None))
 
             ' "'"c
             value = CreateDkmClrValue("'"c, type:=charType)
@@ -80,6 +92,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             result = FormatResult("c", value, inspectionContext:=inspectionContext)
             Verify(result,
                    EvalResult("c", """"c, "Char", "c", editableValue:="""""""""c", flags:=DkmEvaluationResultFlags.None))
+
+            ' "\"c
+            value = CreateDkmClrValue("\"c, type:=charType)
+            result = FormatResult("c", value, inspectionContext:=inspectionContext)
+            Verify(result,
+                   EvalResult("c", "\"c, "Char", "c", editableValue:="""\""c", flags:=DkmEvaluationResultFlags.None))
+
+            ' vbLf
+            value = CreateDkmClrValue(ChrW(10), type:=charType)
+            result = FormatResult("c", value, inspectionContext:=inspectionContext)
+            Verify(result,
+                   EvalResult("c", vbLf, "Char", "c", editableValue:="vbLf", flags:=DkmEvaluationResultFlags.None))
+
+            ' ChrW(&H001E)
+            value = CreateDkmClrValue(ChrW(&H001E), type:=charType)
+            result = FormatResult("c", value, inspectionContext:=inspectionContext)
+            Verify(result,
+                   EvalResult("c", New String({ChrW(&H001E)}), "Char", "c", editableValue:="ChrW(30)", flags:=DkmEvaluationResultFlags.None))
 
             ' array
             value = CreateDkmClrValue({"1"c}, type:=charType.MakeArrayType())

@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 TestString,
                 pos: startOfString,
                 isSignificant: true,
-                start: startOfString, length: lengthOfStringIncludingQuotes);
+                start: startOfString, length: 1);
 
             // Selects whitespace
             AssertExtent(
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 TestString,
                 pos: TestString.LastIndexOf('"'),
                 isSignificant: true,
-                start: startOfString + lengthOfStringIncludingQuotes - 1, length: 2);
+                start: startOfString + lengthOfStringIncludingQuotes - 1, length: 1);
 
             AssertExtent(
                 TestString,

@@ -7,7 +7,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TableControl;
 using Microsoft.VisualStudio.TableManager;
 using Microsoft.VisualStudio.Text;
 
@@ -198,17 +200,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return project.Name;
         }
 
-        protected IVsHierarchy GetHierarchy(Workspace workspace, ProjectId projectId)
+        protected IVsHierarchy GetHierarchy(Workspace workspace, ProjectId projectId, DocumentId documentId)
         {
             if (projectId == null)
             {
                 return null;
             }
 
-            var vsWorkspace = workspace as VisualStudioWorkspace;
+            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (vsWorkspace == null)
             {
                 return null;
+            }
+
+            if (documentId != null)
+            {
+                // document doesn't actually exist in the workspace
+                var document = vsWorkspace.GetHostDocument(documentId);
+                if (document == null)
+                {
+                    return null;
+                }
+
+                return document.SharedHierarchy ?? document.Project.Hierarchy;
             }
 
             return vsWorkspace.GetHierarchy(projectId);

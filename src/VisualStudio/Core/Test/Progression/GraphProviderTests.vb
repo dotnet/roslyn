@@ -12,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         <WorkItem(1078048)>
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub GetContainsGraphQueries()
-            Dim context = CreateGraphContext(GraphContextDirection.Contains, {})
+            Dim context = CreateGraphContext(GraphContextDirection.Contains, Array.Empty(Of GraphCategory)())
             Dim queries = AbstractGraphProvider.GetGraphQueries(context)
             Assert.Equal(queries.Single().GetType(), GetType(ContainsGraphQuery))
         End Sub

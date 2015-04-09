@@ -3,16 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Instrumentation;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -276,22 +272,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SyntaxNode_SerializeTo, cancellationToken: cancellationToken))
+            if (stream == null)
             {
-                if (stream == null)
-                {
-                    throw new ArgumentNullException("stream");
-                }
+                throw new ArgumentNullException("stream");
+            }
 
-                if (!stream.CanWrite)
-                {
-                    throw new InvalidOperationException(CSharpResources.TheStreamCannotBeWritten);
-                }
+            if (!stream.CanWrite)
+            {
+                throw new InvalidOperationException(CSharpResources.TheStreamCannotBeWritten);
+            }
 
-                using (var writer = new ObjectWriter(stream, GetDefaultObjectWriterData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
-                {
-                    writer.WriteValue(this.Green);
-                }
+            using (var writer = new ObjectWriter(stream, GetDefaultObjectWriterData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
+            {
+                writer.WriteValue(this.Green);
             }
         }
 
@@ -300,23 +293,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static SyntaxNode DeserializeFrom(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SyntaxNode_DeserializeFrom, cancellationToken: cancellationToken))
+            if (stream == null)
             {
-                if (stream == null)
-                {
-                    throw new ArgumentNullException("stream");
-                }
+                throw new ArgumentNullException("stream");
+            }
 
-                if (!stream.CanRead)
-                {
-                    throw new InvalidOperationException(CSharpResources.TheStreamCannotBeReadFrom);
-                }
+            if (!stream.CanRead)
+            {
+                throw new InvalidOperationException(CSharpResources.TheStreamCannotBeReadFrom);
+            }
 
-                using (var reader = new ObjectReader(stream, defaultData: GetDefaultObjectReaderData(), binder: s_defaultBinder))
-                {
-                    var root = (Syntax.InternalSyntax.CSharpSyntaxNode)reader.ReadValue();
-                    return root.CreateRed();
-                }
+            using (var reader = new ObjectReader(stream, defaultData: GetDefaultObjectReaderData(), binder: s_defaultBinder))
+            {
+                var root = (Syntax.InternalSyntax.CSharpSyntaxNode)reader.ReadValue();
+                return root.CreateRed();
             }
         }
 
@@ -453,7 +443,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal sealed override SyntaxNode GetCorrespondingLambdaBody(SyntaxNode body)
         {
-            return SyntaxUtilities.GetCorrespondingLambdaBody(body, this);
+            return LambdaUtilities.GetCorrespondingLambdaBody(body, this);
+        }
+
+        internal override SyntaxNode GetLambda()
+        {
+            return LambdaUtilities.GetLambda(this);
         }
 
         #region Directives

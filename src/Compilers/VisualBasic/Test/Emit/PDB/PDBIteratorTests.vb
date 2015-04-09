@@ -35,11 +35,11 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-            compilation.VerifyPdb("Program+_Closure$__+VB$StateMachine___Lambda$__0-1.MoveNext",
+            compilation.VerifyPdb("Program+_Closure$__+VB$StateMachine___Lambda$__0-0.MoveNext",
 <symbols>
     <entryPoint declaringType="Program" methodName="Main" parameterNames="args"/>
     <methods>
-        <method containingType="Program+_Closure$__+VB$StateMachine___Lambda$__0-1" name="MoveNext">
+        <method containingType="Program+_Closure$__+VB$StateMachine___Lambda$__0-0" name="MoveNext">
             <customDebugInfo>
                 <encLocalSlotMap>
                     <slot kind="20" offset="-1"/>
@@ -207,7 +207,7 @@ End Class
                 <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x19" il_end="0x97" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x98">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__1"/>
+                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
                 <scope startOffset="0x19" endOffset="0x97">
                     <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x19" il_end="0x97" attributes="0"/>
                 </scope>
@@ -259,7 +259,7 @@ End Class
                 <local name="$VB$Closure_0" il_index="1" il_start="0x19" il_end="0x55" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x56">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__1"/>
+                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
                 <scope startOffset="0x19" endOffset="0x55">
                     <local name="$VB$Closure_0" il_index="1" il_start="0x19" il_end="0x55" attributes="0"/>
                 </scope>

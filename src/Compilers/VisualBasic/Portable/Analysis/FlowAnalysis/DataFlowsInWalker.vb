@@ -14,11 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' that leaves the variable unassigned on entry to the region would cause the
     ''' generation of "unassigned" errors within the region.
     ''' </summary>
-    Class DataFlowsInWalker
+    Friend Class DataFlowsInWalker
         Inherits AbstractRegionDataFlowPass
 
         ' TODO: normalize the result by removing variables that are unassigned in an unmodified flow analysis.
-        Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo, unassignedVariables As HashSet(Of Symbol))
+        Public Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo, unassignedVariables As HashSet(Of Symbol))
             MyBase.New(info, region, unassignedVariables, trackStructsWithIntrinsicTypedFields:=True)
         End Sub
 
@@ -39,13 +39,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Try
                 succeeded = walker.Analyze() AndAlso Not walker.InvalidRegionDetected
                 invalidRegionDetected = walker.InvalidRegionDetected
-                Return If(succeeded, walker.dataFlowsIn, New HashSet(Of Symbol)())
+                Return If(succeeded, walker._dataFlowsIn, New HashSet(Of Symbol)())
             Finally
                 walker.Free()
             End Try
         End Function
 
-        Dim dataFlowsIn As HashSet(Of Symbol) = New HashSet(Of Symbol)()
+        Private _dataFlowsIn As HashSet(Of Symbol) = New HashSet(Of Symbol)()
 
         Private Function ResetState(state As LocalState) As LocalState
             Dim unreachable As Boolean = Not state.Reachable
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Sub EnterRegion()
             Me.SetState(ResetState(Me.State))
-            Me.dataFlowsIn.Clear()
+            Me._dataFlowsIn.Clear()
             MyBase.EnterRegion()
         End Sub
 
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                IsInside AndAlso
                Not IsInsideRegion(node.RangeVariable.Syntax.Span) Then
 
-                dataFlowsIn.Add(node.RangeVariable)
+                _dataFlowsIn.Add(node.RangeVariable)
             End If
 
             Return Nothing
@@ -121,11 +121,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(Not TypeOf sym Is AmbiguousLocalsPseudoSymbol)
 
                     If sym IsNot Nothing Then
-                        dataFlowsIn.Add(sym)
+                        _dataFlowsIn.Add(sym)
                     End If
 
                 Else
-                    dataFlowsIn.Add(local)
+                    _dataFlowsIn.Add(local)
                 End If
             End If
 

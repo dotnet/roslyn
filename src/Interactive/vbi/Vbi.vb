@@ -4,10 +4,11 @@ Imports System.Globalization
 Imports System.IO
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Instrumentation
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.CodeAnalysis.Scripting
+Imports Roslyn.Utilities
 Imports VisualBasicInteractive.BasicInteractive
 
 Friend NotInheritable Class Vbi
@@ -16,17 +17,21 @@ Friend NotInheritable Class Vbi
     Friend Const InteractiveResponseFileName As String = "vbi.rsp"
 
     Friend Sub New(responseFile As String, baseDirectory As String, args As String())
-        MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, baseDirectory, Nothing, Path.GetTempPath()) ' TODO: what to pass as additionalReferencePaths?
+        MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, baseDirectory, Nothing) ' TODO: what to pass as additionalReferencePaths?
     End Sub
 
-    Shared Function Main(args As String()) As Integer
+    Public Shared Function Main(args As String()) As Integer
         Try
-            Dim responseFile = CommonCompiler.GetResponseFileFullPath(InteractiveResponseFileName)
-            Return New Vbi(responseFile, Directory.GetCurrentDirectory(), args).RunInteractive(Console.Out)
+            Dim responseFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, InteractiveResponseFileName)
+            Return ScriptCompilerUtil.RunInteractive(New Vbi(responseFile, Directory.GetCurrentDirectory(), args), Console.Out)
         Catch ex As Exception
             Console.WriteLine(ex.ToString())
             Return Failed
         End Try
+    End Function
+
+    Public Overrides Function LoadAssembly(fullPath As String) As Assembly
+        Throw New NotImplementedException()
     End Function
 
     Friend Overrides Function GetExternalMetadataResolver(touchedFiles As TouchedFileLogger) As MetadataFileReferenceResolver
@@ -34,20 +39,22 @@ Friend NotInheritable Class Vbi
         Return New GacFileResolver(Arguments.ReferencePaths, Arguments.BaseDirectory, GacFileResolver.Default.Architectures, CultureInfo.CurrentCulture)
     End Function
 
-    Protected Overrides Sub PrintLogo(consoleOutput As TextWriter)
+    Public Overrides Sub PrintLogo(consoleOutput As TextWriter)
         Dim thisAssembly As Assembly = GetType(Vbi).Assembly
         consoleOutput.WriteLine(VbiResources.LogoLine1, FileVersionInfo.GetVersionInfo(thisAssembly.Location).FileVersion)
         consoleOutput.WriteLine(VbiResources.LogoLine2)
         consoleOutput.WriteLine()
     End Sub
 
-    Protected Overrides Sub PrintHelp(consoleOutput As TextWriter)
+    Public Overrides Sub PrintHelp(consoleOutput As TextWriter)
         ' TODO
         consoleOutput.WriteLine("                        Roslyn Interactive Compiler Options")
     End Sub
+
     Protected Overrides Function GetSqmAppID() As UInt32
         Return SqmServiceProvider.BASIC_APPID
     End Function
+
     Protected Overrides Sub CompilerSpecificSqm(sqm As IVsSqmMulti, sqmSession As UInt32)
         sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_COMPILERTYPE, CType(SqmServiceProvider.CompilerType.Interactive, UInt32))
     End Sub

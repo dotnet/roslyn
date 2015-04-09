@@ -124,12 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return GetAliasTarget(basesBeingResolved: null);
             }
         }
-
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            return (_locations.Length > 0) ? new LexicalSortKey(_locations[0], _binder.Compilation) : LexicalSortKey.NotInSource;
-        }
-
+        
         public override ImmutableArray<Location> Locations
         {
             get

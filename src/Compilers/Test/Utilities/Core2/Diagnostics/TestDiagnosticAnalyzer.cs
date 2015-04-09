@@ -46,21 +46,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             context.RegisterCodeBlockStartAction<TLanguageKindEnum>(new NestedCodeBlockAnalyzer(this).Initialize);
 
-            context.RegisterCompilationEndAction(this.AnalyzeCompilation);
+            context.RegisterCompilationAction(this.AnalyzeCompilation);
             context.RegisterSemanticModelAction(this.AnalyzeSemanticModel);
-            context.RegisterCodeBlockEndAction(this.AnalyzeCodeBlock);
+            context.RegisterCodeBlockAction(this.AnalyzeCodeBlock);
             context.RegisterSymbolAction(this.AnalyzeSymbol, AllSymbolKinds.ToArray());
             context.RegisterSyntaxTreeAction(this.AnalyzeSyntaxTree);
             context.RegisterSyntaxNodeAction<TLanguageKindEnum>(this.AnalyzeNode, AllSyntaxKinds.ToArray());
         }
 
-        private void AnalyzeCodeBlock(CodeBlockEndAnalysisContext context)
+        private void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
         {
             OnAbstractMember("CodeBlock", context.CodeBlock, context.OwningSymbol);
             OnOptions(context.Options);
         }
 
-        private void AnalyzeCompilation(CompilationEndAnalysisContext context)
+        private void AnalyzeCompilation(CompilationAnalysisContext context)
         {
             OnAbstractMember("Compilation");
             OnOptions(context.Options);

@@ -1,9 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Imports Microsoft.DiaSymReader
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
@@ -11,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class HoistedStateMachineLocalTests
         Inherits ExpressionCompilerTestBase
 
-        Private Const asyncLambdaSourceTemplate = "
+        Private Const s_asyncLambdaSourceTemplate = "
 Imports System
 Imports System.Threading.Tasks
 
@@ -25,7 +27,7 @@ Public Class D
 End Class
 "
 
-        Private Const genericAsyncLambdaSourceTemplate = "
+        Private Const s_genericAsyncLambdaSourceTemplate = "
 Imports System
 Imports System.Threading.Tasks
 
@@ -282,7 +284,7 @@ End Class
   IL_0006:  ret
 }}
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
             Dim runtime = CreateRuntimeInstance(comp)
 
             Dim context As EvaluationContext
@@ -315,10 +317,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureNothing()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "", "1")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "1")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__.VB$StateMachine___Lambda$__2-1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__.VB$StateMachine___Lambda$__2-0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -344,7 +346,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D._Closure$__.VB$StateMachine___Lambda$__2-1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D._Closure$__.VB$StateMachine___Lambda$__2-0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -354,10 +356,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureLocal()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "", "x")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "x")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -380,7 +382,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__1.$VB$NonLocal__Closure$__2-0 As D._Closure$__2-0""
+  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__0.$VB$NonLocal__Closure$__2-0 As D._Closure$__2-0""
   IL_0006:  ldfld      ""D._Closure$__2-0.$VB$Local_x As Integer""
   IL_000b:  ret
 }
@@ -398,7 +400,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -408,10 +410,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureParameter()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "", "u1.GetHashCode()")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "u1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -431,7 +433,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__1.$VB$NonLocal__Closure$__2-0 As D._Closure$__2-0""
+  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__0.$VB$NonLocal__Closure$__2-0 As D._Closure$__2-0""
   IL_0006:  ldfld      ""D._Closure$__2-0.$VB$Local_u1 As Char""
   IL_000b:  ret
 }
@@ -452,7 +454,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -462,10 +464,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureLambdaParameter()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "", "ch.GetHashCode()")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "ch.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__.VB$StateMachine___Lambda$__2-1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__.VB$StateMachine___Lambda$__2-0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -491,7 +493,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D._Closure$__.VB$StateMachine___Lambda$__2-1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D._Closure$__.VB$StateMachine___Lambda$__2-0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -501,10 +503,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureThis()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "", "t1.GetHashCode()")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "t1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D.VB$StateMachine___Lambda$__2-1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D.VB$StateMachine___Lambda$__2-0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -521,7 +523,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D.VB$StateMachine___Lambda$__2-1.$VB$Me As D""
+  IL_0001:  ldfld      ""D.VB$StateMachine___Lambda$__2-0.$VB$Me As D""
   IL_0006:  ldfld      ""D.t1 As Double""
   IL_000b:  ret
 }
@@ -545,7 +547,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D.VB$StateMachine___Lambda$__2-1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D.VB$StateMachine___Lambda$__2-0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -555,10 +557,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureThisAndLocal()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "", "x + t1.GetHashCode()")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "x + t1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -575,7 +577,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__1.$VB$NonLocal__Closure$__2-0 As D._Closure$__2-0""
+  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__0.$VB$NonLocal__Closure$__2-0 As D._Closure$__2-0""
   IL_0006:  ldfld      ""D._Closure$__2-0.$VB$Me As D""
   IL_000b:  ldfld      ""D.t1 As Double""
   IL_0010:  ret
@@ -597,7 +599,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__1.$VB$NonLocal__Closure$__2-0 As D._Closure$__2-0""
+  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__0.$VB$NonLocal__Closure$__2-0 As D._Closure$__2-0""
   IL_0006:  ldfld      ""D._Closure$__2-0.$VB$Local_x As Integer""
   IL_000b:  ret
 }
@@ -615,7 +617,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -625,10 +627,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Static_CaptureNothing()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "Shared", "1")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "1")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__.VB$StateMachine___Lambda$__2-1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__.VB$StateMachine___Lambda$__2-0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -654,7 +656,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D._Closure$__.VB$StateMachine___Lambda$__2-1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D._Closure$__.VB$StateMachine___Lambda$__2-0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -664,10 +666,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Static_CaptureLocal()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "Shared", "x")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "x")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -690,7 +692,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__1.$VB$NonLocal__Closure$__2-0 As D._Closure$__2-0""
+  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__0.$VB$NonLocal__Closure$__2-0 As D._Closure$__2-0""
   IL_0006:  ldfld      ""D._Closure$__2-0.$VB$Local_x As Integer""
   IL_000b:  ret
 }
@@ -708,7 +710,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -718,10 +720,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Static_CaptureParameter()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "Shared", "u1.GetHashCode()")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "u1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -741,7 +743,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__1.$VB$NonLocal__Closure$__2-0 As D._Closure$__2-0""
+  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__0.$VB$NonLocal__Closure$__2-0 As D._Closure$__2-0""
   IL_0006:  ldfld      ""D._Closure$__2-0.$VB$Local_u1 As Char""
   IL_000b:  ret
 }
@@ -762,7 +764,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D._Closure$__2-0.VB$StateMachine___Lambda$__0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -772,10 +774,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub AsyncLambda_Static_CaptureLambdaParameter()
-            Dim source = String.Format(asyncLambdaSourceTemplate, "Shared", "ch.GetHashCode()")
+            Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "ch.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__.VB$StateMachine___Lambda$__2-1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__.VB$StateMachine___Lambda$__2-0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -801,7 +803,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D._Closure$__.VB$StateMachine___Lambda$__2-1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D._Closure$__.VB$StateMachine___Lambda$__2-0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -811,10 +813,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureNothing()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "", "1")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "1")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__2.VB$StateMachine___Lambda$__2-1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__2.VB$StateMachine___Lambda$__2-0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -840,7 +842,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T)._Closure$__2(Of $CLS0).VB$StateMachine___Lambda$__2-1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D(Of T)._Closure$__2(Of $CLS0).VB$StateMachine___Lambda$__2-0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -856,10 +858,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureLocal()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "", "x")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "x")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -882,7 +884,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__1.$VB$NonLocal__Closure$__2-0 As D(Of T)._Closure$__2-0(Of $CLS0)""
+  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__0.$VB$NonLocal__Closure$__2-0 As D(Of T)._Closure$__2-0(Of $CLS0)""
   IL_0006:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).$VB$Local_x As Integer""
   IL_000b:  ret
 }
@@ -900,7 +902,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -916,10 +918,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureParameter()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "", "u1.GetHashCode()")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "u1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -939,7 +941,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__1.$VB$NonLocal__Closure$__2-0 As D(Of T)._Closure$__2-0(Of $CLS0)""
+  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__0.$VB$NonLocal__Closure$__2-0 As D(Of T)._Closure$__2-0(Of $CLS0)""
   IL_0006:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).$VB$Local_u1 As $CLS0""
   IL_000b:  ret
 }
@@ -960,7 +962,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -976,10 +978,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureLambdaParameter()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "", "ch.GetHashCode()")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "ch.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__2.VB$StateMachine___Lambda$__2-1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__2.VB$StateMachine___Lambda$__2-0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -1005,7 +1007,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T)._Closure$__2(Of $CLS0).VB$StateMachine___Lambda$__2-1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D(Of T)._Closure$__2(Of $CLS0).VB$StateMachine___Lambda$__2-0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -1021,10 +1023,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureThis()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "", "t1.GetHashCode()")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "t1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D.VB$StateMachine___Lambda$__2-1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D.VB$StateMachine___Lambda$__2-0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -1041,7 +1043,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T).VB$StateMachine___Lambda$__2-1(Of $CLS0).$VB$Me As D(Of T)""
+  IL_0001:  ldfld      ""D(Of T).VB$StateMachine___Lambda$__2-0(Of $CLS0).$VB$Me As D(Of T)""
   IL_0006:  ldfld      ""D(Of T).t1 As T""
   IL_000b:  ret
 }
@@ -1065,7 +1067,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T).VB$StateMachine___Lambda$__2-1(Of $CLS0).$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D(Of T).VB$StateMachine___Lambda$__2-0(Of $CLS0).$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -1081,10 +1083,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureThisAndLocal()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "", "x + t1.GetHashCode()")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "x + t1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -1101,7 +1103,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__1.$VB$NonLocal__Closure$__2-0 As D(Of T)._Closure$__2-0(Of $CLS0)""
+  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__0.$VB$NonLocal__Closure$__2-0 As D(Of T)._Closure$__2-0(Of $CLS0)""
   IL_0006:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).$VB$Me As D(Of T)""
   IL_000b:  ldfld      ""D(Of T).t1 As T""
   IL_0010:  ret
@@ -1123,7 +1125,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__1.$VB$NonLocal__Closure$__2-0 As D(Of T)._Closure$__2-0(Of $CLS0)""
+  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__0.$VB$NonLocal__Closure$__2-0 As D(Of T)._Closure$__2-0(Of $CLS0)""
   IL_0006:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).$VB$Local_x As Integer""
   IL_000b:  ret
 }
@@ -1141,7 +1143,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -1157,10 +1159,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Static_CaptureNothing()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "Shared", "1")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "1")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__2.VB$StateMachine___Lambda$__2-1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__2.VB$StateMachine___Lambda$__2-0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -1186,7 +1188,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T)._Closure$__2(Of $CLS0).VB$StateMachine___Lambda$__2-1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D(Of T)._Closure$__2(Of $CLS0).VB$StateMachine___Lambda$__2-0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -1202,10 +1204,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Static_CaptureLocal()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "Shared", "x")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "x")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -1228,7 +1230,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__1.$VB$NonLocal__Closure$__2-0 As D(Of T)._Closure$__2-0(Of $CLS0)""
+  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__0.$VB$NonLocal__Closure$__2-0 As D(Of T)._Closure$__2-0(Of $CLS0)""
   IL_0006:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).$VB$Local_x As Integer""
   IL_000b:  ret
 }
@@ -1246,7 +1248,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -1262,10 +1264,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Static_CaptureParameter()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "Shared", "u1.GetHashCode()")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "u1.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -1285,7 +1287,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__1.$VB$NonLocal__Closure$__2-0 As D(Of T)._Closure$__2-0(Of $CLS0)""
+  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__0.$VB$NonLocal__Closure$__2-0 As D(Of T)._Closure$__2-0(Of $CLS0)""
   IL_0006:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).$VB$Local_u1 As $CLS0""
   IL_000b:  ret
 }
@@ -1306,7 +1308,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D(Of T)._Closure$__2-0(Of $CLS0).VB$StateMachine___Lambda$__0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -1322,10 +1324,10 @@ End Class
         <WorkItem(1112496)>
         <Fact>
         Public Sub GenericAsyncLambda_Static_CaptureLambdaParameter()
-            Dim source = String.Format(genericAsyncLambdaSourceTemplate, "Shared", "ch.GetHashCode()")
+            Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "ch.GetHashCode()")
             Dim comp = CreateCompilation(source)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "D._Closure$__2.VB$StateMachine___Lambda$__2-1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "D._Closure$__2.VB$StateMachine___Lambda$__2-0.MoveNext")
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -1351,7 +1353,7 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""D(Of T)._Closure$__2(Of $CLS0).VB$StateMachine___Lambda$__2-1.$VB$Local_ch As Char""
+  IL_0001:  ldfld      ""D(Of T)._Closure$__2(Of $CLS0).VB$StateMachine___Lambda$__2-0.$VB$Local_ch As Char""
   IL_0006:  ret
 }
 ")
@@ -1362,6 +1364,75 @@ End Class
             Assert.Equal("(1,10): error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
 
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables")
+        End Sub
+
+        <WorkItem(1134746, "DevDiv")>
+        <Fact>
+        Public Sub CacheInvalidation()
+            Const source = "
+Imports System.Collections.Generic
+
+Class C
+    Shared Iterator Function M() As IEnumerable(Of Integer)
+#ExternalSource(""Test"", 100)
+        Dim x As Integer = 1
+        Yield x
+#End ExternalSource
+
+        If True Then
+#ExternalSource(""Test"", 200)
+            Dim y As Integer = x + 1
+            Yield y
+#End ExternalSource
+        End If
+    End Function
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp)
+
+            Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+            Dim moduleVersionId As Guid = Nothing
+            Dim symReader As ISymUnmanagedReader = Nothing
+            Dim methodToken = 0
+            Dim localSignatureToken = 0
+            GetContextState(runtime, "C.VB$StateMachine_1_M.MoveNext", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            Const methodVersion = 1
+
+            Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber:=100)
+            Dim context = EvaluationContext.CreateMethodContext(
+                Nothing,
+                blocks,
+                MakeDummyLazyAssemblyReaders(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                ilOffset,
+                localSignatureToken)
+
+            Dim errorMessage As String = Nothing
+            context.CompileExpression("x", errorMessage)
+            Assert.Null(errorMessage)
+            context.CompileExpression("y", errorMessage)
+            Assert.Equal("(1,2): error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+
+            ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber:=200)
+            context = EvaluationContext.CreateMethodContext(
+                New VisualBasicMetadataContext(blocks, context),
+                blocks,
+                MakeDummyLazyAssemblyReaders(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                ilOffset,
+                localSignatureToken)
+
+            context.CompileExpression("x", errorMessage)
+            Assert.Null(errorMessage)
+            context.CompileExpression("y", errorMessage)
+            Assert.Null(errorMessage)
         End Sub
 
         Private Shared Function GetLocalNames(context As EvaluationContext) As String()

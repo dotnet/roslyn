@@ -10,7 +10,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Class Parser
+    Friend Partial Class Parser
 
         Private Function ParseInterpolatedStringExpression() As InterpolatedStringExpressionSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.DollarSignDoubleQuoteToken, "ParseInterpolatedStringExpression called on the wrong token.")

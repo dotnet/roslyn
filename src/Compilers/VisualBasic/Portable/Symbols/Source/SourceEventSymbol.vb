@@ -15,22 +15,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits EventSymbol
         Implements IAttributeTargetSymbol
 
-        Private ReadOnly m_containingType As SourceMemberContainerTypeSymbol
-        Private ReadOnly m_name As String
+        Private ReadOnly _containingType As SourceMemberContainerTypeSymbol
+        Private ReadOnly _name As String
 
-        Private ReadOnly m_syntaxRef As SyntaxReference
-        Private ReadOnly m_location As Location
+        Private ReadOnly _syntaxRef As SyntaxReference
+        Private ReadOnly _location As Location
 
-        Private ReadOnly m_memberFlags As SourceMemberFlags
+        Private ReadOnly _memberFlags As SourceMemberFlags
 
-        Private ReadOnly m_addMethod As MethodSymbol
-        Private ReadOnly m_removeMethod As MethodSymbol
-        Private ReadOnly m_raiseMethod As MethodSymbol
+        Private ReadOnly _addMethod As MethodSymbol
+        Private ReadOnly _removeMethod As MethodSymbol
+        Private ReadOnly _raiseMethod As MethodSymbol
 
-        Private ReadOnly m_backingField As FieldSymbol
+        Private ReadOnly _backingField As FieldSymbol
 
         ' Misc flags defining the state of this symbol (StateFlags)
-        Private m_lazyState As Integer
+        Private _lazyState As Integer
 
         <Flags>
         Private Enum StateFlags As Integer
@@ -40,13 +40,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             SymbolDeclaredEvent = &H8                           ' Bit value for generating SymbolDeclaredEvent
         End Enum
 
-        Private m_lazyType As TypeSymbol
-        Private m_lazyImplementedEvents As ImmutableArray(Of EventSymbol)
-        Private m_lazyDelegateParameters As ImmutableArray(Of ParameterSymbol)
-        Private m_lazyDocComment As String
+        Private _lazyType As TypeSymbol
+        Private _lazyImplementedEvents As ImmutableArray(Of EventSymbol)
+        Private _lazyDelegateParameters As ImmutableArray(Of ParameterSymbol)
+        Private _lazyDocComment As String
 
         ' Attributes on event. Set once after construction. IsNull means not set. 
-        Private m_lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
+        Private _lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
 
         ''' <summary>
         ''' Indicates whether event created a new delegate type.
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend ReadOnly Property IsTypeInferred As Boolean
             Get
                 Dim unused = Type ' Ensure lazy state is computed.
-                Return (m_lazyState And StateFlags.IsTypeInferred) <> 0
+                Return (_lazyState And StateFlags.IsTypeInferred) <> 0
             End Get
         End Property
 
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(containingType IsNot Nothing)
             Debug.Assert(syntax IsNot Nothing)
 
-            m_containingType = containingType
+            _containingType = containingType
 
             ' Decode the flags.
             ' This will validate modifiers agains container (i.e. Protected is invalid in a structure...)
@@ -77,10 +77,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                             binder,
                                             diagnostics)
 
-            m_memberFlags = modifiers.AllFlags
+            _memberFlags = modifiers.AllFlags
 
             Dim identifier = syntax.Identifier
-            m_name = identifier.ValueText
+            _name = identifier.ValueText
 
             ' Events cannot have type characters
             If identifier.GetTypeCharacter() <> TypeCharacter.None Then
@@ -88,8 +88,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim location = identifier.GetLocation()
-            m_location = location
-            m_syntaxRef = binder.GetSyntaxReference(syntax)
+            _location = location
+            _syntaxRef = binder.GetSyntaxReference(syntax)
 
             binder = New LocationSpecificBinder(BindingLocation.EventSignature, Me, binder)
 
@@ -98,22 +98,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim accessor As CustomEventAccessorSymbol = BindEventAccessor(accessorSyntax, binder)
                     Select Case (accessor.MethodKind)
                         Case MethodKind.EventAdd
-                            If m_addMethod Is Nothing Then
-                                m_addMethod = accessor
+                            If _addMethod Is Nothing Then
+                                _addMethod = accessor
                             Else
                                 diagnostics.Add(ERRID.ERR_DuplicateAddHandlerDef, accessor.Locations(0))
                             End If
 
                         Case MethodKind.EventRemove
-                            If m_removeMethod Is Nothing Then
-                                m_removeMethod = accessor
+                            If _removeMethod Is Nothing Then
+                                _removeMethod = accessor
                             Else
                                 diagnostics.Add(ERRID.ERR_DuplicateRemoveHandlerDef, accessor.Locations(0))
                             End If
 
                         Case MethodKind.EventRaise
-                            If m_raiseMethod Is Nothing Then
-                                m_raiseMethod = accessor
+                            If _raiseMethod Is Nothing Then
+                                _raiseMethod = accessor
                             Else
                                 diagnostics.Add(ERRID.ERR_DuplicateRaiseEventDef, accessor.Locations(0))
                             End If
@@ -123,32 +123,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Select
                 Next
 
-                If m_addMethod Is Nothing Then
+                If _addMethod Is Nothing Then
                     diagnostics.Add(ERRID.ERR_MissingAddHandlerDef1, location, Me)
                 End If
 
-                If m_removeMethod Is Nothing Then
+                If _removeMethod Is Nothing Then
                     diagnostics.Add(ERRID.ERR_MissingRemoveHandlerDef1, location, Me)
                 End If
 
-                If m_raiseMethod Is Nothing Then
+                If _raiseMethod Is Nothing Then
                     diagnostics.Add(ERRID.ERR_MissingRaiseEventDef1, location, Me)
                 End If
             Else
                 ' Synthesize accessors
-                m_addMethod = New SynthesizedAddAccessorSymbol(containingType, Me)
-                m_removeMethod = New SynthesizedRemoveAccessorSymbol(containingType, Me)
+                _addMethod = New SynthesizedAddAccessorSymbol(containingType, Me)
+                _removeMethod = New SynthesizedRemoveAccessorSymbol(containingType, Me)
 
                 ' if this is a concrete class, add a backing field too
                 If Not containingType.IsInterfaceType Then
-                    m_backingField = New SynthesizedEventBackingFieldSymbol(Me, Me.Name & EVENT_VARIABLE_SUFFIX, Me.IsShared)
+                    _backingField = New SynthesizedEventBackingFieldSymbol(Me, Me.Name & EVENT_VARIABLE_SUFFIX, Me.IsShared)
                 End If
             End If
         End Sub
 
         Private Function ComputeType(diagnostics As DiagnosticBag, <Out()> ByRef isTypeInferred As Boolean, <Out()> ByRef isDelegateFromImplements As Boolean) As TypeSymbol
             Dim binder = CreateBinderForTypeDeclaration()
-            Dim syntax = DirectCast(m_syntaxRef.GetSyntax(), EventStatementSyntax)
+            Dim syntax = DirectCast(_syntaxRef.GetSyntax(), EventStatementSyntax)
 
             isTypeInferred = False
             isDelegateFromImplements = False
@@ -215,14 +215,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Else
                     ' get event's type from the containing type
-                    Dim types = m_containingType.GetTypeMembers(Me.Name & EVENT_DELEGATE_SUFFIX)
+                    Dim types = _containingType.GetTypeMembers(Me.Name & EVENT_DELEGATE_SUFFIX)
                     Debug.Assert(Not types.IsDefault)
 
                     If Not types.IsEmpty Then
                         type = types(0)
                     Else
                         ' if we still do not know the type, get a temporary one (it is not a member of the containing class)
-                        type = New SynthesizedEventDelegateSymbol(Me.m_syntaxRef, m_containingType)
+                        type = New SynthesizedEventDelegateSymbol(Me._syntaxRef, _containingType)
                     End If
 
                     isTypeInferred = True
@@ -237,18 +237,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function ComputeImplementedEvents(diagnostics As DiagnosticBag) As ImmutableArray(Of EventSymbol)
-            Dim syntax = DirectCast(m_syntaxRef.GetSyntax(), EventStatementSyntax)
+            Dim syntax = DirectCast(_syntaxRef.GetSyntax(), EventStatementSyntax)
             Dim implementsClause = syntax.ImplementsClause
 
             If implementsClause IsNot Nothing Then
                 Dim binder = CreateBinderForTypeDeclaration()
 
-                If m_containingType.IsInterfaceType Then
+                If _containingType.IsInterfaceType Then
                     Dim implementsKeyword = implementsClause.ImplementsKeyword
                     ' // Interface events can't claim to implement anything
                     Binder.ReportDiagnostic(diagnostics, implementsKeyword, ERRID.ERR_InterfaceEventCantUse1, implementsKeyword.ValueText)
 
-                ElseIf IsShared AndAlso Not m_containingType.IsModuleType Then
+                ElseIf IsShared AndAlso Not _containingType.IsModuleType Then
                     ' // Implementing with shared events is illegal.
                     Binder.ReportDiagnostic(diagnostics, syntax.Modifiers.First(SyntaxKind.SharedKeyword), ERRID.ERR_SharedOnProcThatImpl)
 
@@ -257,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' otherwise event types must match exactly
                     Return ProcessImplementsClause(Of EventSymbol)(implementsClause,
                                                                    Me,
-                                                                   m_containingType,
+                                                                   _containingType,
                                                                    binder,
                                                                    diagnostics)
                 End If
@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' implemented events have the same type.
         ''' </summary>
         Private Sub CheckExplicitImplementationTypes()
-            If (m_lazyState And (StateFlags.IsTypeInferred Or StateFlags.IsDelegateFromImplements Or StateFlags.ReportedExplicitImplementationDiagnostics)) <> 0 Then
+            If (_lazyState And (StateFlags.IsTypeInferred Or StateFlags.IsDelegateFromImplements Or StateFlags.ReportedExplicitImplementationDiagnostics)) <> 0 Then
                 Return
             End If
 
@@ -289,19 +289,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
             If diagnostics IsNot Nothing Then
-                ContainingSourceModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState, StateFlags.ReportedExplicitImplementationDiagnostics, 0, diagnostics, CompilationStage.Declare)
+                ContainingSourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.ReportedExplicitImplementationDiagnostics, 0, diagnostics, CompilationStage.Declare)
                 diagnostics.Free()
             End If
         End Sub
 
         Friend Overrides ReadOnly Property DelegateParameters As ImmutableArray(Of ParameterSymbol)
             Get
-                If m_lazyDelegateParameters.IsDefault Then
-                    Dim syntax = DirectCast(m_syntaxRef.GetSyntax(), EventStatementSyntax)
+                If _lazyDelegateParameters.IsDefault Then
+                    Dim syntax = DirectCast(_syntaxRef.GetSyntax(), EventStatementSyntax)
                     If syntax.AsClause IsNot Nothing Then
                         ' We can access use the base implementation which relies
                         ' on the Type property since the type in "Event E As D" is explicit.
-                        m_lazyDelegateParameters = MyBase.DelegateParameters
+                        _lazyDelegateParameters = MyBase.DelegateParameters
                     Else
                         ' Avoid using the base implementation since that relies
                         ' on Type which is inferred, potentially from interface
@@ -310,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim diagnostics = DiagnosticBag.GetInstance()
 
                         ContainingSourceModule.AtomicStoreArrayAndDiagnostics(
-                            m_lazyDelegateParameters,
+                            _lazyDelegateParameters,
                             binder.DecodeParameterListOfDelegateDeclaration(Me, syntax.ParameterList, diagnostics),
                             diagnostics,
                             CompilationStage.Declare)
@@ -319,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 End If
 
-                Return m_lazyDelegateParameters
+                Return _lazyDelegateParameters
             End Get
         End Property
 
@@ -330,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(syntax.Modifiers.IsEmpty, "event accessors cannot have modifiers")
 
             ' Include modifiers from the containing event.
-            Dim flags = Me.m_memberFlags
+            Dim flags = Me._memberFlags
 
             If Me.IsImplementing Then
                 flags = flags Or SourceMemberFlags.Overrides Or SourceMemberFlags.NotOverridable
@@ -354,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim location = syntax.GetLocation()
             ' Event symbols aren't affected if the output kind is winmd, mark false
             Dim method As New CustomEventAccessorSymbol(
-                Me.m_containingType,
+                Me._containingType,
                 Me,
                 binder.GetAccessorName(Me.Name, flags.ToMethodKind(), isWinMd:=False),
                 flags,
@@ -409,47 +409,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return m_containingType
+                Return _containingType
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol
             Get
-                Return m_containingType
+                Return _containingType
             End Get
         End Property
 
         Public ReadOnly Property ContainingSourceModule As SourceModuleSymbol
             Get
-                Return m_containingType.ContainingSourceModule
+                Return _containingType.ContainingSourceModule
             End Get
         End Property
 
         Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
             ' WARNING: this should not allocate memory!
-            Return New LexicalSortKey(m_location, Me.DeclaringCompilation)
+            Return New LexicalSortKey(_location, Me.DeclaringCompilation)
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return ImmutableArray.Create(m_location)
+                Return ImmutableArray.Create(_location)
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return GetDeclaringSyntaxReferenceHelper(m_syntaxRef)
+                Return GetDeclaringSyntaxReferenceHelper(_syntaxRef)
             End Get
         End Property
 
         Friend NotOverridable Overrides Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
-            Dim eventBlock = Me.m_syntaxRef.GetSyntax(cancellationToken).Parent
+            Dim eventBlock = Me._syntaxRef.GetSyntax(cancellationToken).Parent
             Return IsDefinedInSourceTree(eventBlock, tree, definedWithinSpan, cancellationToken)
         End Function
 
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
-                If m_lazyType Is Nothing Then
+                If _lazyType Is Nothing Then
                     Dim diagnostics = DiagnosticBag.GetInstance()
                     Dim isTypeInferred = False
                     Dim isDelegateFromImplements = False
@@ -458,120 +458,120 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim newState = If(isTypeInferred, StateFlags.IsTypeInferred, 0) Or
                                    If(isDelegateFromImplements, StateFlags.IsDelegateFromImplements, 0)
 
-                    ThreadSafeFlagOperations.Set(m_lazyState, newState)
+                    ThreadSafeFlagOperations.Set(_lazyState, newState)
 
-                    ContainingSourceModule.AtomicStoreReferenceAndDiagnostics(m_lazyType, eventType, diagnostics, CompilationStage.Declare)
+                    ContainingSourceModule.AtomicStoreReferenceAndDiagnostics(_lazyType, eventType, diagnostics, CompilationStage.Declare)
                     diagnostics.Free()
                 End If
 
-                Return m_lazyType
+                Return _lazyType
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_name
+                Return _name
             End Get
         End Property
 
         Public Overrides ReadOnly Property AddMethod As MethodSymbol
             Get
-                Return m_addMethod
+                Return _addMethod
             End Get
         End Property
 
         Public Overrides ReadOnly Property RemoveMethod As MethodSymbol
             Get
-                Return m_removeMethod
+                Return _removeMethod
             End Get
         End Property
 
         Public Overrides ReadOnly Property RaiseMethod As MethodSymbol
             Get
-                Return m_raiseMethod
+                Return _raiseMethod
             End Get
         End Property
 
         Friend Overrides ReadOnly Property AssociatedField As FieldSymbol
             Get
-                Return m_backingField
+                Return _backingField
             End Get
         End Property
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of EventSymbol)
             Get
-                If m_lazyImplementedEvents.IsDefault Then
+                If _lazyImplementedEvents.IsDefault Then
                     Dim diagnostics = DiagnosticBag.GetInstance()
-                    ContainingSourceModule.AtomicStoreArrayAndDiagnostics(m_lazyImplementedEvents,
+                    ContainingSourceModule.AtomicStoreArrayAndDiagnostics(_lazyImplementedEvents,
                                                                           ComputeImplementedEvents(diagnostics),
                                                                           diagnostics,
                                                                           CompilationStage.Declare)
                     diagnostics.Free()
                 End If
 
-                Return m_lazyImplementedEvents
+                Return _lazyImplementedEvents
             End Get
         End Property
 
         Friend ReadOnly Property SyntaxReference As SyntaxReference
             Get
-                Return Me.m_syntaxRef
+                Return Me._syntaxRef
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
-                Return (m_memberFlags And SourceMemberFlags.Shared) <> 0
+                Return (_memberFlags And SourceMemberFlags.Shared) <> 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsMustOverride As Boolean
             Get
                 ' event can be MustOverride if it is defined in an interface
-                Return (m_memberFlags And SourceMemberFlags.MustOverride) <> 0
+                Return (_memberFlags And SourceMemberFlags.MustOverride) <> 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
-                Debug.Assert((m_memberFlags And SourceMemberFlags.Overridable) = 0)
+                Debug.Assert((_memberFlags And SourceMemberFlags.Overridable) = 0)
                 Return False
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverrides As Boolean
             Get
-                Debug.Assert((m_memberFlags And SourceMemberFlags.Overrides) = 0)
+                Debug.Assert((_memberFlags And SourceMemberFlags.Overrides) = 0)
                 Return False
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsNotOverridable As Boolean
             Get
-                Debug.Assert((m_memberFlags And SourceMemberFlags.NotOverridable) = 0)
+                Debug.Assert((_memberFlags And SourceMemberFlags.NotOverridable) = 0)
                 Return False
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return CType((m_memberFlags And SourceMemberFlags.AccessibilityMask), Accessibility)
+                Return CType((_memberFlags And SourceMemberFlags.AccessibilityMask), Accessibility)
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ShadowsExplicitly As Boolean
             Get
-                Return (m_memberFlags And SourceMemberFlags.Shadows) <> 0
+                Return (_memberFlags And SourceMemberFlags.Shadows) <> 0
             End Get
         End Property
 
         Friend ReadOnly Property AttributeDeclarationSyntaxList As SyntaxList(Of AttributeListSyntax)
             Get
-                Return DirectCast(m_syntaxRef.GetSyntax, EventStatementSyntax).AttributeLists
+                Return DirectCast(_syntaxRef.GetSyntax, EventStatementSyntax).AttributeLists
             End Get
         End Property
 
-        ReadOnly Property DefaultAttributeLocation As AttributeLocation Implements IAttributeTargetSymbol.DefaultAttributeLocation
+        Public ReadOnly Property DefaultAttributeLocation As AttributeLocation Implements IAttributeTargetSymbol.DefaultAttributeLocation
             Get
                 Return AttributeLocation.Event
             End Get
@@ -580,13 +580,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 ' If there are no attributes then this symbol is not Obsolete.
-                If (Not Me.m_containingType.AnyMemberHasAttributes) Then
+                If (Not Me._containingType.AnyMemberHasAttributes) Then
                     Return Nothing
                 End If
 
-                Dim lazyCustomAttributesBag = Me.m_lazyCustomAttributesBag
+                Dim lazyCustomAttributesBag = Me._lazyCustomAttributesBag
                 If (lazyCustomAttributesBag IsNot Nothing AndAlso lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed) Then
-                    Dim data = DirectCast(m_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, CommonEventEarlyWellKnownAttributeData)
+                    Dim data = DirectCast(_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, CommonEventEarlyWellKnownAttributeData)
                     Return If(data IsNot Nothing, data.ObsoleteAttributeData, Nothing)
                 End If
 
@@ -607,14 +607,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function GetAttributesBag() As CustomAttributesBag(Of VisualBasicAttributeData)
-            If m_lazyCustomAttributesBag Is Nothing OrElse Not m_lazyCustomAttributesBag.IsSealed Then
-                LoadAndValidateAttributes(OneOrMany.Create(Me.AttributeDeclarationSyntaxList), m_lazyCustomAttributesBag)
+            If _lazyCustomAttributesBag Is Nothing OrElse Not _lazyCustomAttributesBag.IsSealed Then
+                LoadAndValidateAttributes(OneOrMany.Create(Me.AttributeDeclarationSyntaxList), _lazyCustomAttributesBag)
             End If
-            Return m_lazyCustomAttributesBag
+            Return _lazyCustomAttributesBag
         End Function
 
         Friend Function GetDecodedWellKnownAttributeData() As EventWellKnownAttributeData
-            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me.m_lazyCustomAttributesBag
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyCustomAttributesBag
             If attributesBag Is Nothing OrElse Not attributesBag.IsDecodedWellKnownAttributeDataComputed Then
                 attributesBag = Me.GetAttributesBag()
             End If
@@ -671,13 +671,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing,
                                                              Optional expandIncludes As Boolean = False,
                                                              Optional cancellationToken As CancellationToken = Nothing) As String
-            If m_lazyDocComment Is Nothing Then
+            If _lazyDocComment Is Nothing Then
                 ' NOTE: replace Nothing with empty comment
                 Interlocked.CompareExchange(
-                    m_lazyDocComment, GetDocumentationCommentForSymbol(Me, preferredCulture, expandIncludes, cancellationToken), Nothing)
+                    _lazyDocComment, GetDocumentationCommentForSymbol(Me, preferredCulture, expandIncludes, cancellationToken), Nothing)
             End If
 
-            Return m_lazyDocComment
+            Return _lazyDocComment
         End Function
 
         Friend Shared Function DecodeModifiers(modifiers As SyntaxTokenList,
@@ -701,15 +701,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Get the location of the implements name for an explicit implemented event, for later error reporting.
         Friend Function GetImplementingLocation(implementedEvent As EventSymbol) As Location
 
-            Dim eventSyntax = DirectCast(m_syntaxRef.GetSyntax(), EventStatementSyntax)
-            Dim syntaxTree = m_syntaxRef.SyntaxTree
+            Dim eventSyntax = DirectCast(_syntaxRef.GetSyntax(), EventStatementSyntax)
+            Dim syntaxTree = _syntaxRef.SyntaxTree
 
             If eventSyntax.ImplementsClause IsNot Nothing Then
                 Dim binder = CreateBinderForTypeDeclaration()
                 Dim implementingSyntax = FindImplementingSyntax(Of EventSymbol)(eventSyntax.ImplementsClause,
                                                                                  Me,
                                                                                  implementedEvent,
-                                                                                 m_containingType,
+                                                                                 _containingType,
                                                                                  binder)
                 Return implementingSyntax.GetLocation()
             End If
@@ -718,7 +718,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function CreateBinderForTypeDeclaration() As Binder
-            Dim binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, m_syntaxRef.SyntaxTree, m_containingType)
+            Dim binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, _syntaxRef.SyntaxTree, _containingType)
             Return New LocationSpecificBinder(BindingLocation.EventSignature, Me, binder)
         End Function
 
@@ -730,7 +730,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me.CheckExplicitImplementationTypes()
 
             If DeclaringCompilation.EventQueue IsNot Nothing Then
-                Me.ContainingSourceModule.AtomicSetFlagAndRaiseSymbolDeclaredEvent(m_lazyState, StateFlags.SymbolDeclaredEvent, 0, Me)
+                Me.ContainingSourceModule.AtomicSetFlagAndRaiseSymbolDeclaredEvent(_lazyState, StateFlags.SymbolDeclaredEvent, 0, Me)
             End If
         End Sub
 

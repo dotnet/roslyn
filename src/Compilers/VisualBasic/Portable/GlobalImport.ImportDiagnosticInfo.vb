@@ -4,7 +4,7 @@ Imports System.Globalization
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class GlobalImport
+    Public Partial Class GlobalImport
 
         ' A special Diagnostic info that wraps a particular diagnostic but customized the message with 
         ' the text of the import.

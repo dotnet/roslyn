@@ -317,7 +317,7 @@ public static class MyExtension
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.Extension}) int string.ExtensionMethod(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpEditorResources.Extension}) int string.ExtensionMethod(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
 
             // TODO: Once we do the work to allow extension methods in nested types, we should change this.
             Test(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
@@ -1509,7 +1509,7 @@ class C
   await Foo();";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.Awaitable}) Task C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpEditorResources.Awaitable}) Task C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
 
             TestSignatureHelpWithMscorlib45(markup, expectedOrderedItems, "C#");
         }
@@ -1532,7 +1532,7 @@ class C
   Task<int> x = await Foo();";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.Awaitable}) Task<Task<int>> C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpEditorResources.Awaitable}) Task<Task<int>> C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
 
             TestSignatureHelpWithMscorlib45(markup, expectedOrderedItems, "C#");
         }
@@ -1621,7 +1621,7 @@ class Program
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
                 new SignatureHelpTestItem("void IFoo.Bar<T>()", currentParameterIndex: 0),
-                new SignatureHelpTestItem($"({CSharpFeaturesResources.Extension}) void IFoo.Bar<T1, T2>()", currentParameterIndex: 0),
+                new SignatureHelpTestItem($"({CSharpEditorResources.Extension}) void IFoo.Bar<T1, T2>()", currentParameterIndex: 0),
             };
 
             // Extension methods are supported in Interactive/Script (yet).
@@ -1862,6 +1862,36 @@ class Foo
 // foo($$";
 
             Test(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void MethodOverloadDifferencesIgnored()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""SourceDocument""><![CDATA[
+class C
+{
+#if ONE
+    void Do(int x){}
+#endif
+#if TWO
+    void Do(string x){}
+#endif
+    void Shared()
+    {
+        this.Do($$
+    }
+
+}]]></Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = new SignatureHelpTestItem($"void C.Do(int x)", currentParameterIndex: 0);
+            VerifyItemWithReferenceWorker(markup, new[] { expectedDescription }, false);
         }
     }
 }

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, AbstractSyntaxTreeInfo>> s_cache =
             new ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, AbstractSyntaxTreeInfo>>();
 
-        public IEnumerable<DeclaredSymbolInfo> DeclaredSymbolInfos { get; private set; }
+        public IEnumerable<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
 
         public SyntaxTreeDeclarationInfo(VersionStamp version, IEnumerable<DeclaredSymbolInfo> declaredSymbolInfos)
             : base(version)

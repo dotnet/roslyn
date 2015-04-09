@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
     internal class EncapsulateFieldTestState : IDisposable
     {
         private TestHostDocument _testDocument;
-        public TestWorkspace Workspace { get; private set; }
-        public Document TargetDocument { get; private set; }
+        public TestWorkspace Workspace { get; }
+        public Document TargetDocument { get; }
         public string NotificationMessage { get; private set; }
 
         private static readonly ExportProvider s_exportProvider = MinimalTestExportProvider.CreateExportProvider(

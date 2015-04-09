@@ -566,7 +566,7 @@ End Class
 
 #Region "Name tests"
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Name1()
+        Public Sub Name1()
             Dim code =
 <Code>
 Class C
@@ -712,7 +712,7 @@ End Class
 #Region "Set IsShared tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared1()
+        Public Sub SetIsShared1()
             Dim code =
 <Code>
 Class C
@@ -731,7 +731,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared2()
+        Public Sub SetIsShared2()
             Dim code =
 <Code>
 Class C
@@ -750,7 +750,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared3()
+        Public Sub SetIsShared3()
             Dim code =
 <Code>
 Class C
@@ -769,7 +769,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared4()
+        Public Sub SetIsShared4()
             Dim code =
 <Code>
 Class C
@@ -788,7 +788,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared5()
+        Public Sub SetIsShared5()
             Dim code =
 <Code>
 Class C
@@ -831,7 +831,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared6()
+        Public Sub SetIsShared6()
             Dim code =
 <Code>
 Class C
@@ -874,7 +874,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared7()
+        Public Sub SetIsShared7()
             Dim code =
 <Code>
 Class C
@@ -917,7 +917,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared8()
+        Public Sub SetIsShared8()
             Dim code =
 <Code>
 Class C
@@ -964,7 +964,7 @@ End Class
 #Region "Set Name tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName1()
+        Public Sub SetName1()
             Dim code =
 <Code>
 Class C

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// The source languages this provider can provide fixes for.  See <see cref="LanguageNames"/>.
         /// </summary>
-        public string[] Languages { get; private set; }
+        public string[] Languages { get; }
 
         /// <summary>
         /// Attribute constructor used to specify automatic application of a code fix provider.

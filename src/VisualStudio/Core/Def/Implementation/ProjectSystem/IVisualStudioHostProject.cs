@@ -16,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         string Language { get; }
         IVsHierarchy Hierarchy { get; }
         Workspace Workspace { get; }
+        string ProjectSystemName { get; }
 
         IVisualStudioHostDocument GetDocumentOrAdditionalDocument(DocumentId id);
         IVisualStudioHostDocument GetCurrentDocumentFromPath(string filePath);

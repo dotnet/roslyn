@@ -1821,7 +1821,7 @@ End Class
             edits.VerifyEdits(
                 "Reorder [Sub g() : End Sub]@64 -> @11")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, {})
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, Array.Empty(Of SemanticEditDescription)())
         End Sub
 
         <Fact>
@@ -1905,8 +1905,7 @@ End Class
             edits.VerifyEdits(
                 "Update [Async Function F() As Task(Of String)]@11 -> [Function F() As Task(Of String)]@11")
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Function F()", "method"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -2281,9 +2280,7 @@ End Class
             Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "F(2, Function(a As Integer) a) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            ' TODO (tomat): should be allowed (726990)
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(a As Integer)", "method"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -2292,9 +2289,7 @@ End Class
             Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "F(2, From foo In bar Select baz) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            ' TODO (tomat): should be allowed (726990)
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "method"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -2366,8 +2361,7 @@ End Class
             Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "F(2, New With { .A = 1, .B = 2 }) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "New With", "method"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -2411,7 +2405,36 @@ End Class
                 "Insert [()]@44")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ADD_HANDLES_CLAUSE, "Private Sub Foo()", "method"))
+                Diagnostic(RudeEditKind.InsertHandlesClause, "Private Sub Foo()", "method"))
+        End Sub
+
+        <Fact>
+        Public Sub MethodUpdate_WithStaticLocal()
+            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", "method"))
+        End Sub
+
+        <Fact>
+        Public Sub MethodUpdate_AddingStaticLocal()
+            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a = 0 : a = 1 : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", "method"))
+        End Sub
+
+        <Fact>
+        Public Sub MethodUpdate_DeletingStaticLocal()
+            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a = 0 : a = 2 : End Sub : End Module"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics()
         End Sub
 #End Region
 
@@ -2469,14 +2492,13 @@ End Class
                 Diagnostic(RudeEditKind.Insert, "b As Integer", "parameter"))
         End Sub
 
-        <Fact(Skip:="789577"), WorkItem(789577)>
+        <Fact, WorkItem(789577)>
         Public Sub ConstructorUpdate_AnonymousTypeInFieldInitializer()
             Dim src1 = "Class C : Dim a As Integer = F(New With { .A = 1, .B = 2 })" & vbLf & "Sub New()" & vbLf & " x = 1 : End Sub : End Class"
             Dim src2 = "Class C : Dim a As Integer = F(New With { .A = 1, .B = 2 })" & vbLf & "Sub New()" & vbLf & " x = 2 : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "constructor"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -4381,24 +4403,22 @@ End Class
                 Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "constructor"))
         End Sub
 
-        <Fact(Skip:="726990")>
+        <Fact>
         Public Sub FieldUpdate_AnonymousTypeInConstructor()
             Dim src1 = "Class C : Dim a As Integer = 1 : " & vbLf & "Sub New()" & vbLf & "F(New With { .A = 1, .B = 2 }) : End Sub : End Class"
             Dim src2 = "Class C : Dim a As Integer = 2 : " & vbLf & "Sub New()" & vbLf & "F(New With { .A = 1, .B = 2 }) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "constructor"))
+            edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact(Skip:="726990")>
+        <Fact>
         Public Sub PropertyUpdate_AnonymousTypeInConstructor()
             Dim src1 = "Class C : Property a As Integer = 1 : " & vbLf & "Sub New()" & vbLf & "F(New With { .A = 1, .B = 2 }) : End Sub : End Class"
             Dim src2 = "Class C : Property a As Integer = 2 : " & vbLf & "Sub New()" & vbLf & "F(New With { .A = 1, .B = 2 }) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "New With", "constructor"))
+            edits.VerifySemanticDiagnostics()
         End Sub
 
         <Fact>
@@ -4687,8 +4707,7 @@ End Class
             Dim src2 = "Class C : Dim a As Integer = F(2, New With { .A = 1, .B = 2 }) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "New With", "field"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -4697,8 +4716,7 @@ End Class
             Dim src2 = "Class C : Property a As Integer = F(2, New With { .A = 1, .B = 2 }) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "New With", "auto-property"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -4707,9 +4725,39 @@ End Class
             Dim src2 = "Class C : Property a As New C(2, New With { .A = 1, .B = 2 }) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "New With", "auto-property"))
+            edits.VerifyRudeDiagnostics()
         End Sub
+
+        <Fact>
+        Public Sub ConstField_Update()
+            Dim src1 = "Class C : Const x = 0 : End Class"
+            Dim src2 = "Class C : Const x = 1 : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Update, "x = 1", "const field"))
+        End Sub
+
+        <Fact>
+        Public Sub ConstField_Delete()
+            Dim src1 = "Class C : Const x = 0 : End Class"
+            Dim src2 = "Class C : Dim x = 0 : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Dim x = 0", "field"))
+        End Sub
+
+        <Fact>
+        Public Sub ConstField_Add()
+            Dim src1 = "Class C : Dim x = 0 : End Class"
+            Dim src2 = "Class C : Const x = 0 : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Const x = 0", "const field"))
+        End Sub
+
 #End Region
 
 #Region "Events"

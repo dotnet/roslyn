@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -25,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             RefKind refKind)
         {
+            Debug.Assert(type != null);
+            Debug.Assert(!customModifiers.IsDefault);
+
             _type = type;
             _customModifiers = customModifiers;
             _isParams = isParams;

@@ -10,8 +10,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     internal sealed class RenameTrackingDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         public const string DiagnosticId = "RenameTracking";
-        public static DiagnosticDescriptor DiagnosticDescriptor = new TriggerDiagnosticDescriptor(
-            DiagnosticId,
+        public static DiagnosticDescriptor DiagnosticDescriptor = new DiagnosticDescriptor(
+            DiagnosticId, title: "", messageFormat: "", category: "",
+            defaultSeverity: DiagnosticSeverity.Hidden, isEnabledByDefault: true,
             customTags: DiagnosticCustomTags.Microsoft.Append(WellKnownDiagnosticTags.NotConfigurable));
 
         internal const string RenameFromPropertyKey = "RenameFrom";

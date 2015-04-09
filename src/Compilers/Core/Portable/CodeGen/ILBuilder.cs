@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -295,10 +294,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     if (branchCode == ILOpCode.Endfinally)
                     {
                         var enclosingFinally = block.EnclosingHandler;
-                        if (enclosingFinally != null)
-                        {
-                            enclosingFinally.UnblockFinally();
-                        }
+                        enclosingFinally?.UnblockFinally();
                     }
                 }
 
@@ -887,11 +883,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     }
                 }
 
-                var bits = block.RegularInstructions;
-                if (bits != null)
-                {
-                    bits.WriteTo(realizedIlBitStream);
-                }
+                block.RegularInstructions?.WriteTo(realizedIlBitStream);
 
                 switch (block.BranchCode)
                 {

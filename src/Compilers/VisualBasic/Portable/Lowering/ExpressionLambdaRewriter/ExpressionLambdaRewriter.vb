@@ -149,7 +149,7 @@ lSelect:
                     If expression IsNot Nothing Then
                         Return Visit(expression)
                     End If
-                    ' Otherwise fall through and generate an error
+                ' Otherwise fall through and generate an error
 
                 Case BoundKind.ExpressionStatement
                     Return Visit((DirectCast(stmt, BoundExpressionStatement)).Expression)
@@ -567,12 +567,21 @@ lSelect:
             For i = 0 To initializerCount - 1
                 Debug.Assert(initializers(i).Kind = BoundKind.Call)
                 Dim [call] = DirectCast(initializers(i), BoundCall)
+
+                ' Note, for extension methods we are dropping the "Me" parameter to remove
+                ' BoundCollectionInitializerExpression.PlaceholderOpt references from the tree.
+                ' Otherwise, IL generation fails because it doesn't know what to do with it.
+                ' At run-time, this code is going to throw because ElementInit API doesnt accept
+                ' shared methods. We don't fail compilation in this scenario due to backward
+                ' compatibility reasons.
                 newInitializers(i) = _factory.Convert(
                                             ElementInitType,
                                             ConvertRuntimeHelperToExpressionTree(
                                                     "ElementInit",
                                                     _factory.MethodInfo([call].Method),
-                                                    ConvertArgumentsIntoArray([call].Arguments)))
+                                                    ConvertArgumentsIntoArray(If([call].Method.IsShared AndAlso [call].Method.IsExtensionMethod,
+                                                                                 [call].Arguments.RemoveAt(0),
+                                                                                 [call].Arguments))))
             Next
 
             Return _factory.Array(ElementInitType, newInitializers.AsImmutableOrNull())

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <summary>
         /// Optional path to the .rsp file to process when initializing context of the process.
         /// </summary>
-        public string InitializationFile { get; private set; }
+        public string InitializationFile { get; }
 
         private InteractiveHostOptions(string initializationFile)
         {

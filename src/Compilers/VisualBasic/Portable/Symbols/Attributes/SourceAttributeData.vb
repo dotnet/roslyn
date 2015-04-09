@@ -17,13 +17,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class SourceAttributeData
         Inherits VisualBasicAttributeData
 
-        Private ReadOnly m_AttributeClass As NamedTypeSymbol ' TODO - Remove attribute class. It is available from the constructor.
-        Private ReadOnly m_AttributeConstructor As MethodSymbol
-        Private ReadOnly m_ConstructorArguments As ImmutableArray(Of TypedConstant)
-        Private ReadOnly m_NamedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant))
-        Private ReadOnly m_IsConditionallyOmitted As Boolean
-        Private ReadOnly m_HasErrors As Boolean
-        Private ReadOnly m_ApplicationNode As SyntaxReference
+        Private ReadOnly _attributeClass As NamedTypeSymbol ' TODO - Remove attribute class. It is available from the constructor.
+        Private ReadOnly _attributeConstructor As MethodSymbol
+        Private ReadOnly _constructorArguments As ImmutableArray(Of TypedConstant)
+        Private ReadOnly _namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant))
+        Private ReadOnly _isConditionallyOmitted As Boolean
+        Private ReadOnly _hasErrors As Boolean
+        Private ReadOnly _applicationNode As SyntaxReference
 
         Friend Sub New(ByVal applicationNode As SyntaxReference,
                        ByVal attrClass As NamedTypeSymbol,
@@ -32,48 +32,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        ByVal namedArgs As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)),
                        ByVal isConditionallyOmitted As Boolean,
                        ByVal hasErrors As Boolean)
-            Me.m_ApplicationNode = applicationNode
-            Me.m_AttributeClass = attrClass
-            Me.m_AttributeConstructor = attrMethod
-            Me.m_ConstructorArguments = If(constructorArgs.IsDefault, ImmutableArray(Of TypedConstant).Empty, constructorArgs)
-            Me.m_NamedArguments = If(namedArgs.IsDefault, ImmutableArray.Create(Of KeyValuePair(Of String, TypedConstant))(), namedArgs)
-            Me.m_IsConditionallyOmitted = isConditionallyOmitted
-            Me.m_HasErrors = hasErrors
+            Me._applicationNode = applicationNode
+            Me._attributeClass = attrClass
+            Me._attributeConstructor = attrMethod
+            Me._constructorArguments = If(constructorArgs.IsDefault, ImmutableArray(Of TypedConstant).Empty, constructorArgs)
+            Me._namedArguments = If(namedArgs.IsDefault, ImmutableArray.Create(Of KeyValuePair(Of String, TypedConstant))(), namedArgs)
+            Me._isConditionallyOmitted = isConditionallyOmitted
+            Me._hasErrors = hasErrors
         End Sub
 
         Public Overrides ReadOnly Property AttributeClass As NamedTypeSymbol
             Get
-                Return m_AttributeClass
+                Return _attributeClass
             End Get
         End Property
 
         Public Overrides ReadOnly Property AttributeConstructor As MethodSymbol
             Get
-                Return m_AttributeConstructor
+                Return _attributeConstructor
             End Get
         End Property
 
         Public Overrides ReadOnly Property ApplicationSyntaxReference As SyntaxReference
             Get
-                Return m_ApplicationNode
+                Return _applicationNode
             End Get
         End Property
 
         Protected Overrides ReadOnly Property CommonConstructorArguments As ImmutableArray(Of TypedConstant)
             Get
-                Return m_ConstructorArguments
+                Return _constructorArguments
             End Get
         End Property
 
         Protected Overrides ReadOnly Property CommonNamedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant))
             Get
-                Return m_NamedArguments
+                Return _namedArguments
             End Get
         End Property
 
         Friend NotOverridable Overrides ReadOnly Property IsConditionallyOmitted As Boolean
             Get
-                Return m_IsConditionallyOmitted
+                Return _isConditionallyOmitted
             End Get
         End Property
 
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend NotOverridable Overrides ReadOnly Property HasErrors As Boolean
             Get
-                Return m_HasErrors
+                Return _hasErrors
             End Get
         End Property
 

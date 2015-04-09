@@ -978,6 +978,299 @@ class What
                 expectedIndentation: 8);
         }
 
+        [Fact]
+        [WorkItem(872)]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void InsideInterpolationString_1()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var s = $@""
+{Program.number}"";
+    }
+
+    static int number;
+}";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 0);
+        }
+
+        [Fact]
+        [WorkItem(872)]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void InsideInterpolationString_2()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var s = $@""Comment
+{Program.number}"";
+    }
+
+    static int number;
+}";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 0);
+        }
+
+        [Fact]
+        [WorkItem(872)]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void InsideInterpolationString_3()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var s = $@""Comment{Program.number}
+"";
+    }
+
+    static int number;
+}";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 0);
+        }
+
+        [Fact]
+        [WorkItem(872)]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void InsideInterpolationString_4()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var s = $@""Comment{Program.number}Comment here
+"";
+    }
+
+    static int number;
+}";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 0);
+        }
+
+        [Fact]
+        [WorkItem(872)]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void OutsideInterpolationString()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var s = $@""Comment{Program.number}Comment here""
+;
+    }
+
+    static int number;
+}";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 12);
+        }
+
+        [Fact]
+        [WorkItem(872)]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void InsideInterpolationSyntax_1()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var s = $@""{
+Program.number}"";
+    }
+
+    static int number;
+}";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 12);
+        }
+
+        [Fact]
+        [WorkItem(872)]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void InsideInterpolationSyntax_2()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var s = $@""{
+            Program
+.number}"";
+    }
+
+    static int number;
+}";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 6,
+                expectedIndentation: 12);
+        }
+
+        [Fact]
+        [WorkItem(872)]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void InsideInterpolationSyntax_3()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var s = $@""{
+}"";
+    }
+
+    static int number;
+}";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 12);
+        }
+
+        [Fact]
+        [WorkItem(872)]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void InsideInterpolationSyntax_4()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($@""PPP{ 
+((Func<int, int>)((int s) => { return number; })).Invoke(3):(408) ###-####}"");
+    }
+
+    static int number;
+}";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 12);
+        }
+
+        [Fact]
+        [WorkItem(872)]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void InsideInterpolationSyntax_5()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($@""PPP{ ((Func<int, int>)((int s) 
+=> { return number; })).Invoke(3):(408) ###-####}"");
+    }
+
+    static int number;
+}";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 12);
+        }
+
+        [Fact]
+        [WorkItem(872)]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void InsideInterpolationSyntax_6()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($@""PPP{ ((Func<int, int>)((int s) => { return number; }))
+.Invoke(3):(408) ###-####}"");
+    }
+
+    static int number;
+}";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 12);
+        }
+
+        [Fact]
+        [WorkItem(872)]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void InsideInterpolationSyntax_7()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($@""PPP{ ((Func<int, int>)((int s) => 
+{ return number; })).Invoke(3):(408) ###-####}"");
+    }
+
+    static int number;
+}";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 8);
+        }
+
+        [Fact]
+        [WorkItem(872)]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void IndentLambdaBodyOneIndentationToFirstTokenOfTheStatement()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(((Func<int, int>)((int s) => 
+{ return number; })).Invoke(3));
+    }
+
+    static int number;
+}";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 8);
+        }
+
+        [Fact]
+        [WorkItem(1339, "https://github.com/dotnet/roslyn/issues/1339")]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void IndentAutoPropertyInitializerAsPartOfTheDeclaration()
+        {
+            var code = @"class Program
+{
+    public int d { get; } 
+= 3;
+    static void Main(string[] args)
+    {
+    }
+}";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 3,
+                expectedIndentation: 8);
+        }
+
         private void AssertIndentUsingSmartTokenFormatter(
             string code,
             char ch,

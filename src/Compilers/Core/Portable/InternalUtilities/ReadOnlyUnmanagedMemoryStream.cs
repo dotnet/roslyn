@@ -107,17 +107,17 @@ namespace Microsoft.CodeAnalysis
                         break;
 
                     default:
-                        throw new ArgumentOutOfRangeException("origin");
+                        throw new ArgumentOutOfRangeException(nameof(origin));
                 }
             }
             catch (OverflowException)
             {
-                throw new ArgumentOutOfRangeException("offset");
+                throw new ArgumentOutOfRangeException(nameof(offset));
             }
 
             if (target < 0 || target >= _length)
             {
-                throw new ArgumentOutOfRangeException("offset");
+                throw new ArgumentOutOfRangeException(nameof(offset));
             }
 
             _position = (int)target;

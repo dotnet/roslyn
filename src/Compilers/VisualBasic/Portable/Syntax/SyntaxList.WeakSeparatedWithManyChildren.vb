@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
-    Partial Class SyntaxList
+    Friend Partial Class SyntaxList
         Friend Class WeakSeparatedWithManyChildren
             Inherits SyntaxList
 

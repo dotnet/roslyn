@@ -120,6 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return _diagnosticItem.Descriptor.Id;
             }
 
+            [Browsable(false)]
             public DiagnosticItem DiagnosticItem
             {
                 get { return _diagnosticItem; }

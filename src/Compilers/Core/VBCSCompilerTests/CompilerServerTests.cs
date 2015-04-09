@@ -268,6 +268,7 @@ End Module")
         private void KillCompilerServer()
         {
             KillProcess(_compilerServerExecutable);
+            KillProcess(s_compilerServerExecutableSrc);
         }
 
         private ProcessResult RunCommandLineCompiler(
@@ -524,8 +525,8 @@ class Hello
             var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "hello.cs", _tempDirectory, files);
 
             // Should output errors, but not create output file.                  
-            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output);
-            Assert.Contains("hello.cs(5,42): error CS1002: ; expected\r\n", result.Output);
+            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+            Assert.Contains("hello.cs(5,42): error CS1002: ; expected\r\n", result.Output, StringComparison.Ordinal);
             Assert.Equal("", result.Errors);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
@@ -549,9 +550,9 @@ End Class"}};
             var result = RunCommandLineCompiler(_basicCompilerClientExecutable, "/r:Microsoft.VisualBasic.dll hellovb.vb", _tempDirectory, files);
 
             // Should output errors, but not create output file.
-            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output);
-            Assert.Contains("hellovb.vb(3) : error BC30625: 'Module' statement must end with a matching 'End Module'.\r\n", result.Output);
-            Assert.Contains("hellovb.vb(7) : error BC30460: 'End Class' must be preceded by a matching 'Class'.\r\n", result.Output);
+            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+            Assert.Contains("hellovb.vb(3) : error BC30625: 'Module' statement must end with a matching 'End Module'.\r\n", result.Output, StringComparison.Ordinal);
+            Assert.Contains("hellovb.vb(7) : error BC30460: 'End Class' must be preceded by a matching 'Class'.\r\n", result.Output, StringComparison.Ordinal);
             Assert.Equal("", result.Errors);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
@@ -565,8 +566,8 @@ End Class"}};
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
-            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output);
-            Assert.Contains("error CS2001: Source file", result.Output);
+            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+            Assert.Contains("error CS2001: Source file", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
         }
@@ -579,8 +580,8 @@ End Class"}};
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
-            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output);
-            Assert.Contains("error CS0006: Metadata file", result.Output);
+            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+            Assert.Contains("error CS0006: Metadata file", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
         }
@@ -600,8 +601,8 @@ End Class"}};
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
-            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output);
-            Assert.Contains("error CS0009: Metadata file", result.Output);
+            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+            Assert.Contains("error CS0009: Metadata file", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "app.exe")));
         }
@@ -614,8 +615,8 @@ End Class"}};
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
-            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output);
-            Assert.Contains("error BC2001", result.Output);
+            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+            Assert.Contains("error BC2001", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
         }
@@ -640,7 +641,7 @@ End Module"}};
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
-            Assert.Contains("error BC2017: could not find library", result.Output);
+            Assert.Contains("error BC2017: could not find library", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hellovb.exe")));
         }
@@ -665,7 +666,7 @@ End Module"}};
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
-            Assert.Contains("error BC31519", result.Output);
+            Assert.Contains("error BC31519", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "app.exe")));
         }
@@ -1291,7 +1292,7 @@ End Class
 "}
             };
 
-        [Fact()]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1445")]
         public void SimpleMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 HelloSolution.sln");
@@ -2058,7 +2059,7 @@ class Hello
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Missing argument for '/keepalive' option", result.Output.Trim());
+            Assert.Equal("Missing argument for '/keepalive' option.", result.Output.Trim());
             Assert.Equal("", result.Errors);
         }
 
@@ -2069,7 +2070,7 @@ class Hello
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Argument to '/keepalive' option is not an integer", result.Output.Trim());
+            Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
             Assert.Equal("", result.Errors);
         }
 
@@ -2080,7 +2081,7 @@ class Hello
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Arguments to '/keepalive' option below -1 are invalid", result.Output.Trim());
+            Assert.Equal("Arguments to '/keepalive' option below -1 are invalid.", result.Output.Trim());
             Assert.Equal("", result.Errors);
         }
 
@@ -2091,8 +2092,18 @@ class Hello
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Argument to '/keepalive' is out of 32-bit integer range", result.Output.Trim());
+            Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
             Assert.Equal("", result.Errors);
+        }
+
+        [Fact]
+        public void SimpleKeepAlive()
+        {
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable,
+                                                $"/nologo /keepalive:1 hello.cs",
+                                                _tempDirectory,
+                                                s_helloWorldSrcCs);
+            VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
         }
 
         [Fact, WorkItem(1024619, "DevDiv")]
@@ -2148,7 +2159,7 @@ class Hello
         }
 
         [Fact]
-        public void ExecuteCscBuildTask()
+        public void ExecuteCscBuildTaskWithServer()
         {
             var csc = new Csc();
             csc.ToolPath = _compilerDirectory;
@@ -2160,6 +2171,9 @@ class Hello
             csc.Sources = new[] { new Build.Utilities.TaskItem(srcFile) };
             csc.NoLogo = true;
             csc.OutputAssembly = new Build.Utilities.TaskItem(exeFile);
+            csc.ToolPath = "";
+            csc.ToolExe = "";
+            csc.UseSharedCompilation = true;
 
             csc.Execute();
 
@@ -2175,7 +2189,7 @@ class Hello
         }
 
         [Fact]
-        public void ExecuteVbcBuildTask()
+        public void ExecuteVbcBuildTaskWithServer()
         {
             var vbc = new Vbc();
             vbc.ToolPath = _compilerDirectory;
@@ -2187,6 +2201,9 @@ class Hello
             vbc.Sources = new[] { new Build.Utilities.TaskItem(srcFile) };
             vbc.NoLogo = true;
             vbc.OutputAssembly = new Build.Utilities.TaskItem(exeFile);
+            vbc.ToolPath = "";
+            vbc.ToolExe = "";
+            vbc.UseSharedCompilation = true;
 
             vbc.Execute();
 
@@ -2199,6 +2216,15 @@ class Hello
             var result = ProcessLauncher.Run(exeFile, "");
             Assert.Equal(0, result.ExitCode);
             Assert.Equal("Hello from VB", result.Output.Trim());
+        }
+
+        [Fact]
+        public void ServerExitsWhenRunWithNoArgs()
+        {
+            var result = ProcessLauncher.Run(_compilerServerExecutable, "");
+
+            Assert.Equal(1, result.ExitCode);
+            Assert.Equal("", result.Output);
         }
     }
 }

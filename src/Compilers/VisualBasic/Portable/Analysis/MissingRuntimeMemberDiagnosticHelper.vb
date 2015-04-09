@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis
 
         ' Details on these types and the feature name which is displayed in the diagnostic
         ' for those items missing in VB Core compilation.
-        Private ReadOnly metadataNames As New Dictionary(Of String, String) From {
+        Private ReadOnly s_metadataNames As New Dictionary(Of String, String) From {
                                                                                     {"Microsoft.VisualBasic.CompilerServices.Operators", "Late binding"},
                                                                                     {"Microsoft.VisualBasic.CompilerServices.NewLateBinding", "Late binding"},
                                                                                     {"Microsoft.VisualBasic.CompilerServices.LikeOperator", "Like operator"},
@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis
             '     (Late binding, old style error handling, like operator, Err Object) - with VB Embed - report new diagnostic
             '     (Late binding, old style error handling, like operator)  - without VB Embed just no reference to microsoft.visualbasic.dll - report old diagnostic
             Dim verifiedTypename As String = ""
-            metadataNames.TryGetValue(typename, verifiedTypename)
+            s_metadataNames.TryGetValue(typename, verifiedTypename)
             If embedVBCoreRuntime AndAlso (Not String.IsNullOrEmpty(verifiedTypename)) Then
                 'Check to see the compilation options included VB.
                 diag = ErrorFactory.ErrorInfo(ERRID.ERR_PlatformDoesntSupport, verifiedTypename)

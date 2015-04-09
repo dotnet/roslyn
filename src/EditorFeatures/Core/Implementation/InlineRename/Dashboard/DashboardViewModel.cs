@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private int _unresolvableConflictCount;
         private string _errorText;
         private bool _defaultRenameOverloadFlag;
+        private readonly bool _isRenameOverloadsEditable;
         private bool _defaultRenameInStringsFlag;
         private bool _defaultRenameInCommentsFlag;
         private bool _defaultPreviewChangesFlag;
@@ -33,10 +34,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             Contract.ThrowIfNull(session);
             _session = session;
-            _searchText = "Searching...";
+            _searchText = EditorFeaturesResources.Searching;
 
             _renameOverloadsVisibility = session.HasRenameOverloads ? Visibility.Visible : Visibility.Collapsed;
-            _defaultRenameOverloadFlag = session.OptionSet.GetOption(RenameOptions.RenameOverloads);
+            _isRenameOverloadsEditable = !session.ForceRenameOverloads;
+
+            _defaultRenameOverloadFlag = session.OptionSet.GetOption(RenameOptions.RenameOverloads) || session.ForceRenameOverloads;
             _defaultRenameInStringsFlag = session.OptionSet.GetOption(RenameOptions.RenameInStrings);
             _defaultRenameInCommentsFlag = session.OptionSet.GetOption(RenameOptions.RenameInComments);
             _defaultPreviewChangesFlag = session.OptionSet.GetOption(RenameOptions.PreviewChanges);
@@ -206,6 +209,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get { return _renameOverloadsVisibility; }
         }
 
+        public bool IsRenameOverloadsEditable
+        {
+            get { return _isRenameOverloadsEditable; }
+        }
+
         public bool DefaultRenameOverloadFlag
         {
             get
@@ -215,8 +223,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             set
             {
-                _defaultRenameOverloadFlag = value;
-                _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameOverloads, value);
+                if (IsRenameOverloadsEditable)
+                {
+                    _defaultRenameOverloadFlag = value;
+                    _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameOverloads, value);
+                }
             }
         }
 

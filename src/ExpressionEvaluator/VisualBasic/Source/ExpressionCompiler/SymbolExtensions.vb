@@ -8,10 +8,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend Module SymbolExtensions
         <Extension>
         Public Function IsContainingSymbolOfAllTypeParameters(containingSymbol As Symbol, type As TypeSymbol) As Boolean
-            Return type.VisitType(HasInvalidTypeParameterFunc, containingSymbol) Is Nothing
+            Return type.VisitType(s_hasInvalidTypeParameterFunc, containingSymbol) Is Nothing
         End Function
 
-        Private ReadOnly HasInvalidTypeParameterFunc As Func(Of TypeSymbol, Symbol, Boolean) = AddressOf HasInvalidTypeParameter
+        Private ReadOnly s_hasInvalidTypeParameterFunc As Func(Of TypeSymbol, Symbol, Boolean) = AddressOf HasInvalidTypeParameter
 
         Private Function HasInvalidTypeParameter(type As TypeSymbol, containingSymbol As Symbol) As Boolean
             If type.TypeKind = TypeKind.TypeParameter Then

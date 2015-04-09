@@ -7,7 +7,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Types
     Public Class BuiltInTypesKeywordRecommenderTests
-        Private ReadOnly KeywordList As String() = {
+        Private ReadOnly _keywordList As String() = {
             "Boolean",
             "Byte",
             "Char",
@@ -40,17 +40,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ty
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AllTypesAfterMethodBody()
-            VerifyRecommendationsContain(<MethodBody>Dim foo As |</MethodBody>, KeywordList)
+            VerifyRecommendationsContain(<MethodBody>Dim foo As |</MethodBody>, _keywordList)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoTypesAreInTypeConstraint()
-            VerifyRecommendationsMissing(<File>Class Foo(Of String As |</File>, KeywordList)
+            VerifyRecommendationsMissing(<File>Class Foo(Of String As |</File>, _keywordList)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoTypesAfterImports()
-            VerifyRecommendationsMissing(<File>Imports |</File>, KeywordList)
+            VerifyRecommendationsMissing(<File>Imports |</File>, _keywordList)
         End Sub
 
         <WorkItem(543270)>
@@ -71,7 +71,7 @@ Module Program
 End Module
 </File>
 
-            VerifyRecommendationsMissing(code, KeywordList)
+            VerifyRecommendationsMissing(code, _keywordList)
         End Sub
 
     End Class

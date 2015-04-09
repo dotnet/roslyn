@@ -14,22 +14,22 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         internal static readonly string AnalysisContextFullName = typeof(AnalysisContext).FullName;
         internal static readonly string CompilationStartAnalysisContextFullName = typeof(CompilationStartAnalysisContext).FullName;
-        internal static readonly string CompilationEndAnalysisContextFullName = typeof(CompilationEndAnalysisContext).FullName;
+        internal static readonly string CompilationEndAnalysisContextFullName = typeof(CompilationAnalysisContext).FullName;
         internal static readonly string SemanticModelAnalysisContextFullName = typeof(SemanticModelAnalysisContext).FullName;
         internal static readonly string SymbolAnalysisContextFullName = typeof(SymbolAnalysisContext).FullName;
         internal static readonly string SyntaxNodeAnalysisContextFullName = typeof(SyntaxNodeAnalysisContext).FullName;
         internal static readonly string SyntaxTreeAnalysisContextFullName = typeof(SyntaxTreeAnalysisContext).FullName;
         internal static readonly string CodeBlockStartAnalysisContextFullName = typeof(CodeBlockStartAnalysisContext<>).FullName;
-        internal static readonly string CodeBlockEndAnalysisContextFullName = typeof(CodeBlockEndAnalysisContext).FullName;
+        internal static readonly string CodeBlockEndAnalysisContextFullName = typeof(CodeBlockAnalysisContext).FullName;
         internal static readonly string SymbolKindFullName = typeof(SymbolKind).FullName;
 
         internal static readonly string RegisterSyntaxNodeActionName = nameof(AnalysisContext.RegisterSyntaxNodeAction);
         internal static readonly string RegisterSymbolActionName = nameof(AnalysisContext.RegisterSymbolAction);
         internal static readonly string RegisterCodeBlockStartActionName = nameof(AnalysisContext.RegisterCodeBlockStartAction);
-        internal static readonly string RegisterCodeBlockEndActionName = nameof(AnalysisContext.RegisterCodeBlockEndAction);
+        internal static readonly string RegisterCodeBlockActionName = nameof(AnalysisContext.RegisterCodeBlockAction);
         internal static readonly string RegisterCompilationStartActionName = nameof(AnalysisContext.RegisterCompilationStartAction);
-        internal static readonly string RegisterCompilationEndActionName = nameof(CompilationStartAnalysisContext.RegisterCompilationEndAction);
-        internal static readonly string ReportDiagnosticName = nameof(CompilationEndAnalysisContext.ReportDiagnostic);
+        internal static readonly string RegisterCompilationActionName = nameof(AnalysisContext.RegisterCompilationAction);
+        internal static readonly string ReportDiagnosticName = nameof(CompilationAnalysisContext.ReportDiagnostic);
         internal static readonly string SupportedDiagnosticsName = nameof(DiagnosticAnalyzer.SupportedDiagnostics);
         internal static readonly string TLanguageKindEnumName = @"TLanguageKindEnum";
 

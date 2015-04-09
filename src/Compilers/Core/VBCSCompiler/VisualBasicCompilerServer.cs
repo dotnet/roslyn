@@ -1,19 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class VisualBasicCompilerServer : VisualBasicCompiler
     {
-        internal VisualBasicCompilerServer(string responseFile, string[] args, string baseDirectory, string libDirectory, string tempPath)
-            : base(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, libDirectory, tempPath)
+        internal VisualBasicCompilerServer(string responseFile, string[] args, string baseDirectory, string libDirectory)
+            : base(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, libDirectory)
         {
         }
 
@@ -22,13 +25,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string[] args,
             string baseDirectory,
             string libDirectory,
-            string tempPath,
             TextWriter output,
             CancellationToken cancellationToken,
             out bool utf8output)
         {
             var responseFile = Path.Combine(responseFileDirectory, VisualBasicCompiler.ResponseFileName);
-            var compiler = new VisualBasicCompilerServer(responseFile, args, baseDirectory, libDirectory, tempPath);
+            var compiler = new VisualBasicCompilerServer(responseFile, args, baseDirectory, libDirectory);
             utf8output = compiler.Arguments.Utf8Output;
             return compiler.Run(output, cancellationToken);
         }
@@ -40,6 +42,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             runResult = base.Run(consoleOutput, cancellationToken);
             CompilerServerLogger.Log("****VB Compilation complete.\r\n****Return code: {0}\r\n****Output:\r\n{1}\r\n", runResult, consoleOutput.ToString());
             return runResult;
+        }
+
+        public override Assembly LoadAssembly(string fullPath)
+        {
+            return InMemoryAssemblyProvider.GetAssembly(fullPath); 
         }
 
         internal override MetadataFileReferenceProvider GetMetadataProvider()

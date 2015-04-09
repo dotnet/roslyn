@@ -15,6 +15,7 @@
     <BoundTreeGeneratorToolPath>$(OutDir)\BoundTreeGenerator.exe</BoundTreeGeneratorToolPath>
     <VBErrorFactsGeneratorToolPath>$(OutDir)\VBErrorFactsGenerator.exe</VBErrorFactsGeneratorToolPath>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{14182A97-F7F0-4C62-8B27-98AA8AE2109A};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
@@ -101,7 +102,7 @@
     <Compile Include="Analysis\FlowAnalysis\ControlFlowAnalysis.vb" />
     <Compile Include="Analysis\FlowAnalysis\ControlFlowPass.LocalState.vb" />
     <Compile Include="Analysis\FlowAnalysis\ControlFlowPass.vb" />
-    <Compile Include="Analysis\FlowAnalysis\DataFlowAnalysis.vb" />
+    <Compile Include="Analysis\FlowAnalysis\VisualBasicDataFlowAnalysis.vb" />
     <Compile Include="Analysis\FlowAnalysis\DataFlowPass.LocalState.vb" />
     <Compile Include="Analysis\FlowAnalysis\DataFlowPass.SlotCollection.vb" />
     <Compile Include="Analysis\FlowAnalysis\DataFlowPass.Symbols.vb" />
@@ -464,6 +465,7 @@
     <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.Analysis.vb" />
     <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.vb" />
     <Compile Include="Lowering\LambdaRewriter\SynthesizedLambdaMethod.vb" />
+    <Compile Include="Lowering\LambdaRewriter\SynthesizedLambdaCacheFieldSymbol.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_AddRemoveHandler.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_AnonymousTypeCreationExpression.vb" />
@@ -920,7 +922,7 @@
     <Compile Include="Syntax\SyntaxTreeDiagnosticEnumerator.vb" />
     <Compile Include="Syntax\SyntaxTriviaFunctions.vb" />
     <Compile Include="Syntax\SyntaxTriviaListBuilder.vb" />
-    <Compile Include="Syntax\SyntaxUtilities.vb" />
+    <Compile Include="Syntax\LambdaUtilities.vb" />
     <Compile Include="Syntax\TypeBlockSyntax.vb" />
     <Compile Include="Syntax\TypeStatementSyntax.vb" />
     <Compile Include="Syntax\VisualBasicWarningStateMap.vb" />
@@ -999,6 +1001,7 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

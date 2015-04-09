@@ -61,6 +61,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to anonymous method.
+        /// </summary>
+        internal static string AnonymousMethod {
+            get {
+                return ResourceManager.GetString("AnonymousMethod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to possible explicitly named anonymous type member creation..
         /// </summary>
         internal static string AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation {
@@ -124,6 +133,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to await expression.
+        /// </summary>
+        internal static string AwaitExpression {
+            get {
+                return ResourceManager.GetString("AwaitExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to can&apos;t determine valid range of statements to extract out.
         /// </summary>
         internal static string CantDetermineValidRangeOfStatements {
@@ -142,6 +160,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to catch clause.
+        /// </summary>
+        internal static string CatchClause {
+            get {
+                return ResourceManager.GetString("CatchClause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Change return type from {0} to {1}.
         /// </summary>
         internal static string ChangeReturnType {
@@ -156,6 +183,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ChangeToYieldReturn {
             get {
                 return ResourceManager.GetString("ChangeToYieldReturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to checked statement.
+        /// </summary>
+        internal static string CheckedStatement {
+            get {
+                return ResourceManager.GetString("CheckedStatement", resourceCulture);
             }
         }
         
@@ -187,28 +223,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 
-        ///    #region IDisposable Support
-        ///    private bool disposedValue = false; // To detect redundant calls
-        ///
-        ///    {0}void Dispose(bool disposing)
-        ///    {{
-        ///        if (!disposedValue)
-        ///        {{
-        ///            if (disposing)
-        ///            {{
-        ///                // TODO: dispose managed state (managed objects).
-        ///            }}
-        ///
-        ///            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-        ///            // TODO: set large fields to null.
-        ///
-        ///            disposedValue = true;
-        ///       [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to Do not change this code. Put cleanup code in Dispose(bool disposing) above..
         /// </summary>
-        internal static string DisposePattern {
+        internal static string DoNotChangeThisCodeUseDispose {
             get {
-                return ResourceManager.GetString("DisposePattern", resourceCulture);
+                return ResourceManager.GetString("DoNotChangeThisCodeUseDispose", resourceCulture);
             }
         }
         
@@ -227,6 +246,69 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Extension {
             get {
                 return ResourceManager.GetString("Extension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filter clause.
+        /// </summary>
+        internal static string FilterClause {
+            get {
+                return ResourceManager.GetString("FilterClause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to finally clause.
+        /// </summary>
+        internal static string FinallyClause {
+            get {
+                return ResourceManager.GetString("FinallyClause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to fixed statement.
+        /// </summary>
+        internal static string FixedStatement {
+            get {
+                return ResourceManager.GetString("FixedStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to foreach statement.
+        /// </summary>
+        internal static string ForEachStatement {
+            get {
+                return ResourceManager.GetString("ForEachStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TODO: free unmanaged resources (unmanaged objects) and override a finalizer below..
+        /// </summary>
+        internal static string FreeUnmanagedResourcesTodo {
+            get {
+                return ResourceManager.GetString("FreeUnmanagedResourcesTodo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to from clause.
+        /// </summary>
+        internal static string FromClause {
+            get {
+                return ResourceManager.GetString("FromClause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to groupby clause.
+        /// </summary>
+        internal static string GroupByClause {
+            get {
+                return ResourceManager.GetString("GroupByClause", resourceCulture);
             }
         }
         
@@ -276,6 +358,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to into clause.
+        /// </summary>
+        internal static string IntoClause {
+            get {
+                return ResourceManager.GetString("IntoClause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid selection..
         /// </summary>
         internal static string InvalidSelection {
@@ -294,11 +385,47 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to join clause.
+        /// </summary>
+        internal static string JoinClause {
+            get {
+                return ResourceManager.GetString("JoinClause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to lambda.
+        /// </summary>
+        internal static string Lambda {
+            get {
+                return ResourceManager.GetString("Lambda", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;lambda expression&gt;.
         /// </summary>
         internal static string LambdaExpression {
             get {
                 return ResourceManager.GetString("LambdaExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to let clause.
+        /// </summary>
+        internal static string LetClause {
+            get {
+                return ResourceManager.GetString("LetClause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to lock statement.
+        /// </summary>
+        internal static string LockStatement {
+            get {
+                return ResourceManager.GetString("LockStatement", resourceCulture);
             }
         }
         
@@ -375,6 +502,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to orderby clause.
+        /// </summary>
+        internal static string OrderByClause {
+            get {
+                return ResourceManager.GetString("OrderByClause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organize Usings.
         /// </summary>
         internal static string OrganizeUsings {
@@ -389,6 +525,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string OrganizeUsingsWithAccelerator {
             get {
                 return ResourceManager.GetString("OrganizeUsingsWithAccelerator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources..
+        /// </summary>
+        internal static string OverrideAFinalizerTodo {
+            get {
+                return ResourceManager.GetString("OverrideAFinalizerTodo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to query body.
+        /// </summary>
+        internal static string QueryBody {
+            get {
+                return ResourceManager.GetString("QueryBody", resourceCulture);
             }
         }
         
@@ -429,6 +583,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Using directive is unnecessary..
+        /// </summary>
+        internal static string RemoveUnnecessaryUsingsDiagnosticTitle {
+            get {
+                return ResourceManager.GetString("RemoveUnnecessaryUsingsDiagnosticTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &amp;Remove Unnecessary Usings.
         /// </summary>
         internal static string RemoveUnnecessaryUsingsWithAccelerator {
@@ -443,6 +606,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ReturnTaskInsteadOfVoid {
             get {
                 return ResourceManager.GetString("ReturnTaskInsteadOfVoid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to select clause.
+        /// </summary>
+        internal static string SelectClause {
+            get {
+                return ResourceManager.GetString("SelectClause", resourceCulture);
             }
         }
         
@@ -582,11 +754,74 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This code added to correctly implement the disposable pattern..
+        /// </summary>
+        internal static string ThisCodeAddedToCorrectlyImplementDisposable {
+            get {
+                return ResourceManager.GetString("ThisCodeAddedToCorrectlyImplementDisposable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to try block.
+        /// </summary>
+        internal static string TryBlock {
+            get {
+                return ResourceManager.GetString("TryBlock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unchecked statement.
+        /// </summary>
+        internal static string UncheckedStatement {
+            get {
+                return ResourceManager.GetString("UncheckedStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TODO: uncomment the following line if the finalizer is overridden above..
+        /// </summary>
+        internal static string UncommentTheFollowingIfFinalizerOverriddenTodo {
+            get {
+                return ResourceManager.GetString("UncommentTheFollowingIfFinalizerOverriddenTodo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to using statement.
+        /// </summary>
+        internal static string UsingStatement {
+            get {
+                return ResourceManager.GetString("UsingStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Warning: Declaration changes scope and may change meaning..
         /// </summary>
         internal static string WarningDeclarationChangesScope {
             get {
                 return ResourceManager.GetString("WarningDeclarationChangesScope", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to where clause.
+        /// </summary>
+        internal static string WhereClause {
+            get {
+                return ResourceManager.GetString("WhereClause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to yield statement.
+        /// </summary>
+        internal static string YieldStatement {
+            get {
+                return ResourceManager.GetString("YieldStatement", resourceCulture);
             }
         }
     }

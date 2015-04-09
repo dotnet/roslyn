@@ -15,11 +15,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     public interface IInteractiveEvaluator : IDisposable
     {
         /// <summary>
-        /// Language content type this engine is used to execute.
-        /// </summary>
-        IContentType ContentType { get; }
-
-        /// <summary>
         /// Gets or sets Interactive Window the engine is currently attached to.
         /// </summary>
         IInteractiveWindow CurrentWindow { get; set; }
@@ -43,14 +38,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// Returns true if the text can be executed.  Used to determine if there is a whole statement entered
         /// in the REPL window.
         /// </summary>
-        bool CanExecuteText(string text);
+        bool CanExecuteCode(string text);
 
         /// <summary>
         /// Asynchronously executes the specified text.
         /// </summary>
         /// <param name="text">The code snippet to execute.</param>
         /// <returns>Task that completes the execution.</returns>
-        Task<ExecutionResult> ExecuteTextAsync(string text);
+        Task<ExecutionResult> ExecuteCodeAsync(string text);
 
         /// <summary>
         /// Formats the contents of the clipboard in a manner reasonable for the language.  Returns null if the
@@ -67,7 +62,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// <summary>
         /// Aborts the current running command.
         /// </summary>
-        void AbortCommand();
+        void AbortExecution();
 
         /// <summary>
         /// Retrieves the prompt string.

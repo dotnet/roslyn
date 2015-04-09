@@ -11,7 +11,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class Binder
+    Friend Partial Class Binder
         Private Function BindObjectCreationExpression(
             node As ObjectCreationExpressionSyntax,
             diagnostics As DiagnosticBag
@@ -922,12 +922,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class ObjectInitializerBinder
         Inherits Binder
 
-        Private m_receiver As BoundExpression
+        Private _receiver As BoundExpression
 
         Public Sub New(containingBinder As Binder, receiver As BoundExpression)
             MyBase.New(containingBinder)
 
-            m_receiver = receiver
+            _receiver = receiver
         End Sub
 
         ''' <summary>
@@ -940,11 +940,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ByRef wholeMemberAccessExpressionBound As Boolean
         ) As BoundExpression
 
-            Return m_receiver
+            Return _receiver
         End Function
 
         Protected Friend Overrides Function TryBindOmittedLeftForXmlMemberAccess(node As XmlMemberAccessExpressionSyntax, diagnostics As DiagnosticBag, accessingBinder As Binder) As BoundExpression
-            Return m_receiver
+            Return _receiver
         End Function
 
         ''' <summary>
@@ -956,7 +956,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     diagnostics As DiagnosticBag
                 ) As BoundExpression
 
-            Return m_receiver
+            Return _receiver
         End Function
 
         Protected Overrides Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax, accessingBinder As Binder, diagnostics As DiagnosticBag) As BoundExpression

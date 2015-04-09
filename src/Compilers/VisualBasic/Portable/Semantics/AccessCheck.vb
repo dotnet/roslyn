@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        ' Is a member with declared accessibily "declaredAccessiblity" accessible from within "within", which must
+        ' Is a member with declared accessibily "declaredAccessibility" accessible from within "within", which must
         ' be a named type or an assembly.
         Private Shared Function CheckMemberAccessibility(containingType As NamedTypeSymbol,
                                                          declaredAccessibility As Accessibility,
@@ -728,25 +728,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
 
-        Private Shared MapAccessToAccessOutsideAssembly() As Accessibility
+        Private Shared s_mapAccessToAccessOutsideAssembly() As Accessibility
 
         Shared Sub New()
-            MapAccessToAccessOutsideAssembly = New Accessibility(Accessibility.Public) {}
+            s_mapAccessToAccessOutsideAssembly = New Accessibility(Accessibility.Public) {}
 
-            MapAccessToAccessOutsideAssembly(Accessibility.NotApplicable) = Accessibility.NotApplicable
-            MapAccessToAccessOutsideAssembly(Accessibility.Private) = Accessibility.Private
-            MapAccessToAccessOutsideAssembly(Accessibility.ProtectedAndFriend) = Accessibility.Private
-            MapAccessToAccessOutsideAssembly(Accessibility.Protected) = Accessibility.Protected
-            MapAccessToAccessOutsideAssembly(Accessibility.Friend) = Accessibility.Private
-            MapAccessToAccessOutsideAssembly(Accessibility.ProtectedOrFriend) = Accessibility.Protected
-            MapAccessToAccessOutsideAssembly(Accessibility.Public) = Accessibility.Public
+            s_mapAccessToAccessOutsideAssembly(Accessibility.NotApplicable) = Accessibility.NotApplicable
+            s_mapAccessToAccessOutsideAssembly(Accessibility.Private) = Accessibility.Private
+            s_mapAccessToAccessOutsideAssembly(Accessibility.ProtectedAndFriend) = Accessibility.Private
+            s_mapAccessToAccessOutsideAssembly(Accessibility.Protected) = Accessibility.Protected
+            s_mapAccessToAccessOutsideAssembly(Accessibility.Friend) = Accessibility.Private
+            s_mapAccessToAccessOutsideAssembly(Accessibility.ProtectedOrFriend) = Accessibility.Protected
+            s_mapAccessToAccessOutsideAssembly(Accessibility.Public) = Accessibility.Public
 
         End Sub
 
         Private Shared Function GetEffectiveAccessOutsideAssembly(
             symbol As Symbol
         ) As Accessibility
-            Dim effectiveAccess As Accessibility = MapAccessToAccessOutsideAssembly(symbol.DeclaredAccessibility)
+            Dim effectiveAccess As Accessibility = s_mapAccessToAccessOutsideAssembly(symbol.DeclaredAccessibility)
 
             If effectiveAccess = Accessibility.Private Then
                 Return effectiveAccess
@@ -756,7 +756,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Do While enclosingType IsNot Nothing
 
-                Dim accessOfContainer As Accessibility = MapAccessToAccessOutsideAssembly(enclosingType.DeclaredAccessibility)
+                Dim accessOfContainer As Accessibility = s_mapAccessToAccessOutsideAssembly(enclosingType.DeclaredAccessibility)
 
                 If accessOfContainer < effectiveAccess Then
                     effectiveAccess = accessOfContainer
@@ -780,7 +780,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim accessOfMember As Accessibility = symbol.DeclaredAccessibility
 
             If isOutsideAssembly Then
-                accessOfMember = MapAccessToAccessOutsideAssembly(accessOfMember)
+                accessOfMember = s_mapAccessToAccessOutsideAssembly(accessOfMember)
             End If
 
             Return accessOfMember

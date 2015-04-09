@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             Iterator,
         }
 
-        internal static SemanticEditDescription[] NoSemanticEdits = new SemanticEditDescription[0];
+        internal static SemanticEditDescription[] NoSemanticEdits = Array.Empty<SemanticEditDescription>();
 
         internal static RudeEditDiagnosticDescription Diagnostic(RudeEditKind rudeEditKind, string squiggle, params string[] arguments)
         {
-            return new RudeEditDiagnosticDescription(rudeEditKind, squiggle, arguments);
+            return new RudeEditDiagnosticDescription(rudeEditKind, squiggle, arguments, firstLine: null);
         }
 
         internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<KeyValuePair<TextSpan, TextSpan>> syntaxMap)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             var diagnostics = new List<RudeEditDiagnostic>();
             bool needsSyntaxMap;
-            var match = Analyzer.ComputeBodyMatch(m1, m2, new AbstractEditAndContinueAnalyzer.ActiveNode[0], diagnostics, out needsSyntaxMap);
+            var match = Analyzer.ComputeBodyMatch(m1, m2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out needsSyntaxMap);
 
             Assert.Equal(stateMachine != StateMachineKind.None, needsSyntaxMap);
 
@@ -91,45 +91,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(string src1, string src2, ParseOptions options = null, StateMachineKind stateMachine = StateMachineKind.None)
         {
             var methodMatch = GetMethodMatch(src1, src2, options, stateMachine);
-
-            bool hasLambda;
-            Dictionary<SyntaxNode, AbstractEditAndContinueAnalyzer.LambdaInfo> lazyActiveOrMatchedLambdas = null;
-            var reverseMap = Analyzer.ComputeReverseMap(methodMatch, new AbstractEditAndContinueAnalyzer.ActiveNode[0], ref lazyActiveOrMatchedLambdas, new List<RudeEditDiagnostic>(), out hasLambda);
-
-            var result = new Dictionary<SyntaxNode, SyntaxNode>();
-            foreach (var pair in reverseMap)
-            {
-                if (pair.Key == methodMatch.NewRoot)
-                {
-                    Assert.Same(pair.Value, methodMatch.OldRoot);
-                    continue;
-                }
-
-                result.Add(pair.Value, pair.Key);
-            }
-
-            return result;
+            return EditAndContinueTestHelpers.GetMethodMatches(Analyzer, methodMatch);
         }
 
         public static MatchingPairs ToMatchingPairs(Match<SyntaxNode> match)
         {
-            return ToMatchingPairs(match.Matches.Where(partners => partners.Key != match.OldRoot));
+            return EditAndContinueTestHelpers.ToMatchingPairs(match);
         }
 
         public static MatchingPairs ToMatchingPairs(IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> matches)
         {
-            return new MatchingPairs(matches
-                .OrderBy(partners => partners.Key.GetLocation().SourceSpan.Start)
-                .ThenByDescending(partners => partners.Key.Span.Length)
-                .Select(partners => new MatchingPair { Old = partners.Key.ToString().Replace("\r\n", " "), New = partners.Value.ToString().Replace("\r\n", " ") }));
-        }
-
-        private static IEnumerable<KeyValuePair<K, V>> ReverseMapping<K, V>(IEnumerable<KeyValuePair<V, K>> mapping)
-        {
-            foreach (var pair in mapping)
-            {
-                yield return KeyValuePair.Create(pair.Value, pair.Key);
-            }
+            return EditAndContinueTestHelpers.ToMatchingPairs(matches);
         }
 
         internal static BlockSyntax MakeMethodBody(
@@ -190,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             var diagnostics = new List<RudeEditDiagnostic>();
             bool isActiveMethod;
-            var match = Analyzer.ComputeBodyMatch(body1, body2, new AbstractEditAndContinueAnalyzer.ActiveNode[0], diagnostics, out isActiveMethod);
+            var match = Analyzer.ComputeBodyMatch(body1, body2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out isActiveMethod);
 
             // Active methods are detected to preserve local variables for variable mapping and
             // edited async/iterator methods are considered active.

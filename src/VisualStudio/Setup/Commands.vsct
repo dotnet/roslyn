@@ -50,6 +50,10 @@
         <Parent guid="guidRoslynGrpId" id="cmdidDiagnosticContextMenu"/>
       </Group>
 
+      <Group guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" priority="0x000">
+        <Parent guid="guidRoslynGrpId" id="cmdidSetSeveritySubMenu"/>
+      </Group>
+
       <Group guid="guidRoslynGrpId" id="grpDiagnosticProperties" priority="0x002">
         <Parent guid="guidRoslynGrpId" id="cmdidDiagnosticContextMenu"/>
       </Group>
@@ -193,15 +197,15 @@
       <Button guid="guidRoslynGrpId" id="cmdidOpenRuleSet" priority="200" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpAnalyzerFolderContextMenu" />
         <Strings>
-          <ButtonText>&amp;Open Rule Set</ButtonText>
-          <CanonicalName>OpenRuleSet</CanonicalName>
-          <LocCanonicalName>OpenRuleSet</LocCanonicalName>
-          <CommandName>OpenRuleSet</CommandName>
+          <ButtonText>&amp;Open Active Rule Set</ButtonText>
+          <CanonicalName>OpenActiveRuleSet</CanonicalName>
+          <LocCanonicalName>OpenActiveRuleSet</LocCanonicalName>
+          <CommandName>OpenActiveRuleSet</CommandName>
         </Strings>
       </Button>
       <!-- Buttons to set severity of diagnostics -->
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityError" priority="100" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverity" />
+        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
           <ButtonText>&amp;Error</ButtonText>
           <CanonicalName>Error</CanonicalName>
@@ -210,7 +214,7 @@
         </Strings>
       </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityWarning" priority="200" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverity" />
+        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
           <ButtonText>&amp;Warning</ButtonText>
           <CanonicalName>Warning</CanonicalName>
@@ -219,7 +223,7 @@
         </Strings>
       </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityInfo" priority="300" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverity" />
+        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
           <ButtonText>&amp;Info</ButtonText>
           <CanonicalName>Info</CanonicalName>
@@ -228,7 +232,7 @@
         </Strings>
       </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityHidden" priority="400" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverity" />
+        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
           <ButtonText>&amp;Hidden</ButtonText>
           <CanonicalName>Hidden</CanonicalName>
@@ -237,7 +241,7 @@
         </Strings>
       </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityNone" priority="500" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverity" />
+        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
           <ButtonText>&amp;None</ButtonText>
           <CanonicalName>None</CanonicalName>
@@ -314,6 +318,16 @@
           <ButtonText>Diagnostic</ButtonText>
           <CanonicalName>Diagnostic</CanonicalName>
           <LocCanonicalName>Diagnostic</LocCanonicalName>
+        </Strings>
+      </Menu>
+
+      <Menu guid="guidRoslynGrpId" id="cmdidSetSeveritySubMenu" priority="50" type="Menu">
+        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverity" />
+        <Strings>
+          <ButtonText>Set Rule Set Severity</ButtonText>
+          <CommandName>Set Rule Set Severity</CommandName>
+          <CanonicalName>Set Rule Set Severity</CanonicalName>
+          <LocCanonicalName>Set Rule Set Severity</LocCanonicalName>
         </Strings>
       </Menu>
     </Menus>
@@ -398,6 +412,8 @@
       <IDSymbol name="cmdidOpenDiagnosticHelpLink"    value="0x0116" />
       <IDSymbol name="grpSetActiveRuleSet"            value="0x0117" />
       <IDSymbol name="cmdidSetActiveRuleSet"          value="0x0118" />
+      <IDSymbol name="cmdidSetSeveritySubMenu"        value="0x0119" />
+      <IDSymbol name="grpDiagnosticSeverityItems"     value="0x011a" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

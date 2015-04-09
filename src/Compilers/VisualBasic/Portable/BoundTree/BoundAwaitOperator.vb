@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundAwaitOperator
+    Friend Partial Class BoundAwaitOperator
 
 #If DEBUG Then
         Private Sub Validate()

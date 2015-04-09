@@ -344,7 +344,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal SynthesizedAttributeData SynthesizeDecimalConstantAttribute(decimal value)
         {
-            var decimalBits = new ConstantValueUtils.DecimalValue(value);
+            bool isNegative;
+            byte scale;
+            uint low, mid, high;
+            value.GetBits(out isNegative, out scale, out low, out mid, out high);
             var systemByte = GetSpecialType(SpecialType.System_Byte);
             Debug.Assert(!systemByte.HasUseSiteError);
 
@@ -354,11 +357,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
                 ImmutableArray.Create(
-                    new TypedConstant(systemByte, TypedConstantKind.Primitive, decimalBits.Scale),
-                    new TypedConstant(systemByte, TypedConstantKind.Primitive, decimalBits.IsNegative ? (byte)128 : (byte)0),
-                    new TypedConstant(systemUnit32, TypedConstantKind.Primitive, decimalBits.High),
-                    new TypedConstant(systemUnit32, TypedConstantKind.Primitive, decimalBits.Mid),
-                    new TypedConstant(systemUnit32, TypedConstantKind.Primitive, decimalBits.Low)
+                    new TypedConstant(systemByte, TypedConstantKind.Primitive, scale),
+                    new TypedConstant(systemByte, TypedConstantKind.Primitive, (byte)(isNegative ? 128 : 0)),
+                    new TypedConstant(systemUnit32, TypedConstantKind.Primitive, high),
+                    new TypedConstant(systemUnit32, TypedConstantKind.Primitive, mid),
+                    new TypedConstant(systemUnit32, TypedConstantKind.Primitive, low)
                 ));
         }
 

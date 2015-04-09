@@ -27,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 End If
 
                 token = token.GetPreviousToken()
+
             Loop
 
             Return token
@@ -387,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             If syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken) OrElse
                syntaxTree.IsInInactiveRegion(position, cancellationToken) OrElse
                syntaxTree.IsEntirelyWithinComment(position, cancellationToken) OrElse
-               syntaxTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken) Then
+               syntaxTree.IsEntirelyWithinStringOrCharOrNumericLiteral(position, cancellationToken) Then
 
                 Return False
             End If
@@ -451,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             If syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken) OrElse
                syntaxTree.IsInInactiveRegion(position, cancellationToken) OrElse
                syntaxTree.IsEntirelyWithinComment(position, cancellationToken) OrElse
-               syntaxTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken) Then
+               syntaxTree.IsEntirelyWithinStringOrCharOrNumericLiteral(position, cancellationToken) Then
 
                 Return False
             End If
@@ -496,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         End Function
 
         ' PERF: Use UShort instead of SyntaxKind so the compiler can use array literal initialization.
-        Private ReadOnly multilineStatementBlockStartKinds As SyntaxKind() = DirectCast(New UShort() {
+        Private ReadOnly s_multilineStatementBlockStartKinds As SyntaxKind() = DirectCast(New UShort() {
             SyntaxKind.MultiLineFunctionLambdaExpression,
             SyntaxKind.MultiLineSubLambdaExpression,
             SyntaxKind.SubBlock,
@@ -548,7 +549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return syntaxTree.IsInStatementBlockOfKind(position,
                                                        targetToken,
                                                        cancellationToken,
-                                                       multilineStatementBlockStartKinds)
+                                                       s_multilineStatementBlockStartKinds)
         End Function
 
         <Extension()>

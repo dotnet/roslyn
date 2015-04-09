@@ -8,7 +8,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Class Parser
+    Friend Partial Class Parser
 
         Friend Function ParseExpression(
             Optional pendingPrecedence As OperatorPrecedence = OperatorPrecedence.PrecedenceNone,
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim expression As ExpressionSyntax = Nothing
                 Dim startToken As SyntaxToken = CurrentToken
 
-                If m_EvaluatingConditionCompilationExpression AndAlso
+                If _evaluatingConditionCompilationExpression AndAlso
                Not StartsValidConditionalCompilationExpr(startToken) Then
 
                     If bailIfFirstTokenRejected Then
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Exit Do
                         End If
 
-                        If m_EvaluatingConditionCompilationExpression AndAlso
+                        If _evaluatingConditionCompilationExpression AndAlso
                        Not IsValidOperatorForConditionalCompilationExpr(CurrentToken) Then
 
                             ' Should current token be consumed here?
@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             '// Note: this function will only ever return NULL if the flag "BailIfFirstTokenIsRejected" is set,
             '// and if the first token isn't a valid way to start an expression. In all other error scenarios
             '// it returns a "bad expression".
-            Debug.Assert(Not m_EvaluatingConditionCompilationExpression OrElse
+            Debug.Assert(Not _evaluatingConditionCompilationExpression OrElse
                 StartsValidConditionalCompilationExpr(CurrentToken), "Conditional compilation expression parsing confused!!!")
 
             Dim term As ExpressionSyntax = Nothing
@@ -436,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' Complex expressions such as "." or "!" qualified, etc are not allowed cond comp expressions.
             '
-            If Not m_EvaluatingConditionCompilationExpression Then
+            If Not _evaluatingConditionCompilationExpression Then
                 ' Valid suffixes are ".", "!", and "(". Everything else is considered
                 ' to end the term.
 

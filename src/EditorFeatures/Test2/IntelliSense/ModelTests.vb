@@ -15,13 +15,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             TestWorkspace.ResetThreadAffinity()
         End Sub
 
-        Class Model
+        Public Class Model
         End Class
 
         Private Class TestModelComputation
             Inherits ModelComputation(Of Model)
 
-            Sub New(controller As IController(Of Model))
+            Public Sub New(controller As IController(Of Model))
                 MyBase.New(controller, TaskScheduler.Default)
             End Sub
 

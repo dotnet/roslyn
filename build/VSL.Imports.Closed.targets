@@ -70,56 +70,17 @@
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
     
-    <Exec Command="$(VSLOutDir)\FakeSign.exe &quot;@(IntermediateAssembly)&quot;" />
+    <Exec Command="$(FakeSignToolPath) &quot;@(IntermediateAssembly)&quot;" />
     
   </Target>
-
-  <!-- ====================================================================================
-  
-         Support for signing phone assemblies.
-
-       ==================================================================================== -->
-  <UsingTask TaskName="SignFiles" AssemblyFile="$(TF_BUILD_BUILDDIRECTORY)\MicroBuild\MicroBuild.Signing.dll" Condition="'$(RunningInMicroBuild)' == 'true'" />
-
-  <Target Name="CreateAndSignPhoneCopy" 
-          Condition="'$(NeedsPhoneCopy)' == 'true'"
-          DependsOnTargets="Compile"
-          BeforeTargets="SignVsixInputs"
-          Inputs="@(IntermediateAssembly)"
-          Outputs="$(OutDir)Phone\%(Filename)%(Extension)">
-    <Copy SourceFiles="@(IntermediateAssembly)"
-        DestinationFolder="$(OutDir)Phone" />
-
-    <ItemGroup Condition="'$(ShouldSignBuild)' == 'true'">
-        <PhoneAssembliesToSign Include="$(OutDir)Phone\%(IntermediateAssembly.Filename)%(IntermediateAssembly.Extension)">
-            <Authenticode>WindowsPhone623</Authenticode>
-            <StrongName>72</StrongName>
-        </PhoneAssembliesToSign>
-    </ItemGroup>
-
-    <Message Condition="'$(ShouldSignBuild)' == 'true'"
-             Text="Signing phone assemblies: using authenticode certificate '%(PhoneAssembliesToSign.Authenticode)' for @(PhoneAssembliesToSign)"/>
-    
-    <SignFiles Condition="'$(ShouldSignBuild)' == 'true'"
-               Files="@(PhoneAssembliesToSign)" 
-               IntermediatesDirectory="$(IntermediateOutputPath)"
-               BinariesDirectory="$(OutDir)Phone" 
-               Type="$(SignType)" />
-  </Target>
-
-  <Target Name="CleanPhoneCopy">
-    <RemoveDir Directories="$(OutDir)Phone')" />
-  </Target>
-
-  <PropertyGroup>
-    <CleanDependsOn>$(CleanDependsOn);CleanPhoneCopy</CleanDependsOn>
-  </PropertyGroup>
 
   <!-- ====================================================================================
   
          Support for signing VSIXes
 
        ==================================================================================== -->
+
+  <UsingTask TaskName="SignFiles" AssemblyFile="$(TF_BUILD_BUILDDIRECTORY)\MicroBuild\MicroBuild.Signing.dll" Condition="'$(RunningInMicroBuild)' == 'true'" />
 
   <PropertyGroup>
     <CreateVsixContainerDependsOn>$(CreateVsixContainerDependsOn);SignVsixInputs</CreateVsixContainerDependsOn>
@@ -137,7 +98,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="SignVsixInputs" Condition="'$(ProducingSignedVsix)' == 'true'" DependsOnTargets="GetVsixSourceItems" BeforeTargets="CopyFilesToOutputDirectory">
+  <Target Name="SignVsixInputs" Condition="'$(ProducingSignedVsix)' == 'true'" DependsOnTargets="GetVsixSourceItems" BeforeTargets="AfterCompile">
     <!-- Ensure the build tasks project is already built -->
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\Closed\Setup\BuildTasks\BuildTasks.vbproj" Condition="!Exists('$(OutDir)\Roslyn.Setup.BuildTasks.dll') AND '$(RunningInMicroBuild)' != 'true'" />
     

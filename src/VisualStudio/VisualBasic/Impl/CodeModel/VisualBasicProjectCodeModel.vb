@@ -11,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
         Private ReadOnly _project As VisualBasicProjectShimWithServices
 
-        Sub New(project As VisualBasicProjectShimWithServices, visualStudioWorkspace As VisualStudioWorkspace, serviceProvider As IServiceProvider)
+        Public Sub New(project As VisualBasicProjectShimWithServices, visualStudioWorkspace As VisualStudioWorkspace, serviceProvider As IServiceProvider)
             MyBase.New(project, visualStudioWorkspace, serviceProvider)
 
             Me._project = project

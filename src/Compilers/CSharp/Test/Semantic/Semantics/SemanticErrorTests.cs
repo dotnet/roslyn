@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1476,10 +1478,11 @@ namespace x
 
         [WorkItem(528539, "DevDiv")]
         [WorkItem(1119609, "DevDiv")]
-        [Fact(Skip = "1119609")]
+        [WorkItem(920, "http://github.com/dotnet/roslyn/issues/920")]
+        [Fact]
         public void CS0030ERR_NoExplicitConv02()
         {
-            var text = @"
+            const string text = @"
 public class C
 {
     public static void Main()
@@ -1487,13 +1490,28 @@ public class C
         decimal x = (decimal)double.PositiveInfinity;
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (6,21): error CS0031: Constant value 'Infinity' cannot be converted to a 'decimal'
-                //         decimal x = (decimal)double.PositiveInfinity;
-                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)double.PositiveInfinity").WithArguments("Infinity", "decimal"),
-                // (6,17): warning CS0219: The variable 'x' is assigned but its value is never used
-                //         decimal x = (decimal)double.PositiveInfinity;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x"));
+            var diagnostics = CreateCompilationWithMscorlib(text).GetDiagnostics();
+
+            var savedCurrentCulture = Thread.CurrentThread.CurrentCulture;
+            var savedCurrentUICulture = Thread.CurrentThread.CurrentUICulture;
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+
+            try
+            {
+                diagnostics.Verify(
+                    // (6,21): error CS0031: Constant value 'Infinity' cannot be converted to a 'decimal'
+                    //         decimal x = (decimal)double.PositiveInfinity;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)double.PositiveInfinity").WithArguments("Infinity", "decimal"),
+                    // (6,17): warning CS0219: The variable 'x' is assigned but its value is never used
+                    //         decimal x = (decimal)double.PositiveInfinity;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x"));
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = savedCurrentCulture;
+                Thread.CurrentThread.CurrentUICulture = savedCurrentUICulture;
+            }
         }
 
         [Fact]
@@ -4193,7 +4211,7 @@ public class B : A
 }";
             var compilation1 = CreateCompilationWithMscorlib(source1);
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1, emitOptions: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilation1, emitters: TestEmitters.CCI);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"class C
@@ -6762,6 +6780,77 @@ class MyDerived : MyClass
             });
         }
 
+        [Fact, WorkItem(990, "https://github.com/dotnet/roslyn/issues/990")]
+        public void WriteOfReadonlyStaticMemberOfAnotherInstatiation01()
+        {
+            var text =
+@"public static class Foo<T>
+{
+    static Foo()
+    {
+        Foo<int>.X = 1;
+        Foo<int>.Y = 2;
+        Foo<T>.Y = 3;
+    }
+
+    public static readonly int X;
+    public static int Y { get; }
+}";
+            CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS0200: Property or indexer 'Foo<int>.Y' cannot be assigned to -- it is read only
+                //         Foo<int>.Y = 2;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Foo<int>.Y").WithArguments("Foo<int>.Y").WithLocation(6, 9)
+                );
+            CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll.WithStrictMode()).VerifyDiagnostics(
+                // (5,9): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
+                //         Foo<int>.X = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "Foo<int>.X").WithLocation(5, 9),
+                // (6,9): error CS0200: Property or indexer 'Foo<int>.Y' cannot be assigned to -- it is read only
+                //         Foo<int>.Y = 2;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Foo<int>.Y").WithArguments("Foo<int>.Y").WithLocation(6, 9)
+                );
+        }
+
+        [Fact, WorkItem(990, "https://github.com/dotnet/roslyn/issues/990")]
+        public void WriteOfReadonlyStaticMemberOfAnotherInstatiation02()
+        {
+            var text =
+@"using System;
+using System.Threading;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Foo<long>.x);
+        Console.WriteLine(Foo<int>.x);
+        Console.WriteLine(Foo<string>.x);
+        Console.WriteLine(Foo<int>.x);
+    }
+}
+
+public static class Foo<T>
+{
+    static Foo()
+    {
+        Console.WriteLine(""initializing for "" + typeof(T));
+        Foo<int>.x = typeof(T).Name;
+    }
+
+    public static readonly string x;
+}";
+            var expectedOutput =
+@"initializing for System.Int64
+initializing for System.Int32
+
+Int64
+initializing for System.String
+
+String
+";
+            // Although we accept this nasty code, it will not verify.
+            CompileAndVerify(text, expectedOutput: expectedOutput, verify: false);
+        }
+
         [Fact]
         public void CS0199ERR_RefReadonlyStatic()
         {
@@ -6919,7 +7008,7 @@ public class B : A
 }";
             var compilation1 = CreateCompilationWithMscorlib(source1);
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1, emitOptions: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilation1, emitters: TestEmitters.CCI);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"class C
@@ -18726,7 +18815,7 @@ class MyClass
    }
 }
 ";
-            var verifier = CompileAndVerify(source: text, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"ffffffffffffffffffffffffffffffffffffffffffffffff
+            var verifier = CompileAndVerify(source: text, emitters: TestEmitters.RefEmitBug, expectedOutput: @"ffffffffffffffffffffffffffffffffffffffffffffffff
 ffffffffffffffffffffffffffffffffffffffffffffffff
 ffff");
 
@@ -22145,6 +22234,46 @@ class Program
         [Fact]
         [WorkItem(915609, "DevDiv")]
         public void DictionaryInitializerInExprLambda1()
+        {
+            var text = @"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication31
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var o = new Foo();
+            var x = o.E.Compile()().Pop();
+            System.Console.WriteLine(x);
+        }
+    }
+
+    static class StackExtensions
+    {
+        public static void Add<T>(this Stack<T> s, T x) => s.Push(x);
+    }
+
+    class Foo
+    {
+        public Expression<Func<Stack<int>>> E = () => new Stack<int> { 42 };
+    }
+}
+
+";
+            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }).VerifyDiagnostics(
+    // (25,72): error CS8075: An expression tree lambda may not contain an extension collection element initializer.
+    //         public Expression<Func<Stack<int>>> E = () => new Stack<int> { 42 };
+    Diagnostic(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, "42").WithLocation(25, 72)
+               );
+        }
+
+        [WorkItem(310, "https://github.com/dotnet/roslyn/issues/310")]
+        [Fact]
+        public void ExtensionElementInitializerInExpressionLambda()
         {
             var text = @"
 using System;

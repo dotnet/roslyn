@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.Shell
@@ -19,9 +20,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
         }
 
-        public IVsInteractiveWindow Create(Guid providerId, int instanceId, string title, IInteractiveEvaluator evaluator)
+        public IVsInteractiveWindow Create(Guid providerId, int instanceId, string title, IInteractiveEvaluator evaluator, __VSCREATETOOLWIN creationFlags)
         {
-            return new VsInteractiveWindow(_componentModel, providerId, instanceId, title, evaluator);
+            return new VsInteractiveWindow(_componentModel, providerId, instanceId, title, evaluator, creationFlags);
         }
     }
 }

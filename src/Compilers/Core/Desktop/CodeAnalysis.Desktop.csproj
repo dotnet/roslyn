@@ -16,6 +16,7 @@
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
@@ -56,7 +57,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CodeAnalysisDesktopResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="AssemblyIdentityExtensions.cs" />
     <Compile Include="AssemblyPortabilityPolicy.cs" />
     <Compile Include="AssemblyVersion.cs" />
     <Compile Include="CommandLine\CommandLineReference.cs" />
@@ -69,10 +69,14 @@
     <Compile Include="CommandLine\CommonCompiler.LoggingXmlFileResolver.cs" />
     <Compile Include="CommandLine\CommonCompiler.LoggingMetadataFileResolver.cs" />
     <Compile Include="CommandLine\CommonCompiler.ExistingReferencesResolver.cs" />
+    <Compile Include="CommandLine\ErrorLogger.Issue.cs" />
+    <Compile Include="CommandLine\ErrorLogger.Value.cs" />
+    <Compile Include="CommandLine\ErrorLogger.WellKnownStrings.cs" />
     <Compile Include="CommandLine\RuleSet\InvalidRuleSetException.cs" />
     <Compile Include="CommandLine\RuleSet\RuleSet.cs" />
     <Compile Include="CommandLine\RuleSet\RuleSetInclude.cs" />
     <Compile Include="CommandLine\RuleSet\RuleSetProcessor.cs" />
+    <Compile Include="CommandLine\ErrorLogger.cs" />
     <Compile Include="CommandLine\TouchedFileLogger.cs" />
     <Compile Include="CompilerPathUtilities.cs" />
     <Compile Include="FileSystemExtensions.cs" />
@@ -83,23 +87,16 @@
     <Compile Include="EncodedStringText.cs" />
     <Compile Include="FileKey.cs" />
     <Compile Include="FileUtilities.cs" />
-    <Compile Include="AnalyzerAssemblyLoadEventArgs.cs" />
-    <Compile Include="AnalyzerFileReference.InMemoryAssemblyLoader.cs" />
     <Compile Include="Interop\ClrStrongName.cs" />
     <Compile Include="Interop\IClrMetaHost.cs" />
     <Compile Include="Interop\IClrRuntimeInfo.cs" />
     <Compile Include="Interop\IClrStrongName.cs" />
     <Compile Include="Interop\SuppressUnmanagedCodeSecurityAttribute.cs" />
     <Compile Include="IVsSQM.cs" />
-    <Compile Include="MetadataCache.cs" />
     <Compile Include="AnalyzerFileReference.cs" />
-    <Compile Include="MetadataFileReference.cs" />
     <Compile Include="MetadataFileReferenceResolver.cs" />
     <Compile Include="PathKind.cs" />
     <Compile Include="PathUtilities.cs" />
-    <Compile Include="SerializableCompilationOptions.cs" />
-    <Compile Include="SerializableParseOptions.cs" />
-    <Compile Include="SerializationInfoExtensions.cs" />
     <Compile Include="SourceFileResolver.cs" />
     <Compile Include="SqmServiceProvider.cs" />
     <Compile Include="XmlFileResolver.cs" />
@@ -120,12 +117,15 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="csc" />
     <InternalsVisibleTo Include="csi" />
+    <InternalsVisibleTo Include="csc2" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
     <InternalsVisibleTo Include="vbc" />
     <InternalsVisibleTo Include="vbi" />
+    <InternalsVisibleTo Include="vbc2" />
     <InternalsVisibleTo Include="VBCSCompiler" />
+    <InternalsVisibleTo Include="Microsoft.Build.Tasks.Roslyn" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CompilerServer.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
@@ -168,15 +168,16 @@
       <SubType>Designer</SubType>
       <LastGenOutput>CodeAnalysisDesktopResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="CommandLine\RuleSet\RuleSetSchema.xsd">
+    <None Include="CommandLine\RuleSet\RuleSetSchema.xsd">
       <SubType>Designer</SubType>
       <LogicalName>Microsoft.CodeAnalysis.RuleSet.xsd</LogicalName>
-    </EmbeddedResource>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\CodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
     </None>
+    <Compile Include="CommandLine\CommonCompiler.CompilerEmitStreamProvider.cs" />
     <None Include="packages.config" />
     <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>

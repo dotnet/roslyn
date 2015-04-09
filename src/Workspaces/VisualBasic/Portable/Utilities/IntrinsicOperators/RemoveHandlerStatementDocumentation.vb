@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
-    NotInheritable Class RemoveHandlerStatementDocumentation
+    Friend NotInheritable Class RemoveHandlerStatementDocumentation
         Inherits AbstractAddRemoveHandlerStatementDocumentation
 
         Public Overrides ReadOnly Property DocumentationText As String

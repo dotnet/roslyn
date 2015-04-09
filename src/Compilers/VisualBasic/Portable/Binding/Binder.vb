@@ -46,58 +46,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Friend MustInherit Class Binder
 
-        Private Shared ReadOnly NoTypes As ImmutableArray(Of TypeSymbol) = ImmutableArray(Of TypeSymbol).Empty
-        Private Shared ReadOnly NoArguments As ImmutableArray(Of BoundExpression) = ImmutableArray(Of BoundExpression).Empty
+        Private Shared ReadOnly s_noTypes As ImmutableArray(Of TypeSymbol) = ImmutableArray(Of TypeSymbol).Empty
+        Private Shared ReadOnly s_noArguments As ImmutableArray(Of BoundExpression) = ImmutableArray(Of BoundExpression).Empty
 
         Protected ReadOnly m_containingBinder As Binder
 
         ' Caching these items in the nearest binder is a performance win.
-        Private ReadOnly m_syntaxTree As SyntaxTree
-        Private ReadOnly m_compilation As VisualBasicCompilation
-        Private ReadOnly m_sourceModule As SourceModuleSymbol
-        Private ReadOnly m_isEarlyAttributeBinder As Boolean
-        Private ReadOnly m_ignoreBaseClassesInLookup As Boolean
-        Private ReadOnly m_basesBeingResolved As ConsList(Of Symbol)
+        Private ReadOnly _syntaxTree As SyntaxTree
+        Private ReadOnly _compilation As VisualBasicCompilation
+        Private ReadOnly _sourceModule As SourceModuleSymbol
+        Private ReadOnly _isEarlyAttributeBinder As Boolean
+        Private ReadOnly _ignoreBaseClassesInLookup As Boolean
+        Private ReadOnly _basesBeingResolved As ConsList(Of Symbol)
 
         Protected Sub New(containingBinder As Binder)
             m_containingBinder = containingBinder
 
             If containingBinder IsNot Nothing Then
-                m_syntaxTree = containingBinder.SyntaxTree
-                m_compilation = containingBinder.Compilation
-                m_sourceModule = containingBinder.SourceModule
-                m_isEarlyAttributeBinder = containingBinder.IsEarlyAttributeBinder
-                m_ignoreBaseClassesInLookup = containingBinder.IgnoreBaseClassesInLookup
-                m_basesBeingResolved = containingBinder.BasesBeingResolved
+                _syntaxTree = containingBinder.SyntaxTree
+                _compilation = containingBinder.Compilation
+                _sourceModule = containingBinder.SourceModule
+                _isEarlyAttributeBinder = containingBinder.IsEarlyAttributeBinder
+                _ignoreBaseClassesInLookup = containingBinder.IgnoreBaseClassesInLookup
+                _basesBeingResolved = containingBinder.BasesBeingResolved
             End If
         End Sub
 
         Protected Sub New(containingBinder As Binder, syntaxTree As SyntaxTree)
             Me.New(containingBinder)
-            m_syntaxTree = syntaxTree
+            _syntaxTree = syntaxTree
         End Sub
 
         Protected Sub New(containingBinder As Binder, sourceModule As SourceModuleSymbol, compilation As VisualBasicCompilation)
             Me.New(containingBinder)
-            m_sourceModule = sourceModule
-            m_compilation = compilation
+            _sourceModule = sourceModule
+            _compilation = compilation
         End Sub
 
         Protected Sub New(containingBinder As Binder, Optional isEarlyAttributeBinder As Boolean? = Nothing, Optional ignoreBaseClassesInLookup As Boolean? = Nothing)
             Me.New(containingBinder)
 
             If isEarlyAttributeBinder.HasValue Then
-                m_isEarlyAttributeBinder = isEarlyAttributeBinder.Value
+                _isEarlyAttributeBinder = isEarlyAttributeBinder.Value
             End If
 
             If ignoreBaseClassesInLookup.HasValue Then
-                m_ignoreBaseClassesInLookup = ignoreBaseClassesInLookup.Value
+                _ignoreBaseClassesInLookup = ignoreBaseClassesInLookup.Value
             End If
         End Sub
 
         Protected Sub New(containingBinder As Binder, basesBeingResolved As ConsList(Of Symbol))
             Me.New(containingBinder)
-            m_basesBeingResolved = basesBeingResolved
+            _basesBeingResolved = basesBeingResolved
         End Sub
 
         Public ReadOnly Property ContainingBinder As Binder
@@ -518,7 +518,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property SourceModule As SourceModuleSymbol
             Get
-                Return m_sourceModule
+                Return _sourceModule
             End Get
         End Property
 
@@ -527,7 +527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property Compilation As VisualBasicCompilation
             Get
-                Return m_compilation
+                Return _compilation
             End Get
         End Property
 
@@ -564,7 +564,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property SyntaxTree As SyntaxTree
             Get
-                Return m_syntaxTree
+                Return _syntaxTree
             End Get
         End Property
 
@@ -575,7 +575,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <returns>Nothing if no bases being resolved, otherwise the set of bases being resolved.</returns>
         Public Function BasesBeingResolved() As ConsList(Of Symbol)
-            Return m_basesBeingResolved
+            Return _basesBeingResolved
         End Function
 
         Friend Overridable ReadOnly Property ConstantFieldsInProgress As SymbolsInProgress(Of FieldSymbol)
@@ -596,7 +596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property IgnoreBaseClassesInLookup As Boolean
             Get
-                Return m_ignoreBaseClassesInLookup
+                Return _ignoreBaseClassesInLookup
             End Get
         End Property
 
@@ -864,7 +864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property IsEarlyAttributeBinder As Boolean
             Get
-                Return m_isEarlyAttributeBinder
+                Return _isEarlyAttributeBinder
             End Get
         End Property
 

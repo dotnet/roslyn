@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// The span of text before the edit which is being changed
         /// </summary>
-        public TextSpan Span { get; private set; }
+        public TextSpan Span { get; }
 
         /// <summary>
         /// Width of the span after the edit.  A 0 here would represent a delete
         /// </summary>
-        public int NewLength { get; private set; }
+        public int NewLength { get; }
 
         /// <summary>
         /// Initializes a new instance of <see cref="TextChangeRange"/>.
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (newLength < 0)
             {
-                throw new ArgumentOutOfRangeException("newLength");
+                throw new ArgumentOutOfRangeException(nameof(newLength));
             }
 
             this.Span = span;

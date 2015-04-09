@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
         private readonly SyntaxGenerator _g = SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp);
 
         private readonly CSharpCompilation _emptyCompilation = CSharpCompilation.Create("empty",
-                references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System });
 
         private readonly INamedTypeSymbol _ienumerableInt;
 
@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
             Assert.Equal(expectedText, normalized);
         }
 
+        #region Expressions and Statements
         [Fact]
         public void TestLiteralExpressions()
         {
@@ -559,7 +560,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
                 _g.VoidReturningLambdaExpression(new[] { _g.LambdaParameter("x", _g.IdentifierName("y")), _g.LambdaParameter("a", _g.IdentifierName("b")) }, _g.IdentifierName("z")),
                 "(y x, b a) => z");
         }
+        #endregion
 
+        #region Declarations
         [Fact]
         public void TestFieldDeclarations()
         {
@@ -614,6 +617,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.MethodDeclaration("m", returnType: _g.IdentifierName("x"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Abstract),
                 "public abstract x m();");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial),
+                "partial void m();");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial, statements: new[] { _g.IdentifierName("y") }),
+                "partial void m()\r\n{\r\n    y;\r\n}");
         }
 
         [Fact]
@@ -1369,6 +1380,24 @@ public class C { } // end").Members[0];
             "delegate void d<a, b>()where a : x;");
         }
 
+        [Fact]
+        public void TestInterfaceDeclarationWithEventFromSymbol()
+        {
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                _g.Declaration(_emptyCompilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged")),
+@"public interface INotifyPropertyChanged
+{
+    event global::System.ComponentModel.PropertyChangedEventHandler PropertyChanged
+    {
+        add;
+        remove;
+    }
+}");
+        }
+        #endregion
+
+        #region Add/Insert/Remove/Get declarations & members/elements
+
         private void AssertNamesEqual(string[] expectedNames, IEnumerable<SyntaxNode> actualNodes)
         {
             var actualNames = actualNodes.Select(n => _g.GetName(n)).ToArray();
@@ -1818,6 +1847,95 @@ public class C { } // end").Members[0];
 
             newProp = _g.ReplaceNode(prop, setAccessor, _g.WithAccessibility(setAccessor, Accessibility.Public));
             Assert.Equal(Accessibility.Public, _g.GetAccessibility(_g.GetAccessor(newProp, DeclarationKind.SetAccessor)));
+        }
+
+        [Fact]
+        public void TestAccessorsOnSpecialProperties()
+        {
+            var root = SyntaxFactory.ParseCompilationUnit(
+@"class C
+{
+   public int X { get; set; } = 100;
+   public int Y => 300;
+}");
+            var x = _g.GetMembers(root.Members[0])[0];
+            var y = _g.GetMembers(root.Members[0])[1];
+
+            Assert.Equal(2, _g.GetAccessors(x).Count);
+            Assert.Equal(0, _g.GetAccessors(y).Count);
+
+            // adding accessors to expression value property will not succeed
+            var y2 = _g.AddAccessors(y, new[] { _g.GetAccessor(x, DeclarationKind.GetAccessor) });
+            Assert.NotNull(y2);
+            Assert.Equal(0, _g.GetAccessors(y2).Count);
+        }
+
+        [Fact]
+        public void TestAccessorsOnSpecialIndexers()
+        {
+            var root = SyntaxFactory.ParseCompilationUnit(
+@"class C
+{
+   public int this[int p] { get { return p * 10; } set { } };
+   public int this[int p] => p * 10;
+}");
+            var x = _g.GetMembers(root.Members[0])[0];
+            var y = _g.GetMembers(root.Members[0])[1];
+
+            Assert.Equal(2, _g.GetAccessors(x).Count);
+            Assert.Equal(0, _g.GetAccessors(y).Count);
+
+            // adding accessors to expression value indexer will not succeed
+            var y2 = _g.AddAccessors(y, new[] { _g.GetAccessor(x, DeclarationKind.GetAccessor) });
+            Assert.NotNull(y2);
+            Assert.Equal(0, _g.GetAccessors(y2).Count);
+        }
+
+        [Fact]
+        public void TestExpressionsOnSpecialProperties()
+        {
+            // you can get/set expression from both expression value property and initialized properties
+            var root = SyntaxFactory.ParseCompilationUnit(
+@"class C
+{
+   public int X { get; set; } = 100;
+   public int Y => 300;
+   public int Z { get; set; }
+}");
+            var x = _g.GetMembers(root.Members[0])[0];
+            var y = _g.GetMembers(root.Members[0])[1];
+            var z = _g.GetMembers(root.Members[0])[2];
+
+            Assert.NotNull(_g.GetExpression(x));
+            Assert.NotNull(_g.GetExpression(y));
+            Assert.Null(_g.GetExpression(z));
+            Assert.Equal("100", _g.GetExpression(x).ToString());
+            Assert.Equal("300", _g.GetExpression(y).ToString());
+
+            Assert.Equal("500", _g.GetExpression(_g.WithExpression(x, _g.LiteralExpression(500))).ToString());
+            Assert.Equal("500", _g.GetExpression(_g.WithExpression(y, _g.LiteralExpression(500))).ToString());
+            Assert.Equal("500", _g.GetExpression(_g.WithExpression(z, _g.LiteralExpression(500))).ToString());
+        }
+
+        [Fact]
+        public void TestExpressionsOnSpecialIndexers()
+        {
+            // you can get/set expression from both expression value property and initialized properties
+            var root = SyntaxFactory.ParseCompilationUnit(
+@"class C
+{
+   public int this[int p] { get { return p * 10; } set { } };
+   public int this[int p] => p * 10;
+}");
+            var x = _g.GetMembers(root.Members[0])[0];
+            var y = _g.GetMembers(root.Members[0])[1];
+
+            Assert.Null(_g.GetExpression(x));
+            Assert.NotNull(_g.GetExpression(y));
+            Assert.Equal("p * 10", _g.GetExpression(y).ToString());
+
+            Assert.Null(_g.GetExpression(_g.WithExpression(x, _g.LiteralExpression(500))));
+            Assert.Equal("500", _g.GetExpression(_g.WithExpression(y, _g.LiteralExpression(500))).ToString());
         }
 
         [Fact]
@@ -2653,5 +2771,6 @@ public void M()
 {
 }");
         }
+        #endregion
     }
 }

@@ -3663,7 +3663,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override string[] GetTypeExtenderNames()
         {
-            return new string[0];
+            return Array.Empty<string>();
         }
 
         public override object GetTypeExtender(string name, AbstractCodeType symbol)

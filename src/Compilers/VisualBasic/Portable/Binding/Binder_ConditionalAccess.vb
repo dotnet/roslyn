@@ -10,7 +10,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class Binder
+    Friend Partial Class Binder
 
         Private Function BindConditionalAccessExpression(node As ConditionalAccessExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
             Dim placeholder As BoundRValuePlaceholder = Nothing
@@ -94,18 +94,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class ConditionalAccessBinder
         Inherits Binder
 
-        Private ReadOnly m_ConditionalAccess As ConditionalAccessExpressionSyntax
-        Private ReadOnly m_Placeholder As BoundValuePlaceholderBase
+        Private ReadOnly _conditionalAccess As ConditionalAccessExpressionSyntax
+        Private ReadOnly _placeholder As BoundValuePlaceholderBase
 
         Public Sub New(containingBinder As Binder, conditionalAccess As ConditionalAccessExpressionSyntax, placeholder As BoundValuePlaceholderBase)
             MyBase.New(containingBinder)
-            m_ConditionalAccess = conditionalAccess
-            m_Placeholder = placeholder
+            _conditionalAccess = conditionalAccess
+            _placeholder = placeholder
         End Sub
 
         Protected Overrides Function TryGetConditionalAccessReceiver(node As ConditionalAccessExpressionSyntax) As BoundExpression
-            If node Is m_ConditionalAccess Then
-                Return m_Placeholder
+            If node Is _conditionalAccess Then
+                Return _placeholder
             End If
 
             Return MyBase.TryGetConditionalAccessReceiver(node)

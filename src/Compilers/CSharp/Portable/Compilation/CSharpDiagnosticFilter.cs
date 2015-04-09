@@ -28,10 +28,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A diagnostic updated to reflect the options, or null if it has been filtered out</returns>
         public static Diagnostic Filter(Diagnostic d, int warningLevelOption, ReportDiagnostic generalDiagnosticOption, IDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
         {
-            // If diagnostic is not configurable, keep it as it is.
-            if (d == null || d.IsNotConfigurable())
+            if (d == null)
             {
                 return d;
+            }
+            else if (d.IsNotConfigurable())
+            {
+                if (d.IsEnabledByDefault)
+                {
+                    // Enabled NotConfigurable should always be reported as it is.
+                    return d;
+                }
+                else
+                {
+                    // Disabled NotConfigurable should never be reported.
+                    return null;
+                }
             }
             else if (d.Severity == InternalDiagnosticSeverity.Void)
             {

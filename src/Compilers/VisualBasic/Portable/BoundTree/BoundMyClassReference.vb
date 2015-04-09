@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundMyClassReference
+    Friend Partial Class BoundMyClassReference
         Public NotOverridable Overrides ReadOnly Property SuppressVirtualCalls As Boolean
             Get
                 Return True

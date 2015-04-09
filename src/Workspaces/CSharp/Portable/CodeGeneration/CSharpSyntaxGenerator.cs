@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             parameters = this.ClearTrivia(parameters);
             returnType = this.ClearTrivia(returnType);
 
-            bool hasBody = !modifiers.IsAbstract;
+            bool hasBody = !modifiers.IsAbstract && (!modifiers.IsPartial || statements != null);
 
             return SyntaxFactory.MethodDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
@@ -2508,6 +2509,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((ParenthesizedLambdaExpressionSyntax)declaration).Body as ExpressionSyntax;
                 case SyntaxKind.SimpleLambdaExpression:
                     return ((SimpleLambdaExpressionSyntax)declaration).Body as ExpressionSyntax;
+
+                case SyntaxKind.PropertyDeclaration:
+                    var pd = ((PropertyDeclarationSyntax)declaration);
+                    if (pd.ExpressionBody != null)
+                    {
+                        return pd.ExpressionBody.Expression;
+                    }
+                    goto default;
+
+                case SyntaxKind.IndexerDeclaration:
+                    var id = ((IndexerDeclarationSyntax)declaration);
+                    if (id.ExpressionBody != null)
+                    {
+                        return id.ExpressionBody.Expression;
+                    }
+                    goto default;
+
                 default:
                     return GetEqualsValue(declaration)?.Value;
             }
@@ -2529,6 +2547,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 case SyntaxKind.SimpleLambdaExpression:
                     return ((SimpleLambdaExpressionSyntax)declaration).WithBody((CSharpSyntaxNode)expr ?? CreateBlock(null));
+
+                case SyntaxKind.PropertyDeclaration:
+                    var pd = (PropertyDeclarationSyntax)declaration;
+                    if (pd.ExpressionBody != null)
+                    {
+                        return ReplaceWithTrivia(pd, pd.ExpressionBody.Expression, expr);
+                    }
+                    goto default;
+
+                case SyntaxKind.IndexerDeclaration:
+                    var id = (IndexerDeclarationSyntax)declaration;
+                    if (id.ExpressionBody != null)
+                    {
+                        return ReplaceWithTrivia(id, id.ExpressionBody.Expression, expr);
+                    }
+                    goto default;
 
                 default:
                     var eq = GetEqualsValue(declaration);
@@ -2566,6 +2600,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         return fd.Declaration.Variables[0].Initializer;
                     }
                     break;
+                case SyntaxKind.PropertyDeclaration:
+                    var pd = ((PropertyDeclarationSyntax)declaration);
+                    return pd.Initializer;
                 case SyntaxKind.LocalDeclarationStatement:
                     var ld = ((LocalDeclarationStatementSyntax)declaration);
                     if (ld.Declaration.Variables.Count == 1)
@@ -2600,6 +2637,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         return ReplaceWithTrivia(declaration, fd.Declaration.Variables[0], fd.Declaration.Variables[0].WithInitializer(eq));
                     }
                     break;
+                case SyntaxKind.PropertyDeclaration:
+                    var pd = ((PropertyDeclarationSyntax)declaration);
+                    return pd.WithInitializer(eq);
                 case SyntaxKind.LocalDeclarationStatement:
                     var ld = ((LocalDeclarationStatementSyntax)declaration);
                     if (ld.Declaration.Variables.Count == 1)
@@ -2698,7 +2738,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var currentList = this.GetAccessorList(declaration);
             if (currentList == null)
             {
-                currentList = SyntaxFactory.AccessorList();
+                if (CanHaveAccessors(declaration))
+                {
+                    currentList = SyntaxFactory.AccessorList();
+                }
+                else
+                {
+                    return declaration;
+                }
             }
 
             var newList = currentList.WithAccessors(currentList.Accessors.InsertRange(index, newAccessors.Accessors));
@@ -2712,11 +2759,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.PropertyDeclaration:
                     return ((PropertyDeclarationSyntax)declaration).AccessorList;
                 case SyntaxKind.IndexerDeclaration:
-                    return ((PropertyDeclarationSyntax)declaration).AccessorList;
+                    return ((IndexerDeclarationSyntax)declaration).AccessorList;
                 case SyntaxKind.EventDeclaration:
                     return ((EventDeclarationSyntax)declaration).AccessorList;
                 default:
                     return null;
+            }
+        }
+
+        private bool CanHaveAccessors(SyntaxNode declaration)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.PropertyDeclaration:
+                    return ((PropertyDeclarationSyntax)declaration).ExpressionBody == null;
+                case SyntaxKind.IndexerDeclaration:
+                    return ((IndexerDeclarationSyntax)declaration).ExpressionBody == null;
+                case SyntaxKind.EventDeclaration:
+                    return true;
+                default:
+                    return false;
             }
         }
 
@@ -2769,45 +2831,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private AccessorDeclarationSyntax GetAccessor(SyntaxNode declaration, SyntaxKind kind)
         {
-            switch (declaration.Kind())
-            {
-                case SyntaxKind.PropertyDeclaration:
-                    return ((PropertyDeclarationSyntax)declaration).AccessorList.Accessors.FirstOrDefault(a => a.IsKind(kind));
-                case SyntaxKind.IndexerDeclaration:
-                    return ((IndexerDeclarationSyntax)declaration).AccessorList.Accessors.FirstOrDefault(a => a.IsKind(kind));
-                default:
-                    return null;
-            }
+            var accessorList = GetAccessorList(declaration);
+            return accessorList?.Accessors.FirstOrDefault(a => a.IsKind(kind));
         }
 
         private SyntaxNode WithAccessor(SyntaxNode declaration, SyntaxKind kind, AccessorDeclarationSyntax accessor)
         {
-            switch (declaration.Kind())
-            {
-                case SyntaxKind.PropertyDeclaration:
-                    return WithAccessor(declaration, ((PropertyDeclarationSyntax)declaration).AccessorList, kind, accessor);
-                case SyntaxKind.IndexerDeclaration:
-                    return WithAccessor(declaration, ((IndexerDeclarationSyntax)declaration).AccessorList, kind, accessor);
-                default:
-                    return declaration;
-            }
+            return WithAccessor(declaration, GetAccessorList(declaration), kind, accessor);
         }
 
         private SyntaxNode WithAccessor(SyntaxNode declaration, AccessorListSyntax accessorList, SyntaxKind kind, AccessorDeclarationSyntax accessor)
         {
-            var acc = accessorList.Accessors.FirstOrDefault(a => a.IsKind(kind));
-            if (acc != null)
+            if (accessorList != null)
             {
-                return this.ReplaceNode(declaration, acc, accessor);
+                var acc = accessorList.Accessors.FirstOrDefault(a => a.IsKind(kind));
+                if (acc != null)
+                {
+                    return this.ReplaceNode(declaration, acc, accessor);
+                }
+                else if (accessor != null)
+                {
+                    return this.ReplaceNode(declaration, accessorList, accessorList.AddAccessors(accessor));
+                }
             }
-            else if (accessor != null)
-            {
-                return this.ReplaceNode(declaration, accessorList, accessorList.AddAccessors(accessor));
-            }
-            else
-            {
-                return declaration;
-            }
+
+            return declaration;
         }
 
         public override IReadOnlyList<SyntaxNode> GetGetAccessorStatements(SyntaxNode declaration)
@@ -3541,22 +3589,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             switch (expression.Kind())
             {
                 case SyntaxKind.IdentifierName:
-                case SyntaxKind.GenericName:
                     var sname = (SimpleNameSyntax)expression;
                     return SyntaxFactory.GenericName(sname.Identifier, SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Cast<TypeSyntax>())));
 
+                case SyntaxKind.GenericName:
+                    var gname = (GenericNameSyntax)expression;
+                    return gname.WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Cast<TypeSyntax>())));
+
                 case SyntaxKind.QualifiedName:
                     var qname = (QualifiedNameSyntax)expression;
-                    return SyntaxFactory.QualifiedName(qname.Left, (SimpleNameSyntax)WithTypeArguments(qname.Right, typeArguments));
+                    return qname.WithRight((SimpleNameSyntax)WithTypeArguments(qname.Right, typeArguments));
 
                 case SyntaxKind.AliasQualifiedName:
                     var aname = (AliasQualifiedNameSyntax)expression;
-                    return SyntaxFactory.AliasQualifiedName(aname.Alias, (SimpleNameSyntax)WithTypeArguments(aname.Name, typeArguments));
+                    return aname.WithName((SimpleNameSyntax)WithTypeArguments(aname.Name, typeArguments));
 
                 case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.PointerMemberAccessExpression:
                     var sma = (MemberAccessExpressionSyntax)expression;
-                    return SyntaxFactory.MemberAccessExpression(expression.Kind(), sma.Expression, (SimpleNameSyntax)WithTypeArguments(sma.Name, typeArguments));
+                    return sma.WithName((SimpleNameSyntax)WithTypeArguments(sma.Name, typeArguments));
 
                 default:
                     return expression;
@@ -3565,7 +3616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode QualifiedName(SyntaxNode left, SyntaxNode right)
         {
-            return SyntaxFactory.QualifiedName((NameSyntax)left, (SimpleNameSyntax)right);
+            return SyntaxFactory.QualifiedName((NameSyntax)left, (SimpleNameSyntax)right).WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
         public override SyntaxNode TypeExpression(ITypeSymbol typeSymbol)

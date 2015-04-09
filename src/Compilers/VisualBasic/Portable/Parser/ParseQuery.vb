@@ -7,7 +7,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Class Parser
+    Friend Partial Class Parser
         ' File: Parser.cpp
         ' Lines: 14199 - 14199
         ' Initializer* .Parser::ParseSelectListInitializer( [ _Inout_ bool& ErrorInConstruct ] )

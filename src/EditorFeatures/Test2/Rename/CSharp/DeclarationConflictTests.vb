@@ -543,7 +543,7 @@ class C
                 </Workspace>, renameTo:="Method")
 
                 result.AssertLabeledSpansAre("first", "Method", RelatedLocationType.NoConflict)
-                result.AssertLabeledSpansAre("second", "C.Method", type:=RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("second", "DefaultValue(C.Method)", type:=RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
     End Class

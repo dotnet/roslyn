@@ -10,7 +10,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -401,7 +400,7 @@ namespace Roslyn.Test.Utilities
         {
             expectedSubString = NormalizeWhitespace(expectedSubString);
             actualString = NormalizeWhitespace(actualString);
-            Assert.Contains(expectedSubString, actualString);
+            Assert.Contains(expectedSubString, actualString, StringComparison.Ordinal);
         }
 
         internal static string NormalizeWhitespace(string input)

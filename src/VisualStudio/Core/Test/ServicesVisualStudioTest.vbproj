@@ -13,7 +13,7 @@
     <AssemblyName>Roslyn.VisualStudio.Services.UnitTests</AssemblyName>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -45,6 +45,10 @@
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Features\VisualBasic\BasicFeatures.vbproj">
+      <Project>{a1bcd0ce-6c2f-4f8c-9a48-d9d93928e26d}</Project>
+      <Name>BasicFeatures</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
       <Project>{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}</Project>
@@ -315,9 +319,14 @@
     </Compile>
     <Compile Include="Diagnostics\DiagnosticTableDataSourceTests.vb" />
     <Compile Include="Diagnostics\ExternalDiagnosticUpdateSourceTests.vb" />
+    <Compile Include="Diagnostics\MiscDiagnosticUpdateSourceTests.vb" />
     <Compile Include="Diagnostics\TestTableManagerProvider.vb" />
     <Compile Include="Diagnostics\TodoListTableDataSourceTests.vb" />
+    <Compile Include="EditAndContinue\EditAndContinueTestHelper.vb" />
+    <Compile Include="EditAndContinue\EditAndContinueWorkspaceServiceTests.vb" />
+    <Compile Include="EditAndContinue\VsReadOnlyDocumentTrackerTests.vb" />
     <Compile Include="ExtractInterface\ExtractInterfaceViewModelTests.vb" />
+    <Compile Include="FindResults\FindResultsTests.vb" />
     <Compile Include="GenerateType\GenerateTypeViewModelTests.vb" />
     <Compile Include="GoToDefinition\GoToDefinitionApiTests.vb" />
     <Compile Include="GoToDefinition\MockNavigableItemsPresenter.vb" />
@@ -332,10 +341,13 @@
     <Compile Include="ObjectBrowser\NavInfoNodeDescriptor.vb" />
     <Compile Include="ObjectBrowser\VisualBasic\ObjectBrowerTests.vb" />
     <Compile Include="Progression\GraphProviderTests.vb" />
+    <Compile Include="ProjectSystemShim\ConvertedVisualBasicProjectOptionsTests.vb" />
     <Compile Include="ProjectSystemShim\DeferredProjectLoadingTests.vb" />
     <Compile Include="ProjectSystemShim\Framework\MockHierarchy.vb" />
+    <Compile Include="ProjectSystemShim\MockRuleSetFile.vb" />
     <Compile Include="ProjectSystemShim\VisualBasicProjectTests.vb" />
     <Compile Include="Snippets\SnippetServiceWaiter.vb" />
+    <Compile Include="SolutionExplorer\FakeAnalyzersCommandHandler.vb" />
     <Compile Include="StubVsEditorAdaptersFactoryService.vb" />
     <Compile Include="Preview\PreviewChangesTests.vb" />
     <Compile Include="Progression\CallsGraphQueryTests.vb" />

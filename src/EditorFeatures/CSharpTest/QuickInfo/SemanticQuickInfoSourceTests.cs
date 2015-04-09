@@ -1267,6 +1267,34 @@ class C
                 MainDescription("class System.String"));
         }
 
+        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void TestVerbatimStringLiteral()
+        {
+            TestInMethod(@"string f = @""cat""$$",
+                MainDescription("class System.String"));
+        }
+
+        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void TestInterpolatedStringLiteral()
+        {
+            TestInMethod(@"string f = $""cat""$$", MainDescription("class System.String"));
+            TestInMethod(@"string f = $""c$$at""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $""$$cat""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $""cat {1$$ + 2} dog""", MainDescription("struct System.Int32"));
+        }
+
+        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void TestVerbatimInterpolatedStringLiteral()
+        {
+            TestInMethod(@"string f = $@""cat""$$", MainDescription("class System.String"));
+            TestInMethod(@"string f = $@""c$$at""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $@""$$cat""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $@""cat {1$$ + 2} dog""", MainDescription("struct System.Int32"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestCharLiteral()
         {
@@ -2566,6 +2594,54 @@ class class1Attribute : Attribute
                 MainDescription($"({FeaturesResources.Field}) class1Attribute class1Attribute.x"));
         }
 
+        [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void AttributeQuickInfoBindsToClassTest()
+        {
+            Test(@"
+using System;
+
+/// <summary>
+/// class comment
+/// </summary>
+[Some$$]
+class SomeAttribute : Attribute
+{
+    /// <summary>
+    /// ctor comment
+    /// </summary>
+    public SomeAttribute()
+    {
+    }
+}
+",
+                Documentation("class comment"));
+        }
+
+        [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void AttributeConstructorQuickInfo()
+        {
+            Test(@"
+using System;
+
+/// <summary>
+/// class comment
+/// </summary>
+class SomeAttribute : Attribute
+{
+    /// <summary>
+    /// ctor comment
+    /// </summary>
+    public SomeAttribute()
+    {
+        var s = new Some$$Attribute();
+    }
+}
+",
+                Documentation("ctor comment"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestLabel()
         {
@@ -2631,10 +2707,10 @@ $@"
                 MainDescription(@"string 'a.Name { get; }"),
                 NoTypeParameterMap,
                 AnonymousTypes(
-@"
-Anonymous Types:
-    'a is new { string Name, 'b Address }
-    'b is new { string Street, string Zip }"));
+$@"
+{FeaturesResources.AnonymousTypes}
+    'a {FeaturesResources.Is} new {{ string Name, 'b Address }}
+    'b {FeaturesResources.Is} new {{ string Street, string Zip }}"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -3155,7 +3231,7 @@ class C
 
             var documentation = $@"
 {WorkspacesResources.Usage}
-  await Foo();";
+  {CSharpFeaturesResources.Await} Foo();";
 
             VerifyWithMscorlib45(markup, new[] { MainDescription(description), Usage(documentation) });
         }
@@ -3872,7 +3948,7 @@ class C
     </Project>
 </Workspace>";
 
-            VerifyWithReferenceWorker(markup, new[] { MainDescription($"({FeaturesResources.LocalVariable}) int x"), Usage("\r\n    Proj1 - Available\r\n    Proj2 - Not Available\r\n\r\nYou can use the navigation bar to switch context.", expectsWarningGlyph: true) });
+            VerifyWithReferenceWorker(markup, new[] { MainDescription($"({FeaturesResources.LocalVariable}) int x"), Usage($"\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", expectsWarningGlyph: true) });
         }
 
         [WorkItem(1020944)]
@@ -3975,6 +4051,36 @@ class Program
     }
 }";
             Test(markup, MainDescription("dynamic"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void MethodOverloadDifferencesIgnored()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""SourceDocument""><![CDATA[
+class C
+{
+#if ONE
+    void Do(int x){}
+#endif
+#if TWO
+    void Do(string x){}
+#endif
+    void Shared()
+    {
+        this.Do$$
+    }
+
+}]]></Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"void C.Do(int x)";
+            VerifyWithReferenceWorker(markup, MainDescription(expectedDescription));
         }
     }
 }

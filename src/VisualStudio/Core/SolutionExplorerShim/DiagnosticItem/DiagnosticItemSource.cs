@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -17,16 +18,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         private static readonly DiagnosticDescriptorComparer s_comparer = new DiagnosticDescriptorComparer();
 
-        private AnalyzerItem _item;
+        private readonly AnalyzerItem _item;
+        private readonly IAnalyzersCommandHandler _commandHandler;
+        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
         private BulkObservableCollection<DiagnosticItem> _diagnosticItems;
         private Workspace _workspace;
         private ProjectId _projectId;
         private ReportDiagnostic _generalDiagnosticOption;
         private ImmutableDictionary<string, ReportDiagnostic> _specificDiagnosticOptions;
 
-        public DiagnosticItemSource(AnalyzerItem item)
+        public DiagnosticItemSource(AnalyzerItem item, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService diagnosticAnalyzerService)
         {
             _item = item;
+            _commandHandler = commandHandler;
+            _diagnosticAnalyzerService = diagnosticAnalyzerService;
         }
 
         public object SourceItem
@@ -88,13 +93,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             // one.
 
             return _item.AnalyzerReference.GetAnalyzers(language)
-                .SelectMany(a => a.SupportedDiagnostics)
+                .SelectMany(a => _diagnosticAnalyzerService.GetDiagnosticDescriptors(a))
                 .GroupBy(d => d.Id)
                 .OrderBy(g => g.Key, StringComparer.CurrentCulture)
                 .Select(g =>
                 {
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
-                    return new DiagnosticItem(_item, selectedDiagnostic, GetEffectiveSeverity(selectedDiagnostic.Id, _specificDiagnosticOptions, _generalDiagnosticOption, selectedDiagnostic.DefaultSeverity, selectedDiagnostic.IsEnabledByDefault));
+                    var effectiveSeverity = GetEffectiveSeverity(selectedDiagnostic.Id, _specificDiagnosticOptions, _generalDiagnosticOption, selectedDiagnostic.DefaultSeverity, selectedDiagnostic.IsEnabledByDefault);
+                    return new DiagnosticItem(_item, selectedDiagnostic, effectiveSeverity, _commandHandler.DiagnosticContextMenuController);
                 });
         }
 

@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.Editor
     [AttributeUsage(AttributeTargets.Class)]
     internal class ExportQuickInfoProviderAttribute : ExportAttribute
     {
-        public string Name { get; private set; }
-        public string Language { get; private set; }
+        public string Name { get; }
+        public string Language { get; }
 
         public ExportQuickInfoProviderAttribute(string name, string language)
             : base(typeof(IQuickInfoProvider))

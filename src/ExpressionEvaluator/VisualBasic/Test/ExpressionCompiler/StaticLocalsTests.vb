@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
-Imports Microsoft.VisualStudio.SymReaderInterop
+Imports Microsoft.DiaSymReader
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Static x = Nothing
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             ' Shared method.
             Dim context = CreateMethodContext(runtime, "C.F")
@@ -84,7 +84,7 @@ End Class"
         Static z As New C()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             ' Shared method.
             Dim context = CreateMethodContext(runtime, "C.M")
@@ -144,16 +144,16 @@ End Class"
         f()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             ' Instance method.
-            Dim context = CreateMethodContext(runtime, "C._Closure$__1-0._Lambda$__1")
+            Dim context = CreateMethodContext(runtime, "C._Closure$__1-0._Lambda$__0")
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression("If(x, y)", errorMessage, testData)
             Assert.Equal(errorMessage, "(1,8): error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.")
             ' Shared method.
-            context = CreateMethodContext(runtime, "C._Closure$__2-0._Lambda$__1")
+            context = CreateMethodContext(runtime, "C._Closure$__2-0._Lambda$__0")
             testData = New CompilationTestData()
             context.CompileExpression("x + z", errorMessage, testData)
             Assert.Equal(errorMessage, "(1,6): error BC30451: 'z' is not declared. It may be inaccessible due to its protection level.")
@@ -177,7 +177,7 @@ End Class"
         Return x
     End Function
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
             Dim moduleVersionId As Guid = Nothing
@@ -273,9 +273,9 @@ End Class"
         f()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C._Closure$__1-0._Lambda$__1")
+            Dim context = CreateMethodContext(runtime, "C._Closure$__1-0._Lambda$__0")
             Dim testData = New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing

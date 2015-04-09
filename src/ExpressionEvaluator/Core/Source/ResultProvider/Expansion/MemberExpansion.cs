@@ -108,6 +108,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 expansions.Add(staticMembersExpansion);
             }
 
+            if (value.NativeComPointer != 0)
+            {
+                expansions.Add(new NativeViewExpansion());
+            }
+
             if (nonPublicInstanceExpansion != null)
             {
                 expansions.Add(nonPublicInstanceExpansion);

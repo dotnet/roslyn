@@ -9,7 +9,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
         Public ReadOnly OriginalParameterList As ImmutableArray(Of IParameterSymbol)
         Public ReadOnly ViewModel As ChangeSignatureDialogViewModel
 
-        Sub New(viewModel As ChangeSignatureDialogViewModel, originalParameterList As ImmutableArray(Of IParameterSymbol))
+        Public Sub New(viewModel As ChangeSignatureDialogViewModel, originalParameterList As ImmutableArray(Of IParameterSymbol))
             Me.ViewModel = viewModel
             Me.OriginalParameterList = originalParameterList
         End Sub

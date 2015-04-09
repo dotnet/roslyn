@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.Host
             _disposer = disposer;
         }
 
-        public string WorkingFolderPath { get; private set; }
-        public string SolutionFilePath { get; private set; }
+        public string WorkingFolderPath { get; }
+        public string SolutionFilePath { get; }
 
         protected bool PersistenceEnabled
         {

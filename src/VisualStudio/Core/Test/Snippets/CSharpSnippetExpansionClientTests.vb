@@ -226,7 +226,7 @@ using G=   H.I;
             Test(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Sub
 
-        Sub Test(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement)
+        Public Sub Test(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement)
             Using testWorkspace = TestWorkspaceFactory.CreateWorkspace(workspaceXmlWithSubjectBufferDocument)
                 Dim subjectBufferDocument = testWorkspace.Documents.Single()
 

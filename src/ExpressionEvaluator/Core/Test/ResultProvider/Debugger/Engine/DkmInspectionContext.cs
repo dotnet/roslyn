@@ -18,16 +18,18 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
     [Guid("0807c826-3338-dd99-2f3a-202ba8fb9da7")]
     public class DkmInspectionContext
     {
-        internal DkmInspectionContext(IDkmClrFormatter formatter, DkmEvaluationFlags evaluationFlags, uint radix)
+        internal DkmInspectionContext(IDkmClrFormatter formatter, DkmEvaluationFlags evaluationFlags, uint radix, DkmRuntimeInstance runtimeInstance = null)
         {
             _formatter = formatter;
             this.EvaluationFlags = evaluationFlags;
             this.Radix = radix;
+            this.RuntimeInstance = runtimeInstance ?? DkmClrRuntimeInstance.DefaultRuntime;
         }
 
         private readonly IDkmClrFormatter _formatter;
 
         public readonly DkmEvaluationFlags EvaluationFlags;
+        public readonly DkmRuntimeInstance RuntimeInstance;
 
         //
         // Summary:

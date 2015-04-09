@@ -3200,10 +3200,10 @@ Unify Enum declarations with other block type declarations.
       <description>
         Represents a multi-line "If ... Then ... ElseIf ... Then ... Else ... End If" block.
       </description>
-      <spec-section>10.8.1</spec-section>
-      <grammar>IfStatement</grammar>
       <lm-equiv name="IfNode">A MultiLineIfBlock corresponds to an IfNode -- the If statement and its following body.</lm-equiv>
       <native-equiv name="IfStatement">A MultiLineIfBlock corresponds to an IfStatement -- the If statement and its following body.</native-equiv>
+      <spec-section>10.8.1</spec-section>
+      <grammar>IfStatement</grammar>
 
       <node-kind name="MultiLineIfBlock" />
 

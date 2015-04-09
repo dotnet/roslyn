@@ -47,10 +47,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.Equal(BuildProtocolConstants.RequestLanguage.VisualBasicCompile, read.Language);
                 Assert.Equal(2, read.Arguments.Length);
                 Assert.Equal(BuildProtocolConstants.ArgumentId.CurrentDirectory, read.Arguments[0].ArgumentId);
-                Assert.Equal(0u, read.Arguments[0].ArgumentIndex);
+                Assert.Equal(0, read.Arguments[0].ArgumentIndex);
                 Assert.Equal("directory", read.Arguments[0].Value);
                 Assert.Equal(BuildProtocolConstants.ArgumentId.CommandLineArgument, read.Arguments[1].ArgumentId);
-                Assert.Equal(1u, read.Arguments[1].ArgumentIndex);
+                Assert.Equal(1, read.Arguments[1].ArgumentIndex);
                 Assert.Equal("file", read.Arguments[1].Value);
             }).Wait();
         }

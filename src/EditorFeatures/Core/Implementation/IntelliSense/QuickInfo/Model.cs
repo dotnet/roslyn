@@ -10,10 +10,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal class Model
     {
-        public ITextVersion TextVersion { get; private set; }
-        public QuickInfoItem Item { get; private set; }
-        public IQuickInfoProvider Provider { get; private set; }
-        public bool TrackMouse { get; private set; }
+        public ITextVersion TextVersion { get; }
+        public QuickInfoItem Item { get; }
+        public IQuickInfoProvider Provider { get; }
+        public bool TrackMouse { get; }
 
         public Model(
             ITextVersion textVersion,

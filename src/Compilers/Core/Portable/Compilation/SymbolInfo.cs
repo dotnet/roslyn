@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         /// still be that case that we have one or more "best guesses" as to what symbol was
         /// intended. These best guesses are available via the CandidateSymbols property.
         /// </summary>
-        public ISymbol Symbol { get; private set; }
+        public ISymbol Symbol { get; }
 
         /// <summary>
         /// If the expression did not successfully resolve to a symbol, but there were one or more
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
         /// symbols that may have been considered but discarded, this property describes why those
         /// symbol or symbols were not considered suitable.
         /// </summary>
-        public CandidateReason CandidateReason { get; private set; }
+        public CandidateReason CandidateReason { get; }
 
         internal SymbolInfo(ISymbol symbol)
             : this(symbol, ImmutableArray<ISymbol>.Empty, CandidateReason.None)

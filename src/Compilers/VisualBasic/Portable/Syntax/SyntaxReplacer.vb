@@ -49,18 +49,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Private Class Replacer(Of TNode As SyntaxNode)
             Inherits VisualBasicSyntaxRewriter
 
-            Private ReadOnly computeReplacementNode As Func(Of TNode, TNode, SyntaxNode)
-            Private ReadOnly computeReplacementToken As Func(Of SyntaxToken, SyntaxToken, SyntaxToken)
-            Private ReadOnly computeReplacementTrivia As Func(Of SyntaxTrivia, SyntaxTrivia, SyntaxTrivia)
+            Private ReadOnly _computeReplacementNode As Func(Of TNode, TNode, SyntaxNode)
+            Private ReadOnly _computeReplacementToken As Func(Of SyntaxToken, SyntaxToken, SyntaxToken)
+            Private ReadOnly _computeReplacementTrivia As Func(Of SyntaxTrivia, SyntaxTrivia, SyntaxTrivia)
 
-            Private ReadOnly nodeSet As HashSet(Of SyntaxNode)
-            Private ReadOnly tokenSet As HashSet(Of SyntaxToken)
-            Private ReadOnly triviaSet As HashSet(Of SyntaxTrivia)
+            Private ReadOnly _nodeSet As HashSet(Of SyntaxNode)
+            Private ReadOnly _tokenSet As HashSet(Of SyntaxToken)
+            Private ReadOnly _triviaSet As HashSet(Of SyntaxTrivia)
 
-            Private ReadOnly spanSet As HashSet(Of TextSpan)
-            Private ReadOnly totalSpan As TextSpan
+            Private ReadOnly _spanSet As HashSet(Of TextSpan)
+            Private ReadOnly _totalSpan As TextSpan
             Private ReadOnly _visitStructuredTrivia As Boolean
-            Private ReadOnly shouldVisitTrivia As Boolean
+            Private ReadOnly _shouldVisitTrivia As Boolean
 
             Public Sub New(
                 nodes As IEnumerable(Of TNode),
@@ -70,30 +70,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 trivia As IEnumerable(Of SyntaxTrivia),
                 computeReplacementTrivia As Func(Of SyntaxTrivia, SyntaxTrivia, SyntaxTrivia))
 
-                Me.computeReplacementNode = computeReplacementNode
-                Me.computeReplacementToken = computeReplacementToken
-                Me.computeReplacementTrivia = computeReplacementTrivia
+                Me._computeReplacementNode = computeReplacementNode
+                Me._computeReplacementToken = computeReplacementToken
+                Me._computeReplacementTrivia = computeReplacementTrivia
 
-                Me.nodeSet = If(nodes IsNot Nothing, New HashSet(Of SyntaxNode)(nodes), NoNodes)
-                Me.tokenSet = If(tokens IsNot Nothing, New HashSet(Of SyntaxToken)(tokens), NoTokens)
-                Me.triviaSet = If(trivia IsNot Nothing, New HashSet(Of SyntaxTrivia)(trivia), NoTrivia)
+                Me._nodeSet = If(nodes IsNot Nothing, New HashSet(Of SyntaxNode)(nodes), s_noNodes)
+                Me._tokenSet = If(tokens IsNot Nothing, New HashSet(Of SyntaxToken)(tokens), s_noTokens)
+                Me._triviaSet = If(trivia IsNot Nothing, New HashSet(Of SyntaxTrivia)(trivia), s_noTrivia)
 
-                Me.spanSet = New HashSet(Of TextSpan)(Me.nodeSet.Select(Function(n) n.FullSpan).Concat(
-                                                      Me.tokenSet.Select(Function(t) t.FullSpan)).Concat(
-                                                      Me.triviaSet.Select(Function(t) t.FullSpan)))
+                Me._spanSet = New HashSet(Of TextSpan)(Me._nodeSet.Select(Function(n) n.FullSpan).Concat(
+                                                      Me._tokenSet.Select(Function(t) t.FullSpan)).Concat(
+                                                      Me._triviaSet.Select(Function(t) t.FullSpan)))
 
-                Me.totalSpan = ComputeTotalSpan(Me.spanSet)
+                Me._totalSpan = ComputeTotalSpan(Me._spanSet)
 
-                Me._visitStructuredTrivia = Me.nodeSet.Any(Function(n) n.IsPartOfStructuredTrivia()) OrElse
-                    Me.tokenSet.Any(Function(t) t.IsPartOfStructuredTrivia()) OrElse
-                    Me.triviaSet.Any(Function(t) t.IsPartOfStructuredTrivia())
+                Me._visitStructuredTrivia = Me._nodeSet.Any(Function(n) n.IsPartOfStructuredTrivia()) OrElse
+                    Me._tokenSet.Any(Function(t) t.IsPartOfStructuredTrivia()) OrElse
+                    Me._triviaSet.Any(Function(t) t.IsPartOfStructuredTrivia())
 
-                Me.shouldVisitTrivia = Me.triviaSet.Count > 0 OrElse Me._visitStructuredTrivia
+                Me._shouldVisitTrivia = Me._triviaSet.Count > 0 OrElse Me._visitStructuredTrivia
             End Sub
 
-            Private Shared ReadOnly NoNodes As HashSet(Of SyntaxNode) = New HashSet(Of SyntaxNode)()
-            Private Shared ReadOnly NoTokens As HashSet(Of SyntaxToken) = New HashSet(Of SyntaxToken)()
-            Private Shared ReadOnly NoTrivia As HashSet(Of SyntaxTrivia) = New HashSet(Of SyntaxTrivia)()
+            Private Shared ReadOnly s_noNodes As HashSet(Of SyntaxNode) = New HashSet(Of SyntaxNode)()
+            Private Shared ReadOnly s_noTokens As HashSet(Of SyntaxToken) = New HashSet(Of SyntaxToken)()
+            Private Shared ReadOnly s_noTrivia As HashSet(Of SyntaxTrivia) = New HashSet(Of SyntaxTrivia)()
 
             Public Overrides ReadOnly Property VisitIntoStructuredTrivia As Boolean
                 Get
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             Public ReadOnly Property HasWork As Boolean
                 Get
-                    Return Me.nodeSet.Count + Me.tokenSet.Count + Me.triviaSet.Count > 0
+                    Return Me._nodeSet.Count + Me._tokenSet.Count + Me._triviaSet.Count > 0
                 End Get
             End Property
 
@@ -127,11 +127,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Function
 
             Private Function ShouldVisit(span As TextSpan) As Boolean
-                If Not span.IntersectsWith(Me.totalSpan) Then
+                If Not span.IntersectsWith(Me._totalSpan) Then
                     Return False
                 End If
 
-                For Each s In Me.spanSet
+                For Each s In Me._spanSet
                     If span.IntersectsWith(s) Then
                         Return True
                     End If
@@ -147,8 +147,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                         rewritten = MyBase.Visit(node)
                     End If
 
-                    If Me.nodeSet.Contains(node) AndAlso Me.computeReplacementNode IsNot Nothing Then
-                        rewritten = Me.computeReplacementNode(DirectCast(node, TNode), DirectCast(rewritten, TNode))
+                    If Me._nodeSet.Contains(node) AndAlso Me._computeReplacementNode IsNot Nothing Then
+                        rewritten = Me._computeReplacementNode(DirectCast(node, TNode), DirectCast(rewritten, TNode))
                     End If
                 End If
 
@@ -158,12 +158,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
                 Dim rewritten = token
 
-                If Me.shouldVisitTrivia AndAlso Me.ShouldVisit(token.FullSpan) Then
+                If Me._shouldVisitTrivia AndAlso Me.ShouldVisit(token.FullSpan) Then
                     rewritten = MyBase.VisitToken(token)
                 End If
 
-                If Me.tokenSet.Contains(token) AndAlso Me.computeReplacementToken IsNot Nothing Then
-                    rewritten = Me.computeReplacementToken(token, rewritten)
+                If Me._tokenSet.Contains(token) AndAlso Me._computeReplacementToken IsNot Nothing Then
+                    rewritten = Me._computeReplacementToken(token, rewritten)
                 End If
 
                 Return rewritten
@@ -176,8 +176,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     rewritten = Me.VisitTrivia(trivia)
                 End If
 
-                If Me.triviaSet.Contains(trivia) AndAlso Me.computeReplacementTrivia IsNot Nothing Then
-                    rewritten = Me.computeReplacementTrivia(trivia, rewritten)
+                If Me._triviaSet.Contains(trivia) AndAlso Me._computeReplacementTrivia IsNot Nothing Then
+                    rewritten = Me._computeReplacementTrivia(trivia, rewritten)
                 End If
 
                 Return rewritten

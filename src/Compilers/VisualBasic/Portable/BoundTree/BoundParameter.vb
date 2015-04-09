@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundParameter
+    Friend Partial Class BoundParameter
 
         Public Sub New(syntax As VisualBasicSyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, type As TypeSymbol, hasErrors As Boolean)
             Me.New(syntax, parameterSymbol, isLValue, suppressVirtualCalls:=False, type:=type, hasErrors:=hasErrors)

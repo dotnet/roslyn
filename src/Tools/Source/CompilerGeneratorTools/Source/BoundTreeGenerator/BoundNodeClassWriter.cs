@@ -797,7 +797,7 @@ namespace BoundTreeGenerator
                     }
                     else
                     {
-                        WriteLine("public {0}{1} {2} {{ get; private set; }}", (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                        WriteLine("public {0}{1} {2} {{ get; }}", (IsNew(field) ? "new " : ""), field.Type, field.Name);
                     }
                     break;
 

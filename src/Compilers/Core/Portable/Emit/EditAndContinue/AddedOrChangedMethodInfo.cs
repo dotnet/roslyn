@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal struct AddedOrChangedMethodInfo
     {
-        public readonly MethodDebugId MethodId;
+        public readonly DebugId MethodId;
 
         // locals:
         public readonly ImmutableArray<EncLocalInfo> Locals;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public readonly ImmutableArray<Cci.ITypeReference> StateMachineAwaiterSlotsOpt;
 
         public AddedOrChangedMethodInfo(
-            MethodDebugId methodId,
+            DebugId methodId,
             ImmutableArray<EncLocalInfo> locals,
             ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
             ImmutableArray<ClosureDebugInfo> closureDebugInfo,
@@ -31,8 +31,9 @@ namespace Microsoft.CodeAnalysis.Emit
             ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlotsOpt,
             ImmutableArray<Cci.ITypeReference> stateMachineAwaiterSlotsOpt)
         {
-            // method can only be added/changed during EnC, thus generation can't be 0.
-            Debug.Assert(methodId.Generation >= 1);
+            // An updated method will carry its id over,
+            // an added method id has generation set to the current generation ordinal.
+            Debug.Assert(methodId.Generation >= 0);
 
             // each state machine has to have awaiters:
             Debug.Assert(stateMachineAwaiterSlotsOpt.IsDefault == (stateMachineTypeNameOpt == null));

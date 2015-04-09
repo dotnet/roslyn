@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -17,39 +18,69 @@ namespace Roslyn.Utilities
 
         private readonly IDisposable _hashInstance;
 
+        private const string MscorlibAssembly = "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
+        private const string HashingAssembly = "System.Security.Cryptography.Hashing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+        private const string HashingAlgorithmsAssembly = "System.Security.Cryptography.Hashing.Algorithms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+
         static HashAlgorithm()
         {
-            var type = Type.GetType("System.Security.Cryptography.HashAlgorithm, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-            var methods = type.GetTypeInfo().GetDeclaredMethods("ComputeHash");
+            Type type = GetType("System.Security.Cryptography.HashAlgorithm", new[] { HashingAssembly, MscorlibAssembly });
+            Debug.Assert(type != null, "Could not find HashingAlgorithm");
+            if (type != null)
+            {
+                var methods = type.GetTypeInfo().GetDeclaredMethods("ComputeHash");
 
-            s_bytesMethod = (from m in methods
-                             let ps = m.GetParameters()
-                             where ps.Length == 1 && ps[0].ParameterType == typeof(byte[])
-                             select m).Single();
+                s_bytesMethod = (from m in methods
+                                 let ps = m.GetParameters()
+                                 where ps.Length == 1 && ps[0].ParameterType == typeof(byte[])
+                                 select m).Single();
 
-            s_bytesOffsetCountMethod = (from m in methods
-                                        let ps = m.GetParameters()
-                                        where ps.Length == 3 && ps[0].ParameterType == typeof(byte[]) && ps[1].ParameterType == typeof(int) && ps[2].ParameterType == typeof(int)
-                                        select m).Single();
+                s_bytesOffsetCountMethod = (from m in methods
+                                            let ps = m.GetParameters()
+                                            where ps.Length == 3 && ps[0].ParameterType == typeof(byte[]) && ps[1].ParameterType == typeof(int) && ps[2].ParameterType == typeof(int)
+                                            select m).Single();
 
-            s_streamMethod = (from m in methods
-                              let ps = m.GetParameters()
-                              where ps.Length == 1 && ps[0].ParameterType == typeof(Stream)
-                              select m).Single();
+                s_streamMethod = (from m in methods
+                                  let ps = m.GetParameters()
+                                  where ps.Length == 1 && ps[0].ParameterType == typeof(Stream)
+                                  select m).Single();
+            }
         }
 
-        protected static Type LoadAlgorithm(string name)
+        protected static MethodInfo LoadAlgorithmCreate(string name)
         {
-            const string Mscorlib = "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
-
-            var type = Type.GetType("System.Security.Cryptography." + name + "CryptoServiceProvider, " + Mscorlib, throwOnError: false);
-
-            if (type != null && type.GetTypeInfo().IsPublic)
+            Type t = GetType("System.Security.Cryptography." + name, new[] { HashingAlgorithmsAssembly, MscorlibAssembly });
+            if (t != null)
             {
-                return type;
+                return (from m in t.GetTypeInfo().GetDeclaredMethods("Create")
+                        where m.IsStatic && m.GetParameters().Length == 0
+                        select m).Single();
             }
 
-            return Type.GetType("System.Security.Cryptography." + name + "Managed, " + Mscorlib, throwOnError: false);
+            Debug.Assert(false, "Could not find algorithm " + name);
+            return null;
+        }
+
+        private static Type GetType(string typeName, string[] assemblyNames)
+        {
+            foreach (string assemblyName in assemblyNames)
+            {
+                Type t;
+                try
+                {
+                    t = Type.GetType(typeName + ", " + assemblyName, throwOnError: false);
+                }
+                catch
+                {
+                    t = null;
+                }
+
+                if (t != null && t.GetTypeInfo().IsPublic)
+                {
+                    return t;
+                }
+            }
+            return null;
         }
 
         protected HashAlgorithm(IDisposable hashInstance)
@@ -80,50 +111,50 @@ namespace Roslyn.Utilities
 
     internal sealed class SHA1CryptoServiceProvider : HashAlgorithm
     {
-        private static Type s_type = LoadAlgorithm("SHA1");
+        private static readonly MethodInfo s_create = LoadAlgorithmCreate("SHA1");
 
         public SHA1CryptoServiceProvider()
-            : base((IDisposable)Activator.CreateInstance(s_type))
+            : base((IDisposable)s_create.Invoke(null, null))
         {
         }
     }
 
     internal sealed class SHA256CryptoServiceProvider : HashAlgorithm
     {
-        private static Type s_type = LoadAlgorithm("SHA256");
+        private static readonly MethodInfo s_create = LoadAlgorithmCreate("SHA256");
 
         public SHA256CryptoServiceProvider()
-            : base((IDisposable)Activator.CreateInstance(s_type))
+            : base((IDisposable)s_create.Invoke(null, null))
         {
         }
     }
 
     internal sealed class SHA384CryptoServiceProvider : HashAlgorithm
     {
-        private static Type s_type = LoadAlgorithm("SHA384");
+        private static readonly MethodInfo s_create = LoadAlgorithmCreate("SHA384");
 
         public SHA384CryptoServiceProvider()
-            : base((IDisposable)Activator.CreateInstance(s_type))
+            : base((IDisposable)s_create.Invoke(null, null))
         {
         }
     }
 
     internal sealed class SHA512CryptoServiceProvider : HashAlgorithm
     {
-        private static Type s_type = LoadAlgorithm("SHA512");
+        private static readonly MethodInfo s_create = LoadAlgorithmCreate("SHA512");
 
         public SHA512CryptoServiceProvider()
-            : base((IDisposable)Activator.CreateInstance(s_type))
+            : base((IDisposable)s_create.Invoke(null, null))
         {
         }
     }
 
     internal sealed class MD5CryptoServiceProvider : HashAlgorithm
     {
-        private static Type s_type = LoadAlgorithm("MD5");
+        private static readonly MethodInfo s_create = LoadAlgorithmCreate("MD5");
 
         public MD5CryptoServiceProvider()
-            : base((IDisposable)Activator.CreateInstance(s_type))
+            : base((IDisposable)s_create.Invoke(null, null))
         {
         }
     }

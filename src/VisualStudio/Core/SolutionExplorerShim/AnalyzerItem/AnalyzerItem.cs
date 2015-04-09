@@ -14,17 +14,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         private readonly AnalyzersFolderItem _analyzersFolder;
         private readonly AnalyzerReference _analyzerReference;
+        private readonly IContextMenuController _contextMenuController;
 
-        private static readonly ContextMenuController s_itemContextMenuController =
-            new ContextMenuController(
-                ID.RoslynCommands.AnalyzerContextMenu,
-                items => items.All(item => item is AnalyzerItem));
-
-        public AnalyzerItem(AnalyzersFolderItem analyzersFolder, AnalyzerReference analyzerReference)
+        public AnalyzerItem(AnalyzersFolderItem analyzersFolder, AnalyzerReference analyzerReference, IContextMenuController contextMenuController)
             : base(GetNameText(analyzerReference))
         {
             _analyzersFolder = analyzersFolder;
             _analyzerReference = analyzerReference;
+            _contextMenuController = contextMenuController;
         }
 
         public override ImageMoniker IconMoniker
@@ -70,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public override IContextMenuController ContextMenuController
         {
-            get { return s_itemContextMenuController; }
+            get { return _contextMenuController; }
         }
 
         public AnalyzersFolderItem AnalyzersFolder

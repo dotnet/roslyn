@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                         sourceSearchPaths.ToArray(),
                         projectDirectory);
 
-                    vsInteractiveWindow.InteractiveWindow.Submit(new[]
+                    vsInteractiveWindow.InteractiveWindow.SubmitAsync(new[]
                     {
                         // TODO(DustinCa): Update these to be language agnostic.
                         referencePaths.Select(_createReference).Join("\r\n"),

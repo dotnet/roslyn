@@ -134,7 +134,7 @@ class Program
 }
 ";
 
-            TestCaching(input, new[] { "i" }, new[] { "i", "j" }, new[] { "j", "i" }, new[] { "k", }, new[] { "k", }, new string[] { });
+            TestCaching(input, new[] { "i" }, new[] { "i", "j" }, new[] { "j", "i" }, new[] { "k", }, new[] { "k", }, Array.Empty<string>());
         }
     }
 }

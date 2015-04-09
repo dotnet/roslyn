@@ -17,6 +17,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Core\Desktop\CodeAnalysis.Desktop.csproj">
@@ -105,6 +106,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CommandLineTestResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="ErrorLoggerTests.cs" />
     <Compile Include="TouchedFileLoggingTests.cs" />
   </ItemGroup>
   <ItemGroup>

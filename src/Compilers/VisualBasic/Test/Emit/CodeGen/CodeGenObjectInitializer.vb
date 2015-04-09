@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        Sub ObjectInitializerAsRefTypeEqualsNew()
+        Public Sub ObjectInitializerAsRefTypeEqualsNew()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -78,7 +78,7 @@ Nothing
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewRefType()
+        Public Sub ObjectInitializerAsNewRefType()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -146,7 +146,7 @@ Nothing
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsValueTypeEqualsNew()
+        Public Sub ObjectInitializerAsValueTypeEqualsNew()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -214,7 +214,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewValueType()
+        Public Sub ObjectInitializerAsNewValueType()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -279,7 +279,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsValueTypeEqualsNewOneParameterContructor()
+        Public Sub ObjectInitializerAsValueTypeEqualsNewOneParameterContructor()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -352,7 +352,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewValueTypeOneParameterContructor()
+        Public Sub ObjectInitializerAsNewValueTypeOneParameterContructor()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -422,7 +422,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewValueTypeInTryCatch()
+        Public Sub ObjectInitializerAsNewValueTypeInTryCatch()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -503,7 +503,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewValueTypeOneParameterContructorMultipleVariables()
+        Public Sub ObjectInitializerAsNewValueTypeOneParameterContructorMultipleVariables()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -603,7 +603,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewValueTypeMultipleVariables()
+        Public Sub ObjectInitializerAsNewValueTypeMultipleVariables()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -697,7 +697,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewRefTypeMultipleVariables()
+        Public Sub ObjectInitializerAsNewRefTypeMultipleVariables()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -796,7 +796,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewTypeParameterNewConstraint()
+        Public Sub ObjectInitializerAsNewTypeParameterNewConstraint()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -856,7 +856,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewTypeParameterStuctureConstraint()
+        Public Sub ObjectInitializerAsNewTypeParameterStuctureConstraint()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -913,7 +913,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewTypeParameterClassConstraint()
+        Public Sub ObjectInitializerAsNewTypeParameterClassConstraint()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -967,7 +967,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerNestedAsRefTypeEqualsNew()
+        Public Sub ObjectInitializerNestedAsRefTypeEqualsNew()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1042,7 +1042,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerRefTypeIntoArrayElement()
+        Public Sub ObjectInitializerRefTypeIntoArrayElement()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1123,7 +1123,7 @@ Nothing
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerValueTypeIntoArrayElement()
+        Public Sub ObjectInitializerValueTypeIntoArrayElement()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1203,7 +1203,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerRefTypeIntoField()
+        Public Sub ObjectInitializerRefTypeIntoField()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1271,7 +1271,7 @@ Nothing
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerValueTypeIntoField()
+        Public Sub ObjectInitializerValueTypeIntoField()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1339,7 +1339,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewValueTypeMultipleVariablesOfField()
+        Public Sub ObjectInitializerAsNewValueTypeMultipleVariablesOfField()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1411,7 +1411,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerPropertyInitializer()
+        Public Sub ObjectInitializerPropertyInitializer()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1486,7 +1486,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerFieldInitializer()
+        Public Sub ObjectInitializerFieldInitializer()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1615,7 +1615,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub InitTemp001()
+        Public Sub InitTemp001()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1670,7 +1670,7 @@ False
         End Sub
 
         <Fact()>
-        Sub InitTemp002()
+        Public Sub InitTemp002()
             Dim source =
 <compilation>
     <file name="a.vb">

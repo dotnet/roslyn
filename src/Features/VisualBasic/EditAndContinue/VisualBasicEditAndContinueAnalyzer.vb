@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports CompilerSyntaxUtilities = Microsoft.CodeAnalysis.VisualBasic.SyntaxUtilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
     <ExportLanguageService(GetType(IEditAndContinueAnalyzer), LanguageNames.VisualBasic), [Shared]>
@@ -146,6 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                     ' Dim a(n)
                     ' Dim a(n), b(n) As Integer
+                    ' Dim a(n1, n2, n3) As Integer
                     Dim modifiedIdentifier = DirectCast(node, ModifiedIdentifierSyntax)
                     If modifiedIdentifier.ArrayBounds IsNot Nothing Then
                         Return modifiedIdentifier.ArrayBounds
@@ -157,6 +157,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' Note: A method without body is represented by a SubStatement.
                     Return Nothing
             End Select
+        End Function
+
+        Protected Overrides Function GetCapturedVariables(model As SemanticModel, memberBody As SyntaxNode) As ImmutableArray(Of ISymbol)
+            Dim methodBlock = TryCast(memberBody, MethodBlockBaseSyntax)
+            If methodBlock IsNot Nothing Then
+                If methodBlock.Statements.IsEmpty Then
+                    Return ImmutableArray(Of ISymbol).Empty
+                End If
+
+                Return model.AnalyzeDataFlow(methodBlock.Statements.First, methodBlock.Statements.Last).Captured
+            End If
+
+            Dim expression = TryCast(memberBody, ExpressionSyntax)
+            If expression IsNot Nothing Then
+                Return model.AnalyzeDataFlow(expression).Captured
+            End If
+
+            ' Edge case, no need to be efficient, currently there can either be no captured variables or just "Me".
+            ' Dim a((Function(n) n + 1).Invoke(1), (Function(n) n + 2).Invoke(2)) As Integer
+            Dim arrayBounds = TryCast(memberBody, ArgumentListSyntax)
+            If arrayBounds IsNot Nothing Then
+                Return ImmutableArray.CreateRange(
+                    arrayBounds.Arguments.SelectMany(Function(argument) model.AnalyzeDataFlow(argument).Captured).Distinct())
+            End If
+
+            Throw ExceptionUtilities.UnexpectedValue(memberBody)
+        End Function
+
+        Friend Overrides Function HasParameterClosureScope(member As ISymbol) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function GetVariableUseSites(roots As IEnumerable(Of SyntaxNode), localOrParameter As ISymbol, model As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
+            Debug.Assert(TypeOf localOrParameter Is IParameterSymbol OrElse TypeOf localOrParameter Is ILocalSymbol OrElse TypeOf localOrParameter Is IRangeVariableSymbol)
+
+            ' Not supported (it's non trivial to find all places where "this" is used):
+            Debug.Assert(Not localOrParameter.IsThisParameter())
+
+            Return From root In roots
+                   From node In root.DescendantNodesAndSelf()
+                   Where node.IsKind(SyntaxKind.IdentifierName)
+                   Let identifier = DirectCast(node, IdentifierNameSyntax)
+                   Where String.Equals(DirectCast(identifier.Identifier.Value, String), localOrParameter.Name, StringComparison.OrdinalIgnoreCase) AndAlso
+                         If(model.GetSymbolInfo(identifier, cancellationToken).Symbol?.Equals(localOrParameter), False)
+                   Select node
         End Function
 
         Private Shared Function HasSimpleAsNewInitializer(variableDeclarator As VariableDeclaratorSyntax) As Boolean
@@ -376,8 +421,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Debug.Assert(node IsNot Nothing)
 
             While node IsNot declarationBody AndAlso
-                  Not StatementSyntaxComparer.HasLabel(node.Kind) AndAlso
-                  Not SyntaxUtilities.IsLambdaBodyStatementOrExpression(node)
+                  Not StatementSyntaxComparer.HasLabel(node) AndAlso
+                  Not LambdaUtilities.IsLambdaBodyStatementOrExpression(node)
 
                 node = node.Parent
                 If partnerOpt IsNot Nothing Then
@@ -402,12 +447,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return Function(newNode) SyntaxUtilities.FindPartner(newRoot, oldRoot, newNode)
         End Function
 
+        Friend Overrides Function IsClosureScope(node As SyntaxNode) As Boolean
+            Return LambdaUtilities.IsClosureScope(node)
+        End Function
+
         Protected Overrides Function FindEnclosingLambdaBody(containerOpt As SyntaxNode, node As SyntaxNode) As SyntaxNode
             Dim root As SyntaxNode = GetEncompassingAncestor(containerOpt)
 
             While node IsNot root
                 Dim body As SyntaxNode = Nothing
-                If SyntaxUtilities.IsLambdaBodyStatementOrExpression(node, body) Then
+                If LambdaUtilities.IsLambdaBodyStatementOrExpression(node, body) Then
                     Return body
                 End If
 
@@ -418,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function GetPartnerLambdaBody(oldBody As SyntaxNode, newLambda As SyntaxNode) As SyntaxNode
-            Return CompilerSyntaxUtilities.GetCorrespondingLambdaBody(oldBody, newLambda)
+            Return LambdaUtilities.GetCorrespondingLambdaBody(oldBody, newLambda)
         End Function
 
         Protected Overrides Function ComputeTopLevelMatch(oldCompilationUnit As SyntaxNode, newCompilationUnit As SyntaxNode) As Match(Of SyntaxNode)
@@ -435,8 +484,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             If TypeOf oldBody.Parent Is LambdaExpressionSyntax Then
                 ' The root is a single/multi line sub/function lambda.
-                ' Its label is "Ignore" label, so we need to let the comparer know to Not ignore it.
-                Return New StatementSyntaxComparer.SingleBody(oldBody.Parent, newBody.Parent).ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
+                Return New StatementSyntaxComparer(oldBody.Parent, oldBody.Parent.ChildNodes(), newBody.Parent, newBody.Parent.ChildNodes(), matchingLambdas:=True).
+                       ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
             End If
 
             If TypeOf oldBody Is ExpressionSyntax Then
@@ -444,12 +493,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ' Dim a As <NewExpression>
                 ' Dim a, b, c As <NewExpression>
                 ' Queries: The root is a query clause, the body is the expression.
-                Return New StatementSyntaxComparer.MultiBody(oldBody, newBody).ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
+                Return New StatementSyntaxComparer(oldBody.Parent, {oldBody}, newBody.Parent, {newBody}, matchingLambdas:=False).
+                       ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
             End If
 
             ' Method, accessor, operator, etc. bodies are represented by the declaring block, which is also the root.
             ' The body of an array initialized fields is an ArgumentListSyntax, which is the match root.
-            Return StatementSyntaxComparer.SingleBody.Default.ComputeMatch(oldBody, newBody, knownMatches)
+            Return StatementSyntaxComparer.Default.ComputeMatch(oldBody, newBody, knownMatches)
         End Function
 
         Protected Overrides Function TryMatchActiveStatement(oldStatement As SyntaxNode,
@@ -880,19 +930,98 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Friend Overrides Function ContainsLambda(declaration As SyntaxNode) As Boolean
-            Return declaration.DescendantNodes().Any(AddressOf SyntaxUtilities.IsLambda)
+            Return declaration.DescendantNodes().Any(AddressOf LambdaUtilities.IsLambda)
         End Function
 
         Friend Overrides Function IsLambda(node As SyntaxNode) As Boolean
-            Return SyntaxUtilities.IsLambda(node)
+            Return LambdaUtilities.IsLambda(node)
+        End Function
+
+        Friend Overrides Function IsLambdaExpression(node As SyntaxNode) As Boolean
+            Return TypeOf node Is LambdaExpressionSyntax
         End Function
 
         Friend Overrides Function TryGetLambdaBodies(node As SyntaxNode, ByRef body1 As SyntaxNode, ByRef body2 As SyntaxNode) As Boolean
-            Return SyntaxUtilities.TryGetLambdaBodies(node, body1, body2)
+            Return LambdaUtilities.TryGetLambdaBodies(node, body1, body2)
+        End Function
+
+        Friend Overrides Function GetLambda(lambdaBody As SyntaxNode) As SyntaxNode
+            Return LambdaUtilities.GetLambda(lambdaBody)
+        End Function
+
+        Protected Overrides Function GetLambdaBodyExpressionsAndStatements(lambdaBody As SyntaxNode) As IEnumerable(Of SyntaxNode)
+            Return LambdaUtilities.GetLambdaBodyExpressionsAndStatements(lambdaBody)
+        End Function
+
+        Friend Overrides Function GetLambdaExpressionSymbol(model As SemanticModel, lambdaExpression As SyntaxNode, cancellationToken As CancellationToken) As IMethodSymbol
+            Dim lambdaExpressionSyntax = DirectCast(lambdaExpression, LambdaExpressionSyntax)
+
+            ' The semantic model only returns the lambda symbol for positions that are within the body of the lambda (not the header)
+            Return DirectCast(model.GetEnclosingSymbol(lambdaExpressionSyntax.SubOrFunctionHeader.Span.End, cancellationToken), IMethodSymbol)
+        End Function
+
+        Friend Overrides Function GetContainingQueryExpression(node As SyntaxNode) As SyntaxNode
+            Return node.FirstAncestorOrSelf(Of QueryExpressionSyntax)
+        End Function
+
+        Friend Overrides Function QueryClauseLambdasTypeEquivalent(oldModel As SemanticModel, oldNode As SyntaxNode, newModel As SemanticModel, newNode As SyntaxNode, cancellationToken As CancellationToken) As Boolean
+            Select Case oldNode.Kind
+                Case SyntaxKind.AggregateClause
+                    Dim oldInfo = oldModel.GetAggregateClauseSymbolInfo(DirectCast(oldNode, AggregateClauseSyntax), cancellationToken)
+                    Dim newInfo = newModel.GetAggregateClauseSymbolInfo(DirectCast(newNode, AggregateClauseSyntax), cancellationToken)
+                    Return MemberSignaturesEquivalent(oldInfo.Select1.Symbol, newInfo.Select1.Symbol) AndAlso
+                           MemberSignaturesEquivalent(oldInfo.Select2.Symbol, newInfo.Select2.Symbol)
+
+                Case SyntaxKind.CollectionRangeVariable
+                    Dim oldInfo = oldModel.GetCollectionRangeVariableSymbolInfo(DirectCast(oldNode, CollectionRangeVariableSyntax), cancellationToken)
+                    Dim newInfo = newModel.GetCollectionRangeVariableSymbolInfo(DirectCast(newNode, CollectionRangeVariableSyntax), cancellationToken)
+                    Return MemberSignaturesEquivalent(oldInfo.AsClauseConversion.Symbol, newInfo.AsClauseConversion.Symbol) AndAlso
+                           MemberSignaturesEquivalent(oldInfo.SelectMany.Symbol, newInfo.SelectMany.Symbol) AndAlso
+                           MemberSignaturesEquivalent(oldInfo.ToQueryableCollectionConversion.Symbol, newInfo.ToQueryableCollectionConversion.Symbol)
+
+                Case SyntaxKind.FunctionAggregation
+                    Dim oldInfo = oldModel.GetSymbolInfo(DirectCast(oldNode, FunctionAggregationSyntax), cancellationToken)
+                    Dim newInfo = newModel.GetSymbolInfo(DirectCast(newNode, FunctionAggregationSyntax), cancellationToken)
+                    Return MemberSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
+
+                Case SyntaxKind.ExpressionRangeVariable
+                    Dim oldInfo = oldModel.GetSymbolInfo(DirectCast(oldNode, ExpressionRangeVariableSyntax), cancellationToken)
+                    Dim newInfo = newModel.GetSymbolInfo(DirectCast(newNode, ExpressionRangeVariableSyntax), cancellationToken)
+                    Return MemberSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
+
+                Case SyntaxKind.AscendingOrdering,
+                     SyntaxKind.DescendingOrdering
+                    Dim oldInfo = oldModel.GetSymbolInfo(DirectCast(oldNode, OrderingSyntax), cancellationToken)
+                    Dim newInfo = newModel.GetSymbolInfo(DirectCast(newNode, OrderingSyntax), cancellationToken)
+                    Return MemberSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
+
+                Case SyntaxKind.FromClause,
+                     SyntaxKind.WhereClause,
+                     SyntaxKind.SkipClause,
+                     SyntaxKind.TakeClause,
+                     SyntaxKind.SkipWhileClause,
+                     SyntaxKind.TakeWhileClause,
+                     SyntaxKind.GroupByClause,
+                     SyntaxKind.SimpleJoinClause,
+                     SyntaxKind.GroupJoinClause,
+                     SyntaxKind.SelectClause
+                    Dim oldInfo = oldModel.GetSymbolInfo(DirectCast(oldNode, QueryClauseSyntax), cancellationToken)
+                    Dim newInfo = newModel.GetSymbolInfo(DirectCast(newNode, QueryClauseSyntax), cancellationToken)
+                    Return MemberSignaturesEquivalent(oldInfo.Symbol, newInfo.Symbol)
+
+                Case Else
+                    Return True
+            End Select
         End Function
 #End Region
 
 #Region "Diagnostic Info"
+        Protected Overrides ReadOnly Property ErrorDisplayFormat As SymbolDisplayFormat
+            Get
+                Return SymbolDisplayFormat.VisualBasicShortErrorMessageFormat
+            End Get
+        End Property
+
         Protected Overrides Function GetDiagnosticSpan(node As SyntaxNode, editKind As EditKind) As TextSpan
             Return GetDiagnosticSpanImpl(node, editKind)
         End Function
@@ -1273,7 +1402,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.FieldDeclaration
                     Dim declaration = DirectCast(node, FieldDeclarationSyntax)
-                    Return If(declaration.Modifiers.Any(SyntaxKind.WithEventsKeyword), "WithEvents field", "field")
+                    Return If(declaration.Modifiers.Any(SyntaxKind.WithEventsKeyword), "WithEvents field",
+                           If(declaration.Modifiers.Any(SyntaxKind.ConstKeyword), "const field", "field"))
 
                 Case SyntaxKind.VariableDeclarator,
                      SyntaxKind.ModifiedIdentifier
@@ -1458,13 +1588,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #Region "Top-level Syntaxtic Rude Edits"
         Private Structure EditClassifier
 
-            Private ReadOnly analyzer As VisualBasicEditAndContinueAnalyzer
-            Private ReadOnly diagnostics As List(Of RudeEditDiagnostic)
-            Private ReadOnly match As Match(Of SyntaxNode)
-            Private ReadOnly oldNode As SyntaxNode
-            Private ReadOnly newNode As SyntaxNode
-            Private ReadOnly kind As EditKind
-            Private ReadOnly span As TextSpan?
+            Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer
+            Private ReadOnly _diagnostics As List(Of RudeEditDiagnostic)
+            Private ReadOnly _match As Match(Of SyntaxNode)
+            Private ReadOnly _oldNode As SyntaxNode
+            Private ReadOnly _newNode As SyntaxNode
+            Private ReadOnly _kind As EditKind
+            Private ReadOnly _span As TextSpan?
 
             Public Sub New(analyzer As VisualBasicEditAndContinueAnalyzer,
                            diagnostics As List(Of RudeEditDiagnostic),
@@ -1474,13 +1604,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                            Optional match As Match(Of SyntaxNode) = Nothing,
                            Optional span As TextSpan? = Nothing)
 
-                Me.analyzer = analyzer
-                Me.diagnostics = diagnostics
-                Me.oldNode = oldNode
-                Me.newNode = newNode
-                Me.kind = kind
-                Me.span = span
-                Me.match = match
+                Me._analyzer = analyzer
+                Me._diagnostics = diagnostics
+                Me._oldNode = oldNode
+                Me._newNode = newNode
+                Me._kind = kind
+                Me._span = span
+                Me._match = match
             End Sub
 
             Private Sub ReportError(kind As RudeEditKind)
@@ -1488,49 +1618,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Sub ReportError(kind As RudeEditKind, args As String())
-                diagnostics.Add(New RudeEditDiagnostic(kind, GetSpan(), If(newNode, oldNode), args))
+                _diagnostics.Add(New RudeEditDiagnostic(kind, GetSpan(), If(_newNode, _oldNode), args))
             End Sub
 
             Private Sub ReportError(kind As RudeEditKind, spanNode As SyntaxNode, displayNode As SyntaxNode)
-                diagnostics.Add(New RudeEditDiagnostic(kind, GetDiagnosticSpanImpl(spanNode, Me.kind), displayNode, {GetTopLevelDisplayNameImpl(displayNode)}))
+                _diagnostics.Add(New RudeEditDiagnostic(kind, GetDiagnosticSpanImpl(spanNode, Me._kind), displayNode, {GetTopLevelDisplayNameImpl(displayNode)}))
             End Sub
 
             Private Function GetSpan() As TextSpan
-                If span.HasValue Then
-                    Return span.Value
+                If _span.HasValue Then
+                    Return _span.Value
                 End If
 
-                If newNode Is Nothing Then
-                    Return analyzer.GetDeletedNodeDiagnosticSpan(match, oldNode)
+                If _newNode Is Nothing Then
+                    Return _analyzer.GetDeletedNodeDiagnosticSpan(_match.Matches, _oldNode)
                 Else
-                    Return GetDiagnosticSpanImpl(newNode, kind)
+                    Return GetDiagnosticSpanImpl(_newNode, _kind)
                 End If
             End Function
 
             Private Function GetDisplayName() As String
-                Return GetTopLevelDisplayNameImpl(If(newNode, oldNode))
+                Return GetTopLevelDisplayNameImpl(If(_newNode, _oldNode))
             End Function
 
             Public Sub ClassifyEdit()
-                Select Case kind
+                Select Case _kind
                     Case EditKind.Delete
-                        ClassifyDelete(oldNode)
+                        ClassifyDelete(_oldNode)
                         Return
 
                     Case EditKind.Update
-                        ClassifyUpdate(oldNode, newNode)
+                        ClassifyUpdate(_oldNode, _newNode)
                         Return
 
                     Case EditKind.Move
-                        ClassifyMove(oldNode, newNode)
+                        ClassifyMove(_oldNode, _newNode)
                         Return
 
                     Case EditKind.Insert
-                        ClassifyInsert(newNode)
+                        ClassifyInsert(_newNode)
                         Return
 
                     Case EditKind.Reorder
-                        ClassifyReorder(oldNode, newNode)
+                        ClassifyReorder(_oldNode, _newNode)
                         Return
 
                     Case Else
@@ -1793,7 +1923,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
 
                 If method.HandlesClause IsNot Nothing Then
-                    ReportError(RudeEditKind.RUDE_EDIT_ADD_HANDLES_CLAUSE)
+                    ReportError(RudeEditKind.InsertHandlesClause)
                 End If
 
                 ClassifyModifiedMemberInsert(method.Modifiers)
@@ -2191,7 +2321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 ' Otherwise only the size of the array changed, which is a legal initializer update
                 ' unless it contains lambdas, queries etc.
-                ClassifyDeclarationBodyRudeUpdates(newNode)
+                ClassifyDeclarationBodyRudeUpdates(newNode, allowLambdas:=False)
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As VariableDeclaratorSyntax, newNode As VariableDeclaratorSyntax)
@@ -2201,10 +2331,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                ClassifyTypeAndInitializerUpdates(oldNode.Initializer,
+                If ClassifyTypeAndInitializerUpdates(oldNode.Initializer,
                                                   oldNode.AsClause,
                                                   newNode.Initializer,
-                                                  newNode.AsClause)
+                                                  newNode.AsClause) Then
+                    ' Check if a constant field is updated:
+                    Dim fieldDeclaration = DirectCast(oldNode.Parent, FieldDeclarationSyntax)
+                    If fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) Then
+                        ReportError(RudeEditKind.Update)
+                        Return
+                    End If
+                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As PropertyStatementSyntax, newNode As PropertyStatementSyntax)
@@ -2261,7 +2398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Dim newInitializer = GetInitializerExpression(newEqualsValue, newClause)
 
                 If newInitializer IsNot Nothing AndAlso Not SyntaxFactory.AreEquivalent(oldInitializer, newInitializer) Then
-                    ClassifyDeclarationBodyRudeUpdates(newInitializer)
+                    ClassifyDeclarationBodyRudeUpdates(newInitializer, allowLambdas:=False)
                     Return True
                 End If
 
@@ -2297,7 +2434,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ClassifyMethodBodyRudeUpdate(oldNode,
                                              newNode,
                                              containingMethod:=newNode,
-                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax))
+                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax),
+                                             allowLambdas:=True)
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As MethodStatementSyntax, newNode As MethodStatementSyntax)
@@ -2311,7 +2449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                If Not SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers) Then
+                If Not ClassifyMethodModifierUpdate(oldNode.Modifiers, newNode.Modifiers) Then
                     ReportError(RudeEditKind.ModifiersUpdate)
                     Return
                 End If
@@ -2327,6 +2465,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
             End Sub
+
+            Private Function ClassifyMethodModifierUpdate(oldModifiers As SyntaxTokenList, newModifiers As SyntaxTokenList) As Boolean
+                Dim oldAsyncIndex = oldModifiers.IndexOf(SyntaxKind.AsyncKeyword)
+                Dim newAsyncIndex = newModifiers.IndexOf(SyntaxKind.AsyncKeyword)
+
+                If oldAsyncIndex >= 0 Then
+                    oldModifiers = oldModifiers.RemoveAt(oldAsyncIndex)
+                End If
+
+                If newAsyncIndex >= 0 Then
+                    newModifiers = newModifiers.RemoveAt(newAsyncIndex)
+                End If
+
+                Dim oldIteratorIndex = oldModifiers.IndexOf(SyntaxKind.IteratorKeyword)
+                Dim newIteratorIndex = newModifiers.IndexOf(SyntaxKind.IteratorKeyword)
+
+                If oldIteratorIndex >= 0 Then
+                    oldModifiers = oldModifiers.RemoveAt(oldIteratorIndex)
+                End If
+
+                If newIteratorIndex >= 0 Then
+                    newModifiers = newModifiers.RemoveAt(newIteratorIndex)
+                End If
+
+                Return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers)
+            End Function
 
             Private Sub ClassifyUpdate(oldNode As DeclareStatementSyntax, newNode As DeclareStatementSyntax)
                 If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
@@ -2357,7 +2521,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ClassifyMethodBodyRudeUpdate(oldNode,
                                              newNode,
                                              containingMethod:=Nothing,
-                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax))
+                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax),
+                                             allowLambdas:=True)
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As OperatorStatementSyntax, newNode As OperatorStatementSyntax)
@@ -2377,7 +2542,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ClassifyMethodBodyRudeUpdate(oldNode,
                                              newNode,
                                              containingMethod:=Nothing,
-                                             containingType:=DirectCast(newNode.Parent.Parent, TypeBlockSyntax))
+                                             containingType:=DirectCast(newNode.Parent.Parent, TypeBlockSyntax),
+                                             allowLambdas:=True)
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As AccessorStatementSyntax, newNode As AccessorStatementSyntax)
@@ -2406,7 +2572,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ClassifyMethodBodyRudeUpdate(oldNode,
                                              newNode,
                                              containingMethod:=Nothing,
-                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax))
+                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax),
+                                             allowLambdas:=False)
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As SubNewStatementSyntax, newNode As SubNewStatementSyntax)
@@ -2457,7 +2624,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Private Sub ClassifyMethodBodyRudeUpdate(oldBody As MethodBlockBaseSyntax,
                                                      newBody As MethodBlockBaseSyntax,
                                                      containingMethod As MethodBlockSyntax,
-                                                     containingType As TypeBlockSyntax)
+                                                     containingType As TypeBlockSyntax,
+                                                     allowLambdas As Boolean)
 
                 If (oldBody.EndBlockStatement Is Nothing) <> (newBody.EndBlockStatement Is Nothing) Then
                     If oldBody.EndBlockStatement Is Nothing Then
@@ -2474,7 +2642,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Debug.Assert(newBody.EndBlockStatement IsNot Nothing)
 
                 ClassifyMemberBodyRudeUpdate(containingMethod, containingType, isTriviaUpdate:=False)
-                ClassifyDeclarationBodyRudeUpdates(newBody)
+                ClassifyDeclarationBodyRudeUpdates(newBody, allowLambdas)
             End Sub
 
             Public Sub ClassifyMemberBodyRudeUpdate(containingMethodOpt As MethodBlockSyntax, containingTypeOpt As TypeBlockSyntax, isTriviaUpdate As Boolean)
@@ -2489,23 +2657,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
             End Sub
 
-            Public Sub ClassifyDeclarationBodyRudeUpdates(newDeclarationOrBody As SyntaxNode)
-                For Each node In newDeclarationOrBody.DescendantNodesAndSelf(AddressOf ChildrenCompiledInBody)
+            Public Sub ClassifyDeclarationBodyRudeUpdates(newDeclarationOrBody As SyntaxNode, allowLambdas As Boolean)
+                For Each node In newDeclarationOrBody.DescendantNodesAndSelf()
                     Select Case node.Kind
                         Case SyntaxKind.MultiLineFunctionLambdaExpression,
                              SyntaxKind.SingleLineFunctionLambdaExpression,
                              SyntaxKind.MultiLineSubLambdaExpression,
                              SyntaxKind.SingleLineSubLambdaExpression
-                            ReportError(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, node, Me.newNode)
-                            Return
+                            ' TODO:
+                            If Not allowLambdas Then
+                                ReportError(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, node, Me._newNode)
+                                Return
+                            End If
 
                         Case SyntaxKind.QueryExpression
-                            ReportError(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, node, Me.newNode)
+                            ' TODO:
+                            If Not allowLambdas Then
+                                ReportError(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, node, Me._newNode)
+                                Return
+                            End If
+
+                        Case SyntaxKind.AggregateClause,
+                             SyntaxKind.GroupByClause,
+                             SyntaxKind.SimpleJoinClause,
+                             SyntaxKind.GroupJoinClause
+                            ReportError(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, node, Me._newNode)
                             Return
 
-                        Case SyntaxKind.AnonymousObjectCreationExpression
-                            ReportError(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, node, Me.newNode)
-                            Return
+                        Case SyntaxKind.LocalDeclarationStatement
+                            Dim declaration = DirectCast(node, LocalDeclarationStatementSyntax)
+                            If declaration.Modifiers.Any(SyntaxKind.StaticKeyword) Then
+                                ReportError(RudeEditKind.UpdateStaticLocal)
+                            End If
                     End Select
                 Next
             End Sub
@@ -2554,7 +2737,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 newMember.FirstAncestorOrSelf(Of TypeBlockSyntax)(),
                 isTriviaUpdate:=True)
 
-            classifier.ClassifyDeclarationBodyRudeUpdates(newMember)
+            classifier.ClassifyDeclarationBodyRudeUpdates(newMember,
+                                                          allowLambdas:=Not newMember.IsKind(SyntaxKind.ConstructorBlock) AndAlso
+                                                                        Not newMember.IsKind(SyntaxKind.ModifiedIdentifier) AndAlso
+                                                                        Not newMember.IsKind(SyntaxKind.VariableDeclarator) AndAlso
+                                                                        Not newMember.IsKind(SyntaxKind.PropertyStatement))
         End Sub
 
 #End Region
@@ -2611,7 +2798,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End Select
 
                 ' stop at lambda
-                If SyntaxUtilities.IsLambda(kind) Then
+                If LambdaUtilities.IsLambda(node) Then
                     Exit While
                 End If
 
@@ -2730,7 +2917,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return node
                 End Select
 
-                If SyntaxUtilities.IsLambdaBodyStatementOrExpression(node) Then
+                If LambdaUtilities.IsLambdaBodyStatementOrExpression(node) Then
                     Return node
                 End If
 

@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
     internal sealed class ChangeSignatureTestState : IDisposable
     {
         private TestHostDocument _testDocument;
-        public TestWorkspace Workspace { get; private set; }
-        public Document InvocationDocument { get; private set; }
-        public AbstractChangeSignatureService ChangeSignatureService { get; private set; }
+        public TestWorkspace Workspace { get; }
+        public Document InvocationDocument { get; }
+        public AbstractChangeSignatureService ChangeSignatureService { get; }
         public string ErrorMessage { get; private set; }
         public NotificationSeverity ErrorSeverity { get; private set; }
 

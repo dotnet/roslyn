@@ -1230,6 +1230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MetadataReferencesNotSupported = 7099,
         ERR_InvalidAssemblyCulture = 7100,
         ERR_EncReferenceToAddedMember = 7101,
+        ERR_MutuallyExclusiveOptions = 7102,
 
         // available 7102-8000
 
@@ -1269,7 +1270,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NoAnalyzerInAssembly = 8033,
         WRN_UnableToLoadAnalyzer = 8034,
         ERR_CantReadRulesetFile = 8035,
-        // available 8036-8039
+        ERR_BadPdbData = 8036,
+        // available 8037-8039
         INF_UnableToLoadSomeTypesInAnalyzer = 8040,
         // available 8041-8049
         ERR_InitializerOnNonAutoProperty = 8050,
@@ -1288,7 +1290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NullPropagatingOpInExpressionTree = 8072,
         WRN_NubExprIsConstBool2 = 8073,
         ERR_DictionaryInitializerInExpressionTree = 8074,
-        ERR_ParameterlessStructCtorsMustBePublic = 8075,
+        ERR_ExtensionCollectionElementInitializerInExpressionTree = 8075,
         ERR_UnclosedExpressionHole = 8076,
         ERR_SingleLineCommentInExpressionHole = 8077,
         ERR_InsufficientStack = 8078,

@@ -126,7 +126,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub TestObsoleteAttributeOnMembers()
+        Public Sub TestObsoleteAttributeOnMembers()
             Dim source =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -348,7 +348,7 @@ BC31142: 'System.ObsoleteAttribute' cannot be applied to the 'AddHandler', 'Remo
         End Sub
 
         <Fact>
-        Sub TestObsoleteAttributeOnOperators()
+        Public Sub TestObsoleteAttributeOnOperators()
             Dim source =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -420,7 +420,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub TestObsoleteAttributeInMetadata()
+        Public Sub TestObsoleteAttributeInMetadata()
             Dim peSource =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -507,7 +507,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub TestObsoleteAttributeCycles()
+        Public Sub TestObsoleteAttributeCycles()
             Dim source =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -1018,7 +1018,7 @@ End Class
 
         <WorkItem(578023, "DevDiv")>
         <Fact>
-        Sub TestObsoleteInAlias()
+        Public Sub TestObsoleteInAlias()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -1069,7 +1069,7 @@ Imports A(Of C()).B
 
         <WorkItem(580832, "DevDiv")>
         <Fact>
-        Sub TestObsoleteOnVirtualMethod()
+        Public Sub TestObsoleteOnVirtualMethod()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[

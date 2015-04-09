@@ -76,6 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 globalOperation.Done();
                 globalOperation.Dispose();
+                _operations.Remove(operation);
             }
         }
     }

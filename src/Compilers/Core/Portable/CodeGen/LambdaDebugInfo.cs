@@ -20,23 +20,33 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public readonly int SyntaxOffset;
 
         /// <summary>
-        /// The ordinal of the closure frame the lambda belongs to, or -1 if not applicable 
-        /// (static lambdas, lambdas closing over this pointer only).
+        /// The ordinal of the closure frame the lambda belongs to, or
+        /// <see cref="StaticClosureOrdinal"/> if the lambda is static, or
+        /// <see cref="ThisOnlyClosureOrdinal"/> if the lambda is closed over "this" pointer only.
         /// </summary>
         public readonly int ClosureOrdinal;
 
-        public LambdaDebugInfo(int syntaxOffset, int closureOrdinal)
-        {
-            Debug.Assert(closureOrdinal >= -1);
+        public readonly int Generation;
 
-            this.SyntaxOffset = syntaxOffset;
-            this.ClosureOrdinal = closureOrdinal;
+        public const int StaticClosureOrdinal = -1;
+        public const int ThisOnlyClosureOrdinal = -2;
+        public const int MinClosureOrdinal = ThisOnlyClosureOrdinal;
+
+        public LambdaDebugInfo(int syntaxOffset, int closureOrdinal, int generation)
+        {
+            Debug.Assert(closureOrdinal >= MinClosureOrdinal);
+            Debug.Assert(generation >= 0);
+
+            SyntaxOffset = syntaxOffset;
+            ClosureOrdinal = closureOrdinal;
+            Generation = generation;
         }
 
         public bool Equals(LambdaDebugInfo other)
         {
-            return this.SyntaxOffset == other.SyntaxOffset
-                && this.ClosureOrdinal == other.ClosureOrdinal;
+            return SyntaxOffset == other.SyntaxOffset
+                && ClosureOrdinal == other.ClosureOrdinal 
+                && Generation == other.Generation;
         }
 
         public override bool Equals(object obj)
@@ -46,12 +56,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override int GetHashCode()
         {
-            return Hash.Combine(ClosureOrdinal, SyntaxOffset);
+            return Hash.Combine(ClosureOrdinal, 
+                   Hash.Combine(SyntaxOffset, Generation));
         }
 
         public override string ToString()
         {
-            return $"({SyntaxOffset}, {ClosureOrdinal})";
+            return 
+                ClosureOrdinal == StaticClosureOrdinal ? $"(#{Generation} @{SyntaxOffset}, static)" :
+                ClosureOrdinal == ThisOnlyClosureOrdinal ? $"(#{Generation} @{SyntaxOffset}, this)" :
+                $"(#{Generation} @{SyntaxOffset} in {ClosureOrdinal})";
         }
     }
 }

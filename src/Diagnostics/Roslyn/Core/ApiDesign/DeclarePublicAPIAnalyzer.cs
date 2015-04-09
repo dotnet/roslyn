@@ -16,6 +16,8 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
     public class DeclarePublicAPIAnalyzer : DiagnosticAnalyzer
     {
         internal const string PublicApiFileName = "PublicAPI.txt";
+        internal const string PublicApiNamePropertyBagKey = "PublicAPIName";
+        internal const string MinimalNamePropertyBagKey = "MinimalName";
 
         internal static readonly DiagnosticDescriptor DeclareNewApiRule = new DiagnosticDescriptor(
             id: RoslynDiagnosticIds.DeclarePublicApiRuleId,
@@ -121,9 +123,13 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                         {
                             var errorMessageName = symbol.ToDisplayString(ShortSymbolNameFormat);
 
+                            var propertyBag = ImmutableDictionary<string, string>.Empty
+                                .Add(PublicApiNamePropertyBagKey, publicApiName)
+                                .Add(MinimalNamePropertyBagKey, errorMessageName);
+
                             foreach (var sourceLocation in symbol.Locations.Where(loc => loc.IsInSource))
                             {
-                                symbolContext.ReportDiagnostic(Diagnostic.Create(DeclareNewApiRule, sourceLocation, errorMessageName));
+                                symbolContext.ReportDiagnostic(Diagnostic.Create(DeclareNewApiRule, sourceLocation, propertyBag, errorMessageName));
                             }
                         }
                     }
@@ -155,7 +161,9 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                             location = Location.Create(publicApiAdditionalText.Path, default(TextSpan), default(LinePositionSpan));
                         }
 
-                        compilationEndContext.ReportDiagnostic(Diagnostic.Create(RemoveDeletedApiRule, location, symbol));
+                        var propertyBag = ImmutableDictionary<string, string>.Empty.Add(PublicApiNamePropertyBagKey, symbol);
+
+                        compilationEndContext.ReportDiagnostic(Diagnostic.Create(RemoveDeletedApiRule, location, propertyBag, symbol));
                     }
                 });
             });

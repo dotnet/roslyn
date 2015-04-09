@@ -10,28 +10,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
         Private Class ReplaceTokenKeywordCodeAction
             Inherits CodeAction
 
-            Private blockKind As SyntaxKind
-            Private invalidToken As SyntaxToken
-            Private document As Document
+            Private _blockKind As SyntaxKind
+            Private _invalidToken As SyntaxToken
+            Private _document As Document
 
-            Sub New(blockKind As SyntaxKind,
+            Public Sub New(blockKind As SyntaxKind,
                     invalidToken As SyntaxToken,
                     document As Document)
-                Me.blockKind = blockKind
-                Me.invalidToken = invalidToken
-                Me.document = document
+                Me._blockKind = blockKind
+                Me._invalidToken = invalidToken
+                Me._document = document
             End Sub
 
             Public Overrides ReadOnly Property Title As String
                 Get
-                    Return String.Format(VBFeaturesResources.ChangeTo, invalidToken.ValueText, SyntaxFacts.GetText(BlockKindToKeywordKind(blockKind)))
+                    Return String.Format(VBFeaturesResources.ChangeTo, _invalidToken.ValueText, SyntaxFacts.GetText(BlockKindToKeywordKind(_blockKind)))
                 End Get
             End Property
 
             Protected Overrides Async Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
-                Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-                Dim rootWithoutToken = root.ReplaceToken(invalidToken, SyntaxFactory.Token(BlockKindToKeywordKind(blockKind)))
-                Return document.WithSyntaxRoot(rootWithoutToken)
+                Dim root = Await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+                Dim rootWithoutToken = root.ReplaceToken(_invalidToken, SyntaxFactory.Token(BlockKindToKeywordKind(_blockKind)))
+                Return _document.WithSyntaxRoot(rootWithoutToken)
             End Function
         End Class
     End Class

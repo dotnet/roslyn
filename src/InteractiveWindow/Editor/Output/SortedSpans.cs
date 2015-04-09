@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 if (startIndex < 0)
                 {
-                    return SpecializedCollections.EmptyEnumerable<Span>();
+                    return Enumerable.Empty<Span>();
                 }
 
                 int spanEnd = span.End;
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            return result ?? SpecializedCollections.EmptyEnumerable<Span>();
+            return result ?? Enumerable.Empty<Span>();
         }
 
         private sealed class SpanStartComparer : IComparer<Span>

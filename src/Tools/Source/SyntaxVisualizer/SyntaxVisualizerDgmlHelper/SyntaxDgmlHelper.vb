@@ -17,8 +17,8 @@ Public Class SyntaxDgmlOptions
 End Class
 
 Public Module SyntaxDgmlHelper
-    Private ReadOnly DefaultOptions As New SyntaxDgmlOptions
-    Private Const MAX_LABEL_LENGTH = 30
+    Private ReadOnly s_defaultOptions As New SyntaxDgmlOptions
+    Private Const s_MAX_LABEL_LENGTH = 30
 
     'Helpers that return the DGML representation of a SyntaxNode / SyntaxToken / SyntaxTrivia.
     'DGML is an XML-based format for directed graphs that can be rendered by Visual Studio.
@@ -42,7 +42,7 @@ Public Module SyntaxDgmlHelper
     Public Function ToDgml(node As SyntaxNode,
                            Optional options As SyntaxDgmlOptions = Nothing) As XElement
         If options Is Nothing Then
-            options = DefaultOptions
+            options = s_defaultOptions
         End If
 
         Dim dgml = GetDgmlTemplate(options)
@@ -54,7 +54,7 @@ Public Module SyntaxDgmlHelper
     Public Function ToDgml(token As SyntaxToken,
                            Optional options As SyntaxDgmlOptions = Nothing) As XElement
         If options Is Nothing Then
-            options = DefaultOptions
+            options = s_defaultOptions
         End If
 
         Dim dgml = GetDgmlTemplate(options)
@@ -66,7 +66,7 @@ Public Module SyntaxDgmlHelper
     Public Function ToDgml(trivia As SyntaxTrivia,
                            Optional options As SyntaxDgmlOptions = Nothing) As XElement
         If options Is Nothing Then
-            options = DefaultOptions
+            options = s_defaultOptions
         End If
 
         Dim dgml = GetDgmlTemplate(options)
@@ -101,7 +101,7 @@ Public Module SyntaxDgmlHelper
         AddNodeInfo(options, node, current, dgml, properties)
         Dim currentGroup As XElement = parentGroup
 
-        current.@Category= "0"
+        current.@Category = "0"
 
         If options.ShowGroups Then
             count += 1
@@ -118,11 +118,11 @@ Public Module SyntaxDgmlHelper
         Dim kind = node.GetKind()
 
         If (node.IsMissing OrElse node.Span.Length = 0) AndAlso Not kind = "CompilationUnit" Then
-            current.@Category= "4"
+            current.@Category = "4"
         End If
 
         If kind.Contains("Bad") OrElse kind.Contains("Skipped") Then
-            current.@Category= "5"
+            current.@Category = "5"
         End If
 
         If options.ShowErrors AndAlso node.ContainsDiagnostics Then
@@ -146,16 +146,16 @@ Public Module SyntaxDgmlHelper
         AddTokenInfo(options, token, current, dgml, properties)
         Dim currentGroup As XElement = parentGroup
 
-        current.@Category= "1"
+        current.@Category = "1"
 
         Dim kind = token.GetKind()
 
         If (token.IsMissing OrElse token.Span.Length = 0) AndAlso Not kind = "EndOfFileToken" Then
-            current.@Category= "4"
+            current.@Category = "4"
         End If
 
         If kind.Contains("Bad") OrElse kind.Contains("Skipped") Then
-            current.@Category= "5"
+            current.@Category = "5"
         End If
 
         If options.ShowErrors AndAlso token.ContainsDiagnostics Then
@@ -186,15 +186,15 @@ Public Module SyntaxDgmlHelper
         Dim currentGroup As XElement = parentGroup
 
         If isProcessingLeadingTrivia Then
-            current.@Category= "2"
+            current.@Category = "2"
         Else
-            current.@Category= "3"
+            current.@Category = "3"
         End If
 
         Dim kind = trivia.GetKind()
 
         If kind.Contains("Bad") OrElse kind.Contains("Skipped") Then
-            current.@Category= "5"
+            current.@Category = "5"
         End If
 
         If options.ShowErrors AndAlso trivia.ContainsDiagnostics Then
@@ -219,10 +219,10 @@ Public Module SyntaxDgmlHelper
         Dim text = token.ToString()
 
         If text.Trim <> String.Empty Then
-            If text.Length <= MAX_LABEL_LENGTH Then
+            If text.Length <= s_MAX_LABEL_LENGTH Then
                 label = text
             Else
-                label = text.Remove(MAX_LABEL_LENGTH) & "..."
+                label = text.Remove(s_MAX_LABEL_LENGTH) & "..."
             End If
         End If
 
@@ -240,17 +240,17 @@ Public Module SyntaxDgmlHelper
                             properties As HashSet(Of String))
         Dim nodeInfo = GetObjectInfo(node)
         AddDgmlProperty("Type", properties, dgml)
-        current.@Type= nodeInfo.TypeName
+        current.@Type = nodeInfo.TypeName
         AddDgmlProperty("Kind", properties, dgml)
-        current.@Kind= node.GetKind()
+        current.@Kind = node.GetKind()
 
         If options.ShowSpan Then
             AddDgmlProperty("Span", properties, dgml)
-            current.@Span= String.Format("{0} Length: {1}",
+            current.@Span = String.Format("{0} Length: {1}",
                                        node.Span.ToString,
                                        node.Span.Length)
             AddDgmlProperty("FullSpan", properties, dgml)
-            current.@FullSpan= String.Format("{0} Length: {1}",
+            current.@FullSpan = String.Format("{0} Length: {1}",
                                            node.FullSpan.ToString,
                                            node.FullSpan.Length)
         End If
@@ -267,7 +267,7 @@ Public Module SyntaxDgmlHelper
         If syntaxTree IsNot Nothing AndAlso options.ShowErrors Then
             Dim syntaxErrors = syntaxTree.GetDiagnostics(node)
             AddDgmlProperty("Errors", properties, dgml)
-            current.@Errors= String.Format("Count: {0}", syntaxErrors.Count)
+            current.@Errors = String.Format("Count: {0}", syntaxErrors.Count)
             For Each syntaxError In syntaxErrors
                 current.@Errors &= vbCrLf & syntaxError.ToString(Nothing)
             Next
@@ -275,9 +275,9 @@ Public Module SyntaxDgmlHelper
 
         If options.ShowText Then
             AddDgmlProperty("Text", properties, dgml)
-            current.@Text= node.ToString()
+            current.@Text = node.ToString()
             AddDgmlProperty("FullText", properties, dgml)
-            current.@FullText= node.ToFullString()
+            current.@FullText = node.ToFullString()
         End If
     End Sub
 
@@ -286,17 +286,17 @@ Public Module SyntaxDgmlHelper
                              properties As HashSet(Of String))
         Dim tokenInfo = GetObjectInfo(token)
         AddDgmlProperty("Type", properties, dgml)
-        current.@Type= tokenInfo.TypeName
+        current.@Type = tokenInfo.TypeName
         AddDgmlProperty("Kind", properties, dgml)
-        current.@Kind= token.GetKind()
+        current.@Kind = token.GetKind()
 
         If options.ShowSpan Then
             AddDgmlProperty("Span", properties, dgml)
-            current.@Span= String.Format("{0} Length: {1}",
+            current.@Span = String.Format("{0} Length: {1}",
                                        token.Span.ToString,
                                        token.Span.Length)
             AddDgmlProperty("FullSpan", properties, dgml)
-            current.@FullSpan= String.Format("{0} Length: {1}",
+            current.@FullSpan = String.Format("{0} Length: {1}",
                                            token.FullSpan.ToString,
                                            token.FullSpan.Length)
         End If
@@ -313,7 +313,7 @@ Public Module SyntaxDgmlHelper
         If syntaxTree IsNot Nothing AndAlso options.ShowErrors Then
             Dim syntaxErrors = syntaxTree.GetDiagnostics(token)
             AddDgmlProperty("Errors", properties, dgml)
-            current.@Errors= String.Format("Count: {0}", syntaxErrors.Count)
+            current.@Errors = String.Format("Count: {0}", syntaxErrors.Count)
             For Each syntaxError In syntaxErrors
                 current.@Errors &= vbCrLf & syntaxError.ToString(Nothing)
             Next
@@ -321,9 +321,9 @@ Public Module SyntaxDgmlHelper
 
         If options.ShowText Then
             AddDgmlProperty("Text", properties, dgml)
-            current.@Text= token.ToString()
+            current.@Text = token.ToString()
             AddDgmlProperty("FullText", properties, dgml)
-            current.@FullText= token.ToFullString()
+            current.@FullText = token.ToFullString()
         End If
     End Sub
 
@@ -332,17 +332,17 @@ Public Module SyntaxDgmlHelper
                               properties As HashSet(Of String))
         Dim triviaInfo = GetObjectInfo(trivia)
         AddDgmlProperty("Type", properties, dgml)
-        current.@Type= triviaInfo.TypeName
+        current.@Type = triviaInfo.TypeName
         AddDgmlProperty("Kind", properties, dgml)
-        current.@Kind= trivia.GetKind()
+        current.@Kind = trivia.GetKind()
 
         If options.ShowSpan Then
             AddDgmlProperty("Span", properties, dgml)
-            current.@Span= String.Format("{0} Length: {1}",
+            current.@Span = String.Format("{0} Length: {1}",
                                        trivia.Span.ToString,
                                        trivia.Span.Length)
             AddDgmlProperty("FullSpan", properties, dgml)
-            current.@FullSpan= String.Format("{0} Length: {1}",
+            current.@FullSpan = String.Format("{0} Length: {1}",
                                            trivia.FullSpan.ToString,
                                            trivia.FullSpan.Length)
         End If
@@ -359,7 +359,7 @@ Public Module SyntaxDgmlHelper
         If syntaxTree IsNot Nothing AndAlso options.ShowErrors Then
             Dim syntaxErrors = syntaxTree.GetDiagnostics(trivia)
             AddDgmlProperty("Errors", properties, dgml)
-            current.@Errors= String.Format("Count: {0}", syntaxErrors.Count)
+            current.@Errors = String.Format("Count: {0}", syntaxErrors.Count)
             For Each syntaxError In syntaxErrors
                 current.@Errors &= vbCrLf & syntaxError.ToString(Nothing)
             Next
@@ -367,9 +367,9 @@ Public Module SyntaxDgmlHelper
 
         If options.ShowText Then
             AddDgmlProperty("Text", properties, dgml)
-            current.@Text= trivia.ToString()
+            current.@Text = trivia.ToString()
             AddDgmlProperty("FullText", properties, dgml)
-            current.@FullText= trivia.ToFullString()
+            current.@FullText = trivia.ToFullString()
         End If
     End Sub
 #End Region
@@ -489,7 +489,7 @@ Public Module SyntaxDgmlHelper
     End Sub
 
     Private Sub AddErrorIcon(element As XElement)
-        element.@Icon= "CodeSchema_Event"
+        element.@Icon = "CodeSchema_Event"
     End Sub
 #End Region
 End Module

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal partial class BloomFilter : IObjectWritable
     {
-        private const string SerializationFormat = "1";
+        private const string SerializationFormat = "2";
 
         public void WriteTo(ObjectWriter writer)
         {

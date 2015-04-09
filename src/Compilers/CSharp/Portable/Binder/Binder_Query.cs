@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private UnboundLambda MakePairLambda(CSharpSyntaxNode node, QueryTranslationState state, RangeVariableSymbol x1, RangeVariableSymbol x2)
         {
-            Debug.Assert(SyntaxFacts.IsQueryPairLambda(node));
+            Debug.Assert(LambdaUtilities.IsQueryPairLambda(node));
 
             LambdaBodyFactory bodyFactory = (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag d) =>
             {
@@ -590,7 +590,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var construction = MakePair(let, x.Name, xExpression, let.Identifier.ValueText, yExpression, state, d);
-                return lambdaBodyBinder.CreateBlockFromExpression(let, lambdaBodyBinder.Locals, null, construction, d);
+
+                // The bound block represents a closure scope for transparent identifiers captured in the let clause.
+                // Such closures shall be associated with the lambda body expression.
+                return lambdaBodyBinder.CreateBlockFromExpression(let.Expression, lambdaBodyBinder.Locals, null, construction, d);
             };
 
             var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x), let.Expression, bodyFactory);
@@ -680,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private UnboundLambda MakeQueryUnboundLambda(CSharpSyntaxNode node, QueryUnboundLambdaState state)
         {
-            Debug.Assert(node is ExpressionSyntax || SyntaxFacts.IsQueryPairLambda(node));
+            Debug.Assert(node is ExpressionSyntax || LambdaUtilities.IsQueryPairLambda(node));
             var lambda = new UnboundLambda(node, state, hasErrors: false) { WasCompilerGenerated = true };
             state.SetUnboundLambda(lambda);
             return lambda;

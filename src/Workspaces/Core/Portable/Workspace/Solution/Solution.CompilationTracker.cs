@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         {
             private static readonly Func<ProjectState, string> s_logBuildCompilationAsync = LogBuildCompilationAsync;
 
-            public ProjectState ProjectState { get; private set; }
+            public ProjectState ProjectState { get; }
 
             /// <summary>
             /// Access via the <see cref="ReadState"/> and <see cref="WriteState"/> methods.
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
             private State _stateDoNotAccessDirectly;
 
             // guarantees only one thread is building at a time
-            private readonly AsyncSemaphore _buildLock = new AsyncSemaphore(initialCount: 1);
+            private readonly SemaphoreSlim _buildLock = new SemaphoreSlim(initialCount: 1);
 
             private CompilationTracker(
                 ProjectState project,

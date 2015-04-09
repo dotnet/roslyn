@@ -30,11 +30,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
             With typeBlock
                 With .BlockStatement
-                    Dim firstKeyword = If( .Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
+                    Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
                     highlights.Add(TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End))
                 End With
 
-                highlights.Add( .EndBlockStatement.Span)
+                highlights.Add(.EndBlockStatement.Span)
             End With
 
             Return highlights

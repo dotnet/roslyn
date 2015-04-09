@@ -13,68 +13,68 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotInheritable Class AnonymousTypePropertyPublicSymbol
             Inherits SynthesizedPropertyBase
 
-            Private ReadOnly m_container As AnonymousTypePublicSymbol
-            Private ReadOnly m_getMethod As MethodSymbol
-            Private ReadOnly m_setMethod As MethodSymbol
+            Private ReadOnly _container As AnonymousTypePublicSymbol
+            Private ReadOnly _getMethod As MethodSymbol
+            Private ReadOnly _setMethod As MethodSymbol
 
             ''' <summary> Index of the property in the containing anonymous type </summary>
             Friend ReadOnly PropertyIndex As Integer
 
             Public Sub New(container As AnonymousTypePublicSymbol, index As Integer)
-                Me.m_container = container
+                Me._container = container
                 Me.PropertyIndex = index
 
-                Me.m_getMethod = New AnonymousTypePropertyGetAccessorPublicSymbol(Me)
+                Me._getMethod = New AnonymousTypePropertyGetAccessorPublicSymbol(Me)
                 If Not container.TypeDescriptor.Fields(index).IsKey Then
-                    Me.m_setMethod = New AnonymousTypePropertySetAccessorPublicSymbol(Me, container.Manager.System_Void)
+                    Me._setMethod = New AnonymousTypePropertySetAccessorPublicSymbol(Me, container.Manager.System_Void)
                 End If
             End Sub
 
             Friend ReadOnly Property AnonymousType As AnonymousTypePublicSymbol
                 Get
-                    Return m_container
+                    Return _container
                 End Get
             End Property
 
             Public Overrides ReadOnly Property SetMethod As MethodSymbol
                 Get
-                    Return Me.m_setMethod
+                    Return Me._setMethod
                 End Get
             End Property
 
             Public Overrides ReadOnly Property GetMethod As MethodSymbol
                 Get
-                    Return Me.m_getMethod
+                    Return Me._getMethod
                 End Get
             End Property
 
             Public Overrides ReadOnly Property Type As TypeSymbol
                 Get
-                    Return Me.m_container.TypeDescriptor.Fields(Me.PropertyIndex).Type
+                    Return Me._container.TypeDescriptor.Fields(Me.PropertyIndex).Type
                 End Get
             End Property
 
             Public Overrides ReadOnly Property Name As String
                 Get
-                    Return Me.m_container.TypeDescriptor.Fields(Me.PropertyIndex).Name
+                    Return Me._container.TypeDescriptor.Fields(Me.PropertyIndex).Name
                 End Get
             End Property
 
             Public Overrides ReadOnly Property ContainingSymbol As Symbol
                 Get
-                    Return m_container
+                    Return _container
                 End Get
             End Property
 
             Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol
                 Get
-                    Return m_container
+                    Return _container
                 End Get
             End Property
 
             Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
                 Get
-                    Return ImmutableArray.Create(Me.m_container.TypeDescriptor.Fields(Me.PropertyIndex).Location)
+                    Return ImmutableArray.Create(Me._container.TypeDescriptor.Fields(Me.PropertyIndex).Location)
                 End Get
             End Property
 

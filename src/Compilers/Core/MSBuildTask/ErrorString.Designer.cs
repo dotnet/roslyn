@@ -61,6 +61,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to MSB3883: Unexpected exception: .
+        /// </summary>
+        internal static string Compiler_UnexpectedException {
+            get {
+                return ResourceManager.GetString("Compiler_UnexpectedException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MSB3053: The assembly alias &quot;{1}&quot; on reference &quot;{0}&quot; contains illegal characters..
         /// </summary>
         internal static string Csc_AssemblyAliasContainsIllegalCharacters {
@@ -97,11 +106,92 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to MSB3081: A problem occurred while trying to set the &quot;{0}&quot; parameter for the IDE&apos;s in-process compiler. {1}.
+        /// </summary>
+        internal static string General_CouldNotSetHostObjectParameter {
+            get {
+                return ResourceManager.GetString("General_CouldNotSetHostObjectParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MSB3105: The item &quot;{0}&quot; was specified more than once in the &quot;{1}&quot; parameter.  Duplicate items are not supported by the &quot;{1}&quot; parameter..
+        /// </summary>
+        internal static string General_DuplicateItemsNotSupported {
+            get {
+                return ResourceManager.GetString("General_DuplicateItemsNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MSB3083: The item &quot;{0}&quot; was specified more than once in the &quot;{1}&quot; parameter and both items had the same value &quot;{2}&quot; for the &quot;{3}&quot; metadata.  Duplicate items are not supported by the &quot;{1}&quot; parameter unless they have different values for the &quot;{3}&quot; metadata..
+        /// </summary>
+        internal static string General_DuplicateItemsNotSupportedWithMetadata {
+            get {
+                return ResourceManager.GetString("General_DuplicateItemsNotSupportedWithMetadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected file &quot;{0}&quot; does not exist..
+        /// </summary>
+        internal static string General_ExpectedFileMissing {
+            get {
+                return ResourceManager.GetString("General_ExpectedFileMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MSB3082: Task failed because &quot;{0}&quot; was not found, or the .NET Framework {1} is not installed.  Please install the .NET Framework {1}..
+        /// </summary>
+        internal static string General_FrameworksFileNotFound {
+            get {
+                return ResourceManager.GetString("General_FrameworksFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MSB3087: An incompatible host object was passed into the &quot;{0}&quot; task.  The host object for this task must implement the &quot;{1}&quot; interface..
+        /// </summary>
+        internal static string General_IncorrectHostObject {
+            get {
+                return ResourceManager.GetString("General_IncorrectHostObject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Item &quot;{0}&quot; has attribute &quot;{1}&quot; with value &quot;{2}&quot; that could not be converted to &quot;{3}&quot;..
         /// </summary>
         internal static string General_InvalidAttributeMetadata {
             get {
                 return ResourceManager.GetString("General_InvalidAttributeMetadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The IDE&apos;s in-process compiler does not support the specified values for the &quot;{0}&quot; parameter.  Therefore, this task will fallback to using the command-line compiler..
+        /// </summary>
+        internal static string General_ParameterUnsupportedOnHostCompiler {
+            get {
+                return ResourceManager.GetString("General_ParameterUnsupportedOnHostCompiler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MSB3104: The referenced assembly &quot;{0}&quot; was not found. If this assembly is produced by another one of your projects, please make sure to build that project before building this one..
+        /// </summary>
+        internal static string General_ReferenceDoesNotExist {
+            get {
+                return ResourceManager.GetString("General_ReferenceDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MSB3401: &quot;{1}&quot; is an invalid value for the &quot;{0}&quot; parameter.  The valid values are: {2}.
+        /// </summary>
+        internal static string Vbc_EnumParameterHasInvalidValue {
+            get {
+                return ResourceManager.GetString("Vbc_EnumParameterHasInvalidValue", resourceCulture);
             }
         }
         

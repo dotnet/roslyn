@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
 {
     internal class GenerateTypeDialogOptions
     {
-        public bool IsPublicOnlyAccessibility { get; private set; }
-        public TypeKindOptions TypeKindOptions { get; private set; }
-        public bool IsAttribute { get; private set; }
+        public bool IsPublicOnlyAccessibility { get; }
+        public TypeKindOptions TypeKindOptions { get; }
+        public bool IsAttribute { get; }
 
         public GenerateTypeDialogOptions(
             bool isPublicOnlyAccessibility = false,

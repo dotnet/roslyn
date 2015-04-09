@@ -4,7 +4,7 @@ Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
-    Module SyntaxTokenExtensions
+    Friend Module SyntaxTokenExtensions
 
         <Extension>
         Friend Function HasColonBeforePosition(token As SyntaxToken, position As Integer) As Boolean

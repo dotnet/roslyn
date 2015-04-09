@@ -12,15 +12,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
         Private Class SpellCheckCodeAction
             Inherits CodeAction
 
-            Private ReadOnly complexify As Boolean
-            Private ReadOnly document As Document
-            Private ReadOnly originalIdentifier As SimpleNameSyntax
-            Private ReadOnly newIdentifier As SimpleNameSyntax
+            Private ReadOnly _complexify As Boolean
+            Private ReadOnly _document As Document
+            Private ReadOnly _originalIdentifier As SimpleNameSyntax
+            Private ReadOnly _newIdentifier As SimpleNameSyntax
 
-            Sub New(document As Document, identifier As SimpleNameSyntax, replacementText As String, complexify As Boolean)
-                Me.document = document
-                Me.originalIdentifier = identifier
-                Me.complexify = complexify
+            Public Sub New(document As Document, identifier As SimpleNameSyntax, replacementText As String, complexify As Boolean)
+                Me._document = document
+                Me._originalIdentifier = identifier
+                Me._complexify = complexify
 
                 Dim identifierToken As SyntaxToken
                 If replacementText(0) = "["c Then
@@ -37,24 +37,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
                     newIdentifier = SyntaxFactory.IdentifierName(identifierToken).WithLeadingTrivia(identifier.GetLeadingTrivia()).WithTrailingTrivia(identifier.GetTrailingTrivia())
                 End If
 
-                Me.newIdentifier = newIdentifier
+                Me._newIdentifier = newIdentifier
             End Sub
 
             Public Overrides ReadOnly Property Title As String
                 Get
-                    Return String.Format(VBFeaturesResources.ChangeTo, originalIdentifier, newIdentifier)
+                    Return String.Format(VBFeaturesResources.ChangeTo, _originalIdentifier, _newIdentifier)
                 End Get
             End Property
 
             Protected Overrides Async Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
                 Dim annotation = New SyntaxAnnotation()
 
-                Dim updatedDocument = Await document.ReplaceNodeAsync(
-                    originalIdentifier,
-                    newIdentifier.WithAdditionalAnnotations(annotation),
+                Dim updatedDocument = Await _document.ReplaceNodeAsync(
+                    _originalIdentifier,
+                    _newIdentifier.WithAdditionalAnnotations(annotation),
                     cancellationToken).ConfigureAwait(False)
 
-                If complexify Then
+                If _complexify Then
                     Dim root = Await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
                     Dim rootedIdentifier = root.GetAnnotatedNodes(Of SyntaxNode)(annotation).First()
                     Dim complexified = Await Simplifier.ExpandAsync(rootedIdentifier, updatedDocument, cancellationToken:=cancellationToken).ConfigureAwait(False)

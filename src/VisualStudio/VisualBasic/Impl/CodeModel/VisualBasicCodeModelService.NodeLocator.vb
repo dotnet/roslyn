@@ -71,6 +71,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                             Return GetMethodStatementStartPoint(text, DirectCast(node, MethodStatementSyntax), part)
                         End If
 
+                    Case SyntaxKind.DeclareFunctionStatement,
+                         SyntaxKind.DeclareSubStatement
+                        Return GetDeclareStatementStartPoint(text, DirectCast(node, DeclareStatementSyntax), part)
                     Case SyntaxKind.PropertyBlock
                         Return GetPropertyBlockStartPoint(text, DirectCast(node, PropertyBlockSyntax), part)
                     Case SyntaxKind.PropertyStatement
@@ -158,6 +161,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                             Return GetMethodStatementEndPoint(text, DirectCast(node, MethodStatementSyntax), part)
                         End If
 
+                    Case SyntaxKind.DeclareFunctionStatement,
+                         SyntaxKind.DeclareSubStatement
+                        Return GetDeclareStatementEndPoint(text, DirectCast(node, DeclareStatementSyntax), part)
                     Case SyntaxKind.PropertyBlock
                         Return GetPropertyBlockEndPoint(text, DirectCast(node, PropertyBlockSyntax), part)
                     Case SyntaxKind.PropertyStatement
@@ -499,6 +505,72 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 End Select
 
                 Return New VirtualTreePoint(methodBlock.SyntaxTree, text, startPosition)
+            End Function
+
+            Private Function GetDeclareStatementStartPoint(text As SourceText, declareStatement As DeclareStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+                Dim startPosition As Integer
+
+                Select Case part
+                    Case EnvDTE.vsCMPart.vsCMPartName
+                        startPosition = declareStatement.Identifier.SpanStart
+
+                    Case EnvDTE.vsCMPart.vsCMPartAttributes,
+                         EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter
+
+                        Return GetAttributesStartPoint(text, declareStatement.AttributeLists, part)
+
+                    Case EnvDTE.vsCMPart.vsCMPartHeader,
+                         EnvDTE.vsCMPart.vsCMPartWhole,
+                         EnvDTE.vsCMPart.vsCMPartNavigate,
+                         EnvDTE.vsCMPart.vsCMPartBody,
+                         EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter
+
+                        If declareStatement.AttributeLists.Count > 0 Then
+                            startPosition = declareStatement.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart
+                        Else
+                            startPosition = declareStatement.SpanStart
+                        End If
+
+                    Case EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                         EnvDTE.vsCMPart.vsCMPartWholeWithAttributes
+
+                        startPosition = declareStatement.SpanStart
+
+                    Case Else
+                        Throw Exceptions.ThrowEFail()
+                End Select
+
+                Return New VirtualTreePoint(declareStatement.SyntaxTree, text, startPosition)
+            End Function
+
+
+            Private Function GetDeclareStatementEndPoint(text As SourceText, declareStatement As DeclareStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+                Dim endPosition As Integer
+
+                Select Case part
+                    Case EnvDTE.vsCMPart.vsCMPartName
+                        endPosition = declareStatement.Identifier.Span.End
+
+                    Case EnvDTE.vsCMPart.vsCMPartAttributes,
+                         EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter
+
+                        Return GetAttributesEndPoint(text, declareStatement.AttributeLists, part)
+
+                    Case EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                         EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                         EnvDTE.vsCMPart.vsCMPartHeader,
+                         EnvDTE.vsCMPart.vsCMPartWhole,
+                         EnvDTE.vsCMPart.vsCMPartNavigate,
+                         EnvDTE.vsCMPart.vsCMPartBody,
+                         EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter
+
+                        endPosition = declareStatement.Span.End
+
+                    Case Else
+                        Throw Exceptions.ThrowEFail()
+                End Select
+
+                Return New VirtualTreePoint(declareStatement.SyntaxTree, text, endPosition)
             End Function
 
             Private Function GetMethodStatementStartPoint(text As SourceText, methodStatement As MethodStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?

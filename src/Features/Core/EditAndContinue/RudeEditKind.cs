@@ -2,12 +2,11 @@
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    // TODO (tomat): cleanup
+    // TELEMETRY: DO NOT MODIFY ANY ENUM VALUES OF THIS ENUM.
+    // IT WILL BREAK OUR SQM VARIABLE MAPPINGS.
 
     internal enum RudeEditKind : ushort
     {
-        // TELEMETRY: DO NOT MODIFY ANY ENUM VALUES BELOW THIS POINT.
-        // IT WILL BREAK OUR SQM VARIABLE MAPPINGS.
         None = 0,
 
         ActiveStatementUpdate = 1,
@@ -52,8 +51,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         GenericTypeTriviaUpdate = 39,
         GenericTypeInitializerUpdate = 40,
         PartialTypeInitializerUpdate = 41,
-        AsyncMethodUpdate = 42,
-        AsyncMethodTriviaUpdate = 43,
+        //// AsyncMethodUpdate = 42,
+        //// AsyncMethodTriviaUpdate = 43,
         StackAllocUpdate = 44,
 
         ExperimentalFeaturesEnabled = 45,
@@ -61,63 +60,37 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         AwaitStatementUpdate = 46,
         ChangingConstructorVisibility = 47,
 
-        // TELEMETRY: DO NOT MODIFY ANY ENUM VALUES ABOVE THIS POINT.
-        // IT WILL BREAK OUR SQM VARIABLE MAPPINGS.
+        CapturingVariable = 48,
+        NotCapturingVariable = 49,
+        DeletingCapturedVariable = 50,
+        ChangingCapturedVariableType = 51,
+        ChangingCapturedVariableScope = 52,
+        ChangingLambdaParameters = 53,
+        ChangingLambdaReturnType = 54,
+        AccessingCapturedVariableInLambda = 55,
+        NotAccessingCapturedVariableInLambda = 56,
+        InsertLambdaWithMultiScopeCapture = 57,
+        DeleteLambdaWithMultiScopeCapture = 58,
+        ChangingQueryLambdaType = 59,
 
-        // Values below here are not mapped by sqm:
-        STMT_MID_DELETE = 0x100,
-        STMT_NON_LEAF_DELETE,
-        STMT_CTOR_CALL,
-        STMT_FIELD_INIT,
-        STMT_DELETE,
-        STMT_DELETE_REMAP,
-        STMT_READONLY,
-        RUDE_EDIT_INSERT_AROUND,
-        RUDE_EDIT_DELETE_AROUND,
-        RUDE_NO_ACTIVE_STMT,
-        RUDE_ACTIVE_STMT_DELETED,
-        RUDE_EDIT_AROUND_ACTIVE_STMT,
-        EXC_HANDLER_ERROR,
-        EXC_FINALLY_ERROR,
-        EXC_CATCH_ERROR,
-        RUDE_EDIT_NON_USER_STMT,
+        InsertAroundActiveStatement = 60,
+        DeleteAroundActiveStatement = 61,
+        DeleteActiveStatement = 62,
+        UpdateAroundActiveStatement = 63,
+        UpdateExceptionHandlerOfActiveTry = 64,
+        UpdateTryOrCatchWithActiveFinally = 65,
+        UpdateCatchHandlerAroundActiveStatement = 66,
+        UpdateStaticLocal = 67,
 
-        // anonymous types, iterators, lambdas, queries, dynamic, nopia
-        RUDE_EDIT_ANON_METHOD,
-        RUDE_EDIT_YIELD, // VB only
-        RUDE_EDIT_FIELD_ANON_METH,
-        RUDE_EDIT_DYNAMIC_INVOCATION,
-        RUDE_EDIT_NOPIA_USAGE,
-        FIELD_WITH_ANON_METHOD,
-        RUDE_EDIT_LAMBDA_EXPRESSION,
-        RUDE_EDIT_QUERY_EXPRESSION,
-        RUDE_EDIT_ANONYMOUS_TYPE,
-        FIELD_WITH_LAMBDA,
-        FIELD_WITH_QUERY,
-        RUDE_EDIT_FIELD_LAMBDA,
-        RUDE_EDIT_FIELD_QUERY,
-        FIELD_WITH_ANON_TYPE,
-        RUDE_EDIT_FIELD_ANON_TYPE,
-        RUDE_EDIT_MODIFY_ANON_METHOD,
-        RUDE_EDIT_ADD_ANON_METHOD,
-        RUDE_EDIT_DELETE_ANON_METHOD,
-        RUDE_EDIT_MOVE_ANON_METHOD,
-        RUDE_EDIT_LOCAL_USED_IN_ANON_METHOD,
-        RUDE_EDIT_MODIFY_LAMBDA_EXPRESSION,
-        RUDE_EDIT_ADD_LAMBDA_EXPRESSION,
-        RUDE_EDIT_DELETE_LAMBDA_EXPRESSION,
-        RUDE_EDIT_MOVE_LAMBDA_EXPRESSION,
-        RUDE_EDIT_LOCAL_USED_IN_LAMBDA_EXPRESSION,
-        RUDE_EDIT_MODIFY_QUERY_EXPRESSION,
-        RUDE_EDIT_ADD_QUERY_EXPRESSION,
-        RUDE_EDIT_DELETE_QUERY_EXPRESSION,
-        RUDE_EDIT_MOVE_QUERY_EXPRESSION,
-        RUDE_EDIT_LOCAL_USED_IN_QUERY_EXPRESSION,
-        RUDE_EDIT_MODIFY_ANONYMOUS_TYPE,
-        RUDE_EDIT_ADD_ANONYMOUS_TYPE,
-        RUDE_EDIT_DELETE_ANONYMOUS_TYPE,
-        RUDE_EDIT_MOVE_ANONYMOUS_TYPE,
-        RUDE_EDIT_ADD_HANDLES_CLAUSE,
-        RUDE_EDIT_ADD_NEW_FILE,
+        // 68-69 can be used
+
+        InsertHandlesClause = 70,
+        InsertFile = 71,
+
+        // TODO: remove values below
+        RUDE_EDIT_ANON_METHOD = 0x100,
+        RUDE_EDIT_LAMBDA_EXPRESSION = 0x101,
+        RUDE_EDIT_QUERY_EXPRESSION = 0x102,
+        RUDE_EDIT_COMPLEX_QUERY_EXPRESSION = 0x103,
     }
 }

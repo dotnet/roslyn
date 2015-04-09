@@ -49,28 +49,28 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsInImportsDirective = isInImportsDirective;
         }
 
-        public Workspace Workspace { get; private set; }
-        public SemanticModel SemanticModel { get; private set; }
-        public SyntaxTree SyntaxTree { get; private set; }
-        public int Position { get; private set; }
+        public Workspace Workspace { get; }
+        public SemanticModel SemanticModel { get; }
+        public SyntaxTree SyntaxTree { get; }
+        public int Position { get; }
 
-        public SyntaxToken LeftToken { get; private set; }
-        public SyntaxToken TargetToken { get; private set; }
+        public SyntaxToken LeftToken { get; }
+        public SyntaxToken TargetToken { get; }
 
-        public bool IsTypeContext { get; private set; }
-        public bool IsNamespaceContext { get; private set; }
+        public bool IsTypeContext { get; }
+        public bool IsNamespaceContext { get; }
 
-        public bool IsPreProcessorDirectiveContext { get; private set; }
+        public bool IsPreProcessorDirectiveContext { get; }
 
-        public bool IsRightOfNameSeparator { get; private set; }
-        public bool IsStatementContext { get; private set; }
-        public bool IsAnyExpressionContext { get; private set; }
-        public bool IsAttributeNameContext { get; private set; }
-        public bool IsEnumTypeMemberAccessContext { get; private set; }
-        public bool IsNameOfContext { get; private set; }
+        public bool IsRightOfNameSeparator { get; }
+        public bool IsStatementContext { get; }
+        public bool IsAnyExpressionContext { get; }
+        public bool IsAttributeNameContext { get; }
+        public bool IsEnumTypeMemberAccessContext { get; }
+        public bool IsNameOfContext { get; }
 
-        public bool IsInQuery { get; private set; }
-        public bool IsInImportsDirective { get; private set; }
+        public bool IsInQuery { get; }
+        public bool IsInImportsDirective { get; }
 
         private ISet<INamedTypeSymbol> ComputeOuterTypes(CancellationToken cancellationToken)
         {

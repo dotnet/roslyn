@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundAnonymousTypePropertyAccess
+    Friend Partial Class BoundAnonymousTypePropertyAccess
 
         Private _lazyPropertySymbol As New Lazy(Of PropertySymbol)(AddressOf LazyGetProperty)
 

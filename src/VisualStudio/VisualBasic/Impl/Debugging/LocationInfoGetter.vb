@@ -10,9 +10,9 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
     ' TODO: Make this class static when we add that functionality to VB.
     Namespace LocationInfoGetter
-        Module LocationInfoGetterModule
+        Friend Module LocationInfoGetterModule
             ' TODO remove after general error format has been fixed
-            Private ReadOnly QualifiedNameFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
+            Private ReadOnly s_qualifiedNameFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
                 globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
                     Dim lineNumber = text.Lines.GetLineFromPosition(position).LineNumber
                     Dim memberLine = text.Lines.GetLineFromPosition(memberDecl.SpanStart).LineNumber
 
-                    name = memberSymbol.ToDisplayString(QualifiedNameFormat)
+                    name = memberSymbol.ToDisplayString(s_qualifiedNameFormat)
                     lineOffset = lineNumber - memberLine
                     Return New DebugLocationInfo(name, lineOffset)
                 End If

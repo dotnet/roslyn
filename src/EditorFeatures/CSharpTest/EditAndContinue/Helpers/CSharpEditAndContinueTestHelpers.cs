@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
 
         public override Compilation CreateLibraryCompilation(string name, IEnumerable<SyntaxTree> trees)
         {
-            return CSharpCompilation.Create("New", trees, new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, TestOptions.ReleaseDll);
+            return CSharpCompilation.Create("New", trees, new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System_Core }, TestOptions.UnsafeReleaseDll);
         }
 
         public override SyntaxTree ParseText(string source)

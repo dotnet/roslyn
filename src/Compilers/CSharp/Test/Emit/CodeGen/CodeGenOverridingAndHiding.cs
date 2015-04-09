@@ -2151,7 +2151,7 @@ public class Derived2 : Base<int>
     public sealed override List<int> Property1 { protected set { } }
     public sealed override List<int> Property2 { protected get { return null; } }
 }";
-            var comp = CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }, emitOptions: TestEmitters.RefEmitBug, expectedSignatures: new[]
+            var comp = CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }, emitters: TestEmitters.RefEmitBug, expectedSignatures: new[]
             {
                 Signature("Derived", "get_Property1", ".method public hidebysig specialname virtual final instance System.Collections.Generic.List`1[System.Int32] get_Property1() cil managed"),
                 Signature("Derived", "set_Property1", ".method family hidebysig specialname virtual final instance System.Void set_Property1(System.Collections.Generic.List`1[System.Int32] value) cil managed"),
@@ -3388,7 +3388,7 @@ namespace Metadata
                 text,
                 new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
                 expectedOutput: @"Hello 3",
-                emitOptions: TestEmitters.RefEmitUnsupported_646023,
+                emitters: TestEmitters.RefEmitUnsupported_646023,
                 expectedSignatures: new[]
                 {
                 // The ILDASM output is following,and Roslyn handles it correctly. 
@@ -3958,7 +3958,7 @@ class B : A
                 }
             };
 
-            var verifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, symbolValidator: validator(false), sourceSymbolValidator: validator(true), expectedOutput: @"System.Int32[]");
+            var verifier = CompileAndVerify(source, emitters: TestEmitters.CCI, symbolValidator: validator(false), sourceSymbolValidator: validator(true), expectedOutput: @"System.Int32[]");
         }
 
         [WorkItem(543158, "DevDiv")]
@@ -4011,7 +4011,7 @@ public abstract class C2 : C1
 }",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { vb1Compilation });
-            var cs1Verifier = CompileAndVerify(cs1Compilation, emitOptions: TestEmitters.RefEmitBug);
+            var cs1Verifier = CompileAndVerify(cs1Compilation, emitters: TestEmitters.RefEmitBug);
             cs1Verifier.VerifyDiagnostics();
 
             var vb2Compilation = CreateVisualBasicCompilation("VB2",
@@ -4054,7 +4054,7 @@ public class Program
                 compilationOptions: TestOptions.ReleaseExe,
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation, vb2Compilation });
             var cs2Verifier = CompileAndVerify(cs2Compilation,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 expectedOutput: @"C3");
             cs2Verifier.VerifyDiagnostics();
         }
@@ -4081,7 +4081,7 @@ public abstract class C2 : C1
 }",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { vb1Compilation });
-            var cs1Verifier = CompileAndVerify(cs1Compilation, emitOptions: TestEmitters.RefEmitBug);
+            var cs1Verifier = CompileAndVerify(cs1Compilation, emitters: TestEmitters.RefEmitBug);
             cs1Verifier.VerifyDiagnostics();
 
             var vb2Compilation = CreateVisualBasicCompilation("VB2",
@@ -4127,7 +4127,7 @@ public class Program
                 compilationOptions: TestOptions.ReleaseExe,
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation, vb2Compilation });
             var cs2Verifier = CompileAndVerify(cs2Compilation,
-                emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"C4
+                emitters: TestEmitters.RefEmitBug, expectedOutput: @"C4
 C2");
             cs2Verifier.VerifyDiagnostics();
         }

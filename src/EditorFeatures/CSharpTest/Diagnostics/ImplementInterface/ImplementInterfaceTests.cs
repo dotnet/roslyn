@@ -1676,7 +1676,8 @@ class C : IDisposable
 class C : [|IDisposable|]",
 $@"using System;
 class C : IDisposable
-{{{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "public void ")}
+{{
+{DisposePattern("protected virtual ", "C", "public void ")}
 }}
 ", index: 1, compareTokens: false);
         }
@@ -1719,7 +1720,8 @@ class C : System.IDisposable
     class IDisposable
     {{
     }}
-{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "void System.IDisposable.")}
+
+{DisposePattern("protected virtual ", "C", "void System.IDisposable.")}
 }}", index: 3, compareTokens: false);
         }
 
@@ -1769,7 +1771,8 @@ class C : IDisposable
             Test(
 @"class C : [|System.IDisposable|]",
 $@"class C : System.IDisposable
-{{{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "void System.IDisposable.")}
+{{
+{DisposePattern("protected virtual ", "C", "void System.IDisposable.")}
 }}
 ", index: 3, compareTokens: false);
         }
@@ -1830,7 +1833,8 @@ class C : I
     {{
         throw new NotImplementedException();
     }}
-{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "public void ")}
+
+{DisposePattern("protected virtual ", "C", "public void ")}
 }}", index: 1, compareTokens: false);
         }
 
@@ -1858,7 +1862,8 @@ class C : I
     {{
         throw new NotImplementedException();
     }}
-{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "void IDisposable.")}
+
+{DisposePattern("protected virtual ", "C", "void IDisposable.")}
 }}", index: 3, compareTokens: false);
         }
 
@@ -2295,7 +2300,7 @@ using System;
 
 class Program : IDisposable
 {{
-{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "public void ")}
+{DisposePattern("protected virtual ", "C", "public void ")}
 }}
 ", index: 1);
         }
@@ -2318,7 +2323,7 @@ using System;
 class Program : IDisposable
 {{
     private bool DisposedValue;
-{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "Program", "void IDisposable.")}
+{DisposePattern("protected virtual ", "Program", "void IDisposable.")}
 }}
 ", index: 3);
         }
@@ -2397,7 +2402,7 @@ using System;
 
 sealed class Program : IDisposable
 {{
-{string.Format(CSharpFeaturesResources.DisposePattern, "", "Program", "void IDisposable.")}
+{DisposePattern("", "Program", "void IDisposable.")}
 }}
 ", index: 3);
         }
@@ -2522,7 +2527,8 @@ partial class C : I<System.Exception, System.AggregateException>, System.IDispos
     {{
         throw new NotImplementedException();
     }}
-{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "public void ")}
+
+{DisposePattern("protected virtual ", "C", "public void ")}
 }}", index: 1, compareTokens: false);
         }
 
@@ -2569,12 +2575,51 @@ partial class C : I<System.Exception, System.AggregateException>, System.IDispos
     {{
         throw new NotImplementedException();
     }}
-{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "void IDisposable.")}
+
+{DisposePattern("protected virtual ", "C", "void IDisposable.")}
 }}
 
 partial class C
 {{
 }}", index: 3, compareTokens: false);
+        }
+
+        private static string DisposePattern(string disposeVisibility, string className, string implementationVisibility)
+        {
+            return $@"    #region IDisposable Support
+    private bool disposedValue = false; // {FeaturesResources.ToDetectRedundantCalls}
+
+    {disposeVisibility}void Dispose(bool disposing)
+    {{
+        if (!disposedValue)
+        {{
+            if (disposing)
+            {{
+                // {FeaturesResources.DisposeManagedStateTodo}
+            }}
+
+            // {CSharpFeaturesResources.FreeUnmanagedResourcesTodo}
+            // {FeaturesResources.SetLargeFieldsToNullTodo}
+
+            disposedValue = true;
+        }}
+    }}
+
+    // {CSharpFeaturesResources.OverrideAFinalizerTodo}
+    // ~{className}() {{
+    //   // {CSharpFeaturesResources.DoNotChangeThisCodeUseDispose}
+    //   Dispose(false);
+    // }}
+
+    // {CSharpFeaturesResources.ThisCodeAddedToCorrectlyImplementDisposable}
+    {implementationVisibility}Dispose()
+    {{
+        // {CSharpFeaturesResources.DoNotChangeThisCodeUseDispose}
+        Dispose(true);
+        // {CSharpFeaturesResources.UncommentTheFollowingIfFinalizerOverriddenTodo}
+        // GC.SuppressFinalize(this);
+    }}
+    #endregion";
         }
     }
 }

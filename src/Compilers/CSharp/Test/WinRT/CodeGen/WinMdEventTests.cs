@@ -173,7 +173,7 @@ class C
     event System.Action E;
 }
 ";
-            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD, emitOptions: TestEmitters.RefEmitBug);
+            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD, emitters: TestEmitters.RefEmitBug);
 
             verifier.VerifyIL("C.E.add", @"
 {
@@ -209,7 +209,7 @@ class C
     static event System.Action<int> E;
 }
 ";
-            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD, emitOptions: TestEmitters.RefEmitBug);
+            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD, emitters: TestEmitters.RefEmitBug);
 
             verifier.VerifyIL("C.E.add", @"
 {
@@ -273,7 +273,7 @@ class D
     }
 }
 ";
-            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD, emitOptions: TestEmitters.RefEmitBug);
+            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD, emitters: TestEmitters.RefEmitBug);
 
             verifier.VerifyIL("D.InstanceAdd", @"
 {
@@ -366,7 +366,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD, emitOptions: TestEmitters.RefEmitBug);
+            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD, emitters: TestEmitters.RefEmitBug);
 
             verifier.VerifyIL("C.InstanceAssign", @"
 {
@@ -455,7 +455,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD, emitOptions: TestEmitters.RefEmitBug);
+            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD, emitters: TestEmitters.RefEmitBug);
 
             verifier.VerifyIL("C.InstanceInvoke", @"
 {
@@ -620,7 +620,7 @@ namespace EventDeserialization
             var serializationRef = TestReferences.NetFx.v4_0_30319.System_Runtime_Serialization;
 
             var comp2 = CreateCompilation(source2, WinRtRefs.Concat(new MetadataReference[] { new CSharpCompilationReference(comp1), serializationRef, SystemXmlRef }), TestOptions.ReleaseExe);
-            CompileAndVerify(comp2, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"A
+            CompileAndVerify(comp2, emitters: TestEmitters.RefEmitBug, expectedOutput: @"A
 False
 null
 B");

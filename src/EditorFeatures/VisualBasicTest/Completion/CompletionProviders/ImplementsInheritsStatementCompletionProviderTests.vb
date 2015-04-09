@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return New ImplementsInheritsStatementCompletionProvider()
         End Function
 
-        Const UnicodeEllipsis = ChrW(&H2026)
+        Private Const s_unicodeEllipsis = ChrW(&H2026)
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterInherits()
@@ -177,7 +177,7 @@ End Class
 Public Class derived
     Inherits $$
 End Class</text>.Value
-            VerifyItemExists(text, "base(Of " + UnicodeEllipsis + ")")
+            VerifyItemExists(text, "base(Of " + s_unicodeEllipsis + ")")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -189,7 +189,7 @@ End Interface
 Public Class bar
     Implements $$
 End Class</text>.Value
-            VerifyItemExists(text, "IFoo(Of " + UnicodeEllipsis + ")")
+            VerifyItemExists(text, "IFoo(Of " + s_unicodeEllipsis + ")")
         End Sub
 
         <WorkItem(546610)>
@@ -267,10 +267,10 @@ End Class
             VerifyItemIsAbsent(text, "Module1")
         End Sub
 
-    <WorkItem(530726)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub DoNotShowNamespaceWithNoApplicableClasses()
-        Dim text = <text>Namespace N
+        <WorkItem(530726)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub DoNotShowNamespaceWithNoApplicableClasses()
+            Dim text = <text>Namespace N
     Module M
     End Module
 End Namespace

@@ -379,6 +379,7 @@ class Test01
 
         [WorkItem(529001, "DevDiv")]
         [WorkItem(529002, "DevDiv")]
+        [WorkItem(1067, "https://github.com/dotnet/roslyn/issues/1067")]
         [Fact]
         public void CS0185ERR_LockNeedsReference_RequireRefType()
         {
@@ -394,6 +395,7 @@ class C
         lock (default(T)) {}        // new CS0185 - no constraints (Bug#10755)
         lock (default(TClass)) {}
         lock (default(TStruct)) {}  // new CS0185 - constraints to value type (Bug#10756)
+        lock (null) {}              // new CS0185 - null is not an object type
     }
 }
 ";
@@ -401,19 +403,37 @@ class C
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (8,32): warning CS0642: Possible mistaken empty statement
                 //         lock (default(object)) ;
-                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"),
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(8, 32),
                 // (9,29): warning CS0642: Possible mistaken empty statement
                 //         lock (default(int)) ;       // CS0185
-                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"),
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(9, 29),
                 // (9,15): error CS0185: 'int' is not a reference type as required by the lock statement
                 //         lock (default(int)) ;       // CS0185
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(int)").WithArguments("int"),
-                // (10,15): error CS0185: 'T' is not a reference type as required by the lock statement
-                //         lock (default(T)) {}        // new CS0185 - no constraints (Bug#10755)
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(T)").WithArguments("T"),
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(int)").WithArguments("int").WithLocation(9, 15),
                 // (12,15): error CS0185: 'TStruct' is not a reference type as required by the lock statement
                 //         lock (default(TStruct)) {}  // new CS0185 - constraints to value type (Bug#10756)
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(TStruct)").WithArguments("TStruct"));
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(TStruct)").WithArguments("TStruct").WithLocation(12, 15)
+                )
+            .WithStrictMode().VerifyDiagnostics(
+                // (8,32): warning CS0642: Possible mistaken empty statement
+                //         lock (default(object)) ;
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(8, 32),
+                // (9,29): warning CS0642: Possible mistaken empty statement
+                //         lock (default(int)) ;       // CS0185
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(9, 29),
+                // (9,15): error CS0185: 'int' is not a reference type as required by the lock statement
+                //         lock (default(int)) ;       // CS0185
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(int)").WithArguments("int").WithLocation(9, 15),
+                // (10,15): error CS0185: 'T' is not a reference type as required by the lock statement
+                //         lock (default(T)) {}        // new CS0185 - no constraints (Bug#10755)
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(T)").WithArguments("T").WithLocation(10, 15),
+                // (12,15): error CS0185: 'TStruct' is not a reference type as required by the lock statement
+                //         lock (default(TStruct)) {}  // new CS0185 - constraints to value type (Bug#10756)
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(TStruct)").WithArguments("TStruct").WithLocation(12, 15),
+                // (13,15): error CS0185: '<null>' is not a reference type as required by the lock statement
+                //         lock (null) {}              // new CS0185 - null is not an object type
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "null").WithArguments("<null>").WithLocation(13, 15)
+                );
         }
 
         [WorkItem(528972, "DevDiv")]
@@ -535,7 +555,7 @@ partial class C
     }
 }";
             // Dev12 would emit "2, 1 | T1, T2 | x, y".
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "2, 1 | T, U | x, y");
+            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: "2, 1 | T, U | x, y");
         }
 
         [Fact, WorkItem(529279, "DevDiv")]
@@ -1322,7 +1342,7 @@ public class Program
 @"public class CS3 : CS2<CS1> {}",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new Compilation[] { cs1Compilation, cs2Compilation });
-            var cs3Verifier = CompileAndVerify(cs3Compilation, emitOptions: TestEmitters.RefEmitBug);
+            var cs3Verifier = CompileAndVerify(cs3Compilation, emitters: TestEmitters.RefEmitBug);
             cs3Verifier.VerifyDiagnostics();
 
             var cs4Compilation = CreateCSharpCompilation("CS4",

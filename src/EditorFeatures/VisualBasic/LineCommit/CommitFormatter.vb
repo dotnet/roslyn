@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     Friend Class CommitFormatter
         Implements ICommitFormatter
 
-        Private Shared ReadOnly codeCleanupPredicate As Func(Of ICodeCleanupProvider, Boolean) =
+        Private Shared ReadOnly s_codeCleanupPredicate As Func(Of ICodeCleanupProvider, Boolean) =
             Function(p)
                 Return p.Name <> PredefinedCodeCleanupProviderNames.Simplification AndAlso
                        p.Name <> PredefinedCodeCleanupProviderNames.Format
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                 dirtyRegion, document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken),
                                                 cancellationToken)
 
-                Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).Where(codeCleanupPredicate).Concat(commitFormattingCleanup)
+                Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).Where(s_codeCleanupPredicate).Concat(commitFormattingCleanup)
 
                 Dim finalDocument As Document
                 If useSemantics OrElse isExplicitFormat Then

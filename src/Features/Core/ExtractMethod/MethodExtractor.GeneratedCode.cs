@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 this.MethodDefinitionAnnotation = methodDefinitionAnnotation;
             }
 
-            public OperationStatus Status { get; private set; }
-            public SemanticDocument SemanticDocument { get; private set; }
+            public OperationStatus Status { get; }
+            public SemanticDocument SemanticDocument { get; }
 
-            public SyntaxAnnotation MethodNameAnnotation { get; private set; }
-            public SyntaxAnnotation CallSiteAnnotation { get; private set; }
-            public SyntaxAnnotation MethodDefinitionAnnotation { get; private set; }
+            public SyntaxAnnotation MethodNameAnnotation { get; }
+            public SyntaxAnnotation CallSiteAnnotation { get; }
+            public SyntaxAnnotation MethodDefinitionAnnotation { get; }
         }
     }
 }

@@ -13,8 +13,10 @@ namespace Microsoft.DiaSymReader
     {
         #region ISymUnmanagedScope methods 
 
+        [PreserveSig]
         new int GetMethod([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedMethod method);
 
+        [PreserveSig]
         new int GetParent([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedScope scope);
 
         [PreserveSig]

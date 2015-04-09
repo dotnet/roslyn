@@ -177,8 +177,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
         internal class Holder : IDisposable
         {
-            public TestWorkspace Workspace { get; private set; }
-            public IBraceCompletionSession Session { get; private set; }
+            public TestWorkspace Workspace { get; }
+            public IBraceCompletionSession Session { get; }
 
             public Holder(TestWorkspace workspace, IBraceCompletionSession session)
             {

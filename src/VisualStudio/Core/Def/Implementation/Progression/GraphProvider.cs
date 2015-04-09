@@ -152,11 +152,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         {
             EnsureInitialized();
 
-            yield return new GraphCommand(
-                GraphCommandDefinition.Contains,
-                targetCategories: null,
-                linkCategories: new[] { GraphCommonSchema.Contains },
-                trackChanges: true);
+            // Only nodes that explicitly state that they contain children (e.g., source files) and named types should
+            // be expandable.
+            if (nodes.Any(n => n.Properties.Any(p => p.Key == DgmlNodeProperties.ContainsChildren)) ||
+                nodes.Any(n => IsAnySymbolKind(n, SymbolKind.NamedType)))
+            {
+                yield return new GraphCommand(
+                    GraphCommandDefinition.Contains,
+                    targetCategories: null,
+                    linkCategories: new[] { GraphCommonSchema.Contains },
+                    trackChanges: true);
+            }
+
+            // All graph commands below this point apply only to Roslyn-owned nodes.
+            if (!nodes.All(n => IsRoslynNode(n)))
+            {
+                yield break;
+            }
 
             // Only show 'Base Types' and 'Derived Types' on a class or interface.
             if (nodes.Any(n => IsAnySymbolKind(n, SymbolKind.NamedType) &&
@@ -298,6 +310,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private bool HasExplicitInterfaces(GraphNode node)
         {
             return ((IList<SymbolKey>)node[RoslynGraphProperties.ExplicitInterfaceImplementations]).Count > 0;
+        }
+
+        private bool IsRoslynNode(GraphNode node)
+        {
+            return node[RoslynGraphProperties.SymbolKind] != null
+                && node[RoslynGraphProperties.TypeKind] != null;
         }
 
         private bool IsAnySymbolKind(GraphNode node, params SymbolKind[] symbolKinds)

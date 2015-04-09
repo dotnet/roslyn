@@ -53,7 +53,7 @@ Imports G.H.I
             TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact(Skip := "Issue #321"), Trait(Traits.Feature, Traits.Features.Snippets)>
+        <Fact(Skip:="Issue #321"), Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub AddImport_AddsOnlyNewAliasAndNamespacePairs()
             Dim originalCode = <![CDATA[Imports A = B.C
 Imports D = E.F
@@ -346,7 +346,7 @@ Next
             End Using
         End Sub
 
-        Sub TestFormatting(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement)
+        Public Sub TestFormatting(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement)
             Using testWorkspace = TestWorkspaceFactory.CreateWorkspace(workspaceXmlWithSubjectBufferDocument)
                 Dim subjectBufferDocument = testWorkspace.Documents.Single()
 

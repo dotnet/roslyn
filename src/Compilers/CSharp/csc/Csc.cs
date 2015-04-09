@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -11,15 +12,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
     internal sealed class Csc : CSharpCompiler
     {
         internal Csc(string responseFile, string baseDirectory, string[] args)
-            : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"), Path.GetTempPath())
+            : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
         {
         }
 
-        internal static int Run(string[] args)
+        internal static int Run(string clientDir, string[] args)
         {
             FatalError.Handler = FailFast.OnFatalException;
 
-            var responseFile = CommonCompiler.GetResponseFileFullPath(CSharpCompiler.ResponseFileName);
+            var responseFile = Path.Combine(clientDir, CSharpCompiler.ResponseFileName);
             Csc compiler = new Csc(responseFile, Directory.GetCurrentDirectory(), args);
 
             // We store original encoding and restore it later to revert 
@@ -44,6 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
                 { // Try to reset the output encoding, ignore if we can't
                 }
             }
+        }
+
+        public override Assembly LoadAssembly(string fullPath)
+        {
+            return Assembly.LoadFrom(fullPath);
         }
 
         protected override uint GetSqmAppID()

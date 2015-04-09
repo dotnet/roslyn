@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -36,14 +37,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public IAsynchronousOperationListener Listener => _listener;
 
-        private DiagnosticAnalyzerService(IEnumerable<string> workspaceAnalyzerAssemblies, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) : this()
+        // protected for testing purposes.
+        protected DiagnosticAnalyzerService(IEnumerable<string> workspaceAnalyzerAssemblies, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) : this()
         {
             _hostAnalyzerManager = new HostAnalyzerManager(workspaceAnalyzerAssemblies, hostDiagnosticUpdateSource);
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
-        // internal for testing purposes.
-        internal DiagnosticAnalyzerService(ImmutableArray<AnalyzerReference> workspaceAnalyzers, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null) : this()
+        // protected for testing purposes.
+        protected DiagnosticAnalyzerService(ImmutableArray<AnalyzerReference> workspaceAnalyzers, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null) : this()
         {
             _hostAnalyzerManager = new HostAnalyzerManager(workspaceAnalyzers, hostDiagnosticUpdateSource);
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
@@ -165,6 +167,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
+        }
+
+        public bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic)
+        {
+            return _hostAnalyzerManager.IsCompilerDiagnostic(language, diagnostic);
+        }
+
+        // virtual for testing purposes.
+        internal virtual Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId, DiagnosticLogAggregator diagnosticLogAggregator)
+        {
+            return (ex, analyzer, diagnostic) =>
+            {
+                // Log telemetry, if analyzer supports telemetry.
+                DiagnosticAnalyzerLogger.LogAnalyzerCrashCount(analyzer, ex, diagnosticLogAggregator);
+
+                AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, analyzer, diagnostic, _hostDiagnosticUpdateSource, projectId);
+            };
+        }
+
+        // virtual for testing purposes.
+        internal virtual Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException_NoTelemetryLogging(ProjectId projectId)
+        {
+            return (ex, analyzer, diagnostic) =>
+                AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, analyzer, diagnostic, _hostDiagnosticUpdateSource, projectId);
         }
     }
 }

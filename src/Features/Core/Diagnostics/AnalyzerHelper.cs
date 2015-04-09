@@ -35,12 +35,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        public static ValueTuple<string, VersionStamp> GetUniqueId(this DiagnosticAnalyzer analyzer)
+        public static ValueTuple<string, VersionStamp> GetAnalyzerIdAndVersion(this DiagnosticAnalyzer analyzer)
         {
             // Get the unique ID for given diagnostic analyzer.
             // note that we also put version stamp so that we can detect changed analyzer.
             var type = analyzer.GetType();
-            return ValueTuple.Create(type.AssemblyQualifiedName, GetAnalyzerVersion(type.Assembly.Location));
+            return ValueTuple.Create(GetAssemblyQualifiedNameWithoutVersion(type), GetAnalyzerVersion(type.Assembly.Location));
+        }
+
+        private static string GetAssemblyQualifiedNameWithoutVersion(Type type)
+        {
+            var name = type.AssemblyQualifiedName;
+            var versionIndex = name.IndexOf(", Version=", StringComparison.InvariantCultureIgnoreCase);
+            if (versionIndex < 0)
+            {
+                return name;
+            }
+
+            return name.Substring(0, versionIndex);
         }
 
         internal static AnalyzerExecutor GetAnalyzerExecutorForSupportedDiagnostics(
@@ -53,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // we can't determine if any descriptors support getting telemetry without having the descriptors.
             Action<Exception, DiagnosticAnalyzer, Diagnostic> defaultOnAnalyzerException = (ex, a, diagnostic) =>
                 OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, hostDiagnosticUpdateSource);
-            
-            return AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException ?? defaultOnAnalyzerException, cancellationToken);
+
+            return AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException ?? defaultOnAnalyzerException, AnalyzerManager.Instance, cancellationToken);
         }
 
         internal static void OnAnalyzerException_NoTelemetryLogging(
@@ -62,15 +74,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             Diagnostic diagnostic,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            Project projectOpt = null)
+            ProjectId projectOpt = null)
         {
             if (diagnostic != null)
-        {
+            {
                 hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, hostDiagnosticUpdateSource?.Workspace, projectOpt);
-        }
+            }
 
             if (IsBuiltInAnalyzer(analyzer))
-        {
+            {
                 FatalError.ReportWithoutCrashUnlessCanceled(e);
             }
         }

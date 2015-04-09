@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundTemp As BoundLocal = Nothing
             If Not eventSymbol.IsShared AndAlso EventReceiverNeedsTemp(rewrittenReceiverOpt) Then
                 Dim receiverType As TypeSymbol = rewrittenReceiverOpt.Type
-                boundTemp = New BoundLocal(syntax, New SynthesizedLocal(Me.currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp), receiverType)
+                boundTemp = New BoundLocal(syntax, New SynthesizedLocal(Me._currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp), receiverType)
                 tempAssignment = New BoundAssignmentOperator(syntax, boundTemp, GenerateObjectCloneIfNeeded(unwrappedEventAccess.ReceiverOpt, rewrittenReceiverOpt.MakeRValue), True)
             End If
 
@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Translate: AddHandler myPIA.Event, Handler
             ' to: New ComAwareEventInfo(GetType(myPIA), "Event").AddEventHandler(myPIA, Handler)
 
-            Dim factory As New SyntheticBoundNodeFactory(topMethod, currentMethodOrLambda, node.Syntax, compilationState, diagnostics)
+            Dim factory As New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, node.Syntax, _compilationState, _diagnostics)
             Dim result As BoundExpression = Nothing
 
             Dim ctor = factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__ctor)
@@ -276,8 +276,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The code we just generated doesn't contain any direct references to the event itself,
             ' but the com event binder needs the event to exist on the local type. We'll poke the pia reference
             ' cache directly so that the event is embedded.
-            If emitModule IsNot Nothing Then
-                emitModule.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo([event], node.Syntax, diagnostics, isUsedForComAwareEventBinding:=True)
+            If _emitModule IsNot Nothing Then
+                _emitModule.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo([event], node.Syntax, _diagnostics, isUsedForComAwareEventBinding:=True)
             End If
 
             If result IsNot Nothing Then

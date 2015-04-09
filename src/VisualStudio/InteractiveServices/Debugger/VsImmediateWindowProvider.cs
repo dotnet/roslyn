@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Debugging
             var evaluator = new DebuggerEvaluator(_vsDebugger);
 
             // TODO: localize
-            var vsWindow = _vsInteractiveWindowFactory.Create(VsImmediateWindowPackage.Id, 0, "Immediate Window", evaluator);
+            var vsWindow = _vsInteractiveWindowFactory.Create(VsImmediateWindowPackage.Id, 0, "Immediate Window", evaluator, 0);
 
             // the tool window now owns the engine:
             vsWindow.InteractiveWindow.TextView.Closed += new EventHandler((_, __) => evaluator.Dispose());

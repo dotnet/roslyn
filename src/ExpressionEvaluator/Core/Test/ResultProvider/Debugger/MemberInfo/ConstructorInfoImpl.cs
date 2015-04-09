@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        public override System.Reflection.MemberTypes MemberType
+        public override MemberTypes MemberType
         {
             get
             {
-                return Constructor.MemberType;
+                return (MemberTypes)Constructor.MemberType;
             }
         }
 
@@ -134,13 +134,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             throw new NotImplementedException();
         }
 
-        public override object Invoke(System.Reflection.BindingFlags invokeAttr, Microsoft.VisualStudio.Debugger.Metadata.Binder binder, object[] parameters, CultureInfo culture)
+        public override object Invoke(BindingFlags invokeAttr, Binder binder, object[] parameters, CultureInfo culture)
         {
             Debug.Assert(binder == null, "NYI");
-            return Constructor.Invoke(invokeAttr, null, parameters, culture);
+            return Constructor.Invoke((System.Reflection.BindingFlags)invokeAttr, null, parameters, culture);
         }
 
-        public override object Invoke(object obj, System.Reflection.BindingFlags invokeAttr, Microsoft.VisualStudio.Debugger.Metadata.Binder binder, object[] parameters, CultureInfo culture)
+        public override object Invoke(object obj, BindingFlags invokeAttr, Binder binder, object[] parameters, CultureInfo culture)
         {
             throw new NotImplementedException();
         }

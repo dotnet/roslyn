@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' The bound code of the method or initializer being analyzed
         ''' </summary>
-        Private ReadOnly methodOrInitializerMainNode As BoundNode
+        Private ReadOnly _methodOrInitializerMainNode As BoundNode
 
         ''' <summary>
         ''' The flow analysis state at each label, computed by merging the state from branches to
@@ -48,12 +48,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' performance in unlikely but possible code such as this: "int x; if (cond) goto l1; x =
         ''' 3; l5: print x; l4: goto l5; l3: goto l4; l2: goto l3; l1: goto l2;"
         ''' </summary>
-        Private labels As New Dictionary(Of LabelSymbol, LabelStateAndNesting)
+        Private _labels As New Dictionary(Of LabelSymbol, LabelStateAndNesting)
 
         ''' <summary> All of the labels seen so far in this forward scan of the body </summary>
-        Private labelsSeen As New HashSet(Of LabelSymbol)
+        Private _labelsSeen As New HashSet(Of LabelSymbol)
 
-        Private placeholderReplacementMap As Dictionary(Of BoundValuePlaceholderBase, BoundExpression)
+        Private _placeholderReplacementMap As Dictionary(Of BoundValuePlaceholderBase, BoundExpression)
 
         ''' <summary>
         ''' Set to true after an analysis scan if the analysis was incomplete due to a backward
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The current lexical nesting in the BoundTree. 
         ''' </summary>
         ''' <remarks></remarks>
-        Private nesting As ArrayBuilder(Of Integer)
+        Private _nesting As ArrayBuilder(Of Integer)
 
         ''' <summary>
         ''' Where all diagnostics are deposited.
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Indicates whether or not support of constant expressions (boolean and nothing)
         ''' is enabled in this analyzer. In general, constant expressions support is enabled in analysis
         ''' exposed to public API consumer and disabled when used from command-line compiler. </summary>
-        Private ReadOnly suppressConstantExpressions As Boolean
+        Private ReadOnly _suppressConstantExpressions As Boolean
 
         ''' <summary>
         ''' Construct an object for outside-region analysis
@@ -118,15 +118,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.compilation = _info.Compilation
             Me.symbol = _info.Symbol
             Me.MeParameter = Me.symbol.GetMeParameter()
-            Me.methodOrInitializerMainNode = _info.Node
+            Me._methodOrInitializerMainNode = _info.Node
 
             Me._firstInRegion = _region.FirstInRegion
             Me._lastInRegion = _region.LastInRegion
             Me._region = _region.Region
 
             Me.TrackUnassignments = trackUnassignments
-            Me.loopHeadState = If(trackUnassignments, New Dictionary(Of BoundLoopStatement, LocalState)(), Nothing)
-            Me.suppressConstantExpressions = suppressConstExpressionsSupport
+            Me._loopHeadState = If(trackUnassignments, New Dictionary(Of BoundLoopStatement, LocalState)(), Nothing)
+            Me._suppressConstantExpressions = suppressConstExpressionsSupport
         End Sub
 
         Protected Overridable Sub InitForScan()
@@ -197,18 +197,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.SetState(ReachableState())
             Me.backwardBranchChanged = False
 
-            If Me.nesting IsNot Nothing Then
-                Me.nesting.Free()
+            If Me._nesting IsNot Nothing Then
+                Me._nesting.Free()
             End If
-            Me.nesting = ArrayBuilder(Of Integer).GetInstance()
+            Me._nesting = ArrayBuilder(Of Integer).GetInstance()
 
             InitForScan()
 
             ' pending branches should be restored after each iteration
             Dim oldPending As SavedPending = Me.SavePending()
-            Visit(Me.methodOrInitializerMainNode)
+            Visit(Me._methodOrInitializerMainNode)
             Me.RestorePending(oldPending)
-            Me.labelsSeen.Clear()
+            Me._labelsSeen.Clear()
 
             ' if we are tracking regions, we must have left the region by now;
             ' otherwise the region was erroneous which must have been detected earlier
@@ -226,8 +226,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overridable Sub Free()
-            If Me.nesting IsNot Nothing Then
-                Me.nesting.Free()
+            If Me._nesting IsNot Nothing Then
+                Me._nesting.Free()
             End If
             Me.diagnostics.Free()
             Me._pendingBranches.Free()
@@ -285,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks></remarks>
         Private Function LabelState(label As LabelSymbol) As LocalState
             Dim result As LabelStateAndNesting = Nothing
-            If labels.TryGetValue(label, result) Then
+            If _labels.TryGetValue(label, result) Then
                 Return result.State
             End If
             Return UnreachableState()
@@ -299,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Function IsConstantTrue(node As BoundExpression) As Boolean
-            If Me.suppressConstantExpressions Then
+            If Me._suppressConstantExpressions Then
                 Return False
             End If
 
@@ -314,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function IsConstantFalse(node As BoundExpression) As Boolean
-            If Me.suppressConstantExpressions Then
+            If Me._suppressConstantExpressions Then
                 Return False
             End If
 
@@ -329,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function IsConstantNull(node As BoundExpression) As Boolean
-            If Me.suppressConstantExpressions Then
+            If Me._suppressConstantExpressions Then
                 Return False
             End If
 
@@ -364,10 +364,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub LoopHead(node As BoundLoopStatement)
             If Me.TrackUnassignments Then
                 Dim previousState As LocalState
-                If Me.loopHeadState.TryGetValue(node, previousState) Then
+                If Me._loopHeadState.TryGetValue(node, previousState) Then
                     IntersectWith(Me.State, previousState)
                 End If
-                Me.loopHeadState(node) = Me.State.Clone()
+                Me._loopHeadState(node) = Me.State.Clone()
             End If
         End Sub
 
@@ -378,9 +378,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks></remarks>
         Private Sub LoopTail(node As BoundLoopStatement)
             If Me.TrackUnassignments Then
-                Dim oldState = Me.loopHeadState(node)
+                Dim oldState = Me._loopHeadState(node)
                 If IntersectWith(oldState, Me.State) Then
-                    Me.loopHeadState(node) = oldState
+                    Me._loopHeadState(node) = oldState
                     Me.backwardBranchChanged = True
                 End If
             End If
@@ -479,7 +479,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim changed = IntersectWith(_state, pending.State)
             If changed Then
                 labelStateChanged = True
-                Me.labels(target.Label) = New LabelStateAndNesting(target, _state, Me.nesting)
+                Me._labels(target.Label) = New LabelStateAndNesting(target, _state, Me._nesting)
             End If
         End Sub
 
@@ -530,7 +530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' we save the pending branches when visiting more nested constructs.
         ''' </summary>
         Protected Function SavePending() As SavedPending
-            Return New SavedPending(Me._pendingBranches, Me.labelsSeen)
+            Return New SavedPending(Me._pendingBranches, Me._labelsSeen)
         End Function
 
         Private Sub ResetPendingBranches(newPendingBranches As ArrayBuilder(Of PendingBranch))
@@ -545,7 +545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="oldPending">The old pending branches/labels, which are to be merged with the current ones</param>
         Protected Sub RestorePending(oldPending As SavedPending, Optional mergeLabelsSeen As Boolean = False)
-            If ResolveBranches(Me.labelsSeen) Then
+            If ResolveBranches(Me._labelsSeen) Then
                 Me.backwardBranchChanged = True
             End If
 
@@ -556,9 +556,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' So there is no need to save the labels seen between the calls.  If there were such a need, we would
             ' do "this.labelsSeen.UnionWith(oldPending.LabelsSeen);" instead of the following assignment
             If mergeLabelsSeen Then
-                Me.labelsSeen.AddAll(oldPending.LabelsSeen)
+                Me._labelsSeen.AddAll(oldPending.LabelsSeen)
             Else
-                Me.labelsSeen = oldPending.LabelsSeen
+                Me._labelsSeen = oldPending.LabelsSeen
             End If
         End Sub
 
@@ -600,11 +600,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                 <Out()> Optional ByRef labelAndNesting As LabelStateAndNesting = Nothing) As Boolean
 
             Dim branchStatement As BoundStatement = branch.Branch
-            If branchStatement IsNot Nothing AndAlso branch.Nesting.IsPrefixedBy(Me.nesting, ignoreLast) Then
+            If branchStatement IsNot Nothing AndAlso branch.Nesting.IsPrefixedBy(Me._nesting, ignoreLast) Then
                 labelSymbol = GetBranchTargetLabel(branchStatement, gotoOnly:=True)
                 If labelSymbol IsNot Nothing AndAlso (labelsFilter Is Nothing OrElse labelsFilter.Contains(labelSymbol)) Then
-                    Return Me.labels.TryGetValue(labelSymbol, labelAndNesting) AndAlso
-                           labelAndNesting.Nesting.IsPrefixedBy(Me.nesting, ignoreLast)
+                    Return Me._labels.TryGetValue(labelSymbol, labelAndNesting) AndAlso
+                           labelAndNesting.Nesting.IsPrefixedBy(Me._nesting, ignoreLast)
                 End If
             End If
             Return False
@@ -627,24 +627,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub SetPlaceholderSubstitute(placeholder As BoundValuePlaceholderBase, newSubstitute As BoundExpression)
             Debug.Assert(placeholder IsNot Nothing)
 
-            If placeholderReplacementMap Is Nothing Then
-                placeholderReplacementMap = New Dictionary(Of BoundValuePlaceholderBase, BoundExpression)()
+            If _placeholderReplacementMap Is Nothing Then
+                _placeholderReplacementMap = New Dictionary(Of BoundValuePlaceholderBase, BoundExpression)()
             End If
 
-            Debug.Assert(Not placeholderReplacementMap.ContainsKey(placeholder))
-            placeholderReplacementMap(placeholder) = newSubstitute
+            Debug.Assert(Not _placeholderReplacementMap.ContainsKey(placeholder))
+            _placeholderReplacementMap(placeholder) = newSubstitute
         End Sub
 
         Protected Sub RemovePlaceholderSubstitute(placeholder As BoundValuePlaceholderBase)
             Debug.Assert(placeholder IsNot Nothing)
-            Debug.Assert(placeholderReplacementMap.ContainsKey(placeholder))
-            Me.placeholderReplacementMap.Remove(placeholder)
+            Debug.Assert(_placeholderReplacementMap.ContainsKey(placeholder))
+            Me._placeholderReplacementMap.Remove(placeholder)
         End Sub
 
         Protected ReadOnly Property GetPlaceholderSubstitute(placeholder As BoundValuePlaceholderBase) As BoundExpression
             Get
                 Dim value As BoundExpression = Nothing
-                If Me.placeholderReplacementMap IsNot Nothing AndAlso Me.placeholderReplacementMap.TryGetValue(placeholder, value) Then
+                If Me._placeholderReplacementMap IsNot Nothing AndAlso Me._placeholderReplacementMap.TryGetValue(placeholder, value) Then
                     Return value
                 End If
                 Return Nothing
@@ -697,7 +697,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                 Case BoundKind.Parameter, BoundKind.MeReference, BoundKind.MyClassReference, BoundKind.MyBaseReference
-                ' no need for it to be previously assigned: it is on the left.
+                    ' no need for it to be previously assigned: it is on the left.
 
                 Case BoundKind.FieldAccess
                     VisitFieldAccessInternal(DirectCast(node, BoundFieldAccess))
@@ -1030,17 +1030,17 @@ lUnsplitAndFinish:
         End Function
 
         Private Function IntroduceBlock() As Integer
-            Dim level = Me.nesting.Count
-            Me.nesting.Add(0)
+            Dim level = Me._nesting.Count
+            Me._nesting.Add(0)
             Return level
         End Function
 
         Private Sub FinalizeBlock(level As Integer)
-            Me.nesting.RemoveAt(level)
+            Me._nesting.RemoveAt(level)
         End Sub
 
         Private Sub InitializeBlockStatement(level As Integer, ByRef index As Integer)
-            Me.nesting(level) = index
+            Me._nesting(level) = index
             index += 1
         End Sub
 
@@ -1438,6 +1438,19 @@ lUnsplitAndFinish:
             Return Nothing
         End Function
 
+        Public Overrides Function VisitComplexConditionalAccessReceiver(node As BoundComplexConditionalAccessReceiver) As BoundNode
+            Dim savedState As LocalState = Me.State.Clone()
+
+            VisitLvalue(node.ValueTypeReceiver)
+            IntersectWith(Me.State, savedState)
+
+            savedState = Me.State.Clone()
+            VisitRvalue(node.ReferenceTypeReceiver)
+            IntersectWith(Me.State, savedState)
+
+            Return Nothing
+        End Function
+
         Public Overrides Function VisitConditionalAccessReceiverPlaceholder(node As BoundConditionalAccessReceiverPlaceholder) As BoundNode
             Return Nothing
         End Function
@@ -1446,7 +1459,7 @@ lUnsplitAndFinish:
             ' Set unreachable and pending branch for all returns except for the final return that is auto generated
             If Not node.IsEndOfMethodReturn Then
                 VisitRvalue(node.ExpressionOpt)
-                Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me.nesting))
+                Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me._nesting))
                 SetUnreachable()
             End If
 
@@ -1455,7 +1468,7 @@ lUnsplitAndFinish:
 
         Public Overrides Function VisitYieldStatement(node As BoundYieldStatement) As BoundNode
             VisitRvalue(node.Expression)
-            Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me.nesting))
+            Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me._nesting))
 
             Return Nothing
         End Function
@@ -2319,13 +2332,13 @@ lUnsplitAndFinish:
         End Function
 
         Public Overrides Function VisitExitStatement(node As BoundExitStatement) As BoundNode
-            Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me.nesting))
+            Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me._nesting))
             SetUnreachable()
             Return Nothing
         End Function
 
         Public Overrides Function VisitContinueStatement(node As BoundContinueStatement) As BoundNode
-            Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me.nesting))
+            Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me._nesting))
             SetUnreachable()
             Return Nothing
         End Function
@@ -2400,7 +2413,7 @@ lUnsplitAndFinish:
         End Sub
 
         Public Overrides Function VisitGotoStatement(node As BoundGotoStatement) As BoundNode
-            Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me.nesting))
+            Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me._nesting))
             SetUnreachable()
             Return Nothing
         End Function
@@ -2412,8 +2425,8 @@ lUnsplitAndFinish:
             Dim label As LabelSymbol = node.Label
             Dim _state As LocalState = LabelState(label)
             Me.IntersectWith(Me.State, _state)
-            Me.labels(label) = New LabelStateAndNesting(node, Me.State.Clone(), Me.nesting)
-            Me.labelsSeen.Add(label)
+            Me._labels(label) = New LabelStateAndNesting(node, Me.State.Clone(), Me._nesting)
+            Me._labelsSeen.Add(label)
             Return Nothing
         End Function
 
@@ -2447,7 +2460,7 @@ lUnsplitAndFinish:
 
         Public Overrides Function VisitConditionalGoto(node As BoundConditionalGoto) As BoundNode
             VisitRvalue(node.Condition)
-            Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me.nesting))
+            Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me._nesting))
             Return Nothing
         End Function
 

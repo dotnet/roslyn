@@ -6,8 +6,8 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class QuickInfoItem
     {
-        public TextSpan TextSpan { get; private set; }
-        public IDeferredQuickInfoContent Content { get; private set; }
+        public TextSpan TextSpan { get; }
+        public IDeferredQuickInfoContent Content { get; }
 
         public QuickInfoItem(TextSpan textSpan, IDeferredQuickInfoContent content)
         {

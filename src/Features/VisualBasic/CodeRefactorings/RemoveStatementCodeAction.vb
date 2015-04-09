@@ -9,14 +9,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeActions
     Friend Class RemoveStatementCodeAction
         Inherits CodeAction
 
-        Private ReadOnly document As Document
-        Private ReadOnly node As SyntaxNode
-        Private ReadOnly cancellationToken As CancellationToken
+        Private ReadOnly _document As Document
+        Private ReadOnly _node As SyntaxNode
+        Private ReadOnly _cancellationToken As CancellationToken
         Private ReadOnly _title As String
 
-        Sub New(document As Document, node As SyntaxNode, title As String)
-            Me.document = document
-            Me.node = node
+        Public Sub New(document As Document, node As SyntaxNode, title As String)
+            Me._document = document
+            Me._node = node
             _title = title
         End Sub
 
@@ -27,9 +27,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeActions
         End Property
 
         Protected Overrides Async Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
-            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim updatedRoot = root.RemoveNode(node, SyntaxRemoveOptions.KeepUnbalancedDirectives)
-            Return document.WithSyntaxRoot(updatedRoot)
+            Dim root = Await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim updatedRoot = root.RemoveNode(_node, SyntaxRemoveOptions.KeepUnbalancedDirectives)
+            Return _document.WithSyntaxRoot(updatedRoot)
         End Function
     End Class
 End Namespace

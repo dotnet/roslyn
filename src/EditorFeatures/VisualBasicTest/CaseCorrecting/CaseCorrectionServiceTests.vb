@@ -868,7 +868,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         <WorkItem(17313, "DevDiv_Projects/Roslyn")>
-        Sub TestElseIfKeyword()
+        Public Sub TestElseIfKeyword()
             Dim input =
 <Code><![CDATA[
         If True Then

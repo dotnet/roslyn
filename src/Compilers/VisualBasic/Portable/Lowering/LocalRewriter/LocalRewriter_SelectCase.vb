@@ -154,22 +154,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.ReportBadType(selectCaseExpr, Compilation.GetSpecialType(SpecialType.System_UInt32))
             Me.ReportBadType(selectCaseExpr, Compilation.GetSpecialType(SpecialType.System_String))
 
-            If emitModule Is Nothing Then
+            If _emitModule Is Nothing Then
                 Return
             End If
 
-            If Not ShouldGenerateHashTableSwitch(emitModule, node) Then
+            If Not ShouldGenerateHashTableSwitch(_emitModule, node) Then
                 Return
             End If
 
             ' If we have already generated this helper method, possibly for another select case
             ' or on another thread, we don't need to regenerate it.
-            Dim privateImplClass = emitModule.GetPrivateImplClass(node.Syntax, diagnostics)
+            Dim privateImplClass = _emitModule.GetPrivateImplClass(node.Syntax, _diagnostics)
             If privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName) IsNot Nothing Then
                 Return
             End If
 
-            Dim method = New SynthesizedStringSwitchHashMethod(emitModule.SourceModule, privateImplClass)
+            Dim method = New SynthesizedStringSwitchHashMethod(_emitModule.SourceModule, privateImplClass)
             privateImplClass.TryAddSynthesizedMethod(method)
         End Sub
 
@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Store the select expression result in a temp
                 Dim selectStatementSyntax = DirectCast(selectExprStmtSyntax.Parent, SelectBlockSyntax).SelectStatement
-                Dim tempLocal = New SynthesizedLocal(Me.currentMethodOrLambda, selectExprType, SynthesizedLocalKind.SelectCaseValue, selectStatementSyntax)
+                Dim tempLocal = New SynthesizedLocal(Me._currentMethodOrLambda, selectExprType, SynthesizedLocalKind.SelectCaseValue, selectStatementSyntax)
                 tempLocals = ImmutableArray.Create(Of LocalSymbol)(tempLocal)
 
                 Dim boundTemp = New BoundLocal(rewrittenSelectExpression.Syntax, tempLocal, selectExprType)

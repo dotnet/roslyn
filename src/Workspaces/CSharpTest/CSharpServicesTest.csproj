@@ -15,6 +15,7 @@
     <AssemblyName>Roslyn.Services.CSharp.UnitTests</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
@@ -96,6 +97,7 @@
     <Compile Include="Formatting\FormattingMultipleSpanTests.cs" />
     <Compile Include="Formatting\FormattingTests.cs" />
     <Compile Include="Formatting\FormattingTriviaTests.cs" />
+    <Compile Include="CodeGeneration\AddImportsTests.cs" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

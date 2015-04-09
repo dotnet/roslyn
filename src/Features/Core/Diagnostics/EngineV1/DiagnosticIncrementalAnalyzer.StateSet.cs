@@ -36,11 +36,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return _state[(int)stateType];
             }
 
-            public void Remove(object key)
+            public void Remove(object documentOrProjectId)
             {
                 for (var stateType = 0; stateType < s_stateTypeCount; stateType++)
                 {
-                    _state[stateType].Remove(key);
+                    _state[stateType].Remove(documentOrProjectId);
                 }
             }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 // Get the unique ID for given diagnostic analyzer.
                 // note that we also put version stamp so that we can detect changed analyzer.
-                var tuple = analyzer.GetUniqueId();
+                var tuple = analyzer.GetAnalyzerIdAndVersion();
                 return ValueTuple.Create(UserDiagnosticsPrefixTableName + "_" + type.ToString() + "_" + tuple.Item1, tuple.Item2);
             }
         }

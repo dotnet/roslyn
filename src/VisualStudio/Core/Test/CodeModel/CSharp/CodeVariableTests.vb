@@ -307,7 +307,7 @@ class C
 
 #Region "AddAttribute tests"
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub AddAttribute1()
+        Public Sub AddAttribute1()
             Dim code =
 <Code>
 using System;
@@ -1883,7 +1883,7 @@ class C
 #Region "Set Name tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName1()
+        Public Sub SetName1()
             Dim code =
 <Code>
 class C
@@ -1904,7 +1904,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName2()
+        Public Sub SetName2()
             Dim code =
 <Code>
 class C

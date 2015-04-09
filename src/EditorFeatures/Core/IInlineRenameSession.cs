@@ -9,18 +9,18 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// Whether or not the entity at the selected location can be renamed.
         /// </summary>
-        public bool CanRename { get; private set; }
+        public bool CanRename { get; }
 
         /// <summary>
         /// Provides the reason that can be displayed to the user if the entity at the selected 
         /// location cannot be renamed.
         /// </summary>
-        public string LocalizedErrorMessage { get; private set; }
+        public string LocalizedErrorMessage { get; }
 
         /// <summary>
         /// The session created if it was possible to rename the entity.
         /// </summary>
-        public IInlineRenameSession Session { get; private set; }
+        public IInlineRenameSession Session { get; }
 
         internal InlineRenameSessionInfo(string localizedErrorMessage)
         {

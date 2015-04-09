@@ -40,14 +40,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private readonly bool _shortenedTriggerSpan;
             private readonly bool _isRenamingAttributePrefix;
 
-            public bool CanRename { get; private set; }
-            public string LocalizedErrorMessage { get; private set; }
-            public TextSpan TriggerSpan { get; private set; }
-            public ISymbol RenameSymbol { get; private set; }
-            public bool HasOverloads { get; private set; }
+            public bool CanRename { get; }
+            public string LocalizedErrorMessage { get; }
+            public TextSpan TriggerSpan { get; }
+            public ISymbol RenameSymbol { get; }
+            public bool HasOverloads { get; }
+            public bool ForceRenameOverloads { get; }
 
             public SymbolInlineRenameInfo(
-                IEnumerable<IRefactorNotifyService> refactorNotifyServices, Document document, TextSpan triggerSpan, ISymbol renameSymbol, CancellationToken cancellationToken)
+                IEnumerable<IRefactorNotifyService> refactorNotifyServices, 
+                Document document, 
+                TextSpan triggerSpan, 
+                ISymbol renameSymbol, 
+                bool forceRenameOverloads, 
+                CancellationToken cancellationToken)
             {
                 this.CanRename = true;
 
@@ -56,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 this.RenameSymbol = renameSymbol;
 
                 this.HasOverloads = RenameLocationSet.GetOverloadedSymbols(this.RenameSymbol).Any();
+                this.ForceRenameOverloads = forceRenameOverloads;
 
                 _isRenamingAttributePrefix = CanRenameAttributePrefix(document, triggerSpan, cancellationToken);
                 this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), cancellationToken);

@@ -1032,7 +1032,7 @@ class C
 #Region "AutoImplementedPropertyExtender"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub AutoImplementedPropertyExtender_IsAutoImplemented1()
+        Public Sub AutoImplementedPropertyExtender_IsAutoImplemented1()
             Dim code =
 <Code>
 public class C
@@ -1045,7 +1045,7 @@ public class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub AutoImplementedPropertyExtender_IsAutoImplemented2()
+        Public Sub AutoImplementedPropertyExtender_IsAutoImplemented2()
             Dim code =
 <Code>
 public class C
@@ -1062,7 +1062,7 @@ public class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub AutoImplementedPropertyExtender_IsAutoImplemented3()
+        Public Sub AutoImplementedPropertyExtender_IsAutoImplemented3()
             Dim code =
 <Code>
 public interface I
@@ -1072,6 +1072,28 @@ public interface I
 </Code>
 
             TestAutoImplementedPropertyExtender_IsAutoImplemented(code, False)
+        End Sub
+
+#End Region
+
+#Region "Parameter name tests"
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters()
+            Dim code =
+<Code>
+class Program
+{
+    public int $$this[int @int]
+    {
+        get { return @int; }
+        set { }
+    }
+}
+</Code>
+
+            TestAllParameterNames(code, "@int")
         End Sub
 
 #End Region

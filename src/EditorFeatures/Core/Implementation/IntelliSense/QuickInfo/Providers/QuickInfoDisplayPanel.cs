@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal class QuickInfoDisplayPanel : StackPanel
     {
-        internal TextBlock MainDescription { get; private set; }
-        internal TextBlock Documentation { get; private set; }
-        internal TextBlock TypeParameterMap { get; private set; }
-        internal TextBlock AnonymousTypes { get; private set; }
-        internal TextBlock UsageText { get; private set; }
+        internal TextBlock MainDescription { get; }
+        internal TextBlock Documentation { get; }
+        internal TextBlock TypeParameterMap { get; }
+        internal TextBlock AnonymousTypes { get; }
+        internal TextBlock UsageText { get; }
 
         public QuickInfoDisplayPanel(
             FrameworkElement symbolGlyph,

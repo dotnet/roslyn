@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 {
     internal class CodeChangeProviderMetadata : OrderableMetadata, ILanguagesMetadata
     {
-        public IEnumerable<string> Languages { get; private set; }
+        public IEnumerable<string> Languages { get; }
 
         public CodeChangeProviderMetadata(IDictionary<string, object> data)
             : base(data)

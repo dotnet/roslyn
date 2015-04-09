@@ -155,8 +155,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
                 Cci.PeWriter.WritePeToStream(
                     context,
                     compilation.MessageProvider,
-                    stream,
+                    () => stream,
                     nativePdbWriterOpt: null,
+                    pdbPathOpt: null,
                     allowMissingMethodBodies: false,
                     deterministic: false,
                     cancellationToken: cancellationToken);

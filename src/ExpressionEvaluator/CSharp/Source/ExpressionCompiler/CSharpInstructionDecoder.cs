@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
@@ -129,19 +129,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override CSharpCompilation GetCompilation(DkmClrModuleInstance moduleInstance)
         {
             var appDomain = moduleInstance.AppDomain;
-            var previous = appDomain.GetDataItem<CSharpMetadataContext>();
+            var previous = appDomain.GetMetadataContext<CSharpMetadataContext>();
             var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain);
 
             CSharpCompilation compilation;
-            if (metadataBlocks.HaveNotChanged(previous))
+            if (previous.Matches(metadataBlocks))
             {
                 compilation = previous.Compilation;
             }
             else
             {
-                var dataItem = new CSharpMetadataContext(metadataBlocks);
-                appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, dataItem);
-                compilation = dataItem.Compilation;
+                compilation = metadataBlocks.ToCompilation();
+                appDomain.SetMetadataContext(new CSharpMetadataContext(metadataBlocks, compilation));
             }
 
             return compilation;

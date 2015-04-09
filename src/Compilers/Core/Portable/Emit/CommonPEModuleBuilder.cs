@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Utilities;
@@ -28,16 +29,13 @@ namespace Microsoft.CodeAnalysis.Emit
     /// <summary>
     /// Common base class for C# and VB PE module builder.
     /// </summary>
-    internal abstract class PEModuleBuilder<TCompilation, TSymbol, TSourceModuleSymbol, TModuleSymbol, TAssemblySymbol, TNamespaceSymbol, TTypeSymbol, TNamedTypeSymbol, TMethodSymbol, TSyntaxNode, TEmbeddedTypesManager, TModuleCompilationState> : CommonPEModuleBuilder, Cci.IModule, ITokenDeferral
+    internal abstract class PEModuleBuilder<TCompilation, TSourceModuleSymbol, TAssemblySymbol, TTypeSymbol, TNamedTypeSymbol, TMethodSymbol, TSyntaxNode, TEmbeddedTypesManager, TModuleCompilationState> : CommonPEModuleBuilder, Cci.IModule, ITokenDeferral
         where TCompilation : Compilation
-        where TSymbol : class
-        where TSourceModuleSymbol : class, TModuleSymbol
-        where TModuleSymbol : class, TSymbol
-        where TAssemblySymbol : class, TSymbol
-        where TNamespaceSymbol : class, TSymbol
-        where TTypeSymbol : class, TSymbol
+        where TSourceModuleSymbol : class, IModuleSymbol
+        where TAssemblySymbol : class
+        where TTypeSymbol : class
         where TNamedTypeSymbol : class, TTypeSymbol, Cci.INamespaceTypeDefinition
-        where TMethodSymbol : class, TSymbol, Cci.IMethodDefinition
+        where TMethodSymbol : class, Cci.IMethodDefinition
         where TSyntaxNode : SyntaxNode
         where TEmbeddedTypesManager : NoPia.CommonEmbeddedTypesManager
         where TModuleCompilationState : ModuleCompilationState<TNamedTypeSymbol, TMethodSymbol>
@@ -306,18 +304,12 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private static void AddTopLevelType(HashSet<string> names, Cci.INamespaceTypeDefinition type)
         {
-            if (names != null)
-            {
-                names.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type)));
-            }
+            names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type)));
         }
 
         private static void VisitTopLevelType(Cci.NoPiaReferenceIndexer noPiaIndexer, Cci.INamespaceTypeDefinition type)
         {
-            if (noPiaIndexer != null)
-            {
-                noPiaIndexer.Visit((Cci.ITypeDefinition)type);
-            }
+            noPiaIndexer?.Visit((Cci.ITypeDefinition)type);
         }
 
         private ImmutableArray<Cci.AssemblyReferenceAlias> CalculateAssemblyReferenceAliases(EmitContext context)
@@ -436,17 +428,17 @@ namespace Microsoft.CodeAnalysis.Emit
                 compileEmitTypes = defs.NestedTypes;
             }
 
-            if (declareTypes != null)
+            if (declareTypes == null)
             {
-                if (compileEmitTypes != null)
-                {
-                    return System.Linq.Enumerable.Concat(declareTypes, compileEmitTypes);
-                }
+                return compileEmitTypes;
+            }
 
+            if (compileEmitTypes == null)
+            {
                 return declareTypes;
             }
 
-            return compileEmitTypes;
+            return declareTypes.Concat(compileEmitTypes);
         }
 
         private SynthesizedDefinitions GetCacheOfSynthesizedDefinitions(TNamedTypeSymbol container, bool addIfNotFound = true)
@@ -456,16 +448,10 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 return _synthesizedDefs.GetOrAdd(container, _ => new SynthesizedDefinitions());
             }
-            else
-            {
-                SynthesizedDefinitions defs;
-                if (!_synthesizedDefs.TryGetValue(container, out defs))
-                {
-                    defs = null;
-                }
 
-                return defs;
-            }
+            SynthesizedDefinitions defs;
+            _synthesizedDefs.TryGetValue(container, out defs);
+            return defs;
         }
 
         public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IMethodDefinition method)
@@ -486,14 +472,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public IEnumerable<Cci.IMethodDefinition> GetSynthesizedMethods(TNamedTypeSymbol container)
         {
-            SynthesizedDefinitions defs = GetCacheOfSynthesizedDefinitions(container, addIfNotFound: false);
-
-            if (defs != null)
-            {
-                return defs.Methods;
-            }
-
-            return null;
+            return GetCacheOfSynthesizedDefinitions(container, addIfNotFound: false)?.Methods;
         }
 
         public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IPropertyDefinition property)
@@ -514,14 +493,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public IEnumerable<Cci.IPropertyDefinition> GetSynthesizedProperties(TNamedTypeSymbol container)
         {
-            SynthesizedDefinitions defs = GetCacheOfSynthesizedDefinitions(container, addIfNotFound: false);
-
-            if (defs != null)
-            {
-                return defs.Properties;
-            }
-
-            return null;
+            return GetCacheOfSynthesizedDefinitions(container, addIfNotFound: false)?.Properties;
         }
 
         public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IFieldDefinition field)
@@ -542,14 +514,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public IEnumerable<Cci.IFieldDefinition> GetSynthesizedFields(TNamedTypeSymbol container)
         {
-            SynthesizedDefinitions defs = GetCacheOfSynthesizedDefinitions(container, addIfNotFound: false);
-
-            if (defs != null)
-            {
-                return defs.Fields;
-            }
-
-            return null;
+            return GetCacheOfSynthesizedDefinitions(container, addIfNotFound: false)?.Fields;
         }
 
         internal override ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> GetSynthesizedMembers()
@@ -654,6 +619,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 result = new PrivateImplementationDetails(
                         this,
+                        this.SourceModule.Name,
                         _compilation.GetSubmissionSlotIndex(),
                         this.GetSpecialType(SpecialType.System_Object, syntaxNodeOpt, diagnostics),
                         this.GetSpecialType(SpecialType.System_ValueType, syntaxNodeOpt, diagnostics),

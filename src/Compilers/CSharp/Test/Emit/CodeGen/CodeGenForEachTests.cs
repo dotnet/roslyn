@@ -98,7 +98,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
 1.2
 2.3
 3.4
@@ -121,7 +121,7 @@ class C
   IL_0001:  ldc.i4.4
   IL_0002:  newobj     ""double[*,*]..ctor""
   IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=64 <PrivateImplementationDetails>.$$method0x6000001-E19C080DB8DAB85AF7CA3EF40FFB01B0778F9D25""
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=64 <PrivateImplementationDetails>.E19C080DB8DAB85AF7CA3EF40FFB01B0778F9D25""
   IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0012:  stloc.0
   IL_0013:  ldloc.0
@@ -786,7 +786,7 @@ class Enumerable
 
             // We specifically ignore user-defined conversions to interfaces, even from metadata.
             // TODO (tomat): Ref.Emit test infrastructure issue
-            CompileAndVerify(compilation, emitOptions: TestEmitters.CCI).VerifyIL("C.Test", @"{
+            CompileAndVerify(compilation, emitters: TestEmitters.CCI).VerifyIL("C.Test", @"{
   // Code size       35 (0x23)
   .maxstack  1
   .locals init (Enumerator V_0)

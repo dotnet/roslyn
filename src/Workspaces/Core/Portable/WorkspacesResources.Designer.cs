@@ -872,15 +872,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove Unnecessary Imports/Usings..
-        /// </summary>
-        internal static string RemoveUnnecessaryImportsOrUsings {
-            get {
-                return ResourceManager.GetString("RemoveUnnecessaryImportsOrUsings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Removing additional documents is not supported..
         /// </summary>
         internal static string RemovingAdditionalDocumentsIsNotSupported {

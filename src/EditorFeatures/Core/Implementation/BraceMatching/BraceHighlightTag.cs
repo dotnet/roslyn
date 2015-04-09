@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         public static readonly BraceHighlightTag StartTag = new BraceHighlightTag(navigateToStart: true);
         public static readonly BraceHighlightTag EndTag = new BraceHighlightTag(navigateToStart: false);
 
-        public bool NavigateToStart { get; private set; }
+        public bool NavigateToStart { get; }
 
         private BraceHighlightTag(bool navigateToStart)
             : base(TagId)

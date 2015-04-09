@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var suppressMessageState = AnalyzerDriver.SuppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
-            foreach (var diagnostic in diagnostics)
+            foreach (var diagnostic in diagnostics.ToImmutableArray())
             {
                 if (diagnostic != null)
                 {
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Action<Exception, DiagnosticAnalyzer, Diagnostic> voidHandler = (ex, a, diag) => { };
             onAnalyzerException = onAnalyzerException ?? voidHandler;
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, CancellationToken.None);
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, AnalyzerManager.Instance, CancellationToken.None);
 
             return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, AnalyzerManager.Instance, analyzerExecutor);
         }

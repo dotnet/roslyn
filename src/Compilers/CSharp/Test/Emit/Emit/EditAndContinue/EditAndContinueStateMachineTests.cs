@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class EditAndContinueStateMachineTests : EditAndContinueTestBase
     {
-        [Fact]
+        [Fact(Skip = "1137300")]
         public void AddIteratorMethod()
         {
             var source0 =
@@ -1109,14 +1109,14 @@ class C
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
-            var debugInfoProvider = v0.CreatePdbInfoProvider();
+            var symReader = v0.CreateSymReader();
 
             using (var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData))
             {
                 var method0 = compilation0.GetMember<MethodSymbol>("C.F");
                 var method1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-                var generation0 = EmitBaseline.CreateInitialBaseline(md0, debugInfoProvider.GetEncMethodDebugInfo);
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, symReader.GetEncMethodDebugInfo);
 
                 var diff1 = compilation1.EmitDifference(
                     generation0,
@@ -1227,14 +1227,14 @@ class C
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
-            var debugInfoProvider = v0.CreatePdbInfoProvider();
+            var symReader = v0.CreateSymReader();
 
             using (var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData))
             {
                 var method0 = compilation0.GetMember<MethodSymbol>("C.F");
                 var method1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-                var generation0 = EmitBaseline.CreateInitialBaseline(md0, debugInfoProvider.GetEncMethodDebugInfo);
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, symReader.GetEncMethodDebugInfo);
                 var diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
@@ -1349,14 +1349,14 @@ class C
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
-            var debugInfoProvider = v0.CreatePdbInfoProvider();
+            var symReader = v0.CreateSymReader();
 
             using (var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData))
             {
                 var method0 = compilation0.GetMember<MethodSymbol>("C.F");
                 var method1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-                var generation0 = EmitBaseline.CreateInitialBaseline(md0, debugInfoProvider.GetEncMethodDebugInfo);
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, symReader.GetEncMethodDebugInfo);
                 var diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
@@ -1468,14 +1468,14 @@ class C
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
-            var debugInfoProvider = v0.CreatePdbInfoProvider();
+            var symReader = v0.CreateSymReader();
 
             using (var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData))
             {
                 var method0 = compilation0.GetMember<MethodSymbol>("C.F");
                 var method1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-                var generation0 = EmitBaseline.CreateInitialBaseline(md0, debugInfoProvider.GetEncMethodDebugInfo);
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, symReader.GetEncMethodDebugInfo);
                 var diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
@@ -1596,14 +1596,14 @@ class C
                 }, module.GetFieldNamesAndTypes("C.<F>d__0"));
             });
 
-            var debugInfoProvider = v0.CreatePdbInfoProvider();
+            var symReader = v0.CreateSymReader();
 
             using (var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData))
             {
                 var method0 = compilation0.GetMember<MethodSymbol>("C.F");
                 var method1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-                var generation0 = EmitBaseline.CreateInitialBaseline(md0, debugInfoProvider.GetEncMethodDebugInfo);
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, symReader.GetEncMethodDebugInfo);
                 var diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapByKind(method0, SyntaxKind.ForEachStatement), preserveLocalVariables: true)));
@@ -1876,7 +1876,7 @@ class C
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
@@ -2345,7 +2345,7 @@ class C
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
@@ -2778,7 +2778,7 @@ public class C
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
@@ -2855,7 +2855,7 @@ public class C
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(

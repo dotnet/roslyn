@@ -359,8 +359,7 @@ namespace Microsoft.CodeAnalysis
 
         private string GetDebuggerDisplay()
         {
-            ConcurrentQueue<Diagnostic> lazyBag = _lazyBag;
-            return "Count = " + (lazyBag != null ? lazyBag.Count : 0);
+            return "Count = " + (_lazyBag?.Count ?? 0);
         }
         #endregion
     }

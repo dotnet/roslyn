@@ -6,13 +6,12 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -84,6 +83,11 @@ namespace Microsoft.CodeAnalysis
         /// Absolute path of the documentation comment XML file or null if not specified.
         /// </summary>
         public string DocumentationPath { get; internal set; }
+
+        /// <summary>
+        /// Absolute path of the error log file or null if not specified.
+        /// </summary>
+        public string ErrorLogPath { get; internal set; }
 
         /// <summary>
         /// An absolute path of the App.config file or null if not specified.
@@ -318,17 +322,18 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Resolves analyzer references stored in <see cref="AnalyzerReferences"/> using given file resolver.
         /// </summary>
+        /// <param name="getAssembly">Load an assembly from a file path</param>
         /// <returns>Yields resolved <see cref="AnalyzerFileReference"/> or <see cref="UnresolvedAnalyzerReference"/>.</returns>
-        public IEnumerable<AnalyzerReference> ResolveAnalyzerReferences()
+        public IEnumerable<AnalyzerReference> ResolveAnalyzerReferences(Func<string, Assembly> getAssembly)
         {
             foreach (CommandLineAnalyzerReference cmdLineReference in AnalyzerReferences)
             {
-                yield return ResolveAnalyzerReference(cmdLineReference)
+                yield return ResolveAnalyzerReference(cmdLineReference, getAssembly)
                     ?? (AnalyzerReference)new UnresolvedAnalyzerReference(cmdLineReference.FilePath);
             }
         }
 
-        internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(string language, List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
+        internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(string language, List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles, Func<string, Assembly> getAssembly)
         {
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
 
@@ -363,7 +368,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var reference in AnalyzerReferences)
             {
-                var resolvedReference = ResolveAnalyzerReference(reference);
+                var resolvedReference = ResolveAnalyzerReference(reference, getAssembly);
                 if (resolvedReference != null)
                 {
                     resolvedReference.AnalyzerLoadFailed += errorHandler;
@@ -379,7 +384,7 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutable();
         }
 
-        private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference)
+        private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference, Func<string, Assembly> getAssembly)
         {
             string resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: File.Exists);
             if (File.Exists(resolvedPath))
@@ -393,7 +398,7 @@ namespace Microsoft.CodeAnalysis
 
             if (resolvedPath != null)
             {
-                return new AnalyzerFileReference(resolvedPath);
+                return new AnalyzerFileReference(resolvedPath, getAssembly);
             }
 
             return null;

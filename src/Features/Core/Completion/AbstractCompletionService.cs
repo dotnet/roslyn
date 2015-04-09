@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return Task.FromResult(string.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, insertionText));
             }
 
-            return Task.FromResult((string)null);
+            return SpecializedTasks.Default<string>();
         }
 
         public virtual bool SupportSnippetCompletionListOnTab

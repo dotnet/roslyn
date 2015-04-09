@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         /// an important scenario that we can be generating multiple documents in parallel, and so 
         /// we simply take this lock around all public entrypoints to enforce sequential access.
         /// </summary>
-        private readonly AsyncSemaphore _gate = new AsyncSemaphore(initialCount: 1);
+        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
         /// <summary>
         /// For a description of the key, see GetKeyAsync.

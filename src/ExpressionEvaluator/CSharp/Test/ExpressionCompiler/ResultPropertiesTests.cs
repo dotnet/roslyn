@@ -10,6 +10,7 @@ using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
+using Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
-    Module IDocumentExtensions
+    Friend Module IDocumentExtensions
 
         <Extension()>
         Public Async Function GetVisualBasicSyntaxTreeAsync(document As Document, Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxTree)

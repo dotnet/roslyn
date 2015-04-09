@@ -712,7 +712,7 @@ using System.Linq.Expressions;
 
 Expression",
 parseOptions: GetScriptOptions(),
-compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new AssemblyReferenceResolver(new MetadataFileReferenceResolver(new string[0], null), MetadataFileReferenceProvider.Default)),
+compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new AssemblyReferenceResolver(new MetadataFileReferenceResolver(Array.Empty<string>(), null), MetadataFileReferenceProvider.Default)),
 compareTokens: false);
         }
 
@@ -1322,7 +1322,7 @@ class Test
 
             var expectedText =
 @"using System;
-using Outer;
+using static Outer;
 
 public static class Outer
 {
@@ -1364,7 +1364,7 @@ class Test
 
             var expectedText =
 @"using System;
-using Outer.Inner;
+using static Outer.Inner;
 
 public static class Outer
 {
@@ -1434,7 +1434,7 @@ class Test
             var expectedText =
 @"using System;
 using Outer;
-using Outer.Inner;
+using static Outer.Inner;
 
 public static class Outer
 {

@@ -3,10 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,6 +12,8 @@ using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+
+using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private class ComplainAboutX : DiagnosticAnalyzer
         {
             private static readonly DiagnosticDescriptor s_CA9999_UseOfVariableThatStartsWithX =
-                new DiagnosticDescriptor(id: "CA9999", title: "CA9999_UseOfVariableThatStartsWithX", messageFormat: "Use of variable whose name starts with 'x': '{0}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new DiagnosticDescriptor(id: "CA9999_UseOfVariableThatStartsWithX", title: "CA9999_UseOfVariableThatStartsWithX", messageFormat: "Use of variable whose name starts with 'x': '{0}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var id = (IdentifierNameSyntax)context.Node;
                 if (id.Identifier.ValueText.StartsWith("x", StringComparison.Ordinal))
                 {
-                    context.ReportDiagnostic(new TestDiagnostic("CA9999_UseOfVariableThatStartsWithX", "CsTest", DiagnosticSeverity.Warning, id.Location, "Use of variable whose name starts with 'x': '{0}'", id.Identifier.ValueText));
+                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_CA9999_UseOfVariableThatStartsWithX, id.Location, id.Identifier.ValueText));
                 }
             }
         }
@@ -570,10 +570,11 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
         {
             public static DiagnosticDescriptor desc1 = new DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
             public static DiagnosticDescriptor desc2 = new DiagnosticDescriptor("XX002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
+            public static DiagnosticDescriptor desc3 = new DiagnosticDescriptor("XX003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false, customTags: WellKnownDiagnosticTags.NotConfigurable);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
-                get { return ImmutableArray.Create(desc1, desc2); }
+                get { return ImmutableArray.Create(desc1, desc2, desc3); }
             }
 
             public override void Initialize(AnalysisContext context)
@@ -633,6 +634,12 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
             Assert.False(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
             Assert.True(partiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
+
+            // Verify not configurable disabled diagnostic cannot be enabled, and hence cannot affect IsDiagnosticAnalyzerSuppressed computation.
+            specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
+            specificDiagOptions.Add(FullyDisabledAnalyzer.desc3.Id, ReportDiagnostic.Warn);
+            options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
+            Assert.True(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
         }
 
         [Fact, WorkItem(1008059)]
@@ -841,12 +848,12 @@ public class B
         {
             private readonly bool _isCodeBlockAnalyzer;
 
-            public static DiagnosticDescriptor Desciptor1 = new TriggerDiagnosticDescriptor("CodeBlockDiagnostic");
-            public static DiagnosticDescriptor Desciptor2 = new TriggerDiagnosticDescriptor("EqualsValueDiagnostic");
-            public static DiagnosticDescriptor Desciptor3 = new TriggerDiagnosticDescriptor("ConstructorInitializerDiagnostic");
-            public static DiagnosticDescriptor Desciptor4 = new TriggerDiagnosticDescriptor("PropertyExpressionBodyDiagnostic");
-            public static DiagnosticDescriptor Desciptor5 = new TriggerDiagnosticDescriptor("IndexerExpressionBodyDiagnostic");
-            public static DiagnosticDescriptor Desciptor6 = new TriggerDiagnosticDescriptor("MethodExpressionBodyDiagnostic");
+            public static DiagnosticDescriptor Desciptor1 = DescriptorFactory.CreateSimpleDescriptor("CodeBlockDiagnostic");
+            public static DiagnosticDescriptor Desciptor2 = DescriptorFactory.CreateSimpleDescriptor("EqualsValueDiagnostic");
+            public static DiagnosticDescriptor Desciptor3 = DescriptorFactory.CreateSimpleDescriptor("ConstructorInitializerDiagnostic");
+            public static DiagnosticDescriptor Desciptor4 = DescriptorFactory.CreateSimpleDescriptor("PropertyExpressionBodyDiagnostic");
+            public static DiagnosticDescriptor Desciptor5 = DescriptorFactory.CreateSimpleDescriptor("IndexerExpressionBodyDiagnostic");
+            public static DiagnosticDescriptor Desciptor6 = DescriptorFactory.CreateSimpleDescriptor("MethodExpressionBodyDiagnostic");
 
             public CodeBlockOrSyntaxNodeAnalyzer(bool isCodeBlockAnalyzer)
             {
@@ -863,7 +870,7 @@ public class B
                 if (_isCodeBlockAnalyzer)
                 {
                     context.RegisterCodeBlockStartAction<SyntaxKind>(OnCodeBlockStarted);
-                    context.RegisterCodeBlockEndAction(OnCodeBlockEnded);
+                    context.RegisterCodeBlockAction(OnCodeBlockEnded);
                 }
                 else
                 {
@@ -874,7 +881,7 @@ public class B
                 }
             }
 
-            public static void OnCodeBlockEnded(CodeBlockEndAnalysisContext context)
+            public static void OnCodeBlockEnded(CodeBlockAnalysisContext context)
             {
                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor1, Location.None));
             }
@@ -936,6 +943,112 @@ public class B
                     ctxt.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor1, method.Locations[0], method.ToDisplayString()));
                 }, SymbolKind.Method);
             }
+        }
+
+        [Fact, WorkItem(252, "https://github.com/dotnet/roslyn/issues/252")]
+        public void TestReportingUnsupportedDiagnostic()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerReportingUnsupportedDiagnostic() };
+            string message = new ArgumentException("Reported diagnostic with ID 'ID_2' is not supported by the analyzer.", "diagnostic").Message;
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                     expected: Diagnostic("AD0001")
+                     .WithArguments("Microsoft.CodeAnalysis.CSharp.UnitTests.DiagnosticAnalyzerTests+AnalyzerReportingUnsupportedDiagnostic", "System.ArgumentException", message)
+                     .WithLocation(1, 1));
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class AnalyzerReportingUnsupportedDiagnostic : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor SupportedDescriptor =
+                new DiagnosticDescriptor("ID_1", "DummyTitle", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public static readonly DiagnosticDescriptor UnsupportedDescriptor =
+                new DiagnosticDescriptor("ID_2", "DummyTitle", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get
+                {
+                    return ImmutableArray.Create(SupportedDescriptor);
+                }
+            }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationAction(compilationContext =>
+                    compilationContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(UnsupportedDescriptor, Location.None)));
+            }
+        }
+
+        [Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")]
+        public void TestReportingNotConfigurableDiagnostic()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new NotConfigurableDiagnosticAnalyzer() };
+
+            // Verify, not configurable enabled diagnostic is always reported and disabled diagnostic is never reported..
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false, expected: Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id));
+
+            // Verify not configurable enabled diagnostic cannot be suppressed.
+            var specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
+            specificDiagOptions.Add(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id, ReportDiagnostic.Suppress);
+            var options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
+
+            CreateCompilationWithMscorlib45(source, options: options)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false, expected: Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id));
+
+            // Verify not configurable disabled diagnostic cannot be enabled.
+            specificDiagOptions.Clear();
+            specificDiagOptions.Add(NotConfigurableDiagnosticAnalyzer.DisabledRule.Id, ReportDiagnostic.Warn);
+            options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
+
+            CreateCompilationWithMscorlib45(source, options: options)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false, expected: Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id));
+        }
+
+        [Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")]
+        public void TestCodeBlockAction()
+        {
+            string source = @"
+class C
+{
+    public void M() {}
+}";
+            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockActionAnalyzer() };
+
+            // Verify, code block action diagnostics.
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
+                    expected: new[] {
+                        Diagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, "M").WithArguments("M").WithLocation(4, 17),
+                        Diagnostic(CodeBlockActionAnalyzer.CodeBlockPerCompilationRule.Id, "M").WithArguments("M").WithLocation(4, 17)
+                    });
+        }
+
+        [Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")]
+        public void TestCodeBlockAction_OnlyStatelessAction()
+        {
+            string source = @"
+class C
+{
+    public void M() {}
+}";
+            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockActionAnalyzer(onlyStatelessAction: true) };
+
+            // Verify, code block action diagnostics.
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
+                    expected: Diagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, "M").WithArguments("M").WithLocation(4, 17));
         }
     }
 }

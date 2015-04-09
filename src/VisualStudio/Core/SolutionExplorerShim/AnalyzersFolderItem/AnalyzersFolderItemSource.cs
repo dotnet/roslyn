@@ -14,12 +14,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private readonly Workspace _workspace;
         private readonly ProjectId _projectId;
         private readonly ObservableCollection<AnalyzersFolderItem> _folderItems;
+        private readonly IAnalyzersCommandHandler _commandHandler;
 
-        public AnalyzersFolderItemSource(Workspace workspace, ProjectId projectId, IVsHierarchyItem projectHierarchyItem)
+        public AnalyzersFolderItemSource(Workspace workspace, ProjectId projectId, IVsHierarchyItem projectHierarchyItem, IAnalyzersCommandHandler commandHandler)
         {
             _workspace = workspace;
             _projectId = projectId;
             _projectHierarchyItem = projectHierarchyItem;
+            _commandHandler = commandHandler;
 
             _folderItems = new ObservableCollection<AnalyzersFolderItem>();
 
@@ -62,7 +64,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 new AnalyzersFolderItem(
                     _workspace,
                     _projectId,
-                    _projectHierarchyItem));
+                    _projectHierarchyItem,
+                    _commandHandler.AnalyzerFolderContextMenuController));
         }
     }
 }

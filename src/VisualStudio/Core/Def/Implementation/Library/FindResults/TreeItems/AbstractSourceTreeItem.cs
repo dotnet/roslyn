@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Navigation;
@@ -23,7 +26,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         protected readonly int _mappedLineNumber;
         protected readonly int _mappedOffset;
 
-        public AbstractSourceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex)
+        private static readonly ObjectPool<StringBuilder> s_filePathBuilderPool = new ObjectPool<StringBuilder>(() => new StringBuilder());
+
+        public AbstractSourceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex, int commonPathElements = 0)
             : base(glyphIndex)
         {
             // We store the document ID, line and offset for navigation so that we
@@ -33,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             _workspace = document.Project.Solution.Workspace;
             _documentId = document.Id;
             _projectName = document.Project.Name;
-            _filePath = document.FilePath;
+            _filePath = GetFilePath(document, commonPathElements);
             _sourceSpan = sourceSpan;
 
             var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
@@ -58,6 +63,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             navigationService.TryNavigateToLineAndOffset(_workspace, _documentId, _lineNumber, _offset);
 
             return VSConstants.S_OK;
+        }
+
+        private static string GetFilePath(Document document, int commonPathElements)
+        {
+            var builder = s_filePathBuilderPool.Allocate();
+            try
+            {
+                if (commonPathElements <= 0)
+                {
+                    builder.Append(document.Project.Name);
+                    builder.Append('\\');
+                }
+
+                commonPathElements--;
+                foreach (var folder in document.Folders)
+                {
+                    if (commonPathElements <= 0)
+                    {
+                        builder.Append(folder);
+                        builder.Append('\\');
+                    }
+
+                    commonPathElements--;
+                }
+
+                builder.Append(Path.GetFileName(document.FilePath));
+
+                return builder.ToString();
+            }
+            finally
+            {
+                s_filePathBuilderPool.ClearAndFree(builder);
+            }
         }
     }
 }

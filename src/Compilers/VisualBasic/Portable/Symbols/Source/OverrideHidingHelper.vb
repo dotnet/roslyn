@@ -579,13 +579,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits OverrideHidingHelper
 
         ' Comparer for comparing signatures of TSymbols in a runtime-equivalent way
-        Private Shared RuntimeSignatureComparer As IEqualityComparer(Of TSymbol)
+        Private Shared s_runtimeSignatureComparer As IEqualityComparer(Of TSymbol)
 
         ' Initialize the various kinds of comparers.
         Shared Sub New()
-            OverrideHidingHelper(Of MethodSymbol).RuntimeSignatureComparer = MethodSignatureComparer.RuntimeMethodSignatureComparer
-            OverrideHidingHelper(Of PropertySymbol).RuntimeSignatureComparer = PropertySignatureComparer.RuntimePropertySignatureComparer
-            OverrideHidingHelper(Of EventSymbol).RuntimeSignatureComparer = EventSignatureComparer.RuntimeEventSignatureComparer
+            OverrideHidingHelper(Of MethodSymbol).s_runtimeSignatureComparer = MethodSignatureComparer.RuntimeMethodSignatureComparer
+            OverrideHidingHelper(Of PropertySymbol).s_runtimeSignatureComparer = PropertySignatureComparer.RuntimePropertySignatureComparer
+            OverrideHidingHelper(Of EventSymbol).s_runtimeSignatureComparer = EventSignatureComparer.RuntimeEventSignatureComparer
         End Sub
 
         ''' <summary>
@@ -715,7 +715,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If If(overridingIsFromSomeCompilation,
                         sym.IsWithEventsProperty = overridingSym.IsWithEventsProperty AndAlso
                             SignaturesMatch(overridingSym, member, exactMatch, exactMatchIgnoringCustomModifiers),
-                        RuntimeSignatureComparer.Equals(overridingSym, member)) Then
+                        s_runtimeSignatureComparer.Equals(overridingSym, member)) Then
 
                         If accessible Then
                             If exactMatchIgnoringCustomModifiers Then

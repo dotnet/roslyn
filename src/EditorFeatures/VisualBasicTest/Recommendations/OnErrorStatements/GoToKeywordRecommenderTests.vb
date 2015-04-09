@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.On
             VerifyRecommendationsAreExactly(<MethodBody>
 Dim x = Sub()
             On Error |
-        End Sub</MethodBody>, {})
+        End Sub</MethodBody>, Array.Empty(Of String)())
         End Sub
     End Class
 End Namespace

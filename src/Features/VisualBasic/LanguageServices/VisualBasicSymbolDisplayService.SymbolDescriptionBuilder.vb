@@ -12,11 +12,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
         Protected Class SymbolDescriptionBuilder
             Inherits AbstractSymbolDescriptionBuilder
 
-            Private Shared ReadOnly _MinimallyQualifiedFormat As SymbolDisplayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat _
+            Private Shared ReadOnly s_minimallyQualifiedFormat As SymbolDisplayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat _
                 .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) _
                 .RemoveParameterOptions(SymbolDisplayParameterOptions.IncludeDefaultValue)
 
-            Private Shared ReadOnly _MinimallyQualifiedFormatWithConstants As SymbolDisplayFormat = _MinimallyQualifiedFormat _
+            Private Shared ReadOnly s_minimallyQualifiedFormatWithConstants As SymbolDisplayFormat = s_minimallyQualifiedFormat _
                 .AddLocalOptions(SymbolDisplayLocalOptions.IncludeConstantValue) _
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeConstantValue) _
                 .AddParameterOptions(SymbolDisplayParameterOptions.IncludeDefaultValue)
@@ -155,13 +155,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
 
             Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat
                 Get
-                    Return _MinimallyQualifiedFormat
+                    Return s_minimallyQualifiedFormat
                 End Get
             End Property
 
             Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstants As SymbolDisplayFormat
                 Get
-                    Return _MinimallyQualifiedFormatWithConstants
+                    Return s_minimallyQualifiedFormatWithConstants
                 End Get
             End Property
         End Class

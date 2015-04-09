@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Partial Class ArrayTypeSymbol
+    Friend Partial Class ArrayTypeSymbol
         Implements Cci.IArrayTypeReference
 
         Private Function IArrayTypeReferenceGetElementType(context As EmitContext) As Cci.ITypeReference Implements Cci.IArrayTypeReference.GetElementType

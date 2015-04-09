@@ -16,11 +16,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Public Shared ReadOnly SystemFirstInstance As IComparer(Of ImportsStatementSyntax) = New ImportsStatementComparer(NameSyntaxComparer.Create(TokenComparer.SystemFirstInstance))
         Public Shared ReadOnly NormalInstance As IComparer(Of ImportsStatementSyntax) = New ImportsStatementComparer(NameSyntaxComparer.Create(TokenComparer.NormalInstance))
 
-        Private ReadOnly nameComparer As IComparer(Of NameSyntax)
+        Private ReadOnly _nameComparer As IComparer(Of NameSyntax)
 
         Private Sub New(nameComparer As IComparer(Of NameSyntax))
             Contract.Requires(nameComparer IsNot Nothing)
-            Me.nameComparer = nameComparer
+            Me._nameComparer = nameComparer
         End Sub
 
         Public Function Compare(directive1 As ImportsStatementSyntax, directive2 As ImportsStatementSyntax) As Integer Implements IComparer(Of ImportsStatementSyntax).Compare
@@ -36,12 +36,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             ElseIf directive2.ImportsClauses.Count = 0 Then
                 Return 1
             Else
-                Return ImportsClauseComparer.CompareClauses(directive1.ImportsClauses(0), directive2.ImportsClauses(0), nameComparer)
+                Return ImportsClauseComparer.CompareClauses(directive1.ImportsClauses(0), directive2.ImportsClauses(0), _nameComparer)
             End If
         End Function
 
         Private Function CompareNames(nameSyntax1 As NameSyntax, nameSyntax2 As NameSyntax) As Integer
-            Return nameComparer.Compare(nameSyntax1, nameSyntax2)
+            Return _nameComparer.Compare(nameSyntax1, nameSyntax2)
         End Function
     End Class
 End Namespace

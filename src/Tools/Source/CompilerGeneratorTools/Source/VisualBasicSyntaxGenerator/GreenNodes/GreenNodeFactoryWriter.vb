@@ -8,7 +8,7 @@
 Imports System.IO
 
 ' Class to write out the code for the code tree.
-Class GreenNodeFactoryWriter
+Friend Class GreenNodeFactoryWriter
     Inherits WriteUtils
 
     Private _writer As TextWriter    'output is sent here.

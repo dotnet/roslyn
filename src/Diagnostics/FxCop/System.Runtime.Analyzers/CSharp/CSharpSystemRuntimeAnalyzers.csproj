@@ -15,6 +15,7 @@
     <RootNamespace>System.Runtime.CSharp.Analyzers</RootNamespace>
     <AssemblyName>System.Runtime.CSharp.Analyzers</AssemblyName>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <RestorePackages>true</RestorePackages>
@@ -69,10 +70,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="System.Runtime.CSharp.Analyzers.props">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Compile Include="Usage\OverloadOperatorEqualsOnOverridingValueTypeEquals.Fixer.cs" />
     <Compile Include="Design\DefineAccessorsForAttributeArguments.cs" />
     <Compile Include="Design\OverrideMethodsOnComparableTypes.Fixer.cs" />
   </ItemGroup>

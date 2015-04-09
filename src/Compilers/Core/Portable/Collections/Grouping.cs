@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
     {
-        public TKey Key { get; private set; }
+        public TKey Key { get; }
         private readonly IEnumerable<TElement> _elements;
 
         public Grouping(TKey key, IEnumerable<TElement> elements)

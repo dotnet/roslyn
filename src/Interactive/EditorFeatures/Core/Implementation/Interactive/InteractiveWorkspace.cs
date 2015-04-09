@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
     {
         private readonly ISolutionCrawlerRegistrationService _registrationService;
 
-        internal InteractiveEvaluator Engine { get; private set; }
+        internal InteractiveEvaluator Engine { get; }
         private SourceTextContainer _openTextContainer;
         private DocumentId _openDocumentId;
 

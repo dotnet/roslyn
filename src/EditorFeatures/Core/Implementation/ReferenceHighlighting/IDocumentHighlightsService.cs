@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal struct HighlightSpan
     {
-        public TextSpan TextSpan { get; private set; }
-        public bool IsDefinition { get; private set; }
+        public TextSpan TextSpan { get; }
+        public bool IsDefinition { get; }
 
         public HighlightSpan(TextSpan textSpan, bool isDefinition) : this()
         {
@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor
 
     internal struct DocumentHighlights
     {
-        public Document Document { get; private set; }
-        public IList<HighlightSpan> HighlightSpans { get; private set; }
+        public Document Document { get; }
+        public IList<HighlightSpan> HighlightSpans { get; }
 
         public DocumentHighlights(Document document, IList<HighlightSpan> highlightSpans) : this()
         {

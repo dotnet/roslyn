@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Private Function CreateMockSymbol(extent As NamespaceExtent, xel As XElement) As Symbol
             Dim result As Symbol
             Dim childSymbols = From childElement In xel.Elements()
-                                  Select CreateMockSymbol(extent, childElement)
+                               Select CreateMockSymbol(extent, childElement)
 
             Dim name As String = xel.Attribute("name").Value
             Select Case xel.Name.LocalName

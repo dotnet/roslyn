@@ -3,7 +3,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining.MetadataAsSource
-    Class EventDeclarationOutliner
+    Friend Class EventDeclarationOutliner
         Inherits AbstractMetadataAsSourceOutliner(Of EventStatementSyntax)
 
         Protected Overrides Function GetEndToken(node As EventStatementSyntax) As SyntaxToken

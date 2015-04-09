@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Resources;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public override string ToString(IFormatProvider formatProvider)
+        protected override string GetText(IFormatProvider formatProvider)
         {
             var culture = formatProvider as CultureInfo ?? CultureInfo.CurrentUICulture;
             var resourceString = _resourceManager.GetString(_nameOfLocalizableResource, culture);
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis
                 string.Empty;
         }
 
-        public override bool Equals(LocalizableString other)
+        protected override bool AreEqual(object other)
         {
             var otherResourceString = other as LocalizableResourceString;
             return other != null &&
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis
                 _formatArguments.SequenceEqual(otherResourceString._formatArguments, (a, b) => a == b);
         }
 
-        public override int GetHashCode()
+        protected override int GetHash()
         {
             return Hash.Combine(_nameOfLocalizableResource.GetHashCode(),
                 Hash.Combine(_resourceManager.GetHashCode(),

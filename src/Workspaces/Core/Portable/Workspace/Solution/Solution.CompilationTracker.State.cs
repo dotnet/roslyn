@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis
                 // strong reference to declaration only compilation. 
                 // this doesn't make any expensive information such as symbols or references alive. just
                 // things like decleration table alive.
-                public Compilation DeclarationOnlyCompilation { get; private set; }
+                public Compilation DeclarationOnlyCompilation { get; }
 
                 // The compilation available.  May be an InProgress, Full Declaration, or Final compilation
-                public ValueSource<Compilation> Compilation { get; private set; }
+                public ValueSource<Compilation> Compilation { get; }
 
                 // The Final compilation if available, otherwise an empty IValueSource
                 public virtual ValueSource<Compilation> FinalCompilation
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             // DeclarationCompilation from by iteratively processing IntermediateProjects
             private sealed class InProgressState : State
             {
-                public ImmutableArray<ValueTuple<ProjectState, CompilationTranslationAction>> IntermediateProjects { get; private set; }
+                public ImmutableArray<ValueTuple<ProjectState, CompilationTranslationAction>> IntermediateProjects { get; }
 
                 public InProgressState(
                     Compilation inProgressCompilation,

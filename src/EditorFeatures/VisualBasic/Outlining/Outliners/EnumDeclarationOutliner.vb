@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-    Class EnumDeclarationOutliner
+    Friend Class EnumDeclarationOutliner
         Inherits AbstractSyntaxNodeOutliner(Of EnumStatementSyntax)
 
         Private Shared Function GetBannerText(enumDeclaration As EnumStatementSyntax) As String

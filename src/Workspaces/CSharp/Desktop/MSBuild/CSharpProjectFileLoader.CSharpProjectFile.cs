@@ -24,11 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private class CSharpProjectFile : ProjectFile
         {
             private readonly IMetadataService _metadataService;
+            private readonly IAnalyzerService _analyzerService;
 
-            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, IMetadataService metadataService)
+            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, IMetadataService metadataService, IAnalyzerService analyzerService)
                 : base(loader, project)
             {
                 _metadataService = metadataService;
+                _analyzerService = analyzerService;
             }
 
             public override SourceCodeKind GetSourceCodeKind(string documentFileName)
@@ -53,8 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var compilerInputs = new CSharpCompilerInputs(this);
 
-                var result = await this.BuildAsync("Csc", compilerInputs, cancellationToken).ConfigureAwait(false);
-                var executedProject = result.Instance;
+                var executedProject = await this.BuildAsync("Csc", compilerInputs, cancellationToken).ConfigureAwait(false);
 
                 if (!compilerInputs.Initialized)
                 {
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var resolver = new MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
                 metadataReferences = commandLineArgs.ResolveMetadataReferences(new AssemblyReferenceResolver(resolver, _metadataService.GetProvider()));
-                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences();
+                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(_analyzerService.GetAnalyzer);
             }
 
             private void InitializeFromModel(CSharpCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal IEnumerable<MSB.Framework.ITaskItem> AdditionalFiles { get; private set; }
                 internal IReadOnlyList<string> LibPaths { get; private set; }
                 internal bool NoStandardLib { get; private set; }
-                internal Dictionary<string, ReportDiagnostic> Warnings { get; private set; }
+                internal Dictionary<string, ReportDiagnostic> Warnings { get; }
                 internal string OutputFileName { get; private set; }
 
                 private static readonly CSharpParseOptions s_defaultParseOptions = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, documentationMode: DocumentationMode.Parse);

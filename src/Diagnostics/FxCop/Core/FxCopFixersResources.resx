@@ -117,12 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="OverloadOperatorEqualsOnOverridingValueTypeEquals" xml:space="preserve">
-    <value>Overload operator equals on overriding ValueType.Equals</value>
-  </data>
-  <data name="AvoidUnsealedAttributesCodeFix" xml:space="preserve">
-    <value>Seal attribute type.</value>
-  </data>
   <data name="StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase" xml:space="preserve">
     <value>String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase</value>
   </data>
@@ -158,9 +152,6 @@
   </data>
   <data name="AddNonSerializedAttribute" xml:space="preserve">
     <value>Add the 'NonSerialized' attribute to this field.</value>
-  </data>
-  <data name="AvoidUnsealedAttributes" xml:space="preserve">
-    <value>Avoid unsealed attributes.</value>
   </data>
   <data name="AbstractTypesShouldNotHavePublicConstructorsCodeFix" xml:space="preserve">
     <value>Change the accessibility of all public contructors in this class to protected.</value>

@@ -214,7 +214,7 @@ End Enum
 
 #Region "Set Name tests"
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName1()
+        Public Sub SetName1()
             Dim code =
 <Code>
 Enum $$Foo
@@ -234,7 +234,7 @@ End Enum
 #Region "GenericExtender"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseTypesCount()
+        Public Sub GenericExtender_GetBaseTypesCount()
             Dim code =
 <Code>
 Enum E$$
@@ -245,7 +245,7 @@ End Enum
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseGenericName()
+        Public Sub GenericExtender_GetBaseGenericName()
             Dim code =
 <Code>
 Enum E$$
@@ -256,7 +256,7 @@ End Enum
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplementedTypesCount()
+        Public Sub GenericExtender_GetImplementedTypesCount()
             Dim code =
 <Code>
 Enum E$$
@@ -267,7 +267,7 @@ End Enum
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplTypeGenericName()
+        Public Sub GenericExtender_GetImplTypeGenericName()
             Dim code =
 <Code>
 Enum E$$

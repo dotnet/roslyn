@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundUserDefinedBinaryOperator
+    Friend Partial Class BoundUserDefinedBinaryOperator
 
         Public ReadOnly Property Left As BoundExpression
             Get

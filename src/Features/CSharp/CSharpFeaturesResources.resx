@@ -255,43 +255,6 @@
   <data name="OrganizeUsingsWithAccelerator" xml:space="preserve">
     <value>&amp;Organize Usings</value>
   </data>
-  <data name="DisposePattern" xml:space="preserve">
-    <value>
-    #region IDisposable Support
-    private bool disposedValue = false; // To detect redundant calls
-
-    {0}void Dispose(bool disposing)
-    {{
-        if (!disposedValue)
-        {{
-            if (disposing)
-            {{
-                // TODO: dispose managed state (managed objects).
-            }}
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
-
-            disposedValue = true;
-        }}
-    }}
-
-    // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-    // ~{1}() {{
-    //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-    //   Dispose(false);
-    // }}
-
-    // This code added to correctly implement the disposable pattern.
-    {2}Dispose()
-    {{
-        // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        Dispose(true);
-        // TODO: uncomment the following line if the finalizer is overridden above.
-        // GC.SuppressFinalize(this);
-    }}
-    #endregion</value>
-  </data>
   <data name="AutoselectDisabledDueToPotentialImplicitArray" xml:space="preserve">
     <value>Autoselect disabled due to potential implicit array creation.</value>
   </data>
@@ -321,5 +284,92 @@
   </data>
   <data name="ImplicitConversionDisplayText" xml:space="preserve">
     <value>Generate implicit conversion operator in '{0}'</value>
+  </data>
+  <data name="DoNotChangeThisCodeUseDispose" xml:space="preserve">
+    <value>Do not change this code. Put cleanup code in Dispose(bool disposing) above.</value>
+  </data>
+  <data name="FreeUnmanagedResourcesTodo" xml:space="preserve">
+    <value>TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.</value>
+  </data>
+  <data name="OverrideAFinalizerTodo" xml:space="preserve">
+    <value>TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.</value>
+  </data>
+  <data name="ThisCodeAddedToCorrectlyImplementDisposable" xml:space="preserve">
+    <value>This code added to correctly implement the disposable pattern.</value>
+  </data>
+  <data name="UncommentTheFollowingIfFinalizerOverriddenTodo" xml:space="preserve">
+    <value>TODO: uncomment the following line if the finalizer is overridden above.</value>
+  </data>
+  <data name="TryBlock" xml:space="preserve">
+    <value>try block</value>
+  </data>
+  <data name="CatchClause" xml:space="preserve">
+    <value>catch clause</value>
+  </data>
+  <data name="FilterClause" xml:space="preserve">
+    <value>filter clause</value>
+  </data>
+  <data name="FinallyClause" xml:space="preserve">
+    <value>finally clause</value>
+  </data>
+  <data name="FixedStatement" xml:space="preserve">
+    <value>fixed statement</value>
+  </data>
+  <data name="UsingStatement" xml:space="preserve">
+    <value>using statement</value>
+  </data>
+  <data name="LockStatement" xml:space="preserve">
+    <value>lock statement</value>
+  </data>
+  <data name="ForEachStatement" xml:space="preserve">
+    <value>foreach statement</value>
+  </data>
+  <data name="CheckedStatement" xml:space="preserve">
+    <value>checked statement</value>
+  </data>
+  <data name="UncheckedStatement" xml:space="preserve">
+    <value>unchecked statement</value>
+  </data>
+  <data name="YieldStatement" xml:space="preserve">
+    <value>yield statement</value>
+  </data>
+  <data name="AwaitExpression" xml:space="preserve">
+    <value>await expression</value>
+  </data>
+  <data name="Lambda" xml:space="preserve">
+    <value>lambda</value>
+  </data>
+  <data name="AnonymousMethod" xml:space="preserve">
+    <value>anonymous method</value>
+  </data>
+  <data name="FromClause" xml:space="preserve">
+    <value>from clause</value>
+  </data>
+  <data name="JoinClause" xml:space="preserve">
+    <value>join clause</value>
+  </data>
+  <data name="LetClause" xml:space="preserve">
+    <value>let clause</value>
+  </data>
+  <data name="WhereClause" xml:space="preserve">
+    <value>where clause</value>
+  </data>
+  <data name="OrderByClause" xml:space="preserve">
+    <value>orderby clause</value>
+  </data>
+  <data name="SelectClause" xml:space="preserve">
+    <value>select clause</value>
+  </data>
+  <data name="GroupByClause" xml:space="preserve">
+    <value>groupby clause</value>
+  </data>
+  <data name="QueryBody" xml:space="preserve">
+    <value>query body</value>
+  </data>
+  <data name="IntoClause" xml:space="preserve">
+    <value>into clause</value>
+  </data>
+  <data name="RemoveUnnecessaryUsingsDiagnosticTitle" xml:space="preserve">
+    <value>Using directive is unnecessary.</value>
   </data>
 </root>

@@ -251,7 +251,7 @@ End Interface
 
 #Region "Set Name tests"
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName1()
+        Public Sub SetName1()
             Dim code =
 <Code>
 Interface $$Foo
@@ -271,7 +271,7 @@ End Interface
 #Region "GenericExtender"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseTypesCount1()
+        Public Sub GenericExtender_GetBaseTypesCount1()
             Dim code =
 <Code>
 Interface I$$
@@ -282,7 +282,7 @@ End Interface
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseTypesCount2()
+        Public Sub GenericExtender_GetBaseTypesCount2()
             Dim code =
 <Code>
 Namespace N
@@ -303,7 +303,7 @@ End Namespace
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseGenericName1()
+        Public Sub GenericExtender_GetBaseGenericName1()
             Dim code =
 <Code>
 Interface I$$
@@ -314,7 +314,7 @@ End Interface
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseGenericName2()
+        Public Sub GenericExtender_GetBaseGenericName2()
             Dim code =
 <Code>
 Namespace N
@@ -335,7 +335,7 @@ End Namespace
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplementedTypesCount1()
+        Public Sub GenericExtender_GetImplementedTypesCount1()
             Dim code =
 <Code>
 Interface I$$
@@ -346,7 +346,7 @@ End Interface
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplementedTypesCount2()
+        Public Sub GenericExtender_GetImplementedTypesCount2()
             Dim code =
 <Code>
 Namespace N
@@ -367,7 +367,7 @@ End Namespace
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplTypeGenericName1()
+        Public Sub GenericExtender_GetImplTypeGenericName1()
             Dim code =
 <Code>
 Interface I$$
@@ -378,7 +378,7 @@ End Interface
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplTypeGenericName2()
+        Public Sub GenericExtender_GetImplTypeGenericName2()
             Dim code =
 <Code>
 Namespace N

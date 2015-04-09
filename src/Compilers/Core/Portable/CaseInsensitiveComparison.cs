@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
                 return s_invariantCultureTextInfo.ToLower(c);
             }
 
-            private int CompareLowerInvariant(char c1, char c2)
+            private static int CompareLowerInvariant(char c1, char c2)
             {
                 return (c1 == c2) ? 0 : ToLower(c1) - ToLower(c2);
             }

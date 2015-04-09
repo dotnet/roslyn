@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -35,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private WorkspaceFailureOutputPane _outputPane;
         private IComponentModel _componentModel;
         private AnalyzerItemsTracker _analyzerTracker;
+        private RuleSetEventHandler _ruleSetEventHandler;
         private IDisposable _solutionEventMonitor;
 
         protected override void Initialize()
@@ -163,6 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             DisposeVisualStudioDocumentTrackingService();
 
             UnregisterAnalyzerTracker();
+            UnregisterRuleSetEventHandler();
 
             ReportSessionWideTelemetry();
 
@@ -234,6 +237,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 analyzerCommandHandler.Initialize((IMenuCommandService)this.GetService(typeof(IMenuCommandService)));
             }
+
+            _ruleSetEventHandler = this.ComponentModel.GetService<RuleSetEventHandler>();
+            if (_ruleSetEventHandler != null)
+            {
+                _ruleSetEventHandler.Register();
+            }
         }
 
         private void UnregisterAnalyzerTracker()
@@ -242,6 +251,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 _analyzerTracker.Unregister();
                 _analyzerTracker = null;
+            }
+        }
+
+        private void UnregisterRuleSetEventHandler()
+        {
+            if (_ruleSetEventHandler != null)
+            {
+                _ruleSetEventHandler.Unregister();
+                _ruleSetEventHandler = null;
             }
         }
     }

@@ -1261,9 +1261,16 @@ Class C
     Sub M()
         10: Dim i As Integer
         Goto $$"
-</Text>.Value
+</Text>.Value.NormalizeLineEndings()
 
-            VerifyItemExists(test, "10")
+            Dim text As String = Nothing
+            Dim position As Integer
+            MarkupTestFile.GetPosition(test, text, position)
+
+            ' We don't trigger intellisense within numeric literals, so we 
+            ' explicitly test only the "nothing typed" case.
+            ' This is also the Dev12 behavior for suggesting labels.
+            VerifyAtPosition(text, position, "10", Nothing, SourceCodeKind.Regular, usePreviousCharAsTrigger:=True, checkForAbsence:=False, glyph:=Nothing, experimental:=False)
         End Sub
 
         <WorkItem(541235)>
@@ -5289,7 +5296,7 @@ End Class
 
         <WorkItem(1041269)>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub UnwrapNullableForConditionalAccess()
+        Public Sub NullableForConditionalAccess()
             Dim text =
 <code><![CDATA[
 Class C
@@ -5390,24 +5397,6 @@ End Module
 ]]></code>.Value
 
             VerifyItemExists(text, "ToString")
-        End Sub
-
-        <WorkItem(1079716)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub DontThrowForNullPropagatingOperatorAfterNamespace()
-            Dim text =
-<code><![CDATA[
-Option Strict On
-Module Program
-    Sub Main()
-        System?.$$
-    End Sub
-End Module
-]]></code>.Value
-
-            ' NOTE: The current behavior is that we'll still show types for a namespace after ?.
-            ' While the code is not correct, it seems reasonable to allow the user to continue typing.
-            VerifyItemExists(text, "Action")
         End Sub
 
         <WorkItem(1079723)>
@@ -5810,6 +5799,72 @@ Class C
         Dim s = $"{x:$$}"
     End Sub
 End Class
+]]></code>.Value
+
+            VerifyNoItemsExist(text)
+        End Sub
+
+        <WorkItem(1293, "https://github.com/dotnet/roslyn/issues/1293")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub TriggeredAfterDotInWithAfterNumericLiteral()
+            Dim text =
+<code><![CDATA[
+Class Program
+    Public Property P As Long
+
+    Sub M()
+        With Me
+            .P = 122
+            .$$
+        End With
+    End Sub
+End Class
+]]></code>.Value
+
+            VerifyItemExists(text, "M", usePreviousCharAsTrigger:=True)
+        End Sub
+
+        <WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
+<Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoCompletionForConditionalAccessOnTypes1()
+            Dim text =
+<code><![CDATA[
+Module Program
+    Sub Main(args As String())
+        System?.$$
+    End Sub
+End Module
+]]></code>.Value
+
+            VerifyNoItemsExist(text)
+        End Sub
+
+        <WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoCompletionForConditionalAccessOnTypes2()
+            Dim text =
+<code><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Console?.$$
+    End Sub
+End Module
+]]></code>.Value
+
+            VerifyNoItemsExist(text)
+        End Sub
+
+        <WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoCompletionForConditionalAccessOnTypes3()
+            Dim text =
+<code><![CDATA[
+Imports a = System
+Module Program
+    Sub Main(args As String())
+        a?.$$
+    End Sub
+End Module
 ]]></code>.Value
 
             VerifyNoItemsExist(text)

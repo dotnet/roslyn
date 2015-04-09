@@ -1718,6 +1718,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The rename tracking session was cancelled and is no longer available..
+        /// </summary>
+        internal static string TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable {
+            get {
+                return ResourceManager.GetString("TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The token is not contained in the workspace..
         /// </summary>
         internal static string TheTokenIsNotContainedInWorkspace {

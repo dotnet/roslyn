@@ -18,11 +18,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _contentType = contentTypeRegistryService.GetContentType(TestContentTypeDefinition.ContentTypeName);
         }
 
-        public IContentType ContentType
-        {
-            get { return _contentType; }
-        }
-
         public IInteractiveWindow CurrentWindow
         {
             get
@@ -50,12 +45,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             return Task.FromResult(ExecutionResult.Success);
         }
 
-        public bool CanExecuteText(string text)
+        public bool CanExecuteCode(string text)
         {
             return true;
         }
 
-        public Task<ExecutionResult> ExecuteTextAsync(string text)
+        public Task<ExecutionResult> ExecuteCodeAsync(string text)
         {
             return Task.FromResult(ExecutionResult.Success);
         }
@@ -65,7 +60,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             return "";
         }
 
-        public void AbortCommand()
+        public void AbortExecution()
         {
         }
 

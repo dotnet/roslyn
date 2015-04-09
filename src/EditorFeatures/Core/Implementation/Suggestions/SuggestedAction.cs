@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Notification;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -116,8 +117,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             if (_operations == null)
             {
-                _operations = Task.Run(
+                var operationsArray =  Task.Run(
                     async () => await this.CodeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false), cancellationToken).WaitAndGetResult(cancellationToken);
+
+                _operations = operationsArray == default(ImmutableArray<CodeActionOperation>) ? null : operationsArray as IEnumerable<CodeActionOperation>;
             }
 
             return EditHandler.GetPreviews(Workspace, _operations, cancellationToken);

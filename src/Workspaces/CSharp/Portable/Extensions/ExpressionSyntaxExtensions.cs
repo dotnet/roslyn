@@ -474,6 +474,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
+            // If we are a conditional access expression:
+            // case (1) : obj?.Method(), obj1.obj2?.Property
+            // case (2) : obj?.GetAnotherObj()?.Length, obj?.AnotherObj?.Length
+            // in case (1), the entire expression forms the conditional access expression, which can be replaced with an LValue.
+            // in case (2), the nested conditional access expression is ".GetAnotherObj()?.Length" or ".AnotherObj()?.Length"
+            // essentially, the first expression (before the operator) in a nested conditional access expression 
+            // is some form of member binding expression and they cannot be replaced with an LValue.
+            if (expression.IsKind(SyntaxKind.ConditionalAccessExpression))
+            {
+                return expression.Parent.Kind() != SyntaxKind.ConditionalAccessExpression;
+            }
+
             switch (expression.Parent.Kind())
             {
                 case SyntaxKind.InvocationExpression:
@@ -503,7 +515,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.ExpressionStatement:
                 case SyntaxKind.ArrayInitializerExpression:
                 case SyntaxKind.CollectionInitializerExpression:
-                case SyntaxKind.ConditionalAccessExpression:
                 case SyntaxKind.Argument:
                 case SyntaxKind.AttributeArgument:
                 case SyntaxKind.AnonymousObjectMemberDeclarator:
@@ -2231,6 +2242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             switch (expression.Kind())
             {
                 case SyntaxKind.SimpleMemberAccessExpression:
+                case SyntaxKind.ConditionalAccessExpression:
                 case SyntaxKind.InvocationExpression:
                 case SyntaxKind.ElementAccessExpression:
                 case SyntaxKind.PostIncrementExpression:

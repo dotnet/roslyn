@@ -96,6 +96,17 @@ namespace Microsoft.CodeAnalysis.Rename
                     }
                 }
 
+                // If we are renaming a backing field for a property, cascade to the property
+                if (symbol.Kind == SymbolKind.Field)
+                {
+                    var fieldSymbol = (IFieldSymbol)symbol;
+                    if (fieldSymbol.IsImplicitlyDeclared && 
+                        fieldSymbol.AssociatedSymbol.IsKind(SymbolKind.Property))
+                    {
+                        return fieldSymbol.AssociatedSymbol;
+                    }
+                }
+
                 // in case this is e.g. an overridden property accessor, we'll treat the property itself as the definition symbol
                 var property = await GetPropertyFromAccessorOrAnOverride(symbol, solution, cancellationToken).ConfigureAwait(false);
 
@@ -353,7 +364,12 @@ namespace Microsoft.CodeAnalysis.Rename
                     else
                     {
                         // The simple case, so just the single location and we're done
-                        results.Add(new RenameLocation(location.Location, location.Document.Id, isCandidateLocation: location.IsCandidateLocation, isRenamableAccessor: await IsPropertyAccessorOrAnOverride(referencedSymbol, solution, cancellationToken).ConfigureAwait(false)));
+                        results.Add(new RenameLocation(
+                            location.Location, 
+                            location.Document.Id, 
+                            isCandidateLocation: location.IsCandidateLocation, 
+                            isMethodGroupReference: location.IsCandidateLocation && location.CandidateReason == CandidateReason.MemberGroup, 
+                            isRenamableAccessor: await IsPropertyAccessorOrAnOverride(referencedSymbol, solution, cancellationToken).ConfigureAwait(false)));
                     }
                 }
 

@@ -193,14 +193,10 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var symbol in _changes.Keys)
             {
-                var typeDef = symbol as ITypeDefinition;
-                if (typeDef != null)
+                var namespaceTypeDef = (symbol as ITypeDefinition)?.AsNamespaceTypeDefinition(context);
+                if (namespaceTypeDef != null)
                 {
-                    var namespaceTypeDef = typeDef.AsNamespaceTypeDefinition(context);
-                    if (namespaceTypeDef != null)
-                    {
-                        yield return namespaceTypeDef;
-                    }
+                    yield return namespaceTypeDef;
                 }
             }
         }

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
         End Function
 
         <Fact>
-        Sub TestAdditionalFiles()
+        Public Sub TestAdditionalFiles()
             Dim input =
                 <Workspace>
                     <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='true'>

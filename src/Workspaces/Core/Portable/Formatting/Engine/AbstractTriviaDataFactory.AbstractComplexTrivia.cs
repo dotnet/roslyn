@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             private readonly SyntaxToken _token1;
             private readonly SyntaxToken _token2;
 
-            public TreeData TreeInfo { get; private set; }
-            public string OriginalString { get; private set; }
+            public TreeData TreeInfo { get; }
+            public string OriginalString { get; }
 
             private readonly bool _treatAsElastic;
 

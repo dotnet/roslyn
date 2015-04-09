@@ -5,8 +5,8 @@ Imports Microsoft.CodeAnalysis.Organizing.Organizers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing
-    Partial Class VisualBasicOrganizingService
-        Class Rewriter
+    Friend Partial Class VisualBasicOrganizingService
+        Public Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly _nodeToOrganizersGetter As Func(Of SyntaxNode, IEnumerable(Of ISyntaxOrganizer))

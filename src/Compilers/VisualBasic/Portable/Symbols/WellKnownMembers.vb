@@ -8,29 +8,29 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class VisualBasicCompilation
+    Public Partial Class VisualBasicCompilation
 
-        Private ReadOnly m_WellKnownMemberSignatureComparer As New WellKnownMembersSignatureComparer(Me)
+        Private ReadOnly _wellKnownMemberSignatureComparer As New WellKnownMembersSignatureComparer(Me)
 
         ''' <summary>
         ''' An array of cached well known types available for use in this Compilation.
         ''' Lazily filled by GetWellKnownType method.
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_LazyWellKnownTypes() As NamedTypeSymbol
+        Private _lazyWellKnownTypes() As NamedTypeSymbol
 
         ''' <summary>
         ''' Lazy cache of well known members.
         ''' Not yet known value is represented by ErrorTypeSymbol.UnknownResultType
         ''' </summary>
-        Private m_LazyWellKnownTypeMembers() As Symbol
+        Private _lazyWellKnownTypeMembers() As Symbol
 
-        Private m_LazyExtensionAttributeConstructor As Symbol = ErrorTypeSymbol.UnknownResultType ' Not yet known.
-        Private m_LazyExtensionAttributeConstructorErrorInfo As Object 'Actually, DiagnosticInfo
+        Private _lazyExtensionAttributeConstructor As Symbol = ErrorTypeSymbol.UnknownResultType ' Not yet known.
+        Private _lazyExtensionAttributeConstructorErrorInfo As Object 'Actually, DiagnosticInfo
 
 #Region "Synthesized Attributes"
         Friend Function GetExtensionAttributeConstructor(<Out> ByRef useSiteError As DiagnosticInfo) As MethodSymbol
-            If m_LazyExtensionAttributeConstructor Is ErrorTypeSymbol.UnknownResultType Then
+            If _lazyExtensionAttributeConstructor Is ErrorTypeSymbol.UnknownResultType Then
 
                 Dim system_Runtime_CompilerServices = Me.GlobalNamespace.LookupNestedNamespace(ImmutableArray.Create("System", "Runtime", "CompilerServices"))
                 Dim attributeType As NamedTypeSymbol = Nothing
@@ -114,14 +114,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' Storing m_LazyExtensionAttributeConstructorErrorInfo first.
-                m_LazyExtensionAttributeConstructorErrorInfo = ctorError
-                Interlocked.CompareExchange(m_LazyExtensionAttributeConstructor,
+                _lazyExtensionAttributeConstructorErrorInfo = ctorError
+                Interlocked.CompareExchange(_lazyExtensionAttributeConstructor,
                                             DirectCast(attributeCtor, Symbol),
                                             DirectCast(ErrorTypeSymbol.UnknownResultType, Symbol))
             End If
 
-            useSiteError = DirectCast(Volatile.Read(m_LazyExtensionAttributeConstructorErrorInfo), DiagnosticInfo)
-            Return DirectCast(m_LazyExtensionAttributeConstructor, MethodSymbol)
+            useSiteError = DirectCast(Volatile.Read(_lazyExtensionAttributeConstructorErrorInfo), DiagnosticInfo)
+            Return DirectCast(_lazyExtensionAttributeConstructor, MethodSymbol)
         End Function
 
         ''' <summary>
@@ -213,7 +213,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function SynthesizeDecimalConstantAttribute(value As Decimal) As SynthesizedAttributeData
-            Dim decimalData As DecimalData = value.GetBits()
+            Dim isNegative As Boolean
+            Dim scale As Byte
+            Dim low, mid, high As UInteger
+            value.GetBits(isNegative, scale, low, mid, high)
 
             Dim specialTypeByte = GetSpecialType(SpecialType.System_Byte)
             Debug.Assert(specialTypeByte.GetUseSiteErrorInfo() Is Nothing)
@@ -224,11 +227,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
                 ImmutableArray.Create(
-                    New TypedConstant(specialTypeByte, TypedConstantKind.Primitive, decimalData.scale),
-                    New TypedConstant(specialTypeByte, TypedConstantKind.Primitive, If(decimalData.sign, CByte(128), CByte(0))),
-                    New TypedConstant(specialTypeUInt32, TypedConstantKind.Primitive, decimalData.Hi32),
-                    New TypedConstant(specialTypeUInt32, TypedConstantKind.Primitive, decimalData.Mid32),
-                    New TypedConstant(specialTypeUInt32, TypedConstantKind.Primitive, decimalData.Lo32)
+                    New TypedConstant(specialTypeByte, TypedConstantKind.Primitive, scale),
+                    New TypedConstant(specialTypeByte, TypedConstantKind.Primitive, CByte(If(isNegative, 128, 0))),
+                    New TypedConstant(specialTypeUInt32, TypedConstantKind.Primitive, high),
+                    New TypedConstant(specialTypeUInt32, TypedConstantKind.Primitive, mid),
+                    New TypedConstant(specialTypeUInt32, TypedConstantKind.Primitive, low)
                 ))
         End Function
 
@@ -293,15 +296,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            If m_LazyWellKnownTypeMembers Is Nothing OrElse m_LazyWellKnownTypeMembers(member) Is ErrorTypeSymbol.UnknownResultType Then
-                If (m_LazyWellKnownTypeMembers Is Nothing) Then
+            If _lazyWellKnownTypeMembers Is Nothing OrElse _lazyWellKnownTypeMembers(member) Is ErrorTypeSymbol.UnknownResultType Then
+                If (_lazyWellKnownTypeMembers Is Nothing) Then
                     Dim wellKnownTypeMembers = New Symbol(WellKnownMember.Count - 1) {}
 
                     For i As Integer = 0 To wellKnownTypeMembers.Length - 1
                         wellKnownTypeMembers(i) = ErrorTypeSymbol.UnknownResultType
                     Next
 
-                    Interlocked.CompareExchange(m_LazyWellKnownTypeMembers, wellKnownTypeMembers, Nothing)
+                    Interlocked.CompareExchange(_lazyWellKnownTypeMembers, wellKnownTypeMembers, Nothing)
                 End If
 
                 Dim descriptor = WellKnownMembers.GetDescriptor(member)
@@ -312,13 +315,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim result As Symbol = Nothing
 
                 If Not type.IsErrorType() Then
-                    result = VisualBasicCompilation.GetRuntimeMember(type, descriptor, m_WellKnownMemberSignatureComparer, accessWithinOpt:=Me.Assembly)
+                    result = VisualBasicCompilation.GetRuntimeMember(type, descriptor, _wellKnownMemberSignatureComparer, accessWithinOpt:=Me.Assembly)
                 End If
 
-                Interlocked.CompareExchange(m_LazyWellKnownTypeMembers(member), result, DirectCast(ErrorTypeSymbol.UnknownResultType, Symbol))
+                Interlocked.CompareExchange(_lazyWellKnownTypeMembers(member), result, DirectCast(ErrorTypeSymbol.UnknownResultType, Symbol))
             End If
 
-            Return m_LazyWellKnownTypeMembers(member)
+            Return _lazyWellKnownTypeMembers(member)
         End Function
 
         Friend Overrides Function IsSystemTypeReference(type As ITypeSymbol) As Boolean
@@ -341,9 +344,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(type >= WellKnownType.First AndAlso type <= WellKnownType.Last)
             Dim index As Integer = type - WellKnownType.First
 
-            If m_LazyWellKnownTypes Is Nothing OrElse m_LazyWellKnownTypes(index) Is Nothing Then
-                If (m_LazyWellKnownTypes Is Nothing) Then
-                    Interlocked.CompareExchange(m_LazyWellKnownTypes,
+            If _lazyWellKnownTypes Is Nothing OrElse _lazyWellKnownTypes(index) Is Nothing Then
+                If (_lazyWellKnownTypes Is Nothing) Then
+                    Interlocked.CompareExchange(_lazyWellKnownTypes,
                         New NamedTypeSymbol(WellKnownTypes.Count - 1) {}, Nothing)
                 End If
 
@@ -361,14 +364,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = New MissingMetadataTypeSymbol.TopLevel(Assembly.Modules(0), emittedName)
                 End If
 
-                If (Interlocked.CompareExchange(m_LazyWellKnownTypes(index), result, Nothing) IsNot Nothing) Then
-                    Debug.Assert(result Is m_LazyWellKnownTypes(index) OrElse
-                                          (m_LazyWellKnownTypes(index).IsErrorType() AndAlso result.IsErrorType()))
+                If (Interlocked.CompareExchange(_lazyWellKnownTypes(index), result, Nothing) IsNot Nothing) Then
+                    Debug.Assert(result Is _lazyWellKnownTypes(index) OrElse
+                                          (_lazyWellKnownTypes(index).IsErrorType() AndAlso result.IsErrorType()))
                 End If
 
             End If
 
-            Return m_LazyWellKnownTypes(index)
+            Return _lazyWellKnownTypes(index)
         End Function
 
         Friend Shared Function GetRuntimeMember(
@@ -629,17 +632,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class WellKnownMembersSignatureComparer
             Inherits SpecialMembersSignatureComparer
 
-            Private m_Compilation As VisualBasicCompilation
+            Private _compilation As VisualBasicCompilation
 
             Public Sub New(compilation As VisualBasicCompilation)
-                m_Compilation = compilation
+                _compilation = compilation
             End Sub
 
             Protected Overrides Function MatchTypeToTypeId(type As TypeSymbol, typeId As Integer) As Boolean
                 Dim result As Boolean = False
 
                 If typeId >= WellKnownType.First AndAlso typeId <= WellKnownType.Last Then
-                    result = (type Is m_Compilation.GetWellKnownType(CType(typeId, WellKnownType)))
+                    result = (type Is _compilation.GetWellKnownType(CType(typeId, WellKnownType)))
                 Else
                     result = MyBase.MatchTypeToTypeId(type, typeId)
                 End If

@@ -1266,7 +1266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        representCandidateInDiagnosticsOpt)
         End Function
 
-        Shared Function GetLocationForOverloadResolutionDiagnostic(node As VisualBasicSyntaxNode, Optional groupOpt As BoundMethodOrPropertyGroup = Nothing) As Location
+        Public Shared Function GetLocationForOverloadResolutionDiagnostic(node As VisualBasicSyntaxNode, Optional groupOpt As BoundMethodOrPropertyGroup = Nothing) As Location
             Dim result As VisualBasicSyntaxNode
 
             If groupOpt IsNot Nothing Then
@@ -2902,7 +2902,7 @@ ProduceBoundNode:
             ' With SeparatedSyntaxList, it is most efficient to iterate with foreach and not to access Count.
 
             If arguments.IsDefaultOrEmpty Then
-                boundArguments = NoArguments
+                boundArguments = s_noArguments
                 argumentNames = Nothing
                 argumentNamesLocations = Nothing
             Else

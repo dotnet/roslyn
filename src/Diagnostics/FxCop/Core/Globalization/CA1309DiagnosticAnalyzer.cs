@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
 
         protected abstract class AbstractCodeBlockAnalyzer
         {
-            protected INamedTypeSymbol StringComparisonType { get; private set; }
+            protected INamedTypeSymbol StringComparisonType { get; }
 
             public AbstractCodeBlockAnalyzer(INamedTypeSymbol stringComparisonType)
             {

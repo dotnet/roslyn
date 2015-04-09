@@ -68,6 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics)
         {
+            if (diagnostics != null && _value.IsBad)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadPdbData, Location.None, Name); 
+            }
+            
             return _value;
         }
 

@@ -582,29 +582,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to 
-        '''#Region &quot;IDisposable Support&quot;
-        '''    Private disposedValue As Boolean &apos; To detect redundant calls
-        '''
-        '''    &apos; IDisposable
-        '''    Protected {0}Sub Dispose(disposing As Boolean)
-        '''        If Not Me.disposedValue Then
-        '''            If disposing Then
-        '''                &apos; TODO: dispose managed state (managed objects).
-        '''            End If
-        '''
-        '''            &apos; TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-        '''            &apos; TODO: set large fields to null.
-        '''        End If
-        '''        Me.disposedValu [rest of string was truncated]&quot;;.
-        '''</summary>
-        Friend ReadOnly Property DisposePattern() As String
-            Get
-                Return ResourceManager.GetString("DisposePattern", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Restricts the values of a query result to eliminate duplicate values..
         '''</summary>
         Friend ReadOnly Property DistinctQueryKeywordToolTip() As String
@@ -629,6 +606,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property DoKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("DoKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above..
+        '''</summary>
+        Friend ReadOnly Property DoNotChangeThisCodeUseDispose() As String
+            Get
+                Return ResourceManager.GetString("DoNotChangeThisCodeUseDispose", resourceCulture)
             End Get
         End Property
         
@@ -984,6 +970,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property ForKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("ForKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to TODO: free unmanaged resources (unmanaged objects) and override Finalize() below..
+        '''</summary>
+        Friend ReadOnly Property FreeUnmanagedResourcesTodo() As String
+            Get
+                Return ResourceManager.GetString("FreeUnmanagedResourcesTodo", resourceCulture)
             End Get
         End Property
         
@@ -2047,6 +2042,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources..
+        '''</summary>
+        Friend ReadOnly Property OverrideFinalizerTodo() As String
+            Get
+                Return ResourceManager.GetString("OverrideFinalizerTodo", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Specifies that a property or procedure overrides an identically named property or procedure inherited from a base class..
         '''</summary>
         Friend ReadOnly Property OverridesKeywordToolTip() As String
@@ -2225,6 +2229,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property RemoveUnnecessaryImports() As String
             Get
                 Return ResourceManager.GetString("RemoveUnnecessaryImports", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Imports statement is unnecessary..
+        '''</summary>
+        Friend ReadOnly Property RemoveUnnecessaryImportsDiagnosticTitle() As String
+            Get
+                Return ResourceManager.GetString("RemoveUnnecessaryImportsDiagnosticTitle", resourceCulture)
             End Get
         End Property
         
@@ -2539,6 +2552,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to This code added by Visual Basic to correctly implement the disposable pattern..
+        '''</summary>
+        Friend ReadOnly Property ThisCodeAddedToCorrectlyImplementDisposable() As String
+            Get
+                Return ResourceManager.GetString("ThisCodeAddedToCorrectlyImplementDisposable", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Throws an exception within a procedure so that you can handle it with structured or unstructured exception-handling code..
         '''</summary>
         Friend ReadOnly Property ThrowKeywordToolTip() As String
@@ -2627,6 +2649,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property TypeOfKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("TypeOfKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to TODO: uncomment the following line if Finalize() is overridden above..
+        '''</summary>
+        Friend ReadOnly Property UncommentTheFollowingLineIfFinalizeIsOverridden() As String
+            Get
+                Return ResourceManager.GetString("UncommentTheFollowingLineIfFinalizeIsOverridden", resourceCulture)
             End Get
         End Property
         

@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(!typeInfo.IsByRef);
 
-            // not supported rigth now (we don't accept open types as submission results nor host types):
+            // not supported (we don't accept open types as submission results nor host types):
             Debug.Assert(!typeInfo.ContainsGenericParameters);
 
             if (typeInfo.IsArray)

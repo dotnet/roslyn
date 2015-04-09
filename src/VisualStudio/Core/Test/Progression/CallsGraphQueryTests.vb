@@ -7,7 +7,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class CallsGraphQueryTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub CallsSimpleTests()
+        Public Sub CallsSimpleTests()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -46,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub CallsLambdaTests()
+        Public Sub CallsLambdaTests()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -90,7 +90,7 @@ class A
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub CallsPropertiesTests()
+        Public Sub CallsPropertiesTests()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -125,7 +125,7 @@ class A
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub CallsDelegatesTests()
+        Public Sub CallsDelegatesTests()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -179,7 +179,7 @@ class C
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub CallsDelegateCreationExpressionTests()
+        Public Sub CallsDelegateCreationExpressionTests()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">

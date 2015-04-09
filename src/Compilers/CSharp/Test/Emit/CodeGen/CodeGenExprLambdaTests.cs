@@ -2273,6 +2273,19 @@ public class Test
             CompileAndVerify(
                 text,
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
+
+            // Also verify with the assemblies on which the tests are running, as there's a higher
+            // likelihood that they have Array.Empty, and we want to verify that Array.Empty is not used
+            // in expression lambdas.  This can be changed to use the mscorlib 4.6 metadata once it's
+            // available in the Roslyn tests.
+            CompileAndVerify(CreateCompilation(
+                text,
+                references: new[] {
+                    MetadataReference.CreateFromAssembly(typeof(object).Assembly),
+                    MetadataReference.CreateFromAssembly(typeof(System.Linq.Enumerable).Assembly)
+                },
+                options: TestOptions.ReleaseExe),
+                expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
         [WorkItem(544270, "DevDiv")]
@@ -2843,7 +2856,7 @@ unsafe class Test
             var c = CompileAndVerify(text,
                 additionalRefs: new[] { SystemCoreRef },
                 options: TestOptions.UnsafeReleaseDll,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 verify: false);
 
             c.VerifyDiagnostics();

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Tracks variables for which we have already reported a definite assignment error.  This
         /// allows us to report at most one such error per variable.
         /// </summary>
-        private BitArray _alreadyReported;
+        private BitVector _alreadyReported;
 
         /// <summary>
         /// Reflects the enclosing method or lambda at the current location (in the bound tree).
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Diagnostics.Clear();
             ImmutableArray<ParameterSymbol> methodParameters = MethodParameters;
             ParameterSymbol methodThisParameter = MethodThisParameter;
-            _alreadyReported = BitArray.Empty;           // no variables yet reported unassigned
+            _alreadyReported = BitVector.Empty;           // no variables yet reported unassigned
             this.State = ReachableState();                   // entry point is reachable
             this.regionPlace = RegionPlace.Before;
             EnterParameters(methodParameters);               // with parameters assigned
@@ -334,20 +334,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void CheckCaptured(Symbol variable)
+        /// <summary>
+        /// Check if the variable is captured and, if so, add it to this._capturedVariables.
+        /// </summary>
+        /// <param name="variable">The variable to be checked</param>
+        /// <param name="rangeVariableUnderlyingParameter">If variable.Kind is RangeVariable, its underlying lambda parameter. Else null.</param>
+        private void CheckCaptured(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
         {
             switch (variable.Kind)
             {
                 case SymbolKind.Local:
                     if (((LocalSymbol)variable).IsConst) break;
-                    goto case SymbolKind.RangeVariable;
+                    goto case SymbolKind.Parameter;
                 case SymbolKind.Parameter:
-                case SymbolKind.RangeVariable:
                     if (currentMethodOrLambda != variable.ContainingSymbol)
                     {
-                        _capturedVariables.Add(variable);
+                        NoteCaptured(variable);
                     }
                     break;
+                case SymbolKind.RangeVariable:
+                    if (rangeVariableUnderlyingParameter != null && currentMethodOrLambda != rangeVariableUnderlyingParameter.ContainingSymbol)
+                    {
+                        NoteCaptured(variable);
+                    }
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Add the variable to the captured set. For range variables we only add it if inside the region.
+        /// </summary>
+        /// <param name="variable"></param>
+        private void NoteCaptured(Symbol variable)
+        {
+            if (variable.Kind != SymbolKind.RangeVariable || this.regionPlace == PreciseAbstractFlowPass<LocalState>.RegionPlace.Inside)
+            {
+                _capturedVariables.Add(variable);
             }
         }
 
@@ -365,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Tracking reads/writes of variables for warnings
 
-        protected virtual void NoteRead(Symbol variable)
+        protected virtual void NoteRead(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
         {
             var local = variable as LocalSymbol;
             if ((object)local != null)
@@ -380,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _sourceAssembly.NoteFieldAccess((FieldSymbol)variable.OriginalDefinition, read: true, write: false);
                 }
 
-                CheckCaptured(variable);
+                CheckCaptured(variable, rangeVariableUnderlyingParameter);
             }
         }
 
@@ -1171,12 +1193,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState ReachableState()
         {
-            return new LocalState(BitArray.Empty);
+            return new LocalState(BitVector.Empty);
         }
 
         protected override LocalState AllBitsSet()
         {
-            var result = new LocalState(BitArray.AllSet(nextVariableSlot));
+            var result = new LocalState(BitVector.AllSet(nextVariableSlot));
             result.Assigned[0] = false;
             return result;
         }
@@ -1878,7 +1900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToString();
         }
 
-        protected void AppendBitNames(BitArray a, StringBuilder builder)
+        protected void AppendBitNames(BitVector a, StringBuilder builder)
         {
             bool any = false;
             foreach (int bit in a.TrueBits())
@@ -1948,9 +1970,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal struct LocalState : AbstractLocalState
         {
-            internal BitArray Assigned;
+            internal BitVector Assigned;
 
-            internal LocalState(BitArray assigned)
+            internal LocalState(BitVector assigned)
             {
                 this.Assigned = assigned;
                 Debug.Assert(!assigned.IsNull);

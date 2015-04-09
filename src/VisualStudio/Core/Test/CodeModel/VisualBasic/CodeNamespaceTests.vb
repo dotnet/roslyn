@@ -407,7 +407,7 @@ End Namespace
 #Region "Remove tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Remove1()
+        Public Sub Remove1()
             Dim code =
 <Code>
 Namespace $$Foo
@@ -429,7 +429,7 @@ End Namespace
 
         <WorkItem(858153)>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Children1()
+        Public Sub Children1()
             Dim code =
 <Code>
 Namespace N$$

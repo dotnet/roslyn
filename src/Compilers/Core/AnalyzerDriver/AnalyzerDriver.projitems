@@ -16,5 +16,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticAnalysisContextHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticAnalyzerAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticStartAnalysisScope.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AnalyzerManager.AnalyzerAndOptions.cs" />
   </ItemGroup>
 </Project>

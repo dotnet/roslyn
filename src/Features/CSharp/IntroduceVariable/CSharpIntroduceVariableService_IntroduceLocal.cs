@@ -59,6 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 return Task.FromResult(IntroduceLocalDeclarationIntoLambda(
                     document, expression, newLocalName, declarationStatement, parentLambda, allOccurrences, cancellationToken));
             }
+            else if (IsInExpressionBodiedMember(expression))
+            {
+                return Task.FromResult(RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
+                    document, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken));
+            }
             else
             {
                 return IntroduceLocalDeclarationIntoBlockAsync(
@@ -178,6 +183,83 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             newMatches = newSemanticDocument.Root.GetCurrentNodes(matches.AsEnumerable()).ToSet();
 
             return Tuple.Create(newSemanticDocument, newMatches);
+        }
+
+        private Document RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
+            SemanticDocument document,
+            ExpressionSyntax expression,
+            NameSyntax newLocalName,
+            LocalDeclarationStatementSyntax declarationStatement,
+            bool allOccurrences,
+            CancellationToken cancellationToken)
+        {
+            var oldBody = expression.GetAncestorOrThis<ArrowExpressionClauseSyntax>();
+            var oldParentingNode = oldBody.Parent;
+            var leadingTrivia = oldBody.GetLeadingTrivia()
+                                       .AddRange(oldBody.ArrowToken.TrailingTrivia);
+
+            var newStatement = Rewrite(document, expression, newLocalName, document, oldBody.Expression, allOccurrences, cancellationToken);
+            var newBody = SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(newStatement))
+                                       .WithLeadingTrivia(leadingTrivia)
+                                       .WithTrailingTrivia(oldBody.GetTrailingTrivia())
+                                       .WithAdditionalAnnotations(Formatter.Annotation);
+
+            SyntaxNode newParentingNode = null;
+            if (oldParentingNode is BasePropertyDeclarationSyntax)
+            {
+                var getAccessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, newBody);
+                var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.List(new[] { getAccessor }));
+
+                newParentingNode = ((BasePropertyDeclarationSyntax)oldParentingNode).RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia);
+
+                if (newParentingNode.IsKind(SyntaxKind.PropertyDeclaration))
+                {
+                    var propertyDeclaration = ((PropertyDeclarationSyntax)newParentingNode);
+                    newParentingNode = propertyDeclaration
+                        .WithAccessorList(accessorList)
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
+                        .WithTrailingTrivia(propertyDeclaration.SemicolonToken.TrailingTrivia);
+                }
+                else if (newParentingNode.IsKind(SyntaxKind.IndexerDeclaration))
+                {
+                    var indexerDeclaration = ((IndexerDeclarationSyntax)newParentingNode);
+                    newParentingNode = indexerDeclaration
+                        .WithAccessorList(accessorList)
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
+                        .WithTrailingTrivia(indexerDeclaration.SemicolonToken.TrailingTrivia);
+                }
+            }
+            else if (oldParentingNode is BaseMethodDeclarationSyntax)
+            {
+                newParentingNode = ((BaseMethodDeclarationSyntax)oldParentingNode)
+                    .RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia)
+                    .WithBody(newBody);
+
+                if (newParentingNode.IsKind(SyntaxKind.MethodDeclaration))
+                {
+                    var methodDeclaration = ((MethodDeclarationSyntax)newParentingNode);
+                    newParentingNode = methodDeclaration
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
+                        .WithTrailingTrivia(methodDeclaration.SemicolonToken.TrailingTrivia);
+                }
+                else if (newParentingNode.IsKind(SyntaxKind.OperatorDeclaration))
+                {
+                    var operatorDeclaration = ((OperatorDeclarationSyntax)newParentingNode);
+                    newParentingNode = operatorDeclaration
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
+                        .WithTrailingTrivia(operatorDeclaration.SemicolonToken.TrailingTrivia);
+                }
+                else if (newParentingNode.IsKind(SyntaxKind.ConversionOperatorDeclaration))
+                {
+                    var conversionOperatorDeclaration = ((ConversionOperatorDeclarationSyntax)newParentingNode);
+                    newParentingNode = conversionOperatorDeclaration
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
+                        .WithTrailingTrivia(conversionOperatorDeclaration.SemicolonToken.TrailingTrivia);
+                }
+            }
+
+            var newRoot = document.Root.ReplaceNode(oldParentingNode, newParentingNode);
+            return document.Document.WithSyntaxRoot(newRoot);
         }
 
         private async Task<Document> IntroduceLocalDeclarationIntoBlockAsync(

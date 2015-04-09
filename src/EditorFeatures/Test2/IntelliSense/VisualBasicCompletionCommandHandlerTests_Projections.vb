@@ -36,7 +36,7 @@ End Namespace
                 state.SendTypeChars("Curr")
                 state.AssertSelectedCompletionItem(displayText:="CurrentDomain")
                 state.SendTab()
-                Assert.Contains("__o = AppDomain.CurrentDomain", state.GetLineTextFromCaretPosition())
+                Assert.Contains("__o = AppDomain.CurrentDomain", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 

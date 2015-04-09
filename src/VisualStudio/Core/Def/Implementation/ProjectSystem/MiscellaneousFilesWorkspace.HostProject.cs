@@ -71,6 +71,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 get { return _workspace; }
             }
 
+            public string ProjectSystemName
+            {
+                get { return "MiscellaneousFiles"; }
+            }
+
             public IVisualStudioHostDocument GetDocumentOrAdditionalDocument(DocumentId id)
             {
                 if (id == this.Document.Id)

@@ -6,10 +6,11 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.CodeAnalysis.Scripting;
+using Roslyn.Utilities;
 
 namespace CSharpInteractive
 {
@@ -18,7 +19,7 @@ namespace CSharpInteractive
         private const string InteractiveResponseFileName = "csi.rsp";
 
         internal Csi(string responseFile, string baseDirectory, string[] args)
-            : base(CSharpCommandLineParser.Interactive, responseFile, args, baseDirectory, null /* TODO: what to pass as additionalReferencePaths? */, Path.GetTempPath())
+            : base(CSharpCommandLineParser.Interactive, responseFile, args, baseDirectory, null /* TODO: what to pass as additionalReferencePaths? */)
         {
         }
 
@@ -26,8 +27,8 @@ namespace CSharpInteractive
         {
             try
             {
-                var responseFile = CommonCompiler.GetResponseFileFullPath(InteractiveResponseFileName);
-                return new Csi(responseFile, Directory.GetCurrentDirectory(), args).RunInteractive(Console.Out);
+                var responseFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, InteractiveResponseFileName);
+                return ScriptCompilerUtil.RunInteractive(new Csi(responseFile, Directory.GetCurrentDirectory(), args), Console.Out);
             }
             catch (Exception ex)
             {
@@ -36,13 +37,18 @@ namespace CSharpInteractive
             }
         }
 
+        public override Assembly LoadAssembly(string fullPath)
+        {
+            return InMemoryAssemblyProvider.GetAssembly(fullPath);
+        }
+
         internal override MetadataFileReferenceResolver GetExternalMetadataResolver(TouchedFileLogger touchedFiles)
         {
             // We don't log touched files atm.
             return new GacFileResolver(Arguments.ReferencePaths, Arguments.BaseDirectory, GacFileResolver.Default.Architectures, CultureInfo.CurrentCulture);
         }
 
-        protected override void PrintLogo(TextWriter consoleOutput)
+        public override void PrintLogo(TextWriter consoleOutput)
         {
             Assembly thisAssembly = typeof(Csi).Assembly;
             consoleOutput.WriteLine(CsiResources.LogoLine1, FileVersionInfo.GetVersionInfo(thisAssembly.Location).FileVersion);
@@ -50,7 +56,7 @@ namespace CSharpInteractive
             consoleOutput.WriteLine();
         }
 
-        protected override void PrintHelp(TextWriter consoleOutput)
+        public override void PrintHelp(TextWriter consoleOutput)
         {
             // TODO: format with word wrapping
             consoleOutput.WriteLine(

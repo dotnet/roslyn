@@ -25,14 +25,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks></remarks>
         Public MustInherit Class Candidate
 
-            MustOverride ReadOnly Property UnderlyingSymbol As Symbol
+            Public MustOverride ReadOnly Property UnderlyingSymbol As Symbol
 
             Friend MustOverride Function Construct(typeArguments As ImmutableArray(Of TypeSymbol)) As Candidate
 
             ''' <summary>
             ''' Whether the method is used as extension method vs. called as a static method.
             ''' </summary>
-            Overridable ReadOnly Property IsExtensionMethod As Boolean
+            Public Overridable ReadOnly Property IsExtensionMethod As Boolean
                 Get
                     Return False
                 End Get
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <summary>
             ''' Whether the method is used as an operator.
             ''' </summary>
-            Overridable ReadOnly Property IsOperator As Boolean
+            Public Overridable ReadOnly Property IsOperator As Boolean
                 Get
                     Return False
                 End Get
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <summary>
             ''' Whether the method is used in a lifted to nullable form.
             ''' </summary>
-            Overridable ReadOnly Property IsLifted As Boolean
+            Public Overridable ReadOnly Property IsLifted As Boolean
                 Get
                     Return False
                 End Get
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <summary>
             ''' Precedence level for an extension method.
             ''' </summary>
-            Overridable ReadOnly Property PrecedenceLevel As Integer
+            Public Overridable ReadOnly Property PrecedenceLevel As Integer
                 Get
                     Return 0
                 End Get
@@ -69,19 +69,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' Extension method type parameters that were fixed during currying, if any.
             ''' If none were fixed, BitArray.Null should be returned. 
             ''' </summary>
-            Overridable ReadOnly Property FixedTypeParameters As BitArray
+            Public Overridable ReadOnly Property FixedTypeParameters As BitVector
                 Get
-                    Return BitArray.Null
+                    Return BitVector.Null
                 End Get
             End Property
 
-            MustOverride ReadOnly Property IsGeneric As Boolean
-            MustOverride ReadOnly Property ParameterCount As Integer
-            MustOverride Function Parameters(index As Integer) As ParameterSymbol
-            MustOverride ReadOnly Property ReturnType As TypeSymbol
+            Public MustOverride ReadOnly Property IsGeneric As Boolean
+            Public MustOverride ReadOnly Property ParameterCount As Integer
+            Public MustOverride Function Parameters(index As Integer) As ParameterSymbol
+            Public MustOverride ReadOnly Property ReturnType As TypeSymbol
 
-            MustOverride ReadOnly Property Arity As Integer
-            MustOverride ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
+            Public MustOverride ReadOnly Property Arity As Integer
+            Public MustOverride ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
 
             Friend Sub GetAllParameterCounts(
                 ByRef requiredCount As Integer,
@@ -124,13 +124,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <summary>
             ''' Receiver type for extension method. Otherwise, containing type.
             ''' </summary>
-            MustOverride ReadOnly Property ReceiverType As TypeSymbol
+            Public MustOverride ReadOnly Property ReceiverType As TypeSymbol
 
             ''' <summary>
             ''' For extension methods, the type of the fist parameter in method's definition (i.e. before type parameters are substituted).
             ''' Otherwise, same as the ReceiverType.
             ''' </summary>
-            MustOverride ReadOnly Property ReceiverTypeDefinition As TypeSymbol
+            Public MustOverride ReadOnly Property ReceiverTypeDefinition As TypeSymbol
 
             Friend MustOverride Function IsOverriddenBy(otherSymbol As Symbol) As Boolean
         End Class
@@ -230,16 +230,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public NotInheritable Class ExtensionMethodCandidate
             Inherits MethodCandidate
 
-            Private m_FixedTypeParameters As BitArray
+            Private _fixedTypeParameters As BitVector
 
             Public Sub New(method As MethodSymbol)
                 Me.New(method, GetFixedTypeParameters(method))
             End Sub
 
             ' TODO: Consider building this bitmap lazily, on demand.
-            Private Shared Function GetFixedTypeParameters(method As MethodSymbol) As BitArray
+            Private Shared Function GetFixedTypeParameters(method As MethodSymbol) As BitVector
                 If method.FixedTypeParameters.Length > 0 Then
-                    Dim fixedTypeParameters = BitArray.Create(method.ReducedFrom.Arity)
+                    Dim fixedTypeParameters = BitVector.Create(method.ReducedFrom.Arity)
 
                     For Each fixed As KeyValuePair(Of TypeParameterSymbol, TypeSymbol) In method.FixedTypeParameters
                         fixedTypeParameters(fixed.Key.Ordinal) = True
@@ -251,11 +251,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End Function
 
-            Private Sub New(method As MethodSymbol, fixedTypeParameters As BitArray)
+            Private Sub New(method As MethodSymbol, fixedTypeParameters As BitVector)
                 MyBase.New(method)
 
                 Debug.Assert(method.ReducedFrom IsNot Nothing)
-                m_FixedTypeParameters = fixedTypeParameters
+                _fixedTypeParameters = fixedTypeParameters
             End Sub
 
             Public Overrides ReadOnly Property IsExtensionMethod As Boolean
@@ -270,14 +270,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public Overrides ReadOnly Property FixedTypeParameters As BitArray
+            Public Overrides ReadOnly Property FixedTypeParameters As BitVector
                 Get
-                    Return m_FixedTypeParameters
+                    Return _fixedTypeParameters
                 End Get
             End Property
 
             Friend Overrides Function Construct(typeArguments As ImmutableArray(Of TypeSymbol)) As Candidate
-                Return New ExtensionMethodCandidate(m_Method.Construct(typeArguments), m_FixedTypeParameters)
+                Return New ExtensionMethodCandidate(m_Method.Construct(typeArguments), _fixedTypeParameters)
             End Function
 
             Public Overrides ReadOnly Property ReceiverType As TypeSymbol
@@ -320,29 +320,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Class LiftedOperatorCandidate
             Inherits OperatorCandidate
 
-            Private ReadOnly m_Parameters As ImmutableArray(Of ParameterSymbol)
-            Private ReadOnly m_ReturnType As TypeSymbol
+            Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
+            Private ReadOnly _returnType As TypeSymbol
 
             Public Sub New(method As MethodSymbol, parameters As ImmutableArray(Of ParameterSymbol), returnType As TypeSymbol)
                 MyBase.New(method)
                 Debug.Assert(parameters.Length = method.ParameterCount)
-                m_Parameters = parameters
-                m_ReturnType = returnType
+                _parameters = parameters
+                _returnType = returnType
             End Sub
 
             Public Overrides ReadOnly Property ParameterCount As Integer
                 Get
-                    Return m_Parameters.Length
+                    Return _parameters.Length
                 End Get
             End Property
 
             Public Overrides Function Parameters(index As Integer) As ParameterSymbol
-                Return m_Parameters(index)
+                Return _parameters(index)
             End Function
 
             Public Overrides ReadOnly Property ReturnType As TypeSymbol
                 Get
-                    Return m_ReturnType
+                    Return _returnType
                 End Get
             End Property
 
@@ -359,11 +359,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public NotInheritable Class PropertyCandidate
             Inherits Candidate
 
-            Private ReadOnly m_Property As PropertySymbol
+            Private ReadOnly _property As PropertySymbol
 
             Public Sub New([property] As PropertySymbol)
                 Debug.Assert([property] IsNot Nothing)
-                m_Property = [property]
+                _property = [property]
             End Sub
 
             Friend Overrides Function Construct(typeArguments As ImmutableArray(Of TypeSymbol)) As Candidate
@@ -378,29 +378,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides ReadOnly Property ParameterCount As Integer
                 Get
-                    Return m_Property.Parameters.Length
+                    Return _property.Parameters.Length
                 End Get
             End Property
 
             Public Overrides Function Parameters(index As Integer) As ParameterSymbol
-                Return m_Property.Parameters(index)
+                Return _property.Parameters(index)
             End Function
 
             Public Overrides ReadOnly Property ReturnType As TypeSymbol
                 Get
-                    Return m_Property.Type
+                    Return _property.Type
                 End Get
             End Property
 
             Public Overrides ReadOnly Property ReceiverType As TypeSymbol
                 Get
-                    Return m_Property.ContainingType
+                    Return _property.ContainingType
                 End Get
             End Property
 
             Public Overrides ReadOnly Property ReceiverTypeDefinition As TypeSymbol
                 Get
-                    Return m_Property.ContainingType
+                    Return _property.ContainingType
                 End Get
             End Property
 
@@ -418,12 +418,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides ReadOnly Property UnderlyingSymbol As Symbol
                 Get
-                    Return m_Property
+                    Return _property
                 End Get
             End Property
 
             Friend Overrides Function IsOverriddenBy(otherSymbol As Symbol) As Boolean
-                Dim definition As PropertySymbol = m_Property.OriginalDefinition
+                Dim definition As PropertySymbol = _property.OriginalDefinition
 
                 If definition.IsOverridable OrElse definition.IsOverrides OrElse definition.IsMustOverride Then
                     Dim otherProperty As PropertySymbol = DirectCast(otherSymbol, PropertySymbol).OverriddenProperty
@@ -441,7 +441,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
         End Class
 
-        Private Const StateSize = 8   ' bit size of the following enum
+        Private Const s_stateSize = 8   ' bit size of the following enum
         Public Enum CandidateAnalysisResultState As Byte
             Applicable
 
@@ -466,45 +466,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         <Flags()>
         Private Enum SmallFieldMask As Integer
-            State = (1 << StateSize) - 1
+            State = (1 << s_stateSize) - 1
 
-            IsExpandedParamArrayForm = 1 << (StateSize + 0)
+            IsExpandedParamArrayForm = 1 << (s_stateSize + 0)
 
-            InferenceLevelShift = (StateSize + 1)
+            InferenceLevelShift = (s_stateSize + 1)
             InferenceLevelMask = 3 << InferenceLevelShift ' 2 bits are used
 
-            ArgumentMatchingDone = 1 << (StateSize + 3)
-            RequiresNarrowingConversion = 1 << (StateSize + 4)
-            RequiresNarrowingNotFromObject = 1 << (StateSize + 5)
-            RequiresNarrowingNotFromNumericConstant = 1 << (StateSize + 6)
+            ArgumentMatchingDone = 1 << (s_stateSize + 3)
+            RequiresNarrowingConversion = 1 << (s_stateSize + 4)
+            RequiresNarrowingNotFromObject = 1 << (s_stateSize + 5)
+            RequiresNarrowingNotFromNumericConstant = 1 << (s_stateSize + 6)
 
             ' Must be equal to ConversionKind.DelegateRelaxationLevelMask
             ' Compile time "asserts" below enforce it by reporting a compilation error in case of a violation.
             ' I am not using the form of 
             '     DelegateRelaxationLevelMask = ConversionKind.DelegateRelaxationLevelMask
             ' to make it easier to reason about bits used relative to other values in this enum.
-            DelegateRelaxationLevelMask = 7 << (StateSize + 7) ' 3 bits used!
+            DelegateRelaxationLevelMask = 7 << (s_stateSize + 7) ' 3 bits used!
 
-            SomeInferenceFailed = 1 << (StateSize + 10)
-            AllFailedInferenceIsDueToObject = 1 << (StateSize + 11)
+            SomeInferenceFailed = 1 << (s_stateSize + 10)
+            AllFailedInferenceIsDueToObject = 1 << (s_stateSize + 11)
 
-            InferenceErrorReasonsShift = (StateSize + 12)
+            InferenceErrorReasonsShift = (s_stateSize + 12)
             InferenceErrorReasonsMask = 3 << InferenceErrorReasonsShift
 
-            IgnoreExtensionMethods = 1 << (StateSize + 14)
+            IgnoreExtensionMethods = 1 << (s_stateSize + 14)
 
-            IllegalInAttribute = 1 << (StateSize + 15)
+            IllegalInAttribute = 1 << (s_stateSize + 15)
         End Enum
 
 #If DEBUG Then
         ' Compile time asserts.
-        Const DelegateRelaxationLevelMask_AssertZero = SmallFieldMask.DelegateRelaxationLevelMask - ConversionKind.DelegateRelaxationLevelMask
-        Dim DelegateRelaxationLevelMask_Assert1(DelegateRelaxationLevelMask_AssertZero) As Boolean
-        Dim DelegateRelaxationLevelMask_Assert2(-DelegateRelaxationLevelMask_AssertZero) As Boolean
+        Private Const s_delegateRelaxationLevelMask_AssertZero = SmallFieldMask.DelegateRelaxationLevelMask - ConversionKind.DelegateRelaxationLevelMask
+        Private _delegateRelaxationLevelMask_Assert1(s_delegateRelaxationLevelMask_AssertZero) As Boolean
+        Private _delegateRelaxationLevelMask_Assert2(-s_delegateRelaxationLevelMask_AssertZero) As Boolean
 
-        Const InferenceLevelMask_AssertZero = CByte((SmallFieldMask.InferenceLevelMask >> SmallFieldMask.InferenceLevelShift) <> ((TypeArgumentInference.InferenceLevel.Invalid << 1) - 1))
-        Dim InferenceLevelMask_Assert1(InferenceLevelMask_AssertZero) As Boolean
-        Dim InferenceLevelMask_Assert2(-InferenceLevelMask_AssertZero) As Boolean
+        Private Const s_inferenceLevelMask_AssertZero = CByte((SmallFieldMask.InferenceLevelMask >> SmallFieldMask.InferenceLevelShift) <> ((TypeArgumentInference.InferenceLevel.Invalid << 1) - 1))
+        Private _inferenceLevelMask_Assert1(s_inferenceLevelMask_AssertZero) As Boolean
+        Private _inferenceLevelMask_Assert2(-s_inferenceLevelMask_AssertZero) As Boolean
 #End If
         Public Structure OptionalArgument
             Public ReadOnly DefaultValue As BoundExpression
@@ -520,17 +520,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property IsExpandedParamArrayForm As Boolean
                 Get
-                    Return (SmallFields And SmallFieldMask.IsExpandedParamArrayForm) <> 0
+                    Return (_smallFields And SmallFieldMask.IsExpandedParamArrayForm) <> 0
                 End Get
             End Property
 
             Public Sub SetIsExpandedParamArrayForm()
-                SmallFields = SmallFields Or SmallFieldMask.IsExpandedParamArrayForm
+                _smallFields = _smallFields Or SmallFieldMask.IsExpandedParamArrayForm
             End Sub
 
             Public ReadOnly Property InferenceLevel As TypeArgumentInference.InferenceLevel
                 Get
-                    Return CType((SmallFields And SmallFieldMask.InferenceLevelMask) >> SmallFieldMask.InferenceLevelShift, TypeArgumentInference.InferenceLevel)
+                    Return CType((_smallFields And SmallFieldMask.InferenceLevelMask) >> SmallFieldMask.InferenceLevelShift, TypeArgumentInference.InferenceLevel)
                 End Get
             End Property
 
@@ -538,42 +538,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim value As Integer = CInt(level) << SmallFieldMask.InferenceLevelShift
                 Debug.Assert((value And SmallFieldMask.InferenceLevelMask) = value)
 
-                SmallFields = (SmallFields And (Not SmallFieldMask.InferenceLevelMask)) Or (value And SmallFieldMask.InferenceLevelMask)
+                _smallFields = (_smallFields And (Not SmallFieldMask.InferenceLevelMask)) Or (value And SmallFieldMask.InferenceLevelMask)
             End Sub
 
             Public ReadOnly Property ArgumentMatchingDone As Boolean
                 Get
-                    Return (SmallFields And SmallFieldMask.ArgumentMatchingDone) <> 0
+                    Return (_smallFields And SmallFieldMask.ArgumentMatchingDone) <> 0
                 End Get
             End Property
 
             Public Sub SetArgumentMatchingDone()
-                SmallFields = SmallFields Or SmallFieldMask.ArgumentMatchingDone
+                _smallFields = _smallFields Or SmallFieldMask.ArgumentMatchingDone
             End Sub
 
             Public ReadOnly Property RequiresNarrowingConversion As Boolean
                 Get
-                    Return (SmallFields And SmallFieldMask.RequiresNarrowingConversion) <> 0
+                    Return (_smallFields And SmallFieldMask.RequiresNarrowingConversion) <> 0
                 End Get
             End Property
 
             Public Sub SetRequiresNarrowingConversion()
-                SmallFields = SmallFields Or SmallFieldMask.RequiresNarrowingConversion
+                _smallFields = _smallFields Or SmallFieldMask.RequiresNarrowingConversion
             End Sub
 
             Public ReadOnly Property RequiresNarrowingNotFromObject As Boolean
                 Get
-                    Return (SmallFields And SmallFieldMask.RequiresNarrowingNotFromObject) <> 0
+                    Return (_smallFields And SmallFieldMask.RequiresNarrowingNotFromObject) <> 0
                 End Get
             End Property
 
             Public Sub SetRequiresNarrowingNotFromObject()
-                SmallFields = SmallFields Or SmallFieldMask.RequiresNarrowingNotFromObject
+                _smallFields = _smallFields Or SmallFieldMask.RequiresNarrowingNotFromObject
             End Sub
 
             Public ReadOnly Property RequiresNarrowingNotFromNumericConstant As Boolean
                 Get
-                    Return (SmallFields And SmallFieldMask.RequiresNarrowingNotFromNumericConstant) <> 0
+                    Return (_smallFields And SmallFieldMask.RequiresNarrowingNotFromNumericConstant) <> 0
                 End Get
             End Property
 
@@ -581,7 +581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(RequiresNarrowingConversion)
                 IgnoreExtensionMethods = False
 
-                SmallFields = SmallFields Or SmallFieldMask.RequiresNarrowingNotFromNumericConstant
+                _smallFields = _smallFields Or SmallFieldMask.RequiresNarrowingNotFromNumericConstant
             End Sub
 
             ''' <summary>
@@ -589,51 +589,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Public ReadOnly Property MaxDelegateRelaxationLevel As ConversionKind
                 Get
-                    Return CType(SmallFields And SmallFieldMask.DelegateRelaxationLevelMask, ConversionKind)
+                    Return CType(_smallFields And SmallFieldMask.DelegateRelaxationLevelMask, ConversionKind)
                 End Get
             End Property
 
             Public Sub RegisterDelegateRelaxationLevel(conversionKind As ConversionKind)
                 Dim relaxationLevel As Integer = (conversionKind And SmallFieldMask.DelegateRelaxationLevelMask)
 
-                If relaxationLevel > (SmallFields And SmallFieldMask.DelegateRelaxationLevelMask) Then
+                If relaxationLevel > (_smallFields And SmallFieldMask.DelegateRelaxationLevelMask) Then
                     Debug.Assert(relaxationLevel <= ConversionKind.DelegateRelaxationLevelNarrowing)
 
                     If relaxationLevel = ConversionKind.DelegateRelaxationLevelNarrowing Then
                         IgnoreExtensionMethods = False
                     End If
 
-                    SmallFields = (SmallFields And (Not SmallFieldMask.DelegateRelaxationLevelMask)) Or relaxationLevel
+                    _smallFields = (_smallFields And (Not SmallFieldMask.DelegateRelaxationLevelMask)) Or relaxationLevel
                 End If
             End Sub
 
             Public Sub SetSomeInferenceFailed()
-                SmallFields = SmallFields Or SmallFieldMask.SomeInferenceFailed
+                _smallFields = _smallFields Or SmallFieldMask.SomeInferenceFailed
             End Sub
 
             Public ReadOnly Property SomeInferenceFailed As Boolean
                 Get
-                    Return (SmallFields And SmallFieldMask.SomeInferenceFailed) <> 0
+                    Return (_smallFields And SmallFieldMask.SomeInferenceFailed) <> 0
                 End Get
             End Property
 
             Public Sub SetIllegalInAttribute()
-                SmallFields = SmallFields Or SmallFieldMask.IllegalInAttribute
+                _smallFields = _smallFields Or SmallFieldMask.IllegalInAttribute
             End Sub
 
             Public ReadOnly Property IsIllegalInAttribute As Boolean
                 Get
-                    Return (SmallFields And SmallFieldMask.IllegalInAttribute) <> 0
+                    Return (_smallFields And SmallFieldMask.IllegalInAttribute) <> 0
                 End Get
             End Property
 
             Public Sub SetAllFailedInferenceIsDueToObject()
-                SmallFields = SmallFields Or SmallFieldMask.AllFailedInferenceIsDueToObject
+                _smallFields = _smallFields Or SmallFieldMask.AllFailedInferenceIsDueToObject
             End Sub
 
             Public ReadOnly Property AllFailedInferenceIsDueToObject As Boolean
                 Get
-                    Return (SmallFields And SmallFieldMask.AllFailedInferenceIsDueToObject) <> 0
+                    Return (_smallFields And SmallFieldMask.AllFailedInferenceIsDueToObject) <> 0
                 End Get
             End Property
 
@@ -641,42 +641,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim value As Integer = CInt(reasons) << SmallFieldMask.InferenceErrorReasonsShift
                 Debug.Assert((value And SmallFieldMask.InferenceErrorReasonsMask) = value)
 
-                SmallFields = (SmallFields And (Not SmallFieldMask.InferenceErrorReasonsMask)) Or (value And SmallFieldMask.InferenceErrorReasonsMask)
+                _smallFields = (_smallFields And (Not SmallFieldMask.InferenceErrorReasonsMask)) Or (value And SmallFieldMask.InferenceErrorReasonsMask)
             End Sub
 
             Public ReadOnly Property InferenceErrorReasons As InferenceErrorReasons
                 Get
-                    Return CType((SmallFields And SmallFieldMask.InferenceErrorReasonsMask) >> SmallFieldMask.InferenceErrorReasonsShift, InferenceErrorReasons)
+                    Return CType((_smallFields And SmallFieldMask.InferenceErrorReasonsMask) >> SmallFieldMask.InferenceErrorReasonsShift, InferenceErrorReasons)
                 End Get
             End Property
 
             Public Property State As CandidateAnalysisResultState
                 Get
-                    Return CType(SmallFields And SmallFieldMask.State, CandidateAnalysisResultState)
+                    Return CType(_smallFields And SmallFieldMask.State, CandidateAnalysisResultState)
                 End Get
                 Set(value As CandidateAnalysisResultState)
                     Debug.Assert((value And (Not SmallFieldMask.State)) = 0)
 
-                    Dim newFields = SmallFields And (Not SmallFieldMask.State)
+                    Dim newFields = _smallFields And (Not SmallFieldMask.State)
                     newFields = newFields Or value
-                    SmallFields = newFields
+                    _smallFields = newFields
                 End Set
             End Property
 
             Public Property IgnoreExtensionMethods As Boolean
                 Get
-                    Return (SmallFields And SmallFieldMask.IgnoreExtensionMethods) <> 0
+                    Return (_smallFields And SmallFieldMask.IgnoreExtensionMethods) <> 0
                 End Get
                 Set(value As Boolean)
                     If value Then
-                        SmallFields = SmallFields Or SmallFieldMask.IgnoreExtensionMethods
+                        _smallFields = _smallFields Or SmallFieldMask.IgnoreExtensionMethods
                     Else
-                        SmallFields = SmallFields And (Not SmallFieldMask.IgnoreExtensionMethods)
+                        _smallFields = _smallFields And (Not SmallFieldMask.IgnoreExtensionMethods)
                     End If
                 End Set
             End Property
 
-            Private SmallFields As Integer
+            Private _smallFields As Integer
 
             Public Candidate As Candidate
             Public ExpandedParamArrayArgumentsUsed As Integer
@@ -699,7 +699,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public NotInferredTypeArguments As BitArray
+            Public NotInferredTypeArguments As BitVector
 
             Public TypeArgumentInferenceDiagnosticsOpt As DiagnosticBag
 
@@ -716,44 +716,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Represents a simple overload resolution result
         Friend Structure OverloadResolutionResult
-            Private ReadOnly m_BestResult As CandidateAnalysisResult?
-            Private ReadOnly m_AllResults As ImmutableArray(Of CandidateAnalysisResult)
-            Private ReadOnly m_ResolutionIsLateBound As Boolean
-            Private ReadOnly m_RemainingCandidatesRequireNarrowingConversion As Boolean
+            Private ReadOnly _bestResult As CandidateAnalysisResult?
+            Private ReadOnly _allResults As ImmutableArray(Of CandidateAnalysisResult)
+            Private ReadOnly _resolutionIsLateBound As Boolean
+            Private ReadOnly _remainingCandidatesRequireNarrowingConversion As Boolean
             Public ReadOnly AsyncLambdaSubToFunctionMismatch As ImmutableArray(Of BoundExpression)
 
             ' Create an overload resolution result from a full set of results.
             Public Sub New(allResults As ImmutableArray(Of CandidateAnalysisResult), resolutionIsLateBound As Boolean,
                            remainingCandidatesRequireNarrowingConversion As Boolean,
                            asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression))
-                Me.m_AllResults = allResults
-                Me.m_ResolutionIsLateBound = resolutionIsLateBound
-                Me.m_RemainingCandidatesRequireNarrowingConversion = remainingCandidatesRequireNarrowingConversion
+                Me._allResults = allResults
+                Me._resolutionIsLateBound = resolutionIsLateBound
+                Me._remainingCandidatesRequireNarrowingConversion = remainingCandidatesRequireNarrowingConversion
                 Me.AsyncLambdaSubToFunctionMismatch = If(asyncLambdaSubToFunctionMismatch Is Nothing,
                                                          ImmutableArray(Of BoundExpression).Empty,
                                                          asyncLambdaSubToFunctionMismatch.ToArray().AsImmutableOrNull())
 
                 If Not resolutionIsLateBound Then
-                    Me.m_BestResult = GetBestResult(allResults)
+                    Me._bestResult = GetBestResult(allResults)
                 End If
             End Sub
 
             Public ReadOnly Property Candidates As ImmutableArray(Of CandidateAnalysisResult)
                 Get
-                    Return m_AllResults
+                    Return _allResults
                 End Get
             End Property
 
             ' Returns the best method. Note that if overload resolution succeeded, the set of conversion kinds will NOT be returned.
             Public ReadOnly Property BestResult As CandidateAnalysisResult?
                 Get
-                    Return m_BestResult
+                    Return _bestResult
                 End Get
             End Property
 
             Public ReadOnly Property ResolutionIsLateBound As Boolean
                 Get
-                    Return m_ResolutionIsLateBound
+                    Return _resolutionIsLateBound
                 End Get
             End Property
 
@@ -762,7 +762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Public ReadOnly Property RemainingCandidatesRequireNarrowingConversion As Boolean
                 Get
-                    Return m_RemainingCandidatesRequireNarrowingConversion
+                    Return _remainingCandidatesRequireNarrowingConversion
                 End Get
             End Property
 
@@ -1892,14 +1892,14 @@ ResolutionComplete:
         Private Class InferenceLevelComparer
             Implements IComparer(Of Integer)
 
-            Private ReadOnly m_Candidates As ArrayBuilder(Of CandidateAnalysisResult)
+            Private ReadOnly _candidates As ArrayBuilder(Of CandidateAnalysisResult)
 
-            Sub New(candidates As ArrayBuilder(Of CandidateAnalysisResult))
-                m_Candidates = candidates
+            Public Sub New(candidates As ArrayBuilder(Of CandidateAnalysisResult))
+                _candidates = candidates
             End Sub
 
             Public Function Compare(indexX As Integer, indexY As Integer) As Integer Implements IComparer(Of Integer).Compare
-                Return CInt(m_Candidates(indexX).InferenceLevel).CompareTo(m_Candidates(indexY).InferenceLevel)
+                Return CInt(_candidates(indexX).InferenceLevel).CompareTo(_candidates(indexY).InferenceLevel)
             End Function
         End Class
 
@@ -4597,12 +4597,12 @@ ContinueCandidatesLoop:
             ' Only interested in method type parameters.
             Dim leftRefersToATypeParameter = DetectReferencesToGenericParameters(left.Candidate.ReceiverTypeDefinition,
                                                                                  TypeParameterKind.Method,
-                                                                                 BitArray.Null)
+                                                                                 BitVector.Null)
 
             ' Only interested in method type parameters.
             Dim rightRefersToATypeParameter = DetectReferencesToGenericParameters(right.Candidate.ReceiverTypeDefinition,
                                                                                   TypeParameterKind.Method,
-                                                                                 BitArray.Null)
+                                                                                 BitVector.Null)
 
             If (leftRefersToATypeParameter And TypeParameterKind.Method) <> 0 Then
                 If (rightRefersToATypeParameter And TypeParameterKind.Method) = 0 Then
@@ -4628,7 +4628,7 @@ ContinueCandidatesLoop:
         Private Shared Function DetectReferencesToGenericParameters(
             symbol As NamedTypeSymbol,
             track As TypeParameterKind,
-            methodTypeParametersToTreatAsTypeTypeParameters As BitArray
+            methodTypeParametersToTreatAsTypeTypeParameters As BitVector
         ) As TypeParameterKind
             Dim result As TypeParameterKind = TypeParameterKind.None
 
@@ -4661,7 +4661,7 @@ ContinueCandidatesLoop:
         Private Shared Function DetectReferencesToGenericParameters(
             symbol As TypeParameterSymbol,
             track As TypeParameterKind,
-            methodTypeParametersToTreatAsTypeTypeParameters As BitArray
+            methodTypeParametersToTreatAsTypeTypeParameters As BitVector
         ) As TypeParameterKind
 
             If symbol.ContainingSymbol.Kind = SymbolKind.NamedType Then
@@ -4686,7 +4686,7 @@ ContinueCandidatesLoop:
         Private Shared Function DetectReferencesToGenericParameters(
             this As TypeSymbol,
             track As TypeParameterKind,
-            methodTypeParametersToTreatAsTypeTypeParameters As BitArray
+            methodTypeParametersToTreatAsTypeTypeParameters As BitVector
         ) As TypeParameterKind
             Select Case this.Kind
 
@@ -4858,7 +4858,7 @@ ContinueCandidatesLoop:
                 Dim allFailedInferenceIsDueToObject As Boolean = False
                 Dim someInferenceFailed As Boolean = False
                 Dim inferenceErrorReasons As InferenceErrorReasons = InferenceErrorReasons.Other
-                Dim inferredTypeByAssumption As BitArray = Nothing
+                Dim inferredTypeByAssumption As BitVector = Nothing
                 Dim typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken) = Nothing
 
                 If TypeArgumentInference.Infer(DirectCast(candidate.Candidate.UnderlyingSymbol, MethodSymbol),
@@ -4920,7 +4920,7 @@ ContinueCandidatesLoop:
 
                     candidate.SetInferenceErrorReasons(inferenceErrorReasons)
 
-                    candidate.NotInferredTypeArguments = BitArray.Create(typeArguments.Length)
+                    candidate.NotInferredTypeArguments = BitVector.Create(typeArguments.Length)
 
                     For i As Integer = 0 To typeArguments.Length - 1 Step 1
                         If typeArguments(i) Is Nothing Then

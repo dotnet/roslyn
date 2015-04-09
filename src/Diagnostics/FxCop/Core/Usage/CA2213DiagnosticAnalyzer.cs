@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 _disposableType = disposableType;
             }
 
-            public void AnalyzeCompilation(CompilationEndAnalysisContext context)
+            public void AnalyzeCompilation(CompilationAnalysisContext context)
             {
                 foreach (var item in _fieldDisposedMap)
                 {

@@ -70,8 +70,8 @@ Public Class ParseXmlDocComments
 
         Dim struct = DirectCast(comments(2).GetStructure, DocumentationCommentTriviaSyntax)
 
-        Assert.DoesNotContain(vbCr, struct.GetInteriorXml())
-        Assert.DoesNotContain(vbLf, struct.GetInteriorXml())
+        Assert.DoesNotContain(vbCr, struct.GetInteriorXml(), StringComparison.Ordinal)
+        Assert.DoesNotContain(vbLf, struct.GetInteriorXml(), StringComparison.Ordinal)
         Assert.Equal(" hello doc comments! hello doc comments!", struct.GetInteriorXml)
     End Sub
 

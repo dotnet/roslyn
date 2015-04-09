@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class LinkedFileMergeSessionResult
     {
-        public Solution MergedSolution { get; private set; }
+        public Solution MergedSolution { get; }
 
         private readonly Dictionary<DocumentId, IEnumerable<TextSpan>> _mergeConflictCommentSpans = new Dictionary<DocumentId, IEnumerable<TextSpan>>();
         public Dictionary<DocumentId, IEnumerable<TextSpan>> MergeConflictCommentSpans { get { return _mergeConflictCommentSpans; } }

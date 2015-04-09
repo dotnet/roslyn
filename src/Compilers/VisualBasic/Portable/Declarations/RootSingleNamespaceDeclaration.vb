@@ -16,25 +16,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class RootSingleNamespaceDeclaration
         Inherits GlobalNamespaceDeclaration
 
-        Private m_referenceDirectiveDiagnostics As ImmutableArray(Of Diagnostic)
-        Private m_ReferenceDirectives As ImmutableArray(Of ReferenceDirective)
-        Private m_hasAssemblyAttributes As Boolean
+        Private _referenceDirectiveDiagnostics As ImmutableArray(Of Diagnostic)
+        Private _referenceDirectives As ImmutableArray(Of ReferenceDirective)
+        Private _hasAssemblyAttributes As Boolean
 
         Public ReadOnly Property ReferenceDirectiveDiagnostics As ImmutableArray(Of Diagnostic)
             Get
-                Return m_referenceDirectiveDiagnostics
+                Return _referenceDirectiveDiagnostics
             End Get
         End Property
 
         Public ReadOnly Property ReferenceDirectives As ImmutableArray(Of ReferenceDirective)
             Get
-                Return m_ReferenceDirectives
+                Return _referenceDirectives
             End Get
         End Property
 
         Public ReadOnly Property HasAssemblyAttributes As Boolean
             Get
-                Return m_hasAssemblyAttributes
+                Return _hasAssemblyAttributes
             End Get
         End Property
 
@@ -49,9 +49,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Not referenceDirectives.IsDefault)
             Debug.Assert(Not diagnostics.IsDefault)
 
-            Me.m_ReferenceDirectives = referenceDirectives
-            Me.m_referenceDirectiveDiagnostics = diagnostics
-            Me.m_hasAssemblyAttributes = hasAssemblyAttributes
+            Me._referenceDirectives = referenceDirectives
+            Me._referenceDirectiveDiagnostics = diagnostics
+            Me._hasAssemblyAttributes = hasAssemblyAttributes
         End Sub
     End Class
 End Namespace

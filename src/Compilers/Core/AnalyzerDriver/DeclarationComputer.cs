@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis
         internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, IEnumerable<SyntaxNode> executableCodeBlocks, CancellationToken cancellationToken)
         {
             var declaredSymbol = getSymbol ? model.GetDeclaredSymbol(node, cancellationToken) : null;
-            var codeBlocks = executableCodeBlocks == null ?
-                ImmutableArray<SyntaxNode>.Empty :
-                executableCodeBlocks.Where(c => c != null).AsImmutableOrEmpty();
+            var codeBlocks = executableCodeBlocks?.Where(c => c != null).AsImmutableOrEmpty() ?? ImmutableArray<SyntaxNode>.Empty;
             return new DeclarationInfo(node, codeBlocks, declaredSymbol);
         }
 

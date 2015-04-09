@@ -1984,9 +1984,38 @@ End Interface", index:=1, compareTokens:=False)
         End Sub
 
         Private Shared Function DisposePattern(disposeMethodModifiers As String, Optional simplifySystem As Boolean = True) As String
-            ' the simplifier removes the "Me." prefix
-            Dim code = String.Format(VBFeaturesResources.DisposePattern, disposeMethodModifiers).
-                Replace("Me.disposedValue", "disposedValue")
+            Dim code = $"
+#Region ""IDisposable Support""
+    Private disposedValue As Boolean ' {FeaturesResources.ToDetectRedundantCalls}
+
+    ' IDisposable
+    Protected {disposeMethodModifiers}Sub Dispose(disposing As Boolean)
+        If Not disposedValue Then
+            If disposing Then
+                ' {FeaturesResources.DisposeManagedStateTodo}
+            End If
+
+            ' {VBFeaturesResources.FreeUnmanagedResourcesTodo}
+            ' {FeaturesResources.SetLargeFieldsToNullTodo}
+        End If
+        disposedValue = True
+    End Sub
+
+    ' {VBFeaturesResources.OverrideFinalizerTodo}
+    'Protected Overrides Sub Finalize()
+    '    ' {VBFeaturesResources.DoNotChangeThisCodeUseDispose}
+    '    Dispose(False)
+    '    MyBase.Finalize()
+    'End Sub
+
+    ' {VBFeaturesResources.ThisCodeAddedToCorrectlyImplementDisposable}
+    Public Sub Dispose() Implements System.IDisposable.Dispose
+        ' {VBFeaturesResources.DoNotChangeThisCodeUseDispose}
+        Dispose(True)
+        ' {VBFeaturesResources.UncommentTheFollowingLineIfFinalizeIsOverridden}
+        ' GC.SuppressFinalize(Me)
+    End Sub
+#End Region"
 
             ' some tests count on "System." being simplified out
             If simplifySystem Then

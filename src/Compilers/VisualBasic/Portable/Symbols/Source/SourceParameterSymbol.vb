@@ -17,9 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits SourceParameterSymbolBase
         Implements IAttributeTargetSymbol
 
-        Private ReadOnly m_location As Location
-        Private ReadOnly m_name As String
-        Private ReadOnly m_type As TypeSymbol
+        Private ReadOnly _location As Location
+        Private ReadOnly _name As String
+        Private ReadOnly _type As TypeSymbol
 
         Friend Sub New(
             container As Symbol,
@@ -29,20 +29,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             location As Location)
             MyBase.New(container, ordinal)
 
-            m_name = name
-            m_type = type
-            m_location = location
+            _name = name
+            _type = type
+            _location = location
         End Sub
 
         Friend ReadOnly Property Location As Location
             Get
-                Return m_location
+                Return _location
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property Name As String
             Get
-                Return m_name
+                Return _name
             End Get
         End Property
 
@@ -72,8 +72,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                If m_location IsNot Nothing Then
-                    Return ImmutableArray.Create(Of Location)(m_location)
+                If _location IsNot Nothing Then
+                    Return ImmutableArray.Create(Of Location)(_location)
                 Else
                     Return ImmutableArray(Of Location).Empty
                 End If
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property Type As TypeSymbol
             Get
-                Return m_type
+                Return _type
             End Get
         End Property
 
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ReadOnly Property DefaultAttributeLocation As AttributeLocation Implements IAttributeTargetSymbol.DefaultAttributeLocation
+        Public ReadOnly Property DefaultAttributeLocation As AttributeLocation Implements IAttributeTargetSymbol.DefaultAttributeLocation
             Get
                 Return AttributeLocation.Parameter
             End Get

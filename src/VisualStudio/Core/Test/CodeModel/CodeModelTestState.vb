@@ -80,20 +80,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Property
 
 #Region "IDisposable Support"
-        Private disposedValue As Boolean ' To detect redundant calls
+        Private _disposedValue As Boolean ' To detect redundant calls
 
         Protected Overridable Sub Dispose(disposing As Boolean)
             If Not disposing Then
                 Environment.FailFast("TestWorkspaceAndFileModelCodel GC'd without call to Dispose()!")
             End If
 
-            If Not Me.disposedValue Then
+            If Not Me._disposedValue Then
                 If disposing Then
                     _workspace.Dispose()
                 End If
             End If
 
-            Me.disposedValue = True
+            Me._disposedValue = True
         End Sub
 
         Protected Overrides Sub Finalize()

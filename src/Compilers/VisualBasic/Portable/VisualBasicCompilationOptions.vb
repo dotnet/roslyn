@@ -11,14 +11,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits CompilationOptions
         Implements IEquatable(Of VisualBasicCompilationOptions)
 
-        Private Const GlobalImportsString = "GlobalImports"
-        Private Const RootNamespaceString = "RootNamespace"
-        Private Const OptionStrictString = "OptionStrict"
-        Private Const OptionInferString = "OptionInfer"
-        Private Const OptionExplicitString = "OptionExplicit"
-        Private Const OptionCompareTextString = "OptionCompareText"
-        Private Const EmbedVbCoreRuntimeString = "EmbedVbCoreRuntime"
-        Private Const ParseOptionsString = "ParseOptions"
+        Private Const s_globalImportsString = "GlobalImports"
+        Private Const s_rootNamespaceString = "RootNamespace"
+        Private Const s_optionStrictString = "OptionStrict"
+        Private Const s_optionInferString = "OptionInfer"
+        Private Const s_optionExplicitString = "OptionExplicit"
+        Private Const s_optionCompareTextString = "OptionCompareText"
+        Private Const s_embedVbCoreRuntimeString = "EmbedVbCoreRuntime"
+        Private Const s_parseOptionsString = "ParseOptions"
 
         Private _globalImports As ImmutableArray(Of GlobalImport)
         Private _rootNamespace As String
@@ -51,6 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="concurrentBuild">An optional parameter to specify enabling/disabling concurrent build.</param>
         ''' <param name="cryptoKeyContainer">An optional parameter to specify a key container name for a key pair to give an assembly a strong name.</param>
         ''' <param name="cryptoKeyFile">An optional parameter to specify a file containing a key or key pair to give an assembly a strong name.</param>
+        ''' <param name="cryptoPublicKey">An optional parameter to specify a public key used to give an assembly a strong name.</param>
         ''' <param name="delaySign">An optional parameter to specify whether the assembly will be fully or partially signed.</param>
         ''' <param name="platform">An optional parameter to specify which platform version of common language runtime (CLR) can run compilation. <see cref="CodeAnalysis.Platform"/></param>
         ''' <param name="generalDiagnosticOption">An optional parameter to specify the general warning level.</param>
@@ -79,6 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional checkOverflow As Boolean = True,
             Optional cryptoKeyContainer As String = Nothing,
             Optional cryptoKeyFile As String = Nothing,
+            Optional cryptoPublicKey As ImmutableArray(Of Byte) = Nothing,
             Optional delaySign As Boolean? = Nothing,
             Optional platform As Platform = Platform.AnyCpu,
             Optional generalDiagnosticOption As ReportDiagnostic = ReportDiagnostic.Default,
@@ -107,6 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 checkOverflow,
                 cryptoKeyContainer,
                 cryptoKeyFile,
+                cryptoPublicKey,
                 delaySign,
                 platform,
                 generalDiagnosticOption,
@@ -141,6 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             checkOverflow As Boolean,
             cryptoKeyContainer As String,
             cryptoKeyFile As String,
+            cryptoPublicKey As ImmutableArray(Of Byte),
             delaySign As Boolean?,
             platform As Platform,
             generalDiagnosticOption As ReportDiagnostic,
@@ -163,6 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 scriptClassName:=scriptClassName,
                 cryptoKeyContainer:=cryptoKeyContainer,
                 cryptoKeyFile:=cryptoKeyFile,
+                cryptoPublicKey:=cryptoPublicKey,
                 delaySign:=delaySign,
                 optimizationLevel:=optimizationLevel,
                 checkOverflow:=checkOverflow,
@@ -213,6 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 checkOverflow:=other.CheckOverflow,
                 cryptoKeyContainer:=other.CryptoKeyContainer,
                 cryptoKeyFile:=other.CryptoKeyFile,
+                cryptoPublicKey:=other.CryptoPublicKey,
                 delaySign:=other.DelaySign,
                 platform:=other.Platform,
                 generalDiagnosticOption:=other.GeneralDiagnosticOption,
@@ -576,6 +582,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
+        ''' Creates a new VisualBasicCompilationOptions instance with a different public key.
+        ''' </summary>
+        ''' <param name="value">The cryptography key file path. </param>        
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the public key is different; otherwise current instance.</returns>        
+        Public Shadows Function WithCryptoPublicKey(value As ImmutableArray(Of Byte)) As VisualBasicCompilationOptions
+            If value.IsDefault Then
+                value = ImmutableArray(Of Byte).Empty
+            End If
+
+            If value = Me.CryptoPublicKey Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.CryptoPublicKey = value}
+        End Function
+
+        ''' <summary>
         ''' Creates a new VisualBasicCompilationOptions instance with a different delay signing specified.
         ''' </summary>
         ''' <param name="value">The delay signing setting. </param>        
@@ -777,48 +800,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not Platform.IsValid() Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, Platform.ToString(), "Platform"))
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, NameOf(Platform), Platform.ToString()))
             End If
 
             If ModuleName IsNot Nothing Then
-                Dim e As Exception = MetadataHelpers.CheckAssemblyOrModuleName(ModuleName, "ModuleName")
+                Dim e As Exception = MetadataHelpers.CheckAssemblyOrModuleName(ModuleName, NameOf(ModuleName))
                 If e IsNot Nothing Then
                     builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_BadCompilationOption, e.Message))
                 End If
             End If
 
             If Not OutputKind.IsValid() Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, OutputKind.ToString(), "OutputKind"))
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, NameOf(OutputKind), OutputKind.ToString()))
             End If
 
             If Not OptimizationLevel.IsValid() Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, OptimizationLevel.ToString(), "OptimizationLevel"))
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, NameOf(OptimizationLevel), OptimizationLevel.ToString()))
             End If
 
             If ScriptClassName Is Nothing OrElse Not ScriptClassName.IsValidClrTypeName() Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, If(ScriptClassName, "Nothing"), "ScriptClassName"))
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, NameOf(ScriptClassName), If(ScriptClassName, "Nothing")))
             End If
 
             If MainTypeName IsNot Nothing AndAlso Not MainTypeName.IsValidClrTypeName() Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, MainTypeName, "MainTypeName"))
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, NameOf(MainTypeName), MainTypeName))
             End If
 
             If Not String.IsNullOrEmpty(RootNamespace) AndAlso Not OptionsValidator.IsValidNamespaceName(RootNamespace) Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, RootNamespace, "RootNamespace"))
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, NameOf(RootNamespace), RootNamespace))
             End If
 
             If Not OptionStrict.IsValid Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, OptionStrict.ToString(), "OptionStrict"))
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidSwitchValue, NameOf(OptionStrict), OptionStrict.ToString()))
             End If
 
             If Platform = Platform.AnyCpu32BitPreferred AndAlso OutputKind.IsValid() AndAlso
                  Not (OutputKind = OutputKind.ConsoleApplication OrElse OutputKind = OutputKind.WindowsApplication OrElse OutputKind = OutputKind.WindowsRuntimeApplication) Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_LibAnycpu32bitPreferredConflict, Platform.ToString(), "Platform"))
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_LibAnycpu32bitPreferredConflict, NameOf(Platform), Platform.ToString()))
             End If
 
             ' TODO: add check for 
             '          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&
             '          (version >= "6.2")
+
+            If Not CryptoPublicKey.IsEmpty Then
+                If CryptoKeyFile IsNot Nothing Then
+                    builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(CryptoPublicKey), NameOf(CryptoKeyFile)))
+                End If
+
+                If CryptoKeyContainer IsNot Nothing Then
+                    builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(CryptoPublicKey), NameOf(CryptoKeyContainer)))
+                End If
+            End If
         End Sub
 
         ''' <summary>

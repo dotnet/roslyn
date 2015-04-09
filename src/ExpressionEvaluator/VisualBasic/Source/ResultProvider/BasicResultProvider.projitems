@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>3140fe61-0856-4367-9aa3-8081b9a80e35</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\Placeholders.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)VisualBasicFormatter.TypeNames.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)VisualBasicFormatter.Values.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)VisualBasicFormatter.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)VisualBasicResultProvider.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <VsdConfigXml Include="$(MSBuildThisFileDirectory)VisualBasicResultProvider.vsdconfigxml">
+      <SubType>Designer</SubType>
+    </VsdConfigXml>
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="IdentifierComparison=Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
+  </ItemGroup>
+</Project>

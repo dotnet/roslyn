@@ -14,9 +14,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
     Public NotInheritable Class VisualBasicInteractiveEvaluator
         Inherits InteractiveEvaluator
 
-        Private Shared ReadOnly _parseOptions As ParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Interactive)
+        Private Shared ReadOnly s_parseOptions As ParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Interactive)
 
-        Private Const InteractiveResponseFile As String = "VisualBasicInteractive.rsp"
+        Private Const s_interactiveResponseFile As String = "VisualBasicInteractive.rsp"
 
         Public Sub New(hostServices As HostServices,
                        classifierAggregator As IViewClassifierAggregatorService,
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
                        classifierAggregator,
                        commandsFactory,
                        commands,
-                       Path.Combine(responseFileDirectory, InteractiveResponseFile),
+                       Path.Combine(responseFileDirectory, s_interactiveResponseFile),
                        initialWorkingDirectory,
                        GetType(InteractiveHostEntryPoint).Assembly.Location,
                        GetType(VisualBasicRepl))
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
 
         Protected Overrides ReadOnly Property ParseOptions As ParseOptions
             Get
-                Return _parseOptions
+                Return s_parseOptions
             End Get
         End Property
 
@@ -62,8 +62,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
                                             assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default)
         End Function
 
-        Public Overrides Function CanExecuteText(text As String) As Boolean
-            If MyBase.CanExecuteText(text) Then
+        Public Overrides Function CanExecuteCode(text As String) As Boolean
+            If MyBase.CanExecuteCode(text) Then
                 Return True
             End If
 

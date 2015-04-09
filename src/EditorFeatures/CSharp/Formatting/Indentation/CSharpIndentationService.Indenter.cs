@@ -136,8 +136,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 Contract.ThrowIfTrue(token.Kind() == SyntaxKind.None);
 
                 // special cases
-                // if token belongs to verbatim token literal
-                if (token.IsVerbatimStringLiteral())
+                // case 1: token belongs to verbatim token literal
+                // case 2: $@"$${0}"
+                // case 3: $@"Comment$$ inbetween{0}"
+                // case 4: $@"{0}$$"
+                if (token.IsVerbatimStringLiteral() ||
+                    token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken) ||
+                    token.IsKind(SyntaxKind.InterpolatedStringTextToken) ||
+                    (token.IsKind(SyntaxKind.CloseBraceToken) && token.Parent.IsKind(SyntaxKind.Interpolation)))
                 {
                     return IndentFromStartOfLine(0);
                 }
@@ -164,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                     return IndentFromStartOfLine(alignmentTokenIndentation.Value);
                 }
 
-                // if we couldn't determine indentation from the service, use hueristic to find indentation.
+                // if we couldn't determine indentation from the service, use heuristic to find indentation.
                 var snapshot = LineToBeIndented.Snapshot;
 
                 // If this is the last token of an embedded statement, walk up to the top-most parenting embedded
@@ -209,6 +215,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 
                     case SyntaxKind.CloseBraceToken:
                         {
+                            if (token.Parent.IsKind(SyntaxKind.AccessorList) &&
+                                token.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration))
+                            {
+                                if (token.GetNextToken().IsEqualsTokenInAutoPropertyInitializers())
+                                {
+                                    return GetDefaultIndentationFromToken(token);
+                                }
+                            }
+
                             return IndentFromStartOfLine(Finder.GetIndentationOfCurrentPosition(Tree, token, position, CancellationToken));
                         }
 

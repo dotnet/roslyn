@@ -4762,7 +4762,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TestSpacingOptionAroundControlFlow()
         {
-            var code = @"
+            const string code = @"
 class Program
 {
     public void foo()
@@ -4789,14 +4789,19 @@ class Program
 
         try
         { }
+        catch (System.Exception)
+        { }
         catch (System.Exception e)
         { }
 
         using(somevar)
         { }
+
+        lock(somevar)
+        { }
     }
 }";
-            var expected = @"
+            const string expected = @"
 class Program
 {
     public void foo()
@@ -4823,10 +4828,15 @@ class Program
 
         try
         { }
+        catch ( System.Exception )
+        { }
         catch ( System.Exception e )
         { }
 
         using ( somevar )
+        { }
+
+        lock ( somevar )
         { }
     }
 }";
@@ -5323,6 +5333,29 @@ class Program
 }";
 
             var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, true } };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void ArrayDeclarationShouldFollowEmptySquareBrackets()
+        {
+            const string code = @"
+class Program
+{
+   var t = new Foo(new[ ] { ""a"", ""b"" });
+}";
+
+            const string expected = @"
+class Program
+{
+    var t = new Foo(new[] { ""a"", ""b"" });
+}";
+
+            var options = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.SpaceWithinSquareBrackets, true },
+                { CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, false }
+            };
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
@@ -5832,9 +5865,10 @@ class C
             AssertFormat(expected, code);
         }
 
-        [WorkItem(961559)]
+        [WorkItem(1041787)]
+        [WorkItem(1151, "https://github.com/dotnet/roslyn/issues/1151")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void ReconstructWhitespaceStringUsingTabs()
+        public void ReconstructWhitespaceStringUsingTabs_SingleLineComment()
         {
             var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
             AssertFormat(@"using System;
@@ -5843,7 +5877,7 @@ class Program
 {
 	static void Main(string[] args)
 	{
-		Console.WriteLine(""""); // FooBar
+		Console.WriteLine("""");        // FooBar
 	}
 }", @"using System;
 
@@ -5851,7 +5885,33 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(""""); // FooBar
+        Console.WriteLine("""");        // FooBar
+    }
+}", false, optionSet);
+        }
+
+        [WorkItem(961559)]
+        [WorkItem(1041787)]
+        [WorkItem(1151, "https://github.com/dotnet/roslyn/issues/1151")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void ReconstructWhitespaceStringUsingTabs_MultiLineComment()
+        {
+            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+            AssertFormat(@"using System;
+
+class Program
+{
+	static void Main(string[] args)
+	{
+		Console.WriteLine("""");        /* FooBar */
+	}
+}", @"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine("""");        /* FooBar */
     }
 }", false, optionSet);
         }
@@ -6010,5 +6070,155 @@ class Program
 }";
             AssertFormat(expected, code);
         }
+
+        [WorkItem(1118, "https://github.com/dotnet/roslyn/issues/1118")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DontAssumeCertainNodeAreAlwaysParented()
+        {
+            var block = SyntaxFactory.Block();
+            Formatter.Format(block, new AdhocWorkspace());
+        }
+
+        [WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpacingRulesAroundMethodCallAndParenthesisAppliedInAttributeNonDefault()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpaceAfterMethodCallName, true);
+            changingOptions.Add(CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, true);
+            changingOptions.Add(CSharpFormattingOptions.SpaceWithinMethodCallParentheses, true);
+            AssertFormat(@"[Obsolete ( ""Test"" ), Obsolete ( )]
+class Program
+{
+    static void Main(string[] args)
+    {
     }
+}", @"[Obsolete(""Test""), Obsolete()]
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}", false, changingOptions);
+        }
+
+        [WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpacingRulesAroundMethodCallAndParenthesisAppliedInAttribute()
+        {
+            var code = @"[Obsolete(""Test""), Obsolete()]
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}";
+            AssertFormat(code, code);
+        }
+
+        [Fact]
+        public void SpacingInMethodCallArguments_True()
+        {
+            const string code = @"
+[Bar(A=1,B=2)]
+class Program
+{
+    public void foo()
+    {
+        var a = typeof(A);
+        var b = M(a);
+        M();
+    }
+}";
+            const string expected = @"
+[Bar ( A = 1, B = 2 )]
+class Program
+{
+    public void foo()
+    {
+        var a = typeof ( A );
+        var b = M ( a );
+        M ( );
+    }
+}";
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.SpaceWithinMethodCallParentheses, true },
+                { CSharpFormattingOptions.SpaceAfterMethodCallName, true },
+                { CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, true },
+            };
+            AssertFormat(expected, code, changedOptionSet: optionSet);
+        }
+
+        [WorkItem(1298, "https://github.com/dotnet/roslyn/issues/1298")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DontforceAccessorsToNewLineWithPropertyInitializers()
+        {
+            var code = @"using System.Collections.Generic;
+
+class Program
+{
+    public List<ExcludeValidation> ValidationExcludeFilters { get; }
+    = new List<ExcludeValidation>();
 }
+
+public class ExcludeValidation
+{
+}";
+
+            var expected = @"using System.Collections.Generic;
+
+class Program
+{
+    public List<ExcludeValidation> ValidationExcludeFilters { get; }
+    = new List<ExcludeValidation>();
+}
+
+public class ExcludeValidation
+{
+}";
+            AssertFormat(expected, code);
+        }
+
+        [WorkItem(1339, "https://github.com/dotnet/roslyn/issues/1339")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DontFormatAutoPropertyInitializerIfNotDifferentLine()
+        {
+            var code = @"class Program
+{
+    public int d { get; }
+            = 3;
+    static void Main(string[] args)
+    {
+    }
+}";
+            AssertFormat(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpacingForForStatementInfiniteLoop()
+        {
+            var code = @"
+class Program
+{
+    void Main()
+    {
+        for ( ; ; )
+        {
+        }
+    }
+}";
+            var expected = @"
+class Program
+{
+    void Main()
+    {
+        for (;;)
+        {
+        }
+    }
+}";
+            AssertFormat(expected, code);
+        }
+        }
+    }

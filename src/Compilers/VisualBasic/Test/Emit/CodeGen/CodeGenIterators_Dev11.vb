@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact, WorkItem(651996, "DevDiv")>
-        Sub Dev11_ComprehensiveExitPoints()
+        Public Sub Dev11_ComprehensiveExitPoints()
             Dim source =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -17026,7 +17026,7 @@ Class2.excep.finally : 2
         End Sub
 
         <Fact, WorkItem(651996, "DevDiv")>
-        Sub Dev11_Finally()
+        Public Sub Dev11_Finally()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -17121,7 +17121,7 @@ finally]]>)
         End Sub
 
         <Fact, WorkItem(651996, "DevDiv")>
-        Sub Dev11_Finally0()
+        Public Sub Dev11_Finally0()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -17172,7 +17172,7 @@ End Module
         End Sub
 
         <Fact, WorkItem(651996, "DevDiv")>
-        Sub Dev11_Finally2()
+        Public Sub Dev11_Finally2()
             Dim source =
 <compilation>
     <file name="a.vb">

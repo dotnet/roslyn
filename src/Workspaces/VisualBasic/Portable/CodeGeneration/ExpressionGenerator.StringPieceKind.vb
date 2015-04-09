@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Partial Module ExpressionGenerator
+    Friend Partial Module ExpressionGenerator
         Private Enum StringPieceKind
             Normal
             NonPrintable

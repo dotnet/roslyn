@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrType type,
             string alias = null,
             DkmEvaluationResultFlags evalFlags = DkmEvaluationResultFlags.None,
-            DkmClrValueFlags valueFlags = DkmClrValueFlags.None)
+            DkmClrValueFlags valueFlags = DkmClrValueFlags.None,
+            bool isComObject = false)
         {
             return new DkmClrValue(
                 value,
@@ -64,7 +65,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 alias,
                 _formatter,
                 evalFlags,
-                valueFlags);
+                valueFlags,
+                isComObject);
         }
 
         internal DkmClrValue CreateErrorValue(
@@ -129,14 +131,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         #region ResultProvider Tests
 
-        internal DkmInspectionContext CreateDkmInspectionContext(DkmEvaluationFlags flags = DkmEvaluationFlags.None, uint radix = 10)
+        internal DkmInspectionContext CreateDkmInspectionContext(
+            DkmEvaluationFlags flags = DkmEvaluationFlags.None,
+            uint radix = 10,
+            DkmRuntimeInstance runtimeInstance = null)
         {
-            return CreateDkmInspectionContext(_formatter, flags, radix);
+            return CreateDkmInspectionContext(_formatter, flags, radix, runtimeInstance);
         }
 
-        internal static DkmInspectionContext CreateDkmInspectionContext(IDkmClrFormatter formatter, DkmEvaluationFlags flags, uint radix)
+        internal static DkmInspectionContext CreateDkmInspectionContext(
+            IDkmClrFormatter formatter,
+            DkmEvaluationFlags flags,
+            uint radix,
+            DkmRuntimeInstance runtimeInstance = null)
         {
-            return new DkmInspectionContext(formatter, flags, radix);
+            return new DkmInspectionContext(formatter, flags, radix, runtimeInstance);
         }
 
         internal DkmEvaluationResult FormatResult(string name, DkmClrValue value, DkmClrType declaredType = null, DkmInspectionContext inspectionContext = null)
@@ -256,6 +265,23 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 (customUIVisualizerInfo != null) ? new ReadOnlyCollection<DkmCustomUIVisualizerInfo>(customUIVisualizerInfo) : null,
                 null,
                 null);
+        }
+
+        internal static DkmIntermediateEvaluationResult EvalIntermediateResult(
+            string name,
+            string fullName,
+            string expression,
+            DkmLanguage language)
+        {
+            return DkmIntermediateEvaluationResult.Create(
+                InspectionContext: null,
+                StackFrame: null,
+                Name: name,
+                FullName: fullName,
+                Expression: expression,
+                IntermediateLanguage: language,
+                TargetRuntime: null,
+                DataItem: null);
         }
 
         internal static DkmEvaluationResult EvalFailedResult(
@@ -388,6 +414,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Assert.Equal(expected.Name, actual.Name);
             Assert.Equal(expected.FullName, actual.FullName);
             var expectedSuccess = expected as DkmSuccessEvaluationResult;
+            var expectedIntermediate = expected as DkmIntermediateEvaluationResult;
             if (expectedSuccess != null)
             {
                 var actualSuccess = (DkmSuccessEvaluationResult)actual;
@@ -404,6 +431,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     (expectedSuccess.CustomUIVisualizers == actualSuccess.CustomUIVisualizers) ||
                     (expectedSuccess.CustomUIVisualizers != null && actualSuccess.CustomUIVisualizers != null &&
                     expectedSuccess.CustomUIVisualizers.SequenceEqual(actualSuccess.CustomUIVisualizers, CustomUIVisualizerInfoComparer.Instance)));
+            }
+            else if (expectedIntermediate != null)
+            {
+                var actualIntermediate = (DkmIntermediateEvaluationResult)actual;
+                Assert.Equal(expectedIntermediate.Expression, actualIntermediate.Expression);
+                Assert.Equal(expectedIntermediate.IntermediateLanguage.Id.LanguageId, actualIntermediate.IntermediateLanguage.Id.LanguageId);
+                Assert.Equal(expectedIntermediate.IntermediateLanguage.Id.VendorId, actualIntermediate.IntermediateLanguage.Id.VendorId);
             }
             else
             {

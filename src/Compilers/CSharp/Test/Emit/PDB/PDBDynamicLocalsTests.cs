@@ -200,7 +200,7 @@ class Test
         <using>
           <namespace usingCount=""0"" />
         </using>
-	    <dynamicLocals>
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
       </customDebugInfo>
@@ -209,10 +209,10 @@ class Test
         <entry offset=""0x1"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""3"" document=""0"" />
       </sequencePoints>
       <locals>
-        <constant name=""d"" value=""0"" type=""Int32"" />
+        <constant name=""d"" value=""null"" type=""Object"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
-        <constant name=""d"" value=""0"" type=""Int32"" />
+        <constant name=""d"" value=""null"" type=""Object"" />
       </scope>
     </method>
   </methods>

@@ -44,35 +44,36 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected internal override IEnumerable<SyntaxNode> GetChildren(SyntaxNode node)
         {
-            Debug.Assert(GetLabel(node) != IgnoredNode);
+            Debug.Assert(HasLabel(node));
 
             if (node == _oldRoot || node == _newRoot)
             {
                 return EnumerateRootChildren(node);
             }
 
-            return NonRootHasChildren(node) ? EnumerateChildren(node) : null;
+            return IsLeaf(node) ? null : EnumerateNonRootChildren(node);
         }
 
-        private IEnumerable<SyntaxNode> EnumerateChildren(SyntaxNode node)
+        private IEnumerable<SyntaxNode> EnumerateNonRootChildren(SyntaxNode node)
         {
-            foreach (var child in node.ChildNodesAndTokens())
+            foreach (var child in node.ChildNodes())
             {
-                var childNode = child.AsNode();
-                if (childNode != null)
+                if (LambdaUtilities.IsLambdaBodyStatementOrExpression(child))
                 {
-                    if (GetLabel(childNode) != IgnoredNode)
+                    continue;
+                }
+
+                if (HasLabel(child))
+                {
+                    yield return child;
+                }
+                else
+                {
+                    foreach (var descendant in child.DescendantNodes(DescendIntoChildren))
                     {
-                        yield return childNode;
-                    }
-                    else
-                    {
-                        foreach (var descendant in childNode.DescendantNodesAndTokens(SyntaxUtilities.IsNotLambda))
+                        if (HasLabel(descendant))
                         {
-                            if (EnumerateExpressionDescendant(descendant.Kind()))
-                            {
-                                yield return descendant.AsNode();
-                            }
+                            yield return descendant;
                         }
                     }
                 }
@@ -81,62 +82,62 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private IEnumerable<SyntaxNode> EnumerateRootChildren(SyntaxNode root)
         {
-            var childNode = (root == _oldRoot) ? _oldRootChild : _newRootChild;
+            Debug.Assert(_oldRoot != null && _newRoot != null);
 
-            if (GetLabel(childNode) != IgnoredNode)
+            var child = (root == _oldRoot) ? _oldRootChild : _newRootChild;
+
+            if (GetLabelImpl(child) != Label.Ignored)
             {
-                yield return childNode;
+                yield return child;
             }
             else
             {
-                foreach (var descendant in childNode.DescendantNodesAndTokens(SyntaxUtilities.IsNotLambda))
+                foreach (var descendant in child.DescendantNodes(DescendIntoChildren))
                 {
-                    if (EnumerateExpressionDescendant(descendant.Kind()))
+                    if (HasLabel(descendant))
                     {
-                        yield return descendant.AsNode();
+                        yield return descendant;
                     }
                 }
             }
         }
 
-        private static bool EnumerateExpressionDescendant(SyntaxKind kind)
+        private bool DescendIntoChildren(SyntaxNode node)
         {
-            return SyntaxUtilities.IsLambda(kind) || kind == SyntaxKind.VariableDeclarator || kind == SyntaxKind.AwaitExpression;
+            return !LambdaUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
         }
 
         protected internal sealed override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
         {
             if (node == _oldRoot || node == _newRoot)
             {
-                var descendantNode = (node == _oldRoot) ? _oldRootChild : _newRootChild;
+                Debug.Assert(_oldRoot != null && _newRoot != null);
 
-                if (GetLabel(descendantNode) != IgnoredNode)
+                var rootChild = (node == _oldRoot) ? _oldRootChild : _newRootChild;
+
+                if (HasLabel(rootChild))
                 {
-                    yield return descendantNode;
+                    yield return rootChild;
                 }
 
-                node = descendantNode;
+                node = rootChild;
             }
 
-            foreach (var descendant in node.DescendantNodesAndTokens(
-                descendIntoChildren: NonRootHasChildren,
-                descendIntoTrivia: false))
+            // TODO: avoid allocation of closure
+            foreach (var descendant in node.DescendantNodes(descendIntoChildren: c => !IsLeaf(c) && (c == node || !LambdaUtilities.IsLambdaBodyStatementOrExpression(c))))
             {
-                var descendantNode = descendant.AsNode();
-                if (descendantNode != null && GetLabel(descendantNode) != IgnoredNode)
+                if (!LambdaUtilities.IsLambdaBodyStatementOrExpression(descendant) && HasLabel(descendant))
                 {
-                    yield return descendantNode;
+                    yield return descendant;
                 }
             }
         }
 
-        private static bool NonRootHasChildren(SyntaxNode node)
+        private static bool IsLeaf(SyntaxNode node)
         {
-            // Leaves are labeled statements that don't have a labeled child.
-            // A non-labeled statement may not be leave since it may contain a lambda.
             bool isLeaf;
             Classify(node.Kind(), node, out isLeaf);
-            return !isLeaf;
+            return isLeaf;
         }
 
         #endregion
@@ -156,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             TryStatement,
             CatchClause,                      // tied to parent
+            CatchDeclaration,                 // tied to parent
             CatchFilterClause,                // tied to parent
             FinallyClause,                    // tied to parent
             ForStatement,
@@ -183,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             // TODO: 
             // Ideally we could declare LocalVariableDeclarator tied to the first enclosing node that defines local scope (block, foreach, etc.)
-            // Also consider handling LocalDeclarationStatement in the same way we handle DeclarationExpression - just a bag of variable declarators,
+            // Also consider handling LocalDeclarationStatement as just a bag of variable declarators,
             // so that variable declarators contained in one can be matched with variable declarators contained in the other.
             LocalDeclarationStatement,         // tied to parent
             LocalVariableDeclaration,          // tied to parent
@@ -192,13 +194,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             AwaitExpression,
 
             Lambda,
-            FromClauseLambda,
-            LetClauseLambda,
-            WhereClauseLambda,
-            OrderingLambda,
-            SelectClauseLambda,
-            JoinClauseLambda,
-            GroupClauseLambda,
+
+            FromClause,
+            QueryBody,
+            FromClauseLambda,                 // tied to parent
+            LetClauseLambda,                  // tied to parent
+            WhereClauseLambda,                // tied to parent
+            OrderByClause,                    // tied to parent
+            OrderingLambda,                   // tied to parent
+            SelectClauseLambda,               // tied to parent
+            JoinClauseLambda,                 // tied to parent
+            JoinIntoClause,                   // tied to parent
+            GroupClauseLambda,                // tied to parent
+            QueryContinuation,                // tied to parent
 
             // helpers:
             Count,
@@ -216,10 +224,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.BreakContinueStatement:
                 case Label.ElseClause:
                 case Label.CatchClause:
+                case Label.CatchDeclaration:
                 case Label.CatchFilterClause:
                 case Label.FinallyClause:
                 case Label.ForStatementPart:
                 case Label.YieldStatement:
+                case Label.FromClauseLambda:        
+                case Label.LetClauseLambda:                 
+                case Label.WhereClauseLambda:
+                case Label.OrderByClause:
+                case Label.OrderingLambda:                  
+                case Label.SelectClauseLambda:              
+                case Label.JoinClauseLambda:                
+                case Label.JoinIntoClause:                  
+                case Label.GroupClauseLambda:               
+                case Label.QueryContinuation:               
                     return 1;
 
                 default:
@@ -227,6 +246,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
+        /// <summary>
+        /// <paramref name="nodeOpt"/> is null only when comparing value equality of a tree node.
+        /// </summary>
         internal static Label Classify(SyntaxKind kind, SyntaxNode nodeOpt, out bool isLeaf)
         {
             // Notes:
@@ -238,6 +260,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             isLeaf = false;
 
+            // If the node is a for loop Initializer, Condition, or Incrementor expression we label it as "ForStatementPart".
+            // We need to capture it in the match since these expressions can be "active statements" and as such we need to map them.
+            //
+            // The parent is not available only when comparing nodes for value equality.
             if (nodeOpt != null && nodeOpt.Parent.IsKind(SyntaxKind.ForStatement) && nodeOpt is ExpressionSyntax)
             {
                 return Label.ForStatementPart;
@@ -342,6 +368,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.CatchClause:
                     return Label.CatchClause;
 
+                case SyntaxKind.CatchDeclaration:
+                    // the declarator of the exception variable
+                    return Label.CatchDeclaration;
+
                 case SyntaxKind.CatchFilterClause:
                     return Label.CatchFilterClause;
 
@@ -351,36 +381,55 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
                 case SyntaxKind.AnonymousMethodExpression:
-                    isLeaf = true;
                     return Label.Lambda;
 
                 case SyntaxKind.FromClause:
-                    isLeaf = true;
+                    // The first from clause of a query is not a lambda.
+                    // We have to assign it a label different from "FromClauseLambda"
+                    // so that we won't match lambda-from to non-lambda-from.
+                    // 
+                    // Since FromClause declares range variables we need to include it in the map,
+                    // so that we are able to map range variable declarations.
+                    // Therefore we assign it a dedicated label.
+                    // 
+                    // The parent is not available only when comparing nodes for value equality.
+                    // In that case it doesn't matter what label the node has as long as it has some.
+                    if (nodeOpt == null || nodeOpt.Parent.IsKind(SyntaxKind.QueryExpression))
+                    {
+                        return Label.FromClause;
+                    }
+
                     return Label.FromClauseLambda;
 
+                case SyntaxKind.QueryBody:
+                    return Label.QueryBody;
+
+                case SyntaxKind.QueryContinuation:
+                    return Label.QueryContinuation;
+
                 case SyntaxKind.LetClause:
-                    isLeaf = true;
                     return Label.LetClauseLambda;
 
                 case SyntaxKind.WhereClause:
-                    isLeaf = true;
                     return Label.WhereClauseLambda;
+
+                case SyntaxKind.OrderByClause:
+                    return Label.OrderByClause;
 
                 case SyntaxKind.AscendingOrdering:
                 case SyntaxKind.DescendingOrdering:
-                    isLeaf = true;
                     return Label.OrderingLambda;
 
                 case SyntaxKind.SelectClause:
-                    isLeaf = true;
                     return Label.SelectClauseLambda;
 
                 case SyntaxKind.JoinClause:
-                    isLeaf = true;
                     return Label.JoinClauseLambda;
 
+                case SyntaxKind.JoinIntoClause:
+                    return Label.JoinIntoClause;
+
                 case SyntaxKind.GroupClause:
-                    isLeaf = true;
                     return Label.GroupClauseLambda;
 
                 case SyntaxKind.IdentifierName:
@@ -396,7 +445,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.OmittedTypeArgument:
                 case SyntaxKind.NameColon:
                 case SyntaxKind.StackAllocArrayCreationExpression:
-                case SyntaxKind.JoinIntoClause:
                 case SyntaxKind.OmittedArraySizeExpression:
                 case SyntaxKind.ThisExpression:
                 case SyntaxKind.BaseExpression:
@@ -410,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.TypeOfExpression:
                 case SyntaxKind.SizeOfExpression:
                 case SyntaxKind.DefaultExpression:
-                    // can't contain a lambda:
+                    // can't contain a lambda/await/anonymous type:
                     isLeaf = true;
                     return Label.Ignored;
 
@@ -436,16 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal static bool HasLabel(SyntaxNode node)
         {
-            bool isLeaf;
-            return Classify(node.Kind(), node, out isLeaf) != Label.Ignored;
-        }
-
-        // In most cases we can determine Label based on SyntaxKind.
-        // The only case we can't is for initializer, condition and incrementor expressions in ForStatement.
-        internal static bool IsLabeledKind(SyntaxKind kind)
-        {
-            bool isLeaf;
-            return Classify(kind, null, out isLeaf) != Label.Ignored;
+            return GetLabelImpl(node) != Label.Ignored;
         }
 
         protected internal override int LabelCount
@@ -462,8 +501,23 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Comparisons
 
+        internal static bool IgnoreLabeledChild(SyntaxKind kind)
+        {
+            // In most cases we can determine Label based on child kind.
+            // The only cases when we can't are
+            // - for Initializer, Condition and Incrementor expressions in ForStatement.
+            // - first from clause of a query expression.
+
+            bool isLeaf;
+            return Classify(kind, null, out isLeaf) != Label.Ignored;
+        }
+
         public override bool ValuesEqual(SyntaxNode left, SyntaxNode right)
         {
+            // only called from the tree matching alg, which only operates on nodes that are labeled.
+            Debug.Assert(HasLabel(left));
+            Debug.Assert(HasLabel(right));
+
             Func<SyntaxKind, bool> ignoreChildNode;
             switch (left.Kind())
             {
@@ -475,17 +529,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return true;
 
                 default:
-                    // When a value of a statement containing lambdas or declaration expressions, e.g. 
-                    //    F(x => x, G(y => y), var a = 2); 
-                    // is compared we descend into expressions and include them in the value comparison (they are not labeled) 
-                    // but not into the contained lambda and declaration expression nodes (because they are labeled).
-                    if (NonRootHasChildren(left))
+                    // When comparing the value of a node with its partner we are deciding whether to add an Update edit for the pair.
+                    // If the actual change is under a descendant labeled node we don't want to attribute it to the node being compared,
+                    // so we skip all labeled children when recursively checking for equivalence.
+                    if (IsLeaf(left))
                     {
-                        ignoreChildNode = IsLabeledKind;
+                        ignoreChildNode = null;
                     }
                     else
                     {
-                        ignoreChildNode = null;
+                        ignoreChildNode = IgnoreLabeledChild;
                     }
 
                     break;
@@ -497,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         private bool Equal(SwitchSectionSyntax left, SwitchSectionSyntax right)
         {
             return SyntaxFactory.AreEquivalent(left.Labels, right.Labels, null)
-                && SyntaxFactory.AreEquivalent(left.Statements, right.Statements, ignoreChildNode: IsLabeledKind);
+                && SyntaxFactory.AreEquivalent(left.Statements, right.Statements, ignoreChildNode: IgnoreLabeledChild);
         }
 
         protected override bool TryComputeWeightedDistance(SyntaxNode leftNode, SyntaxNode rightNode, out double distance)

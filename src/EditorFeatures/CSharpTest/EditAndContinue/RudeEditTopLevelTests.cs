@@ -1754,7 +1754,7 @@ class C
     {
         int a = 1;
         int b = 2;
-        Console.ReadLine(a + b);
+        System.Console.WriteLine(a + b);
     }
 }
 ";
@@ -1765,7 +1765,7 @@ class C
     {
         int b = 2;
         int a = 1;
-        Console.ReadLine(a + b);
+        System.Console.WriteLine(a + b);
     }
 }";
             var edits = GetTopEdits(src1, src2);
@@ -1775,12 +1775,12 @@ class C
     {
         int a = 1;
         int b = 2;
-        Console.ReadLine(a + b);
+        System.Console.WriteLine(a + b);
     }]@18 -> [static void Main(string[] args)
     {
         int b = 2;
         int a = 1;
-        Console.ReadLine(a + b);
+        System.Console.WriteLine(a + b);
     }]@18");
 
             edits.VerifyRudeDiagnostics();
@@ -1796,18 +1796,20 @@ class C
             string src1 = @"
 class C
 {
-    static void Main(string[] args) => F(1);
+    static int Main(string[] args) => F(1);
+    static int F(int a) => 1;
 }
 ";
             string src2 = @"
 class C
 {
-    static void Main(string[] args) => F(2);
+    static int Main(string[] args) => F(2);
+    static int F(int a) => 1;
 }";
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                @"Update [static void Main(string[] args) => F(1);]@18 -> [static void Main(string[] args) => F(2);]@18");
+                @"Update [static int Main(string[] args) => F(1);]@18 -> [static int Main(string[] args) => F(2);]@18");
 
             edits.VerifyRudeDiagnostics();
 
@@ -1816,32 +1818,40 @@ class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), preserveLocalVariables: false) });
         }
 
-        [Fact(Skip = "TODO: Enable lambda edits")]
+        [Fact]
         public void MethodWithLambda_Update()
         {
             string src1 = @"
+using System;
+
 class C
 {
     static void F()
     {
-        Func<int> a = () => 1;
+        Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+        Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
     }
 }
 ";
             string src2 = @"
+using System;
+
 class C
 {
     static void F()
     {
-        Func<int> a = () => 1;
+        Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+        Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
         Console.WriteLine(1);
     }
 }";
             var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true) });
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap[0]) });
         }
 
         [Fact]
@@ -2455,7 +2465,7 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "await", "await expression"));
+                Diagnostic(RudeEditKind.Delete, "await", CSharpFeaturesResources.AwaitExpression));
         }
 
         [Fact]
@@ -3007,9 +3017,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "()", "method"));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -3020,9 +3028,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "x", "method"));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -3033,9 +3039,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANON_METHOD, "delegate", "method"));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -3046,9 +3050,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANON_METHOD, "delegate", "method"));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -3059,9 +3061,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "from", "method"));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -3072,9 +3072,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "from", "method"));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -3085,22 +3083,18 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "method"));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
         public void MethodWithExpressionBody_Update_AnonymousType()
         {
-            var src1 = "class C { void M() => new { A = 1, B = 2 }; }";
-            var src2 = "class C { void M() => new { A = 10, B = 20 }; }";
+            var src1 = "class C { void M() => F(new { A = 1, B = 2 }); }";
+            var src2 = "class C { void M() => F(new { A = 10, B = 20 }); }";
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "method"));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -3545,7 +3539,7 @@ class B
                 Diagnostic(RudeEditKind.Delete, "class B", "destructor"));
         }
 
-        [Fact(Skip = "789577")]
+        [Fact]
         [WorkItem(789577)]
         public void ConstructorUpdate_AnonymousTypeInFieldInitializer()
         {
@@ -3554,9 +3548,7 @@ class B
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "constructor"));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -4468,8 +4460,8 @@ class B
         [Fact]
         public void FieldInitializerUpdate_LambdaInConstructor()
         {
-            var src1 = "class C { int a = 1; public C() { F(() => {}); } }";
-            var src2 = "class C { int a = 2; public C() { F(() => {}); } }";
+            var src1 = "class C { int a = 1; public C() { F(() => {}); } static void F(System.Action a) {} }";
+            var src2 = "class C { int a = 2; public C() { F(() => {}); } static void F(System.Action a) {} }";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -4484,8 +4476,8 @@ class B
         [Fact]
         public void PropertyInitializerUpdate_LambdaInConstructor()
         {
-            var src1 = "class C { int a { get; } = 1; public C() { F(() => {}); } }";
-            var src2 = "class C { int a { get; } = 2; public C() { F(() => {}); } }";
+            var src1 = "class C { int a { get; } = 1; public C() { F(() => {}); } static void F(System.Action a) {} }";
+            var src2 = "class C { int a { get; } = 2; public C() { F(() => {}); } static void F(System.Action a) {} }";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -4497,13 +4489,13 @@ class B
         [Fact]
         public void FieldInitializerUpdate_QueryInConstructor()
         {
-            var src1 = "class C { int a = 1; public C() { F(from a in b select c); } }";
-            var src2 = "class C { int a = 2; public C() { F(from a in b select c); } }";
+            var src1 = "using System.Linq; class C { int a = 1; public C() { F(from a in new[] {1,2,3} select a + 1); } static void F(System.Collections.Generic.IEnumerable<int> x) {} }";
+            var src2 = "using System.Linq; class C { int a = 2; public C() { F(from a in new[] {1,2,3} select a + 1); } static void F(System.Collections.Generic.IEnumerable<int> x) {} }";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [a = 1]@14 -> [a = 2]@14");
+                "Update [a = 1]@33 -> [a = 2]@33");
 
             // TODO (tomat): no errors
             edits.VerifySemanticDiagnostics(
@@ -4513,8 +4505,8 @@ class B
         [Fact]
         public void PropertyInitializerUpdate_QueryInConstructor()
         {
-            var src1 = "class C { int a { get; } = 1; public C() { F(from a in b select c); } }";
-            var src2 = "class C { int a { get; } = 2; public C() { F(from a in b select c); } }";
+            var src1 = "using System.Linq; class C { int a { get; } = 1; public C() { F(from a in new[] {1,2,3} select a + 1); } static void F(System.Collections.Generic.IEnumerable<int> x) {} }";
+            var src2 = "using System.Linq; class C { int a { get; } = 2; public C() { F(from a in new[] {1,2,3} select a + 1); } static void F(System.Collections.Generic.IEnumerable<int> x) {} }";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -4526,27 +4518,23 @@ class B
         [Fact]
         public void FieldInitializerUpdate_AnonymousTypeInConstructor()
         {
-            var src1 = "class C { int a = 1; C() { F(new { A = 1, B = 2 }); } }";
-            var src2 = "class C { int a = 2; C() { F(new { A = 1, B = 2 }); } }";
+            var src1 = "class C { int a = 1; C() { F(new { A = 1, B = 2 }); } static void F(object x) {} }";
+            var src2 = "class C { int a = 2; C() { F(new { A = 1, B = 2 }); } static void F(object x) {} }";
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "constructor"));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
         public void PropertyInitializerUpdate_AnonymousTypeInConstructor()
         {
-            var src1 = "class C { int a { get; } = 1; C() { F(new { A = 1, B = 2 }); } }";
-            var src2 = "class C { int a { get; } = 2; C() { F(new { A = 1, B = 2 }); } }";
+            var src1 = "class C { int a { get; } = 1; C() { F(new { A = 1, B = 2 }); } static void F(object x) {} }";
+            var src2 = "class C { int a { get; } = 2; C() { F(new { A = 1, B = 2 }); } static void F(object x) {} }";
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "constructor"));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -4689,9 +4677,7 @@ class B
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "field"));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -4702,9 +4688,7 @@ class B
 
             var edits = GetTopEdits(src1, src2);
 
-            // TODO (tomat): no errors
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, "new", "auto-property"));
+            edits.VerifyRudeDiagnostics();
         }
 
         #endregion
@@ -4834,7 +4818,7 @@ struct S
 { 
     public int a; 
 
-    public S(int z) { a = z; }
+    public S(int z) { this = default(S); a = z; }
 }
 ";
             var src2 = @"
@@ -4844,11 +4828,10 @@ struct S
 
     private int b; 
     private static int c; 
-    private int e = 1; 
     private static int f = 1;
-    private event Action d; 
+    private event System.Action d; 
 
-    public S(int z) { a = z; }
+    public S(int z) { this = default(S); a = z; }
 }
 ";
             var edits = GetTopEdits(src1, src2);
@@ -4856,7 +4839,6 @@ struct S
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertIntoStruct, "b", "field", "struct"),
                 Diagnostic(RudeEditKind.InsertIntoStruct, "c", "field", "struct"),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "e = 1", "field", "struct"),
                 Diagnostic(RudeEditKind.InsertIntoStruct, "f = 1", "field", "struct"),
                 Diagnostic(RudeEditKind.InsertIntoStruct, "d", "event field", "struct"));
         }
@@ -4923,7 +4905,9 @@ class C
     [FieldOffset(0)]
     private int b; 
 
+    [FieldOffset(4)]
     private int c; 
+
     private static int d; 
 }
 ";
@@ -5268,22 +5252,11 @@ struct S
 struct S 
 { 
     public int a; 
-
-    private int b { get; set; } 
     private static int c { get; set; } 
-    
-    private int d { get { return 0; } set { } } 
     private static int e { get { return 0; } set { } } 
-
-    private int f { get; } = 1;
     private static int g { get; } = 1;
-
-    private int h { get; set; } = 1;
     private static int i { get; set; } = 1;
-    
-    private int j => 1;
     private static int k => 1;
-
     public S(int z) { a = z; }
 }
 ";
@@ -5291,11 +5264,8 @@ struct S
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoStruct, "private int b { get; set; }", "auto-property", "struct"),
                 Diagnostic(RudeEditKind.InsertIntoStruct, "private static int c { get; set; }", "auto-property", "struct"),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "private int f { get; } = 1;", "auto-property", "struct"),
                 Diagnostic(RudeEditKind.InsertIntoStruct, "private static int g { get; } = 1;", "auto-property", "struct"),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "private int h { get; set; } = 1;", "auto-property", "struct"),
                 Diagnostic(RudeEditKind.InsertIntoStruct, "private static int i { get; set; } = 1;", "auto-property", "struct"));
         }
 
@@ -5518,13 +5488,13 @@ class C
         [Fact]
         public void Indexer_SetterUpdate()
         {
-            var src1 = "class C { int this[int a] { get { return 1; } set { Console.WriteLine(value); } } }";
-            var src2 = "class C { int this[int a] { get { return 1; } set { Console.WriteLine(value + 1); } } }";
+            var src1 = "class C { int this[int a] { get { return 1; } set { System.Console.WriteLine(value); } } }";
+            var src2 = "class C { int this[int a] { get { return 1; } set { System.Console.WriteLine(value + 1); } } }";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [set { Console.WriteLine(value); }]@46 -> [set { Console.WriteLine(value + 1); }]@46");
+                "Update [set { System.Console.WriteLine(value); }]@46 -> [set { System.Console.WriteLine(value + 1); }]@46");
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
@@ -5805,6 +5775,49 @@ class SampleCollection<T>
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "public T this[int i]", "indexer setter"));
+        }
+
+        [WorkItem(1120407)]
+        [Fact]
+        public void ConstField_Update()
+        {
+            var src1 = "class C { const int x = 0; }";
+            var src2 = "class C { const int x = 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [x = 0]@20 -> [x = 1]@20");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Update, "x = 1", "const field"));
+        }
+
+        [Fact]
+        public void ConstField_Delete()
+        {
+            var src1 = "class C { const int x = 0; }";
+            var src2 = "class C { int x = 0; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [const int x = 0;]@10 -> [int x = 0;]@10");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "int x = 0", "field"));
+        }
+
+        [Fact]
+        public void ConstField_Add()
+        {
+            var src1 = "class C { int x = 0; }";
+            var src2 = "class C { const int x = 0; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [int x = 0;]@10 -> [const int x = 0;]@10");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int x = 0", "const field"));
         }
 
         #endregion

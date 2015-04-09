@@ -76,6 +76,140 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=25, lineLength:=31)))
         End Sub
 
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_DeclareFunction_WithoutAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    Declare Function $$getUserName Lib "My1.dll" () As String
+End Class
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=2, lineOffset:=22, absoluteOffset:=38, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)))
+        End Sub
+
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_DeclareFunction_WithAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    &lt;System.CLSCompliant(True)&gt;
+    Declare Function $$getUserName Lib "My1.dll" () As String
+End Class
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=22, absoluteOffset:=70, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)))
+        End Sub
+
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_DeclareSub_WithoutAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    Public Declare Sub $$MethodName Lib "My1.dll"
+End Class
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=2, lineOffset:=24, absoluteOffset:=40, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)))
+        End Sub
+
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_DeclareSub_WithAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    &lt;System.CLSCompliant(True)&gt;
+    Public Declare Sub $$MethodName Lib "My1.dll"
+End Class
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=24, absoluteOffset:=72, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=47)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)))
+        End Sub
+
 #End Region
 
 #Region "GetEndPoint() tests"
@@ -143,6 +277,140 @@ End Class
                      TextPoint(line:=3, lineOffset:=25, absoluteOffset:=77, lineLength:=24)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=25, absoluteOffset:=77, lineLength:=24)))
+        End Sub
+
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_DeclareFunction_WithoutAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    Declare Function $$getUserName Lib "My1.dll" () As String
+End Class
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=2, lineOffset:=33, absoluteOffset:=49, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)))
+        End Sub
+
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_DeclareFunction_WithAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    &lt;System.CLSCompliant(True)&gt;
+    Declare Function $$getUserName Lib "My1.dll" () As String
+End Class
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     TextPoint(line:=2, lineOffset:=32, absoluteOffset:=48, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=32, absoluteOffset:=48, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=33, absoluteOffset:=81, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)))
+        End Sub
+
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_DeclareSub_WithoutAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    Declare Sub $$getUserName Lib "My1.dll" ()
+End Class
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=2, lineOffset:=28, absoluteOffset:=44, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)))
+        End Sub
+
+        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_DeclareSub_WithAttribute()
+            Dim code =
+<Code>
+Public Class C1
+    &lt;System.CLSCompliant(True)&gt;
+    Declare Sub $$getUserName Lib "My1.dll" ()
+End Class
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     TextPoint(line:=2, lineOffset:=32, absoluteOffset:=48, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     TextPoint(line:=2, lineOffset:=32, absoluteOffset:=48, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=28, absoluteOffset:=76, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)))
         End Sub
 
 #End Region
@@ -348,6 +616,22 @@ End Class
 #End Region
 
 #Region "FunctionKind tests"
+
+        <WorkItem(1843, "https://github.com/dotnet/roslyn/issues/1843")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FunctionKind_Constructor()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub $$New()
+   End Sub
+
+End Clas
+</Code>
+
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionConstructor)
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub FunctionKind_Destructor()
@@ -1108,7 +1392,7 @@ End Class
 #Region "AddParameter tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub AddParameter1()
+        Public Sub AddParameter1()
             Dim code =
 <Code>
 Class C
@@ -1129,7 +1413,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub AddParameter2()
+        Public Sub AddParameter2()
             Dim code =
 <Code>
 Class C
@@ -1150,7 +1434,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub AddParameter3()
+        Public Sub AddParameter3()
             Dim code =
 <Code>
 Class C
@@ -1171,7 +1455,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub AddParameter4()
+        Public Sub AddParameter4()
             Dim code =
 <Code>
 Class C
@@ -1196,7 +1480,7 @@ End Class
 #Region "RemoveParamter tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveParameter1()
+        Public Sub RemoveParameter1()
             Dim code =
 <Code>
 Class C
@@ -1217,7 +1501,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveParameter2()
+        Public Sub RemoveParameter2()
             Dim code =
 <Code>
 Class C
@@ -1238,7 +1522,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveParameter3()
+        Public Sub RemoveParameter3()
             Dim code =
 <Code>
 Class C
@@ -1259,7 +1543,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveParameter4()
+        Public Sub RemoveParameter4()
             Dim code =
 <Code>
 Class C
@@ -1284,7 +1568,7 @@ End Class
 #Region "Set Access tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetAccess1()
+        Public Sub SetAccess1()
             Dim code =
 <Code>
 Class C
@@ -1307,7 +1591,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetAccess2()
+        Public Sub SetAccess2()
             Dim code =
 <Code>
 Class C
@@ -1330,7 +1614,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetAccess3()
+        Public Sub SetAccess3()
             Dim code =
 <Code>
 Class C
@@ -1353,7 +1637,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetAccess4()
+        Public Sub SetAccess4()
             Dim code =
 <Code>
 Class C
@@ -1376,7 +1660,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetAccess5()
+        Public Sub SetAccess5()
             Dim code =
 <Code>
 Class C
@@ -1399,7 +1683,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetAccess6()
+        Public Sub SetAccess6()
             Dim code =
 <Code>
 Interface C
@@ -1418,7 +1702,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetAccess7()
+        Public Sub SetAccess7()
             Dim code =
 <Code>
 Interface C
@@ -1579,7 +1863,7 @@ End Class
 #Region "Set IsShared tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared1()
+        Public Sub SetIsShared1()
             Dim code =
 <Code>
 Class C
@@ -1602,7 +1886,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared2()
+        Public Sub SetIsShared2()
             Dim code =
 <Code>
 Class C
@@ -1629,7 +1913,7 @@ End Class
 #Region "Set Name tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName1()
+        Public Sub SetName1()
             Dim code =
 <Code>
 Class C
@@ -1899,7 +2183,7 @@ End Class
 #Region "PartialMethodExtender"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_IsPartial1()
+        Public Sub PartialMethodExtender_IsPartial1()
             Dim code =
 <Code>
 Partial Public Class Class2
@@ -1918,7 +2202,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_IsPartial2()
+        Public Sub PartialMethodExtender_IsPartial2()
             Dim code =
 <Code>
 Partial Public Class Class2
@@ -1937,7 +2221,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_IsPartial3()
+        Public Sub PartialMethodExtender_IsPartial3()
             Dim code =
 <Code>
 Partial Public Class Class2
@@ -1956,7 +2240,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_IsDeclaration1()
+        Public Sub PartialMethodExtender_IsDeclaration1()
             Dim code =
 <Code>
 Partial Public Class Class2
@@ -1975,7 +2259,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_IsDeclaration2()
+        Public Sub PartialMethodExtender_IsDeclaration2()
             Dim code =
 <Code>
 Partial Public Class Class2
@@ -1994,7 +2278,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_IsDeclaration3()
+        Public Sub PartialMethodExtender_IsDeclaration3()
             Dim code =
 <Code>
 Partial Public Class Class2
@@ -2017,7 +2301,7 @@ End Class
 #Region "Overloads Tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub IsOverloaded1()
+        Public Sub IsOverloaded1()
             Dim code =
 <Code>
 Class C
@@ -2029,7 +2313,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub IsOverloaded2()
+        Public Sub IsOverloaded2()
             Dim code =
 <Code>
 Class C
@@ -2044,7 +2328,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub TestOverloads1()
+        Public Sub TestOverloads1()
             Dim code =
 <Code>
 Class C
@@ -2060,7 +2344,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub TestOverloads2()
+        Public Sub TestOverloads2()
             Dim code =
 <Code>
 Class C
@@ -2073,7 +2357,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub TestOverloads3()
+        Public Sub TestOverloads3()
             Dim code =
 <Code>
 Class C
@@ -2082,6 +2366,36 @@ Class C
 End Class
 </Code>
             TestOverloadsUniqueSignatures(code, "M:C.op_Multiply(System.Int32,C)")
+        End Sub
+
+#End Region
+
+#Region "Parameter name tests"
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters()
+            Dim code =
+<Code>
+Class C
+    Sub $$M1([integer] As Integer)
+    End Sub
+End Class
+</Code>
+            TestAllParameterNames(code, "[integer]")
+        End Sub
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters_2()
+            Dim code =
+<Code>
+Class C
+    Sub $$M1([integer] As Integer, [string] as String)
+    End Sub
+End Class
+</Code>
+            TestAllParameterNames(code, "[integer]", "[string]")
         End Sub
 
 #End Region

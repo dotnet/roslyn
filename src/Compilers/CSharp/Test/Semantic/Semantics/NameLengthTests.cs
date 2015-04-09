@@ -448,7 +448,7 @@ class C
     }}
 }}
 ";
-            int padding = GeneratedNames.MakeLambdaMethodName("A", -1, 0, 0).Length - 1;
+            int padding = GeneratedNames.MakeLambdaMethodName("A", -1, 0, 0, 0).Length - 1;
             string longName = s_longSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
             var comp = CreateCompilationWithMscorlib(source);

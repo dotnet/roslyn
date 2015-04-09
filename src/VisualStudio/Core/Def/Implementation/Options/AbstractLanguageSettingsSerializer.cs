@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Options;
@@ -217,8 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
             else
             {
-                TaskFactory factory = new TaskFactory(ForegroundThreadAffinitizedObject.ForegroundTaskScheduler);
-                factory.StartNew(this.SetUserPreferences);
+                Task.Factory.StartNew(this.SetUserPreferences, CancellationToken.None, TaskCreationOptions.None, ForegroundThreadAffinitizedObject.ForegroundTaskScheduler);
             }
         }
 

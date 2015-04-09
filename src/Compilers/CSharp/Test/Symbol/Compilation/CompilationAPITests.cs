@@ -656,7 +656,7 @@ var a = new C2();
 }"
             });
             assembly.VerifyEmitDiagnostics();
-            CompileAndVerify(assembly, emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(assembly, emitters: TestEmitters.RefEmitBug);
         }
 
         [WorkItem(713356, "DevDiv")]

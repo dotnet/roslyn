@@ -213,6 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public string RenameOverloads { get { return EditorFeaturesResources.RenameOverloads; } }
         public Visibility RenameOverloadsVisibility { get { return _model.RenameOverloadsVisibility; } }
+        public bool IsRenameOverloadsEditable { get { return _model.IsRenameOverloadsEditable; } }
         public string SearchInComments { get { return EditorFeaturesResources.SearchInComments; } }
         public string SearchInStrings { get { return EditorFeaturesResources.SearchInStrings; } }
         public string ApplyRename { get { return EditorFeaturesResources.ApplyRename; } }

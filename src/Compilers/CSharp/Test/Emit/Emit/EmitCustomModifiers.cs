@@ -48,7 +48,7 @@ F8
 F9
 F10
 M4
-", emitOptions: TestEmitters.RefEmitBug);
+", emitters: TestEmitters.RefEmitBug);
         }
 
         /// <summary>
@@ -506,7 +506,7 @@ Derived2.Method(Int64[], Int16[], Single[])
                 source: text,
                 additionalRefs: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput,
-                emitOptions: TestEmitters.RefEmitUnsupported_646023);
+                emitters: TestEmitters.RefEmitUnsupported_646023);
         }
 
         /// <summary>
@@ -550,7 +550,7 @@ System.Int32[]
                 source: text,
                 additionalRefs: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput,
-                emitOptions: TestEmitters.RefEmitUnsupported_646023);
+                emitters: TestEmitters.RefEmitUnsupported_646023);
         }
 
         [Fact]
@@ -604,7 +604,7 @@ class Test
             Assert.False(parameter.CustomModifiers.IsEmpty);
             Assert.True(parameter.HasByRefBeforeCustomModifiers);
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "2");
+            CompileAndVerify(comp, emitters: TestEmitters.RefEmitBug, expectedOutput: "2");
         }
 
         [Fact]
@@ -668,7 +668,7 @@ class Test
             Assert.False(derivedParameter.CustomModifiers.IsEmpty);
             Assert.True(derivedParameter.HasByRefBeforeCustomModifiers);
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "2");
+            CompileAndVerify(comp, emitters: TestEmitters.RefEmitBug, expectedOutput: "2");
         }
     }
 }

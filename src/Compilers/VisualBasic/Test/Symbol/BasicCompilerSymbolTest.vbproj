@@ -14,6 +14,7 @@
     <AssemblyName>Roslyn.Compilers.VisualBasic.Symbol.UnitTests</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\TestUtilities.csproj">
@@ -134,7 +135,6 @@
     <Compile Include="SymbolsTests\ImplicitClassTests.vb" />
     <Compile Include="SymbolsTests\InaccessibleOverriding.vb" />
     <Compile Include="SymbolsTests\InstantiatingGenerics.vb" />
-    <Compile Include="SymbolsTests\MetadataCacheTests.vb" />
     <Compile Include="SymbolsTests\MetadataFileReferenceCompilationTests.vb" />
     <Compile Include="SymbolsTests\Metadata\MetadataMemberTests.vb" />
     <Compile Include="SymbolsTests\Metadata\MetadataTypeTests.vb" />

@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
     {
         public static List<string> FixIds = new List<string>(new[] { "CS0246", "CS0234", "CS0103", "BC30002", "BC30451", "BC30456" });
         private TestHostDocument _testDocument;
-        public TestWorkspace Workspace { get; private set; }
-        public Document InvocationDocument { get; private set; }
-        public Document ExistingDocument { get; private set; }
-        public Project ProjectToBeModified { get; private set; }
-        public Project TriggeredProject { get; private set; }
-        public string TypeName { get; private set; }
+        public TestWorkspace Workspace { get; }
+        public Document InvocationDocument { get; }
+        public Document ExistingDocument { get; }
+        public Project ProjectToBeModified { get; }
+        public Project TriggeredProject { get; }
+        public string TypeName { get; }
         public GenerateTypeTestState(
             string initial,
             bool isLine,

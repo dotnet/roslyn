@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -30,18 +31,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             AssertIsForeground();
 
             char? deletedChar;
-            var caretPoint = GetCaretPointInViewBuffer().Position;
+            var subjectBufferCaretPoint = GetCaretPointInSubjectBuffer();
+            var viewBufferCaretPoint = GetCaretPointInViewBuffer();
             if (isDelete)
             {
-                deletedChar = GetCaretPointInViewBuffer().Position >= 0 && GetCaretPointInViewBuffer().Position < textView.TextBuffer.CurrentSnapshot.Length
-                    ? textView.TextBuffer.CurrentSnapshot[GetCaretPointInViewBuffer().Position]
+                deletedChar = viewBufferCaretPoint.Position >= 0 && viewBufferCaretPoint.Position < textView.TextBuffer.CurrentSnapshot.Length
+                    ? textView.TextBuffer.CurrentSnapshot[viewBufferCaretPoint.Position]
                     : default(char?);
             }
             else
             {
                 // backspace
-                deletedChar = caretPoint > 0
-                    ? textView.TextBuffer.CurrentSnapshot[caretPoint - 1]
+                deletedChar = viewBufferCaretPoint > 0
+                    ? textView.TextBuffer.CurrentSnapshot[viewBufferCaretPoint - 1]
                     : default(char?);
             }
 
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 var model = sessionOpt.Computation.InitialUnfilteredModel;
 
-                if ((model == null && CaretHasLeftDefaultTrackingSpan(caretPoint, documentBeforeDeletion)) ||
+                if ((model == null && CaretHasLeftDefaultTrackingSpan(subjectBufferCaretPoint, documentBeforeDeletion)) ||
                     (model != null && this.IsCaretOutsideAllItemBounds(model, this.GetCaretPointInViewBuffer())) ||
                     (model != null && CreateCompletionService().DismissIfLastFilterCharacterDeleted && AllFilterTextsEmpty(model, GetCaretPointInViewBuffer())))
                 {

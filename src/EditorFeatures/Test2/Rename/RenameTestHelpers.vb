@@ -1,23 +1,24 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
-Imports Roslyn.Utilities
 Imports Microsoft.VisualStudio.Text.Tagging
-Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
-Imports Microsoft.VisualStudio.Composition
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
-    Module RenameTestHelpers
+    Friend Module RenameTestHelpers
 
         <ThreadStatic>
         Friend _exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
@@ -57,12 +58,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return DirectCast(renameService.StartInlineSession(sessionInfo.Item1, sessionInfo.Item2).Session, InlineRenameSession)
         End Function
 
+        Public Sub AssertTokenRenamable(workspace As TestWorkspace)
+            Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)
+            Dim sessionInfo = GetSessionInfo(workspace)
+
+            Dim editorService = sessionInfo.Item1.GetLanguageService(Of IEditorInlineRenameService)
+            Dim result = editorService.GetRenameInfoAsync(sessionInfo.Item1, sessionInfo.Item2.Start, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+            Assert.True(result.CanRename)
+            Assert.Null(result.LocalizedErrorMessage)
+        End Sub
+
         Public Sub AssertTokenNotRenamable(workspace As TestWorkspace)
             Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)
             Dim sessionInfo = GetSessionInfo(workspace)
 
             Dim editorService = sessionInfo.Item1.GetLanguageService(Of IEditorInlineRenameService)
             Dim result = editorService.GetRenameInfoAsync(sessionInfo.Item1, sessionInfo.Item2.Start, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+            Assert.False(result.CanRename)
             Assert.NotNull(result.LocalizedErrorMessage)
         End Sub
 
@@ -108,6 +120,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 workspace.ExportProvider.GetExport(Of ITextUndoHistoryRegistry)().Value,
                 workspace.ExportProvider.GetExport(Of IWaitIndicator)().Value,
                 workspace.ExportProvider.GetExport(Of IInlineRenameService)().Value,
+                workspace.ExportProvider.GetExport(Of IDiagnosticAnalyzerService)().Value,
                 SpecializedCollections.SingletonEnumerable(New MockRefactorNotifyService()),
                 DirectCast(workspace.ExportProvider.GetExports(Of IAsynchronousOperationListener, FeatureMetadata), IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))))
 

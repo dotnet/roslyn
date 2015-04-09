@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Module ParserTestUtilities
+Friend Module ParserTestUtilities
 
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
     Public Function ParseAndVerify(code As XCData, Optional expectedErrors As XElement = Nothing) As SyntaxTree
@@ -514,6 +514,12 @@ Public Module VerificationHelpers
             Throw New NotImplementedException()
         End Function
 
+        Public Overrides ReadOnly Property Encoding As Encoding
+            Get
+                Throw New NotImplementedException()
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Length As Integer
             Get
                 Return 0
@@ -993,7 +999,7 @@ Public Module VerificationHelpers
             MyBase.VisitXmlBracketedName(node)
         End Sub
 
-        Sub IncrementTypeCounter(Node As VisualBasicSyntaxNode, NodeKey As String)
+        Public Sub IncrementTypeCounter(Node As VisualBasicSyntaxNode, NodeKey As String)
             _Items.Add(Node)
             If _Dict.ContainsKey(NodeKey) Then
                 _Dict(NodeKey) = _Dict(NodeKey) + 1 'Increment Count

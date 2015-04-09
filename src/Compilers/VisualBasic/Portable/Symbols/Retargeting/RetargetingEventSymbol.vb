@@ -13,24 +13,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' <summary>
         ''' Owning RetargetingModuleSymbol.
         ''' </summary>
-        Private ReadOnly m_RetargetingModule As RetargetingModuleSymbol
+        Private ReadOnly _retargetingModule As RetargetingModuleSymbol
 
         ''' <summary>
         ''' The underlying EventSymbol, cannot be another RetargetingEventSymbol.
         ''' </summary>
-        Private ReadOnly m_UnderlyingEvent As EventSymbol
+        Private ReadOnly _underlyingEvent As EventSymbol
 
-        Private m_LazyCustomModifiers As ImmutableArray(Of CustomModifier)
+        Private _lazyCustomModifiers As ImmutableArray(Of CustomModifier)
 
         ''' <summary>
         ''' Retargeted custom attributes
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_LazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
+        Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
-        Private m_LazyExplicitInterfaceImplementations As ImmutableArray(Of EventSymbol)
+        Private _lazyExplicitInterfaceImplementations As ImmutableArray(Of EventSymbol)
 
-        Private m_lazyUseSiteErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+        Private _lazyUseSiteErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
 
         Public Sub New(retargetingModule As RetargetingModuleSymbol, underlyingEvent As EventSymbol)
             Debug.Assert(retargetingModule IsNot Nothing)
@@ -40,70 +40,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 Throw New ArgumentException()
             End If
 
-            m_RetargetingModule = retargetingModule
-            m_UnderlyingEvent = underlyingEvent
+            _retargetingModule = retargetingModule
+            _underlyingEvent = underlyingEvent
         End Sub
 
         Private ReadOnly Property RetargetingTranslator As RetargetingModuleSymbol.RetargetingSymbolTranslator
             Get
-                Return m_RetargetingModule.RetargetingTranslator
+                Return _retargetingModule.RetargetingTranslator
             End Get
         End Property
 
         Public ReadOnly Property UnderlyingEvent As EventSymbol
             Get
-                Return m_UnderlyingEvent
+                Return _underlyingEvent
             End Get
         End Property
 
         Public ReadOnly Property RetargetingModule As RetargetingModuleSymbol
             Get
-                Return m_RetargetingModule
+                Return _retargetingModule
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return RetargetingTranslator.Retarget(m_UnderlyingEvent.ContainingSymbol)
+                Return RetargetingTranslator.Retarget(_underlyingEvent.ContainingSymbol)
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return m_UnderlyingEvent.DeclaredAccessibility
+                Return _underlyingEvent.DeclaredAccessibility
             End Get
         End Property
 
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return RetargetingTranslator.GetRetargetedAttributes(m_UnderlyingEvent, m_LazyCustomAttributes)
+            Return RetargetingTranslator.GetRetargetedAttributes(_underlyingEvent, _lazyCustomAttributes)
         End Function
 
         Friend Overrides Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
-            Return RetargetingTranslator.RetargetAttributes(m_UnderlyingEvent.GetCustomAttributesToEmit(compilationState))
+            Return RetargetingTranslator.RetargetAttributes(_underlyingEvent.GetCustomAttributesToEmit(compilationState))
         End Function
 
         Public Overrides ReadOnly Property AddMethod As MethodSymbol
             Get
-                Return If(m_UnderlyingEvent.AddMethod Is Nothing, Nothing, RetargetingTranslator.Retarget(m_UnderlyingEvent.AddMethod))
+                Return If(_underlyingEvent.AddMethod Is Nothing, Nothing, RetargetingTranslator.Retarget(_underlyingEvent.AddMethod))
             End Get
         End Property
 
         Friend Overrides ReadOnly Property AssociatedField As FieldSymbol
             Get
-                Return If(m_UnderlyingEvent.AssociatedField Is Nothing, Nothing, RetargetingTranslator.Retarget(m_UnderlyingEvent.AssociatedField))
+                Return If(_underlyingEvent.AssociatedField Is Nothing, Nothing, RetargetingTranslator.Retarget(_underlyingEvent.AssociatedField))
             End Get
         End Property
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of EventSymbol)
             Get
-                If m_LazyExplicitInterfaceImplementations.IsDefault Then
+                If _lazyExplicitInterfaceImplementations.IsDefault Then
                     ImmutableInterlocked.InterlockedCompareExchange(
-                        m_LazyExplicitInterfaceImplementations,
+                        _lazyExplicitInterfaceImplementations,
                         Me.RetargetExplicitInterfaceImplementations(),
                         Nothing)
                 End If
 
-                Return m_LazyExplicitInterfaceImplementations
+                Return _lazyExplicitInterfaceImplementations
             End Get
         End Property
 
@@ -127,105 +127,105 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Public Overrides ReadOnly Property IsMustOverride As Boolean
             Get
-                Return m_UnderlyingEvent.IsMustOverride
+                Return _underlyingEvent.IsMustOverride
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsNotOverridable As Boolean
             Get
-                Return m_UnderlyingEvent.IsNotOverridable
+                Return _underlyingEvent.IsNotOverridable
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
-                Return m_UnderlyingEvent.IsOverridable
+                Return _underlyingEvent.IsOverridable
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverrides As Boolean
             Get
-                Return m_UnderlyingEvent.IsOverrides
+                Return _underlyingEvent.IsOverrides
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
-                Return m_UnderlyingEvent.IsShared
+                Return _underlyingEvent.IsShared
             End Get
         End Property
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return m_UnderlyingEvent.Locations
+                Return _underlyingEvent.Locations
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return m_UnderlyingEvent.DeclaringSyntaxReferences
+                Return _underlyingEvent.DeclaringSyntaxReferences
             End Get
         End Property
 
         Public Overrides ReadOnly Property RaiseMethod As MethodSymbol
             Get
-                Return If(m_UnderlyingEvent.RaiseMethod Is Nothing, Nothing, RetargetingTranslator.Retarget(m_UnderlyingEvent.RaiseMethod))
+                Return If(_underlyingEvent.RaiseMethod Is Nothing, Nothing, RetargetingTranslator.Retarget(_underlyingEvent.RaiseMethod))
             End Get
         End Property
 
         Public Overrides ReadOnly Property RemoveMethod As MethodSymbol
             Get
-                Return If(m_UnderlyingEvent.RemoveMethod Is Nothing, Nothing, RetargetingTranslator.Retarget(m_UnderlyingEvent.RemoveMethod))
+                Return If(_underlyingEvent.RemoveMethod Is Nothing, Nothing, RetargetingTranslator.Retarget(_underlyingEvent.RemoveMethod))
             End Get
         End Property
 
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
-                Return RetargetingTranslator.Retarget(m_UnderlyingEvent.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode)
+                Return RetargetingTranslator.Retarget(_underlyingEvent.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode)
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_UnderlyingEvent.Name
+                Return _underlyingEvent.Name
             End Get
         End Property
 
         Public Overrides ReadOnly Property MetadataName As String
             Get
-                Return m_UnderlyingEvent.MetadataName
+                Return _underlyingEvent.MetadataName
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
-                Return m_UnderlyingEvent.HasSpecialName
+                Return _underlyingEvent.HasSpecialName
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasRuntimeSpecialName As Boolean
             Get
-                Return m_UnderlyingEvent.HasRuntimeSpecialName
+                Return _underlyingEvent.HasRuntimeSpecialName
             End Get
         End Property
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If m_lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
-                m_lazyUseSiteErrorInfo = CalculateUseSiteErrorInfo()
+            If _lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
+                _lazyUseSiteErrorInfo = CalculateUseSiteErrorInfo()
             End If
 
-            Return m_lazyUseSiteErrorInfo
+            Return _lazyUseSiteErrorInfo
         End Function
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                Return m_UnderlyingEvent.ObsoleteAttributeData
+                Return _underlyingEvent.ObsoleteAttributeData
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsWindowsRuntimeEvent As Boolean
             Get
-                Return m_UnderlyingEvent.IsWindowsRuntimeEvent
+                Return _underlyingEvent.IsWindowsRuntimeEvent
             End Get
         End Property
 
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         End Property
 
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            Return m_UnderlyingEvent.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
+            Return _underlyingEvent.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
     End Class
 End Namespace

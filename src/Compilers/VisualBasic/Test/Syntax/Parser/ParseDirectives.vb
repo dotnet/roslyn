@@ -3030,28 +3030,28 @@ End Module
     Private Class CustomDiagnosticAnalyzer
         Inherits DiagnosticAnalyzer
 
-        Private ReadOnly descriptor As DiagnosticDescriptor
-        Private ReadOnly kind As SyntaxKind
-        Private ReadOnly reporter As Func(Of SyntaxNode, DiagnosticDescriptor, Diagnostic)
+        Private ReadOnly _descriptor As DiagnosticDescriptor
+        Private ReadOnly _kind As SyntaxKind
+        Private ReadOnly _reporter As Func(Of SyntaxNode, DiagnosticDescriptor, Diagnostic)
 
         Public Sub New(descriptor As DiagnosticDescriptor, kind As SyntaxKind, reporter As Func(Of SyntaxNode, DiagnosticDescriptor, Diagnostic))
-            Me.descriptor = descriptor
-            Me.kind = kind
-            Me.reporter = reporter
+            Me._descriptor = descriptor
+            Me._kind = kind
+            Me._reporter = reporter
         End Sub
 
         Public Overrides Sub Initialize(context As AnalysisContext)
-            context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, kind)
+            context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, _kind)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
             Get
-                Return ImmutableArray.Create(descriptor)
+                Return ImmutableArray.Create(_descriptor)
             End Get
         End Property
 
         Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
-            context.ReportDiagnostic(reporter(context.Node, descriptor))
+            context.ReportDiagnostic(_reporter(context.Node, _descriptor))
         End Sub
     End Class
 

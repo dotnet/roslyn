@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             public bool InFieldContext { get; private set; }
             public bool InParameterContext { get; private set; }
             public bool InQueryContext { get; private set; }
+            public bool InExpressionBodiedMemberContext { get; private set; }
 
             public bool IsConstant { get; private set; }
 
@@ -122,6 +123,22 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     if (IsInBlockContext(cancellationToken))
                     {
                         this.InBlockContext = true;
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                // The ordering of checks is important here. If we are inside a block within an Expression 
+                // bodied member, we should treat it as if we are in block context.
+                // For example, in such a scenario we should generate inside the block, instead of rewriting
+                // a concise expression bodied member to its equivalent that has a body with a block.
+                // For this reason, block should precede expression bodied member check.
+                if (_service.IsInExpressionBodiedMember(this.Expression))
+                {
+                    if (CanGenerateInto<TTypeDeclarationSyntax>(cancellationToken))
+                    {
+                        this.InExpressionBodiedMemberContext = true;
                         return true;
                     }
 

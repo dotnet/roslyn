@@ -14,6 +14,7 @@
     <AssemblyName>Microsoft.CodeAnalysis</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -76,7 +77,7 @@
     <Compile Include="CodeGen\MetadataNamedArgument.cs" />
     <Compile Include="CodeGen\MetadataTypeOf.cs" />
     <Compile Include="CodeGen\MethodBody.cs" />
-    <Compile Include="CodeGen\MethodDebugId.cs" />
+    <Compile Include="CodeGen\DebugId.cs" />
     <Compile Include="CodeGen\PermissionSetAttribute.cs" />
     <Compile Include="CodeGen\PrivateImplementationDetails.cs" />
     <Compile Include="CodeGen\RawSequencePoint.cs" />
@@ -93,7 +94,7 @@
     <Compile Include="CodeGen\Win32Res.cs" />
     <Compile Include="Collections\ArrayBuilderExtensions.cs" />
     <Compile Include="Collections\ArrayElement.cs" />
-    <Compile Include="Collections\BitArray.cs" />
+    <Compile Include="Collections\BitVector.cs" />
     <Compile Include="Collections\Boxes.cs" />
     <Compile Include="Collections\ByteSequenceComparer.cs" />
     <Compile Include="Collections\CachingDictionary.cs" />
@@ -109,10 +110,12 @@
     <Compile Include="Collections\ImmutableMemoryStream.cs" />
     <Compile Include="Collections\OrderedSet.cs" />
     <Compile Include="Collections\StaticCast.cs" />
+    <Compile Include="Compilation.EmitStreamProvider.cs" />
     <Compile Include="Compilation\SymbolFilter.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostic\LocalizableResourceString.cs" />
+    <Compile Include="Diagnostic\LocalizableResourceString.FixedLocalizableString.cs" />
     <Compile Include="Diagnostic\LocalizableString.cs" />
     <Compile Include="Emit\DebugInformationFormat.cs" />
     <Compile Include="Emit\EditAndContinue\AddedOrChangedMethodInfo.cs" />
@@ -127,6 +130,7 @@
     <Compile Include="Emit\EditAndContinue\SymbolMatcher.cs" />
     <Compile Include="InternalUtilities\FailFast.cs" />
     <Compile Include="InternalUtilities\FileStreamLightUp.cs" />
+    <Compile Include="InternalUtilities\InterlockedOperations.cs" />
     <Compile Include="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="Collections\KeyedStack.cs" />
     <Compile Include="Collections\OrderPreservingMultiDictionary.cs" />
@@ -172,7 +176,6 @@
     <Compile Include="Diagnostic\CommonDiagnosticComparer.cs" />
     <Compile Include="Diagnostic\CommonMessageProvider.cs" />
     <Compile Include="Diagnostic\Diagnostic.cs" />
-    <Compile Include="Diagnostic\TriggerDiagnosticDescriptor.cs" />
     <Compile Include="Diagnostic\WellKnownDiagnosticTags.cs" />
     <Compile Include="Diagnostic\Diagnostic_SimpleDiagnostic.cs" />
     <Compile Include="DiagnosticAnalyzer\DiagnosticAnalysisContext.cs" />
@@ -232,10 +235,6 @@
     <Compile Include="Emit\SemanticEdit.cs" />
     <Compile Include="Emit\TypeExport.cs" />
     <Compile Include="EnumConstantHelper.cs" />
-    <Compile Include="Instrumentation\FunctionId.cs" />
-    <Compile Include="Instrumentation\Logger.cs" />
-    <Compile Include="Instrumentation\PerformanceGoals.cs" />
-    <Compile Include="Instrumentation\RoslynCompilerEventSource.cs" />
     <Compile Include="InternalUtilities\ArrayExtensions.cs" />
     <Compile Include="InternalUtilities\BitArithmeticUtilities.cs" />
     <Compile Include="InternalUtilities\FatalError.cs" />
@@ -332,6 +331,8 @@
     <Compile Include="MetadataReference\UnresolvedMetadataReference.cs" />
     <Compile Include="PEWriter\MetadataHeapsBuilder.cs" />
     <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
+    <Compile Include="PEWriter\NoPiaReferenceIndexer.cs" />
+    <Compile Include="PEWriter\ReferenceIndexerBase.cs" />
     <Compile Include="PEWriter\TypeNameSerializer.cs" />
     <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
     <Compile Include="PEWriter\MetadataWriter.cs" />
@@ -371,7 +372,6 @@
     <Compile Include="PEWriter\NtHeader.cs" />
     <Compile Include="PEWriter\PdbMetadataWrapper.cs" />
     <Compile Include="PEWriter\PdbWriter.cs" />
-    <Compile Include="PEWriter\PeDebugDirectory.cs" />
     <Compile Include="PEWriter\PeWriter.cs" />
     <Compile Include="PEWriter\ReferenceIndexer.cs" />
     <Compile Include="PEWriter\ReturnValueParameter.cs" />

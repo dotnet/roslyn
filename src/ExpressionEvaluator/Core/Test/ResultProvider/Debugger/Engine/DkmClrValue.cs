@@ -8,7 +8,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
@@ -16,8 +15,10 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.CallStack;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
+using Microsoft.VisualStudio.Debugger.Metadata;
 using Roslyn.Utilities;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
+using TypeCode = Microsoft.VisualStudio.Debugger.Metadata.TypeCode;
 
 namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 {
@@ -32,7 +33,8 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             DkmEvaluationResultFlags evalFlags,
             DkmClrValueFlags valueFlags,
             DkmEvaluationResultCategory category = default(DkmEvaluationResultCategory),
-            DkmEvaluationResultAccessType access = default(DkmEvaluationResultAccessType))
+            DkmEvaluationResultAccessType access = default(DkmEvaluationResultAccessType),
+            bool isComObject = false)
         {
             Debug.Assert(!type.GetLmrType().IsTypeVariables() || (valueFlags == DkmClrValueFlags.Synthetic));
             Debug.Assert((alias == null) || evalFlags.Includes(DkmEvaluationResultFlags.HasObjectId));
@@ -48,12 +50,12 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             this.ValueFlags = valueFlags;
             this.Category = category;
             this.Access = access;
+            this.NativeComPointer = isComObject ? 1UL : 0;
         }
 
         public readonly DkmEvaluationResultFlags EvalFlags;
         public readonly DkmClrValueFlags ValueFlags;
         public readonly DkmClrType Type;
-        public DkmClrType DeclaredType { get { throw new NotImplementedException(); } }
         public readonly DkmStackWalkFrame StackFrame;
         public readonly DkmEvaluationResultCategory Category;
         public readonly DkmEvaluationResultAccessType Access;
@@ -62,6 +64,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         public readonly DkmDataAddress Address;
         public readonly object HostObjectValue;
         public readonly string Alias;
+        public readonly ulong NativeComPointer;
 
         private readonly IDkmClrFormatter _formatter;
         private readonly object _rawValue;
@@ -245,7 +248,11 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     }
 
                     var type = ((TypeImpl)this.Type.GetLmrType()).Type;
-                    var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
+                    const System.Reflection.BindingFlags bindingFlags = 
+                        System.Reflection.BindingFlags.Public | 
+                        System.Reflection.BindingFlags.NonPublic | 
+                        System.Reflection.BindingFlags.Instance | 
+                        System.Reflection.BindingFlags.Static;
 
                     DkmClrValue exprValue;
                     var appDomain = this.Type.AppDomain;
@@ -419,7 +426,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     declaredType = field.FieldType;
                     category = DkmEvaluationResultCategory.Data;
                     access = GetFieldAccess(field);
-                    if (field.Attributes.HasFlag(FieldAttributes.Literal) || field.Attributes.HasFlag(FieldAttributes.InitOnly))
+                    if (field.Attributes.HasFlag(System.Reflection.FieldAttributes.Literal) || field.Attributes.HasFlag(System.Reflection.FieldAttributes.InitOnly))
                     {
                         evalFlags |= DkmEvaluationResultFlags.ReadOnly;
                     }
@@ -427,7 +434,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     {
                         value = field.GetValue(_rawValue);
                     }
-                    catch (TargetInvocationException e)
+                    catch (System.Reflection.TargetInvocationException e)
                     {
                         var exception = e.InnerException;
                         return new DkmClrValue(
@@ -455,7 +462,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     {
                         value = property.GetValue(_rawValue, bindingFlags, null, null, null);
                     }
-                    catch (TargetInvocationException e)
+                    catch (System.Reflection.TargetInvocationException e)
                     {
                         var exception = e.InnerException;
                         return new DkmClrValue(
@@ -475,17 +482,17 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             }
 
             Type type;
-            if (value is Pointer)
+            if (value is System.Reflection.Pointer)
             {
                 unsafe
                 {
                     if (Marshal.SizeOf(typeof(void*)) == 4)
                     {
-                        value = (int)Pointer.Unbox(value);
+                        value = (int)System.Reflection.Pointer.Unbox(value);
                     }
                     else
                     {
-                        value = (long)Pointer.Unbox(value);
+                        value = (long)System.Reflection.Pointer.Unbox(value);
                     }
                 }
                 type = declaredType;
@@ -599,6 +606,11 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
         public DkmClrValue InstantiateResultsViewProxy(DkmInspectionContext inspectionContext, DkmClrType enumerableType)
         {
+            if (EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown))
+            {
+                throw new InvalidOperationException();
+            }
+
             if (inspectionContext == null)
             {
                 throw new ArgumentNullException("inspectionContext");

@@ -97,24 +97,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Avoid unsealed attributes..
-        /// </summary>
-        internal static string AvoidUnsealedAttributes {
-            get {
-                return ResourceManager.GetString("AvoidUnsealedAttributes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Seal attribute type..
-        /// </summary>
-        internal static string AvoidUnsealedAttributesCodeFix {
-            get {
-                return ResourceManager.GetString("AvoidUnsealedAttributesCodeFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Disposable fields should be disposed.
         /// </summary>
         internal static string DisposableFieldsShouldBeDisposed {
@@ -174,15 +156,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         internal static string MarkEnumsWithFlagsCodeFix {
             get {
                 return ResourceManager.GetString("MarkEnumsWithFlagsCodeFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Overload operator equals on overriding ValueType.Equals.
-        /// </summary>
-        internal static string OverloadOperatorEqualsOnOverridingValueTypeEquals {
-            get {
-                return ResourceManager.GetString("OverloadOperatorEqualsOnOverridingValueTypeEquals", resourceCulture);
             }
         }
         

@@ -14,42 +14,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class SourceMemberMethodSymbol
         Inherits SourceNonPropertyAccessorMethodSymbol
 
-        Private ReadOnly m_name As String
+        Private ReadOnly _name As String
 
         ' Cache this value upon creation as it is needed for LookupSymbols and is expensive to 
         ' compute by creating the actual type parameters.
-        Private ReadOnly m_arity As Integer
+        Private ReadOnly _arity As Integer
 
         ' Flags indicates results of quick scan of the attributes
-        Private ReadOnly m_quickAttributes As QuickAttributes
+        Private ReadOnly _quickAttributes As QuickAttributes
 
-        Private m_lazyMetadataName As String
+        Private _lazyMetadataName As String
 
         ' The explicitly implemented interface methods, or Empty if none.
-        Private m_lazyImplementedMethods As ImmutableArray(Of MethodSymbol)
+        Private _lazyImplementedMethods As ImmutableArray(Of MethodSymbol)
 
         ' Type parameters. Nothing if none.
-        Private m_lazyTypeParameters As ImmutableArray(Of TypeParameterSymbol)
+        Private _lazyTypeParameters As ImmutableArray(Of TypeParameterSymbol)
 
         ' The overridden or hidden methods.
-        Private m_lazyHandles As ImmutableArray(Of HandledEvent)
+        Private _lazyHandles As ImmutableArray(Of HandledEvent)
 
         ''' <summary>
         ''' If this symbol represents a partial method definition or implementation part, its other part (if any).
         ''' This should be set, if at all, before this symbol appears among the members of its owner.  
         ''' The implementation part is not listed among the "members" of the enclosing type.
         ''' </summary>
-        Private m_otherPartOfPartial As SourceMemberMethodSymbol
+        Private _otherPartOfPartial As SourceMemberMethodSymbol
 
         ''' <summary>
         ''' In case the method is an 'Async' method, stores the reference to a state machine type 
         ''' synthesized in AsyncRewriter. Note, that this field is mutable and is being assigned  
         ''' by calling AssignAsyncStateMachineType(...).
         ''' </summary>
-        Private m_asyncStateMachineType As NamedTypeSymbol = Nothing
+        Private _asyncStateMachineType As NamedTypeSymbol = Nothing
 
         ' lazily evaluated state of the symbol (StateFlags)
-        Private m_lazyState As Integer
+        Private _lazyState As Integer
 
         <Flags>
         Private Enum StateFlags As Integer
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Enum
 
 #If DEBUG Then
-        Private m_partialMethodInfoIsFrozen As Boolean = False
+        Private _partialMethodInfoIsFrozen As Boolean = False
 #End If
 
         Friend Sub New(containingType As SourceMemberContainerTypeSymbol,
@@ -79,21 +79,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.New(containingType, flags, binder.GetSyntaxReference(syntax))
 
             ' initialized lazily if unset:
-            m_lazyHandles = handledEvents
-            m_name = name
-            m_arity = arity
+            _lazyHandles = handledEvents
+            _name = name
+            _arity = arity
 
             ' Check attributes quickly.
-            m_quickAttributes = binder.QuickAttributeChecker.CheckAttributes(syntax.AttributeLists)
+            _quickAttributes = binder.QuickAttributeChecker.CheckAttributes(syntax.AttributeLists)
             If containingType.TypeKind <> TypeKind.Module Then
                 ' Extension methods in source can only be inside modules.
-                m_quickAttributes = m_quickAttributes And Not QuickAttributes.Extension
+                _quickAttributes = _quickAttributes And Not QuickAttributes.Extension
             End If
         End Sub
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_name
+                Return _name
             End Get
         End Property
 
@@ -105,26 +105,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property MetadataName As String
             Get
-                If m_lazyMetadataName Is Nothing Then
+                If _lazyMetadataName Is Nothing Then
                     ' VB has special rules for changing the metadata name of method overloads/overrides.
                     If MethodKind = MethodKind.Ordinary Then
-                        OverloadingHelper.SetMetadataNameForAllOverloads(m_name, SymbolKind.Method, m_containingType)
+                        OverloadingHelper.SetMetadataNameForAllOverloads(_name, SymbolKind.Method, m_containingType)
                     Else
                         ' Constructors, conversion operators, etc. just use their regular name.
-                        SetMetadataName(m_name)
+                        SetMetadataName(_name)
                     End If
 
-                    Debug.Assert(m_lazyMetadataName IsNot Nothing)
+                    Debug.Assert(_lazyMetadataName IsNot Nothing)
                 End If
 
-                Return m_lazyMetadataName
+                Return _lazyMetadataName
             End Get
         End Property
 
         ' Set the metadata name for this symbol. Called from OverloadingHelper.SetMetadataNameForAllOverloads
         ' for each symbol of the same name in a type.
         Friend Overrides Sub SetMetadataName(metadataName As String)
-            Dim old = Interlocked.CompareExchange(m_lazyMetadataName, metadataName, Nothing)
+            Dim old = Interlocked.CompareExchange(_lazyMetadataName, metadataName, Nothing)
             Debug.Assert(old Is Nothing OrElse old = metadataName) ';If there was a race, make sure it was consistent
 
             If Me.IsPartial Then
@@ -150,12 +150,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function GetQuickAttributes() As QuickAttributes
-            Dim quickAttrs = m_quickAttributes
+            Dim quickAttrs = _quickAttributes
 
             If Me.IsPartial Then
                 Dim partialImpl = Me.OtherPartOfPartial
                 If partialImpl IsNot Nothing Then
-                    Return quickAttrs Or partialImpl.m_quickAttributes
+                    Return quickAttrs Or partialImpl._quickAttributes
                 End If
             End If
 
@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
-            If (m_lazyState And StateFlags.AllDiagnosticsReported) <> 0 Then
+            If (_lazyState And StateFlags.AllDiagnosticsReported) <> 0 Then
                 Return
             End If
 
@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            ContainingSourceModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState, StateFlags.AllDiagnosticsReported, 0, diagnostics, CompilationStage.Declare)
+            ContainingSourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.AllDiagnosticsReported, 0, diagnostics, CompilationStage.Declare)
             diagnostics.Free()
         End Sub
 
@@ -271,27 +271,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Arity As Integer
             Get
-                Return m_arity
+                Return _arity
             End Get
         End Property
 
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
-                Dim params = m_lazyTypeParameters
+                Dim params = _lazyTypeParameters
                 If params.IsDefault Then
 
                     Dim diagBag = DiagnosticBag.GetInstance
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
                     params = GetTypeParameters(sourceModule, diagBag)
 
-                    sourceModule.AtomicStoreArrayAndDiagnostics(m_lazyTypeParameters,
+                    sourceModule.AtomicStoreArrayAndDiagnostics(_lazyTypeParameters,
                                                                     params,
                                                                     diagBag,
                                                                     CompilationStage.Declare)
 
                     diagBag.Free()
 
-                    params = m_lazyTypeParameters
+                    params = _lazyTypeParameters
                 End If
 
                 Return params
@@ -346,7 +346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
             Get
-                If m_lazyImplementedMethods.IsDefault Then
+                If _lazyImplementedMethods.IsDefault Then
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
                     Dim diagnostics = DiagnosticBag.GetInstance()
                     Dim implementedMethods As ImmutableArray(Of MethodSymbol)
@@ -374,10 +374,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         implementedMethods = Me.GetExplicitInterfaceImplementations(sourceModule, diagnostics)
                     End If
 
-                    sourceModule.AtomicStoreArrayAndDiagnostics(m_lazyImplementedMethods, implementedMethods, diagnostics, CompilationStage.Declare)
+                    sourceModule.AtomicStoreArrayAndDiagnostics(_lazyImplementedMethods, implementedMethods, diagnostics, CompilationStage.Declare)
                     diagnostics.Free()
                 End If
-                Return m_lazyImplementedMethods
+                Return _lazyImplementedMethods
             End Get
         End Property
 
@@ -475,13 +475,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Property OtherPartOfPartial As SourceMemberMethodSymbol
             Get
 #If DEBUG Then
-                Me.m_partialMethodInfoIsFrozen = True
+                Me._partialMethodInfoIsFrozen = True
 #End If
-                Return Me.m_otherPartOfPartial
+                Return Me._otherPartOfPartial
             End Get
             Private Set(value As SourceMemberMethodSymbol)
-                Dim oldValue As SourceMemberMethodSymbol = Me.m_otherPartOfPartial
-                Me.m_otherPartOfPartial = value
+                Dim oldValue As SourceMemberMethodSymbol = Me._otherPartOfPartial
+                Me._otherPartOfPartial = value
 
 #If DEBUG Then
                 ' As we want to make sure we always validate attributes on partial 
@@ -497,8 +497,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
 
                 ' If partial method info is frozen the new and the old values must be equal
-                Debug.Assert(Not Me.m_partialMethodInfoIsFrozen OrElse oldValue Is value)
-                Me.m_partialMethodInfoIsFrozen = True
+                Debug.Assert(Not Me._partialMethodInfoIsFrozen OrElse oldValue Is value)
+                Me._partialMethodInfoIsFrozen = True
 #End If
             End Set
         End Property
@@ -506,17 +506,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Property SuppressDuplicateProcDefDiagnostics As Boolean
             Get
 #If DEBUG Then
-                Me.m_partialMethodInfoIsFrozen = True
+                Me._partialMethodInfoIsFrozen = True
 #End If
-                Return (m_lazyState And StateFlags.SuppressDuplicateProcDefDiagnostics) <> 0
+                Return (_lazyState And StateFlags.SuppressDuplicateProcDefDiagnostics) <> 0
             End Get
 
             Set(value As Boolean)
-                Dim stateChanged = ThreadSafeFlagOperations.Set(m_lazyState, StateFlags.SuppressDuplicateProcDefDiagnostics)
+                Dim stateChanged = ThreadSafeFlagOperations.Set(_lazyState, StateFlags.SuppressDuplicateProcDefDiagnostics)
 #If DEBUG Then
                 ' If partial method info is frozen the new and the old values must be equal
-                Debug.Assert(Not Me.m_partialMethodInfoIsFrozen OrElse Not stateChanged)
-                Me.m_partialMethodInfoIsFrozen = True
+                Debug.Assert(Not Me._partialMethodInfoIsFrozen OrElse Not stateChanged)
+                Me._partialMethodInfoIsFrozen = True
 #End If
             End Set
         End Property
@@ -548,13 +548,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property HandledEvents As ImmutableArray(Of HandledEvent)
             Get
-                If m_lazyHandles.IsDefault Then
+                If _lazyHandles.IsDefault Then
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
 
                     Dim diagnostics = DiagnosticBag.GetInstance()
                     Dim boundHandledEvents = Me.GetHandles(sourceModule, diagnostics)
 
-                    sourceModule.AtomicStoreArrayAndDiagnostics(Of HandledEvent)(m_lazyHandles,
+                    sourceModule.AtomicStoreArrayAndDiagnostics(Of HandledEvent)(_lazyHandles,
                                                                                   boundHandledEvents,
                                                                                   diagnostics,
                                                                                   CompilationStage.Declare)
@@ -562,7 +562,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     diagnostics.Free()
                 End If
 
-                Return m_lazyHandles
+                Return _lazyHandles
             End Get
         End Property
 

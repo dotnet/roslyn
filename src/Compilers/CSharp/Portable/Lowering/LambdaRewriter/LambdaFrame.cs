@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal readonly CSharpSyntaxNode ScopeSyntaxOpt;
         internal readonly int ClosureOrdinal;
 
-        internal LambdaFrame(VariableSlotAllocator slotAllocatorOpt, MethodSymbol topLevelMethod, MethodDebugId methodId, CSharpSyntaxNode scopeSyntaxOpt, int closureOrdinal)
-            : base(MakeName(slotAllocatorOpt, scopeSyntaxOpt, methodId, closureOrdinal), topLevelMethod)
+        internal LambdaFrame(MethodSymbol topLevelMethod, CSharpSyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
+            : base(MakeName(scopeSyntaxOpt, methodId, closureId), topLevelMethod)
         {
             _topLevelMethod = topLevelMethod;
             _constructor = new LambdaFrameConstructor(this);
-            this.ClosureOrdinal = closureOrdinal;
+            this.ClosureOrdinal = closureId.Ordinal;
 
             // static lambdas technically have the class scope so the scope syntax is null 
             if (scopeSyntaxOpt == null)
@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _singletonCache = new SynthesizedLambdaCacheFieldSymbol(this, this, cacheVariableName, topLevelMethod, isReadOnly: true, isStatic: true);
             }
 
-            AssertIsLambdaScopeSyntax(scopeSyntaxOpt);
+            AssertIsClosureScopeSyntax(scopeSyntaxOpt);
             this.ScopeSyntaxOpt = scopeSyntaxOpt;
         }
 
-        private static string MakeName(VariableSlotAllocator slotAllocatorOpt, SyntaxNode scopeSyntaxOpt, MethodDebugId methodId, int closureOrdinal)
+        private static string MakeName(SyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
         {
             if (scopeSyntaxOpt == null)
             {
@@ -50,29 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GeneratedNames.MakeStaticLambdaDisplayClassName(methodId.Ordinal, methodId.Generation);
             }
 
-            int previousClosureOrdinal;
-            if (slotAllocatorOpt != null && slotAllocatorOpt.TryGetPreviousClosure(scopeSyntaxOpt, out previousClosureOrdinal))
-            {
-                methodId = slotAllocatorOpt.PreviousMethodId;
-                closureOrdinal = previousClosureOrdinal;
-            }
-
-            // If we haven't found existing closure in the previous generation, use the current generation method ordinal.
-            // That is, don't try to reuse previous generation method ordinal as that might create name conflict. 
-            // E.g. 
-            //     Gen0                    Gen1
-            //                             F() { new closure } // ordinal 0
-            //     G() { } // ordinal 0    G() { new closure } // ordinal 1
-            //
-            // In the example above G is updated and F is added. 
-            // G's ordinal in Gen0 is 0. If we used that ordinal for updated G's new closure it would conflict with F's ordinal.
-
             Debug.Assert(methodId.Ordinal >= 0);
-            return GeneratedNames.MakeLambdaDisplayClassName(methodId.Ordinal, methodId.Generation, closureOrdinal);
+            return GeneratedNames.MakeLambdaDisplayClassName(methodId.Ordinal, methodId.Generation, closureId.Ordinal, closureId.Generation);
         }
 
         [Conditional("DEBUG")]
-        private static void AssertIsLambdaScopeSyntax(CSharpSyntaxNode syntaxOpt)
+        private static void AssertIsClosureScopeSyntax(CSharpSyntaxNode syntaxOpt)
         {
             // See C# specification, chapter 3.7 Scopes.
 
@@ -82,85 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // block:
-            if (syntaxOpt.IsKind(SyntaxKind.Block))
-            {
-                return;
-            }
-
-            // switch block:
-            if (syntaxOpt.IsKind(SyntaxKind.SwitchStatement))
-            {
-                return;
-            }
-
-            // expression-bodied member:
-            if (syntaxOpt.IsKind(SyntaxKind.ArrowExpressionClause))
-            {
-                return;
-            }
-
-            // catch clause (including filter):
-            if (syntaxOpt.IsKind(SyntaxKind.CatchClause))
-            {
-                return;
-            }
-
-            // class/struct containing a field/property with a declaration expression
-            if (syntaxOpt.IsKind(SyntaxKind.ClassDeclaration) || syntaxOpt.IsKind(SyntaxKind.StructDeclaration))
-            {
-                return;
-            }
-
-            // lambda in a let clause, 
-            // e.g. from item in array let a = new Func<int>(() => item)
-            if (syntaxOpt.IsKind(SyntaxKind.LetClause))
-            {
-                return;
-            }
-
-            if (IsStatementWithEmbeddedStatementBody(syntaxOpt.Kind()))
-            {
-                return;
-            }
-
-            // lambda bodies:
-            if (SyntaxFacts.IsLambdaBody(syntaxOpt))
-            {
-                return;
-            }
-
-            // lambda in a ctor initializer that refers to a ctor parameter
-            if (syntaxOpt.IsKind(SyntaxKind.ConstructorDeclaration))
-            {
-                return;
-            }
-
-            // TODO: EE expression
-            if (syntaxOpt is ExpressionSyntax && syntaxOpt.Parent.Parent == null)
+            if (LambdaUtilities.IsClosureScope(syntaxOpt))
             {
                 return;
             }
 
             throw ExceptionUtilities.UnexpectedValue(syntaxOpt.Kind());
-        }
-
-        private static bool IsStatementWithEmbeddedStatementBody(SyntaxKind syntax)
-        {
-            switch (syntax)
-            {
-                case SyntaxKind.IfStatement:
-                case SyntaxKind.DoStatement:
-                case SyntaxKind.WhileStatement:
-                case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForStatement:
-                case SyntaxKind.UsingStatement:
-                case SyntaxKind.FixedStatement:
-                case SyntaxKind.LockStatement:
-                    return true;
-            }
-
-            return false;
         }
 
         public override TypeKind TypeKind

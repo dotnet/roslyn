@@ -45,7 +45,7 @@ End Class</Document>
         </Project>
     </Workspace>
 
-            Test(definition, InitializeComponentXML1)
+            Test(definition, s_initializeComponentXML1)
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -109,7 +109,7 @@ End Class</Document>
         </Project>
     </Workspace>
 
-            Test(definition, InitializeComponentXML2)
+            Test(definition, s_initializeComponentXML2)
         End Sub
 
     End Class

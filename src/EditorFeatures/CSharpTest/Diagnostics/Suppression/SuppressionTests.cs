@@ -170,9 +170,9 @@ class Class
     void Method()
     {{
         return 0;
-#pragma warning disable CS0162 // {CSharpResources.WRN_UnreachableCode}
+#pragma warning disable CS0162 // {CSharpResources.WRN_UnreachableCode_Title}
         int x = ""0"";
-#pragma warning restore CS0162 // {CSharpResources.WRN_UnreachableCode}
+#pragma warning restore CS0162 // {CSharpResources.WRN_UnreachableCode_Title}
     }}
 }}");
                 }
@@ -1017,13 +1017,13 @@ namespace N
         }
     }
 }",
-            @"
+            $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method~System.Int32"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method~System.Int32"")]
 
 ", isAddedDocument: true);
                 }

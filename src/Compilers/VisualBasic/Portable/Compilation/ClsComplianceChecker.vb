@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class ClsComplianceChecker
         Inherits VisualBasicSymbolVisitor
 
-        Private Shared ReadOnly _defaultParallelOptions As New ParallelOptions
+        Private Shared ReadOnly s_defaultParallelOptions As New ParallelOptions
 
         Private ReadOnly _compilation As VisualBasicCompilation
 
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The regular attribute code handles conflicting attributes from included netmodules.
 
             If symbol.Modules.Length > 1 AndAlso _compilation.Options.ConcurrentBuild Then
-                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, _defaultParallelOptions)
+                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, s_defaultParallelOptions)
                 Parallel.ForEach(symbol.Modules, options, UICultureUtilities.WithCurrentUICulture(Of ModuleSymbol)(AddressOf VisitModule))
             Else
                 For Each m In symbol.Modules
@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If _compilation.Options.ConcurrentBuild Then
-                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, _defaultParallelOptions)
+                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, s_defaultParallelOptions)
                 Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture(Of Symbol)(AddressOf Visit))
             Else
                 For Each m In symbol.GetMembersUnordered()
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If _compilation.Options.ConcurrentBuild Then
-                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, _defaultParallelOptions)
+                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, s_defaultParallelOptions)
                 Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture(Of Symbol)(AddressOf Visit))
             Else
                 For Each m In symbol.GetMembersUnordered()

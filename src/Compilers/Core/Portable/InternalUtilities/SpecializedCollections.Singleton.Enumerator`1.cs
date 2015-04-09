@@ -11,7 +11,7 @@ namespace Roslyn.Utilities
         {
             internal class Enumerator<T> : IEnumerator<T>
             {
-                private T _loneValue;
+                private readonly T _loneValue;
                 private bool _moveNextCalled;
 
                 public Enumerator(T value)

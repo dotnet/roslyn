@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal RudeEditDiagnostic(RudeEditKind kind, TextSpan span, SyntaxNode node = null, string[] arguments = null)
         {
-            Debug.Assert((node == null) == (arguments == null));
             this.Kind = kind;
             this.Span = span;
             this.SyntaxKind = (ushort)(node != null ? node.RawKind : 0);

@@ -121,6 +121,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 return false;
             }
 
+            if (expression.IsParentKind(SyntaxKind.ConditionalAccessExpression))
+            {
+                return true;
+            }
+
             return expression.CanReplaceWithLValue(document.SemanticModel, cancellationToken);
         }
 

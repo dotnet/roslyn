@@ -1,66 +1,149 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// A text retainer that will save text to temporary storage when it is evicted from the
-    /// text cache and reload from that storage if and when it is needed again.
+    /// A recoverable TextAndVersion source that saves its text to temporary storage.
     /// </summary>
-    internal class RecoverableTextAndVersion : RecoverableCachedObjectSource<TextAndVersion>
+    internal class RecoverableTextAndVersion : ValueSource<TextAndVersion>, ITextVersionable
     {
         private readonly ITemporaryStorageService _storageService;
 
-        // these fields are assigned once during call to SaveAsync
-        private ITemporaryTextStorage _storage;
-        private VersionStamp _storedVersion;
-        private string _storedFilePath;
+        private SemaphoreSlim _gateDoNotAccessDirectly; // Lazily created. Access via the Gate property
+        private ValueSource<TextAndVersion> _initialSource;
+
+        private RecoverableText _text;
+        private VersionStamp _version;
+        private string _filePath;
 
         public RecoverableTextAndVersion(
             ValueSource<TextAndVersion> initialTextAndVersion,
             ITemporaryStorageService storageService)
-            : base(initialTextAndVersion)
         {
+            _initialSource = initialTextAndVersion;
             _storageService = storageService;
+        }
+
+        private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, SemaphoreSlimFactory.Instance);
+
+        public override bool TryGetValue(out TextAndVersion value)
+        {
+            SourceText text;
+            if (_text != null && _text.TryGetValue(out text))
+            {
+                value = TextAndVersion.Create(text, _version, _filePath);
+                return true;
+            }
+            else
+            {
+                value = null;
+                return false;
+            }
         }
 
         public bool TryGetTextVersion(out VersionStamp version)
         {
-            version = _storedVersion;
+            version = _version;
+
+            // if the TextAndVersion has not been stored yet, but it has been observed
+            // then try to get version from cached value.
+            if (version == default(VersionStamp))
+            {
+                TextAndVersion textAndVersion;
+                if (this.TryGetValue(out textAndVersion))
+                {
+                    version = textAndVersion.Version;
+                }
+            }
+
             return version != default(VersionStamp);
         }
 
-        protected override async Task<TextAndVersion> RecoverAsync(CancellationToken cancellationToken)
+        public override TextAndVersion GetValue(CancellationToken cancellationToken = default(CancellationToken))
         {
-            Contract.ThrowIfNull(_storage);
-
-            using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverTextAsync, _storedFilePath, cancellationToken))
+            if (_text == null)
             {
-                var text = await _storage.ReadTextAsync(cancellationToken).ConfigureAwait(false);
-                return TextAndVersion.Create(text, _storedVersion, _storedFilePath);
+                using (Gate.DisposableWait(cancellationToken))
+                {
+                    if (_text == null)
+                    {
+                        return InitRecoverable(_initialSource.GetValue(cancellationToken));
+                    }
+                }
             }
+
+            return TextAndVersion.Create(_text.GetValue(cancellationToken), _version, _filePath);
         }
 
-        protected override TextAndVersion Recover(CancellationToken cancellationToken)
+        public override async Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverText, _storedFilePath, cancellationToken))
+            if (_text == null)
             {
-                var text = _storage.ReadText(cancellationToken);
-                return TextAndVersion.Create(text, _storedVersion, _storedFilePath);
+                using (Gate.DisposableWait(cancellationToken))
+                {
+                    if (_text == null)
+                    {
+                        return InitRecoverable(await _initialSource.GetValueAsync(cancellationToken).ConfigureAwait(false));
+                    }
+                }
             }
+
+            var text = await _text.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return TextAndVersion.Create(text, _version, _filePath);
         }
 
-        protected override Task SaveAsync(TextAndVersion textAndVersion, CancellationToken cancellationToken)
+        private TextAndVersion InitRecoverable(TextAndVersion textAndVersion)
         {
-            _storage = _storageService.CreateTemporaryTextStorage(CancellationToken.None);
-            _storedVersion = textAndVersion.Version;
-            _storedFilePath = textAndVersion.FilePath;
-            return _storage.WriteTextAsync(textAndVersion.Text);
+            _initialSource = null;
+            _version = textAndVersion.Version;
+            _filePath = textAndVersion.FilePath;
+            _text = new RecoverableText(this, textAndVersion.Text);
+            _text.GetValue(CancellationToken.None); // force access to trigger save
+            return textAndVersion;
+        }
+
+        private class RecoverableText : RecoverableWeakValueSource<SourceText>
+        {
+            private readonly RecoverableTextAndVersion _parent;
+            private ITemporaryTextStorage _storage;
+
+            public RecoverableText(RecoverableTextAndVersion parent, SourceText text)
+                : base(new ConstantValueSource<SourceText>(text))
+            {
+                _parent = parent;
+            }
+
+            protected override async Task<SourceText> RecoverAsync(CancellationToken cancellationToken)
+            {
+                Contract.ThrowIfNull(_storage);
+
+                using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverTextAsync, _parent._filePath, cancellationToken))
+                {
+                    return await _storage.ReadTextAsync(cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            protected override SourceText Recover(CancellationToken cancellationToken)
+            {
+                using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverText, _parent._filePath, cancellationToken))
+                {
+                    return _storage.ReadText(cancellationToken);
+                }
+            }
+
+            protected override Task SaveAsync(SourceText text, CancellationToken cancellationToken)
+            {
+                _storage = _parent._storageService.CreateTemporaryTextStorage(CancellationToken.None);
+                return _storage.WriteTextAsync(text);
+            }
         }
     }
 }

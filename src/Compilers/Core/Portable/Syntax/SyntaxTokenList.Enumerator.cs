@@ -4,9 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -19,6 +17,7 @@ namespace Microsoft.CodeAnalysis
         /// A structure for enumerating a <see cref="SyntaxTokenList"/>
         /// </summary>
         [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
+        [StructLayout(LayoutKind.Auto)]
         public struct Enumerator
         {
             // This enumerator allows us to enumerate through two types of lists.
@@ -58,13 +57,13 @@ namespace Microsoft.CodeAnalysis
             internal Enumerator(ref SyntaxTokenList list)
             {
                 _parent = list._parent;
-                _singleNodeOrList = list._node;
+                _singleNodeOrList = list.Node;
                 _baseIndex = list._index;
                 _count = list.Count;
 
                 _index = -1;
                 _current = null;
-                _position = list._position;
+                _position = list.Position;
             }
 
             /// <summary>
@@ -135,15 +134,9 @@ namespace Microsoft.CodeAnalysis
                 _enumerator = new Enumerator(ref list);
             }
 
-            public SyntaxToken Current
-            {
-                get { return _enumerator.Current; }
-            }
+            public SyntaxToken Current => _enumerator.Current;
 
-            object IEnumerator.Current
-            {
-                get { return _enumerator.Current; }
-            }
+            object IEnumerator.Current => _enumerator.Current;
 
             public bool MoveNext()
             {

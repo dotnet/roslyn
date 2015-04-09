@@ -151,35 +151,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function CreateBackingFieldsForStaticLocal(localSymbol As LocalSymbol, hasInitializer As Boolean) As KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField)
             Debug.Assert(localSymbol.IsStatic)
 
-            If staticLocalMap Is Nothing Then
-                staticLocalMap = New Dictionary(Of LocalSymbol, KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField))(ReferenceEqualityComparer.Instance)
+            If _staticLocalMap Is Nothing Then
+                _staticLocalMap = New Dictionary(Of LocalSymbol, KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField))(ReferenceEqualityComparer.Instance)
             End If
 
             Dim result As New KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField)(
                                                 New SynthesizedStaticLocalBackingField(localSymbol, isValueField:=True, reportErrorForLongNames:=Not hasInitializer),
                                                 If(hasInitializer, New SynthesizedStaticLocalBackingField(localSymbol, isValueField:=False, reportErrorForLongNames:=True), Nothing))
 
-            If emitModule IsNot Nothing Then
-                emitModule.AddSynthesizedDefinition(Me.topMethod.ContainingType, result.Key)
+            If _emitModule IsNot Nothing Then
+                _emitModule.AddSynthesizedDefinition(Me._topMethod.ContainingType, result.Key)
 
                 If result.Value IsNot Nothing Then
-                    emitModule.AddSynthesizedDefinition(Me.topMethod.ContainingType, result.Value)
+                    _emitModule.AddSynthesizedDefinition(Me._topMethod.ContainingType, result.Value)
                 End If
             End If
 
-            staticLocalMap.Add(localSymbol, result)
+            _staticLocalMap.Add(localSymbol, result)
 
             Return result
         End Function
 
         Public Overrides Function VisitLocal(node As BoundLocal) As BoundNode
             If node.LocalSymbol.IsStatic Then
-                Dim backingValueField As SynthesizedStaticLocalBackingField = staticLocalMap(node.LocalSymbol).Key
+                Dim backingValueField As SynthesizedStaticLocalBackingField = _staticLocalMap(node.LocalSymbol).Key
 
                 Return New BoundFieldAccess(node.Syntax,
-                                            If(topMethod.IsShared,
+                                            If(_topMethod.IsShared,
                                                Nothing,
-                                               New BoundMeReference(node.Syntax, topMethod.ContainingType)),
+                                               New BoundMeReference(node.Syntax, _topMethod.ContainingType)),
                                                backingValueField, isLValue:=node.IsLValue, type:=backingValueField.Type)
             Else
                 Return MyBase.VisitLocal(node)
@@ -212,9 +212,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim statements = ArrayBuilder(Of BoundStatement).GetInstance()
 
             Dim flag = New BoundFieldAccess(syntax,
-                                            If(topMethod.IsShared,
+                                            If(_topMethod.IsShared,
                                                Nothing,
-                                               New BoundMeReference(syntax, topMethod.ContainingType)),
+                                               New BoundMeReference(syntax, _topMethod.ContainingType)),
                                             staticLocalBackingFields.Value, isLValue:=True, type:=staticLocalBackingFields.Value.Type)
 
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    flag.MakeRValue(),
                                                    Conversions.ClassifyDirectCastConversion(flag.Type, objectType, useSiteDiagnostics),
                                                    objectType)
-            diagnostics.Add(syntax, useSiteDiagnostics)
+            _diagnostics.Add(syntax, useSiteDiagnostics)
 
             ' If flag Is Nothing
             '    Interlocked.CompareExchange(flag, New StaticLocalInitFlag, Nothing)  

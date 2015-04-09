@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -15,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
 {
-    public class PreviewTests : AbstractCSharpCodeActionTest
+    public partial class PreviewTests : AbstractCSharpCodeActionTest
     {
         private const string AddedDocumentName = "AddedDocument";
         private const string AddedDocumentText = "class C1 {}";
@@ -115,8 +116,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 Assert.True(preview is IWpfDifferenceViewer);
                 diffView = preview as IWpfDifferenceViewer;
                 text = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
-                Assert.Contains(AddedDocumentName, text);
-                Assert.Contains(AddedDocumentText, text);
+                Assert.Contains(AddedDocumentName, text, StringComparison.Ordinal);
+                Assert.Contains(AddedDocumentText, text, StringComparison.Ordinal);
                 diffView.Close();
 
                 // Then comes the removed metadata reference.
@@ -124,14 +125,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 Assert.NotNull(preview);
                 Assert.True(preview is string);
                 text = preview as string;
-                Assert.Contains(s_removedMetadataReferenceDisplayName, text);
+                Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal);
 
                 // And finally the added project.
                 preview = previews.TakeNextPreview();
                 Assert.NotNull(preview);
                 Assert.True(preview is string);
                 text = preview as string;
-                Assert.Contains(AddedProjectName, text);
+                Assert.Contains(AddedProjectName, text, StringComparison.Ordinal);
 
                 // There are no more previews.
                 preview = previews.TakeNextPreview();
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 Assert.NotNull(preview);
                 Assert.True(preview is string);
                 var text = preview as string;
-                Assert.Contains(AddedProjectName, text);
+                Assert.Contains(AddedProjectName, text, StringComparison.Ordinal);
 
                 // Should return preview that matches the preferred (changed) document.
                 preview = previews.TakeNextPreview(preferredDocumentId: document.Id);
@@ -172,8 +173,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 Assert.True(preview is IWpfDifferenceViewer);
                 diffView = preview as IWpfDifferenceViewer;
                 text = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
-                Assert.Contains(AddedDocumentName, text);
-                Assert.Contains(AddedDocumentText, text);
+                Assert.Contains(AddedDocumentName, text, StringComparison.Ordinal);
+                Assert.Contains(AddedDocumentText, text, StringComparison.Ordinal);
                 diffView.Close();
 
                 // There is no longer a preview for the  preferred document. Should return the first remaining preview.
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 Assert.NotNull(preview);
                 Assert.True(preview is string);
                 text = preview as string;
-                Assert.Contains(s_removedMetadataReferenceDisplayName, text);
+                Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal);
 
                 // There are no more previews.
                 preview = previews.TakeNextPreview();

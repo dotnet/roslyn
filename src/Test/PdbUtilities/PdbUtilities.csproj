@@ -15,6 +15,7 @@
     <AssemblyName>Roslyn.Test.PdbUtilities</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
@@ -65,14 +66,16 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
     <Reference Include="System.Collections.Immutable">
       <HintPath>..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
-    <Reference Include="System.Reflection.Metadata, Version=1.0.18.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="System.Reflection.Metadata">
       <HintPath>..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.DiaSymReader">
+      <HintPath>..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
@@ -85,27 +88,16 @@
     <Compile Include="Metadata\MethodILExtensions.cs" />
     <Compile Include="Pdb\PdbToXml.cs" />
     <Compile Include="Pdb\PdbToXmlOptions.cs" />
-    <Compile Include="Pdb\TempPdbReader.cs" />
+    <Compile Include="Pdb\SymReader.cs" />
     <Compile Include="Pdb\Token2SourceLineExporter.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\PEWriter\CustomDebugInfoConstants.cs">
       <Link>Shared\CustomDebugInfoConstants.cs</Link>
     </Compile>
     <Compile Include="Shared\CustomDebugInfoReader.cs" />
+    <Compile Include="Shared\DateTimeUtilities.cs" />
     <Compile Include="Shared\DummyMetadataImport.cs" />
     <Compile Include="Shared\IMetadataImport.cs" />
-    <Compile Include="Shared\ISymENCUnmanagedMethod.cs" />
-    <Compile Include="Shared\ISymUnmanagedAsyncMethod.cs" />
-    <Compile Include="Shared\ISymUnmanagedConstant.cs" />
-    <Compile Include="Shared\ISymUnmanagedDispose.cs" />
-    <Compile Include="Shared\ISymUnmanagedDocument.cs" />
-    <Compile Include="Shared\ISymUnmanagedMethod.cs" />
-    <Compile Include="Shared\ISymUnmanagedNamespace.cs" />
-    <Compile Include="Shared\ISymUnmanagedReader.cs" />
-    <Compile Include="Shared\ISymUnmanagedReader2.cs" />
-    <Compile Include="Shared\ISymUnmanagedScope.cs" />
-    <Compile Include="Shared\ISymUnmanagedScope2.cs" />
-    <Compile Include="Shared\ISymUnmanagedVariable.cs" />
-    <Compile Include="Shared\SymUnmanagedSequencePoint.cs" />
+    <Compile Include="Shared\SymUnmanagedReaderTestExtensions.cs" />
     <Compile Include="Shared\SymUnmanagedReaderExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

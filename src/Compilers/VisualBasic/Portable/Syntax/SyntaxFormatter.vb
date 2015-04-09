@@ -10,24 +10,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     Friend Class SyntaxFormatter
         Inherits VisualBasicSyntaxRewriter
 
-        Private ReadOnly consideredSpan As TextSpan
-        Private ReadOnly indentWhitespace As String
-        Private ReadOnly useElasticTrivia As Boolean
-        Private ReadOnly useDefaultCasing As Boolean
+        Private ReadOnly _consideredSpan As TextSpan
+        Private ReadOnly _indentWhitespace As String
+        Private ReadOnly _useElasticTrivia As Boolean
+        Private ReadOnly _useDefaultCasing As Boolean
 
-        Private isInStructuredTrivia As Boolean
+        Private _isInStructuredTrivia As Boolean
 
-        Private previousToken As SyntaxToken
+        Private _previousToken As SyntaxToken
 
-        Private afterLineBreak As Boolean
-        Private afterIndentation As Boolean
+        Private _afterLineBreak As Boolean
+        Private _afterIndentation As Boolean
 
-        Private lineBreaksAfterToken As Dictionary(Of SyntaxToken, Integer) = New Dictionary(Of SyntaxToken, Integer)()
-        Private lastStatementsInBlocks As HashSet(Of SyntaxNode) = New HashSet(Of SyntaxNode)()
+        Private _lineBreaksAfterToken As Dictionary(Of SyntaxToken, Integer) = New Dictionary(Of SyntaxToken, Integer)()
+        Private _lastStatementsInBlocks As HashSet(Of SyntaxNode) = New HashSet(Of SyntaxNode)()
 
-        Private indentationDepth As Integer
+        Private _indentationDepth As Integer
 
-        Private indentations As ArrayBuilder(Of SyntaxTrivia)
+        Private _indentations As ArrayBuilder(Of SyntaxTrivia)
 
         ''' <summary>
         ''' Creates a Syntax Formatter visitor
@@ -39,12 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Private Sub New(consideredSpan As TextSpan, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False)
             MyBase.New(visitIntoStructuredTrivia:=True)
 
-            Me.consideredSpan = consideredSpan
-            Me.indentWhitespace = indentWhitespace
-            Me.useElasticTrivia = useElasticTrivia
-            Me.useDefaultCasing = useDefaultCasing
+            Me._consideredSpan = consideredSpan
+            Me._indentWhitespace = indentWhitespace
+            Me._useElasticTrivia = useElasticTrivia
+            Me._useDefaultCasing = useDefaultCasing
 
-            Me.afterLineBreak = True
+            Me._afterLineBreak = True
         End Sub
 
         Friend Shared Function Format(Of TNode As SyntaxNode)(node As TNode, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False) As SyntaxNode
@@ -74,25 +74,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Private Sub Free()
-            If indentations IsNot Nothing Then
-                indentations.Free()
+            If _indentations IsNot Nothing Then
+                _indentations.Free()
             End If
         End Sub
 
         Private Function GetIdentation(count As Integer) As SyntaxTrivia
             Dim capacity = count + 1
-            If indentations Is Nothing Then
-                indentations = ArrayBuilder(Of SyntaxTrivia).GetInstance(capacity)
+            If _indentations Is Nothing Then
+                _indentations = ArrayBuilder(Of SyntaxTrivia).GetInstance(capacity)
             Else
-                indentations.EnsureCapacity(capacity)
+                _indentations.EnsureCapacity(capacity)
             End If
 
-            For i As Integer = indentations.Count To count
-                Dim text As String = If(i = 0, "", indentations(i - 1).ToString() + Me.indentWhitespace)
-                indentations.Add(SyntaxFactory.Whitespace(text, Me.useElasticTrivia))
+            For i As Integer = _indentations.Count To count
+                Dim text As String = If(i = 0, "", _indentations(i - 1).ToString() + Me._indentWhitespace)
+                _indentations.Add(SyntaxFactory.Whitespace(text, Me._useElasticTrivia))
             Next
 
-            Return indentations(count)
+            Return _indentations(count)
         End Function
 
         ' use leadingTrivia as indentation
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             Try
                 Dim newToken As SyntaxToken
-                If useDefaultCasing AndAlso token.IsKeyword() Then
+                If _useDefaultCasing AndAlso token.IsKeyword() Then
                     newToken = SyntaxFactory.Token(token.Kind)
                 Else
                     newToken = token
@@ -115,13 +115,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Dim indentationDepth = GetIndentationDepth()
 
                 ' check if this token is first on this line
-                Dim numLineBreaksBefore As Integer = LineBreaksBetween(previousToken, token)
+                Dim numLineBreaksBefore As Integer = LineBreaksBetween(_previousToken, token)
 
                 Dim needsIndentation As Boolean = (numLineBreaksBefore > 0)
 
                 ' all line breaks except the first will be leading trivia of this token. The first line break
                 ' is trailing trivia of the previous token.
-                If numLineBreaksBefore > 0 AndAlso IsLastTokenOnLine(previousToken) Then
+                If numLineBreaksBefore > 0 AndAlso IsLastTokenOnLine(_previousToken) Then
                     numLineBreaksBefore -= 1
                 End If
 
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
                 Dim nextToken As SyntaxToken = GetNextRelevantToken(token)
 
-                Me.afterIndentation = False
+                Me._afterIndentation = False
 
                 ' we only add one of the line breaks to trivia of this token. The remaining ones will be leading trivia 
                 ' for the next token
@@ -155,18 +155,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                                 lineBreaksBefore:=0))
 
                 If newToken.Kind = SyntaxKind.DocumentationCommentLineBreakToken Then
-                    afterLineBreak = True
+                    _afterLineBreak = True
 
                 ElseIf newToken.Kind = SyntaxKind.XmlTextLiteralToken Then
                     If newToken.TrailingTrivia.Count = 0 AndAlso IsNewLineChar(newToken.ValueText.Last) Then
-                        afterLineBreak = True
+                        _afterLineBreak = True
                     End If
                 End If
 
                 Return newToken
 
             Finally
-                Me.previousToken = token
+                Me._previousToken = token
             End Try
 
             Return token
@@ -185,8 +185,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Try
                 For i = 1 To lineBreaksBefore
                     currentTriviaList.Add(GetCarriageReturnLineFeed())
-                    afterLineBreak = True
-                    afterIndentation = False
+                    _afterLineBreak = True
+                    _afterIndentation = False
                 Next
 
                 For Each trivia In triviaList
@@ -213,22 +213,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     Dim needsLineBreak As Boolean = NeedsLineBreakBefore(trivia) OrElse
                         (currentTriviaList.Count > 0 AndAlso NeedsLineBreakBetween(currentTriviaList.Last(), trivia, isTrailing))
 
-                    If needsLineBreak AndAlso Not afterLineBreak Then
+                    If needsLineBreak AndAlso Not _afterLineBreak Then
                         currentTriviaList.Add(GetCarriageReturnLineFeed())
-                        afterLineBreak = True
-                        afterIndentation = False
+                        _afterLineBreak = True
+                        _afterIndentation = False
                     End If
 
-                    If afterLineBreak And Not isTrailing Then
-                        If Not afterIndentation AndAlso Me.NeedsIndentAfterLineBreak(trivia) Then
+                    If _afterLineBreak And Not isTrailing Then
+                        If Not _afterIndentation AndAlso Me.NeedsIndentAfterLineBreak(trivia) Then
                             currentTriviaList.Add(Me.GetIdentation(GetIndentationDepth(trivia)))
-                            afterIndentation = True
+                            _afterIndentation = True
                         End If
 
                     ElseIf needsSeparator Then
                         currentTriviaList.Add(GetSpace())
-                        afterLineBreak = False
-                        afterIndentation = False
+                        _afterLineBreak = False
+                        _afterIndentation = False
                     End If
 
                     If trivia.HasStructure Then
@@ -246,11 +246,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     If NeedsLineBreakAfter(trivia) Then
                         If Not isTrailing Then
                             currentTriviaList.Add(GetCarriageReturnLineFeed())
-                            afterLineBreak = True
-                            afterIndentation = False
+                            _afterLineBreak = True
+                            _afterIndentation = False
                         End If
                     Else
-                        afterLineBreak = EndsInLineBreak(trivia)
+                        _afterLineBreak = EndsInLineBreak(trivia)
                     End If
                 Next
 
@@ -261,24 +261,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
                     For i = 0 To lineBreaksAfter - 1
                         currentTriviaList.Add(GetCarriageReturnLineFeed())
-                        afterLineBreak = True
-                        afterIndentation = False
+                        _afterLineBreak = True
+                        _afterIndentation = False
                     Next i
 
                 ElseIf mustHaveSeparator Then
                     currentTriviaList.Add(GetSpace())
-                    afterLineBreak = False
-                    afterIndentation = False
+                    _afterLineBreak = False
+                    _afterIndentation = False
                 End If
 
                 If mustBeIndented Then
                     currentTriviaList.Add(Me.GetIdentation(depth))
-                    afterIndentation = True
-                    afterLineBreak = False
+                    _afterIndentation = True
+                    _afterLineBreak = False
                 End If
 
                 If currentTriviaList.Count = 0 Then
-                    If useElasticTrivia Then
+                    If _useElasticTrivia Then
                         Return SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker)
                     Else
                         Return Nothing
@@ -305,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End If
 
             Dim numLineBreaks As Integer = 0
-            If lineBreaksAfterToken.TryGetValue(currentToken, numLineBreaks) Then
+            If _lineBreaksAfterToken.TryGetValue(currentToken, numLineBreaks) Then
                 Return numLineBreaks
             End If
 
@@ -317,8 +317,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         ''' of these blocks (e.g. the if statement), it is a level less
         ''' </summary>
         Private Function GetIndentationDepth() As Integer
-            Debug.Assert(Me.indentationDepth >= 0)
-            Return Me.indentationDepth
+            Debug.Assert(Me._indentationDepth >= 0)
+            Return Me._indentationDepth
         End Function
 
         Private Function GetIndentationDepth(trivia As SyntaxTrivia) As Integer
@@ -330,11 +330,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Private Function GetSpace() As SyntaxTrivia
-            Return If(Me.useElasticTrivia, SyntaxFactory.ElasticSpace, SyntaxFactory.Space)
+            Return If(Me._useElasticTrivia, SyntaxFactory.ElasticSpace, SyntaxFactory.Space)
         End Function
 
         Private Function GetCarriageReturnLineFeed() As SyntaxTrivia
-            Return If(Me.useElasticTrivia, SyntaxFactory.ElasticCarriageReturnLineFeed, SyntaxFactory.CarriageReturnLineFeed)
+            Return If(Me._useElasticTrivia, SyntaxFactory.ElasticCarriageReturnLineFeed, SyntaxFactory.CarriageReturnLineFeed)
         End Function
 
         Private Function NeedsSeparatorBetween(trivia As SyntaxTrivia) As Boolean
@@ -646,16 +646,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Private Overloads Function VisitStructuredTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
-            Dim oldIsInStructuredTrivia As Boolean = Me.isInStructuredTrivia
-            Me.isInStructuredTrivia = True
+            Dim oldIsInStructuredTrivia As Boolean = Me._isInStructuredTrivia
+            Me._isInStructuredTrivia = True
 
-            Dim oldPreviousToken = Me.previousToken
-            Me.previousToken = Nothing
+            Dim oldPreviousToken = Me._previousToken
+            Me._previousToken = Nothing
 
             Dim result As SyntaxTrivia = VisitTrivia(trivia)
 
-            Me.isInStructuredTrivia = oldIsInStructuredTrivia
-            Me.previousToken = oldPreviousToken
+            Me._isInStructuredTrivia = oldIsInStructuredTrivia
+            Me._previousToken = oldPreviousToken
 
             Return result
         End Function
@@ -665,7 +665,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                                                    Return t.Kind <> SyntaxKind.None
                                                End Function, Function(t As SyntaxTrivia) False)
 
-            If consideredSpan.Contains(nextToken.FullSpan) Then
+            If _consideredSpan.Contains(nextToken.FullSpan) Then
                 Return nextToken
             Else
                 Return Nothing
@@ -683,7 +683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Dim listElement = list(elementIndex)
                 If listElement.Kind = SyntaxKind.LabelStatement Then
                     ' always add linebreaks after label
-                    lineBreaksAfterToken(listElement.GetLastToken()) = 1
+                    _lineBreaksAfterToken(listElement.GetLastToken()) = 1
                 Else
                     AddLinebreaksAfterTokenIfNeeded(listElement.GetLastToken(), If(elementIndex = lastElementIndex,
                                                                                    linebreaksAfterLastElement,
@@ -694,7 +694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Private Sub AddLinebreaksAfterTokenIfNeeded(node As SyntaxToken, linebreaksAfterToken As Integer)
             If Not EndsWithColonSeparator(node) Then
-                Me.lineBreaksAfterToken(node) = linebreaksAfterToken
+                Me._lineBreaksAfterToken(node) = linebreaksAfterToken
             End If
         End Sub
 
@@ -705,7 +705,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Private Sub MarkLastStatementIfNeeded(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode))
             If list.Any Then
-                lastStatementsInBlocks.Add(list.Last)
+                _lastStatementsInBlocks.Add(list.Last)
             End If
         End Sub
 
@@ -871,7 +871,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 AddLinebreaksAfterTokenIfNeeded(previousNode.GetLastToken(), 1)
             End If
 
-            If Not lastStatementsInBlocks.Contains(node) Then
+            If Not _lastStatementsInBlocks.Contains(node) Then
                 AddLinebreaksAfterTokenIfNeeded(node.EndIfStatement.GetLastToken(), 2)
             Else
                 AddLinebreaksAfterTokenIfNeeded(node.EndIfStatement.GetLastToken(), 1)
@@ -896,7 +896,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             MarkLastStatementIfNeeded(node.Statements)
 
-            If lastStatementsInBlocks.Contains(node) Then
+            If _lastStatementsInBlocks.Contains(node) Then
                 AddLinebreaksAfterTokenIfNeeded(node.LoopStatement.GetLastToken(), 1)
             Else
                 AddLinebreaksAfterTokenIfNeeded(node.LoopStatement.GetLastToken(), 2)
@@ -910,7 +910,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
 
-            If lastStatementsInBlocks.Contains(node) Then
+            If _lastStatementsInBlocks.Contains(node) Then
                 AddLinebreaksAfterTokenIfNeeded(node.EndSyncLockStatement.GetLastToken(), 1)
             Else
                 AddLinebreaksAfterTokenIfNeeded(node.EndSyncLockStatement.GetLastToken(), 2)
@@ -976,7 +976,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             MarkLastStatementIfNeeded(node.Statements)
 
-            If Not lastStatementsInBlocks.Contains(node) Then
+            If Not _lastStatementsInBlocks.Contains(node) Then
                 AddLinebreaksAfterTokenIfNeeded(node.EndWhileStatement.GetLastToken(), 2)
             End If
 
@@ -1003,7 +1003,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             MarkLastStatementIfNeeded(node.Statements)
 
             If node.NextStatement IsNot Nothing Then
-                If Not lastStatementsInBlocks.Contains(node) Then
+                If Not _lastStatementsInBlocks.Contains(node) Then
                     AddLinebreaksAfterTokenIfNeeded(node.NextStatement.GetLastToken(), 2)
                 Else
                     AddLinebreaksAfterTokenIfNeeded(node.NextStatement.GetLastToken(), 1)
@@ -1018,7 +1018,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             MarkLastStatementIfNeeded(node.Statements)
 
-            If Not lastStatementsInBlocks.Contains(node) Then
+            If Not _lastStatementsInBlocks.Contains(node) Then
                 AddLinebreaksAfterTokenIfNeeded(node.EndUsingStatement.GetLastToken(), 2)
             Else
                 AddLinebreaksAfterTokenIfNeeded(node.EndUsingStatement.GetLastToken(), 1)
@@ -1040,7 +1040,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Overrides Function VisitSelectBlock(node As SelectBlockSyntax) As SyntaxNode
             AddLinebreaksAfterTokenIfNeeded(node.SelectStatement.GetLastToken(), 1)
 
-            If Not lastStatementsInBlocks.Contains(node) Then
+            If Not _lastStatementsInBlocks.Contains(node) Then
                 AddLinebreaksAfterTokenIfNeeded(node.EndSelectStatement.GetLastToken(), 2)
             Else
                 AddLinebreaksAfterTokenIfNeeded(node.EndSelectStatement.GetLastToken(), 1)
@@ -1055,7 +1055,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
 
             Dim result = MyBase.VisitCaseBlock(node)
-            indentationDepth -= 1
+            _indentationDepth -= 1
 
             Return result
         End Function
@@ -1068,7 +1068,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             MarkLastStatementIfNeeded(node.Statements)
 
-            If Not lastStatementsInBlocks.Contains(node) Then
+            If Not _lastStatementsInBlocks.Contains(node) Then
                 AddLinebreaksAfterTokenIfNeeded(node.EndTryStatement.GetLastToken(), 2)
             Else
                 AddLinebreaksAfterTokenIfNeeded(node.EndTryStatement.GetLastToken(), 1)
@@ -1131,7 +1131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             MarkLastStatementIfNeeded(node.Statements)
 
-            indentationDepth += 1
+            _indentationDepth += 1
             Dim result = MyBase.VisitMultiLineLambdaExpression(node)
 
             Return result
@@ -1227,164 +1227,164 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Public Overrides Function VisitEndBlockStatement(node As EndBlockStatementSyntax) As SyntaxNode
-            indentationDepth -= 1
+            _indentationDepth -= 1
 
             Return MyBase.VisitEndBlockStatement(node)
         End Function
 
         Public Overrides Function VisitElseStatement(node As ElseStatementSyntax) As SyntaxNode
-            indentationDepth -= 1
+            _indentationDepth -= 1
             Dim result = MyBase.VisitElseStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitElseIfStatement(node As ElseIfStatementSyntax) As SyntaxNode
-            indentationDepth -= 1
+            _indentationDepth -= 1
             Dim result = MyBase.VisitElseIfStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitIfStatement(node As IfStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitIfStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitWithStatement(node As WithStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitWithStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitSyncLockStatement(node As SyncLockStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitSyncLockStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitModuleStatement(node As ModuleStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitModuleStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitNamespaceStatement(node As NamespaceStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitNamespaceStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitInterfaceStatement(node As InterfaceStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitInterfaceStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitStructureStatement(node As StructureStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitStructureStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitEnumStatement(node As EnumStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitEnumStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitClassStatement(node As ClassStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitClassStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitWhileStatement(node As WhileStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitWhileStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitDoStatement(node As DoStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitDoStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitSelectStatement(node As SelectStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitSelectStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitCaseStatement(node As CaseStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitCaseStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitLoopStatement(node As LoopStatementSyntax) As SyntaxNode
-            indentationDepth -= 1
+            _indentationDepth -= 1
 
             Return MyBase.VisitLoopStatement(node)
         End Function
 
         Public Overrides Function VisitForStatement(node As ForStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitForStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitForEachStatement(node As ForEachStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitForEachStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitTryStatement(node As TryStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitTryStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitCatchStatement(node As CatchStatementSyntax) As SyntaxNode
-            indentationDepth -= 1
+            _indentationDepth -= 1
             Dim result = MyBase.VisitCatchStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitFinallyStatement(node As FinallyStatementSyntax) As SyntaxNode
-            indentationDepth -= 1
+            _indentationDepth -= 1
             Dim result = MyBase.VisitFinallyStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitUsingStatement(node As UsingStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitUsingStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
@@ -1395,7 +1395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             ' only indent if this is a block
             If node.Parent IsNot Nothing AndAlso
                 (node.Parent.Kind = SyntaxKind.SubBlock OrElse node.Parent.Kind = SyntaxKind.FunctionBlock) Then
-                indentationDepth += 1
+                _indentationDepth += 1
             End If
 
             Return result
@@ -1403,21 +1403,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Overrides Function VisitSubNewStatement(node As SubNewStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitSubNewStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitAccessorStatement(node As AccessorStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitAccessorStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
 
         Public Overrides Function VisitOperatorStatement(node As OperatorStatementSyntax) As SyntaxNode
             Dim result = MyBase.VisitOperatorStatement(node)
-            indentationDepth += 1
+            _indentationDepth += 1
 
             Return result
         End Function
@@ -1427,7 +1427,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             ' only indent if this is a block
             If node.Parent IsNot Nothing AndAlso node.Parent.Kind = SyntaxKind.EventBlock Then
-                indentationDepth += 1
+                _indentationDepth += 1
             End If
 
             Return result
@@ -1438,7 +1438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             ' only indent if this is a block
             If node.Parent IsNot Nothing AndAlso node.Parent.Kind = SyntaxKind.PropertyBlock Then
-                indentationDepth += 1
+                _indentationDepth += 1
             End If
 
             Return result
@@ -1446,10 +1446,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Overrides Function VisitLabelStatement(node As LabelStatementSyntax) As SyntaxNode
             ' labels are never indented.
-            Dim previousIndentationDepth = indentationDepth
-            indentationDepth = 0
+            Dim previousIndentationDepth = _indentationDepth
+            _indentationDepth = 0
             Dim result = MyBase.VisitLabelStatement(node)
-            indentationDepth = previousIndentationDepth
+            _indentationDepth = previousIndentationDepth
 
             Return result
         End Function
@@ -1461,7 +1461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             If variableCount = 0 Then
                 variableCount = 1
             End If
-            indentationDepth -= variableCount
+            _indentationDepth -= variableCount
 
             Return MyBase.VisitNextStatement(node)
         End Function

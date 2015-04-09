@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '// MakeFullWidth - Converts a half-width to full-width character
         Friend Shared Function MakeFullWidth(c As Char) As Char
             Debug.Assert(IsHalfWidth(c))
-            Return Convert.ToChar(Convert.ToUInt16(c) + fullwidth)
+            Return Convert.ToChar(Convert.ToUInt16(c) + s_fullwidth)
         End Function
 
         Friend Shared Function IsHalfWidth(c As Char) As Boolean
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function MakeHalfWidth(c As Char) As Char
             Debug.Assert(IsFullWidth(c))
 
-            Return Convert.ToChar(Convert.ToUInt16(c) - fullwidth)
+            Return Convert.ToChar(Convert.ToUInt16(c) - s_fullwidth)
         End Function
 
         '// IsFullWidth - Returns if the character is full width
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Const fullwidth = CInt(&HFF00L - &H0020L)
+        Private Const s_fullwidth = CInt(&HFF00L - &H0020L)
 
         Friend Const CHARACTER_TABULATION As Char = ChrW(&H0009)
         Friend Const LINE_FEED As Char = ChrW(&H000A)
@@ -87,55 +87,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const LEFT_DOUBLE_QUOTATION_MARK As Char = ChrW(&H201C)                       REM “
         Friend Const RIGHT_DOUBLE_QUOTATION_MARK As Char = ChrW(&H201D)                      REM ”
 
-        Friend Const FULLWIDTH_APOSTROPHE As Char = ChrW(fullwidth + AscW("'"c))             REM ＇
-        Friend Const FULLWIDTH_QUOTATION_MARK As Char = ChrW(fullwidth + AscW(""""c))        REM ＂
+        Friend Const FULLWIDTH_APOSTROPHE As Char = ChrW(s_fullwidth + AscW("'"c))             REM ＇
+        Friend Const FULLWIDTH_QUOTATION_MARK As Char = ChrW(s_fullwidth + AscW(""""c))        REM ＂
 
-        Friend Const FULLWIDTH_DIGIT_ZERO As Char = ChrW(fullwidth + AscW("0"c))             REM ０
-        Friend Const FULLWIDTH_DIGIT_SEVEN As Char = ChrW(fullwidth + AscW("7"c))            REM ７
-        Friend Const FULLWIDTH_DIGIT_NINE As Char = ChrW(fullwidth + AscW("9"c))             REM ９
+        Friend Const FULLWIDTH_DIGIT_ZERO As Char = ChrW(s_fullwidth + AscW("0"c))             REM ０
+        Friend Const FULLWIDTH_DIGIT_SEVEN As Char = ChrW(s_fullwidth + AscW("7"c))            REM ７
+        Friend Const FULLWIDTH_DIGIT_NINE As Char = ChrW(s_fullwidth + AscW("9"c))             REM ９
 
-        Friend Const FULLWIDTH_LOW_LINE As Char = ChrW(fullwidth + AscW("_"c))               REM ＿
-        Friend Const FULLWIDTH_COLON As Char = ChrW(fullwidth + AscW(":"c))                  REM ：
-        Friend Const FULLWIDTH_SOLIDUS As Char = ChrW(fullwidth + AscW("/"c))                REM ／
-        Friend Const FULLWIDTH_HYPHEN_MINUS As Char = ChrW(fullwidth + AscW("-"c))           REM －
-        Friend Const FULLWIDTH_PLUS_SIGN As Char = ChrW(fullwidth + AscW("+"c))              REM ＋
-        Friend Const FULLWIDTH_NUMBER_SIGN As Char = ChrW(fullwidth + AscW("#"c))            REM ＃
+        Friend Const FULLWIDTH_LOW_LINE As Char = ChrW(s_fullwidth + AscW("_"c))               REM ＿
+        Friend Const FULLWIDTH_COLON As Char = ChrW(s_fullwidth + AscW(":"c))                  REM ：
+        Friend Const FULLWIDTH_SOLIDUS As Char = ChrW(s_fullwidth + AscW("/"c))                REM ／
+        Friend Const FULLWIDTH_HYPHEN_MINUS As Char = ChrW(s_fullwidth + AscW("-"c))           REM －
+        Friend Const FULLWIDTH_PLUS_SIGN As Char = ChrW(s_fullwidth + AscW("+"c))              REM ＋
+        Friend Const FULLWIDTH_NUMBER_SIGN As Char = ChrW(s_fullwidth + AscW("#"c))            REM ＃
 
-        Friend Const FULLWIDTH_EQUALS_SIGN As Char = ChrW(fullwidth + AscW("="c))            REM ＝
-        Friend Const FULLWIDTH_LESS_THAN_SIGN As Char = ChrW(fullwidth + AscW("<"c))         REM ＜
-        Friend Const FULLWIDTH_GREATER_THAN_SIGN As Char = ChrW(fullwidth + AscW(">"c))      REM ＞
-        Friend Const FULLWIDTH_LEFT_PARENTHESIS As Char = ChrW(fullwidth + AscW("("c))       REM （
-        Friend Const FULLWIDTH_LEFT_SQUARE_BRACKET As Char = ChrW(fullwidth + AscW("["c))    REM ［
-        Friend Const FULLWIDTH_RIGHT_SQUARE_BRACKET As Char = ChrW(fullwidth + AscW("]"c))   REM ］
-        Friend Const FULLWIDTH_LEFT_CURLY_BRACKET As Char = ChrW(fullwidth + AscW("{"c))     REM ｛
-        Friend Const FULLWIDTH_RIGHT_CURLY_BRACKET As Char = ChrW(fullwidth + AscW("}"c))    REM ｝
-        Friend Const FULLWIDTH_AMPERSAND As Char = ChrW(fullwidth + AscW("&"c))              REM ＆
-        Friend Const FULLWIDTH_DOLLAR_SIGN As Char = ChrW(fullwidth + AscW("$"c))            REM ＄
-        Friend Const FULLWIDTH_QUESTION_MARK As Char = ChrW(fullwidth + AscW("?"c))          REM ？
-        Friend Const FULLWIDTH_FULL_STOP As Char = ChrW(fullwidth + AscW("."c))              REM ．
-        Friend Const FULLWIDTH_COMMA As Char = ChrW(fullwidth + AscW(","c))                  REM ，
-        Friend Const FULLWIDTH_PERCENT_SIGN As Char = ChrW(fullwidth + AscW("%"c))           REM ％
+        Friend Const FULLWIDTH_EQUALS_SIGN As Char = ChrW(s_fullwidth + AscW("="c))            REM ＝
+        Friend Const FULLWIDTH_LESS_THAN_SIGN As Char = ChrW(s_fullwidth + AscW("<"c))         REM ＜
+        Friend Const FULLWIDTH_GREATER_THAN_SIGN As Char = ChrW(s_fullwidth + AscW(">"c))      REM ＞
+        Friend Const FULLWIDTH_LEFT_PARENTHESIS As Char = ChrW(s_fullwidth + AscW("("c))       REM （
+        Friend Const FULLWIDTH_LEFT_SQUARE_BRACKET As Char = ChrW(s_fullwidth + AscW("["c))    REM ［
+        Friend Const FULLWIDTH_RIGHT_SQUARE_BRACKET As Char = ChrW(s_fullwidth + AscW("]"c))   REM ］
+        Friend Const FULLWIDTH_LEFT_CURLY_BRACKET As Char = ChrW(s_fullwidth + AscW("{"c))     REM ｛
+        Friend Const FULLWIDTH_RIGHT_CURLY_BRACKET As Char = ChrW(s_fullwidth + AscW("}"c))    REM ｝
+        Friend Const FULLWIDTH_AMPERSAND As Char = ChrW(s_fullwidth + AscW("&"c))              REM ＆
+        Friend Const FULLWIDTH_DOLLAR_SIGN As Char = ChrW(s_fullwidth + AscW("$"c))            REM ＄
+        Friend Const FULLWIDTH_QUESTION_MARK As Char = ChrW(s_fullwidth + AscW("?"c))          REM ？
+        Friend Const FULLWIDTH_FULL_STOP As Char = ChrW(s_fullwidth + AscW("."c))              REM ．
+        Friend Const FULLWIDTH_COMMA As Char = ChrW(s_fullwidth + AscW(","c))                  REM ，
+        Friend Const FULLWIDTH_PERCENT_SIGN As Char = ChrW(s_fullwidth + AscW("%"c))           REM ％
 
-        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_H As Char = ChrW(fullwidth + AscW("H"c)) REM Ｈ
-        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_O As Char = ChrW(fullwidth + AscW("O"c)) REM Ｏ
-        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_E As Char = ChrW(fullwidth + AscW("E"c)) REM Ｅ
-        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_A As Char = ChrW(fullwidth + AscW("A"c)) REM Ａ
-        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_F As Char = ChrW(fullwidth + AscW("F"c)) REM Ｆ
-        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_C As Char = ChrW(fullwidth + AscW("C"c)) REM Ｃ
-        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_P As Char = ChrW(fullwidth + AscW("P"c)) REM Ｐ
-        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_M As Char = ChrW(fullwidth + AscW("M"c)) REM Ｍ
+        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_H As Char = ChrW(s_fullwidth + AscW("H"c)) REM Ｈ
+        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_O As Char = ChrW(s_fullwidth + AscW("O"c)) REM Ｏ
+        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_E As Char = ChrW(s_fullwidth + AscW("E"c)) REM Ｅ
+        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_A As Char = ChrW(s_fullwidth + AscW("A"c)) REM Ａ
+        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_F As Char = ChrW(s_fullwidth + AscW("F"c)) REM Ｆ
+        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_C As Char = ChrW(s_fullwidth + AscW("C"c)) REM Ｃ
+        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_P As Char = ChrW(s_fullwidth + AscW("P"c)) REM Ｐ
+        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_M As Char = ChrW(s_fullwidth + AscW("M"c)) REM Ｍ
 
-        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_H As Char = ChrW(fullwidth + AscW("h"c))   REM ｈ
-        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_O As Char = ChrW(fullwidth + AscW("o"c))   REM ｏ
-        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_E As Char = ChrW(fullwidth + AscW("e"c))   REM ｅ
-        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_A As Char = ChrW(fullwidth + AscW("a"c))   REM ａ
-        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_F As Char = ChrW(fullwidth + AscW("f"c))   REM ｆ
-        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_C As Char = ChrW(fullwidth + AscW("c"c))   REM ｃ
-        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_P As Char = ChrW(fullwidth + AscW("p"c))   REM ｐ
-        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_M As Char = ChrW(fullwidth + AscW("m"c))   REM ｍ
+        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_H As Char = ChrW(s_fullwidth + AscW("h"c))   REM ｈ
+        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_O As Char = ChrW(s_fullwidth + AscW("o"c))   REM ｏ
+        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_E As Char = ChrW(s_fullwidth + AscW("e"c))   REM ｅ
+        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_A As Char = ChrW(s_fullwidth + AscW("a"c))   REM ａ
+        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_F As Char = ChrW(s_fullwidth + AscW("f"c))   REM ｆ
+        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_C As Char = ChrW(s_fullwidth + AscW("c"c))   REM ｃ
+        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_P As Char = ChrW(s_fullwidth + AscW("p"c))   REM ｐ
+        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_M As Char = ChrW(s_fullwidth + AscW("m"c))   REM ｍ
 
         Friend Const FULLWIDTH_LEFT_PARENTHESIS_STRING As String = FULLWIDTH_LEFT_PARENTHESIS
-        Friend Const FULLWIDTH_RIGHT_PARENTHESIS_STRING As String = ChrW(fullwidth + AscW(")"c))
+        Friend Const FULLWIDTH_RIGHT_PARENTHESIS_STRING As String = ChrW(s_fullwidth + AscW(")"c))
         Friend Const FULLWIDTH_LEFT_CURLY_BRACKET_STRING As String = FULLWIDTH_LEFT_CURLY_BRACKET
         Friend Const FULLWIDTH_RIGHT_CURLY_BRACKET_STRING As String = FULLWIDTH_RIGHT_CURLY_BRACKET
         Friend Const FULLWIDTH_FULL_STOP_STRING As String = FULLWIDTH_FULL_STOP
@@ -143,16 +143,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const FULLWIDTH_EQUALS_SIGN_STRING As String = FULLWIDTH_EQUALS_SIGN
         Friend Const FULLWIDTH_PLUS_SIGN_STRING As String = FULLWIDTH_PLUS_SIGN
         Friend Const FULLWIDTH_HYPHEN_MINUS_STRING As String = FULLWIDTH_HYPHEN_MINUS
-        Friend Const FULLWIDTH_ASTERISK_STRING As String = ChrW(fullwidth + AscW("*"c))
+        Friend Const FULLWIDTH_ASTERISK_STRING As String = ChrW(s_fullwidth + AscW("*"c))
         Friend Const FULLWIDTH_SOLIDUS_STRING As String = FULLWIDTH_SOLIDUS
-        Friend Const FULLWIDTH_REVERSE_SOLIDUS_STRING As String = ChrW(fullwidth + AscW("\"c))
+        Friend Const FULLWIDTH_REVERSE_SOLIDUS_STRING As String = ChrW(s_fullwidth + AscW("\"c))
         Friend Const FULLWIDTH_COLON_STRING As String = FULLWIDTH_COLON
-        Friend Const FULLWIDTH_CIRCUMFLEX_ACCENT_STRING As String = ChrW(fullwidth + AscW("^"c))
+        Friend Const FULLWIDTH_CIRCUMFLEX_ACCENT_STRING As String = ChrW(s_fullwidth + AscW("^"c))
         Friend Const FULLWIDTH_AMPERSAND_STRING As String = FULLWIDTH_AMPERSAND
         Friend Const FULLWIDTH_NUMBER_SIGN_STRING As String = FULLWIDTH_NUMBER_SIGN
-        Friend Const FULLWIDTH_EXCLAMATION_MARK_STRING As String = ChrW(fullwidth + AscW("!"c))
+        Friend Const FULLWIDTH_EXCLAMATION_MARK_STRING As String = ChrW(s_fullwidth + AscW("!"c))
         Friend Const FULLWIDTH_QUESTION_MARK_STRING As String = FULLWIDTH_QUESTION_MARK
-        Friend Const FULLWIDTH_COMMERCIAL_AT_STRING As String = ChrW(fullwidth + AscW("@"c))
+        Friend Const FULLWIDTH_COMMERCIAL_AT_STRING As String = ChrW(s_fullwidth + AscW("@"c))
         Friend Const FULLWIDTH_LESS_THAN_SIGN_STRING As String = FULLWIDTH_LESS_THAN_SIGN
         Friend Const FULLWIDTH_GREATER_THAN_SIGN_STRING As String = FULLWIDTH_GREATER_THAN_SIGN
 
@@ -257,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     (IsFullWidth(c) AndAlso (c = FULLWIDTH_LATIN_CAPITAL_LETTER_H Or c = FULLWIDTH_LATIN_CAPITAL_LETTER_O Or c = FULLWIDTH_LATIN_SMALL_LETTER_H Or c = FULLWIDTH_LATIN_SMALL_LETTER_O))
         End Function
 
-        Private Shared _IsIDChar As Boolean() =
+        Private Shared s_isIDChar As Boolean() =
         {
             False, False, False, False, False, False, False, False, False, False,
             False, False, False, False, False, False, False, False, False, False,
@@ -275,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         }
 
         Friend Shared Function IsNarrowIdentifierCharacter(c As UInt16) As Boolean
-            Return _IsIDChar(c)
+            Return s_isIDChar(c)
             'Select Case c
             '    Case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
             '        21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,

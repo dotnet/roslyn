@@ -88,8 +88,8 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
         End Function
 
 #Region "Compilation"
-        Private Shared ReadOnly DefaultInteractive As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Interactive)
-        Private Shared ReadOnly DefaultScript As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Script)
+        Private Shared ReadOnly s_defaultInteractive As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Interactive)
+        Private Shared ReadOnly s_defaultScript As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Script)
 
         Protected Overrides Function CreateCompilation() As Compilation
 
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             Dim globalImports = Me.GetGlobalImportsForCompilation()
 
             ' parse:
-            Dim parseOptions = If(Me.Options.IsInteractive, DefaultInteractive, DefaultScript)
+            Dim parseOptions = If(Me.Options.IsInteractive, s_defaultInteractive, s_defaultScript)
             Dim tree = VisualBasicSyntaxTree.ParseText(Me.Code, parseOptions, Me.Path)
 
             ' create compilation:

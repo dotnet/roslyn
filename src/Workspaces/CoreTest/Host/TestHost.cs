@@ -4,7 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Host.UnitTests
+namespace Microsoft.CodeAnalysis.Host
 {
     internal static class TestHost
     {

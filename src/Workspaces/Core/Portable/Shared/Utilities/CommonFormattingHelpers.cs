@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static TextSpan GetSpanIncludingTrailingAndLeadingTriviaOfAdjacentTokens(SyntaxToken startToken, SyntaxToken endToken)
         {
             // most of cases we can just ask previous and next token to create the span, but in some corner cases such as omitted token case,
-            // those navigation function doesn't work, so we have to explore the tree ourselves to create rigth span
+            // those navigation function doesn't work, so we have to explore the tree ourselves to create correct span
             var startPosition = GetStartPositionOfSpan(startToken);
             var endPosition = GetEndPositionOfSpan(endToken);
 

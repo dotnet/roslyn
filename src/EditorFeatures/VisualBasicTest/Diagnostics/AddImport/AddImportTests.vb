@@ -997,6 +997,69 @@ End Module
             TestMissing(initial)
         End Sub
 
+        <WorkItem(269)>
+            <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Sub TestAddImportForAddExentionMethod()
+            Test(
+NewLines("Imports System \n Imports System.Collections \n Imports System.Runtime.CompilerServices \n Class X \n Implements IEnumerable \n Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator \n Dim a = New X [|From {1}|] \n Return a.GetEnumerator() \n End Function \n End Class \n Namespace Ext \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Integer) \n End Sub \n End Module \n End Namespace"),
+NewLines("Imports System \n Imports System.Collections \n Imports System.Runtime.CompilerServices \n Imports Ext \n Class X \n Implements IEnumerable \n Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator \n Dim a = New X From {1} \n Return a.GetEnumerator() \n End Function \n End Class \n Namespace Ext \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Integer) \n End Sub \n End Module \n End Namespace"),
+Nothing, 0, True, True, Nothing, False, Nothing)
+        End Sub
+
+        <WorkItem(269)>
+            <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Sub TestAddImportForAddExentionMethod2()
+            Test(
+NewLines("Imports System \n Imports System.Collections \n Imports System.Runtime.CompilerServices \n Class X \n Implements IEnumerable \n Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator \n Dim a = New X [|From {1, 2, 3}|] \n Return a.GetEnumerator() \n End Function \n End Class \n Namespace Ext \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Integer) \n End Sub \n End Module \n End Namespace"),
+NewLines("Imports System \n Imports System.Collections \n Imports System.Runtime.CompilerServices \n Imports Ext \n Class X \n Implements IEnumerable \n Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator \n Dim a = New X From {1, 2, 3} \n Return a.GetEnumerator() \n End Function \n End Class \n Namespace Ext \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Integer) \n End Sub \n End Module \n End Namespace"),
+Nothing, 0, True, True, Nothing, False, Nothing)
+        End Sub
+
+        <WorkItem(269)>
+            <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Sub TestAddImportForAddExentionMethod3()
+            Test(
+NewLines("Imports System \n Imports System.Collections \n Imports System.Runtime.CompilerServices \n Class X \n Implements IEnumerable \n Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator \n Dim a = New X [|From {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}|] \n Return a.GetEnumerator() \n End Function \n End Class \n Namespace Ext \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Integer) \n End Sub \n End Module \n End Namespace"),
+NewLines("Imports System \n Imports System.Collections \n Imports System.Runtime.CompilerServices \n Imports Ext \n Class X \n Implements IEnumerable \n Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator \n Dim a = New X From {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}} \n Return a.GetEnumerator() \n End Function \n End Class \n Namespace Ext \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Integer) \n End Sub \n End Module \n End Namespace"),
+Nothing, 0, True, True, Nothing, False, Nothing)
+        End Sub
+
+        <WorkItem(269)>
+            <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Sub TestAddImportForAddExentionMethod4()
+            Test(
+NewLines("Imports System \n Imports System.Collections \n Imports System.Runtime.CompilerServices \n Class X \n Implements IEnumerable \n Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator \n Dim a = New X [|From {{1, 2, 3}, {""Four"", ""Five"", ""Six""}, {7, 8, 9}}|] \n Return a.GetEnumerator() \n End Function \n End Class \n Namespace Ext \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Integer) \n End Sub \n End Module \n End Namespace"),
+NewLines("Imports System \n Imports System.Collections \n Imports System.Runtime.CompilerServices \n Imports Ext \n Class X \n Implements IEnumerable \n Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator \n Dim a = New X From {{1, 2, 3}, {""Four"", ""Five"", ""Six""}, {7, 8, 9}} \n Return a.GetEnumerator() \n End Function \n End Class \n Namespace Ext \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Integer) \n End Sub \n End Module \n End Namespace"),
+Nothing, 0, True, True, Nothing, False, Nothing)
+        End Sub
+
+        <WorkItem(269)>
+            <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Sub TestAddImportForAddExentionMethod5()
+            Test(
+NewLines("Imports System \n Imports System.Collections \n Imports System.Runtime.CompilerServices \n Class X \n Implements IEnumerable \n Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator \n Dim a = New X [|From {""This""}|] \n Return a.GetEnumerator() \n End Function \n End Class \n Namespace Ext \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Integer) \n End Sub \n End Module \n End Namespace"),
+NewLines("Imports System \n Imports System.Collections \n Imports System.Runtime.CompilerServices \n Imports Ext \n Class X \n Implements IEnumerable \n Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator \n Dim a = New X From {""This""} \n Return a.GetEnumerator() \n End Function \n End Class \n Namespace Ext \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Integer) \n End Sub \n End Module \n End Namespace"),
+Nothing, 0, True, True, Nothing, False, Nothing)
+        End Sub
+
+        <WorkItem(269)>
+            <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Sub TestAddImportForAddExentionMethod6()
+            Test(
+NewLines("Imports System \n Imports System.Collections \n Imports System.Runtime.CompilerServices \n Class X \n Implements IEnumerable \n Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator \n Dim a = New X [|From {""This""}|] \n Return a.GetEnumerator() \n End Function \n End Class \n Namespace Ext \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Integer) \n End Sub \n End Module \n End Namespace \n Namespace Ext2 \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Object()) \n End Sub \n End Module \n End Namespace"),
+NewLines("Imports System \n Imports System.Collections \n Imports System.Runtime.CompilerServices \n Imports Ext \n Class X \n Implements IEnumerable \n Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator \n Dim a = New X From {""This""} \n Return a.GetEnumerator() \n End Function \n End Class \n Namespace Ext \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Integer) \n End Sub \n End Module \n End Namespace \n Namespace Ext2 \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Object()) \n End Sub \n End Module \n End Namespace"),
+Nothing, 0, True, True, Nothing, False, Nothing)
+        End Sub
+
+        <WorkItem(269)>
+            <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Sub TestAddImportForAddExentionMethod7()
+            Test(
+NewLines("Imports System \n Imports System.Collections \n Imports System.Runtime.CompilerServices \n Class X \n Implements IEnumerable \n Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator \n Dim a = New X [|From {""This""}|] \n Return a.GetEnumerator() \n End Function \n End Class \n Namespace Ext \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Integer) \n End Sub \n End Module \n End Namespace \n Namespace Ext2 \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Object()) \n End Sub \n End Module \n End Namespace"),
+NewLines("Imports System \n Imports System.Collections \n Imports System.Runtime.CompilerServices \n Imports Ext2 \n Class X \n Implements IEnumerable \n Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator \n Dim a = New X From {""This""} \n Return a.GetEnumerator() \n End Function \n End Class \n Namespace Ext \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Integer) \n End Sub \n End Module \n End Namespace \n Namespace Ext2 \n Module Extensions \n <Extension> \n Public Sub Add(x As X, i As Object()) \n End Sub \n End Module \n End Namespace"),
+Nothing, 1, True, True, Nothing, False, Nothing)
+        End Sub
+
         Public Class AddImportTestsWithAddImportDiagnosticProvider
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -1056,7 +1119,6 @@ Class MultiDictionary(Of K, V)
     End Sub
 End Class")
             End Sub
-
         End Class
     End Class
 End Namespace

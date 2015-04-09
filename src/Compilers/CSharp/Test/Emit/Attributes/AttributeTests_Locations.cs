@@ -1119,7 +1119,7 @@ public class foo
 public class A : Attribute { }
 ";
 
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: "Attribute Count=1").VerifyDiagnostics(
+            CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: "Attribute Count=1").VerifyDiagnostics(
                 // (12,6): warning CS0658: 'foo' is not a recognized attribute location. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "foo").WithArguments("foo"));
         }

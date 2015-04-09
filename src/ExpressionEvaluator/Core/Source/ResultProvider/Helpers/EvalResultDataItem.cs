@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         Default,
         Error,
+        NativeView,
         NonPublicMembers,
         PointerDereference,
         RawView,

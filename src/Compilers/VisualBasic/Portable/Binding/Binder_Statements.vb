@@ -383,26 +383,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class CheckOnErrorAndAwaitWalker
             Inherits BoundTreeWalker
 
-            Private ReadOnly m_Binder As Binder
-            Private ReadOnly m_Diagnostics As DiagnosticBag
-            Private m_ContainsOnError As Boolean ' The block contains an [On Error] statement. 
-            Private m_ContainsTry As Boolean ' The block contains a Try block.
-            Private m_ContainsResume As Boolean ' The block contains a [Resume [...]] or an [On Error Resume Next] statement. And this is a syntax node for the first of them.
-            Private m_ResumeWithoutLabel As StatementSyntax ' The first [Resume], [Resume Next] or [On Error Resume Next] statement, if any.
-            Private m_ContainsLineNumberLabel As Boolean
-            Private m_ContainsCatch As Boolean
-            Private m_ReportedAnError As Boolean
-            Private m_EnclosingSyncLockOrUsing As BoundStatement
-            Private m_isInCatchFinallyOrSyncLock As Boolean
-            Private m_ContainsAwait As Boolean
-            Private ReadOnly m_TryOnErrorResume As New ArrayBuilder(Of BoundStatement)
+            Private ReadOnly _binder As Binder
+            Private ReadOnly _diagnostics As DiagnosticBag
+            Private _containsOnError As Boolean ' The block contains an [On Error] statement. 
+            Private _containsTry As Boolean ' The block contains a Try block.
+            Private _containsResume As Boolean ' The block contains a [Resume [...]] or an [On Error Resume Next] statement. And this is a syntax node for the first of them.
+            Private _resumeWithoutLabel As StatementSyntax ' The first [Resume], [Resume Next] or [On Error Resume Next] statement, if any.
+            Private _containsLineNumberLabel As Boolean
+            Private _containsCatch As Boolean
+            Private _reportedAnError As Boolean
+            Private _enclosingSyncLockOrUsing As BoundStatement
+            Private _isInCatchFinallyOrSyncLock As Boolean
+            Private _containsAwait As Boolean
+            Private ReadOnly _tryOnErrorResume As New ArrayBuilder(Of BoundStatement)
 
             Private Sub New(binder As Binder, diagnostics As DiagnosticBag)
-                m_Diagnostics = diagnostics
-                m_Binder = binder
+                _diagnostics = diagnostics
+                _binder = binder
             End Sub
 
-            Shared Shadows Sub VisitBlock(
+            Public Shared Shadows Sub VisitBlock(
                 binder As Binder,
                 block As BoundBlock,
                 diagnostics As DiagnosticBag,
@@ -416,19 +416,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             )
                 Dim walker As New CheckOnErrorAndAwaitWalker(binder, diagnostics)
                 walker.Visit(block)
-                Debug.Assert(walker.m_EnclosingSyncLockOrUsing Is Nothing)
-                Debug.Assert(Not walker.m_isInCatchFinallyOrSyncLock)
+                Debug.Assert(walker._enclosingSyncLockOrUsing Is Nothing)
+                Debug.Assert(Not walker._isInCatchFinallyOrSyncLock)
 
-                containsAwait = walker.m_ContainsAwait
-                containsOnError = walker.m_ContainsOnError
-                containsResume = walker.m_ContainsResume
-                reportedAnError = walker.m_ReportedAnError
-                resumeWithoutLabel = walker.m_ResumeWithoutLabel
-                containsLineNumberLabel = walker.m_ContainsLineNumberLabel
-                containsCatch = walker.m_ContainsCatch
+                containsAwait = walker._containsAwait
+                containsOnError = walker._containsOnError
+                containsResume = walker._containsResume
+                reportedAnError = walker._reportedAnError
+                resumeWithoutLabel = walker._resumeWithoutLabel
+                containsLineNumberLabel = walker._containsLineNumberLabel
+                containsCatch = walker._containsCatch
 
-                If (containsOnError OrElse containsResume) AndAlso walker.m_ContainsTry Then
-                    For Each node In walker.m_TryOnErrorResume
+                If (containsOnError OrElse containsResume) AndAlso walker._containsTry Then
+                    For Each node In walker._tryOnErrorResume
                         binder.ReportDiagnostic(diagnostics, node.Syntax, ERRID.ERR_TryAndOnErrorDoNotMix)
                     Next
 
@@ -438,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function Visit(node As BoundNode) As BoundNode
                 ' Do not dive into expressions, unless we are in Async context
-                If Not m_Binder.IsInAsyncContext() AndAlso TypeOf node Is BoundExpression Then
+                If Not _binder.IsInAsyncContext() AndAlso TypeOf node Is BoundExpression Then
                     Return Nothing
                 End If
 
@@ -448,40 +448,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function VisitTryStatement(node As BoundTryStatement) As BoundNode
                 Debug.Assert(Not node.WasCompilerGenerated)
 
-                m_ContainsTry = True
-                m_TryOnErrorResume.Add(node)
+                _containsTry = True
+                _tryOnErrorResume.Add(node)
 
                 Visit(node.TryBlock)
 
-                Dim save_m_isInCatchFinallyOrSyncLock As Boolean = m_isInCatchFinallyOrSyncLock
-                m_isInCatchFinallyOrSyncLock = True
+                Dim save_m_isInCatchFinallyOrSyncLock As Boolean = _isInCatchFinallyOrSyncLock
+                _isInCatchFinallyOrSyncLock = True
 
                 VisitList(node.CatchBlocks)
                 Visit(node.FinallyBlockOpt)
 
-                m_isInCatchFinallyOrSyncLock = save_m_isInCatchFinallyOrSyncLock
+                _isInCatchFinallyOrSyncLock = save_m_isInCatchFinallyOrSyncLock
                 Return Nothing
             End Function
 
             Public Overrides Function VisitOnErrorStatement(node As BoundOnErrorStatement) As BoundNode
                 Debug.Assert(Not node.WasCompilerGenerated)
-                m_ContainsOnError = True
-                m_TryOnErrorResume.Add(node)
+                _containsOnError = True
+                _tryOnErrorResume.Add(node)
 
                 If node.OnErrorKind = OnErrorStatementKind.ResumeNext Then
-                    m_ContainsResume = True
+                    _containsResume = True
 
-                    If m_ResumeWithoutLabel Is Nothing Then
-                        m_ResumeWithoutLabel = DirectCast(node.Syntax, StatementSyntax)
+                    If _resumeWithoutLabel Is Nothing Then
+                        _resumeWithoutLabel = DirectCast(node.Syntax, StatementSyntax)
                     End If
                 End If
 
-                If m_EnclosingSyncLockOrUsing IsNot Nothing Then
-                    ReportDiagnostic(m_Diagnostics, node.Syntax,
-                                     If(m_EnclosingSyncLockOrUsing.Kind = BoundKind.UsingStatement,
+                If _enclosingSyncLockOrUsing IsNot Nothing Then
+                    ReportDiagnostic(_diagnostics, node.Syntax,
+                                     If(_enclosingSyncLockOrUsing.Kind = BoundKind.UsingStatement,
                                         ERRID.ERR_OnErrorInUsing,
                                         ERRID.ERR_OnErrorInSyncLock))
-                    m_ReportedAnError = True
+                    _reportedAnError = True
                 End If
 
                 Return Nothing
@@ -489,68 +489,68 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function VisitResumeStatement(node As BoundResumeStatement) As BoundNode
                 Debug.Assert(Not node.WasCompilerGenerated)
-                m_ContainsResume = True
+                _containsResume = True
 
-                If node.ResumeKind <> ResumeStatementKind.Label AndAlso m_ResumeWithoutLabel Is Nothing Then
-                    m_ResumeWithoutLabel = DirectCast(node.Syntax, StatementSyntax)
+                If node.ResumeKind <> ResumeStatementKind.Label AndAlso _resumeWithoutLabel Is Nothing Then
+                    _resumeWithoutLabel = DirectCast(node.Syntax, StatementSyntax)
                 End If
 
-                m_TryOnErrorResume.Add(node)
+                _tryOnErrorResume.Add(node)
                 Return Nothing
             End Function
 
             Public Overrides Function VisitSyncLockStatement(node As BoundSyncLockStatement) As BoundNode
                 Debug.Assert(Not node.WasCompilerGenerated)
-                Dim save = m_EnclosingSyncLockOrUsing
-                Dim save_m_isInCatchFinallyOrSyncLock As Boolean = m_isInCatchFinallyOrSyncLock
-                m_EnclosingSyncLockOrUsing = node
-                m_isInCatchFinallyOrSyncLock = True
+                Dim save = _enclosingSyncLockOrUsing
+                Dim save_m_isInCatchFinallyOrSyncLock As Boolean = _isInCatchFinallyOrSyncLock
+                _enclosingSyncLockOrUsing = node
+                _isInCatchFinallyOrSyncLock = True
 
                 MyBase.VisitSyncLockStatement(node)
 
-                m_EnclosingSyncLockOrUsing = save
-                m_isInCatchFinallyOrSyncLock = save_m_isInCatchFinallyOrSyncLock
+                _enclosingSyncLockOrUsing = save
+                _isInCatchFinallyOrSyncLock = save_m_isInCatchFinallyOrSyncLock
                 Return Nothing
             End Function
 
             Public Overrides Function VisitUsingStatement(node As BoundUsingStatement) As BoundNode
                 Debug.Assert(Not node.WasCompilerGenerated)
-                Dim save = m_EnclosingSyncLockOrUsing
-                m_EnclosingSyncLockOrUsing = node
+                Dim save = _enclosingSyncLockOrUsing
+                _enclosingSyncLockOrUsing = node
                 MyBase.VisitUsingStatement(node)
-                m_EnclosingSyncLockOrUsing = save
+                _enclosingSyncLockOrUsing = save
                 Return Nothing
             End Function
 
             Public Overrides Function VisitAwaitOperator(node As BoundAwaitOperator) As BoundNode
-                Debug.Assert(m_Binder.IsInAsyncContext())
+                Debug.Assert(_binder.IsInAsyncContext())
 
-                m_ContainsAwait = True
+                _containsAwait = True
 
-                If m_isInCatchFinallyOrSyncLock Then
-                    ReportDiagnostic(m_Diagnostics, node.Syntax, ERRID.ERR_BadAwaitInTryHandler)
-                    m_ReportedAnError = True
+                If _isInCatchFinallyOrSyncLock Then
+                    ReportDiagnostic(_diagnostics, node.Syntax, ERRID.ERR_BadAwaitInTryHandler)
+                    _reportedAnError = True
                 End If
 
                 Return MyBase.VisitAwaitOperator(node)
             End Function
 
             Public Overrides Function VisitLambda(node As BoundLambda) As BoundNode
-                Debug.Assert(m_Binder.IsInAsyncContext())
+                Debug.Assert(_binder.IsInAsyncContext())
 
                 ' Do not dive into the lambdas.
                 Return Nothing
             End Function
 
             Public Overrides Function VisitCatchBlock(node As BoundCatchBlock) As BoundNode
-                m_ContainsCatch = True
+                _containsCatch = True
                 Return MyBase.VisitCatchBlock(node)
             End Function
 
             Public Overrides Function VisitLabelStatement(node As BoundLabelStatement) As BoundNode
                 If Not node.WasCompilerGenerated AndAlso node.Syntax.Kind = SyntaxKind.LabelStatement AndAlso
                    DirectCast(node.Syntax, LabelStatementSyntax).LabelToken.Kind = SyntaxKind.IntegerLiteralToken Then
-                    m_ContainsLineNumberLabel = True
+                    _containsLineNumberLabel = True
                 End If
 
                 Return MyBase.VisitLabelStatement(node)
@@ -3583,16 +3583,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class SeenAwaitVisitor
             Inherits BoundTreeWalker
 
-            Private m_SeenAwait As Boolean
+            Private _seenAwait As Boolean
 
             Public Shared Function SeenAwaitIn(node As BoundNode) As Boolean
                 Dim visitor = New SeenAwaitVisitor()
                 visitor.Visit(node)
-                Return visitor.m_SeenAwait
+                Return visitor._seenAwait
             End Function
 
             Public Overrides Function Visit(node As BoundNode) As BoundNode
-                If m_SeenAwait Then
+                If _seenAwait Then
                     Return Nothing
                 End If
 
@@ -3605,7 +3605,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitAwaitOperator(node As BoundAwaitOperator) As BoundNode
-                m_SeenAwait = True
+                _seenAwait = True
                 Return Nothing
             End Function
         End Class
@@ -4013,7 +4013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lookupResult As New lookupResult()
             If Not GetMemberIfMatchesRequirements(WellKnownMemberNames.GetEnumeratorMethodName,
                                                    collectionType,
-                                                   IsFunctionWithoutArguments,
+                                                   s_isFunctionWithoutArguments,
                                                    lookupResult,
                                                    collectionSyntax,
                                                    temporaryDiagnostics) Then
@@ -4050,7 +4050,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' returns a boolean.
             If Not GetMemberIfMatchesRequirements(WellKnownMemberNames.MoveNextMethodName,
                                                    enumeratorType,
-                                                   IsFunctionWithoutArguments,
+                                                   s_isFunctionWithoutArguments,
                                                    lookupResult,
                                                    collectionSyntax,
                                                    temporaryDiagnostics) Then
@@ -4085,7 +4085,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' try lookup an accessible and readable property named Current that takes no parameters.
             If Not GetMemberIfMatchesRequirements(WellKnownMemberNames.CurrentPropertyName,
                                                    enumeratorType,
-                                                   IsReadablePropertyWithoutArguments,
+                                                   s_isReadablePropertyWithoutArguments,
                                                    lookupResult,
                                                    collectionSyntax,
                                                    temporaryDiagnostics) Then
@@ -4143,28 +4143,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Checks if a given symbol is a function that takes no parameters.
         ''' </summary>
-        Private Shared IsFunctionWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
-                                                                                    If sym.Kind = SymbolKind.Method Then
-                                                                                        Dim method = DirectCast(sym, MethodSymbol)
-                                                                                        Return Not method.IsSub() AndAlso
-                                                                                               Not method.IsGenericMethod AndAlso
-                                                                                               method.CanBeCalledWithNoParameters
-                                                                                    End If
-                                                                                    Return False
-                                                                                End Function
+        Private Shared s_isFunctionWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
+                                                                                      If sym.Kind = SymbolKind.Method Then
+                                                                                          Dim method = DirectCast(sym, MethodSymbol)
+                                                                                          Return Not method.IsSub() AndAlso
+                                                                                                 Not method.IsGenericMethod AndAlso
+                                                                                                 method.CanBeCalledWithNoParameters
+                                                                                      End If
+                                                                                      Return False
+                                                                                  End Function
 
         ''' <summary>
         ''' Checks if a given symbol is a property that is readable.
         ''' </summary>
-        Private Shared IsReadablePropertyWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
-                                                                                            If sym.Kind = SymbolKind.Property Then
-                                                                                                Dim prop = DirectCast(sym, PropertySymbol)
-                                                                                                Return prop.IsReadable AndAlso
-                                                                                                       Not prop.GetMostDerivedGetMethod().IsGenericMethod AndAlso
-                                                                                                       prop.GetCanBeCalledWithNoParameters
-                                                                                            End If
-                                                                                            Return False
-                                                                                        End Function
+        Private Shared s_isReadablePropertyWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
+                                                                                              If sym.Kind = SymbolKind.Property Then
+                                                                                                  Dim prop = DirectCast(sym, PropertySymbol)
+                                                                                                  Return prop.IsReadable AndAlso
+                                                                                                         Not prop.GetMostDerivedGetMethod().IsGenericMethod AndAlso
+                                                                                                         prop.GetCanBeCalledWithNoParameters
+                                                                                              End If
+                                                                                              Return False
+                                                                                          End Function
 
         ''' <summary>
         ''' Returns the lookup result if at least one found symbol matches the requirements that are verified

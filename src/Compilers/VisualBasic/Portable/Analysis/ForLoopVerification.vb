@@ -28,12 +28,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class ForLoopVerificationWalker
             Inherits BoundTreeWalker
 
-            Private m_diagnostics As DiagnosticBag
-            Private m_controlVariables As Stack(Of BoundExpression)
+            Private _diagnostics As DiagnosticBag
+            Private _controlVariables As Stack(Of BoundExpression)
 
             Public Sub New(diagnostics As DiagnosticBag)
-                m_diagnostics = diagnostics
-                m_controlVariables = New Stack(Of BoundExpression)
+                _diagnostics = diagnostics
+                _controlVariables = New Stack(Of BoundExpression)
             End Sub
 
             Public Overrides Function VisitForToStatement(node As BoundForToStatement) As BoundNode
@@ -69,9 +69,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Symbol may be Nothing for BadExpression.
                 If controlVariableSymbol IsNot Nothing Then
-                    For Each boundVariable In m_controlVariables
+                    For Each boundVariable In _controlVariables
                         If ForLoopVerification.ReferencedSymbol(boundVariable) = controlVariableSymbol Then
-                            m_diagnostics.Add(ERRID.ERR_ForIndexInUse1,
+                            _diagnostics.Add(ERRID.ERR_ForIndexInUse1,
                                               controlVariable.Syntax.GetLocation(),
                                               CustomSymbolDisplayFormatter.ShortErrorName(controlVariableSymbol))
                             Exit For
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
                 End If
 
-                m_controlVariables.Push(controlVariable)
+                _controlVariables.Push(controlVariable)
             End Sub
 
             Public Overrides Function VisitBinaryOperator(node As BoundBinaryOperator) As BoundNode
@@ -113,19 +113,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' if it's empty we just have to adjust the index for one variable
                     If boundForStatement.NextVariablesOpt.IsEmpty Then
-                        m_controlVariables.Pop()
+                        _controlVariables.Pop()
                     Else
                         For Each nextVariable In boundForStatement.NextVariablesOpt
                             ' m_controlVariables will not contain too much or too few elements because 
                             ' 1. parser will fill up with missing next statements
                             ' 2. binding will not bind spare control variables (see binding of next statement 
                             '    in BindForBlockParts)
-                            Dim controlVariable = m_controlVariables.Pop()
+                            Dim controlVariable = _controlVariables.Pop()
 
                             If Not controlVariable.HasErrors AndAlso
                                 Not nextVariable.HasErrors AndAlso
                                 ForLoopVerification.ReferencedSymbol(nextVariable) <> ForLoopVerification.ReferencedSymbol(controlVariable) Then
-                                m_diagnostics.Add(ERRID.ERR_NextForMismatch1,
+                                _diagnostics.Add(ERRID.ERR_NextForMismatch1,
                                                   nextVariable.Syntax.GetLocation(),
                                                   CustomSymbolDisplayFormatter.ShortErrorName(ForLoopVerification.ReferencedSymbol(controlVariable)))
                             End If

@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis
     /// workspace.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public class DocumentId : IEquatable<DocumentId>
+    public sealed class DocumentId : IEquatable<DocumentId>
     {
-        public ProjectId ProjectId { get; private set; }
-        public Guid Id { get; private set; }
+        public ProjectId ProjectId { get; }
+        public Guid Id { get; }
 
         private string _debugName;
 
@@ -44,10 +44,25 @@ namespace Microsoft.CodeAnalysis
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             return new DocumentId(projectId, debugName);
+        }
+
+        public static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, string debugName = null)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            if (id == Guid.Empty)
+            {
+                throw new ArgumentException(nameof(id));
+            }
+
+            return new DocumentId(projectId, id, debugName);
         }
 
         internal string GetDebuggerDisplay()

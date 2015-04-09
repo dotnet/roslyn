@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -553,6 +554,43 @@ class A { void M() {  } }
   </methods>
 </symbols>
 ");
+        }
+
+        [Fact]
+        public void ExternAliases4()
+        {
+            var src1 = @"
+namespace N
+{
+    public class C { }
+}";
+            var dummyCompilation = CreateCompilationWithMscorlib(src1, assemblyName: "A", options: TestOptions.DebugDll);
+
+            var src2 = @"
+namespace M
+{
+    extern alias A;
+    using A::N;
+    
+    public class D
+    {
+        public C P
+        {
+            get { return new C(); }
+            set { }
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(src2,
+                assemblyName: GetUniqueName(),
+                options: TestOptions.DebugDll,
+                references: new[]
+                {
+                    new CSharpCompilationReference(dummyCompilation, ImmutableArray.Create("A", "A")),
+                });
+
+            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2109,6 +2147,52 @@ class D
 </symbols>";
 
             AssertXmlEqual(expectedXml, GetPdbXml(comp, "D.Main"));
+        }
+
+        [Fact]
+        public void UnusedImports()
+        {
+            var source = @"
+extern alias A;
+using System;
+using X = A::System.Linq.Enumerable;
+using Y = A::System.Linq;
+using Z = System.Data.DataColumn;
+using F = System.Func<int>;
+
+class C
+{
+    static void Main() 
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
+            var v = CompileAndVerify(comp, emitters: TestEmitters.CCI, validator: (peAssembly, emitters) =>
+            {
+                var reader = peAssembly.ManifestModule.MetadataReader;
+
+                Assert.Equal(new[] 
+                {
+                    "mscorlib",
+                    "System.Core",
+                    "System.Data"
+                }, peAssembly.AssemblyReferences.Select(ai => ai.Name));
+
+                Assert.Equal(new[] 
+                {
+                    "CompilationRelaxationsAttribute",
+                    "RuntimeCompatibilityAttribute",
+                    "DebuggableAttribute",
+                    "DebuggingModes",
+                    "Object",
+                    "Enumerable",
+                    "DataColumn",
+                    "Func`1"
+                }, reader.TypeReferences.Select(h => reader.GetString(reader.GetTypeReference(h).Name)));
+
+                Assert.Equal(1, reader.GetTableRowCount(TableIndex.TypeSpec));
+            });
         }
     }
 }

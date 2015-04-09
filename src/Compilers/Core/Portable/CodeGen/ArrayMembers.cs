@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             => SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
 
         public void Dispatch(Cci.MetadataVisitor visitor)
-            => visitor.Visit((Cci.IMethodReference)this);
+            => visitor.Visit(this);
 
         public Cci.IDefinition AsDefinition(EmitContext context)
             => null;

@@ -12,30 +12,30 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Provides the reason that completion was triggered.
         /// </summary>
-        public CompletionTriggerReason TriggerReason { get; private set; }
+        public CompletionTriggerReason TriggerReason { get; }
 
         /// <summary>
         /// If the <see cref="TriggerReason"/> was <see
         /// cref="CompletionTriggerReason.TypeCharCommand"/> then this was the character that was
         /// typed or deleted by backspace.  Otherwise it is null.
         /// </summary>
-        public char? TriggerCharacter { get; private set; }
+        public char? TriggerCharacter { get; }
 
         /// <summary>
         /// Returns true if the reason completion was triggered was to augment an existing list of
         /// completion items.
         /// </summary>
-        public bool IsAugment { get; private set; }
+        public bool IsAugment { get; }
 
         /// <summary>
         ///  Returns true if completion was triggered by the debugger.
         /// </summary>
-        internal bool IsDebugger { get; private set; }
+        internal bool IsDebugger { get; }
 
         /// <summary>
         /// Return true if completion is running in the Immediate Window.
         /// </summary>
-        internal bool IsImmediateWindow { get; private set; }
+        internal bool IsImmediateWindow { get; }
 
         private CompletionTriggerInfo(CompletionTriggerReason triggerReason, char? triggerCharacter, bool isAugment, bool isDebugger, bool isImmediateWindow)
             : this()

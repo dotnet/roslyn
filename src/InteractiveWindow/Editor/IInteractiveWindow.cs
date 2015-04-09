@@ -88,16 +88,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// The REPL processes the given inputs one by one creating a prompt, input span and possibly output span for each input.
         /// This method may be reentered if any of the inputs evaluates to a command that invokes this method.
         /// </remarks>
-        void Submit(IEnumerable<string> inputs);
-
-        /// <summary>
-        /// Aborts the current command which is executing.
-        /// 
-        /// REVIEW: Remove?  Engine.AbortCommand can be called directly, non-running behavior is a little random.
-        /// REVIEW: in C# engine there is handling for non-running.  I fear that getting rid of this here would 
-        /// // remove the ability to handle such things.
-        /// </summary>
-        void AbortCommand();
+        Task SubmitAsync(IEnumerable<string> inputs);
 
         /// <summary>
         /// Output writer.
@@ -130,7 +121,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// Note that the text might not be written to the editor buffer immediately but be buffered.
         /// The returned offsets might thus be beyond the current length of the editor buffer.
         /// </remarks>
-        Span WriteLine(string text = null);
+        Span WriteLine(string text);
 
         /// <summary>
         /// Writes a line into the output buffer.
@@ -143,7 +134,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// Note that the text might not be written to the editor buffer immediately but be buffered.
         /// The returned offset might thus be beyond the current length of the editor buffer.
         /// </remarks>
-        int Write(string text);
+        Span Write(string text);
 
         /// <summary>
         /// Writes a UI object to the REPL window.
@@ -153,13 +144,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// </remarks>
         void Write(UIElement element);
 
-        void Flush();
+        void FlushOutput();
 
         /// <summary>
         /// Reads input from the REPL window.
         /// </summary>
         /// <returns>The entered input or null if cancelled.</returns>
-        string ReadStandardInput();
+        TextReader ReadStandardInput();
 
         /// <summary>
         /// Event triggered when the REPL is ready to accept input.
@@ -174,6 +165,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// <summary>
         /// True if there is currently an input being executed.
         /// </summary>
+        /// 
+        /// <remarks>
+        /// This value can only be reliably queried on the UI thread, otherwise the value
+        /// is transient.
+        /// </remarks>
         bool IsRunning
         {
             get;
@@ -182,7 +178,25 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// <summary>
         /// True if the interactive evaluator is currently resetting.
         /// </summary>
+        /// 
+        /// <remarks>
+        /// This value can only be reliably queried on the UI thread, otherwise the value
+        /// is transient.
+        /// </remarks>
         bool IsResetting
+        {
+            get;
+        }
+
+        /// <summary>
+        /// True if the interactive evaluator is currently resetting.
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// This value can only be reliably queried on the UI thread, otherwise the value
+        /// is transient.
+        /// </remarks>
+        bool IsInitializing
         {
             get;
         }
@@ -192,7 +206,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// 
         /// The input is not executed.
         /// </summary>
-        void AddLogicalInput(string input);
+        void AddInput(string input);
 
         IInteractiveWindowOperations Operations
         {

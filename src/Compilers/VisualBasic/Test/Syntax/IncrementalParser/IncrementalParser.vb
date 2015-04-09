@@ -14,7 +14,7 @@ Imports Roslyn.Test.Utilities
 
 Public Class IncrementalParser
 
-    Dim s As String = <![CDATA[
+    Private _s As String = <![CDATA[
 '-----------------------
 '
 '  Copyright (c)
@@ -75,7 +75,7 @@ End Module]]>.Value
 
     <Fact>
     Public Sub FakeEdits()
-        Dim text As SourceText = SourceText.From(s)
+        Dim text As SourceText = SourceText.From(_s)
         Dim tree As SyntaxTree = Nothing
         Dim root As SyntaxNode = Nothing
         tree = VisualBasicSyntaxTree.ParseText(text)
@@ -104,9 +104,9 @@ End Module]]>.Value
 
         Assert.Equal(False, tree.GetRoot().ContainsDiagnostics)
 
-        For i As Integer = 0 To s.Length - 1
+        For i As Integer = 0 To _s.Length - 1
             ' add next character in file 's' to text
-            Dim newText = text.WithChanges(New TextChange(New TextSpan(text.Length, 0), s.Substring(i, 1)))
+            Dim newText = text.WithChanges(New TextChange(New TextSpan(text.Length, 0), _s.Substring(i, 1)))
             Dim newTree = tree.WithChangedText(newText)
             Dim tmpTree = VisualBasicSyntaxTree.ParseText(newText)
 
@@ -118,11 +118,11 @@ End Module]]>.Value
 
     <Fact>
     Public Sub Preprocessor()
-        Dim oldText = SourceText.From(s)
+        Dim oldText = SourceText.From(_s)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
         ' commenting out the #const
-        Dim pos = s.IndexOf("#const", StringComparison.Ordinal)
+        Dim pos = _s.IndexOf("#const", StringComparison.Ordinal)
         Dim newText = oldText.WithChanges(New TextChange(New TextSpan(pos, 0), "'"))
         Dim newTree = oldTree.WithChangedText(newText)
         Dim tmpTree = VisualBasicSyntaxTree.ParseText(newText)
@@ -1667,9 +1667,9 @@ End Class
         Dim extractGreenClassC As Func(Of SyntaxTree, Syntax.InternalSyntax.VisualBasicSyntaxNode) =
             Function(tree) DirectCast(tree.GetRoot().DescendantNodes().First(Function(n) n.IsKind(SyntaxKind.ClassStatement)), VisualBasicSyntaxNode).VbGreen
 
-                ''''''''''
-                ' Check reuse after a trivial change in an unannotated tree.
-                ''''''''''
+        ''''''''''
+        ' Check reuse after a trivial change in an unannotated tree.
+        ''''''''''
         Dim oldTree1 = VisualBasicSyntaxTree.ParseText(text)
         Dim newTree1 = oldTree1.WithInsertAt(text.Length, " ")
 

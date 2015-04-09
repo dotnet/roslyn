@@ -644,6 +644,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             CloseDocumentCore(documentId);
         }
 
+        public bool TryGetInfoBarData(DocumentId documentId, out IVsWindowFrame frame, out IVsInfoBarUIFactory factory)
+        {
+            if (documentId == null)
+            {
+                frame = null;
+                factory = null;
+                return false;
+            }
+
+            var document = this.GetHostDocument(documentId);
+            if (TryGetFrame(document, out frame))
+            {
+                factory = ServiceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
+                return frame != null && factory != null;
+            }
+
+            frame = null;
+            factory = null;
+            return false;
+        }
+
         public void OpenDocumentCore(DocumentId documentId, bool activate = true)
         {
             if (documentId == null)
@@ -778,7 +799,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal override void SetDocumentContext(DocumentId documentId)
         {
             var hostDocument = GetHostDocument(documentId);
-            var hierarchy = hostDocument.Project.Hierarchy;
             var itemId = hostDocument.GetItemId();
             if (itemId == (uint)VSConstants.VSITEMID.Nil)
             {
@@ -786,13 +806,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
+            var hierarchy = hostDocument.Project.Hierarchy;
             var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
             if (sharedHierarchy != null)
             {
-                // Universal Project shared files
-                //     Change the SharedItemContextHierarchy of the project's parent hierarchy, then
-                //     hierarchy events will trigger the workspace to update.
-                var hr = sharedHierarchy.SetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID7.VSHPROPID_SharedItemContextHierarchy, hierarchy);
+                if (sharedHierarchy.SetProperty(
+                        (uint)VSConstants.VSITEMID.Root,
+                        (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext,
+                        ProjectTracker.GetProject(documentId.ProjectId).ProjectSystemName) == VSConstants.S_OK)
+                {
+                    // The ASP.NET 5 intellisense project is now updated.
+                    return;
+                }
+                else
+                {
+                    // Universal Project shared files
+                    //     Change the SharedItemContextHierarchy of the project's parent hierarchy, then
+                    //     hierarchy events will trigger the workspace to update.
+                    var hr = sharedHierarchy.SetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID7.VSHPROPID_SharedItemContextHierarchy, hierarchy);
+                }
             }
             else
             {
@@ -804,7 +836,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal void UpdateContextHierarchyIfContainsDocument(IVsHierarchy sharedHierarchy, DocumentId documentId)
+        internal void UpdateDocumentContextIfContainsDocument(IVsHierarchy sharedHierarchy, DocumentId documentId)
         {
             // TODO: This is a very roundabout way to update the context
 
@@ -815,17 +847,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // find that one, we can map back to the open buffer and set its active context to
             // the appropriate project.
 
-            var contextHierarchy = LinkedFileUtilities.GetSharedItemContextHierarchy(sharedHierarchy);
-
-            // TODO: linear search
-            var matchingProject = CurrentSolution.Projects.FirstOrDefault(p => GetHostProject(p.Id).Hierarchy == contextHierarchy);
-            if (matchingProject == null)
+            var hostProject = LinkedFileUtilities.GetContextHostProject(sharedHierarchy, ProjectTracker);
+            if (hostProject.Hierarchy == sharedHierarchy)
             {
                 // How?
                 return;
             }
 
-            if (!matchingProject.ContainsDocument(documentId))
+            if (hostProject.Id != documentId.ProjectId)
             {
                 // While this documentId is associated with one of the head projects for this
                 // sharedHierarchy, it is not associated with the new context hierarchy. Another
@@ -873,9 +902,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // This is a closed shared document, so we must determine the correct context.
-            var contextHierarchy = LinkedFileUtilities.GetSharedItemContextHierarchy(sharedHierarchy);
-            var matchingProject = CurrentSolution.Projects.FirstOrDefault(p => GetHostProject(p.Id).Hierarchy == contextHierarchy);
-            if (matchingProject == null)
+            var hostProject = LinkedFileUtilities.GetContextHostProject(sharedHierarchy, ProjectTracker);
+            var matchingProject = CurrentSolution.GetProject(hostProject.Id);
+            if (matchingProject == null || hostProject.Hierarchy == sharedHierarchy)
             {
                 return base.GetDocumentIdInCurrentContext(documentId);
             }
@@ -1069,7 +1098,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
-
                 if (sharedHierarchy != null)
                 {
                     uint cookie;
@@ -1086,8 +1114,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private void UnsubscribeFromSharedHierarchyEvents(DocumentId documentId)
             {
                 var hostDocument = _workspace.GetHostDocument(documentId);
-                var hierarchy = hostDocument.Project.Hierarchy;
-
                 var itemId = hostDocument.GetItemId();
                 if (itemId == (uint)VSConstants.VSITEMID.Nil)
                 {
@@ -1095,8 +1121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
-                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
-
+                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hostDocument.Project.Hierarchy, itemId);
                 if (sharedHierarchy != null)
                 {
                     uint cookie;

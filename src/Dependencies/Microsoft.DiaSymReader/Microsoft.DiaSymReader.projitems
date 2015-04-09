@@ -9,8 +9,11 @@
     <Import_RootNamespace>Microsoft.DiaSymReader</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)SymUnmanagedSearchPolicy.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ISymEncUnmanagedMethod.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ISymUnmanagedAsyncMethod.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ISymUnmanagedBinder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ISymUnmanagedBinder2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ISymUnmanagedConstant.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ISymUnmanagedDispose.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ISymUnmanagedDocument.cs" />

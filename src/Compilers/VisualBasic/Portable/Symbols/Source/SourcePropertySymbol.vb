@@ -18,34 +18,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits PropertySymbol
         Implements IAttributeTargetSymbol
 
-        Private ReadOnly m_containingType As SourceMemberContainerTypeSymbol
-        Private ReadOnly m_name As String
-        Private m_lazyMetadataName As String
-        Private ReadOnly m_syntaxRef As SyntaxReference
-        Private ReadOnly m_blockRef As SyntaxReference
-        Private ReadOnly m_location As Location
-        Private ReadOnly m_flags As SourceMemberFlags
-        Private m_lazyType As TypeSymbol
-        Private m_lazyParameters As ImmutableArray(Of ParameterSymbol)
-        Private m_getMethod As MethodSymbol
-        Private m_setMethod As MethodSymbol
-        Private m_backingField As FieldSymbol
-        Private m_lazyDocComment As String
-        Private m_lazyMeParameter As ParameterSymbol
+        Private ReadOnly _containingType As SourceMemberContainerTypeSymbol
+        Private ReadOnly _name As String
+        Private _lazyMetadataName As String
+        Private ReadOnly _syntaxRef As SyntaxReference
+        Private ReadOnly _blockRef As SyntaxReference
+        Private ReadOnly _location As Location
+        Private ReadOnly _flags As SourceMemberFlags
+        Private _lazyType As TypeSymbol
+        Private _lazyParameters As ImmutableArray(Of ParameterSymbol)
+        Private _getMethod As MethodSymbol
+        Private _setMethod As MethodSymbol
+        Private _backingField As FieldSymbol
+        Private _lazyDocComment As String
+        Private _lazyMeParameter As ParameterSymbol
 
         ' Attributes on property. Set once after construction. IsNull means not set. 
-        Private m_lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
+        Private _lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
 
         ' Attributes on return type of the property. Set once after construction. IsNull means not set. 
-        Private m_lazyReturnTypeCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
+        Private _lazyReturnTypeCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
 
         ' The explicitly implemented interface properties, or Empty if none.
-        Private m_lazyImplementedProperties As ImmutableArray(Of PropertySymbol)
+        Private _lazyImplementedProperties As ImmutableArray(Of PropertySymbol)
 
         ' The overridden or hidden property.
-        Private m_lazyOverriddenProperties As OverriddenMembersResult(Of PropertySymbol)
+        Private _lazyOverriddenProperties As OverriddenMembersResult(Of PropertySymbol)
 
-        Private m_lazyState As Integer
+        Private _lazyState As Integer
 
         <Flags>
         Private Enum StateFlags As Integer
@@ -63,13 +63,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(syntaxRef IsNot Nothing)
             Debug.Assert(location IsNot Nothing)
 
-            m_containingType = container
-            m_name = name
-            m_syntaxRef = syntaxRef
-            m_blockRef = blockRef
-            m_location = location
-            m_flags = flags
-            m_lazyState = 0
+            _containingType = container
+            _name = name
+            _syntaxRef = syntaxRef
+            _blockRef = blockRef
+            _location = location
+            _flags = flags
+            _lazyState = 0
         End Sub
 
         Friend Shared Function Create(containingType As SourceMemberContainerTypeSymbol,
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ElseIf prop.IsOverridable AndAlso
                         ((getMethod.LocalAccessibility = Accessibility.Private) OrElse (setMethod.LocalAccessibility = Accessibility.Private)) Then
                         ' If either accessor is Private, property cannot be Overridable.
-                        bodyBinder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadPropertyAccessorFlags3, diagnostics, OverridableModifierKinds)
+                        bodyBinder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadPropertyAccessorFlags3, diagnostics, s_overridableModifierKinds)
                     End If
                 End If
 
@@ -184,38 +184,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
 
-                    Dim fieldName = "_" + prop.m_name
-                    prop.m_backingField = New SynthesizedPropertyBackingFieldSymbol(prop, fieldName, isShared:=prop.IsShared)
+                    Dim fieldName = "_" + prop._name
+                    prop._backingField = New SynthesizedPropertyBackingFieldSymbol(prop, fieldName, isShared:=prop.IsShared)
                 End If
 
-                Dim flags = prop.m_flags And Not SourceMemberFlags.MethodKindMask
+                Dim flags = prop._flags And Not SourceMemberFlags.MethodKindMask
 
                 ' Generate accessors for auto property or abstract property.
                 If Not isWriteOnly Then
-                    prop.m_getMethod = New SourcePropertyAccessorSymbol(
+                    prop._getMethod = New SourcePropertyAccessorSymbol(
                         prop,
                         Binder.GetAccessorName(prop.Name, MethodKind.PropertyGet, isWinMd:=False),
                         flags Or SourceMemberFlags.MethodKindPropertyGet,
-                        prop.m_syntaxRef,
+                        prop._syntaxRef,
                         prop.Locations)
                 End If
 
                 If Not isReadOnly Then
-                    prop.m_setMethod = New SourcePropertyAccessorSymbol(
+                    prop._setMethod = New SourcePropertyAccessorSymbol(
                         prop,
                         Binder.GetAccessorName(prop.Name, MethodKind.PropertySet,
                                                isWinMd:=prop.IsCompilationOutputWinMdObj()),
                         flags Or SourceMemberFlags.MethodKindPropertySet Or SourceMemberFlags.MethodIsSub,
-                        prop.m_syntaxRef,
+                        prop._syntaxRef,
                         prop.Locations)
                 End If
             Else
-                prop.m_getMethod = getMethod
-                prop.m_setMethod = setMethod
+                prop._getMethod = getMethod
+                prop._setMethod = setMethod
             End If
 
-            Debug.Assert((prop.m_getMethod Is Nothing) OrElse prop.m_getMethod.ImplicitlyDefinedBy Is prop)
-            Debug.Assert((prop.m_setMethod Is Nothing) OrElse prop.m_setMethod.ImplicitlyDefinedBy Is prop)
+            Debug.Assert((prop._getMethod Is Nothing) OrElse prop._getMethod.ImplicitlyDefinedBy Is prop)
+            Debug.Assert((prop._setMethod Is Nothing) OrElse prop._setMethod.ImplicitlyDefinedBy Is prop)
 
             Return prop
         End Function
@@ -257,25 +257,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                 location)
 
             ' no implements.
-            prop.m_lazyImplementedProperties = ImmutableArray(Of PropertySymbol).Empty
+            prop._lazyImplementedProperties = ImmutableArray(Of PropertySymbol).Empty
             prop.SetCustomAttributeData(CustomAttributesBag(Of VisualBasicAttributeData).Empty)
 
-            Dim fieldName = "_" + prop.m_name
-            prop.m_backingField = New SourceWithEventsBackingFieldSymbol(prop, syntaxRef, fieldName)
+            Dim fieldName = "_" + prop._name
+            prop._backingField = New SourceWithEventsBackingFieldSymbol(prop, syntaxRef, fieldName)
 
             ' Generate synthesized accessors for auto property or abstract property.
-            prop.m_getMethod = New SynthesizedWithEventsGetAccessorSymbol(
+            prop._getMethod = New SynthesizedWithEventsGetAccessorSymbol(
                     containingType,
                     prop)
 
-            prop.m_setMethod = New SynthesizedWithEventsSetAccessorSymbol(
+            prop._setMethod = New SynthesizedWithEventsSetAccessorSymbol(
                 containingType,
                 prop,
                 bodyBinder.GetSpecialType(SpecialType.System_Void, identifier, diagnostics),
                 valueParameterName:=StringConstants.WithEventsValueParameterName)
 
-            Debug.Assert((prop.m_getMethod Is Nothing) OrElse prop.m_getMethod.ImplicitlyDefinedBy Is prop)
-            Debug.Assert((prop.m_setMethod Is Nothing) OrElse prop.m_setMethod.ImplicitlyDefinedBy Is prop)
+            Debug.Assert((prop._getMethod Is Nothing) OrElse prop._getMethod.ImplicitlyDefinedBy Is prop)
+            Debug.Assert((prop._setMethod Is Nothing) OrElse prop._setMethod.ImplicitlyDefinedBy Is prop)
 
             Return prop
         End Function
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property DeclarationSyntax As DeclarationStatementSyntax
             Get
-                Dim syntax = m_syntaxRef.GetVisualBasicSyntax()
+                Dim syntax = _syntaxRef.GetVisualBasicSyntax()
                 If syntax.Kind = SyntaxKind.PropertyStatement Then
                     Return DirectCast(syntax, PropertyStatementSyntax)
                 Else
@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
                 EnsureSignature()
-                Return m_lazyType
+                Return _lazyType
             End Get
         End Property
 
@@ -321,16 +321,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim binder = CreateBinderForTypeDeclaration()
 
             If IsWithEvents Then
-                Dim syntax = DirectCast(m_syntaxRef.GetSyntax(), ModifiedIdentifierSyntax)
+                Dim syntax = DirectCast(_syntaxRef.GetSyntax(), ModifiedIdentifierSyntax)
                 Return SourceMemberFieldSymbol.ComputeWithEventsFieldType(
                     Me,
                     syntax,
                     binder,
-                    ignoreTypeSyntaxDiagnostics:=(m_flags And SourceMemberFlags.FirstFieldDeclarationOfType) = 0,
+                    ignoreTypeSyntaxDiagnostics:=(_flags And SourceMemberFlags.FirstFieldDeclarationOfType) = 0,
                     diagnostics:=diagnostics)
 
             Else
-                Dim syntax = DirectCast(m_syntaxRef.GetSyntax(), PropertyStatementSyntax)
+                Dim syntax = DirectCast(_syntaxRef.GetSyntax(), PropertyStatementSyntax)
                 Dim asClause = syntax.AsClause
 
                 If asClause IsNot Nothing AndAlso
@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Else
                     Dim getErrorInfo As Func(Of DiagnosticInfo) = Nothing
 
-                    Dim omitFurtherDiagnostics As Boolean = String.IsNullOrEmpty(m_name)
+                    Dim omitFurtherDiagnostics As Boolean = String.IsNullOrEmpty(_name)
                     If Not omitFurtherDiagnostics Then
                         If binder.OptionStrict = OptionStrict.On Then
                             getErrorInfo = ErrorFactory.GetErrorInfo_ERR_StrictDisallowsImplicitProc
@@ -385,58 +385,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_name
+                Return _name
             End Get
         End Property
 
         Public Overrides ReadOnly Property MetadataName As String
             Get
-                If m_lazyMetadataName Is Nothing Then
-                    OverloadingHelper.SetMetadataNameForAllOverloads(m_name, SymbolKind.Property, m_containingType)
-                    Debug.Assert(m_lazyMetadataName IsNot Nothing)
+                If _lazyMetadataName Is Nothing Then
+                    OverloadingHelper.SetMetadataNameForAllOverloads(_name, SymbolKind.Property, _containingType)
+                    Debug.Assert(_lazyMetadataName IsNot Nothing)
                 End If
 
-                Return m_lazyMetadataName
+                Return _lazyMetadataName
             End Get
         End Property
 
         Friend Overrides Sub SetMetadataName(metadataName As String)
-            Dim old = Interlocked.CompareExchange(m_lazyMetadataName, metadataName, Nothing)
+            Dim old = Interlocked.CompareExchange(_lazyMetadataName, metadataName, Nothing)
             Debug.Assert(old Is Nothing OrElse old = metadataName)
         End Sub
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return m_containingType
+                Return _containingType
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol
             Get
-                Return m_containingType
+                Return _containingType
             End Get
         End Property
 
         Public ReadOnly Property ContainingSourceType As SourceMemberContainerTypeSymbol
             Get
-                Return m_containingType
+                Return _containingType
             End Get
         End Property
 
         Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
             ' WARNING: this should not allocate memory!
-            Return New LexicalSortKey(m_location, Me.DeclaringCompilation)
+            Return New LexicalSortKey(_location, Me.DeclaringCompilation)
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return ImmutableArray.Create(m_location)
+                Return ImmutableArray.Create(_location)
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return GetDeclaringSyntaxReferenceHelper(m_syntaxRef)
+                Return GetDeclaringSyntaxReferenceHelper(_syntaxRef)
             End Get
         End Property
 
@@ -445,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return propertyStatementSyntax IsNot Nothing AndAlso IsDefinedInSourceTree(propertyStatementSyntax.Parent, tree, definedWithinSpan, cancellationToken)
         End Function
 
-        ReadOnly Property DefaultAttributeLocation As AttributeLocation Implements IAttributeTargetSymbol.DefaultAttributeLocation
+        Public ReadOnly Property DefaultAttributeLocation As AttributeLocation Implements IAttributeTargetSymbol.DefaultAttributeLocation
             Get
                 Return AttributeLocation.Property
             End Get
@@ -456,7 +456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Nothing
             End If
 
-            Return OneOrMany.Create(DirectCast(m_syntaxRef.GetSyntax, PropertyStatementSyntax).AttributeLists)
+            Return OneOrMany.Create(DirectCast(_syntaxRef.GetSyntax, PropertyStatementSyntax).AttributeLists)
         End Function
 
         Private Function GetReturnTypeAttributeDeclarations() As OneOrMany(Of SyntaxList(Of AttributeListSyntax))
@@ -473,17 +473,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Function GetAttributesBag() As CustomAttributesBag(Of VisualBasicAttributeData)
-            If m_lazyCustomAttributesBag Is Nothing OrElse Not m_lazyCustomAttributesBag.IsSealed Then
-                LoadAndValidateAttributes(Me.GetAttributeDeclarations(), m_lazyCustomAttributesBag)
+            If _lazyCustomAttributesBag Is Nothing OrElse Not _lazyCustomAttributesBag.IsSealed Then
+                LoadAndValidateAttributes(Me.GetAttributeDeclarations(), _lazyCustomAttributesBag)
             End If
-            Return m_lazyCustomAttributesBag
+            Return _lazyCustomAttributesBag
         End Function
 
         Friend Function GetReturnTypeAttributesBag() As CustomAttributesBag(Of VisualBasicAttributeData)
-            If m_lazyReturnTypeCustomAttributesBag Is Nothing OrElse Not m_lazyReturnTypeCustomAttributesBag.IsSealed Then
-                LoadAndValidateAttributes(GetReturnTypeAttributeDeclarations(), m_lazyReturnTypeCustomAttributesBag, symbolPart:=AttributeLocation.Return)
+            If _lazyReturnTypeCustomAttributesBag Is Nothing OrElse Not _lazyReturnTypeCustomAttributesBag.IsSealed Then
+                LoadAndValidateAttributes(GetReturnTypeAttributeDeclarations(), _lazyReturnTypeCustomAttributesBag, symbolPart:=AttributeLocation.Return)
             End If
-            Return m_lazyReturnTypeCustomAttributesBag
+            Return _lazyReturnTypeCustomAttributesBag
         End Function
 
         ''' <summary>
@@ -499,7 +499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function GetDecodedWellKnownAttributeData() As CommonPropertyWellKnownAttributeData
-            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me.m_lazyCustomAttributesBag
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyCustomAttributesBag
             If attributesBag Is Nothing OrElse Not attributesBag.IsDecodedWellKnownAttributeDataComputed Then
                 attributesBag = Me.GetAttributesBag()
             End If
@@ -508,7 +508,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function GetDecodedReturnTypeWellKnownAttributeData() As CommonReturnTypeWellKnownAttributeData
-            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me.m_lazyReturnTypeCustomAttributesBag
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyReturnTypeCustomAttributesBag
             If attributesBag Is Nothing OrElse Not attributesBag.IsDecodedWellKnownAttributeDataComputed Then
                 attributesBag = Me.GetReturnTypeAttributesBag()
             End If
@@ -542,8 +542,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' write-only property doesn't accept any return type attributes other than MarshalAs
                 ' MarshalAs is applied on the "Value" parameter of the setter if the property has no parameters and the containing type is an interface .
-                If m_getMethod Is Nothing AndAlso m_setMethod IsNot Nothing AndAlso
-                    (Not isMarshalAs OrElse Not SynthesizedParameterSymbol.IsMarshalAsAttributeApplicable(m_setMethod)) Then
+                If _getMethod Is Nothing AndAlso _setMethod IsNot Nothing AndAlso
+                    (Not isMarshalAs OrElse Not SynthesizedParameterSymbol.IsMarshalAsAttributeApplicable(_setMethod)) Then
 
                     arguments.Diagnostics.Add(ERRID.WRN_ReturnTypeAttributeOnWriteOnlyProperty, arguments.AttributeSyntaxOpt.GetLocation())
                     Return
@@ -561,8 +561,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return
                 ElseIf Not IsWithEvents AndAlso attrData.IsTargetAttribute(Me, AttributeDescription.DebuggerHiddenAttribute) Then
                     ' if neither getter or setter is marked by DebuggerHidden Dev11 reports a warning
-                    If Not (m_getMethod IsNot Nothing AndAlso DirectCast(m_getMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute OrElse
-                            m_setMethod IsNot Nothing AndAlso DirectCast(m_setMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute) Then
+                    If Not (_getMethod IsNot Nothing AndAlso DirectCast(_getMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute OrElse
+                            _setMethod IsNot Nothing AndAlso DirectCast(_setMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute) Then
                         arguments.Diagnostics.Add(ERRID.WRN_DebuggerHiddenIgnoredOnProperties, arguments.AttributeSyntaxOpt.GetLocation())
                     End If
                     Return
@@ -588,99 +588,99 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsMustOverride As Boolean
             Get
-                Return (m_flags And SourceMemberFlags.MustOverride) <> 0
+                Return (_flags And SourceMemberFlags.MustOverride) <> 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsNotOverridable As Boolean
             Get
-                Return (m_flags And SourceMemberFlags.NotOverridable) <> 0
+                Return (_flags And SourceMemberFlags.NotOverridable) <> 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
-                Return (m_flags And SourceMemberFlags.Overridable) <> 0
+                Return (_flags And SourceMemberFlags.Overridable) <> 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverrides As Boolean
             Get
-                Return (m_flags And SourceMemberFlags.Overrides) <> 0
+                Return (_flags And SourceMemberFlags.Overrides) <> 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
-                Return (m_flags And SourceMemberFlags.Shared) <> 0
+                Return (_flags And SourceMemberFlags.Shared) <> 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsDefault As Boolean
             Get
-                Return (m_flags And SourceMemberFlags.Default) <> 0
+                Return (_flags And SourceMemberFlags.Default) <> 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsWriteOnly As Boolean
             Get
-                Return (m_flags And SourceMemberFlags.WriteOnly) <> 0
+                Return (_flags And SourceMemberFlags.WriteOnly) <> 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsReadOnly As Boolean
             Get
-                Return (m_flags And SourceMemberFlags.ReadOnly) <> 0
+                Return (_flags And SourceMemberFlags.ReadOnly) <> 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property GetMethod As MethodSymbol
             Get
-                Return m_getMethod
+                Return _getMethod
             End Get
         End Property
 
         Public Overrides ReadOnly Property SetMethod As MethodSymbol
             Get
-                Return m_setMethod
+                Return _setMethod
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverloads As Boolean
             Get
-                If (m_flags And SourceMemberFlags.Shadows) <> 0 Then
+                If (_flags And SourceMemberFlags.Shadows) <> 0 Then
                     Return False
-                ElseIf (m_flags And SourceMemberFlags.Overloads) <> 0 Then
+                ElseIf (_flags And SourceMemberFlags.Overloads) <> 0 Then
                     Return True
                 Else
-                    Return (m_flags And SourceMemberFlags.Overrides) <> 0
+                    Return (_flags And SourceMemberFlags.Overrides) <> 0
                 End If
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsWithEvents As Boolean
             Get
-                Return (m_flags And SourceMemberFlags.WithEvents) <> 0
+                Return (_flags And SourceMemberFlags.WithEvents) <> 0
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ShadowsExplicitly As Boolean
             Get
-                Return (m_flags And SourceMemberFlags.Shadows) <> 0
+                Return (_flags And SourceMemberFlags.Shadows) <> 0
             End Get
         End Property
 
         ''' <summary> True if 'Overloads' is explicitly specified in method's declaration </summary>
         Friend ReadOnly Property OverloadsExplicitly As Boolean
             Get
-                Return (m_flags And SourceMemberFlags.Overloads) <> 0
+                Return (_flags And SourceMemberFlags.Overloads) <> 0
             End Get
         End Property
 
         ''' <summary> True if 'Overrides' is explicitly specified in method's declaration </summary>
         Friend ReadOnly Property OverridesExplicitly As Boolean
             Get
-                Return (m_flags And SourceMemberFlags.Overrides) <> 0
+                Return (_flags And SourceMemberFlags.Overrides) <> 0
             End Get
         End Property
 
@@ -693,12 +693,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
                 EnsureSignature()
-                Return m_lazyParameters
+                Return _lazyParameters
             End Get
         End Property
 
         Private Sub EnsureSignature()
-            If m_lazyParameters.IsDefault Then
+            If _lazyParameters.IsDefault Then
                 Dim diagnostics = DiagnosticBag.GetInstance()
                 Dim sourceModule = DirectCast(ContainingModule, SourceModuleSymbol)
 
@@ -726,7 +726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Next
 
                     overriddenMembers = OverrideHidingHelper(Of PropertySymbol).
-                        MakeOverriddenMembers(New SignatureOnlyPropertySymbol(Me.Name, m_containingType,
+                        MakeOverriddenMembers(New SignatureOnlyPropertySymbol(Me.Name, _containingType,
                                                                             Me.IsReadOnly, Me.IsWriteOnly,
                                                                             fakeParamsBuilder.ToImmutableAndFree(),
                                                                             retType,
@@ -753,12 +753,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' Unlike PropertySymbol, in SourcePropertySymbol we cache the result of MakeOverriddenOfHiddenMembers, because we use
                 ' it heavily while validating methods and emitting.
-                Interlocked.CompareExchange(m_lazyOverriddenProperties, overriddenMembers, Nothing)
+                Interlocked.CompareExchange(_lazyOverriddenProperties, overriddenMembers, Nothing)
 
-                Interlocked.CompareExchange(m_lazyType, retType, Nothing)
+                Interlocked.CompareExchange(_lazyType, retType, Nothing)
 
                 sourceModule.AtomicStoreArrayAndDiagnostics(
-                    m_lazyParameters,
+                    _lazyParameters,
                     params,
                     diagnostics,
                     CompilationStage.Declare)
@@ -769,8 +769,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ParameterCount As Integer
             Get
-                If Not Me.m_lazyParameters.IsDefault Then
-                    Return Me.m_lazyParameters.Length
+                If Not Me._lazyParameters.IsDefault Then
+                    Return Me._lazyParameters.Length
                 End If
 
                 Dim decl = Me.DeclarationSyntax
@@ -792,13 +792,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim binder = CreateBinderForTypeDeclaration()
-            Dim syntax = DirectCast(m_syntaxRef.GetSyntax(), PropertyStatementSyntax)
+            Dim syntax = DirectCast(_syntaxRef.GetSyntax(), PropertyStatementSyntax)
             Dim parameters = binder.DecodePropertyParameterList(Me, syntax.ParameterList, diagnostics)
 
             If IsDefault Then
                 ' Default properties must have required parameters.
                 If Not HasRequiredParameters(parameters) Then
-                    diagnostics.Add(ERRID.ERR_DefaultPropertyWithNoParams, m_location)
+                    diagnostics.Add(ERRID.ERR_DefaultPropertyWithNoParams, _location)
                 End If
 
                 ' 'touch' System_Reflection_DefaultMemberAttribute__ctor to make sure all diagnostics are reported
@@ -815,35 +815,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If IsShared Then
                     Return Nothing
                 Else
-                    If m_lazyMeParameter Is Nothing Then
-                        Interlocked.CompareExchange(Of ParameterSymbol)(m_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
+                    If _lazyMeParameter Is Nothing Then
+                        Interlocked.CompareExchange(Of ParameterSymbol)(_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
                     End If
 
-                    Return m_lazyMeParameter
+                    Return _lazyMeParameter
                 End If
             End Get
         End Property
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of PropertySymbol)
             Get
-                If m_lazyImplementedProperties.IsDefault Then
+                If _lazyImplementedProperties.IsDefault Then
                     Dim diagnostics = DiagnosticBag.GetInstance()
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-                    sourceModule.AtomicStoreArrayAndDiagnostics(m_lazyImplementedProperties,
+                    sourceModule.AtomicStoreArrayAndDiagnostics(_lazyImplementedProperties,
                                                                 ComputeExplicitInterfaceImplementations(diagnostics),
                                                                 diagnostics,
                                                                 CompilationStage.Declare)
                     diagnostics.Free()
                 End If
 
-                Return m_lazyImplementedProperties
+                Return _lazyImplementedProperties
             End Get
         End Property
 
         Private Function ComputeExplicitInterfaceImplementations(diagnostics As DiagnosticBag) As ImmutableArray(Of PropertySymbol)
             Dim binder = CreateBinderForTypeDeclaration()
-            Dim syntax = DirectCast(m_syntaxRef.GetSyntax(), PropertyStatementSyntax)
-            Return BindImplementsClause(m_containingType, binder, Me, syntax, diagnostics)
+            Dim syntax = DirectCast(_syntaxRef.GetSyntax(), PropertyStatementSyntax)
+            Return BindImplementsClause(_containingType, binder, Me, syntax, diagnostics)
         End Function
 
         ''' <summary>
@@ -875,7 +875,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property OverriddenMembers As OverriddenMembersResult(Of PropertySymbol)
             Get
                 EnsureSignature()
-                Return Me.m_lazyOverriddenProperties
+                Return Me._lazyOverriddenProperties
             End Get
         End Property
 
@@ -893,32 +893,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return CType((m_flags And SourceMemberFlags.AccessibilityMask), Accessibility)
+                Return CType((_flags And SourceMemberFlags.AccessibilityMask), Accessibility)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return m_containingType.AreMembersImplicitlyDeclared
+                Return _containingType.AreMembersImplicitlyDeclared
             End Get
         End Property
 
         Friend ReadOnly Property IsCustomProperty As Boolean
             Get
                 ' Auto and WithEvents properties have backing fields
-                Return m_backingField Is Nothing AndAlso Not IsMustOverride
+                Return _backingField Is Nothing AndAlso Not IsMustOverride
             End Get
         End Property
 
         Friend ReadOnly Property IsAutoProperty As Boolean
             Get
-                Return Not IsWithEvents AndAlso m_backingField IsNot Nothing
+                Return Not IsWithEvents AndAlso _backingField IsNot Nothing
             End Get
         End Property
 
         Friend Overrides ReadOnly Property AssociatedField As FieldSymbol
             Get
-                Return m_backingField
+                Return _backingField
             End Get
         End Property
 
@@ -928,32 +928,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property Syntax As VisualBasicSyntaxNode
             Get
-                Return If(m_syntaxRef IsNot Nothing, m_syntaxRef.GetVisualBasicSyntax(), Nothing)
+                Return If(_syntaxRef IsNot Nothing, _syntaxRef.GetVisualBasicSyntax(), Nothing)
             End Get
         End Property
 
         Friend ReadOnly Property SyntaxReference As SyntaxReference
             Get
-                Return Me.m_syntaxRef
+                Return Me._syntaxRef
             End Get
         End Property
 
         Friend ReadOnly Property BlockSyntaxReference As SyntaxReference
             Get
-                Return Me.m_blockRef
+                Return Me._blockRef
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 ' If there are no attributes then this symbol is not Obsolete.
-                If (Not Me.m_containingType.AnyMemberHasAttributes) Then
+                If (Not Me._containingType.AnyMemberHasAttributes) Then
                     Return Nothing
                 End If
 
-                Dim lazyCustomAttributesBag = Me.m_lazyCustomAttributesBag
+                Dim lazyCustomAttributesBag = Me._lazyCustomAttributesBag
                 If (lazyCustomAttributesBag IsNot Nothing AndAlso lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed) Then
-                    Dim data = DirectCast(m_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, CommonPropertyEarlyWellKnownAttributeData)
+                    Dim data = DirectCast(_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, CommonPropertyEarlyWellKnownAttributeData)
                     Return If(data IsNot Nothing, data.ObsoleteAttributeData, Nothing)
                 End If
 
@@ -965,13 +965,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function GetImplementingLocation(implementedProperty As PropertySymbol) As Location
             Debug.Assert(ExplicitInterfaceImplementations.Contains(implementedProperty))
 
-            Dim propertySyntax = TryCast(m_syntaxRef.GetSyntax(), PropertyStatementSyntax)
+            Dim propertySyntax = TryCast(_syntaxRef.GetSyntax(), PropertyStatementSyntax)
             If propertySyntax IsNot Nothing AndAlso propertySyntax.ImplementsClause IsNot Nothing Then
                 Dim binder = CreateBinderForTypeDeclaration()
                 Dim implementingSyntax = FindImplementingSyntax(Of PropertySymbol)(propertySyntax.ImplementsClause,
                                                                                  Me,
                                                                                  implementedProperty,
-                                                                                 m_containingType,
+                                                                                 _containingType,
                                                                                  binder)
                 Return implementingSyntax.GetLocation()
             End If
@@ -980,7 +980,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function CreateBinderForTypeDeclaration() As Binder
-            Dim binder = BinderBuilder.CreateBinderForType(DirectCast(ContainingModule, SourceModuleSymbol), m_syntaxRef.SyntaxTree, m_containingType)
+            Dim binder = BinderBuilder.CreateBinderForType(DirectCast(ContainingModule, SourceModuleSymbol), _syntaxRef.SyntaxTree, _containingType)
             Return New LocationSpecificBinder(BindingLocation.PropertySignature, Me, binder)
         End Function
 
@@ -1019,13 +1019,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            If m_lazyDocComment Is Nothing Then
+            If _lazyDocComment Is Nothing Then
                 ' NOTE: replace Nothing with empty comment
                 Interlocked.CompareExchange(
-                    m_lazyDocComment, GetDocumentationCommentForSymbol(Me, preferredCulture, expandIncludes, cancellationToken), Nothing)
+                    _lazyDocComment, GetDocumentationCommentForSymbol(Me, preferredCulture, expandIncludes, cancellationToken), Nothing)
             End If
 
-            Return m_lazyDocComment
+            Return _lazyDocComment
         End Function
 
         Private Sub CopyPropertyCustomModifiers(propertyWithCustomModifiers As PropertySymbol, ByRef type As TypeSymbol, ByRef typeCustomModifiers As ImmutableArray(Of CustomModifier))
@@ -1112,12 +1112,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return syntaxTree.GetLocation(block.BlockStatement.Span)
         End Function
 
-        Private Shared OverridableModifierKinds() As SyntaxKind =
+        Private Shared s_overridableModifierKinds() As SyntaxKind =
             {
                 SyntaxKind.OverridableKeyword
             }
 
-        Private Shared AccessibilityModifierKinds() As SyntaxKind =
+        Private Shared s_accessibilityModifierKinds() As SyntaxKind =
             {
                 SyntaxKind.PrivateKeyword,
                 SyntaxKind.ProtectedKeyword,
@@ -1132,7 +1132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                             syntax As AccessorBlockSyntax,
                                                             errorId As ERRID,
                                                             diagnostics As DiagnosticBag)
-            binder.ReportModifierError(syntax.BlockStatement.Modifiers, errorId, diagnostics, AccessibilityModifierKinds)
+            binder.ReportModifierError(syntax.BlockStatement.Modifiers, errorId, diagnostics, s_accessibilityModifierKinds)
         End Sub
 
         Private Shared Function HasRequiredParameters(parameters As ImmutableArray(Of ParameterSymbol)) As Boolean
@@ -1149,7 +1149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property SyntaxTree As SyntaxTree
             Get
-                Return m_syntaxRef.SyntaxTree
+                Return _syntaxRef.SyntaxTree
             End Get
         End Property
 
@@ -1157,9 +1157,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' and members are fully declared to avoid infinite recursion.
         Private Sub SetCustomAttributeData(attributeData As CustomAttributesBag(Of VisualBasicAttributeData))
             Debug.Assert(attributeData IsNot Nothing)
-            Debug.Assert(m_lazyCustomAttributesBag Is Nothing)
+            Debug.Assert(_lazyCustomAttributesBag Is Nothing)
 
-            m_lazyCustomAttributesBag = attributeData
+            _lazyCustomAttributesBag = attributeData
         End Sub
 
         Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
@@ -1172,7 +1172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim unusedImplementations = Me.ExplicitInterfaceImplementations
 
             If DeclaringCompilation.EventQueue IsNot Nothing Then
-                DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicSetFlagAndRaiseSymbolDeclaredEvent(m_lazyState, StateFlags.SymbolDeclaredEvent, 0, Me)
+                DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicSetFlagAndRaiseSymbolDeclaredEvent(_lazyState, StateFlags.SymbolDeclaredEvent, 0, Me)
             End If
         End Sub
 

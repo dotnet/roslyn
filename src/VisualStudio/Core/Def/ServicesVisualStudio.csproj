@@ -15,6 +15,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Build Items">
     <Compile Include="..\..\..\Compilers\Core\Desktop\IVsSQM.cs" />
@@ -23,15 +24,20 @@
     <Compile Include="Implementation\AnalyzerDependencyConflict.cs" />
     <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
+    <Compile Include="Implementation\Interop\IComWrapperFactory.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractSourceTreeItem.cs" />
-    <Compile Include="Implementation\Library\FindResults\TreeItems\ITreeItemWithReferenceCount.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\MetadataDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\SourceDefinitionTreeItem.cs" />
+    <Compile Include="Implementation\Log\VisualStudioErrorLogger.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.MetadataReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.cs" />
+    <Compile Include="Implementation\ProjectSystem\AbstractEncProject.cs" />
+    <Compile Include="Implementation\ProjectSystem\Interop\IAnalyzerDependencyHost.cs" />
     <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkingFolder.cs" />
+    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioAnalyzerServiceFactory.cs" />
+    <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionWorkingFoldersEvents.cs" />
     <Compile Include="Implementation\Diagnostics\MiscellaneousDiagnosticAnalyzerService.cs" />
     <Compile Include="Implementation\Extensions\VisualStudioWorkspaceImplExtensions.cs" />
@@ -40,6 +46,8 @@
     <Compile Include="Implementation\Options\ExportOptionSerializerAttribute.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\IVsUndoState.cs" />
     <Compile Include="Implementation\Serialization\AssemblySerializationInfoService.cs" />
+    <Compile Include="Implementation\SolutionSize\SolutionSizeTracker.cs" />
+    <Compile Include="Implementation\TableDataSource\AbstractTableDataSource.cs" />
     <Compile Include="Implementation\TableDataSource\MiscDiagnosticTableControlEventProcessorProvider.cs" />
     <Compile Include="Implementation\TableDataSource\MiscellaneousDiagnosticListTable.cs" />
     <Compile Include="Implementation\TableDataSource\MiscellaneousTodoListTable.cs" />
@@ -62,6 +70,8 @@
     <Compile Include="Implementation\Watson\WatsonErrorReport.cs" />
     <Compile Include="Implementation\Watson\WatsonReporter.cs" />
     <Compile Include="Implementation\Workspace\Esent\EsentLogger.cs" />
+    <Compile Include="Implementation\Workspace\VisualStudioErrorReportingServiceFactory.cs" />
+    <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.cs" />
     <Compile Include="SolutionEventMonitor.cs" />
     <Compile Include="Utilities\VSCodeAnalysisColors.cs" />
     <Compile Include="Implementation\WorkspaceCacheService.cs" />
@@ -73,41 +83,14 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
       <Link>Collections\PooledStringBuilder.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Helpers\InMemoryAssemblyProvider.cs">
+      <Link>InMemoryAssemblyProvider.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Test\PdbUtilities\Shared\DummyMetadataImport.cs">
       <Link>Shared\DummyMetadataImport.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Test\PdbUtilities\Shared\IMetadataImport.cs">
       <Link>Shared\IMetadataImport.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\ISymUnmanagedDocument.cs">
-      <Link>Shared\ISymUnmanagedDocument.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\ISymUnmanagedMethod.cs">
-      <Link>Shared\ISymUnmanagedMethod.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\ISymENCUnmanagedMethod.cs">
-      <Link>Shared\ISymENCUnmanagedMethod.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\ISymUnmanagedNamespace.cs">
-      <Link>Shared\ISymUnmanagedNamespace.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\ISymUnmanagedReader.cs">
-      <Link>Shared\ISymUnmanagedReader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\ISymUnmanagedReader2.cs">
-      <Link>Shared\ISymUnmanagedReader2.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\ISymUnmanagedScope.cs">
-      <Link>Shared\ISymUnmanagedScope.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\ISymUnmanagedScope2.cs">
-      <Link>Shared\ISymUnmanagedScope2.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\ISymUnmanagedVariable.cs">
-      <Link>Shared\ISymUnmanagedVariable.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\ISymUnmanagedConstant.cs">
-      <Link>Shared\ISymUnmanagedConstant.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
       <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
@@ -117,9 +100,6 @@
     </Compile>
     <Compile Include="..\..\..\Test\PdbUtilities\Shared\CustomDebugInfoReader.cs">
       <Link>Shared\CustomDebugInfoReader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\ISymUnmanagedAsyncMethod.cs">
-      <Link>Shared\ISymUnmanagedAsyncMethod.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -188,6 +168,7 @@
     </Reference>
     <Reference Include="..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
     <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll" />
     <Reference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll">
       <HintPath>$(DevEnvDir)\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll</HintPath>
     </Reference>
@@ -239,8 +220,6 @@
     <Reference Include="Microsoft.VisualStudio.Designer.Interfaces, Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Editor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.GraphModel, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Imaging, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.ImageCatalog, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Language.CallHierarchy, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
@@ -383,7 +362,7 @@
     <Compile Include="Implementation\ProjectSystem\RuleSets\VisualStudioRuleSetManager.RuleSetFile.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTable.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTableControlEventProcessorProvider.cs" />
-    <Compile Include="Implementation\TableDataSource\AbstractTableDataSource.cs" />
+    <Compile Include="Implementation\TableDataSource\AbstractRoslynTableDataSource.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTableEntriesFactory.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTableEntriesSnapshot.cs" />
     <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.cs" />
@@ -396,7 +375,6 @@
     <Compile Include="Implementation\InlineRename\InlineRenameUndoManager.cs" />
     <Compile Include="Implementation\Interop\ComAggregate.cs" />
     <Compile Include="Implementation\Interop\ComHandle.cs" />
-    <Compile Include="Implementation\Interop\IComWrapper.cs" />
     <Compile Include="Implementation\Interop\WeakComHandle.cs" />
     <Compile Include="Implementation\Interop\WrapperPolicy.cs" />
     <Compile Include="Implementation\LanguageService\AbstractLanguageService.cs" />
@@ -498,7 +476,7 @@
     <Compile Include="Implementation\ProjectSystem\AbstractEntryPointFinder.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject_IAnalyzerHost.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractProject_IVsENCRebuildableProjectCfg.cs" />
+    <Compile Include="Implementation\ProjectSystem\AbstractEncProject_IVsENCRebuildableProjectCfg.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject_IVsReportExternalErrors.cs" />
     <Compile Include="Implementation\ProjectSystem\ComEventSink.cs" />
     <Compile Include="Implementation\ProjectSystem\DocumentKey.cs" />
@@ -711,9 +689,6 @@
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.Factory.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="app.config" />
     <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>
