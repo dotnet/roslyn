@@ -786,9 +786,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var hierarchy = hostDocument.Project.Hierarchy;
-            var sharedHierarchy = hostDocument.SharedHierarchy;
-            Contract.Requires(LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId) == sharedHierarchy);
-
+            var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
             if (sharedHierarchy != null)
             {
                 if (sharedHierarchy.SetProperty(
@@ -876,9 +874,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // If this is a regular document or a closed linked (non-shared) document, then use the
             // default logic for determining current context.
-            var sharedHierarchy = hostDocument.SharedHierarchy;
-            Contract.Requires(sharedHierarchy == LinkedFileUtilities.GetSharedHierarchyForItem(hostDocument.Project.Hierarchy, itemId));
-
+            var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hostDocument.Project.Hierarchy, itemId);
             if (sharedHierarchy == null)
             {
                 return base.GetDocumentIdInCurrentContext(documentId);
@@ -1080,8 +1076,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
-                var sharedHierarchy = hostDocument.SharedHierarchy;
-                Contract.Requires(sharedHierarchy == LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId));
+                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
                 if (sharedHierarchy != null)
                 {
                     uint cookie;
@@ -1105,9 +1100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
-                var sharedHierarchy = hostDocument.SharedHierarchy;
-                Contract.Requires(sharedHierarchy == LinkedFileUtilities.GetSharedHierarchyForItem(hostDocument.Project.Hierarchy, itemId));
-
+                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hostDocument.Project.Hierarchy, itemId);
                 if (sharedHierarchy != null)
                 {
                     uint cookie;
