@@ -38,16 +38,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 Project project = document.Project;
                 VersionStamp projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-                DocumentId documentId = document.Id;
 
-                SemanticModel documentModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                Compilation compilation = documentModel.Compilation;
+                Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 CompilationResult compilationResult = GetCompilationResult(compilation, project, projectVersion, cancellationToken);
 
-                if (!compilationResult.DocumentAnalyzed(documentId) && !compilationResult.CompletionStarted)
+                if (!compilationResult.DocumentAnalyzed(document.Id) && !compilationResult.CompletionStarted)
                 {
-                    ImmutableArray<Diagnostic> diagnostics = await compilationResult.AnalyzeDocumentAsync(documentId, documentModel, cancellationToken).ConfigureAwait(false);
-                    RaiseEvents(project, diagnostics);
+                    ImmutableArray<Diagnostic> diagnostics = await compilationResult.AnalyzeDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                    RaiseEvents(project, document, diagnostics);
                 }
             }
         }
@@ -71,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             if (!compilationResult.CompletionStarted)
             {
                 ImmutableArray<Diagnostic> diagnostics = await compilationResult.AnalyzeProjectAsync(cancellationToken).ConfigureAwait(false);
-                RaiseEvents(project, diagnostics);
+                RaiseEvents(project, null, diagnostics);
                 Complete(project, compilationResult);
             }
         }
@@ -247,27 +245,46 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
         
-        private void RaiseEvents(Project project, ImmutableArray<Diagnostic> rawDiagnostics)
+        private void RaiseEvents(Project project, Document document, ImmutableArray<Diagnostic> rawDiagnostics)
         {
-            IEnumerable<DiagnosticData> diagnostics = GetDiagnosticData(project, rawDiagnostics);
-            var groups = diagnostics.GroupBy(d => d.DocumentId);
-
             Solution solution = project.Solution;
             Workspace workspace = solution.Workspace;
 
-            foreach (var kv in groups)
+            if (rawDiagnostics.Length > 0)
             {
-                if (kv.Key == null)
+                IEnumerable<DiagnosticData> diagnostics = GetDiagnosticData(project, rawDiagnostics);
+                var groups = diagnostics.GroupBy(d => d.DocumentId);
+
+                foreach (var kv in groups)
+                {
+                    if (kv.Key == null)
+                    {
+                        _owner.RaiseDiagnosticsUpdated(
+                            this, new DiagnosticsUpdatedArgs(
+                                ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, kv.ToImmutableArrayOrEmpty()));
+                    }
+                    else
+                    {
+                        _owner.RaiseDiagnosticsUpdated(
+                            this, new DiagnosticsUpdatedArgs(
+                                ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty()));
+                    }
+                }
+            }
+            else
+            {
+                // There are no diagnostics. Update the document or project with that information.
+                if (document != null)
                 {
                     _owner.RaiseDiagnosticsUpdated(
-                        this, new DiagnosticsUpdatedArgs(
-                            ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, kv.ToImmutableArrayOrEmpty()));
+                           this, new DiagnosticsUpdatedArgs(
+                               ValueTuple.Create(this, document.Id), workspace, solution, project.Id, document.Id, ImmutableArray<DiagnosticData>.Empty));
                 }
                 else
                 {
                     _owner.RaiseDiagnosticsUpdated(
-                        this, new DiagnosticsUpdatedArgs(
-                            ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty()));
+                            this, new DiagnosticsUpdatedArgs(
+                                ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, ImmutableArray<DiagnosticData>.Empty));
                 }
             }
         }
@@ -416,7 +433,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         {
                             _completionTask = Task.Run(async () =>
                             {
-                                diagnostics = await _compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false);
+                                diagnostics = await _compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
                                 DistributeDiagnostics(diagnostics);
 
                                 // Enable the compilation and project to be collected.
@@ -438,17 +455,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return diagnostics;
             }
 
-            public async Task<ImmutableArray<Diagnostic>> AnalyzeDocumentAsync(DocumentId documentId, SemanticModel documentModel, CancellationToken cancellationToken)
+            public async Task<ImmutableArray<Diagnostic>> AnalyzeDocumentAsync(Document document, CancellationToken cancellationToken)
             {
                 ImmutableArray<Diagnostic> diagnostics = ImmutableArray<Diagnostic>.Empty;
                 if (_compilationWithAnalyzers != null)
                 {
+                    DocumentId documentId = document.Id;
                     lock (_updateDiagnosticsLock)
                     {
                         if (!DocumentAnalyzed(documentId) && !CompletionStarted)
                         {
                             _analyzedDocuments[documentId] = Task.Run(async () =>
                             {
+                                SyntaxTree documentSyntax = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                                SemanticModel documentModel = _compilationWithAnalyzers.Compilation.GetSemanticModel(documentSyntax);
                                 diagnostics = await _compilationWithAnalyzers.GetAnalyzerDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
                                 DistributeDiagnostics(diagnostics);
                             }, cancellationToken);

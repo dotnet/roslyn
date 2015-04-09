@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Discard the returned diagnostics.
             _compilation.GetDiagnostics(_cancellationToken);
 
-            var analyzerDiagnostics = await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
+            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
             return analyzerDiagnostics.AddRange(_exceptionDiagnostics);
         }
 
@@ -84,7 +84,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Discard the returned diagnostics.
             model.GetDiagnostics(null, _cancellationToken);
 
-            return await _driver.GetPartialDiagnosticsAsync(documentTree, _cancellationToken).ConfigureAwait(false);
+            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetPartialDiagnosticsAsync(documentTree, _cancellationToken).ConfigureAwait(false);
+            return analyzerDiagnostics;
+        }
+
+        /// <summary>
+        /// Returns diagnostics produced compilation and by diagnostic analyzers from analyzing a single document.
+        /// <param name="model">Semantic model for the document.</param>
+        /// </summary>
+        public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsFromDocumentAsync(SemanticModel model)
+        {
+            SyntaxTree documentTree = model.SyntaxTree;
+            _analyzedSyntaxTrees = _analyzedSyntaxTrees.Add(documentTree);
+
+            // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
+            ImmutableArray<Diagnostic> compilerDiagnostics = model.GetDiagnostics(null, _cancellationToken);
+
+            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetPartialDiagnosticsAsync(documentTree, _cancellationToken).ConfigureAwait(false);
+            return compilerDiagnostics.AddRange(analyzerDiagnostics);
         }
 
         /// <summary>

@@ -634,7 +634,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor))
                     {
                         var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-                        allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
+                        if (analyzerActions != null)
+                        {
+                            allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
+                        }
                     }
                 }
 
