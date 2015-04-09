@@ -268,7 +268,7 @@ The encoding of the _PrimitiveValue_ and _EnumValue_ is determined based upon th
 | ```U8```      | uint64                     |
 | ```R4```      | float32                    |
 | ```R8```      | float64                    |
-| ```STRING```  | Either not present (represents a null string reference), or a single byte 0xff (represents an empty string), or a UTF-16 little-endian encoded string. | 
+| ```STRING```  | Either not present (represents an empty string), or a single byte 0xff (represents a null string reference), or a UTF-16 little-endian encoded string. | 
 
 The numeric values of the type codes are defined by ECMA-335 §II.23.1.16.
 
