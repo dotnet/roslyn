@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -227,11 +227,6 @@ public class C
         <entry offset=""0x50"" hidden=""true"" document=""0"" />
         <entry offset=""0x54"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""j"" il_index=""0"" il_start=""0x0"" il_end=""0x55"" attributes=""0"" />
-        <local name=""i"" il_index=""1"" il_start=""0x1"" il_end=""0x1a"" attributes=""0"" />
-        <local name=""i"" il_index=""4"" il_start=""0x1a"" il_end=""0x39"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x55"">
         <namespace name=""System"" />
         <local name=""j"" il_index=""0"" il_start=""0x0"" il_end=""0x55"" attributes=""0"" />
@@ -378,7 +373,6 @@ public class C
         <entry offset=""0x2b"" hidden=""true"" document=""0"" />
         <entry offset=""0x36"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>
@@ -399,7 +393,6 @@ public class C
         <entry offset=""0x24"" hidden=""true"" document=""0"" />
         <entry offset=""0x2e"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>
@@ -2243,7 +2236,6 @@ class C
         <entry offset=""0x23"" startLine=""10"" startColumn=""50"" endLine=""10"" endColumn=""56"" document=""0"" />
         <entry offset=""0x25"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -2357,7 +2349,6 @@ class C
         <entry offset=""0x12"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
         <entry offset=""0x13"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -2464,7 +2455,6 @@ class C
         <entry offset=""0x12"" hidden=""true"" document=""0"" />
         <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -2571,7 +2561,6 @@ class C
         <entry offset=""0x10"" hidden=""true"" document=""0"" />
         <entry offset=""0x13"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");

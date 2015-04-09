@@ -249,7 +249,6 @@ class C
         <entry offset=""0x34"" hidden=""true"" document=""1"" />
         <entry offset=""0x3b"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x3f"">
         <namespace name=""System.Collections.Generic"" />
       </scope>
@@ -1100,7 +1099,6 @@ class C
         <entry offset=""0x92"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
         <entry offset=""0x9a"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0xa8"">
         <namespace name=""System.Threading.Tasks"" />
       </scope>

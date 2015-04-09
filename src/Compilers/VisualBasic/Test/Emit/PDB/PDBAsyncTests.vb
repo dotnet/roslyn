@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -54,7 +54,6 @@ End Module
                 <forwardIterator name="VB$StateMachine_1_F"/>
             </customDebugInfo>
             <sequencePoints/>
-            <locals/>
         </method>
     </methods>
 </symbols>)
@@ -87,7 +86,6 @@ End Module
                 <entry offset="0xa8" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
                 <entry offset="0xb2" hidden="true" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xc0">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
@@ -107,7 +105,6 @@ End Module
                 <forwardIterator name="VB$StateMachine_2_Test"/>
             </customDebugInfo>
             <sequencePoints/>
-            <locals/>
         </method>
     </methods>
 </symbols>)
@@ -162,7 +159,6 @@ End Module
                 <entry offset="0x51c" startLine="24" startColumn="5" endLine="24" endColumn="17" document="0"/>
                 <entry offset="0x526" hidden="true" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x533">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
@@ -190,7 +186,6 @@ End Module
                 <forwardIterator name="VB$StateMachine_3_S"/>
             </customDebugInfo>
             <sequencePoints/>
-            <locals/>
         </method>
     </methods>
 </symbols>)
@@ -221,7 +216,6 @@ End Module
                 <entry offset="0xa3" startLine="28" startColumn="5" endLine="28" endColumn="12" document="0"/>
                 <entry offset="0xad" hidden="true" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xba">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
@@ -296,10 +290,6 @@ End Class
                 <entry offset="0x126" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
                 <entry offset="0x130" hidden="true" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x12" il_end="0x100" attributes="0"/>
-                <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x12" il_end="0x100" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x13d">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
                 <scope startOffset="0x12" endOffset="0x100">
@@ -365,9 +355,6 @@ End Class
                 <entry offset="0xf9" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
                 <entry offset="0x103" hidden="true" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0xa" il_end="0xd6" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10f">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
                 <scope startOffset="0xa" endOffset="0xd6">
@@ -440,10 +427,6 @@ End Class
                 <entry offset="0xe3" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
                 <entry offset="0xed" hidden="true" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0xf" il_end="0xbd" attributes="0"/>
-                <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0xf" il_end="0xbd" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xfa">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Threading.Tasks" importlevel="file"/>
@@ -508,10 +491,6 @@ End Class
                 <entry offset="0xcd" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
                 <entry offset="0xd7" hidden="true" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0xa" il_end="0xaa" attributes="0"/>
-                <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0xa" il_end="0xaa" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xe3">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Threading.Tasks" importlevel="file"/>
@@ -572,7 +551,6 @@ End Class
                 <entry offset="0x2f" startLine="7" startColumn="5" endLine="7" endColumn="17" document="0"/>
                 <entry offset="0x39" hidden="true" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x47">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Threading.Tasks" importlevel="file"/>

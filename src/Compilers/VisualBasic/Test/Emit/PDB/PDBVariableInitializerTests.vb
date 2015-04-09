@@ -68,7 +68,6 @@ End Class
                     <entry offset="0x24" startLine="8" startColumn="16" endLine="8" endColumn="18" document="1"/>
                     <entry offset="0x2f" startLine="11" startColumn="36" endLine="11" endColumn="54" document="2"/>
                 </sequencePoints>
-                <locals/>
                 <scope startOffset="0x0" endOffset="0x38">
                     <namespace name="System" importlevel="file"/>
                     <currentnamespace name=""/>

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports System.Text
@@ -2573,9 +2573,6 @@ End Class
                 <entry offset="0x4" startLine="7" startColumn="9" endLine="7" endColumn="32" document="1"/>
                 <entry offset="0x10" startLine="8" startColumn="5" endLine="8" endColumn="12" document="1"/>
             </sequencePoints>
-            <locals>
-                <local name="ch" il_index="0" il_start="0x0" il_end="0x11" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x11">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="Microsoft.VisualBasic" importlevel="file"/>

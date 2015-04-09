@@ -111,9 +111,8 @@ namespace Microsoft.Cci
 
             var localScopes = methodBody.LocalScopes;
 
-            // CCI originally didn't have the notion of the default scope that is open
-            // when a method is opened. In order to reproduce CSC PDBs, this must be added. Otherwise
-            // a seemingly unnecessary scope that contains only other scopes is put in the PDB.
+            // Open the outer-most language defined scope, the namespace scopes will be emitted to it.
+            // Note that the root scope has already been open, but native compilers leave it empty.
             if (localScopes.Length > 0)
             {
                 this.DefineScopeLocals(localScopes[0], localSignatureToken);
@@ -175,10 +174,7 @@ namespace Microsoft.Cci
                 this.DefineAssemblyReferenceAliases();
             }
 
-            // TODO: it's not clear why we are closing a scope here with IL length:
-            CloseScope(methodBody.IL.Length);
-
-            CloseMethod();
+            CloseMethod(methodBody.IL.Length);
         }
 
         private void DefineNamespaceScopes(IMethodBody methodBody)
@@ -678,7 +674,9 @@ namespace Microsoft.Cci
             try
             {
                 _symWriter.OpenMethod(methodToken);
-                _symWriter.OpenScope(0);
+
+                // open root scope:
+                _symWriter.OpenScope(startOffset: 0);
             }
             catch (Exception ex)
             {
@@ -686,10 +684,13 @@ namespace Microsoft.Cci
             }
         }
 
-        private void CloseMethod()
+        private void CloseMethod(int ilLength)
         {
             try
             {
+                // close the root scope:
+                CloseScope(endOffset: ilLength);
+
                 _symWriter.CloseMethod();
             }
             catch (Exception ex)
@@ -710,11 +711,11 @@ namespace Microsoft.Cci
             }
         }
 
-        private void CloseScope(int offset)
+        private void CloseScope(int endOffset)
         {
             try
             {
-                _symWriter.CloseScope((uint)offset);
+                _symWriter.CloseScope((uint)endOffset);
             }
             catch (Exception ex)
             {

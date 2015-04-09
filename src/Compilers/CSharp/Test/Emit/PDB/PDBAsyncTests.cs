@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -195,13 +195,11 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
       <sequencePoints>
         <entry offset=""0x0"" startLine=""8"" startColumn=""35"" endLine=""8"" endColumn=""39"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""DynamicMembers"" name=""set_Prop"" parameterNames=""value"">
       <sequencePoints>
         <entry offset=""0x0"" startLine=""8"" startColumn=""40"" endLine=""8"" endColumn=""44"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""TestCase"" name="".cctor"">
       <customDebugInfo>
@@ -212,7 +210,6 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
       <sequencePoints>
         <entry offset=""0x0"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""33"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x7"">
         <namespace name=""System"" />
         <namespace name=""System.Threading"" />
@@ -233,7 +230,6 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints />
-      <locals />
     </method>
     <method containingType=""Driver"" name="".cctor"">
       <customDebugInfo>
@@ -243,7 +239,6 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
         <entry offset=""0x0"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""35"" document=""0"" />
         <entry offset=""0x6"" startLine=""28"" startColumn=""5"" endLine=""28"" endColumn=""78"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Driver"" name=""Main"">
       <customDebugInfo>
@@ -261,9 +256,6 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
         <entry offset=""0x19"" startLine=""35"" startColumn=""9"" endLine=""35"" endColumn=""30"" document=""0"" />
         <entry offset=""0x21"" startLine=""36"" startColumn=""5"" endLine=""36"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""t"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x23"">
         <local name=""t"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
       </scope>
@@ -300,7 +292,6 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
         <entry offset=""0x11a"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""0"" />
         <entry offset=""0x122"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals />
       <asyncInfo>
         <catchHandler offset=""0x100"" />
         <kickoffMethod declaringType=""TestCase"" methodName=""Run"" />
@@ -327,7 +318,6 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
         <entry offset=""0x96"" startLine=""16"" startColumn=""69"" endLine=""16"" endColumn=""70"" document=""0"" />
         <entry offset=""0x9e"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals />
       <asyncInfo>
         <kickoffMethod declaringType=""TestCase+&lt;&gt;c"" methodName=""&lt;Run&gt;b__1_0"" />
         <await yield=""0x31"" resume=""0x4c"" declaringType=""TestCase+&lt;&gt;c+&lt;&lt;Run&gt;b__1_0&gt;d"" methodName=""MoveNext"" />
@@ -391,7 +381,6 @@ namespace ConsoleApplication1
         <entry offset=""0x1"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""34"" document=""0"" />
         <entry offset=""0xc"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0xd"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
@@ -403,7 +392,6 @@ namespace ConsoleApplication1
         <forwardIterator name=""&lt;QBar&gt;d__2"" />
       </customDebugInfo>
       <sequencePoints />
-      <locals />
     </method>
     <method containingType=""ConsoleApplication1.Program"" name=""ZBar"">
       <customDebugInfo>
@@ -418,7 +406,6 @@ namespace ConsoleApplication1
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints />
-      <locals />
     </method>
     <method containingType=""ConsoleApplication1.Program"" name=""GetNextInt"" parameterNames=""random"">
       <customDebugInfo>
@@ -429,7 +416,6 @@ namespace ConsoleApplication1
         <entry offset=""0x1"" startLine=""31"" startColumn=""13"" endLine=""31"" endColumn=""51"" document=""0"" />
         <entry offset=""0xf"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""ConsoleApplication1.Program"" name="".cctor"">
       <customDebugInfo>
@@ -438,7 +424,6 @@ namespace ConsoleApplication1
       <sequencePoints>
         <entry offset=""0x0"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""53"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""ConsoleApplication1.Program+&lt;QBar&gt;d__2"" name=""MoveNext"">
       <customDebugInfo>
@@ -460,7 +445,6 @@ namespace ConsoleApplication1
         <entry offset=""0x93"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""10"" document=""0"" />
         <entry offset=""0x9b"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals />
       <asyncInfo>
         <catchHandler offset=""0x7b"" />
         <kickoffMethod declaringType=""ConsoleApplication1.Program"" methodName=""QBar"" />
@@ -507,7 +491,6 @@ namespace ConsoleApplication1
         <entry offset=""0x139"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""0"" />
         <entry offset=""0x141"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals />
       <asyncInfo>
         <kickoffMethod declaringType=""ConsoleApplication1.Program"" methodName=""ZBar"" />
         <await yield=""0x7d"" resume=""0x9c"" declaringType=""ConsoleApplication1.Program+&lt;ZBar&gt;d__3"" methodName=""MoveNext"" />
@@ -565,7 +548,6 @@ class TestCase
         <entry offset=""0x24d"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
         <entry offset=""0x255"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals />
       <asyncInfo>
         <catchHandler offset=""0x233"" />
         <kickoffMethod declaringType=""TestCase"" methodName=""Await"" parameterNames=""d"" />
@@ -635,9 +617,6 @@ class C
         <entry offset=""0xc2"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""0"" />
         <entry offset=""0xca"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""1"" il_start=""0xa"" il_end=""0xab"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0xd6"">
         <scope startOffset=""0xa"" endOffset=""0xab"">
           <local name=""CS$&lt;&gt;8__locals0"" il_index=""1"" il_start=""0xa"" il_end=""0xab"" attributes=""0"" />
@@ -664,7 +643,6 @@ class C
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -741,7 +719,6 @@ class C
         <entry offset=""0xf9"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""0"" />
         <entry offset=""0x101"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals />
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" parameterNames=""b"" />
         <await yield=""0x98"" resume=""0xb3"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
@@ -766,7 +743,6 @@ class C
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -835,7 +811,6 @@ class C
         <entry offset=""0xd8"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""0"" />
         <entry offset=""0xe0"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals />
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" parameterNames=""b"" />
         <await yield=""0x6d"" resume=""0x84"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
@@ -857,7 +832,6 @@ class C
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -934,7 +908,6 @@ class C
         <entry offset=""0xe8"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""0"" />
         <entry offset=""0xf0"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals />
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" parameterNames=""b"" />
         <await yield=""0x76"" resume=""0x91"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
@@ -959,7 +932,6 @@ class C
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1026,7 +998,6 @@ class C
         <entry offset=""0xf5"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
         <entry offset=""0xfd"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals />
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" />
         <await yield=""0x39"" resume=""0x57"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
@@ -1046,7 +1017,6 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>
@@ -1105,9 +1075,6 @@ class C
         <entry offset=""0xdd"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
         <entry offset=""0xe5"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d"" il_index=""1"" il_start=""0xd"" il_end=""0xc6"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0xf1"">
         <scope startOffset=""0xd"" endOffset=""0xc6"">
           <local name=""d"" il_index=""1"" il_start=""0xd"" il_end=""0xc6"" attributes=""0"" />
@@ -1129,7 +1096,6 @@ class C
         <forwardIterator name=""&lt;M&gt;d__0"" />
       </customDebugInfo>
       <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>
@@ -1197,7 +1163,6 @@ class C
         <entry offset=""0xf5"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
         <entry offset=""0xfd"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals />
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" />
         <await yield=""0x94"" resume=""0xaf"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
@@ -1217,7 +1182,6 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>
@@ -1323,7 +1287,6 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1511,7 +1474,6 @@ class C
         <entry offset=""0x108"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" document=""0"" />
         <entry offset=""0x110"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals />
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""G"" />
         <await yield=""0x51"" resume=""0x70"" declaringType=""C+&lt;G&gt;d__0"" methodName=""MoveNext"" />
@@ -1591,7 +1553,6 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>");
