@@ -231,28 +231,30 @@ There shall be no duplicate rows in the LocalConstant table, based upon owner an
 
 The structure of the blob is
 
-    Blob ::= CustomMod* (PrimitiveConstant | EnumConstant | DefaultValueConstant)
+    Blob ::= CustomMod* (PrimitiveConstant | EnumConstant | GeneralConstant)
              
-    PrimitiveConstant ::= PrimitiveTypeCode Value 
-    PrimitiveTypeCode ::= BOOLEAN | CHAR | I1 | U1 | I2 | U2 | I4 | U4 | I8 | U8 |  
-                          R4 | R8 | STRING | DECIMAL | DATETIME
+    PrimitiveConstant ::= PrimitiveTypeCode PrimitiveValue 
+    PrimitiveTypeCode ::= BOOLEAN | CHAR | I1 | U1 | I2 | U2 | I4 | U4 | I8 | U8 | R4 | R8 | STRING
     
-    EnumConstant ::= EnumTypeCode Value EnumType 
+    EnumConstant ::= EnumTypeCode EnumValue EnumType 
     EnumTypeCode ::= BOOLEAN | CHAR | I1 | U1 | I2 | U2 | I4 | U4 | I8 | U8
-    EnumType ::= Type
+    EnumType ::= TypeDefOrRefOrSpecEncoded
     
-    DefaultValueConstant ::= Type
+    GeneralConstant ::= (CLASS | VALUETYPE) TypeDefOrRefOrSpecEncoded GeneralValue? |
+                        OBJECT
 
-| component           | description                                         |
-|:--------------------|:----------------------------------------------------|
-| _TypeCode_          | A 1-byte constant describing the structure of the _Value_. |
-| _Value_             | The value of the constant.                          |
-| _CustomMod_         | Custom modifier as specified by ECMA-335 §II.23.2.7 |
-| _Type_              | Type signature as specified by ECMA-335 §II.23.2.12 |
+| component                   | description                                                |
+|:----------------------------|:-----------------------------------------------------------|
+| _PrimitiveTypeCode_         | A 1-byte constant describing the structure of the _PrimitiveValue_. |
+| _PrimitiveValue_            | The value of the constant.                                 |
+| _EnumTypeCode_              | A 1-byte constant describing the structure of the _EnumValue_. |
+| _EnumValue_                 | The underlying value of the enum.                          |
+| _CustomMod_                 | Custom modifier as specified in ECMA-335 §II.23.2.7        |
+| _TypeDefOrRefOrSpecEncoded_ | TypeDef, TypeRef or TypeSpec encoded as specified in ECMA-335 §II.23.2.8 |
 
-The encoding of the _Value_ is determined from the corresponding type code as follows.
+The encoding of the _PrimitiveValue_ and _EnumValue_ is determined based upon the value of _PrimitiveTypeCode_ and _EnumTypeCode_, respectively.
 
-| Type code     | _Value_ encoding           |
+| Type code     | Value                      |
 |:--------------|:---------------------------|
 | ```BOOLEAN``` | uint8: 0 represents false, 1 represents true |
 | ```CHAR```    | uint16                     |
@@ -267,14 +269,17 @@ The encoding of the _Value_ is determined from the corresponding type code as fo
 | ```R4```      | float32                    |
 | ```R8```      | float64                    |
 | ```STRING```  | Either not present (represents a null string reference), or a single byte 0xff (represents an empty string), or a UTF-16 little-endian encoded string. | 
-| ```DECIMAL``` | sign (highest bit), scale (bits 0..7), low (uint32), mid (uint32), high (uint32) |
-| ```DATETIME```| int64: ticks |
 
-The numeric values of the type codes are defined by ECMA-335 §II.23.1.16 with the exception of ```DECIMAL``` and ```DATETIME``` defined as 0x22 and 0x23, respectively.
+The numeric values of the type codes are defined by ECMA-335 §II.23.1.16.
 
 _EnumType_ must be an enum type as defined in ECMA-335 §II.14.3. The value of _EnumTypeCode_ must match the underlying type of the _EnumType_.
 
-The constant value of a _DefaultValueConstant_ is the default value of its _Type_. If the type is a reference type the value is a null reference, if the type is a pointer type the value is a null pointer, etc. 
+The encoding of the _GeneralValue_ is determined based upon the type expressed by _TypeDefOrRefOrSpecEncoded_ specified in _GeneralConstant_. If the _GeneralValue_ is not present the value of the constant is the default value of the type. If the type is a reference type the value is a null reference, if the type is a pointer type the value is a null pointer, etc. 
+
+| Namespace     | Name     | _GeneralValue_ encoding  |
+|:--------------|:---------|:-------------------------|
+| System        | Decimal  | sign (highest bit), scale (bits 0..7), low (uint32), mid (uint32), high (uint32) |
+| System        | DateTime | int64: ticks             | 
 
 ###<a name="ImportScopeTable"></a>ImportScope Table: 0x35
 The ImportScope table has the following columns:
