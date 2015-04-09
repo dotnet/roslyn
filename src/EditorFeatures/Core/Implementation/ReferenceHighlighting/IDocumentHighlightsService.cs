@@ -13,8 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal enum HighlightSpanKind
     {
+        None,
         Definition,
-        ReadReference,
+        Reference,
         WrittenReference,
     }
 

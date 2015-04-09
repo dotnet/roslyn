@@ -539,5 +539,26 @@ class C
             VerifyHighlights(input)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Sub TestWrittenReference2()
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        int {|Definition:$$y|};
+        int x = {|WrittenReference:y|} = 7;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            VerifyHighlights(input)
+        End Sub
+
     End Class
 End Namespace

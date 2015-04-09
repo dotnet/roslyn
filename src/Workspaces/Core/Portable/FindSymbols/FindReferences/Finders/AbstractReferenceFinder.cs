@@ -515,8 +515,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         var alias = FindReferenceCache.GetAliasInfo(semanticFacts, semanticModel, token, cancellationToken);
 
                         var location = token.GetLocation();
-                        var isWrittemTo = semanticFacts.IsWrittenTo(semanticModel, token.Parent, cancellationToken);
-                        locations.Add(new ReferenceLocation(document, alias, location, isImplicit: false, isWrittenTo: isWrittemTo, candidateReason: match.Item2));
+                        var isWrittenTo = semanticFacts.IsWrittenTo(semanticModel, token.Parent, cancellationToken);
+                        locations.Add(new ReferenceLocation(document, alias, location, isImplicit: false, isWrittenTo: isWrittenTo, candidateReason: match.Item2));
                     }
                 }
             }

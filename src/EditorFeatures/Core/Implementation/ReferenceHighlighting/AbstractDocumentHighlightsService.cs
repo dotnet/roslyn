@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
                 foreach (var referenceLocation in reference.Locations)
                 {
-                    var referenceKind = referenceLocation.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.ReadReference;
+                    var referenceKind = referenceLocation.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference;
                     await AddLocationSpan(referenceLocation.Location, solution, spanSet, tagMap, referenceKind, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             // Add additional references
             foreach (var location in additionalReferences)
             {
-                await AddLocationSpan(location, solution, spanSet, tagMap, HighlightSpanKind.ReadReference, cancellationToken).ConfigureAwait(false);
+                await AddLocationSpan(location, solution, spanSet, tagMap, HighlightSpanKind.Reference, cancellationToken).ConfigureAwait(false);
             }
 
             var list = new List<DocumentHighlights>(tagMap.Count);

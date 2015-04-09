@@ -134,9 +134,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 {
                     case HighlightSpanKind.WrittenReference:
                         return WrittenReferenceHighlightTag.Instance;
+
                     case HighlightSpanKind.Definition:
                         return DefinitionHighlightTag.Instance;
-                    case HighlightSpanKind.ReadReference:
+
+                    case HighlightSpanKind.Reference:
+                    case HighlightSpanKind.None:
                     default:
                         return ReferenceHighlightTag.Instance;
                 }
