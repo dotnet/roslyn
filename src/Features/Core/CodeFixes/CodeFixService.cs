@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _fixAllProviderMap = ImmutableDictionary<CodeFixProvider, FixAllProviderInfo>.Empty;
         }
 
-        public async Task<FirstDiagnosticResult> GetFirstDiagnosticWithFixAsync(Document document, TextSpan range, CancellationToken cancellationToken)
+        public async Task<FirstDiagnosticResult> GetFirstDiagnosticWithFixAsync(Document document, TextSpan range, bool considerSuppressionFixes, CancellationToken cancellationToken)
         {
             if (document == null || !document.IsOpen())
             {
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     //
                     // first approach is simpler, so I will implement that first. if the first approach turns out to be not good enough, then
                     // I will try the second approach which will be more complex but quicker
-                    var hasFix = await ContainsAnyFix(document, diagnostic, cancellationToken).ConfigureAwait(false);
+                    var hasFix = await ContainsAnyFix(document, diagnostic, considerSuppressionFixes, cancellationToken).ConfigureAwait(false);
                     if (hasFix)
                     {
                         return new FirstDiagnosticResult(!fullResult, hasFix, diagnostic);
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        public async Task<IEnumerable<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, CancellationToken cancellationToken)
+        public async Task<IEnumerable<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, bool includeSuppressionFixes, CancellationToken cancellationToken)
         {
             // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic service to give back
             // current diagnostics for the given span, and it will use that to get fixes. internally diagnostic service will either return cached information 
@@ -124,12 +124,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var result = new List<CodeFixCollection>();
-            if (aggregatedDiagnostics != null)
+            if (aggregatedDiagnostics == null)
             {
-                foreach (var spanAndDiagnostic in aggregatedDiagnostics)
-                {
-                    result = await AppendFixesAsync(document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, result, cancellationToken).ConfigureAwait(false);
-                }
+                return result;
+            }
+
+            foreach (var spanAndDiagnostic in aggregatedDiagnostics)
+            {
+                result = await AppendFixesAsync(document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, result, cancellationToken).ConfigureAwait(false);
             }
 
             if (result.Any())
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 result.Sort((d1, d2) => priorityMap.ContainsKey((CodeFixProvider)d1.Provider) ? (priorityMap.ContainsKey((CodeFixProvider)d2.Provider) ? priorityMap[(CodeFixProvider)d1.Provider] - priorityMap[(CodeFixProvider)d2.Provider] : -1) : 1);
             }
 
-            if (aggregatedDiagnostics != null)
+            if (includeSuppressionFixes)
             {
                 foreach (var spanAndDiagnostic in aggregatedDiagnostics)
                 {
@@ -325,15 +327,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return builder.ToImmutable();
         }
 
-        private async Task<bool> ContainsAnyFix(Document document, DiagnosticData diagnostic, CancellationToken cancellationToken)
+        private async Task<bool> ContainsAnyFix(Document document, DiagnosticData diagnostic, bool considerSuppressionFixes, CancellationToken cancellationToken)
         {
-            // TODO: We don't return true here if the only available fixes are suppressions.
-            // This is to avoid the problem where lightbulb would show up for every green warning
-            // squiggle in the editor thereby diluting the promise of the light bulb from
-            // "I have a fix" to "I have some action". This is temporary until the editor team exposes
-            // some mechanism (e.g. a faded out lightbulb) that would allow us to say "I have an action
-            // but not a fix".
-
             ImmutableArray<CodeFixProvider> workspaceFixers = ImmutableArray<CodeFixProvider>.Empty;
             List<CodeFixProvider> projectFixers = null;
 
@@ -341,7 +336,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             bool hasAnySharedFixer = _workspaceFixersMap.TryGetValue(document.Project.Language, out fixerMap) && fixerMap.Value.TryGetValue(diagnostic.Id, out workspaceFixers);
             var hasAnyProjectFixer = GetProjectFixers(document.Project).TryGetValue(diagnostic.Id, out projectFixers);
 
-            if (!hasAnySharedFixer && !hasAnyProjectFixer)
+            Lazy<ISuppressionFixProvider> lazySuppressionProvider = null;
+            var hasSuppressionFixer =
+                considerSuppressionFixes &&
+                _suppressionProvidersMap.TryGetValue(document.Project.Language, out lazySuppressionProvider) &&
+                lazySuppressionProvider.Value != null;
+
+            if (!hasAnySharedFixer && !hasAnyProjectFixer && !hasSuppressionFixer)
             {
                 return false;
             }
@@ -359,6 +360,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var dx = diagnostic.ToDiagnostic(tree);
+
+            if (hasSuppressionFixer && lazySuppressionProvider.Value.CanBeSuppressed(dx))
+            {
+                return true;
+            }
 
             var fixes = new List<CodeFix>();
             var context = new CodeFixContext(document, dx,
@@ -401,8 +407,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (extensionManager != null)
             {
                 return extensionManager.PerformFunction(
-                    fixer, 
-                    () => ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => f.FixableDiagnosticIds), 
+                    fixer,
+                    () => ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => f.FixableDiagnosticIds),
                     ImmutableArray<DiagnosticId>.Empty);
             }
 
