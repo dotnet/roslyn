@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -55,7 +55,6 @@ End Module
                 <entry offset="0x4c" startLine="9" startColumn="17" endLine="9" endColumn="24" document="0"/>
                 <entry offset="0x6c" startLine="10" startColumn="13" endLine="10" endColumn="25" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x6e">
                 <importsforward declaringType="Program" methodName="Main" parameterNames="args"/>
             </scope>
@@ -138,11 +137,6 @@ End Module
                 <entry offset="0x16d" hidden="true" document="0"/>
                 <entry offset="0x187" startLine="26" startColumn="5" endLine="26" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="$VB$ResumableLocal_arr$0" il_index="0" il_start="0x47" il_end="0x188" attributes="0"/>
-                <local name="$VB$ResumableLocal_x$3" il_index="3" il_start="0x73" il_end="0xd4" attributes="0"/>
-                <local name="$VB$ResumableLocal_x$6" il_index="6" il_start="0xfd" il_end="0x16c" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x189">
                 <importsforward declaringType="Module1" methodName="Main"/>
                 <scope startOffset="0x47" endOffset="0x188">
@@ -203,9 +197,6 @@ End Class
                 <entry offset="0x85" startLine="13" startColumn="9" endLine="13" endColumn="21" document="0"/>
                 <entry offset="0x96" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x19" il_end="0x97" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x98">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
                 <scope startOffset="0x19" endOffset="0x97">
@@ -255,9 +246,6 @@ End Class
                 <entry offset="0x2d" startLine="11" startColumn="9" endLine="11" endColumn="20" document="0"/>
                 <entry offset="0x54" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="$VB$Closure_0" il_index="1" il_start="0x19" il_end="0x55" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x56">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
                 <scope startOffset="0x19" endOffset="0x55">
@@ -309,10 +297,6 @@ End Class
                 <entry offset="0x5a" startLine="10" startColumn="9" endLine="10" endColumn="21" document="0"/>
                 <entry offset="0x66" startLine="11" startColumn="5" endLine="11" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0x19" il_end="0x67" attributes="0"/>
-                <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0x19" il_end="0x67" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x68">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -365,10 +349,6 @@ End Class
                 <entry offset="0x1d" startLine="8" startColumn="9" endLine="8" endColumn="20" document="0"/>
                 <entry offset="0x3a" startLine="9" startColumn="5" endLine="9" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="1" il_start="0x19" il_end="0x3b" attributes="0"/>
-                <local name="y" il_index="2" il_start="0x19" il_end="0x3b" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x3c">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -435,7 +415,6 @@ End Module
                 <entry offset="0x4c" startLine="15" startColumn="9" endLine="15" endColumn="16" document="0"/>
                 <entry offset="0x67" startLine="16" startColumn="5" endLine="16" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x69">
                 <importsforward declaringType="Module1" methodName="Main"/>
             </scope>

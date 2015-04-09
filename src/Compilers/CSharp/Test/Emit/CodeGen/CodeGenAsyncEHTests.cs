@@ -546,7 +546,6 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>

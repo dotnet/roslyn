@@ -112,7 +112,6 @@ End Namespace
                                 <entry offset="0x6" startLine="22" startColumn="12" endLine="22" endColumn="43" document="1"/>
                                 <entry offset="0x16" startLine="16" startColumn="12" endLine="16" endColumn="43" document="2"/>
                             </sequencePoints>
-                            <locals/>
                             <scope startOffset="0x0" endOffset="0x27">
                                 <xmlnamespace prefix="file1" name="http://stuff/fromFile" importlevel="file"/>
                                 <xmlnamespace prefix="" name="http://stuff/fromFile1" importlevel="file"/>
@@ -137,7 +136,6 @@ End Namespace
                                 <entry offset="0x1" startLine="25" startColumn="9" endLine="25" endColumn="42" document="1"/>
                                 <entry offset="0xc" startLine="26" startColumn="5" endLine="26" endColumn="12" document="1"/>
                             </sequencePoints>
-                            <locals/>
                             <scope startOffset="0x0" endOffset="0xd">
                                 <importsforward declaringType="Boo.C1" methodName=".ctor"/>
                             </scope>
@@ -148,7 +146,6 @@ End Namespace
                                 <entry offset="0x1" startLine="29" startColumn="9" endLine="29" endColumn="48" document="1"/>
                                 <entry offset="0xc" startLine="30" startColumn="5" endLine="30" endColumn="12" document="1"/>
                             </sequencePoints>
-                            <locals/>
                             <scope startOffset="0x0" endOffset="0xd">
                                 <importsforward declaringType="Boo.C1" methodName=".ctor"/>
                             </scope>
@@ -159,7 +156,6 @@ End Namespace
                                 <entry offset="0x1" startLine="24" startColumn="9" endLine="24" endColumn="65" document="2"/>
                                 <entry offset="0xc" startLine="25" startColumn="5" endLine="25" endColumn="12" document="2"/>
                             </sequencePoints>
-                            <locals/>
                             <scope startOffset="0x0" endOffset="0xd">
                                 <xmlnamespace prefix="file2" name="http://stuff/fromFile" importlevel="file"/>
                                 <xmlnamespace prefix="" name="http://stuff/fromFile2" importlevel="file"/>
@@ -290,7 +286,6 @@ End Namespace
                                 <entry offset="0x6" startLine="22" startColumn="12" endLine="22" endColumn="43" document="1"/>
                                 <entry offset="0x16" startLine="16" startColumn="12" endLine="16" endColumn="43" document="2"/>
                             </sequencePoints>
-                            <locals/>
                             <scope startOffset="0x0" endOffset="0x27">
                                 <xmlnamespace prefix="file1" name="http://stuff/fromFile" importlevel="file"/>
                                 <xmlnamespace prefix="" name="http://stuff/fromFile1" importlevel="file"/>
@@ -316,7 +311,6 @@ End Namespace
                                 <entry offset="0x1" startLine="25" startColumn="9" endLine="25" endColumn="42" document="1"/>
                                 <entry offset="0xc" startLine="26" startColumn="5" endLine="26" endColumn="12" document="1"/>
                             </sequencePoints>
-                            <locals/>
                             <scope startOffset="0x0" endOffset="0xd">
                                 <importsforward declaringType="DefaultNamespace.Boo.C1" methodName=".ctor"/>
                             </scope>
@@ -327,7 +321,6 @@ End Namespace
                                 <entry offset="0x1" startLine="29" startColumn="9" endLine="29" endColumn="48" document="1"/>
                                 <entry offset="0xc" startLine="30" startColumn="5" endLine="30" endColumn="12" document="1"/>
                             </sequencePoints>
-                            <locals/>
                             <scope startOffset="0x0" endOffset="0xd">
                                 <importsforward declaringType="DefaultNamespace.Boo.C1" methodName=".ctor"/>
                             </scope>
@@ -338,7 +331,6 @@ End Namespace
                                 <entry offset="0x1" startLine="24" startColumn="9" endLine="24" endColumn="65" document="2"/>
                                 <entry offset="0xc" startLine="25" startColumn="5" endLine="25" endColumn="12" document="2"/>
                             </sequencePoints>
-                            <locals/>
                             <scope startOffset="0x0" endOffset="0xd">
                                 <xmlnamespace prefix="file2" name="http://stuff/fromFile" importlevel="file"/>
                                 <xmlnamespace prefix="" name="http://stuff/fromFile2" importlevel="file"/>

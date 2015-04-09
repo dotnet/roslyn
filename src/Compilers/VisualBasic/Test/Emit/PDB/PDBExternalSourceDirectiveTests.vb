@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Roslyn.Test.Utilities
 
@@ -63,9 +63,6 @@ End Class
                 <entry offset="0x7" hidden="true" document="1"/>
                 <entry offset="0x18" hidden="true" document="1"/>
             </sequencePoints>
-            <locals>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x19" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x19">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -81,7 +78,6 @@ End Class
                 <entry offset="0x17" hidden="true" document="2"/>
                 <entry offset="0x22" hidden="true" document="2"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x23">
                 <importsforward declaringType="C1" methodName="FooInvisible"/>
             </scope>
@@ -163,9 +159,6 @@ End Class
                 <entry offset="0x7" hidden="true" document="1"/>
                 <entry offset="0x18" hidden="true" document="1"/>
             </sequencePoints>
-            <locals>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x19" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x19">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -204,9 +197,6 @@ End Class
                 <entry offset="0x9d" hidden="true" document="3"/>
                 <entry offset="0xa9" hidden="true" document="3"/>
             </sequencePoints>
-            <locals>
-                <local name="i" il_index="0" il_start="0x0" il_end="0xaa" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xaa">
                 <importsforward declaringType="C1" methodName="FooInvisible"/>
                 <local name="i" il_index="0" il_start="0x0" il_end="0xaa" attributes="0"/>
@@ -273,9 +263,6 @@ End Class
                 <entry offset="0x7" startLine="11" startColumn="9" endLine="11" endColumn="42" document="1"/>
                 <entry offset="0x18" startLine="12" startColumn="5" endLine="12" endColumn="12" document="1"/>
             </sequencePoints>
-            <locals>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x19" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x19">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -290,7 +277,6 @@ End Class
                 <entry offset="0xc" startLine="20" startColumn="9" endLine="20" endColumn="41" document="1"/>
                 <entry offset="0x17" startLine="21" startColumn="5" endLine="21" endColumn="12" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x18">
                 <importsforward declaringType="C1" methodName="FooInvisible"/>
             </scope>
@@ -362,9 +348,6 @@ End Class
                 <entry offset="0x7" startLine="11" startColumn="9" endLine="11" endColumn="42" document="1"/>
                 <entry offset="0x18" startLine="12" startColumn="5" endLine="12" endColumn="12" document="1"/>
             </sequencePoints>
-            <locals>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x19" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x19">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -379,7 +362,6 @@ End Class
                 <entry offset="0xc" startLine="23" startColumn="9" endLine="23" endColumn="41" document="1"/>
                 <entry offset="0x17" startLine="27" startColumn="5" endLine="27" endColumn="12" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x18">
                 <importsforward declaringType="C1" methodName="FooInvisible"/>
             </scope>
@@ -452,9 +434,6 @@ End Class
                 <entry offset="0x7" hidden="true" document="1"/>
                 <entry offset="0x18" hidden="true" document="1"/>
             </sequencePoints>
-            <locals>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x19" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x19">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -469,7 +448,6 @@ End Class
                 <entry offset="0xc" hidden="true" document="1"/>
                 <entry offset="0x17" hidden="true" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x18">
                 <importsforward declaringType="C1" methodName="FooInvisible"/>
             </scope>
@@ -545,9 +523,6 @@ End Class
                 <entry offset="0x7" hidden="true" document="1"/>
                 <entry offset="0x18" hidden="true" document="1"/>
             </sequencePoints>
-            <locals>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x19" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x19">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -563,7 +538,6 @@ End Class
                 <entry offset="0x17" hidden="true" document="1"/>
                 <entry offset="0x22" hidden="true" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x23">
                 <importsforward declaringType="C1" methodName="FooInvisible"/>
             </scope>
@@ -657,7 +631,6 @@ End Class
                 <entry offset="0x6" startLine="46" startColumn="12" endLine="46" endColumn="30" document="2"/>
                 <entry offset="0xe" startLine="27" startColumn="36" endLine="27" endColumn="54" document="3"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x17">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -670,7 +643,6 @@ End Class
                 <entry offset="0xd" startLine="12" startColumn="9" endLine="12" endColumn="30" document="2"/>
                 <entry offset="0x19" startLine="13" startColumn="5" endLine="13" endColumn="12" document="2"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x1a">
                 <importsforward declaringType="C1" methodName=".ctor"/>
             </scope>
@@ -687,9 +659,6 @@ End Class
                 <entry offset="0x7" startLine="3" startColumn="9" endLine="3" endColumn="23" document="2"/>
                 <entry offset="0xe" startLine="4" startColumn="5" endLine="4" endColumn="12" document="2"/>
             </sequencePoints>
-            <locals>
-                <local name="c" il_index="0" il_start="0x0" il_end="0xf" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xf">
                 <importsforward declaringType="C1" methodName=".ctor"/>
                 <local name="c" il_index="0" il_start="0x0" il_end="0xf" attributes="0"/>
@@ -700,7 +669,6 @@ End Class
                 <entry offset="0x0" hidden="true" document="1"/>
                 <entry offset="0x6" hidden="true" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xf">
                 <importsforward declaringType="C1" methodName=".ctor"/>
             </scope>
@@ -885,7 +853,6 @@ End Module
                                            <entry offset="0x4e" hidden="true" document="2"/>
                                            <entry offset="0x59" hidden="true" document="2"/>
                                        </sequencePoints>
-                                       <locals/>
                                        <scope startOffset="0x0" endOffset="0x5a">
                                            <namespace name="System" importlevel="file"/>
                                            <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -933,7 +900,6 @@ End Class
                                            <entry offset="0x1" startLine="4" startColumn="2" endLine="4" endColumn="8" document="2"/>
                                            <entry offset="0x8" hidden="true" document="2"/>
                                        </sequencePoints>
-                                       <locals/>
                                        <scope startOffset="0x0" endOffset="0x9">
                                            <currentnamespace name=""/>
                                        </scope>

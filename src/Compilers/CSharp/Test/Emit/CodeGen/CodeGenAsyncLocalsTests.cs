@@ -288,7 +288,6 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>
