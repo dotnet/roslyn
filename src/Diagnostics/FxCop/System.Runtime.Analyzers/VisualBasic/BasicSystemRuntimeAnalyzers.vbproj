@@ -77,6 +77,7 @@
   <ItemGroup>
     <Compile Include="Design\DefineAccessorsForAttributeArguments.vb" />
     <Compile Include="Design\OverrideMethodsOnComparableTypes.Fixer.vb" />
+    <Compile Include="Usage\DisposableFieldsShouldBeDisposed.vb" />
     <Compile Include="Usage\OverloadOperatorEqualsOnOverridingValueTypeEquals.Fixer.vb" />
   </ItemGroup>
   <ImportGroup Label="Targets">

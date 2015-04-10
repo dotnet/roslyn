@@ -1,19 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
-using System.Threading;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Usage;
 
-namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
+namespace System.Runtime.Analyzers
 {
     /// <summary>
     /// CA2213: Disposable fields should be disposed
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class CSharpCA2213DiagnosticAnalyzer : CA2213DiagnosticAnalyzer
+    public class CSharpCA2213DiagnosticAnalyzer : DisposableFieldsShouldBeDisposedAnalyzer
     {
         protected override AbstractAnalyzer GetAnalyzer(CompilationStartAnalysisContext context, INamedTypeSymbol disposableType)
         {

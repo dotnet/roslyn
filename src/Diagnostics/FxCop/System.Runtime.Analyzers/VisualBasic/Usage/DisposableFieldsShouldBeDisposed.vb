@@ -1,19 +1,18 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
-Imports System.Threading
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
+Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
+Namespace System.Runtime.Analyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA2213DiagnosticAnalyzer
-        Inherits CA2213DiagnosticAnalyzer
+        Inherits DisposableFieldsShouldBeDisposedAnalyzer
 
         Protected Overrides Function GetAnalyzer(context As CompilationStartAnalysisContext, disposableType As INamedTypeSymbol) As AbstractAnalyzer
             Dim analyzer As New Analyzer(disposableType)
-            context.RegisterSyntaxNodeAction(AddressOf Analyzer.AnalyzeNode, SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.UsingStatement)
+            context.RegisterSyntaxNodeAction(AddressOf analyzer.AnalyzeNode, SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.UsingStatement)
             Return analyzer
         End Function
 

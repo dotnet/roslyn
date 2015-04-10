@@ -98,6 +98,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Usage\DisposableFieldsShouldBeDisposedTests.Fixer.cs" />
+    <Compile Include="Usage\DisposableFieldsShouldBeDisposedTests.cs" />
     <Compile Include="Performance\AvoidUnsealedAttributesTests.cs" />
     <Compile Include="Design\MarkAllAssembliesWithComVisibleTests.cs" />
     <Compile Include="Design\MarkAssembliesWithCLSCompliantAttributeTests.cs" />

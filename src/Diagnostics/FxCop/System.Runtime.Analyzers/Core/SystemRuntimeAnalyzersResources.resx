@@ -222,4 +222,7 @@
   <data name="AvoidUnsealedAttributesCodeFix" xml:space="preserve">
     <value>Seal attribute type.</value>
   </data>
+  <data name="DisposableFieldsShouldBeDisposed" xml:space="preserve">
+    <value>Disposable fields should be disposed</value>
+  </data>
 </root>

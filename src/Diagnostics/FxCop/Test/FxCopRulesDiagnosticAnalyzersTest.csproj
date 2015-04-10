@@ -103,12 +103,10 @@
     <Compile Include="Performance\CodeFixes\CA1821FixerTests.cs" />
     <Compile Include="Reliability\CA2002Tests.cs" />
     <Compile Include="Usage\CA2200Tests.cs" />
-    <Compile Include="Usage\CA2213Tests.cs" />
     <Compile Include="Usage\CA2214Tests.cs" />
     <Compile Include="Usage\CA2229Tests.cs" />
     <Compile Include="Usage\CA2235Tests.cs" />
     <Compile Include="Usage\CA2237Tests.cs" />
-    <Compile Include="Usage\CodeFixes\CA2213FixerTests.cs" />
     <Compile Include="Usage\CodeFixes\CA2229FixerTests.cs" />
     <Compile Include="Usage\CodeFixes\CA2235FixerTests.cs" />
     <Compile Include="Usage\CodeFixes\CA2237FixerTests.cs" />

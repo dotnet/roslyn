@@ -85,10 +85,8 @@
     <Compile Include="Globalization\CSharpCA1309DiagnosticAnalyzer.cs" />
     <Compile Include="Performance\CSharpCA1821DiagnosticAnalyzer.cs" />
     <Compile Include="Reliability\CSharpCA2002DiagnosticAnalyzer.cs" />
-    <Compile Include="Usage\CodeFixes\CA2213CSharpCodeFixProvider.cs" />
     <Compile Include="Usage\CodeFixes\CA2235CSharpCodeFixProvider.cs" />
     <Compile Include="Usage\CSharpCA2200DiagnosticAnalyzer.cs" />
-    <Compile Include="Usage\CSharpCA2213DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CSharpCA2214DiagnosticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>

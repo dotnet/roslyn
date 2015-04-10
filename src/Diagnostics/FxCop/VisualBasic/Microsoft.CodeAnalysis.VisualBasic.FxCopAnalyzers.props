@@ -18,7 +18,6 @@
       -Microsoft.Reliability#CA2002;
 
       -Microsoft.Usage#CA2200;
-      -Microsoft.Usage#CA2213;
       -Microsoft.Usage#CA2214;
       -Microsoft.Usage#CA2217;
     </CodeAnalysisRuleSetOverrides>
