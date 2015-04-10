@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                             {
                             }
 
-                            [|$$Script|].M();
+                            {|Reference:$$Script|}.M();
                         </Document>
                     </Project>
                 </Workspace>)
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                             {
                                 {|Definition:Foo|}()
                                 {
-                                    [|var|] x = new [|Foo|]();
+                                    {|Reference:var|} x = new {|Reference:Foo|}();
                                 }
                             }
                         </Document>
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                             {
                                 void Blah()
                                 {
-                                    var x = new [|$$Foo|]();
+                                    var x = new {|Reference:$$Foo|}();
                                 }
                             }
                         </Document>
@@ -106,7 +106,7 @@ class {|Definition:Program|}
 {
     static void Main(string[] args)
     {
-        new List<[|Program$$|]>();
+        new List<{|Reference:Program$$|}>();
     }
 }]]>
                         </Document>
@@ -153,7 +153,7 @@ namespace X
     {
         public void M()
         {
-            $$[|Q|].Directory.Exists("");
+            $${|Reference:Q|}.Directory.Exists("");
         }
     }
 }
@@ -178,7 +178,7 @@ namespace X
     {
         public void M()
         {
-            [|Q|].Directory.Exists("");
+            {|Reference:Q|}.Directory.Exists("");
         }
     }
 }
@@ -198,12 +198,12 @@ namespace X
                     <Document>
 namespace X
 {
-    using Q = System.$$[|IO|];
+    using Q = System.$${|Reference:IO|};
     Class B
     {
         public void M()
         {
-            [|Q|].Directory.Exists("");
+            {|Reference:Q|}.Directory.Exists("");
         }
     }
 }
@@ -227,7 +227,7 @@ namespace N
 {
     using $${|Definition:C|} = A<C>;  // select C 
     class A<T> { }
-    class B : [|C|] { }
+    class B : {|Reference:C|} { }
 }]]>
                     </Document>
                 </Project>
@@ -247,10 +247,10 @@ class C
 {
     void F()
     {
-        $$[|var|] i = 1;
-        [|int|] j = 0;
+        $${|Reference:var|} i = 1;
+        {|Reference:int|} j = 0;
         double d;
-        [|int|] k = 1;
+        {|Reference:int|} k = 1;
     }
 }
                     </Document>
@@ -271,10 +271,10 @@ class C
 {
     void F()
     {
-        [|var|] i = 1;
-        $$[|int|] j = 0;
+        {|Reference:var|} i = 1;
+        $${|Reference:int|} j = 0;
         double d;
-        [|int|] k = 1;
+        {|Reference:int|} k = 1;
     }
 }
                     </Document>
@@ -297,10 +297,10 @@ class C
 {
     void F()
     {
-        $$[|var|] i = new [|List|]<string>();
+        $${|Reference:var|} i = new {|Reference:List|}<string>();
         int j = 0;
         double d;
-        [|var|] k = new [|List|]<int>();
+        {|Reference:var|} k = new {|Reference:List|}<int>();
     }
 }
                     ]]></Document>
@@ -438,8 +438,8 @@ class A
     {
         B b = new B();
         dynamic d = 1.5f; 
-        b.[|Boo|](1); //Line 4
-        b.$$[|Boo|](d); //Line 5
+        b.{|Reference:Boo|}(1); //Line 4
+        b.$${|Reference:Boo|}(d); //Line 5
         b.Boo("d"); //Line 6
     }
 }
@@ -463,7 +463,7 @@ class C
     {
         get
         {
-            return this[[|i|]];
+            return this[{|Reference:i|}];
         }
     }
 }
@@ -486,7 +486,7 @@ class C
     {
         var $${|Definition:a|} = "Hello";
         var b = "World";
-        var c = $"{[|a|]}, {b}!";
+        var c = $"{ {|Reference:a|} }, {b}!";
     }
 }
                     </Document>
@@ -508,7 +508,49 @@ class C
     {
         var a = "Hello";
         var $${|Definition:b|} = "World";
-        var c = $"{a}, {[|b|]}!";
+        var c = $"{a}, { {|Reference:b|} }!";
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            VerifyHighlights(input)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Sub TestWrittenReference()
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        var $${|Definition:b|} = "Hello";
+        {|WrittenReference:b|} = "World";
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            VerifyHighlights(input)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Sub TestWrittenReference2()
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        int {|Definition:$$y|};
+        int x = {|WrittenReference:y|} = 7;
     }
 }
                     </Document>
