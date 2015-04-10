@@ -455,6 +455,47 @@ class C
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
         }
 
+        [WorkItem(1154988)]
+        [Fact]
+        public void CompileWithRetrySameErrorReported()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source);
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+
+            var missingModule = runtime.Modules.First();
+            var missingIdentity = new AssemblyIdentity("MissingAssembly", contentType: System.Reflection.AssemblyContentType.WindowsRuntime);
+
+            var numRetries = 0;
+            string errorMessage;
+            ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                context,
+                (_, diagnostics) =>
+                {
+                    diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef, "MissingType", missingIdentity), Location.None));
+                    numRetries++;
+                    if (numRetries > 2) throw ExceptionUtilities.Unreachable; // We don't want to loop forever...
+                    return default(CompileResult);  
+                },
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    uSize = (uint)missingModule.MetadataLength;
+                    return missingModule.MetadataAddress;
+                },
+                out errorMessage);
+
+            Assert.Equal(2, numRetries); // Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
+            Assert.Equal("error CS0012: The type 'MissingType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime'.", errorMessage);
+        }
+
         private EvaluationContext CreateMethodContextWithReferences(Compilation comp, string methodName, params MetadataReference[] references)
         {
             return CreateMethodContextWithReferences(comp, methodName, ImmutableArray.CreateRange(references));

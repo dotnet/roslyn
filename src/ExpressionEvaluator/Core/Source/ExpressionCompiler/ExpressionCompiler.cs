@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
@@ -290,6 +291,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             errorMessage = null;
             TResult compileResult;
 
+            PooledHashSet<AssemblyIdentity> assembliesLoadedInRetryLoop = null;
             bool tryAgain;
             do
             {
@@ -323,10 +325,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     else
                     {
                         tryAgain = ShouldTryAgainWithMoreMetadataBlocks(getMetaDataBytesPtr, missingAssemblyIdentities, ref metadataBlocks);
+                        if (tryAgain)
+                        {
+                            if (assembliesLoadedInRetryLoop == null)
+                            {
+                                assembliesLoadedInRetryLoop = PooledHashSet<AssemblyIdentity>.GetInstance();
+                            }
+                            // If any identities failed to add (they were already in the list), then don't retry.
+                            tryAgain = assembliesLoadedInRetryLoop.AddAll(missingAssemblyIdentities);
+                        }
                     }
                 }
                 diagnostics.Free();
             } while (tryAgain);
+            assembliesLoadedInRetryLoop?.Free();
 
             return compileResult;
         }

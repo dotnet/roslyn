@@ -98,6 +98,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static CompileResult CompileExpressionWithRetry(
             ImmutableArray<MetadataBlock> metadataBlocks,
+            EvaluationContextBase context,
+            ExpressionCompiler.CompileDelegate<CompileResult> compile,
+            DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtr,
+            out string errorMessage)
+        {
+            return ExpressionCompiler.CompileWithRetry(
+                metadataBlocks,
+                DiagnosticFormatter.Instance,
+                (blocks, useReferencedModulesOnly) => context,
+                compile,
+                getMetaDataBytesPtr,
+                out errorMessage);
+        }
+
+        internal static CompileResult CompileExpressionWithRetry(
+            ImmutableArray<MetadataBlock> metadataBlocks,
             string expr,
             ExpressionCompiler.CreateContextDelegate createContext,
             out string errorMessage,
