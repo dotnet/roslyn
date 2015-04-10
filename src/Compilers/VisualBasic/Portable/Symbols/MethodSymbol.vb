@@ -830,7 +830,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IMethodSymbol_Parameters As ImmutableArray(Of IParameterSymbol) Implements IMethodSymbol.Parameters
             Get
-                Return ImmutableArray.Create(Of IParameterSymbol, ParameterSymbol)(Me.Parameters)
+                Return ImmutableArray(Of IParameterSymbol).CastUp(Me.Parameters)
             End Get
         End Property
 
