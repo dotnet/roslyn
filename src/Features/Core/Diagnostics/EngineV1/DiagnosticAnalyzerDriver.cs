@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private AnalyzerExecutor GetAnalyzerExecutor(DiagnosticAnalyzer analyzer, Compilation compilation, Action<Diagnostic> addDiagnostic)
         {
-            return AnalyzerExecutor.Create(compilation, _analyzerOptions, addDiagnostic, _onAnalyzerException, AnalyzerHelper.IsCompilerAnalyzer, AnalyzerManager.Instance, _cancellationToken);
+            return AnalyzerExecutor.Create(compilation, _analyzerOptions, addDiagnostic, _onAnalyzerException, AnalyzerHelper.IsCompilerAnalyzer, AnalyzerManager.Instance, cancellationToken: _cancellationToken);
         }
 
         public async Task<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer)
