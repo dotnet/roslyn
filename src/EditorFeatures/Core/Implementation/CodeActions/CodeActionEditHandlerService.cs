@@ -89,20 +89,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 return;
             }
 
-#if DEBUG
-            var documentErrorLookup = new HashSet<DocumentId>();
-            foreach (var project in workspace.CurrentSolution.Projects)
-            {
-                foreach (var document in project.Documents)
-                {
-                    if (!document.HasAnyErrors(cancellationToken).WaitAndGetResult(cancellationToken))
-                    {
-                        documentErrorLookup.Add(document.Id);
-                    }
-                }
-            }
-#endif
-
             var oldSolution = workspace.CurrentSolution;
             Solution updatedSolution = oldSolution;
 
@@ -144,19 +130,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     continue;
                 }
             }
-
-#if DEBUG
-            foreach (var project in workspace.CurrentSolution.Projects)
-            {
-                foreach (var document in project.Documents)
-                {
-                    if (documentErrorLookup.Contains(document.Id))
-                    {
-                        document.VerifyNoErrorsAsync("CodeAction introduced error in error-free code", cancellationToken).Wait(cancellationToken);
-                    }
-                }
-            }
-#endif
 
             TryStartRenameSession(workspace, oldSolution, updatedSolution, cancellationToken);
         }

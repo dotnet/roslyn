@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor
         /// This function guarantees that it will not return the same preview object twice if called twice
         /// (thereby reducing the possibility that a given preview object can end up with more than one owner).
         /// </remarks>
-        public Task<object> TakeNextPreviewAsync(DocumentId preferredDocumentId = null, ProjectId preferredProjectId = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<object> TakeNextPreviewAsync(DocumentId preferredDocumentId = null, ProjectId preferredProjectId = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             if (IsEmpty)
             {
-                return SpecializedTasks.Default<object>();
+                return null;
             }
 
             SolutionPreviewItem previewItem = null;
@@ -68,7 +68,13 @@ namespace Microsoft.CodeAnalysis.Editor
             // object can end up with more than one owner - see <remarks> above).
             _previews.Remove(previewItem);
 
-            return previewItem.LazyPreview(cancellationToken);
+            var preview = await previewItem.LazyPreview(cancellationToken).ConfigureAwait(true);
+            if (preview == null)
+            {
+                return await TakeNextPreviewAsync(cancellationToken: cancellationToken).ConfigureAwait(true);
+            }
+
+            return preview;
         }
     }
 }
