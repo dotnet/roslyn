@@ -4125,9 +4125,10 @@ class Program
 </code>
 
             Test(input, expected)
-        End SUb
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-    <WorkItem(1067214)>
+        <WorkItem(1067214)>
         Public Sub CSharp_Remove_UnncessaryCastInExpressionBody_Method()
             Dim input =
 <Workspace>
@@ -4147,6 +4148,52 @@ class Program
 class Program
 {
     public int X() => 0;
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(253, "https://github.com/dotnet/roslyn/issues/253")>
+        Public Sub CSharp_DoNotRemove_NecessaryCastInConditionAccess()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+public class Class1
+{
+    static void Test(object arg)
+    {
+        var identity = ({|Simplify:(B)arg|})?.A ?? (A)arg;
+    }
+}
+
+class A { }
+class B
+{
+    public A A { get { return null; } }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+public class Class1
+{
+    static void Test(object arg)
+    {
+        var identity = ((B)arg)?.A ?? (A)arg;
+    }
+}
+
+class A { }
+class B
+{
+    public A A { get { return null; } }
 }
 ]]>
 </code>
@@ -7113,6 +7160,50 @@ Class Program
         Dim p As Object = 0
         Console.Write(TryCast(p, String) IsNot Nothing)
     End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(253, "https://github.com/dotnet/roslyn/issues/253")>
+        Public Sub VisualBasic_DoNotRemove_NecessaryCastInConditionAccess()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Option Strict On
+
+Public Class Class1
+    Friend Shared Sub Test(arg As Object)
+        Dim identity = If({|Simplify:TryCast(arg, B)|}?.A, TryCast(arg, A))
+    End Sub
+    Class A
+    End Class
+    Class B
+        Public ReadOnly Property A As A
+    End Class
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Option Strict On
+
+Public Class Class1
+    Friend Shared Sub Test(arg As Object)
+        Dim identity = If(TryCast(arg, B)?.A, TryCast(arg, A))
+    End Sub
+    Class A
+    End Class
+    Class B
+        Public ReadOnly Property A As A
+    End Class
 End Class
 ]]>
 </code>
