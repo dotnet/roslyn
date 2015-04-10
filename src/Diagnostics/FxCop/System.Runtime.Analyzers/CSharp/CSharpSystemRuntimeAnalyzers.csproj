@@ -77,6 +77,8 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Compile Include="Globalization\UseOrdinalStringComparison.Fixer.cs" />
+    <Compile Include="Globalization\UseOrdinalStringComparison.cs" />
     <Compile Include="Usage\OverloadOperatorEqualsOnOverridingValueTypeEquals.Fixer.cs" />
     <Compile Include="Design\DefineAccessorsForAttributeArguments.cs" />
     <Compile Include="Design\OverrideMethodsOnComparableTypes.Fixer.cs" />

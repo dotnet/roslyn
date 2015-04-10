@@ -126,8 +126,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>FxCopRulesResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Globalization\CA1309DiagnosticAnalyzer.cs" />
-    <Compile Include="Globalization\CodeFixes\CA1309CodeFixProviderBase.cs" />
     <Compile Include="Globalization\CodeFixes\CA2101CodeFixProviderBase.cs" />
     <Compile Include="Interoperability\PInvokeDiagnosticAnalyzer.cs" />
     <Compile Include="MultipleCodeFixProviderBase.cs" />
