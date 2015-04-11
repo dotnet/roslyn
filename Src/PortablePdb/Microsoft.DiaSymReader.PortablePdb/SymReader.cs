@@ -230,12 +230,28 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetUserEntryPoint(out int methodToken)
         {
-            // TODO:
-            methodToken = 0x06000001;
-            return HResult.S_OK;
+            var mdReader = MetadataReader;
+
+            foreach (var cdiHandle in mdReader.GetCustomDebugInformation(Handle.AssemblyDefinition))
+            {
+                var cdi = mdReader.GetCustomDebugInformation(cdiHandle);
+                if (mdReader.GetGuid(cdi.Kind) == MetadataUtilities.CdiKindEntryPoint)
+                {
+                    var blobReader = mdReader.GetBlobReader(cdi.Value);
+                    methodToken = MetadataUtilities.MethodDefToken(blobReader.ReadCompressedInteger());
+                    return HResult.S_OK;
+                }
+            }
+
+            methodToken = 0;
+            return HResult.E_FAIL;
         }
 
-        public int GetVariables(int methodToken, int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1), Out]ISymUnmanagedVariable[] variables)
+        public int GetVariables(
+            int methodToken, 
+            int bufferLength, 
+            out int count, 
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1), Out]ISymUnmanagedVariable[] variables)
         {
             throw new NotImplementedException();
         }

@@ -393,6 +393,23 @@ Kind is an id defined by the tool producing the information.
 
 The following _Custom Debug Information_ records are currently produced by C#, VB and F# compilers. In future the compilers and other tools may define new records. Once specified they may not change. If a change is needed the owner has to define a new record with a new kind (GUID).
 
+##### <a name="EntryPoint"></a>Entry Point (C# & VB compilers)
+Parent: Assembly
+
+Kind: {22DEB650-BB47-4D8A-B2A4-1BBA47FEB7F1}
+
+Specifies the entry-point MethodDef.
+
+Structure:
+
+    Blob ::= method
+
+| terminal  | encoding                    | description       |
+|:----------|:----------------------------|:------------------|
+| _method_  | Compressed unsigned integer | MethodDef row id. |
+
+The value shall be the same as the entry point value in COR header, if applicable.
+
 ##### <a name="StateMachineHoistedLocalScopes"></a>State Machine Hoisted Local Scopes (C# & VB compilers)
 Parent: MethodDef
 

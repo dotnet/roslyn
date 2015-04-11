@@ -10,8 +10,11 @@ namespace Microsoft.DiaSymReader.PortablePdb
 {
     internal static class MetadataUtilities
     {
+        public static readonly Guid CdiKindEntryPoint = new Guid("22DEB650-BB47-4D8A-B2A4-1BBA47FEB7F1");
         public const SignatureTypeCode SignatureTypeCode_ValueType = (SignatureTypeCode)0x11;
         public const SignatureTypeCode SignatureTypeCode_Class = (SignatureTypeCode)0x12;
+
+        public static int MethodDefToken(int rowId) => 0x06000000 | rowId;
 
         internal static int GetTypeDefOrRefOrSpecCodedIndex(Handle typeHandle)
         {
