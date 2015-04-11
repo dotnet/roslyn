@@ -471,15 +471,14 @@ class C
             var context = CreateMethodContext(runtime, "C.M");
 
             var missingModule = runtime.Modules.First();
-            var missingIdentity = new AssemblyIdentity("MissingAssembly", contentType: System.Reflection.AssemblyContentType.WindowsRuntime);
-
             var numRetries = 0;
             string errorMessage;
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                 context,
                 (_, diagnostics) =>
                 {
+                    var missingIdentity = new AssemblyIdentity("MissingAssembly", contentType: System.Reflection.AssemblyContentType.WindowsRuntime);
                     diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef, "MissingType", missingIdentity), Location.None));
                     numRetries++;
                     if (numRetries > 2) throw ExceptionUtilities.Unreachable; // We don't want to loop forever...

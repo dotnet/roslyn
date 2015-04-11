@@ -423,14 +423,13 @@ End Class
             Dim context = CreateMethodContext(runtime, "C.M")
 
             Dim missingModule = runtime.Modules.First()
-            Dim missingIdentity = New AssemblyIdentity("MissingAssembly", contentType:=System.Reflection.AssemblyContentType.WindowsRuntime)
-
             Dim numRetries = 0
             Dim errorMessage As String = Nothing
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                runtime.Modules.Select(Function(m) m.MetadataBlock).ToImmutableArray(),
+                runtime.Modules.SelectAsArray(Function(m) m.MetadataBlock),
                 context,
                 Function(_unused As EvaluationContextBase, diagnostics As DiagnosticBag) As CompileResult
+                    Dim missingIdentity = New AssemblyIdentity("MissingAssembly", contentType:=System.Reflection.AssemblyContentType.WindowsRuntime)
                     diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssembly3, missingIdentity, "MissingType"), Location.None))
                     numRetries += 1
                     If numRetries > 2 Then Throw ExceptionUtilities.Unreachable ' We don't want to loop forever...
