@@ -35,11 +35,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ImmutableDictionary<string, AnalyzerReference> _hostAnalyzerReferencesMap;
 
         /// <summary>
-        /// Map contains <see cref="AnalyzerReference"/> to <see cref="HostDiagnosticAnalyzerPackage.Name"/>.
-        /// </summary>
-        private readonly ImmutableDictionary<AnalyzerReference, string> _hostAnalyzerReferenceNameMap;
-
-        /// <summary>
         /// Key is the language the <see cref="DiagnosticAnalyzer"/> supports and key for the second map is analyzer reference identity and
         /// <see cref="DiagnosticAnalyzer"/> for that assembly reference.
         /// 
