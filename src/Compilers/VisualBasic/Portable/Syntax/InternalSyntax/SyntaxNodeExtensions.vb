@@ -352,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Return the index within the trivia of what would be considered trailing
         ''' single-line trivia by the Scanner. This behavior must match ScanSingleLineTrivia.
         ''' In short, search walks backwards and stops at the second terminator
-        ''' (colon or EOL) from the end, ignoring EOLs preceeded by line continuations.
+        ''' (colon or EOL) from the end, ignoring EOLs preceded by line continuations.
         ''' </summary>
         <Extension()>
         Private Function GetIndexOfEndOfTrivia(trivia As SyntaxList(Of VisualBasicSyntaxNode)) As Integer

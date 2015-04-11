@@ -318,7 +318,7 @@ namespace N
     class C1 { }
     public static class E
     {
-        public static int F(this A o) { return 1; }
+        public static A F(this A o) { return o; }
     }
 }
 class C2 { }
@@ -355,6 +355,7 @@ public class B
             ImmutableArray<MetadataReference> referencesA;
             compilationA.EmitAndGetReferences(out exeBytesA, out pdbBytesA, out referencesA);
             var referenceA = AssemblyMetadata.CreateFromImage(exeBytesA).GetReference(display: assemblyNameA);
+            var identityA = referenceA.GetAssemblyIdentity();
             var moduleA = referenceA.ToModuleInstance(exeBytesA, new SymReader(pdbBytesA));
 
             var assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName();
@@ -411,13 +412,15 @@ public class B
                 // Duplicate type in namespace, at type scope.
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new N.C1()", contextFactory, out errorMessage, out testData);
                 Assert.Null(errorMessage);
-                testData.GetMethodData("<>x.<>m0").VerifyIL(
+                var methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
 @"{
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  newobj     ""N.C1..ctor()""
   IL_0005:  ret
 }");
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName());
 
                 GetContextState(runtime, "A.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
                 contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken);
@@ -425,29 +428,33 @@ public class B
                 // Duplicate type in global namespace, at method scope.
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C2()", contextFactory, out errorMessage, out testData);
                 Assert.Null(errorMessage);
-                testData.GetMethodData("<>x.<>m0").VerifyIL(
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
 @"{
   // Code size        6 (0x6)
   .maxstack  1
   .locals init (A V_0, //x
-                int V_1) //y
+                A V_1) //y
   IL_0000:  newobj     ""C2..ctor()""
   IL_0005:  ret
 }");
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName());
 
                 // Duplicate extension method, at method scope.
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, out errorMessage, out testData);
                 Assert.Null(errorMessage);
-                testData.GetMethodData("<>x.<>m0").VerifyIL(
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
 @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (A V_0, //x
-                int V_1) //y
+                A V_1) //y
   IL_0000:  ldloc.0
-  IL_0001:  call       ""int N.E.F(A)""
+  IL_0001:  call       ""A N.E.F(A)""
   IL_0006:  ret
 }");
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName());
             }
         }
 

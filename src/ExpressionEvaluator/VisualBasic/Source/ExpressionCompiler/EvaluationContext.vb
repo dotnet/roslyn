@@ -7,6 +7,7 @@ Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -180,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim localBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
             GetLocals(localBuilder, currentFrame, localNames, localInfo)
             GetStaticLocals(localBuilder, currentFrame, methodHandle, metadataDecoder)
-            GetConstants(localBuilder, currentFrame, containingScopes.GetConstantSignatures(), metadataDecoder)
+            GetConstants(localBuilder, currentFrame, containingScopes, metadataDecoder)
             containingScopes.Free()
             Dim locals = localBuilder.ToImmutableAndFree()
 
@@ -445,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             argumentsOnly As Boolean,
             diagnostics As DiagnosticBag,
             <Out> ByRef typeName As String,
-            testData As Microsoft.CodeAnalysis.CodeGen.CompilationTestData) As ReadOnlyCollection(Of Byte)
+            testData As CompilationTestData) As ReadOnlyCollection(Of Byte)
 
             Dim context = Me.CreateCompilationContext(Nothing)
             Dim modulebuilder = context.CompileGetLocals(EvaluationContext.s_typeName, locals, argumentsOnly, testData, diagnostics)
@@ -560,16 +561,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared Sub GetConstants(
             builder As ArrayBuilder(Of LocalSymbol),
             method As MethodSymbol,
-            constants As ImmutableArray(Of NamedLocalConstant),
+            scopes As IEnumerable(Of ISymUnmanagedScope),
             metadataDecoder As MetadataDecoder)
 
-            For Each constant In constants
-                Dim info = metadataDecoder.GetLocalInfo(constant.Signature)
-                Debug.Assert(Not info.IsByRef)
-                Debug.Assert(Not info.IsPinned)
-                Dim type As TypeSymbol = info.Type
-                Dim constantValue = ReinterpretConstantValue(constant.Value, type.SpecialType)
-                builder.Add(New EELocalConstantSymbol(method, constant.Name, type, constantValue))
+            For Each scope In scopes
+                For Each constant In scope.GetConstants()
+                    Dim name = constant.GetName()
+                    Dim rawValue = constant.GetValue()
+                    Dim signature = constant.GetSignature()
+
+                    Dim info = metadataDecoder.GetLocalInfo(signature)
+                    Debug.Assert(Not info.IsByRef)
+                    Debug.Assert(Not info.IsPinned)
+                    Dim type As TypeSymbol = info.Type
+
+                    Dim constantValue = PdbHelpers.GetConstantValue(type.GetEnumUnderlyingTypeOrSelf(), rawValue)
+
+                    ' TODO (https://github.com/dotnet/roslyn/issues/1815): report error properly when the symbol is used
+                    If constantValue.IsBad Then
+                        Throw New InvalidDataException("Bad constant value")
+                    End If
+
+                    builder.Add(New EELocalConstantSymbol(method, name, type, constantValue))
+                Next
             Next
         End Sub
 
@@ -578,7 +592,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Case ERRID.ERR_DuplicateReferenceStrong,
                      ERRID.ERR_AmbiguousInUnnamedNamespace1,
                      ERRID.ERR_AmbiguousInNamespace2,
-                     ERRID.ERR_NoMostSpecificOverload2
+                     ERRID.ERR_NoMostSpecificOverload2,
+                     ERRID.ERR_AmbiguousInModules2
                     Return True
                 Case Else
                     Return False

@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.SignatureHelp
             else if (triggerReason == SignatureHelpTriggerReason.RetriggerCommand)
             {
                 if (!syntaxFacts.IsInNonUserCode(root.SyntaxTree, position, cancellationToken) ||
-                    syntaxFacts.IsEntirelyWithinStringOrCharLiteral(root.SyntaxTree, position, cancellationToken))
+                    syntaxFacts.IsEntirelyWithinStringOrCharOrNumericLiteral(root.SyntaxTree, position, cancellationToken))
                 {
                     expression = token.Parent?.AncestorsAndSelf()
                         .TakeWhile(n => !syntaxFacts.IsAnonymousFunction(n))

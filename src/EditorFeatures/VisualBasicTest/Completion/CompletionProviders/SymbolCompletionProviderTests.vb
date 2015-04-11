@@ -1261,9 +1261,16 @@ Class C
     Sub M()
         10: Dim i As Integer
         Goto $$"
-</Text>.Value
+</Text>.Value.NormalizeLineEndings()
 
-            VerifyItemExists(test, "10")
+            Dim text As String = Nothing
+            Dim position As Integer
+            MarkupTestFile.GetPosition(test, text, position)
+
+            ' We don't trigger intellisense within numeric literals, so we 
+            ' explicitly test only the "nothing typed" case.
+            ' This is also the Dev12 behavior for suggesting labels.
+            VerifyAtPosition(text, position, "10", Nothing, SourceCodeKind.Regular, usePreviousCharAsTrigger:=True, checkForAbsence:=False, glyph:=Nothing, experimental:=False)
         End Sub
 
         <WorkItem(541235)>

@@ -1641,6 +1641,7 @@ namespace Microsoft.CodeAnalysis
                         pdbStream = pdbStreamProvider.GetStream(diagnostics);
                         if (pdbStream == null)
                         {
+                            Debug.Assert(diagnostics.HasAnyErrors());
                             return null;
                         }
 
@@ -1648,8 +1649,8 @@ namespace Microsoft.CodeAnalysis
 
                         // Native PDB writer is able to update an existing stream.
                         // It checks for length to determine whether the given stream has existing data to be updated,
-                        // or whether it should start writing PDB data from scratch. Thus if not writing to a seekable empty stream ,
-                        // let's create an in-memory temp stream for the PDB writer and copy all data to the actual stream at once at the end.
+                        // or whether it should start writing PDB data from scratch. Thus if not writing to a seekable empty stream,
+                        // we have to create an in-memory temp stream for the PDB writer and copy all data to the actual stream at once at the end.
                         if (!retStream.CanSeek || retStream.Length != 0)
                         {
                             retStream = pdbTempStream = new MemoryStream();
@@ -1725,7 +1726,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         // Note: Native PDB writer may operate on the underlying stream during disposal.
                         // So close it here before we read data from the underlying stream.
-                        nativePdbWriter.WritePdbToOutput();
+                        nativePdbWriter?.WritePdbToOutput();
 
                         pdbTempStream.Position = 0;
                         pdbTempStream.CopyTo(pdbStream);

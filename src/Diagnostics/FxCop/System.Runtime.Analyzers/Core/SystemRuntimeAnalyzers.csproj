@@ -68,6 +68,10 @@
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.Fixer.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.cs" />
     <Compile Include="DiagnosticCategory.cs" />
+    <Compile Include="Globalization\UseOrdinalStringComparison.Fixer.cs" />
+    <Compile Include="Globalization\UseOrdinalStringComparison.cs" />
+    <Compile Include="Performance\AvoidUnsealedAttributes.cs" />
+    <Compile Include="Performance\AvoidUnsealedAttributes.Fixer.cs" />
     <Compile Include="Shared\DiagnosticExtensions.cs" />
     <Compile Include="DocumentChangeAction.cs" />
     <Compile Include="Shared\INamedTypeSymbolExtensions.cs" />

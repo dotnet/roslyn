@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private CancellationTokenSource _sharedCompileCts = null;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
+        public ManagedCompiler()
+        {
+            this.TaskResources = ErrorString.ResourceManager;
+        }
+
         #region Properties
 
         // Please keep these alphabetized.
@@ -329,7 +334,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
                 catch (Exception e)
                 {
-                    Log.LogErrorWithCodeFromResources("Compiler.UnexpectedException");
+                    Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
                     LogErrorOutput(e.ToString());
                     ExitCode = -1;
                 }
@@ -717,11 +722,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     if (disambiguatingMetadataName == null || String.IsNullOrEmpty(disambiguatingMetadataValue))
                     {
-                        Log.LogErrorWithCodeFromResources("General.DuplicateItemsNotSupported", item.ItemSpec, parameterName);
+                        Log.LogErrorWithCodeFromResources("General_DuplicateItemsNotSupported", item.ItemSpec, parameterName);
                     }
                     else
                     {
-                        Log.LogErrorWithCodeFromResources("General.DuplicateItemsNotSupportedWithMetadata", item.ItemSpec, parameterName, disambiguatingMetadataValue, disambiguatingMetadataName);
+                        Log.LogErrorWithCodeFromResources("General_DuplicateItemsNotSupportedWithMetadata", item.ItemSpec, parameterName, disambiguatingMetadataValue, disambiguatingMetadataName);
                     }
                     return false;
                 }
@@ -800,7 +805,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             if (!resultFromHostObjectSetOperation)
             {
-                Log.LogMessageFromResources(MessageImportance.Normal, "General.ParameterUnsupportedOnHostCompiler", parameterName);
+                Log.LogMessageFromResources(MessageImportance.Normal, "General_ParameterUnsupportedOnHostCompiler", parameterName);
                 _hostCompilerSupportsAllParameters = false;
             }
         }
@@ -824,7 +829,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 if (!File.Exists(reference.ItemSpec))
                 {
                     success = false;
-                    Log.LogErrorWithCodeFromResources("General.ReferenceDoesNotExist", reference.ItemSpec);
+                    Log.LogErrorWithCodeFromResources("General_ReferenceDoesNotExist", reference.ItemSpec);
                 }
             }
 
@@ -876,7 +881,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             // So just a message is fine.
                             Log.LogMessageFromResources
                             (
-                                "General.ExpectedFileMissing",
+                                "General_ExpectedFileMissing",
                                 "default.win32manifest"
                             );
                         }

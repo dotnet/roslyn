@@ -86,13 +86,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyCommandLineSplitter("   \t   ", new string[0]);
             VerifyCommandLineSplitter("   abc\tdef baz    quuz   ", new[] { "abc", "def", "baz", "quuz" });
             VerifyCommandLineSplitter(@"  ""abc def""  fi""ddle dee de""e  ""hi there ""dude  he""llo there""  ",
-                                        new string[] { @"abc def", @"fi""ddle dee de""e", @"""hi there ""dude", @"he""llo there""" });
+                                        new string[] { @"abc def", @"fiddle dee dee", @"hi there dude", @"hello there" });
             VerifyCommandLineSplitter(@"  ""abc def \"" baz quuz"" ""\""straw berry"" fi\""zz \""buzz fizzbuzz",
                                         new string[] { @"abc def "" baz quuz", @"""straw berry", @"fi""zz", @"""buzz", @"fizzbuzz" });
             VerifyCommandLineSplitter(@"  \\""abc def""  \\\""abc def"" ",
-                                        new string[] { @"\""abc def""", @"\""abc", @"def""" });
+                                        new string[] { @"\abc def", @"\""abc", @"def" });
             VerifyCommandLineSplitter(@"  \\\\""abc def""  \\\\\""abc def"" ",
-                                        new string[] { @"\\""abc def""", @"\\""abc", @"def""" });
+                                        new string[] { @"\\abc def", @"\\""abc", @"def" });
+            VerifyCommandLineSplitter(@"  \\\\""abc def""  \\\\\""abc def"" q a r ",
+                                        new string[] { @"\\abc def", @"\\""abc", @"def q a r" });
             VerifyCommandLineSplitter(@"abc #Comment ignored",
                                         new string[] { @"abc" }, removeHashComments: true);
         }

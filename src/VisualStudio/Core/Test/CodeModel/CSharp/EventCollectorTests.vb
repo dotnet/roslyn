@@ -786,9 +786,10 @@ class C
 </Code>
 
             Test(code, changedCode,
-                 ArgChange("System.CLSCompliant"))
+                 ArgChange("System.CLSCompliant", "foo"))
         End Sub
 
+        <WorkItem(1147865)>
         <WorkItem(844611)>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_ChangeAttributeOnTwoFields()
@@ -811,7 +812,66 @@ class C
 </Code>
 
             Test(code, changedCode,
-                 ArgChange("System.CLSCompliant"))
+                 ArgChange("System.CLSCompliant", "foo"),
+                 ArgChange("System.CLSCompliant", "bar"))
+        End Sub
+
+        <WorkItem(1147865)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Sub TestField_AddOneMoreAttribute()
+            Dim code =
+<Code>
+using System;
+
+class Program
+{
+    [System.NonSerialized()]
+    public int bar;
+}
+</Code>
+
+            Dim changedCode =
+<Code>
+using System;
+
+class Program
+{
+    [System.NonSerialized(), System.CLSCompliant(true)]
+    public int bar;
+}
+</Code>
+
+            Test(code, changedCode,
+                 Add("System.CLSCompliant", "bar"))
+        End Sub
+
+        <WorkItem(1147865)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Sub TestField_RemoveOneAttribute()
+            Dim code =
+<Code>
+using System;
+
+class Program
+{
+    [System.NonSerialized(), System.CLSCompliant(true)]
+    public int bar;
+}
+</Code>
+
+            Dim changedCode =
+<Code>
+using System;
+
+class Program
+{
+    [System.NonSerialized()]
+    public int bar;
+}
+</Code>
+
+            Test(code, changedCode,
+                 Remove("System.CLSCompliant", "bar"))
         End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String

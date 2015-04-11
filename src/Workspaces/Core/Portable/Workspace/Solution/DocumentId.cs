@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// workspace.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public class DocumentId : IEquatable<DocumentId>
+    public sealed class DocumentId : IEquatable<DocumentId>
     {
         public ProjectId ProjectId { get; }
         public Guid Id { get; }

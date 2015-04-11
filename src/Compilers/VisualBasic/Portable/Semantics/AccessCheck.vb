@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        ' Is a member with declared accessibily "declaredAccessiblity" accessible from within "within", which must
+        ' Is a member with declared accessibily "declaredAccessibility" accessible from within "within", which must
         ' be a named type or an assembly.
         Private Shared Function CheckMemberAccessibility(containingType As NamedTypeSymbol,
                                                          declaredAccessibility As Accessibility,

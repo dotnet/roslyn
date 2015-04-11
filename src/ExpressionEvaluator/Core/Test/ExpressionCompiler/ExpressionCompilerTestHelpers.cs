@@ -88,10 +88,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ArrayBuilder<LocalAndMethod> locals,
             bool argumentsOnly,
             out string typeName,
-            CompilationTestData testData)
+            CompilationTestData testData,
+            DiagnosticDescription[] expectedDiagnostics = null)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var result = context.CompileGetLocals(locals, argumentsOnly, diagnostics, out typeName, testData);
+            var result = context.CompileGetLocals(locals, argumentsOnly, diagnostics, out typeName, testData);            
+            diagnostics.Verify(expectedDiagnostics ?? DiagnosticDescription.None);
             diagnostics.Free();
             return result;
         }

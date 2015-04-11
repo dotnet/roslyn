@@ -75,8 +75,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// Close the PDB writer and write the contents to the stream provided by <see cref="_streamProvider"/> 
-        /// or file name specified by <see cref="_fileName"/> value if no stream has been provided. 
+        /// Close the PDB writer and write the PDB data to the stream provided by <see cref="_streamProvider"/>.
         /// </summary>
         public void WritePdbToOutput()
         {
@@ -112,9 +111,8 @@ namespace Microsoft.Cci
 
             var localScopes = methodBody.LocalScopes;
 
-            // CCI originally didn't have the notion of the default scope that is open
-            // when a method is opened. In order to reproduce CSC PDBs, this must be added. Otherwise
-            // a seemingly unnecessary scope that contains only other scopes is put in the PDB.
+            // Open the outer-most language defined scope, the namespace scopes will be emitted to it.
+            // Note that the root scope has already been open, but native compilers leave it empty.
             if (localScopes.Length > 0)
             {
                 this.DefineScopeLocals(localScopes[0], localSignatureToken);
@@ -176,10 +174,7 @@ namespace Microsoft.Cci
                 this.DefineAssemblyReferenceAliases();
             }
 
-            // TODO: it's not clear why we are closing a scope here with IL length:
-            CloseScope(methodBody.IL.Length);
-
-            CloseMethod();
+            CloseMethod(methodBody.IL.Length);
         }
 
         private void DefineNamespaceScopes(IMethodBody methodBody)
@@ -191,23 +186,25 @@ namespace Microsoft.Cci
 
             var namespaceScopes = methodBody.ImportScope;
 
-            // NOTE: All extern aliases are stored on the outermost namespace scope.
             PooledHashSet<string> lazyDeclaredExternAliases = null;
             if (!isVisualBasic)
             {
-                foreach (var import in GetLastScope(namespaceScopes).GetUsedNamespaces(Context))
+                for (var scope = namespaceScopes; scope != null; scope = scope.Parent)
                 {
-                    if (import.TargetNamespaceOpt == null && import.TargetTypeOpt == null)
+                    foreach (var import in scope.GetUsedNamespaces(Context))
                     {
-                        Debug.Assert(import.AliasOpt != null);
-                        Debug.Assert(import.TargetAssemblyOpt == null);
-
-                        if (lazyDeclaredExternAliases == null)
+                        if (import.TargetNamespaceOpt == null && import.TargetTypeOpt == null)
                         {
-                            lazyDeclaredExternAliases = PooledHashSet<string>.GetInstance();
-                        }
+                            Debug.Assert(import.AliasOpt != null);
+                            Debug.Assert(import.TargetAssemblyOpt == null);
 
-                        lazyDeclaredExternAliases.Add(import.AliasOpt);
+                            if (lazyDeclaredExternAliases == null)
+                            {
+                                lazyDeclaredExternAliases = PooledHashSet<string>.GetInstance();
+                            }
+
+                            lazyDeclaredExternAliases.Add(import.AliasOpt);
+                        }
                     }
                 }
             }
@@ -254,20 +251,6 @@ namespace Microsoft.Cci
 
                 // VB current namespace -- VB appends the namespace of the container without prefixes
                 UsingNamespace(GetOrCreateSerializedNamespaceName(method.ContainingNamespace), method);
-            }
-        }
-
-        private static IImportScope GetLastScope(IImportScope scope)
-        {
-            while (true)
-            {
-                var parent = scope.Parent;
-                if (parent == null)
-                {
-                    return scope;
-                }
-
-                scope = parent;
             }
         }
 
@@ -559,14 +542,17 @@ namespace Microsoft.Cci
 
         public void SetMetadataEmitter(MetadataWriter metadataWriter)
         {
-            Stream streamOpt = _streamProvider();
+            Stream stream = _streamProvider() ?? new System.IO.MemoryStream();
 
             try
             {
                 var instance = (ISymUnmanagedWriter2)(_symWriterFactory != null ? _symWriterFactory() : Activator.CreateInstance(GetCorSymWriterSxSType()));
-                var comStream = (streamOpt != null) ? new ComStreamWrapper(streamOpt) : null;
 
-                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, comStream, fullBuild: true);
+                // Important: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
+                // and the resulting PDB has Age = existing_age + 1.
+                Debug.Assert(stream.Length == 0);
+
+                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, new ComStreamWrapper(stream), fullBuild: true);
 
                 _metadataWriter = metadataWriter;
                 _symWriter = instance;
@@ -577,7 +563,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public unsafe void GetDebugDirectoryGuidAndStamp(out Guid guid, out uint stamp)
+        public unsafe void GetDebugDirectoryGuidAndStampAndAge(out Guid guid, out uint stamp, out uint age)
         {
             // See symwrite.cpp - the data byte[] doesn't depend on the content of metadata tables or IL.
             // The writer only sets two values of the ImageDebugDirectory struct.
@@ -619,7 +605,7 @@ namespace Microsoft.Cci
             // {
             //     DWORD dwSig;                 // "RSDS"
             //     GUID guidSig;                // GUID
-            //     DWORD age;                   // always 1
+            //     DWORD age;                   // age
             //     char szPDB[0];               // zero-terminated UTF8 file name passed to the writer
             // };
             const int GuidSize = 16;
@@ -631,7 +617,6 @@ namespace Microsoft.Cci
             // Retrieve the timestamp the PDB writer generates when creating a new PDB stream.
             // Note that ImageDebugDirectory.TimeDateStamp is not set by GetDebugInfo, 
             // we need to go thru IPdbWriter interface to get it.
-            uint age;
             ((IPdbWriter)_symWriter).GetSignatureAge(out stamp, out age);
         }
 
@@ -689,7 +674,9 @@ namespace Microsoft.Cci
             try
             {
                 _symWriter.OpenMethod(methodToken);
-                _symWriter.OpenScope(0);
+
+                // open root scope:
+                _symWriter.OpenScope(startOffset: 0);
             }
             catch (Exception ex)
             {
@@ -697,10 +684,13 @@ namespace Microsoft.Cci
             }
         }
 
-        private void CloseMethod()
+        private void CloseMethod(int ilLength)
         {
             try
             {
+                // close the root scope:
+                CloseScope(endOffset: ilLength);
+
                 _symWriter.CloseMethod();
             }
             catch (Exception ex)
@@ -721,11 +711,11 @@ namespace Microsoft.Cci
             }
         }
 
-        private void CloseScope(int offset)
+        private void CloseScope(int endOffset)
         {
             try
             {
-                _symWriter.CloseScope((uint)offset);
+                _symWriter.CloseScope((uint)endOffset);
             }
             catch (Exception ex)
             {

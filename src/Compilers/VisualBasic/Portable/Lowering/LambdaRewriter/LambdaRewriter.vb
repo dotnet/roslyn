@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' the returned bound node.  For example, the caller will typically perform iterator method and
     ''' asynchronous method transformations, and emit IL instructions into an assembly.
     ''' </summary>
-    Friend Partial Class LambdaRewriter
+    Partial Friend Class LambdaRewriter
         Inherits MethodToClassRewriter(Of FieldSymbol)
 
         Private ReadOnly _analysis As Analysis
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         slotAllocatorOpt As VariableSlotAllocator,
                         compilationState As TypeCompilationState,
                         diagnostics As DiagnosticBag)
-            MyBase.New(slotAllocatorOpt, compilationState, diagnostics)
+            MyBase.New(slotAllocatorOpt, compilationState, diagnostics, method.PreserveOriginalLocals)
 
             Me._topLevelMethod = method
             Me._topLevelMethodOrdinal = methodOrdinal
@@ -551,7 +551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If origLambda IsNot Nothing Then
                 ' init proxies for lambda parameters
                 For Each p In origLambda.Parameters
-                    InitParameterProxy(syntaxNode, p, framePointer, frameType, prologue)
+                    InitVariableProxy(syntaxNode, p, framePointer, frameType, prologue)
                 Next
             Else
                 ' init proxies for method parameters when seeing top block
@@ -559,9 +559,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(_topLevelMethod = _currentMethod)
 
                     For Each p In _topLevelMethod.Parameters
-                        InitParameterProxy(syntaxNode, p, framePointer, frameType, prologue)
+                        InitVariableProxy(syntaxNode, p, framePointer, frameType, prologue)
                     Next
                 End If
+            End If
+
+            ' init proxies for original locals if we're preserving them
+            If Me.PreserveOriginalLocals Then
+                For Each variable In _analysis.capturedVariables
+                    If variable.Kind <> SymbolKind.Local Then
+                        Continue For
+                    End If
+
+                    Dim variableNode As BoundNode = Nothing
+                    If ((Not _analysis.variableScope.TryGetValue(variable, variableNode)) OrElse (variableNode IsNot node)) Then
+                        Continue For
+                    End If
+
+                    InitVariableProxy(syntaxNode, variable, framePointer, frameType, prologue)
+                Next
             End If
 
             Dim oldInnermostFramePointer As Symbol = _innermostFramePointer
@@ -587,45 +603,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' If parameter is lifted, initializes its proxy
+        ''' If parameter (or variable in the EE) is lifted, initialize its proxy.
         ''' </summary>
-        Private Sub InitParameterProxy(syntaxNode As VisualBasicSyntaxNode,
-                                       origParameter As ParameterSymbol,
-                                       framePointer As LocalSymbol,
-                                       frameType As NamedTypeSymbol,
-                                       prologue As ArrayBuilder(Of BoundExpression))
+        Private Sub InitVariableProxy(syntaxNode As VisualBasicSyntaxNode,
+                                      originalSymbol As Symbol,
+                                      framePointer As LocalSymbol,
+                                      frameType As NamedTypeSymbol,
+                                      prologue As ArrayBuilder(Of BoundExpression))
 
-            If origParameter IsNot Nothing Then
-                Dim proxy As FieldSymbol = Nothing
-                If Proxies.TryGetValue(origParameter, proxy) AndAlso Not _analysis.declaredInsideExpressionLambda.Contains(origParameter) Then
-                    ' parameter needs to be accessed in the context of current method
-                    Dim actualParameter As ParameterSymbol = Nothing
-                    If Not ParameterMap.TryGetValue(origParameter, actualParameter) Then
-                        actualParameter = origParameter
-                    End If
+            Debug.Assert(originalSymbol IsNot Nothing)
 
-                    Dim parameterAccess = New BoundParameter(syntaxNode,
-                                                           actualParameter,
-                                                           isLValue:=False,
-                                                           type:=actualParameter.Type)
+            Dim proxy As FieldSymbol = Nothing
+            If Proxies.TryGetValue(originalSymbol, proxy) AndAlso Not _analysis.declaredInsideExpressionLambda.Contains(originalSymbol) Then
+                Dim value As BoundExpression
+                Select Case originalSymbol.Kind
+                    Case SymbolKind.Parameter
+                        ' parameter needs to be accessed in the context of current method
+                        Dim originalParameter = DirectCast(originalSymbol, ParameterSymbol)
+                        Dim actualParameter As ParameterSymbol = Nothing
+                        If Not ParameterMap.TryGetValue(originalParameter, actualParameter) Then
+                            actualParameter = originalParameter
+                        End If
 
-                    Dim constructedProxy = proxy.AsMember(frameType)
-                    Dim assignParameterProxy As BoundExpression = New BoundAssignmentOperator(
-                                                                    syntaxNode,
-                                                                    New BoundFieldAccess(
-                                                                        syntaxNode,
-                                                                        New BoundLocal(syntaxNode,
-                                                                                       framePointer,
-                                                                                       frameType),
-                                                                        constructedProxy,
-                                                                        True,
-                                                                        constructedProxy.Type),
-                                                                    parameterAccess,
-                                                                    True,
-                                                                    constructedProxy.Type)
+                        value = New BoundParameter(syntaxNode,
+                                                   actualParameter,
+                                                   isLValue:=False,
+                                                   type:=actualParameter.Type)
+                    Case SymbolKind.Local
+                        Dim originalLocal = DirectCast(originalSymbol, LocalSymbol)
+                        Dim actualLocal As LocalSymbol = Nothing
+                        If Not LocalMap.TryGetValue(originalLocal, actualLocal) Then
+                            actualLocal = originalLocal
+                        End If
+                        value = New BoundLocal(syntaxNode, actualLocal, isLValue:=False, type:=actualLocal.Type)
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(originalSymbol.Kind)
+                End Select
 
-                    prologue.Add(assignParameterProxy)
-                End If
+                Dim constructedProxy = proxy.AsMember(frameType)
+                Dim assignProxy As BoundExpression = New BoundAssignmentOperator(
+                                                         syntaxNode,
+                                                         New BoundFieldAccess(
+                                                             syntaxNode,
+                                                             New BoundLocal(syntaxNode,
+                                                                            framePointer,
+                                                                            frameType),
+                                                             constructedProxy,
+                                                             isLValue:=True,
+                                                             type:=constructedProxy.Type),
+                                                         value,
+                                                         suppressObjectClone:=True,
+                                                         type:=constructedProxy.Type)
+                prologue.Add(assignProxy)
             End If
         End Sub
 

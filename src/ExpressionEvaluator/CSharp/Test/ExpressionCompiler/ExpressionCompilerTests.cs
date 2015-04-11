@@ -5932,10 +5932,14 @@ public class C
                 Assert.True(comp1.Emit(peStream1Unused, pdbStream1).Success);
                 Assert.True(comp2.Emit(peStream2, pdbStream2).Success);
 
+                pdbStream1.Position = 0;
+                pdbStream2.Position = 0;
+                peStream2.Position = 0;
+
                 // Note: This SymReader will behave differently from the ISymUnmanagedReader
                 // we receive during real debugging.  We're just using it as a rough
                 // approximation of ISymUnmanagedReader3, which is unavailable here.
-                var symReader = new SymReader(new[] { pdbStream1, pdbStream2 });
+                var symReader = new SymReader(new[] { pdbStream1, pdbStream2 }, peStream2, null);
 
                 var runtime = CreateRuntimeInstance(
                     GetUniqueName(),
@@ -5992,6 +5996,146 @@ public class C
                     testData: null);
                 AssertEx.SetEqual(locals.Select(l => l.LocalName), "x", "y");
             }
+        }
+
+        /// <summary>
+        /// Ignore accessibility in lambda rewriter.
+        /// </summary>
+        [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
+        [Fact]
+        public void LambdaRewriterIgnoreAccessibility()
+        {
+            var source =
+@"using System.Linq;
+class C
+{
+    static void M()
+    {
+        var q = new[] { new C() }.AsQueryable();
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(
+                source,
+                options: TestOptions.DebugDll,
+                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(runtime, methodName: "C.M");
+            var testData = new CompilationTestData();
+            string error;
+            context.CompileExpression("q.Where(c => true)", out error, testData);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       64 (0x40)
+  .maxstack  6
+  .locals init (System.Linq.IQueryable<C> V_0, //q
+                System.Linq.Expressions.ParameterExpression V_1)
+  IL_0000:  ldloc.0
+  IL_0001:  ldtoken    ""C""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""c""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.1
+  IL_0016:  ldc.i4.1
+  IL_0017:  box        ""bool""
+  IL_001c:  ldtoken    ""bool""
+  IL_0021:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0026:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_002b:  ldc.i4.1
+  IL_002c:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0031:  dup
+  IL_0032:  ldc.i4.0
+  IL_0033:  ldloc.1
+  IL_0034:  stelem.ref
+  IL_0035:  call       ""System.Linq.Expressions.Expression<System.Func<C, bool>> System.Linq.Expressions.Expression.Lambda<System.Func<C, bool>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003a:  call       ""System.Linq.IQueryable<C> System.Linq.Queryable.Where<C>(System.Linq.IQueryable<C>, System.Linq.Expressions.Expression<System.Func<C, bool>>)""
+  IL_003f:  ret
+}");
+        }
+
+        /// <summary>
+        /// Ignore accessibility in async rewriter.
+        /// </summary>
+        [Fact]
+        public void AsyncRewriterIgnoreAccessibility()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static void F<T>(Func<Task<T>> f)
+    {
+    }
+    static void M()
+    {
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(
+                source,
+                options: TestOptions.DebugDll,
+                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(runtime, methodName: "C.M");
+            var testData = new CompilationTestData();
+            string error;
+            context.CompileExpression("F(async () => new C())", out error, testData);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       37 (0x25)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<System.Threading.Tasks.Task<C>> <>x.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_000e:  ldftn      ""System.Threading.Tasks.Task<C> <>x.<>c.<<>m0>b__0_0()""
+  IL_0014:  newobj     ""System.Func<System.Threading.Tasks.Task<C>>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Func<System.Threading.Tasks.Task<C>> <>x.<>c.<>9__0_0""
+  IL_001f:  call       ""void C.F<C>(System.Func<System.Threading.Tasks.Task<C>>)""
+  IL_0024:  ret
+}");
+        }
+
+        [Fact]
+        public void CapturedLocalInLambda()
+        {
+            var source = @"
+using System;
+class C
+{
+    void M(Func<int> f)
+    {
+        int x = 42;
+        M(() => x);
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(source);
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+
+            string error;
+            var testData = new CompilationTestData();
+            context.CompileExpression("M(() => x)", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                <>x.<>c__DisplayClass0_0 V_1) //CS$<>8__locals0
+  IL_0000:  newobj     ""<>x.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.1
+  IL_0007:  ldloc.0
+  IL_0008:  stfld      ""C.<>c__DisplayClass0_0 <>x.<>c__DisplayClass0_0.CS$<>8__locals0""
+  IL_000d:  ldarg.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldftn      ""int <>x.<>c__DisplayClass0_0.<<>m0>b__0()""
+  IL_0015:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_001a:  callvirt   ""void C.M(System.Func<int>)""
+  IL_001f:  ret
+}");
         }
     }
 }

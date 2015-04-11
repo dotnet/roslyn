@@ -799,7 +799,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal override void SetDocumentContext(DocumentId documentId)
         {
             var hostDocument = GetHostDocument(documentId);
-            var hierarchy = hostDocument.Project.Hierarchy;
             var itemId = hostDocument.GetItemId();
             if (itemId == (uint)VSConstants.VSITEMID.Nil)
             {
@@ -807,6 +806,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
+            var hierarchy = hostDocument.Project.Hierarchy;
             var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
             if (sharedHierarchy != null)
             {
@@ -1114,8 +1114,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private void UnsubscribeFromSharedHierarchyEvents(DocumentId documentId)
             {
                 var hostDocument = _workspace.GetHostDocument(documentId);
-                var hierarchy = hostDocument.Project.Hierarchy;
-
                 var itemId = hostDocument.GetItemId();
                 if (itemId == (uint)VSConstants.VSITEMID.Nil)
                 {
@@ -1123,8 +1121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
-                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
-
+                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hostDocument.Project.Hierarchy, itemId);
                 if (sharedHierarchy != null)
                 {
                     uint cookie;

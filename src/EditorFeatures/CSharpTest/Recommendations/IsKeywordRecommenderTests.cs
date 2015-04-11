@@ -161,5 +161,13 @@ $$");
             VerifyKeyword(AddInsideMethod(
 @"var x = ""\{0}\{1}\{2}"" $$"));
         }
+
+        [WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public void NotWithinNumericLiteral()
+        {
+            VerifyAbsence(AddInsideMethod(
+@"var x = .$$0;"));
+        }
     }
 }

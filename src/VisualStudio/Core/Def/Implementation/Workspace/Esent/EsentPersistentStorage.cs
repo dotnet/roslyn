@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Isam.Esent;
 using Microsoft.Isam.Esent.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
@@ -102,6 +103,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(name));
 
             if (!PersistenceEnabled)
+            {
+                return SpecializedTasks.Default<Stream>();
+            }
+
+            if (!IsSupported(project))
             {
                 return SpecializedTasks.Default<Stream>();
             }
@@ -210,6 +216,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return SpecializedTasks.False;
             }
 
+            if (!IsSupported(project))
+            {
+                return SpecializedTasks.False;
+            }
+
             int projectId;
             int nameId;
             if (!TryGetUniqueFileId(project.FilePath, out projectId) ||
@@ -268,6 +279,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             _esentStorage.Close();
         }
 
+        private bool IsSupported(Project project)
+        {
+            // TODO: figure out a proper way to support project K scenario where we can't use path as a unique key
+            // https://github.com/dotnet/roslyn/issues/1860
+            return !LinkedFileUtilities.IsProjectKProject(project);
+        }
+
         private bool TryGetUniqueNameId(string name, out int id)
         {
             return TryGetUniqueId(name, false, out id);
@@ -304,8 +322,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 id = _nameTableCache.GetOrAdd(value, v =>
                 {
                     // okay, get one from esent
-                    var relativePathFromSolution = FilePathUtilities.GetRelativePath(Path.GetDirectoryName(SolutionFilePath), v);
-                    return _esentStorage.GetUniqueId(relativePathFromSolution);
+                    var uniqueIdValue = fileCheck ? FilePathUtilities.GetRelativePath(Path.GetDirectoryName(SolutionFilePath), v) : v;
+                    return _esentStorage.GetUniqueId(uniqueIdValue);
                 });
             }
             catch (Exception ex)
@@ -351,6 +369,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
         {
             projectId = default(int);
             documentId = default(int);
+
+            if (!IsSupported(document.Project))
+            {
+                return false;
+            }
 
             return TryGetUniqueFileId(document.Project.FilePath, out projectId) && TryGetUniqueFileId(document.FilePath, out documentId);
         }

@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function IsInNonUserCode(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Return _
                 syntaxTree.IsEntirelyWithinComment(position, cancellationToken) OrElse
-                syntaxTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken) OrElse
+                syntaxTree.IsEntirelyWithinStringOrCharOrNumericLiteral(position, cancellationToken) OrElse
                 syntaxTree.IsInInactiveRegion(position, cancellationToken) OrElse
                 syntaxTree.IsWithinPartialMethodDeclaration(position, cancellationToken)
         End Function
@@ -85,10 +85,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IsEntirelyWithinStringOrCharLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+        Public Function IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
 
-            If Not token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken) Then
+            If Not token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken, SyntaxKind.DecimalLiteralToken, SyntaxKind.IntegerLiteralToken,
+                                SyntaxKind.DateLiteralToken, SyntaxKind.FloatingLiteralToken) Then
                 Return False
             End If
 

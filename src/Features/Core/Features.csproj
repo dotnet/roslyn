@@ -219,6 +219,8 @@
     <Compile Include="Diagnostics\PredefinedDiagnosticProviderNames.cs" />
     <Compile Include="Diagnostics\UpdateArgsId.cs" />
     <Compile Include="Diagnostics\WorkspaceAnalyzerOptions.cs" />
+    <Compile Include="EditAndContinue\DebuggingState.cs" />
+    <Compile Include="EditAndContinue\DebuggingStateChangedEventArgs.cs" />
     <Compile Include="EditAndContinue\EncDebuggingSessionInfo.cs" />
     <Compile Include="EditAndContinue\EncEditSessionInfo.cs" />
     <Compile Include="EditAndContinue\BidirectionalMap.cs" />

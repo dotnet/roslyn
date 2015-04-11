@@ -88,15 +88,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A binder suitable for performing overload resolution to synthesize a call to a helper method.
         /// </summary>
-        private SyntheticBinderImpl SyntheticBinder
+        private Binder _binder;
+
+        internal BoundExpression MakeInvocationExpression(
+            BinderFlags flags,
+            CSharpSyntaxNode node,
+            BoundExpression receiver,
+            string methodName,
+            ImmutableArray<BoundExpression> args,
+            DiagnosticBag diagnostics,
+            ImmutableArray<TypeSymbol> typeArgs = default(ImmutableArray<TypeSymbol>),
+            bool allowUnexpandedForm = true)
         {
-            get
+            if (_binder == null || _binder.Flags != flags)
             {
-                if (_binder == null) _binder = new SyntheticBinderImpl(this);
-                return _binder;
+                _binder = new SyntheticBinderImpl(this).WithFlags(flags);
             }
+
+            return _binder.MakeInvocationExpression(
+                node, 
+                receiver, 
+                methodName, 
+                args, 
+                diagnostics, 
+                typeArgs: typeArgs, 
+                allowFieldsAndProperties: false, 
+                allowUnexpandedForm: allowUnexpandedForm);
         }
-        private SyntheticBinderImpl _binder;
 
         /// <summary>
         /// A binder used only for performing overload resolution of runtime helper methods.
@@ -110,20 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             internal override Symbol ContainingMemberOrLambda { get { return _factory.CurrentMethod; } }
-            internal override bool IsAccessible(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
+            internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved)
             {
                 return AccessCheck.IsSymbolAccessible(symbol, _factory.CurrentType, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
-            }
-            internal BoundExpression MakeInvocationExpression(
-                CSharpSyntaxNode node,
-                BoundExpression receiver,
-                string methodName,
-                ImmutableArray<BoundExpression> args,
-                DiagnosticBag diagnostics,
-                ImmutableArray<TypeSymbol> typeArgs = default(ImmutableArray<TypeSymbol>),
-                bool allowUnexpandedForm = true)
-            {
-                return MakeInvocationExpression(node, receiver, methodName, args, diagnostics, typeArgs: typeArgs, allowFieldsAndProperties: false, allowUnexpandedForm: allowUnexpandedForm);
             }
         }
 
@@ -527,19 +534,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundObjectCreationExpression(Syntax, ctor, args) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression StaticCall(TypeSymbol receiver, string name, params BoundExpression[] args)
+        public BoundExpression StaticCall(BinderFlags flags, TypeSymbol receiver, string name, params BoundExpression[] args)
         {
-            return SyntheticBinder.MakeInvocationExpression(this.Syntax, this.Type(receiver), name, args.ToImmutableArray(), this.Diagnostics);
+            return MakeInvocationExpression(flags, this.Syntax, this.Type(receiver), name, args.ToImmutableArray(), this.Diagnostics);
         }
 
-        public BoundExpression StaticCall(TypeSymbol receiver, string name, ImmutableArray<BoundExpression> args, bool allowUnexpandedForm = true)
+        public BoundExpression StaticCall(TypeSymbol receiver, string name, ImmutableArray<BoundExpression> args, bool allowUnexpandedForm)
         {
-            return SyntheticBinder.MakeInvocationExpression(this.Syntax, this.Type(receiver), name, args, this.Diagnostics, allowUnexpandedForm: allowUnexpandedForm);
+            return MakeInvocationExpression(BinderFlags.None, this.Syntax, this.Type(receiver), name, args, this.Diagnostics, allowUnexpandedForm: allowUnexpandedForm);
         }
 
-        public BoundExpression StaticCall(TypeSymbol receiver, string name, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] args)
+        public BoundExpression StaticCall(BinderFlags flags, TypeSymbol receiver, string name, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] args)
         {
-            return SyntheticBinder.MakeInvocationExpression(this.Syntax, this.Type(receiver), name, args.ToImmutableArray(), this.Diagnostics, typeArgs);
+            return MakeInvocationExpression(flags, this.Syntax, this.Type(receiver), name, args.ToImmutableArray(), this.Diagnostics, typeArgs);
         }
 
         public BoundExpression StaticCall(TypeSymbol receiver, MethodSymbol method, params BoundExpression[] args)

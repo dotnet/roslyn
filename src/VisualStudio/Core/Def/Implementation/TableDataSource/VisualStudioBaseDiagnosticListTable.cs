@@ -303,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = GetProjectName(_factory._workspace, _factory._projectId);
                                 return content != null;
                             case StandardTableKeyNames.Project:
-                                content = GetHierarchy(_factory._workspace, _factory._projectId);
+                                content = GetHierarchy(_factory._workspace, _factory._projectId, _factory._documentId);
                                 return content != null;
                             default:
                                 content = null;

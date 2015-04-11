@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     severity, severity, isEnabledByDefault, warningLevel,
                     ImmutableArray<string>.Empty, ImmutableDictionary<string, string>.Empty,
                     workspace, projectId, documentId, span,
-                    originalFilePath, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
+                    null, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
                     originalFilePath, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
                     title, description, helpLink)
         {
@@ -360,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 document.Project.Id,
                 document.Id,
                 sourceSpan,
-                mappedLineInfo.Path,
+                mappedLineInfo.GetMappedFilePathIfExist(),
                 mappedStartLine,
                 mappedStartColumn,
                 mappedEndLine,

@@ -389,6 +389,7 @@
     <Compile Include="Rename\TokenRenameInfo.cs" />
     <Compile Include="Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Serialization\IAssemblySerializationInfoService.cs" />
+    <Compile Include="Shared\Extensions\FileLinePositionSpanExtensions.cs" />
     <Compile Include="Shared\Extensions\TextDocumentExtensions.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.ReplaceTypeParameterBasedOnTypeConstraintVisitor.cs" />
     <Compile Include="Shared\Utilities\SymbolEquivalenceComparer.AssemblyComparers.cs" />

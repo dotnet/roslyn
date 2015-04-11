@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var localBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             var sourceAssembly = compilation.SourceAssembly;
             GetLocals(localBuilder, currentFrame, localNames, localInfo, methodDebugInfo.DynamicLocalMap, sourceAssembly);
-            GetConstants(localBuilder, currentFrame, containingScopes.GetConstantSignatures(), metadataDecoder, methodDebugInfo.DynamicLocalConstantMap, sourceAssembly);
+            GetConstants(localBuilder, currentFrame, containingScopes, metadataDecoder, methodDebugInfo.DynamicLocalConstantMap, sourceAssembly);
             containingScopes.Free();
 
             var locals = localBuilder.ToImmutableAndFree();
@@ -476,30 +476,38 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static void GetConstants(
             ArrayBuilder<LocalSymbol> builder,
             MethodSymbol method,
-            ImmutableArray<NamedLocalConstant> constants,
+            IEnumerable<ISymUnmanagedScope> scopes,
             MetadataDecoder metadataDecoder,
             ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap,
             SourceAssemblySymbol containingAssembly)
         {
-            foreach (var constant in constants)
+            foreach (var scope in scopes)
             {
-                var info = metadataDecoder.GetLocalInfo(constant.Signature);
-                Debug.Assert(!info.IsByRef);
-                Debug.Assert(!info.IsPinned);
-                var type = info.Type;
-
-                ImmutableArray<bool> dynamicFlags;
-                if (dynamicLocalConstantMap != null && dynamicLocalConstantMap.TryGetValue(constant.Name, out dynamicFlags))
+                foreach (var constant in scope.GetConstants())
                 {
-                    type = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(
-                        type,
-                        containingAssembly,
-                        RefKind.None,
-                        dynamicFlags);
-                }
+                    string name = constant.GetName();
+                    object rawValue = constant.GetValue();
+                    var signature = constant.GetSignature();
 
-                var constantValue = ReinterpretConstantValue(constant.Value, type.SpecialType);
-                builder.Add(new EELocalConstantSymbol(method, constant.Name, type, constantValue));
+                    var info = metadataDecoder.GetLocalInfo(signature);
+                    Debug.Assert(!info.IsByRef);
+                    Debug.Assert(!info.IsPinned);
+                    var type = info.Type;
+
+                    var constantValue = PdbHelpers.GetConstantValue(type.EnumUnderlyingType(), rawValue);
+
+                    ImmutableArray<bool> dynamicFlags;
+                    if (dynamicLocalConstantMap != null && dynamicLocalConstantMap.TryGetValue(name, out dynamicFlags))
+                    {
+                        type = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(
+                            type,
+                            containingAssembly,
+                            RefKind.None,
+                            dynamicFlags);
+                    }
+
+                    builder.Add(new EELocalConstantSymbol(method, name, type, constantValue));
+                }
             }
         }
 

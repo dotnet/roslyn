@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 originalLine: originalLineInfo.StartLinePosition.Line,
                 mappedColumn: mappedLineInfo.StartLinePosition.Character,
                 originalColumn: originalLineInfo.StartLinePosition.Character,
-                mappedFilePath: mappedLineInfo.HasMappedPath ? mappedLineInfo.Path : null,
+                mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist(),
                 originalFilePath: document.FilePath);
         }
 

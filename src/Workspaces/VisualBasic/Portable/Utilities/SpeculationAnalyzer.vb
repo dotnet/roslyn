@@ -328,6 +328,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 End If
 
                 Return Not ImplicitConversionsAreCompatible(originalExpression, newExpression)
+            ElseIf currentOriginalNode.Kind = SyntaxKind.ConditionalAccessExpression
+                Dim originalExpression = DirectCast(currentOriginalNode, ConditionalAccessExpressionSyntax)
+                Dim newExpression = DirectCast(currentReplacedNode, ConditionalAccessExpressionSyntax)
+                Return ReplacementBreaksConditionalAccessExpression(originalExpression, newExpression)
             ElseIf currentOriginalNode.Kind = SyntaxKind.VariableDeclarator Then
                 ' Heuristic: If replacing the node will result in changing the type of a local variable
                 ' that is type-inferred, we won't remove it. It's possible to do this analysis, but it's
@@ -468,6 +472,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
             Return Not SymbolsAreCompatible(binaryExpression, newBinaryExpression) OrElse
                 Not TypesAreCompatible(binaryExpression, newBinaryExpression)
+        End Function
+
+        Private Function ReplacementBreaksConditionalAccessExpression(conditionalAccessExpression As ConditionalAccessExpressionSyntax, newConditionalAccessExpression As ConditionalAccessExpressionSyntax) As Boolean
+            Return Not SymbolsAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) OrElse
+                Not TypesAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) OrElse
+                Not SymbolsAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull) OrElse
+                Not TypesAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull)
         End Function
 
         Protected Overrides Function GetForEachStatementExpression(forEachStatement As ForEachStatementSyntax) As ExpressionSyntax

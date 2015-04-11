@@ -20748,7 +20748,7 @@ BC30461: Classes cannot be declared 'MustOverride'.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
 
-        ' Checks for accessibilty across partial types
+        ' Checks for accessibility across partial types
         <Fact>
         Public Sub ModifierErrorsAcrossPartialTypes()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(

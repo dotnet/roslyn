@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport;
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
+        private readonly IEditAndContinueWorkspaceService _editAndContinueWorkspaceService;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly Solution _baseSolution;
         private readonly Document _triggerDocument;
@@ -118,7 +120,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _baseSolution = _triggerDocument.Project.Solution;
             this.UndoManager = workspace.Services.GetService<IInlineRenameUndoManager>();
 
+            this._editAndContinueWorkspaceService = workspace.Services.GetService<IEditAndContinueWorkspaceService>();
+            this._editAndContinueWorkspaceService.BeforeDebuggingStateChanged += OnBeforeDebuggingStateChanged;
+
             InitializeOpenBuffers(triggerSpan);
+        }
+
+        private void OnBeforeDebuggingStateChanged(object sender, DebuggingStateChangedEventArgs args)
+        {
+            if (args.After == DebuggingState.Run)
+            {
+                Commit();
+            }
         }
 
         public string OriginalSymbolName
@@ -139,8 +152,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var document = _baseSolution.GetDocument(d);
                     SourceText text;
                     Contract.ThrowIfFalse(document.TryGetText(out text));
+                    Contract.ThrowIfNull(text);
 
-                    openBuffers.Add(text.FindCorrespondingEditorTextSnapshot().TextBuffer);
+                    var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
+                    Contract.ThrowIfNull(textSnapshot);
+                    Contract.ThrowIfNull(textSnapshot.TextBuffer);
+
+                    openBuffers.Add(textSnapshot.TextBuffer);
                 }
 
                 foreach (var buffer in openBuffers)
@@ -520,8 +538,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void EndRenameSession()
         {
+            _editAndContinueWorkspaceService.BeforeDebuggingStateChanged -= OnBeforeDebuggingStateChanged;
             CancelAllOpenDocumentTrackingTasks();
-
             RenameTrackingDismisser.DismissRenameTracking(_workspace, _workspace.GetOpenDocumentIds());
             _inlineRenameSessionDurationLogBlock.Dispose();
         }
@@ -571,8 +589,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 LogRenameSession(RenameLogMessage.UserActionOutcome.Committed, previewChanges);
 
-                RenameTrackingDismisser.DismissRenameTracking(_workspace, _workspace.GetOpenDocumentIds());
-                _inlineRenameSessionDurationLogBlock.Dispose();
+                EndRenameSession();
             }
         }
 

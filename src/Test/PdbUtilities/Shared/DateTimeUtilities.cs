@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+namespace Roslyn.Utilities
 {
     internal static class DateTimeUtilities
     {

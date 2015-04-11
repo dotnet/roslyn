@@ -2949,16 +2949,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return member.Locations.First().SourceSpan;
         }
 
-        private TextSpan GetVariableDiagnosticSpan(ISymbol local, CancellationToken cancellationToken)
+        private TextSpan GetVariableDiagnosticSpan(ISymbol local)
         {
-            var references = local.DeclaringSyntaxReferences;
-            if (!references.IsEmpty)
-            {
-                return references.Single().GetSyntax(cancellationToken).Span;
-            }
-
-            // TODO: better location for property parameters
-            return GetThisParameterDiagnosticSpan(local.ContainingSymbol);
+            return local.Locations.First().SourceSpan;
         }
 
         private static ImmutableArray<IParameterSymbol> GetParametersWithSyntax(ISymbol member)
@@ -3055,7 +3048,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // parameter has not been captured prior the edit:
                         diagnostics.Add(new RudeEditDiagnostic(
                             RudeEditKind.CapturingVariable,
-                            GetVariableDiagnosticSpan(newCapture, cancellationToken),
+                            GetVariableDiagnosticSpan(newCapture),
                             null,
                             new[] { newCapture.Name }));
 
@@ -3078,7 +3071,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         diagnostics.Add(new RudeEditDiagnostic(
                             RudeEditKind.CapturingVariable,
-                            newCaptureSyntax.Span,
+                            newCapture.Locations.First().SourceSpan,
                             null,
                             new[] { newCapture.Name }));
 
@@ -3128,7 +3121,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     diagnostics.Add(new RudeEditDiagnostic(
                         RudeEditKind.ChangingCapturedVariableType,
-                        GetVariableDiagnosticSpan(newCapture, cancellationToken),
+                        GetVariableDiagnosticSpan(newCapture),
                         null,
                         new[] { newCapture.Name, oldTypeOpt.ToDisplayString(ErrorDisplayFormat) }));
 
@@ -3143,7 +3136,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     diagnostics.Add(new RudeEditDiagnostic(
                         RudeEditKind.ChangingCapturedVariableScope,
-                        GetVariableDiagnosticSpan(newCapture, cancellationToken),
+                        GetVariableDiagnosticSpan(newCapture),
                         null,
                         new[] { newCapture.Name }));
 
@@ -3179,7 +3172,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     else if (oldCapture.ContainingSymbol == oldMember)
                     {
                         // method or property:
-                        span = GetVariableDiagnosticSpan(newMemberParameters[ordinal], cancellationToken);
+                        span = GetVariableDiagnosticSpan(newMemberParameters[ordinal]);
                     }
                     else
                     {
@@ -3195,7 +3188,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             var oldContainingLambdaSyntax = GetSymbolSyntax(oldContainingLambda, cancellationToken);
                             var newContainingLambdaSyntax = map.Forward[oldContainingLambdaSyntax];
                             var newContainingLambda = (IMethodSymbol)newModel.GetEnclosingSymbol(newContainingLambdaSyntax.SpanStart);
-                            span = GetVariableDiagnosticSpan(newContainingLambda.Parameters[ordinal], cancellationToken);
+                            span = GetVariableDiagnosticSpan(newContainingLambda.Parameters[ordinal]);
                         }
                         else
                         {

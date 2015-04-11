@@ -1538,7 +1538,7 @@ class C
             var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/preferreduilang:en", "/t:library", "/a:" + typeof(object).Assembly.Location, "a.cs" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal("warning CS8033: The assembly " + typeof(object).Assembly.Location + " does not contain any analyzers.", outWriter.ToString().Trim());
+            Assert.DoesNotContain("warning", outWriter.ToString());
 
             CleanupAllGeneratedFiles(file.Path);
         }
@@ -4145,8 +4145,90 @@ class myClass
             CleanupAllGeneratedFiles(source);
             CleanupAllGeneratedFiles(rsp);
         }
-        [Fact]
 
+        [WorkItem(1784, "https://github.com/dotnet/roslyn/issues/1784")]
+        [Fact]
+        public void QuotedDefineInRespFile()
+        {
+            string source = Temp.CreateFile("a.cs").WriteAllText(@"
+#if NN
+class myClass
+{
+#endif
+    static int Main()
+#if DD
+    {
+        return 1;
+#endif
+
+#if AA
+    }
+#endif
+
+#if BB
+}
+#endif
+
+").Path;
+
+            string rsp = Temp.CreateFile().WriteAllText(@"
+/d:""DD""
+/d:""AA;BB""
+/d:""N""N
+").Path;
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp 
+            var csc = new MockCSharpCompiler(rsp, _baseDirectory, new[] { source, "/preferreduilang:en"});
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+
+            CleanupAllGeneratedFiles(source);
+            CleanupAllGeneratedFiles(rsp);
+        }
+
+        [WorkItem(1784, "https://github.com/dotnet/roslyn/issues/1784")]
+        [Fact]
+        public void QuotedDefineInRespFileErr()
+        {
+            string source = Temp.CreateFile("a.cs").WriteAllText(@"
+#if NN
+class myClass
+{
+#endif
+    static int Main()
+#if DD
+    {
+        return 1;
+#endif
+
+#if AA
+    }
+#endif
+
+#if BB
+}
+#endif
+
+").Path;
+
+            string rsp = Temp.CreateFile().WriteAllText(@"
+/d:""DD""""
+/d:""AA;BB""
+/d:""N"" ""N
+").Path;
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp 
+            var csc = new MockCSharpCompiler(rsp, _baseDirectory, new[] { source, "/preferreduilang:en" });
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(1, exitCode);
+
+            CleanupAllGeneratedFiles(source);
+            CleanupAllGeneratedFiles(rsp);
+        }
+
+        [Fact]
         private void ResponseFileSplitting()
         {
             string[] responseFile;
@@ -4184,17 +4266,17 @@ class myClass
                 @"a\""a b\\""b c\\\""c d\\\\""d e\\\\\""e f"" g""",
             };
             args = CSharpCommandLineParser.ParseResponseLines(responseFile);
-            AssertEx.Equal(new[] { @"a""a", @"b\""b c\""c d\\""d", @"e\\""e", @"f"" g""" }, args);
+            AssertEx.Equal(new[] { @"a""a", @"b\b c\""c d\\d", @"e\\""e", @"f g" }, args);
 
-            // Quoting inside argument.
+            // Quoting inside argument is valid.
             responseFile = new string[] {
                 @"  /o:""foo.cs"" /o:""abc def""\baz ""/o:baz bar""bing",
             };
             args = CSharpCommandLineParser.ParseResponseLines(responseFile);
-            AssertEx.Equal(new[] { @"/o:""foo.cs""", @"/o:""abc def""\baz", @"""/o:baz bar""bing" }, args);
+            AssertEx.Equal(new[] { @"/o:foo.cs", @"/o:abc def\baz", @"/o:baz barbing" }, args);
         }
-        [Fact]
 
+        [Fact]
         private void SourceFileQuoting()
         {
             string[] responseFile = new string[] {
@@ -6045,6 +6127,39 @@ class Program
             Assert.Equal("", outWriter.ToString().Trim());
 
             CleanupAllGeneratedFiles(source);
+        }
+
+        [Fact]
+        public void ExistingPdb()
+        {
+            var dir = Temp.CreateDirectory();
+
+            var source1 = dir.CreateFile("program1.cs").WriteAllText(@"
+class Program1
+{
+        public static void Main() { }
+}");
+            var source2 = dir.CreateFile("program2.cs").WriteAllText(@"
+class Program2
+{
+        public static void Main() { }
+}");
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            int exitCode1 = new MockCSharpCompiler(null, dir.Path, new[] { "/debug:full", "/out:Program.exe", source1.Path }).Run(outWriter);
+            Assert.Equal(0, exitCode1);
+
+            int exitCode2 = new MockCSharpCompiler(null, dir.Path, new[] { "/debug:full", "/out:Program.exe", source2.Path }).Run(outWriter);
+            Assert.Equal(0, exitCode2);
+
+            var pePath = Path.Combine(dir.Path, "Program.exe");
+            var pdbPath = Path.Combine(dir.Path, "Program.pdb");
+
+            using (var peFile = File.OpenRead(pePath))
+            {
+                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdbPath);
+            }
         }
 
         [Fact]

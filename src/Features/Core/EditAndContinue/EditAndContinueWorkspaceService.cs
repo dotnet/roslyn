@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private DebuggingSession _debuggingSession;
         private EditSession _editSession;
 
+        public event EventHandler<DebuggingStateChangedEventArgs> BeforeDebuggingStateChanged;
+
         internal EditAndContinueWorkspaceService(IDiagnosticAnalyzerService diagnosticService)
         {
             Debug.Assert(diagnosticService != null);
@@ -35,6 +37,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 return _editSession;
             }
+        }
+
+        public void OnBeforeDebuggingStateChanged(DebuggingState before, DebuggingState after)
+        {
+            BeforeDebuggingStateChanged?.Invoke(this, new DebuggingStateChangedEventArgs(before, after));
         }
 
         public void StartDebuggingSession(Solution currentSolution)

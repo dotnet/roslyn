@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
-            var autobraceCompletionCharSet = GetAllAutoBraceCompletionChars(subjectBuffer);
+            var autobraceCompletionCharSet = GetAllAutoBraceCompletionChars(subjectBuffer.ContentType);
             controller = Controller.GetInstance(
                 textView, subjectBuffer,
                 _editorOperationsFactoryService, _undoHistoryRegistry, _completionPresenter,
@@ -116,16 +116,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return true;
         }
 
-        private ImmutableHashSet<char> GetAllAutoBraceCompletionChars(ITextBuffer subjectBuffer)
+        private ImmutableHashSet<char> GetAllAutoBraceCompletionChars(IContentType bufferContentType)
         {
             ImmutableHashSet<char> set;
-            if (!_autoBraceCompletionCharSet.TryGetValue(subjectBuffer.ContentType, out set))
+            if (!_autoBraceCompletionCharSet.TryGetValue(bufferContentType, out set))
             {
-                set = _autoBraceCompletionChars
-                          .Where(l => l.Metadata.ContentTypes.Any(v => subjectBuffer.ContentType.IsOfType(v)))
-                          .SelectMany(l => l.Metadata.OpeningBraces).ToImmutableHashSet();
+                var builder = ImmutableHashSet.CreateBuilder<char>();
+                foreach (var completion in _autoBraceCompletionChars)
+                {
+                    var metadata = completion.Metadata;
+                    foreach (var contentType in metadata.ContentTypes)
+                    {
+                        if (bufferContentType.IsOfType(contentType))
+                        {
+                            foreach (var ch in metadata.OpeningBraces)
+                            {
+                                builder.Add(ch);
+                            }
 
-                _autoBraceCompletionCharSet[subjectBuffer.ContentType] = set;
+                            break;
+                        }
+                    }
+
+                }
+
+                set = builder.ToImmutable();
+                _autoBraceCompletionCharSet[bufferContentType] = set;
             }
 
             return set;

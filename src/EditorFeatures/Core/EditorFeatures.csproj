@@ -407,6 +407,7 @@
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_RenameHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_ReturnHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_SelectAllHandler.cs" />
+    <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_SaveHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_TabHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_OpenLineAboveHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_TypeCharHandler.cs" />
@@ -454,6 +455,7 @@
     <Compile Include="Implementation\Intellisense\Completion\Controller.Session_SetModelSelectedItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller.Session_Wait.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_AutomaticLineEnder.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Controller_SelectAll.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_Delete.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_Backspace.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_CaretPositionChanged.cs" />
@@ -576,6 +578,8 @@
     <Compile Include="Implementation\Peek\PeekableItemSource.cs" />
     <Compile Include="Implementation\Peek\PeekableItemSourceProvider.cs" />
     <Compile Include="Implementation\Peek\PeekHelpers.cs" />
+    <Compile Include="Implementation\ReferenceHighlighting\WrittenReferenceHighlightTag.cs" />
+    <Compile Include="Implementation\ReferenceHighlighting\WrittenReferenceHighlightTagDefinition.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingCancellationCommandHandler.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTagDefinition.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTag.cs" />

@@ -416,8 +416,8 @@ namespace Microsoft.CodeAnalysis
                         WithOutputNameOverride(outputName).
                         WithPdbFilePath(finalPdbFilePath);
 
-                    using (var peStreamProvider = new CompilerEmitStreamProvider(this, finalOutputPath, streamCreatedByNativePdbWriter: false))
-                    using (var pdbStreamProviderOpt = Arguments.EmitPdb ? new CompilerEmitStreamProvider(this, finalOutputPath, streamCreatedByNativePdbWriter: true) : null)
+                    using (var peStreamProvider = new CompilerEmitStreamProvider(this, finalOutputPath))
+                    using (var pdbStreamProviderOpt = Arguments.EmitPdb ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null)
                     {
                         emitResult = compilation.Emit(
                             peStreamProvider,

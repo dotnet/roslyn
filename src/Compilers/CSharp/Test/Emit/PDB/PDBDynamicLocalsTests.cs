@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -51,7 +51,6 @@ class Test
         <entry offset=""0x0"" startLine=""5"" startColumn=""24"" endLine=""5"" endColumn=""25"" document=""0"" />
         <entry offset=""0x1"" startLine=""5"" startColumn=""25"" endLine=""5"" endColumn=""26"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Helper"" name="".ctor"">
       <customDebugInfo>
@@ -62,7 +61,6 @@ class Test
         <entry offset=""0x7"" startLine=""6"" startColumn=""17"" endLine=""6"" endColumn=""18"" document=""0"" />
         <entry offset=""0x8"" startLine=""6"" startColumn=""18"" endLine=""6"" endColumn=""19"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Helper"" name="".ctor"" parameterNames=""x"">
       <customDebugInfo>
@@ -73,7 +71,6 @@ class Test
         <entry offset=""0x7"" startLine=""7"" startColumn=""22"" endLine=""7"" endColumn=""23"" document=""0"" />
         <entry offset=""0x8"" startLine=""7"" startColumn=""23"" endLine=""7"" endColumn=""24"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -98,12 +95,6 @@ class Test
         <entry offset=""0xb1"" startLine=""22"" startColumn=""3"" endLine=""22"" endColumn=""30"" document=""0"" />
         <entry offset=""0x10f"" startLine=""24"" startColumn=""3"" endLine=""24"" endColumn=""4"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0x110"" attributes=""0"" />
-        <local name=""d2"" il_index=""1"" il_start=""0x0"" il_end=""0x110"" attributes=""0"" />
-        <local name=""d4"" il_index=""2"" il_start=""0x0"" il_end=""0x110"" attributes=""0"" />
-        <local name=""d5"" il_index=""3"" il_start=""0x0"" il_end=""0x110"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x110"">
         <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0x110"" attributes=""0"" />
         <local name=""d2"" il_index=""1"" il_start=""0x0"" il_end=""0x110"" attributes=""0"" />
@@ -164,10 +155,6 @@ class Test
         <entry offset=""0x21"" startLine=""8"" startColumn=""28"" endLine=""8"" endColumn=""30"" document=""0"" />
         <entry offset=""0x27"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""arrDynamic"" il_index=""0"" il_start=""0x0"" il_end=""0x28"" attributes=""0"" />
-        <local name=""d"" il_index=""3"" il_start=""0x17"" il_end=""0x1d"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x28"">
         <namespace name=""System"" />
         <local name=""arrDynamic"" il_index=""0"" il_start=""0x0"" il_end=""0x28"" attributes=""0"" />
@@ -200,7 +187,7 @@ class Test
         <using>
           <namespace usingCount=""0"" />
         </using>
-	    <dynamicLocals>
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
       </customDebugInfo>
@@ -208,11 +195,8 @@ class Test
         <entry offset=""0x0"" startLine=""5"" startColumn=""2"" endLine=""5"" endColumn=""3"" document=""0"" />
         <entry offset=""0x1"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""3"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <constant name=""d"" value=""0"" type=""Int32"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
-        <constant name=""d"" value=""0"" type=""Int32"" />
+        <constant name=""d"" value=""null"" type=""Object"" />
       </scope>
     </method>
   </methods>
@@ -265,11 +249,6 @@ class Test
         <entry offset=""0x11"" startLine=""12"" startColumn=""3"" endLine=""12"" endColumn=""39"" document=""0"" />
         <entry offset=""0x18"" startLine=""13"" startColumn=""3"" endLine=""13"" endColumn=""4"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""arr"" il_index=""0"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
-        <local name=""arrdim"" il_index=""1"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
-        <local name=""arrobj"" il_index=""2"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x19"">
         <local name=""arr"" il_index=""0"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
         <local name=""arrdim"" il_index=""1"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
@@ -329,13 +308,6 @@ class Test
         <entry offset=""0x19"" startLine=""11"" startColumn=""3"" endLine=""11"" endColumn=""42"" document=""0"" />
         <entry offset=""0x20"" startLine=""12"" startColumn=""3"" endLine=""12"" endColumn=""4"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""l1"" il_index=""0"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
-        <local name=""l2"" il_index=""1"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
-        <local name=""l3"" il_index=""2"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
-        <local name=""d1"" il_index=""3"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
-        <local name=""d2"" il_index=""4"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x21"">
         <namespace name=""System.Collections.Generic"" />
         <local name=""l1"" il_index=""0"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
@@ -390,7 +362,6 @@ class Test
         <entry offset=""0x0"" startLine=""5"" startColumn=""24"" endLine=""5"" endColumn=""25"" document=""0"" />
         <entry offset=""0x1"" startLine=""5"" startColumn=""25"" endLine=""5"" endColumn=""26"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Helper"" name="".ctor"">
       <customDebugInfo>
@@ -401,7 +372,6 @@ class Test
         <entry offset=""0x7"" startLine=""6"" startColumn=""17"" endLine=""6"" endColumn=""18"" document=""0"" />
         <entry offset=""0x8"" startLine=""6"" startColumn=""18"" endLine=""6"" endColumn=""19"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Helper"" name="".ctor"" parameterNames=""x"">
       <customDebugInfo>
@@ -412,7 +382,6 @@ class Test
         <entry offset=""0x7"" startLine=""7"" startColumn=""22"" endLine=""7"" endColumn=""23"" document=""0"" />
         <entry offset=""0x8"" startLine=""7"" startColumn=""23"" endLine=""7"" endColumn=""24"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -434,11 +403,6 @@ class Test
         <entry offset=""0xd"" startLine=""21"" startColumn=""3"" endLine=""21"" endColumn=""37"" document=""0"" />
         <entry offset=""0x1a"" startLine=""22"" startColumn=""3"" endLine=""22"" endColumn=""4"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""staticObj"" il_index=""0"" il_start=""0x0"" il_end=""0x1b"" attributes=""0"" />
-        <local name=""d1"" il_index=""1"" il_start=""0x0"" il_end=""0x1b"" attributes=""0"" />
-        <local name=""d3"" il_index=""2"" il_start=""0x0"" il_end=""0x1b"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x1b"">
         <local name=""staticObj"" il_index=""0"" il_start=""0x0"" il_end=""0x1b"" attributes=""0"" />
         <local name=""d1"" il_index=""1"" il_start=""0x0"" il_end=""0x1b"" attributes=""0"" />
@@ -484,9 +448,6 @@ class Test
         <entry offset=""0x7"" startLine=""5"" startColumn=""2"" endLine=""5"" endColumn=""3"" document=""0"" />
         <entry offset=""0x8"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""3"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d"" il_index=""0"" il_start=""0x7"" il_end=""0x8"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <scope startOffset=""0x7"" endOffset=""0x8"">
           <local name=""d"" il_index=""0"" il_start=""0x7"" il_end=""0x8"" attributes=""0"" />
@@ -501,7 +462,6 @@ class Test
         <entry offset=""0x0"" startLine=""9"" startColumn=""2"" endLine=""9"" endColumn=""3"" document=""0"" />
         <entry offset=""0x1"" startLine=""10"" startColumn=""2"" endLine=""10"" endColumn=""3"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -554,9 +514,6 @@ class Test
         <entry offset=""0x13"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""22"" document=""0"" />
         <entry offset=""0x17"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x19"">
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
       </scope>
@@ -576,9 +533,6 @@ class Test
         <entry offset=""0x1"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""30"" document=""0"" />
         <entry offset=""0x3"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x4"">
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
       </scope>
@@ -591,7 +545,6 @@ class Test
         <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -640,7 +593,6 @@ class Test
         <entry offset=""0xf"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""36"" document=""0"" />
         <entry offset=""0x16"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Complex"" name=""op_Addition"" parameterNames=""c1, c2"">
       <customDebugInfo>
@@ -659,9 +611,6 @@ class Test
         <entry offset=""0x21"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""18"" document=""0"" />
         <entry offset=""0x25"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x27"">
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
       </scope>
@@ -674,7 +623,6 @@ class Test
         <entry offset=""0x0"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""22"" startColumn=""5"" endLine=""22"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -728,9 +676,6 @@ class Test
         <entry offset=""0xa"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""22"" document=""0"" />
         <entry offset=""0xe"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x10"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x10"">
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x10"" attributes=""0"" />
       </scope>
@@ -751,9 +696,6 @@ class Test
         <entry offset=""0x3"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""24"" document=""0"" />
         <entry offset=""0xc"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0xd"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0xd"">
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0xd"" attributes=""0"" />
       </scope>
@@ -766,7 +708,6 @@ class Test
         <entry offset=""0x0"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -810,9 +751,6 @@ class Sample
         <entry offset=""0x7"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""76"" document=""0"" />
         <entry offset=""0x19"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""cki"" il_index=""0"" il_start=""0x0"" il_end=""0x1a"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x1a"">
         <namespace name=""System"" />
         <local name=""cki"" il_index=""0"" il_start=""0x0"" il_end=""0x1a"" attributes=""0"" />
@@ -832,9 +770,6 @@ class Sample
         <entry offset=""0x0"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
       </scope>
@@ -901,9 +836,6 @@ struct Test
         <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""20"" document=""0"" />
         <entry offset=""0x8"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <namespace name=""System"" />
         <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
@@ -925,9 +857,6 @@ struct Test
         <entry offset=""0x1"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""22"" document=""0"" />
         <entry offset=""0xa"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d2"" il_index=""0"" il_start=""0x0"" il_end=""0xc"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0xc"">
         <local name=""d2"" il_index=""0"" il_start=""0x0"" il_end=""0xc"" attributes=""0"" />
       </scope>
@@ -947,9 +876,6 @@ struct Test
         <entry offset=""0x1"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""23"" document=""0"" />
         <entry offset=""0x8"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d3"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <local name=""d3"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
       </scope>
@@ -970,9 +896,6 @@ struct Test
         <entry offset=""0x1"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""38"" document=""0"" />
         <entry offset=""0x16"" startLine=""29"" startColumn=""5"" endLine=""29"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d4"" il_index=""0"" il_start=""0x0"" il_end=""0x18"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x18"">
         <local name=""d4"" il_index=""0"" il_start=""0x0"" il_end=""0x18"" attributes=""0"" />
       </scope>
@@ -991,9 +914,6 @@ struct Test
         <entry offset=""0x0"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""33"" startColumn=""5"" endLine=""33"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d5"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <local name=""d5"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
       </scope>
@@ -1046,11 +966,6 @@ class Test
         <entry offset=""0x41"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""50"" document=""0"" />
         <entry offset=""0x61"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""obj1"" il_index=""0"" il_start=""0x0"" il_end=""0x62"" attributes=""0"" />
-        <local name=""obj2"" il_index=""1"" il_start=""0x0"" il_end=""0x62"" attributes=""0"" />
-        <local name=""obj3"" il_index=""2"" il_start=""0x0"" il_end=""0x62"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x62"">
         <namespace name=""System"" />
         <local name=""obj1"" il_index=""0"" il_start=""0x0"" il_end=""0x62"" attributes=""0"" />
@@ -1065,7 +980,6 @@ class Test
       <sequencePoints>
         <entry offset=""0x0"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""27"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Test+&lt;&gt;c"" name=""&lt;Main&gt;b__2_1"" parameterNames=""d4"">
       <customDebugInfo>
@@ -1082,9 +996,6 @@ class Test
         <entry offset=""0x1"" startLine=""10"" startColumn=""46"" endLine=""10"" endColumn=""54"" document=""0"" />
         <entry offset=""0x5"" startLine=""10"" startColumn=""55"" endLine=""10"" endColumn=""56"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d5"" il_index=""0"" il_start=""0x0"" il_end=""0x6"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x6"">
         <local name=""d5"" il_index=""0"" il_start=""0x0"" il_end=""0x6"" attributes=""0"" />
       </scope>
@@ -1098,7 +1009,6 @@ class Test
         <entry offset=""0x1"" startLine=""11"" startColumn=""37"" endLine=""11"" endColumn=""47"" document=""0"" />
         <entry offset=""0x5"" startLine=""11"" startColumn=""48"" endLine=""11"" endColumn=""49"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1266,21 +1176,6 @@ class Test
         <entry offset=""0xcb"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""10"" document=""0"" />
         <entry offset=""0xcc"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0xce"" attributes=""0"" />
-        <local name=""arrInt"" il_index=""1"" il_start=""0x0"" il_end=""0xce"" attributes=""0"" />
-        <local name=""scores"" il_index=""2"" il_start=""0x0"" il_end=""0xce"" attributes=""0"" />
-        <local name=""arrDynamic"" il_index=""3"" il_start=""0x0"" il_end=""0xce"" attributes=""0"" />
-        <local name=""scoreQuery1"" il_index=""4"" il_start=""0x0"" il_end=""0xce"" attributes=""0"" />
-        <local name=""scoreQuery2"" il_index=""5"" il_start=""0x0"" il_end=""0xce"" attributes=""0"" />
-        <local name=""dInWhile"" il_index=""6"" il_start=""0x5d"" il_end=""0x67"" attributes=""0"" />
-        <local name=""dInDoWhile"" il_index=""9"" il_start=""0x71"" il_end=""0x7b"" attributes=""0"" />
-        <local name=""d"" il_index=""13"" il_start=""0x8e"" il_end=""0x97"" attributes=""0"" />
-        <local name=""dInForEach"" il_index=""14"" il_start=""0x95"" il_end=""0x97"" attributes=""0"" />
-        <local name=""i"" il_index=""15"" il_start=""0xa5"" il_end=""0xc1"" attributes=""0"" />
-        <local name=""dInFor"" il_index=""16"" il_start=""0xaa"" il_end=""0xac"" attributes=""0"" />
-        <local name=""d"" il_index=""18"" il_start=""0xc1"" il_end=""0xce"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0xce"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
@@ -1321,7 +1216,6 @@ class Test
       <sequencePoints>
         <entry offset=""0x0"" startLine=""58"" startColumn=""20"" endLine=""58"" endColumn=""25"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Test+&lt;&gt;c"" name=""&lt;Main&gt;b__0_1"" parameterNames=""score"">
       <customDebugInfo>
@@ -1330,7 +1224,6 @@ class Test
       <sequencePoints>
         <entry offset=""0x0"" startLine=""61"" startColumn=""20"" endLine=""61"" endColumn=""25"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1373,10 +1266,6 @@ class Test
         <entry offset=""0x7"" startLine=""8"" startColumn=""3"" endLine=""8"" endColumn=""13"" document=""0"" />
         <entry offset=""0x9"" startLine=""9"" startColumn=""2"" endLine=""9"" endColumn=""3"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0xa"" attributes=""0"" />
-        <local name=""v"" il_index=""1"" il_start=""0x0"" il_end=""0xa"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0xa"">
         <namespace name=""System"" />
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0xa"" attributes=""0"" />
@@ -1426,9 +1315,6 @@ class Test
         <entry offset=""0x7"" startLine=""12"" startColumn=""3"" endLine=""12"" endColumn=""19"" document=""0"" />
         <entry offset=""0x12"" startLine=""13"" startColumn=""2"" endLine=""13"" endColumn=""3"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""obj"" il_index=""0"" il_start=""0x0"" il_end=""0x13"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x13"">
         <namespace name=""System"" />
         <local name=""obj"" il_index=""0"" il_start=""0x0"" il_end=""0x13"" attributes=""0"" />
@@ -1476,10 +1362,6 @@ class Program
         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""yyy"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-        <local name=""zzz"" il_index=""1"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
@@ -1535,10 +1417,6 @@ class Foo<T>
         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""yyy"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-        <local name=""zzz"" il_index=""1"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
@@ -1594,10 +1472,6 @@ class Foo<T,V>
         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""yyy"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-        <local name=""zzz"" il_index=""1"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
@@ -1656,11 +1530,6 @@ class Foo<T,V>
         <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""23"" document=""0"" />
         <entry offset=""0x3"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""yyy"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
-        <local name=""dummy"" il_index=""1"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
-        <local name=""zzz"" il_index=""2"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x4"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
@@ -1714,9 +1583,6 @@ class F<T,V>
         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""zzz"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
@@ -1768,9 +1634,6 @@ class F<T,V>
         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""zzz"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
@@ -1834,13 +1697,6 @@ class F<T,V>
         <entry offset=""0x3"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""24"" document=""0"" />
         <entry offset=""0x6"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""z1"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        <local name=""dummy1"" il_index=""1"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        <local name=""z2"" il_index=""2"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        <local name=""z3"" il_index=""3"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-        <local name=""dummy2"" il_index=""4"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x7"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
@@ -1905,12 +1761,6 @@ class F<T,V>
         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""z3"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-        <local name=""www"" il_index=""1"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-        <local name=""length63length63length63length63length63length63length63length6"" il_index=""2"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-        <local name=""length64length64length64length64length64length64length64length64"" il_index=""3"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
@@ -1970,11 +1820,6 @@ class F<T>
         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""yes"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-        <local name=""no"" il_index=""1"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-        <local name=""www"" il_index=""2"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
@@ -2041,11 +1886,6 @@ class Program
         <entry offset=""0x14"" hidden=""true"" document=""0"" />
         <entry offset=""0x18"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""simple"" il_index=""0"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
-        <local name=""x"" il_index=""1"" il_start=""0x1"" il_end=""0x18"" attributes=""0"" />
-        <local name=""inner"" il_index=""2"" il_start=""0x5"" il_end=""0x7"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x19"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
@@ -2072,9 +1912,6 @@ class Program
         <entry offset=""0x0"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""localInner"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <local name=""localInner"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
       </scope>
@@ -2116,7 +1953,6 @@ class C
         <entry offset=""0x0"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""34"" document=""0"" />
         <entry offset=""0x6"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C"" name=""GetDynamic"">
       <customDebugInfo>
@@ -2125,7 +1961,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""20"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>
