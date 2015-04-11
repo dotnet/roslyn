@@ -244,10 +244,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function TypeExpression(typeSymbol As ITypeSymbol) As SyntaxNode
-            If typeSymbol.IsSystemVoid Then
-                Return Nothing
-            End If
-
             Return typeSymbol.GenerateTypeSyntax()
         End Function
 
@@ -285,8 +281,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ULongKeyword))
                 Case SpecialType.System_DateTime
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DateKeyword))
-                Case SpecialType.System_Void
-                    Return Nothing
                 Case Else
                     Throw New NotSupportedException("Unsupported SpecialType")
             End Select

@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var decl = MethodDeclaration(
                 method.Name,
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
-                returnType: TypeExpression(method.ReturnType),
+                returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
                 accessibility: method.DeclaredAccessibility,
                 modifiers: DeclarationModifiers.From(method),
                 statements: statements);

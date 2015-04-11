@@ -703,8 +703,8 @@ End Sub</x>.Value)
             Dim node = tree.GetRoot().DescendantNodes().First()
             Dim symbol = CType(model.GetDeclaredSymbol(node), IMethodSymbol)
             VerifySyntax(Of MethodBlockSyntax)(
-                _g.MethodDeclaration("m", returnType:=_g.TypeExpression(symbol.ReturnType)),
-<x>Sub m()
+                _g.MethodDeclaration(symbol),
+<x>Public Sub Test()
 End Sub</x>.Value)
         End Sub
 
