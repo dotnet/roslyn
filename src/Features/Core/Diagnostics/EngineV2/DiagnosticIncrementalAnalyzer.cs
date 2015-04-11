@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     CompilationResult compilationResult = GetCompilationResult(project, projectVersion, vintage);
                     if (compilationResult == null || compilationResult.ProjectVersion.Equals(VersionStamp.Default))
                     {
-                        // There has been no request to analyze the project. Initiate one now.
+                        // There has been no request to analyze the project, so initiate analysis now.
                         // The cancellation token provided here is actually not necessarily appropriate for
                         // the analysis, because cancelling this diagnostics request should not necessarily
                         // cancel the analysis.
@@ -433,7 +433,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         {
                             _completionTask = Task.Run(async () =>
                             {
-                                diagnostics = await _compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
+                                // If any documents have been separately analyzed, complete analysis of the project
+                                // by analyzing each document individually. Otherwise, analyze the project as a whole.
+                                if (_analyzedDocuments.Count > 0)
+                                {
+                                    foreach (Document document in _project.Documents)
+                                    {
+                                        Task documentTask;
+                                        if (_analyzedDocuments.TryGetValue(document.Id, out documentTask))
+                                        {
+                                            await documentTask.ConfigureAwait(false);
+                                        }
+                                        else
+                                        {
+                                            diagnostics = diagnostics.AddRange(await GetDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false));
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    diagnostics = await _compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false);
+                                }
+
                                 DistributeDiagnostics(diagnostics);
 
                                 // Enable the compilation and project to be collected.
@@ -467,9 +488,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         {
                             _analyzedDocuments[documentId] = Task.Run(async () =>
                             {
-                                SyntaxTree documentSyntax = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                                SemanticModel documentModel = _compilationWithAnalyzers.Compilation.GetSemanticModel(documentSyntax);
-                                diagnostics = await _compilationWithAnalyzers.GetAnalyzerDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
+#if false
+                                var comp = _compilationWithAnalyzers.Compilation;
+                                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                                var model = comp.GetSemanticModel(syntaxTree);
+                                var mumble0 = model.GetDiagnostics(null, cancellationToken);
+                                var mumble00 = model.GetDiagnostics(null, cancellationToken);
+
+                                var mumble = comp.GetDiagnostics(cancellationToken);
+                                var mumble1 = comp.GetDiagnostics(cancellationToken);
+#endif
+                                diagnostics = await GetDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
                                 DistributeDiagnostics(diagnostics);
                             }, cancellationToken);
                         }
@@ -482,6 +511,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 return diagnostics;
+            }
+
+            private async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+            {
+                SyntaxTree documentSyntax = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                SemanticModel documentModel = _compilationWithAnalyzers.Compilation.GetSemanticModel(documentSyntax);
+                return await _compilationWithAnalyzers.GetAnalyzerDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
             }
 
             public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync()

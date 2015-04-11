@@ -34,12 +34,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public sealed override void Initialize(AnalysisContext context)
         {
-            // Disable this analyzer.
-            if (context != null)
-            {
-                return;
-            }
-
             context.RegisterCompilationStartAction(c =>
             {
                 var analyzer = new CompilationAnalyzer(c.Compilation);
