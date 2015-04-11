@@ -17,17 +17,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             private readonly string _language;
             private readonly DiagnosticAnalyzer _analyzer;
+            private readonly string _errorSourceName;
 
             private readonly DiagnosticState[] _state;
 
-            public StateSet(string language, DiagnosticAnalyzer analyzer)
+            public StateSet(string language, DiagnosticAnalyzer analyzer, string errorSourceName)
             {
                 _language = language;
                 _analyzer = analyzer;
+                _errorSourceName = errorSourceName;
 
                 _state = CreateDiagnosticStates(language, analyzer);
             }
 
+            public string ErrorSourceName => _errorSourceName;
             public string Language => _language;
             public DiagnosticAnalyzer Analyzer => _analyzer;
 

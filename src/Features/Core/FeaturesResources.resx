@@ -762,4 +762,13 @@ Do you want to continue?</value>
   <data name="ModifyingAWhichContainsStaticLocal" xml:space="preserve">
     <value>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</value>
   </data>
+  <data name="ErrorSourceBuild" xml:space="preserve">
+    <value>Build</value>
+  </data>
+  <data name="ErrorSourceEnC" xml:space="preserve">
+    <value>Edit And Continue</value>
+  </data>
+  <data name="ErrorSourceIntelliSense" xml:space="preserve">
+    <value>IntelliSense Build</value>
+  </data>
 </root>

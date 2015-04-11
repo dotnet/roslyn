@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal TestDiagnosticAnalyzerService(AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
-           : base(workspaceAnalyzerAssemblies: SpecializedCollections.EmptyEnumerable<string>(), hostDiagnosticUpdateSource: hostDiagnosticUpdateSource)
+           : base(SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(), hostDiagnosticUpdateSource)
         {
             _onAnalyzerException = onAnalyzerException;
         }
