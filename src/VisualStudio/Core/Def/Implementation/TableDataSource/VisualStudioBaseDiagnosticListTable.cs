@@ -30,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StandardTableColumnDefinitions.ErrorCode,
             StandardTableColumnDefinitions.Text,
             StandardTableColumnDefinitions.ErrorCategory,
+            StandardTableColumnDefinitions.ErrorSource,
             StandardTableColumnDefinitions.ProjectName,
             StandardTableColumnDefinitions.DocumentName,
             StandardTableColumnDefinitions.Line,
@@ -181,8 +182,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private readonly ProjectId _projectId;
                 private readonly DocumentId _documentId;
                 private readonly object _id;
+                private readonly string _errorSource;
 
-                public TableEntriesFactory(TableDataSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id) : 
+                public TableEntriesFactory(TableDataSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id) :
                     base(source)
                 {
                     _source = source;
@@ -190,6 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     _projectId = projectId;
                     _documentId = documentId;
                     _id = id;
+                    _errorSource = (id as ErrorSourceId)?.ErrorSource ?? string.Empty;
                 }
 
                 protected override ImmutableArray<DiagnosticData> GetItems()
@@ -287,6 +290,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case StandardTableKeyNames.ErrorCategory:
                                 content = item.Category;
                                 return true;
+                            case StandardTableKeyNames.ErrorSource:
+                                content = _factory._errorSource;
+                                return content != null;
                             case StandardTableKeyNames.Text:
                                 content = item.Message;
                                 return true;

@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -70,9 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            var sharedHierarchy = document.SharedHierarchy;
-            Contract.Requires(GetSharedHierarchyForItem(document.Project.Hierarchy, itemId) == sharedHierarchy);
-
+            var sharedHierarchy = GetSharedHierarchyForItem(document.Project.Hierarchy, itemId);
             if (sharedHierarchy == null)
             {
                 return null;
@@ -151,6 +150,63 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out intellisenseProjectName) == VSConstants.S_OK
                 ? intellisenseProjectName as string
                 : null;
+        }
+
+        public static bool TryGetSharedHierarchyAndItemId(IVsHierarchy hierarchy, uint itemId, out IVsHierarchy sharedHierarchy, out uint itemIdInSharedHierarchy)
+        {
+            return s_singleton.TryGetSharedHierarchyAndItemIdInternal(hierarchy, itemId, out sharedHierarchy, out itemIdInSharedHierarchy);
+        }
+
+        private bool TryGetSharedHierarchyAndItemIdInternal(IVsHierarchy hierarchy, uint itemId, out IVsHierarchy sharedHierarchy, out uint itemIdInSharedHierarchy)
+        {
+            AssertIsForeground();
+
+            sharedHierarchy = null;
+            itemIdInSharedHierarchy = (uint)VSConstants.VSITEMID.Nil;
+
+            if (hierarchy == null)
+            {
+                return false;
+            }
+
+            sharedHierarchy = s_singleton.GetSharedHierarchyForItemInternal(hierarchy, itemId);
+
+            return sharedHierarchy == null
+                ? false
+                : s_singleton.TryGetItemIdInSharedHierarchyInternal(hierarchy, itemId, sharedHierarchy, out itemIdInSharedHierarchy);
+        }
+
+        private bool TryGetItemIdInSharedHierarchyInternal(IVsHierarchy hierarchy, uint itemId, IVsHierarchy sharedHierarchy, out uint itemIdInSharedHierarchy)
+        {
+            string fullPath;
+            int found;
+            VSDOCUMENTPRIORITY[] priority = new VSDOCUMENTPRIORITY[1];
+
+            if (ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemId, out fullPath))
+                && ErrorHandler.Succeeded(((IVsProject)sharedHierarchy).IsDocumentInProject(fullPath, out found, priority, out itemIdInSharedHierarchy))
+                && found != 0
+                && itemIdInSharedHierarchy != (uint)VSConstants.VSITEMID.Nil)
+            {
+                return true;
+            }
+
+            itemIdInSharedHierarchy = (uint)VSConstants.VSITEMID.Nil;
+            return false;
+        }
+
+        /// <summary>
+        /// Check whether given project is project k project.
+        /// </summary>
+        public static bool IsProjectKProject(Project project)
+        {
+            // TODO: we need better way to see whether a project is project k project or not.
+            if (project.FilePath == null)
+            {
+                return false;
+            }
+
+            return project.FilePath.EndsWith(".xproj", StringComparison.InvariantCultureIgnoreCase) ||
+                   project.FilePath.EndsWith(".kproj", StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

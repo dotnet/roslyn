@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""30"" document=""1"" />
         <entry offset=""0x6"" startLine=""1"" startColumn=""33"" endLine=""1"" endColumn=""34"" document=""1"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C256"" name="".ctor"">
       <customDebugInfo>
@@ -60,7 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         <entry offset=""0x0"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""34"" document=""2"" />
         <entry offset=""0x6"" startLine=""1"" startColumn=""37"" endLine=""1"" endColumn=""38"" document=""2"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>";
@@ -256,7 +254,6 @@ int y = 1;
         <entry offset=""0x6"" startLine=""112"" startColumn=""9"" endLine=""112"" endColumn=""24"" document=""2"" />
         <entry offset=""0xc"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""3"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>";
@@ -297,7 +294,6 @@ class C
         <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
         <entry offset=""0x1"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>";
@@ -338,7 +334,6 @@ class C { void M() { } }
         <entry offset=""0x0"" startLine=""10"" startColumn=""20"" endLine=""10"" endColumn=""21"" document=""1"" />
         <entry offset=""0x1"" startLine=""10"" startColumn=""22"" endLine=""10"" endColumn=""23"" document=""1"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>";
@@ -399,7 +394,6 @@ class C
         <entry offset=""0x24"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""13"" document=""3"" />
         <entry offset=""0x2b"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""3"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>";
@@ -468,7 +462,6 @@ class C
         <entry offset=""0x24"" startLine=""1"" startColumn=""9"" endLine=""1"" endColumn=""13"" document=""6"" />
         <entry offset=""0x2b"" startLine=""2"" startColumn=""5"" endLine=""2"" endColumn=""6"" document=""6"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>";
@@ -525,7 +518,6 @@ class C
         <entry offset=""0x16"" startLine=""1"" startColumn=""9"" endLine=""1"" endColumn=""13"" document=""4"" />
         <entry offset=""0x1d"" startLine=""2"" startColumn=""5"" endLine=""2"" endColumn=""6"" document=""4"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>";

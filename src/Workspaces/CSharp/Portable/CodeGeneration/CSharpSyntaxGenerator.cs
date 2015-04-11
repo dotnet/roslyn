@@ -5,15 +5,11 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -3430,12 +3426,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression)
         {
-            return SyntaxFactory.CastExpression((TypeSyntax)type, Parenthesize(expression));
+            return SyntaxFactory.CastExpression((TypeSyntax)type, Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
         public override SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression)
         {
-            return SyntaxFactory.CastExpression((TypeSyntax)type, Parenthesize(expression));
+            return SyntaxFactory.CastExpression((TypeSyntax)type, Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
         public override SyntaxNode AssignmentStatement(SyntaxNode left, SyntaxNode right)

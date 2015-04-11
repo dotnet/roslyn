@@ -4172,8 +4172,90 @@ class myClass
             CleanupAllGeneratedFiles(source);
             CleanupAllGeneratedFiles(rsp);
         }
-        [Fact]
 
+        [WorkItem(1784, "https://github.com/dotnet/roslyn/issues/1784")]
+        [Fact]
+        public void QuotedDefineInRespFile()
+        {
+            string source = Temp.CreateFile("a.cs").WriteAllText(@"
+#if NN
+class myClass
+{
+#endif
+    static int Main()
+#if DD
+    {
+        return 1;
+#endif
+
+#if AA
+    }
+#endif
+
+#if BB
+}
+#endif
+
+").Path;
+
+            string rsp = Temp.CreateFile().WriteAllText(@"
+/d:""DD""
+/d:""AA;BB""
+/d:""N""N
+").Path;
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp 
+            var csc = new MockCSharpCompiler(rsp, _baseDirectory, new[] { source, "/preferreduilang:en"});
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+
+            CleanupAllGeneratedFiles(source);
+            CleanupAllGeneratedFiles(rsp);
+        }
+
+        [WorkItem(1784, "https://github.com/dotnet/roslyn/issues/1784")]
+        [Fact]
+        public void QuotedDefineInRespFileErr()
+        {
+            string source = Temp.CreateFile("a.cs").WriteAllText(@"
+#if NN
+class myClass
+{
+#endif
+    static int Main()
+#if DD
+    {
+        return 1;
+#endif
+
+#if AA
+    }
+#endif
+
+#if BB
+}
+#endif
+
+").Path;
+
+            string rsp = Temp.CreateFile().WriteAllText(@"
+/d:""DD""""
+/d:""AA;BB""
+/d:""N"" ""N
+").Path;
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp 
+            var csc = new MockCSharpCompiler(rsp, _baseDirectory, new[] { source, "/preferreduilang:en" });
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(1, exitCode);
+
+            CleanupAllGeneratedFiles(source);
+            CleanupAllGeneratedFiles(rsp);
+        }
+
+        [Fact]
         private void ResponseFileSplitting()
         {
             string[] responseFile;
@@ -4211,17 +4293,17 @@ class myClass
                 @"a\""a b\\""b c\\\""c d\\\\""d e\\\\\""e f"" g""",
             };
             args = CSharpCommandLineParser.ParseResponseLines(responseFile);
-            AssertEx.Equal(new[] { @"a""a", @"b\""b c\""c d\\""d", @"e\\""e", @"f"" g""" }, args);
+            AssertEx.Equal(new[] { @"a""a", @"b\b c\""c d\\d", @"e\\""e", @"f g" }, args);
 
-            // Quoting inside argument.
+            // Quoting inside argument is valid.
             responseFile = new string[] {
                 @"  /o:""foo.cs"" /o:""abc def""\baz ""/o:baz bar""bing",
             };
             args = CSharpCommandLineParser.ParseResponseLines(responseFile);
-            AssertEx.Equal(new[] { @"/o:""foo.cs""", @"/o:""abc def""\baz", @"""/o:baz bar""bing" }, args);
+            AssertEx.Equal(new[] { @"/o:foo.cs", @"/o:abc def\baz", @"/o:baz barbing" }, args);
         }
-        [Fact]
 
+        [Fact]
         private void SourceFileQuoting()
         {
             string[] responseFile = new string[] {

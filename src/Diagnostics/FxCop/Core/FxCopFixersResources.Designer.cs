@@ -97,24 +97,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Avoid unsealed attributes..
-        /// </summary>
-        internal static string AvoidUnsealedAttributes {
-            get {
-                return ResourceManager.GetString("AvoidUnsealedAttributes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Seal attribute type..
-        /// </summary>
-        internal static string AvoidUnsealedAttributesCodeFix {
-            get {
-                return ResourceManager.GetString("AvoidUnsealedAttributesCodeFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Disposable fields should be disposed.
         /// </summary>
         internal static string DisposableFieldsShouldBeDisposed {
@@ -192,15 +174,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         internal static string SpecifyMarshalingForPInvokeStringArguments {
             get {
                 return ResourceManager.GetString("SpecifyMarshalingForPInvokeStringArguments", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase.
-        /// </summary>
-        internal static string StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase {
-            get {
-                return ResourceManager.GetString("StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase", resourceCulture);
             }
         }
     }

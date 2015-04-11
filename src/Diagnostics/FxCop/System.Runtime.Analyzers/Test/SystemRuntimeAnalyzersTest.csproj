@@ -98,6 +98,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Globalization\UseOrdinalStringComparisonTests.Fixer.cs" />
+    <Compile Include="Globalization\UseOrdinalStringComparisonTests.cs" />
+    <Compile Include="Performance\AvoidUnsealedAttributesTests.cs" />
     <Compile Include="Design\MarkAllAssembliesWithComVisibleTests.cs" />
     <Compile Include="Design\MarkAssembliesWithCLSCompliantAttributeTests.cs" />
     <Compile Include="Design\MarkAssembliesWithAssemblyVersionAttributeTests.cs" />
@@ -108,9 +111,11 @@
     <Compile Include="Design\OverrideMethodsOnComparableTypesTests.Fixer.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposableTests.Fixer.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposableTests.cs" />
+    <Compile Include="Performance\AvoidUnsealedAttributesTests.Fixer.cs" />
     <Compile Include="Usage\OverloadOperatorEqualsOnOverridingValueTypeEquals.Fixer.cs" />
     <Compile Include="Usage\OverloadOperatorEqualsOnOverridingValueTypeEquals.cs" />
   </ItemGroup>
+  <ItemGroup />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\..\build\VSL.Imports.Closed.targets" />

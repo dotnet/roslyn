@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 
@@ -70,11 +70,6 @@ End Class
                 <entry offset="0x43" startLine="20" startColumn="9" endLine="20" endColumn="18" document="0"/>
                 <entry offset="0x54" startLine="21" startColumn="5" endLine="21" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="foo1" il_index="0" il_start="0x2" il_end="0x53" attributes="0"/>
-                <local name="foo2" il_index="1" il_start="0x2" il_end="0x53" attributes="0"/>
-                <local name="foo3" il_index="2" il_start="0x2" il_end="0x53" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x55">
                 <importsforward declaringType="MyDisposable" methodName="Dispose"/>
                 <scope startOffset="0x2" endOffset="0x53">
@@ -343,9 +338,6 @@ End Namespace
                                 <entry offset="0x1" startLine="5" startColumn="17" endLine="5" endColumn="33" document="0"/>
                                 <entry offset="0x3" startLine="6" startColumn="9" endLine="6" endColumn="16" document="0"/>
                             </sequencePoints>
-                            <locals>
-                                <local name="o" il_index="0" il_start="0x0" il_end="0x4" attributes="0"/>
-                            </locals>
                             <scope startOffset="0x0" endOffset="0x4">
                                 <defunct name="&amp;PIA"/>
                                 <currentnamespace name="N1"/>
@@ -357,7 +349,6 @@ End Namespace
                                 <entry offset="0x0" startLine="12" startColumn="9" endLine="12" endColumn="23" document="0"/>
                                 <entry offset="0x1" startLine="13" startColumn="9" endLine="13" endColumn="16" document="0"/>
                             </sequencePoints>
-                            <locals/>
                             <scope startOffset="0x0" endOffset="0x2">
                                 <defunct name="&amp;PIA"/>
                                 <currentnamespace name="N2"/>

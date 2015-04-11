@@ -204,7 +204,6 @@ End Class
                 <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="10" document="1"/>
                 <entry offset="0x1" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <currentnamespace name=""/>
             </scope>
@@ -265,7 +264,6 @@ End Class
                 <entry offset="0x24" startLine="5" startColumn="9" endLine="5" endColumn="12" document="3"/>
                 <entry offset="0x2b" hidden="true" document="3"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2c">
                 <currentnamespace name=""/>
             </scope>
@@ -333,7 +331,6 @@ End Class
                 <entry offset="0x24" startLine="5" startColumn="9" endLine="5" endColumn="12" document="6"/>
                 <entry offset="0x2b" hidden="true" document="6"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2c">
                 <currentnamespace name=""/>
             </scope>
@@ -387,7 +384,6 @@ End Class
                 <entry offset="0x16" startLine="3" startColumn="9" endLine="3" endColumn="12" document="4"/>
                 <entry offset="0x1d" hidden="true" document="4"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x1e">
                 <currentnamespace name=""/>
             </scope>

@@ -92,16 +92,12 @@
     <Compile Include="Design\CodeFixes\CA1012FixerTests.cs" />
     <Compile Include="Design\CodeFixes\EnumWithFlagsAttributesRulesFixerTests.cs" />
     <Compile Include="Design\EnumWithFlagsAttributeRulesTests.cs" />
-    <Compile Include="Globalization\CA1309Tests.cs" />
-    <Compile Include="Globalization\CodeFixes\CA1309FixerTests.cs" />
     <Compile Include="Globalization\CodeFixes\CA2101FixerTests.cs" />
     <Compile Include="HardeningAnalyzer\HardeningAnalyzerTests.cs" />
     <Compile Include="Interoperability\PInvokeDiagnosticAnalyzerTests.cs" />
     <Compile Include="Naming\CA1708Tests.cs" />
     <Compile Include="Naming\CA1715Tests.cs" />
-    <Compile Include="Performance\CA1813Tests.cs" />
     <Compile Include="Performance\CA1821Tests.cs" />
-    <Compile Include="Performance\CodeFixes\CA1813FixerTests.cs" />
     <Compile Include="Performance\CodeFixes\CA1821FixerTests.cs" />
     <Compile Include="Reliability\CA2002Tests.cs" />
     <Compile Include="Usage\CA2200Tests.cs" />

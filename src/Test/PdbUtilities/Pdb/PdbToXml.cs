@@ -215,34 +215,20 @@ namespace Roslyn.Test.PdbUtilities
             {
                 WriteSequencePoints(method);
 
-                // TODO (tomat): Ideally this would be done in a separate test helper, not in PdbToXml.
-                // verify ISymUnmanagedMethod APIs:
-                var expectedSlotNames = new Dictionary<int, ImmutableArray<string>>();
-                WriteLocals(method, expectedSlotNames);
+                var rootScope = method.GetRootScope();
 
-                var actualSlotNames = method.GetLocalVariableSlots();
-
-                Debug.Assert(actualSlotNames.Length == (expectedSlotNames.Count == 0 ? 0 : expectedSlotNames.Keys.Max() + 1));
-
-                int i = 0;
-                foreach (var slotName in actualSlotNames)
+                // C# and VB compilers leave the root scope empty and put outermost lexical scope in it.
+                // Don't display such empty root scope.
+                if (rootScope.GetNamespaces().IsEmpty && rootScope.GetLocals().IsEmpty && rootScope.GetConstants().IsEmpty)
                 {
-                    if (slotName == null)
+                    foreach (ISymUnmanagedScope child in rootScope.GetScopes())
                     {
-                        Debug.Assert(!expectedSlotNames.ContainsKey(i));
+                        WriteScope(child, isRoot: false);
                     }
-                    else
-                    {
-                        Debug.Assert(expectedSlotNames[i].Contains(slotName));
-                    }
-
-                    i++;
                 }
-
-                ImmutableArray<ISymUnmanagedScope> children = method.GetRootScope().GetScopes();
-                if (children.Length != 0)
+                else
                 {
-                    WriteScopes(children[0]);
+                    WriteScope(rootScope, isRoot: true);
                 }
 
                 WriteAsyncInfo(method);
@@ -656,26 +642,25 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
-        private void WriteScopes(ISymUnmanagedScope scope)
+        private void WriteScope(ISymUnmanagedScope scope, bool isRoot)
         {
-            _writer.WriteStartElement("scope");
-            {
-                _writer.WriteAttributeString("startOffset", AsILOffset(scope.GetStartOffset()));
-                _writer.WriteAttributeString("endOffset", AsILOffset(scope.GetEndOffset()));
-                {
-                    foreach (ISymUnmanagedNamespace @namespace in scope.GetNamespaces())
-                    {
-                        WriteNamespace(@namespace);
-                    }
+            _writer.WriteStartElement(isRoot ? "rootScope" : "scope");
+            _writer.WriteAttributeString("startOffset", AsILOffset(scope.GetStartOffset()));
+            _writer.WriteAttributeString("endOffset", AsILOffset(scope.GetEndOffset()));
 
-                    WriteLocalsHelper(scope, slotNames: null, includeChildScopes: false);
-                }
-                foreach (ISymUnmanagedScope child in scope.GetScopes())
-                {
-                    WriteScopes(child);
-                }
+            foreach (ISymUnmanagedNamespace @namespace in scope.GetNamespaces())
+            {
+                WriteNamespace(@namespace);
             }
-            _writer.WriteEndElement(); // </scope>
+
+            WriteLocals(scope);
+
+            foreach (ISymUnmanagedScope child in scope.GetScopes())
+            {
+                WriteScope(child, isRoot: false);
+            }
+
+            _writer.WriteEndElement(); 
         }
 
         private void WriteNamespace(ISymUnmanagedNamespace @namespace)
@@ -903,67 +888,22 @@ namespace Roslyn.Test.PdbUtilities
             _writer.WriteEndElement();
         }
 
-        // Write all the locals in the given method out to an XML file.
-        // Since the symbol store represents the locals in a recursive scope structure, we need to walk a tree.
-        // Although the locals are technically a hierarchy (based off nested scopes), it's easiest for clients
-        // if we present them as a linear list. We will provide the range for each local's scope so that somebody
-        // could reconstruct an approximation of the scope tree. The reconstruction may not be exact.
-        // (Note this would still break down if you had an empty scope nested in another scope.
-        private void WriteLocals(ISymUnmanagedMethod method, Dictionary<int, ImmutableArray<string>> slotNames)
-        {
-            _writer.WriteStartElement("locals");
-            // If there are no locals, then this element will just be empty.
-            WriteLocalsHelper(method.GetRootScope(), slotNames, includeChildScopes: true);
-            _writer.WriteEndElement();
-        }
-
-        private void WriteLocalsHelper(ISymUnmanagedScope scope, Dictionary<int, ImmutableArray<string>> slotNames, bool includeChildScopes)
+        private void WriteLocals(ISymUnmanagedScope scope)
         {
             foreach (ISymUnmanagedVariable l in scope.GetLocals())
             {
                 _writer.WriteStartElement("local");
-                {
-                    _writer.WriteAttributeString("name", l.GetName());
+                _writer.WriteAttributeString("name", l.GetName());
 
-                    // Each local maps to a "IL Index" or "slot" number. 
-                    // The index is not necessarily unique. Several locals may refer to the same slot. 
-                    // It just means that the same local is known under different names inside the same or different scopes.
-                    // This index is what you pass to ICorDebugILFrame::GetLocalVariable() to get
-                    // a specific local variable. 
-                    // NOTE: VB emits "fake" locals for resumable locals which are actually backed by fields.
-                    //       These locals always map to the slot #0 which is just a valid number that is 
-                    //       not used. Only scoping information is used by EE in this case.
-                    int slot = l.GetSlot();
-                    _writer.WriteAttributeString("il_index", CultureInvariantToString(slot));
+                // NOTE: VB emits "fake" locals for resumable locals which are actually backed by fields.
+                //       These locals always map to the slot #0 which is just a valid number that is 
+                //       not used. Only scoping information is used by EE in this case.
+                _writer.WriteAttributeString("il_index", CultureInvariantToString(l.GetSlot()));
 
-                    bool reusingSlot = false;
-
-                    // collect slot names so that we can verify ISymUnmanagedReader APIs
-                    if (slotNames != null)
-                    {
-                        ImmutableArray<string> existingNames;
-                        if (slotNames.TryGetValue(slot, out existingNames))
-                        {
-                            slotNames[slot] = existingNames.Add(l.GetName());
-                            reusingSlot = true;
-                        }
-                        else
-                        {
-                            slotNames.Add(slot, ImmutableArray.Create(l.GetName()));
-                        }
-                    }
-
-                    // Provide scope range
-                    _writer.WriteAttributeString("il_start", AsILOffset(scope.GetStartOffset()));
-                    _writer.WriteAttributeString("il_end", AsILOffset(scope.GetEndOffset()));
-                    _writer.WriteAttributeString("attributes", CultureInvariantToString(l.GetAttributes()));
-
-                    if (reusingSlot)
-                    {
-                        _writer.WriteAttributeString("reusingslot", reusingSlot.ToString(CultureInfo.InvariantCulture));
-                    }
-                }
-                _writer.WriteEndElement(); // </local>
+                _writer.WriteAttributeString("il_start", AsILOffset(scope.GetStartOffset()));
+                _writer.WriteAttributeString("il_end", AsILOffset(scope.GetEndOffset()));
+                _writer.WriteAttributeString("attributes", CultureInvariantToString(l.GetAttributes()));
+                _writer.WriteEndElement();
             }
 
             foreach (ISymUnmanagedConstant constant in scope.GetConstants())
@@ -1056,14 +996,6 @@ namespace Roslyn.Test.PdbUtilities
                 }
 
                 _writer.WriteEndElement();
-            }
-
-            if (includeChildScopes)
-            {
-                foreach (ISymUnmanagedScope childScope in scope.GetScopes())
-                {
-                    WriteLocalsHelper(childScope, slotNames, includeChildScopes);
-                }
             }
         }
 

@@ -70,6 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
         private readonly IFormattingRule _vbHelperFormattingRule;
         private readonly string _itemMoniker;
+        private readonly IVsHierarchy _sharedHierarchy;
 
         public AbstractProject Project { get { return _containedLanguage.Project; } }
         public bool SupportsRename { get { return _hostType == HostType.Razor; } }
@@ -78,7 +79,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public IReadOnlyList<string> Folders { get; }
         public TextLoader Loader { get; }
         public DocumentKey Key { get; }
-        public IVsHierarchy SharedHierarchy { get; }
+
+        public IVsHierarchy SharedHierarchy
+        {
+            get
+            {
+                return _sharedHierarchy;
+            }
+        }
 
         public ContainedDocument(
             AbstractContainedLanguage containedLanguage,
@@ -99,9 +107,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             _hostType = GetHostType();
 
             var rdt = (IVsRunningDocumentTable)componentModel.GetService<SVsServiceProvider>().GetService(typeof(SVsRunningDocumentTable));
-            var filePath = rdt.GetMonikerForHierarchyAndItemId(hierarchy, itemId);
 
-            this.SharedHierarchy = hierarchy == null ? null : LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
+            uint itemIdInSharedHierarchy;
+            var isSharedHierarchy = LinkedFileUtilities.TryGetSharedHierarchyAndItemId(hierarchy, itemId, out _sharedHierarchy, out itemIdInSharedHierarchy);
+
+            var filePath = isSharedHierarchy
+                ? rdt.GetMonikerForHierarchyAndItemId(_sharedHierarchy, itemIdInSharedHierarchy)
+                : rdt.GetMonikerForHierarchyAndItemId(hierarchy, itemId);
+
+            // we couldn't look up the document moniker in RDT for a hierarchy/item pair
+            // Since we only use this moniker as a key, we could fall back to something else, like the document name.
+            if (filePath == null)
+            {
+                Debug.Assert(false, "Could not get the document moniker for an item in its hierarchy.");
+                filePath = hierarchy.GetDocumentNameForHierarchyAndItemId(itemId);
+            }
 
             if (Project.Hierarchy != null)
             {

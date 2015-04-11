@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -1429,11 +1429,6 @@ End Class
                 <entry offset="0x21" startLine="13" startColumn="9" endLine="13" endColumn="13" document="0"/>
                 <entry offset="0x28" startLine="14" startColumn="5" endLine="14" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="z" il_index="3" il_start="0x0" il_end="0x29" attributes="0"/>
-                <local name="y" il_index="1" il_start="0x0" il_end="0x29" attributes="0"/>
-                <local name="w" il_index="4" il_start="0x0" il_end="0x29" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x29">
                 <currentnamespace name=""/>
                 <local name="z" il_index="3" il_start="0x0" il_end="0x29" attributes="0"/>
@@ -1483,10 +1478,6 @@ End Class
                 <entry offset="0x1b" startLine="12" startColumn="9" endLine="12" endColumn="13" document="0"/>
                 <entry offset="0x22" startLine="13" startColumn="5" endLine="13" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="5" il_start="0x0" il_end="0x23" attributes="0"/>
-                <local name="z" il_index="3" il_start="0x0" il_end="0x23" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x23">
                 <currentnamespace name=""/>
                 <local name="x" il_index="5" il_start="0x0" il_end="0x23" attributes="0"/>
@@ -1543,10 +1534,6 @@ End Class
                 <entry offset="0x19" startLine="18" startColumn="9" endLine="18" endColumn="13" document="0"/>
                 <entry offset="0x25" startLine="19" startColumn="5" endLine="19" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="c" il_index="2" il_start="0x0" il_end="0x26" attributes="0"/>
-                <local name="b" il_index="1" il_start="0x0" il_end="0x26" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x26">
                 <currentnamespace name=""/>
                 <local name="c" il_index="2" il_start="0x0" il_end="0x26" attributes="0"/>
@@ -1632,10 +1619,6 @@ End Class
                 <entry offset="0x3" startLine="4" startColumn="13" endLine="4" endColumn="29" document="0"/>
                 <entry offset="0x9" startLine="5" startColumn="5" endLine="5" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="a" il_index="2" il_start="0x0" il_end="0xa" attributes="0"/>
-                <local name="b" il_index="1" il_start="0x0" il_end="0xa" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xa">
                 <currentnamespace name=""/>
                 <local name="a" il_index="2" il_start="0x0" il_end="0xa" attributes="0"/>
