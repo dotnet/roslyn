@@ -1460,16 +1460,19 @@ namespace Microsoft.Cci
             Guid pdbId;
             uint pdbStamp;
             uint age;
+            uint pdbVersion;
             if (_nativePdbWriterOpt != null)
             {
                 _nativePdbWriterOpt.GetDebugDirectoryGuidAndStampAndAge(out pdbId, out pdbStamp, out age);
+                pdbVersion = 0;
             }
             else
             {
                 pdbId = Guid.NewGuid();
                 pdbStamp = 0;
+                pdbVersion = 'P' << 24 | 'M' << 16 | 0x00 << 8 | 0x01;
                 age = 1;
-            } 
+            }
 
             // characteristics:
             writer.WriteUint(0);
@@ -1479,7 +1482,7 @@ namespace Microsoft.Cci
             writer.WriteUint(pdbStamp);
 
             // version
-            writer.WriteUint(0);
+            writer.WriteUint(pdbVersion);
 
             // type: 
             const int ImageDebugTypeCodeView = 2;
