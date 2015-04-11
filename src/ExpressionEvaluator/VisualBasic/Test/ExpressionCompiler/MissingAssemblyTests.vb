@@ -4,9 +4,9 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -407,6 +407,43 @@ End Class
                 testData:=Nothing)
             Assert.Equal(expectedError, actualError)
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
+        End Sub
+
+        <WorkItem(1154988)>
+        <Fact>
+        Public Sub CompileWithRetrySameErrorReported()
+            Dim source = "
+Class C
+    Sub M()
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C.M")
+
+            Dim missingModule = runtime.Modules.First()
+            Dim missingIdentity = New AssemblyIdentity("MissingAssembly", contentType:=System.Reflection.AssemblyContentType.WindowsRuntime)
+
+            Dim numRetries = 0
+            Dim errorMessage As String = Nothing
+            ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                runtime.Modules.Select(Function(m) m.MetadataBlock).ToImmutableArray(),
+                context,
+                Function(_unused As EvaluationContextBase, diagnostics As DiagnosticBag) As CompileResult
+                    diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssembly3, missingIdentity, "MissingType"), Location.None))
+                    numRetries += 1
+                    If numRetries > 2 Then Throw ExceptionUtilities.Unreachable ' We don't want to loop forever...
+                    Return Nothing
+                End Function,
+                Function(assemblyIdentity As AssemblyIdentity, ByRef uSize As UInteger)
+                    uSize = CUInt(missingModule.MetadataLength)
+                    Return missingModule.MetadataAddress
+                End Function,
+                errorMessage)
+
+            Assert.Equal(2, numRetries) ' Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
+            Assert.Equal("error BC30652: Reference required to assembly 'MissingAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime' containing the type 'MissingType'. Add one to your project.", errorMessage)
         End Sub
 
         Private Function CreateMethodContextWithReferences(comp As Compilation, methodName As String, ParamArray references As MetadataReference()) As EvaluationContext
