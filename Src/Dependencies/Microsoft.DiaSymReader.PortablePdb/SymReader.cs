@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
@@ -12,23 +14,27 @@ namespace Microsoft.DiaSymReader.PortablePdb
     // ISymUnmanagedReaderSymbolSearchInfo?
     // ISymUnmanagedSourceServerModule?
 
-    [ComVisible(true)]
+    [ComVisible(false)]
     public sealed class SymReader : ISymUnmanagedReader3, ISymUnmanagedDispose
     {
-        private readonly MetadataReader _reader;
+        private readonly PortablePdbReader _pdbReader;
         private int _version;
 
-        internal SymReader(MetadataReader reader)
+        public SymReader(PortablePdbReader pdbReader)
         {
-            _reader = reader;
+            Debug.Assert(pdbReader != null);
+
+            _pdbReader = pdbReader;
             _version = 1;
         }
 
-        internal MetadataReader MetadataReader => _reader;
+        internal MetadataReader MetadataReader => _pdbReader.MetadataReader;
+        internal PortablePdbReader PdbReader => _pdbReader;
 
         public int Destroy()
         {
-            return 0;
+            _pdbReader.Dispose();
+            return HResult.S_OK;
         }
 
         public int GetDocument(
@@ -46,7 +52,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             out int count, 
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedDocument[] documents)
         {
-            count = _reader.Documents.Count;
+            count = MetadataReader.Documents.Count;
 
             if (bufferLength == 0)
             {
@@ -54,7 +60,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             }
 
             int i = 0;
-            foreach (var documentHandle in _reader.Documents)
+            foreach (var documentHandle in MetadataReader.Documents)
             {
                 if (i >= bufferLength)
                 {
@@ -69,17 +75,25 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetDocumentVersion(ISymUnmanagedDocument document, out int version, out bool isCurrent)
         {
-            throw new NotImplementedException();
+            // SymReader always returns the same values
+            version = 1;
+            isCurrent = true;
+            return HResult.E_NOTIMPL;
         }
 
-        public int GetGlobalVariables(int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedVariable[] variables)
+        public int GetGlobalVariables(
+            int bufferLength,
+            out int count,
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedVariable[] variables)
         {
-            throw new NotImplementedException();
+            // SymReader doesn't support.
+            count = 0;
+            return HResult.E_NOTIMPL;
         }
 
         public int GetMethod(int methodToken, [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedMethod method)
         {
-            throw new NotImplementedException();
+            return GetMethodByVersion(methodToken, _version, out method);
         }
 
         public int GetMethodByVersion(
@@ -106,8 +120,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetMethodByVersionPreRemap(int methodToken, int version, [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedMethod method)
         {
-            // TODO
-            return GetMethodByVersion(methodToken, version, out method);
+            throw new NotSupportedException();
         }
 
         public int GetMethodFromDocumentPosition(ISymUnmanagedDocument document, int line, int column, [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedMethod method)
@@ -127,7 +140,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetMethodVersion(ISymUnmanagedMethod method, out int version)
         {
-            throw new NotImplementedException();
+            version = _version;
+            return HResult.S_OK;
         }
 
         public int GetNamespaces(int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedNamespace[] namespaces)
@@ -135,24 +149,71 @@ namespace Microsoft.DiaSymReader.PortablePdb
             throw new NotImplementedException();
         }
 
-        public int GetSymAttribute(int methodToken, [MarshalAs(UnmanagedType.LPWStr)]string name, int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2), Out]byte[] customDebugInformation)
+        public int GetSymAttribute(int methodToken, 
+            [MarshalAs(UnmanagedType.LPWStr)]string name, 
+            int bufferLength,
+            out int count,
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2), Out]byte[] customDebugInformation)
         {
-            throw new NotImplementedException();
+            return GetSymAttributeByVersion(methodToken, 1, name, bufferLength, out count, customDebugInformation);
         }
 
-        public int GetSymAttributeByVersion(int methodToken, int version, [MarshalAs(UnmanagedType.LPWStr)]string name, int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3), Out]byte[] customDebugInformation)
+        public int GetSymAttributeByVersion(
+            int methodToken, 
+            int version, 
+            [MarshalAs(UnmanagedType.LPWStr)]string name,
+            int bufferLength,
+            out int count,
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3), Out]byte[] customDebugInformation)
         {
-            throw new NotImplementedException();
+            if ((bufferLength != 0) != (customDebugInformation != null))
+            {
+                count = 0;
+                return HResult.E_INVALIDARG;
+            }
+
+            if (version != _version)
+            {
+                count = 0;
+                return HResult.E_INVALIDARG;
+            }
+
+            if (name == "<PortablePdbImage>")
+            {
+                count = _pdbReader.Image.Length;
+
+                if (bufferLength == 0)
+                {
+                    return HResult.S_FALSE;
+                }
+
+                Buffer.BlockCopy(_pdbReader.Image, 0, customDebugInformation, 0, bufferLength);
+                return HResult.S_OK;
+            }
+
+            count = 0;
+            return HResult.S_FALSE;
         }
 
-        public int GetSymAttributeByVersionPreRemap(int methodToken, int version, [MarshalAs(UnmanagedType.LPWStr)]string name, int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3), Out]byte[] customDebugInformation)
+        public int GetSymAttributePreRemap(
+            int methodToken,
+            [MarshalAs(UnmanagedType.LPWStr)]string name,
+            int bufferLength,
+            out int count,
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2), Out]byte[] customDebugInformation)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
-        public int GetSymAttributePreRemap(int methodToken, [MarshalAs(UnmanagedType.LPWStr)]string name, int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2), Out]byte[] customDebugInformation)
+        public int GetSymAttributeByVersionPreRemap(
+            int methodToken,
+            int version,
+            [MarshalAs(UnmanagedType.LPWStr)]string name,
+            int bufferLength,
+            out int count,
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3), Out]byte[] customDebugInformation)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public int GetSymbolStoreFileName(int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]char[] name)
@@ -162,7 +223,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetUserEntryPoint(out int methodToken)
         {
-            throw new NotImplementedException();
+            // TODO:
+            methodToken = 0x06000001;
+            return HResult.S_OK;
         }
 
         public int GetVariables(int methodToken, int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1), Out]ISymUnmanagedVariable[] variables)
@@ -170,9 +233,13 @@ namespace Microsoft.DiaSymReader.PortablePdb
             throw new NotImplementedException();
         }
 
-        public int Initialize([MarshalAs(UnmanagedType.Interface)]object metadataImporter, [MarshalAs(UnmanagedType.LPWStr)]string fileName, [MarshalAs(UnmanagedType.LPWStr)]string searchPath, IStream stream)
+        public int Initialize(
+            [MarshalAs(UnmanagedType.Interface)]object metadataImporter,
+            [MarshalAs(UnmanagedType.LPWStr)]string fileName, 
+            [MarshalAs(UnmanagedType.LPWStr)]string searchPath, 
+            IStream stream)
         {
-            throw new NotImplementedException();
+            return HResult.S_OK;
         }
 
         public int ReplaceSymbolStore([MarshalAs(UnmanagedType.LPWStr)]string fileName, IStream stream)

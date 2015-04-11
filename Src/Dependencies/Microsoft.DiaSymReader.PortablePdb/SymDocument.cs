@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.DiaSymReader.PortablePdb
 {
-    [ComVisible(true)]
+    [ComVisible(false)]
     public sealed class SymDocument : ISymUnmanagedDocument
     {
         private static Guid CSharpGuid = new Guid("3f5162f8-07c6-11d3-9053-00c04fa302a1");
@@ -33,6 +33,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int FindClosestLine(int line, out int closestLine)
         {
+            // TODO:
             throw new NotImplementedException();
         }
 
@@ -43,24 +44,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         {
             var document = _symReader.MetadataReader.GetDocument(_handle);
             var hash = _symReader.MetadataReader.GetBlobBytes(document.Hash);
-
-            // include NUL terminator:
-            count = hash.Length;
-
-            if (checksum == null)
-            {
-                return HResult.S_OK;
-            }
-
-            if (count > bufferLength)
-            {
-                count = 0;
-                return HResult.E_OUTOFMEMORY;
-            }
-
-            Buffer.BlockCopy(hash, 0, checksum, 0, count);
-
-            return HResult.S_OK;
+            return InteropUtilities.BytesToBuffer(hash, bufferLength, out count, checksum);
         }
 
         public int GetChecksumAlgorithmId(ref Guid algorithm)
@@ -93,7 +77,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetSourceLength(out int length)
         {
-            throw new NotImplementedException();
+            // SymReader doesn't support embedded source.
+            length = 0;
+            return HResult.E_NOTIMPL;
         }
 
         public int GetSourceRange(
@@ -105,7 +91,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
             out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4), Out]byte[] source)
         {
-            throw new NotImplementedException();
+            // SymReader doesn't support embedded source.
+            count = 0;
+            return HResult.E_NOTIMPL;
         }
 
         public int GetUrl(
@@ -113,31 +101,15 @@ namespace Microsoft.DiaSymReader.PortablePdb
             out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]char[] url)
         {
-            var name = _symReader.MetadataReader.GetDocument(_handle).GetNameString();
-
-            // include NUL terminator:
-            count = name.Length + 1;
-
-            if (url == null)
-            {
-                return HResult.S_OK;
-            }
-
-            if (count > bufferLength)
-            {
-                count = 0;
-                return HResult.E_OUTOFMEMORY;
-            }
-
-            name.CopyTo(0, url, 0, count);
-            url[count - 1] = '\0';
-
-            return HResult.S_OK;
+            string name = _symReader.MetadataReader.GetDocument(_handle).GetNameString();
+            return InteropUtilities.StringToBuffer(name, bufferLength, out count, url);
         }
 
         public int HasEmbeddedSource(out bool value)
         {
-            throw new NotImplementedException();
+            // SymReader doesn't support embedded source.
+            value = false;
+            return HResult.E_NOTIMPL;
         }
     }
 }

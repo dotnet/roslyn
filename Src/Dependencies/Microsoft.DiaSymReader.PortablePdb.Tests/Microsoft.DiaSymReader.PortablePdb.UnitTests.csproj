@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\build\VSL.Settings.Closed.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Nonshipping>true</Nonshipping>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <ProjectGuid>{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.DiaSymReader.PortablePdb.UnitTests</RootNamespace>
+    <AssemblyName>Microsoft.DiaSymReader.PortablePdb.UnitTests</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ImplicitlyExpandTargetFramework>False</ImplicitlyExpandTargetFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
+  <ItemGroup>
+    <Reference Include="..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll" />
+    <Reference Include="..\..\..\packages\System.Reflection.Metadata.1.1.0-alpha-00001\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
+    <Reference Include="..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\packages\System.IO.4.0.10-beta-22405\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22405\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.FileSystem.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22405\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.FileSystem.Primitives.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.Runtime.Extensions.4.0.10-beta-22405\lib\portable-wpa80+win80+net45+aspnetcore50\System.Runtime.Extensions.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.Runtime.4.0.20-beta-22405\lib\portable-wpa80+win80+net45+aspnetcore50\System.Runtime.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.Reflection.4.0.10-beta-22405\lib\portable-wpa80+win80+net45+aspnetcore50\System.Reflection.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.Reflection.Primitives.4.0.0-beta-22405\lib\portable-wpa80+win80+net45+aspnetcore50\System.Reflection.Primitives.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.Runtime.InteropServices.4.0.20-beta-22405\lib\portable-wpa80+win80+net45+aspnetcore50\System.Runtime.InteropServices.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.Collections.4.0.10-beta-22405\lib\portable-wpa80+win80+net45+aspnetcore50\System.Collections.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.Linq.4.0.0-beta-22405\lib\portable-wpa80+win80+net45+aspnetcore50\System.Linq.dll">
+      <Private>False</Private>
+    </Reference>
+    <ProjectReference Include="..\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
+      <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
+      <Name>Microsoft.DiaSymReader.PortablePdb</Name>
+    </ProjectReference>
+    <Reference Include="xunit">
+      <HintPath>..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22405\lib\net45\System.IO.FileSystem.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <EmbeddedResource Include="Resources\Scopes.dll" />
+    <EmbeddedResource Include="Resources\Scopes.pdb" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Scopes.cs" />
+    <Compile Include="SymMetadataImport.cs" />
+    <Compile Include="Resources\TestResources.cs" />
+    <Compile Include="SymReaderTests.cs" />
+    <Compile Include="TestHelpers\AssertEx.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <!--
+    <EmbeddedResource Include="Resources\HelloWorld.dll" />
+    <EmbeddedResource Include="Resources\HelloWorld.pdb" />
+    -->
+    <EmbeddedResource Include="Resources\z.dll" />
+    <EmbeddedResource Include="Resources\z.pdb" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\build\VSL.Imports.Closed.targets" />
+    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  </ImportGroup>
+</Project>
