@@ -20,6 +20,13 @@ namespace Microsoft.DiaSymReader.PortablePdb
         private readonly PortablePdbReader _pdbReader;
         private int _version;
 
+        /// <summary>
+        /// Creates <see cref="SymReader"/>.
+        /// </summary>
+        /// <param name="pdbReader"></param>
+        /// <remarks>
+        /// Takes ownership of <paramref name="pdbReader"/>.
+        /// </remarks>
         public SymReader(PortablePdbReader pdbReader)
         {
             Debug.Assert(pdbReader != null);
