@@ -212,10 +212,9 @@ class Program
             }
         }
 
-        private class LiveId : UpdateArgsId
+        private class LiveId : ISupportLiveUpdate
         {
-            // use just a random analyzer
-            public LiveId() : base(new CSharpSimplifyTypeNamesDiagnosticAnalyzer())
+            public LiveId()
             {
             }
         }
