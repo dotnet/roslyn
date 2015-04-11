@@ -17,6 +17,7 @@ The ECMA-335-II standard is amended by an addition of the following tables to th
 * [ImportScope](#ImportScopeTable)
 * [AsyncMethod](#AsyncMethodTable)
 * [CustomDebugInformation](#CustomDebugInformationTable)
+    * [EntryPoint](#EntryPoint)
     * [StateMachineHoistedLocalScopes](#StateMachineHoistedLocalScopes)
     * [DynamicLocalVariables](#DynamicLocalVariables)
     * [DefaultNamespace](#DefaultNamespace)
