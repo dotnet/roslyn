@@ -71,6 +71,24 @@ namespace System.Runtime.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Avoid unsealed attributes..
+        /// </summary>
+        internal static string AvoidUnsealedAttributes {
+            get {
+                return ResourceManager.GetString("AvoidUnsealedAttributes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Seal attribute type..
+        /// </summary>
+        internal static string AvoidUnsealedAttributesCodeFix {
+            get {
+                return ResourceManager.GetString("AvoidUnsealedAttributesCodeFix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Consider changing the ComVisible attribute on {0} to false, and opting in at the type level..
         /// </summary>
         internal static string CA1017_AttributeTrue {
@@ -328,6 +346,33 @@ namespace System.Runtime.Analyzers {
         internal static string OverloadOperatorEqualsOnOverridingValueTypeEqualsDescription {
             get {
                 return ResourceManager.GetString("OverloadOperatorEqualsOnOverridingValueTypeEqualsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Seal attribute types for improved performance. Sealing attribute types speeds up performance during reflection on custom attributes..
+        /// </summary>
+        internal static string SealAttributeTypesForImprovedPerf {
+            get {
+                return ResourceManager.GetString("SealAttributeTypesForImprovedPerf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For non-linguistic comparisons, StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase should be used instead of the linguistically-sensitive StringComparison.InvariantCulture..
+        /// </summary>
+        internal static string StringComparisonShouldBeOrdinalDescription {
+            get {
+                return ResourceManager.GetString("StringComparisonShouldBeOrdinalDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase.
+        /// </summary>
+        internal static string StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase {
+            get {
+                return ResourceManager.GetString("StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase", resourceCulture);
             }
         }
         

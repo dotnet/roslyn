@@ -10,7 +10,6 @@
     <CodeAnalysisRuleSetOverrides>$(CodeAnalysisRuleSetOverrides);
       -Microsoft.Design#CA1008;
       -Microsoft.Design#CA1012;
-      -Microsoft.Design#CA1018;
       -Microsoft.Design#CA1052;
       -Microsoft.Design#CA1053;
       -Microsoft.Design#CA1060;
@@ -21,8 +20,6 @@
 
       -Microsoft.Naming#CA1708;
       -Microsoft.Naming#CA1715;
-
-      -Microsoft.Performance#CA1813;
 
       -Microsoft.Usage#CA2229;
       -Microsoft.Usage#CA2235;

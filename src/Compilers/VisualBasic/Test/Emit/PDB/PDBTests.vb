@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -36,7 +36,6 @@ End Class
                 <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="50" document="0"/>
                 <entry offset="0xc" startLine="4" startColumn="5" endLine="4" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xd">
                 <currentnamespace name=""/>
             </scope>
@@ -47,7 +46,6 @@ End Class
                 <entry offset="0x1" startLine="108" startColumn="13" endLine="108" endColumn="25" document="0"/>
                 <entry offset="0x8" startLine="109" startColumn="9" endLine="109" endColumn="16" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name="My"/>
             </scope>
@@ -63,9 +61,6 @@ End Class
                 <entry offset="0x1" startLine="122" startColumn="17" endLine="122" endColumn="62" document="0"/>
                 <entry offset="0xe" startLine="123" startColumn="13" endLine="123" endColumn="20" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Computer" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Computer" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -82,9 +77,6 @@ End Class
                 <entry offset="0x1" startLine="134" startColumn="17" endLine="134" endColumn="57" document="0"/>
                 <entry offset="0xe" startLine="135" startColumn="13" endLine="135" endColumn="20" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Application" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Application" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -101,9 +93,6 @@ End Class
                 <entry offset="0x1" startLine="145" startColumn="17" endLine="145" endColumn="58" document="0"/>
                 <entry offset="0xe" startLine="146" startColumn="13" endLine="146" endColumn="20" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="User" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="User" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -120,9 +109,6 @@ End Class
                 <entry offset="0x1" startLine="238" startColumn="17" endLine="238" endColumn="67" document="0"/>
                 <entry offset="0xe" startLine="239" startColumn="13" endLine="239" endColumn="20" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="WebServices" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="WebServices" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -135,7 +121,6 @@ End Class
                 <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136" document="0"/>
                 <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x29">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
@@ -151,9 +136,6 @@ End Class
                 <entry offset="0x1" startLine="248" startColumn="17" endLine="248" endColumn="40" document="0"/>
                 <entry offset="0x10" startLine="249" startColumn="13" endLine="249" endColumn="25" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Equals" il_index="0" il_start="0x0" il_end="0x12" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x12">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Equals" il_index="0" il_start="0x0" il_end="0x12" attributes="0"/>
@@ -170,9 +152,6 @@ End Class
                 <entry offset="0x1" startLine="252" startColumn="17" endLine="252" endColumn="42" document="0"/>
                 <entry offset="0xa" startLine="253" startColumn="13" endLine="253" endColumn="25" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="GetHashCode" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="GetHashCode" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
@@ -189,9 +168,6 @@ End Class
                 <entry offset="0x1" startLine="256" startColumn="17" endLine="256" endColumn="46" document="0"/>
                 <entry offset="0xe" startLine="257" startColumn="13" endLine="257" endColumn="25" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="GetType" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="GetType" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -208,9 +184,6 @@ End Class
                 <entry offset="0x1" startLine="260" startColumn="17" endLine="260" endColumn="39" document="0"/>
                 <entry offset="0xa" startLine="261" startColumn="13" endLine="261" endColumn="25" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="ToString" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="ToString" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
@@ -231,9 +204,6 @@ End Class
                 <entry offset="0x17" startLine="268" startColumn="21" endLine="268" endColumn="36" document="0"/>
                 <entry offset="0x1b" startLine="270" startColumn="13" endLine="270" endColumn="25" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Create__Instance__" il_index="0" il_start="0x0" il_end="0x1d" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x1d">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Create__Instance__" il_index="0" il_start="0x0" il_end="0x1d" attributes="0"/>
@@ -245,7 +215,6 @@ End Class
                 <entry offset="0x1" startLine="274" startColumn="17" endLine="274" endColumn="35" document="0"/>
                 <entry offset="0x8" startLine="275" startColumn="13" endLine="275" endColumn="20" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
@@ -256,7 +225,6 @@ End Class
                 <entry offset="0x1" startLine="280" startColumn="16" endLine="280" endColumn="28" document="0"/>
                 <entry offset="0x8" startLine="281" startColumn="13" endLine="281" endColumn="20" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
@@ -275,9 +243,6 @@ End Class
                 <entry offset="0x1c" startLine="343" startColumn="21" endLine="343" endColumn="47" document="0"/>
                 <entry offset="0x24" startLine="344" startColumn="17" endLine="344" endColumn="24" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="GetInstance" il_index="0" il_start="0x0" il_end="0x26" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x26">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="GetInstance" il_index="0" il_start="0x0" il_end="0x26" attributes="0"/>
@@ -289,7 +254,6 @@ End Class
                 <entry offset="0x1" startLine="351" startColumn="17" endLine="351" endColumn="29" document="0"/>
                 <entry offset="0x8" startLine="352" startColumn="13" endLine="352" endColumn="20" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
@@ -374,13 +338,6 @@ End Module
                 <entry offset="0x4f" startLine="24" startColumn="9" endLine="24" endColumn="29" document="0"/>
                 <entry offset="0x56" startLine="26" startColumn="5" endLine="26" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x57" attributes="0"/>
-                <local name="y" il_index="1" il_start="0x4" il_end="0x1a" attributes="0"/>
-                <local name="ex" il_index="3" il_start="0x1d" il_end="0x3b" attributes="0"/>
-                <local name="z" il_index="4" il_start="0x25" il_end="0x3b" attributes="0"/>
-                <local name="q" il_index="5" il_start="0x3f" il_end="0x4c" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x57">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -477,13 +434,6 @@ End Module
                 <entry offset="0x5d" startLine="22" startColumn="9" endLine="22" endColumn="29" document="0"/>
                 <entry offset="0x64" startLine="24" startColumn="5" endLine="24" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x65" attributes="0"/>
-                <local name="y" il_index="1" il_start="0x4" il_end="0xf" attributes="0"/>
-                <local name="ex" il_index="2" il_start="0x12" il_end="0x49" attributes="0"/>
-                <local name="z" il_index="3" il_start="0x34" il_end="0x49" attributes="0"/>
-                <local name="q" il_index="4" il_start="0x4d" il_end="0x5a" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x65">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -551,10 +501,6 @@ End Module
                 <entry offset="0xc" startLine="6" startColumn="9" endLine="6" endColumn="26" document="0"/>
                 <entry offset="0x17" startLine="10" startColumn="5" endLine="10" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x18" attributes="0"/>
-                <local name="y" il_index="1" il_start="0x5" il_end="0xb" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x18">
                 <currentnamespace name=""/>
                 <local name="x" il_index="0" il_start="0x0" il_end="0x18" attributes="0"/>
@@ -591,7 +537,6 @@ End Class
                 <entry offset="0x7" startLine="3" startColumn="9" endLine="3" endColumn="50" document="0"/>
                 <entry offset="0x12" startLine="4" startColumn="5" endLine="4" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x13">
                 <currentnamespace name=""/>
             </scope>
@@ -630,7 +575,6 @@ End Class
                 <entry offset="0x9" startLine="5" startColumn="9" endLine="5" endColumn="16" document="0"/>
                 <entry offset="0xa" startLine="7" startColumn="9" endLine="7" endColumn="20" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xc">
                 <currentnamespace name=""/>
             </scope>
@@ -735,16 +679,6 @@ End Module
                 <entry offset="0xe0" startLine="11" startColumn="9" endLine="11" endColumn="23" document="0"/>
                 <entry offset="0xe8" startLine="29" startColumn="5" endLine="29" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0xe9" attributes="0"/>
-                <local name="xx" il_index="1" il_start="0x0" il_end="0xe9" attributes="0"/>
-                <local name="s" il_index="3" il_start="0x17" il_end="0x23" attributes="0"/>
-                <local name="s" il_index="4" il_start="0x62" il_end="0x70" attributes="0"/>
-                <local name="newX" il_index="5" il_start="0x73" il_end="0xdf" attributes="0"/>
-                <local name="s2" il_index="6" il_start="0x97" il_end="0xa6" attributes="0"/>
-                <local name="s3" il_index="7" il_start="0xb4" il_end="0xc3" attributes="0"/>
-                <local name="e1" il_index="8" il_start="0xc7" il_end="0xd6" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xe9">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -850,13 +784,6 @@ End Module
                 <entry offset="0x6e" startLine="7" startColumn="9" endLine="7" endColumn="23" document="0"/>
                 <entry offset="0x76" startLine="25" startColumn="5" endLine="25" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x77" attributes="0"/>
-                <local name="newX" il_index="1" il_start="0x5" il_end="0x6d" attributes="0"/>
-                <local name="s2" il_index="3" il_start="0x29" il_end="0x36" attributes="0"/>
-                <local name="s3" il_index="4" il_start="0x44" il_end="0x53" attributes="0"/>
-                <local name="e1" il_index="5" il_start="0x57" il_end="0x66" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x77">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -957,13 +884,6 @@ End Module
                 <entry offset="0x6c" startLine="24" startColumn="9" endLine="24" endColumn="25" document="0"/>
                 <entry offset="0x75" startLine="26" startColumn="5" endLine="26" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x76" attributes="0"/>
-                <local name="newX" il_index="1" il_start="0x4" il_end="0x6c" attributes="0"/>
-                <local name="s2" il_index="3" il_start="0x28" il_end="0x35" attributes="0"/>
-                <local name="s3" il_index="4" il_start="0x43" il_end="0x52" attributes="0"/>
-                <local name="e1" il_index="5" il_start="0x56" il_end="0x65" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x76">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1029,10 +949,6 @@ End Module
                 <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="21" document="0"/>
                 <entry offset="0xa" startLine="11" startColumn="9" endLine="11" endColumn="13" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0xd" attributes="0"/>
-                <local name="newX" il_index="1" il_start="0x4" il_end="0xa" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xd">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1088,7 +1004,6 @@ End Module
                 <entry offset="0x23" startLine="10" startColumn="9" endLine="10" endColumn="15" document="0"/>
                 <entry offset="0x24" startLine="11" startColumn="5" endLine="11" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x25">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1150,7 +1065,6 @@ End Module
                 <entry offset="0x36" startLine="16" startColumn="9" endLine="16" endColumn="31" document="0"/>
                 <entry offset="0x41" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x42">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1238,10 +1152,6 @@ End Module
                 <entry offset="0x55" startLine="21" startColumn="9" endLine="21" endColumn="16" document="0"/>
                 <entry offset="0x56" startLine="23" startColumn="5" endLine="23" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="1" il_start="0x9" il_end="0x16" attributes="0"/>
-                <local name="ex" il_index="2" il_start="0x2f" il_end="0x3d" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x57">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1358,15 +1268,6 @@ End Module
                 <entry offset="0x13f" startLine="34" startColumn="9" endLine="34" endColumn="28" document="0"/>
                 <entry offset="0x15f" startLine="35" startColumn="5" endLine="35" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x160" attributes="0"/>
-                <local name="y" il_index="1" il_start="0x0" il_end="0x160" attributes="0"/>
-                <local name="z" il_index="2" il_start="0x0" il_end="0x160" attributes="0"/>
-                <local name="a" il_index="3" il_start="0x0" il_end="0x160" attributes="0"/>
-                <local name="b" il_index="4" il_start="0x0" il_end="0x160" attributes="0"/>
-                <local name="c" il_index="5" il_start="0x0" il_end="0x160" attributes="0"/>
-                <local name="ct" il_index="6" il_start="0x0" il_end="0x160" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x160">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1440,12 +1341,6 @@ End Module
                 <entry offset="0x35" startLine="10" startColumn="9" endLine="10" endColumn="20" document="0"/>
                 <entry offset="0x3f" startLine="16" startColumn="5" endLine="16" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x40" attributes="0"/>
-                <local name="i" il_index="1" il_start="0x0" il_end="0x40" attributes="0"/>
-                <local name="q" il_index="2" il_start="0x0" il_end="0x40" attributes="0"/>
-                <local name="y" il_index="3" il_start="0x0" il_end="0x40" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x40">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1510,10 +1405,6 @@ End Module
                 <entry offset="0x41" startLine="13" startColumn="9" endLine="13" endColumn="28" document="0"/>
                 <entry offset="0x48" startLine="14" startColumn="5" endLine="14" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="del" il_index="0" il_start="0x0" il_end="0x49" attributes="0"/>
-                <local name="v" il_index="1" il_start="0x0" il_end="0x49" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x49">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1560,9 +1451,6 @@ End Module
                 <entry offset="0x4" startLine="6" startColumn="9" endLine="6" endColumn="19" document="0"/>
                 <entry offset="0x5" startLine="7" startColumn="5" endLine="7" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x6" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x6">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1619,9 +1507,6 @@ End Module
                 <entry offset="0x14" startLine="11" startColumn="9" endLine="11" endColumn="19" document="0"/>
                 <entry offset="0x15" startLine="12" startColumn="5" endLine="12" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x16" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x16">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1679,9 +1564,6 @@ End Module
                 <entry offset="0x38" startLine="10" startColumn="9" endLine="10" endColumn="19" document="0"/>
                 <entry offset="0x39" startLine="11" startColumn="5" endLine="11" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x3a" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x3a">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1742,9 +1624,6 @@ End Module
                 <entry offset="0x5d" startLine="13" startColumn="9" endLine="13" endColumn="19" document="0"/>
                 <entry offset="0x5e" startLine="14" startColumn="5" endLine="14" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x5f" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x5f">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1809,9 +1688,6 @@ End Module
                 <entry offset="0x6c" startLine="14" startColumn="9" endLine="14" endColumn="19" document="0"/>
                 <entry offset="0x6d" startLine="15" startColumn="5" endLine="15" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x6e" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x6e">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1874,9 +1750,6 @@ End Module
                 <entry offset="0x55" startLine="13" startColumn="9" endLine="13" endColumn="19" document="0"/>
                 <entry offset="0x56" startLine="14" startColumn="5" endLine="14" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x57" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x57">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1941,9 +1814,6 @@ End Module
                 <entry offset="0x62" startLine="14" startColumn="9" endLine="14" endColumn="19" document="0"/>
                 <entry offset="0x63" startLine="15" startColumn="5" endLine="15" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x64" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x64">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2006,9 +1876,6 @@ End Module
                 <entry offset="0x162" startLine="13" startColumn="9" endLine="13" endColumn="19" document="0"/>
                 <entry offset="0x163" startLine="14" startColumn="5" endLine="14" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x164" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x164">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2068,9 +1935,6 @@ End Module
                 <entry offset="0x56" startLine="12" startColumn="9" endLine="12" endColumn="19" document="0"/>
                 <entry offset="0x57" startLine="13" startColumn="5" endLine="13" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x58" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x58">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2131,9 +1995,6 @@ End Module
                 <entry offset="0x72" startLine="11" startColumn="9" endLine="11" endColumn="19" document="0"/>
                 <entry offset="0x73" startLine="12" startColumn="5" endLine="12" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x74" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x74">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2175,9 +2036,6 @@ End Class
                 <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="36" document="0"/>
                 <entry offset="0x8" startLine="4" startColumn="5" endLine="4" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="o" il_index="0" il_start="0x0" il_end="0x9" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name=""/>
                 <local name="o" il_index="0" il_start="0x0" il_end="0x9" attributes="0"/>
@@ -2216,9 +2074,6 @@ End Class
                 <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="40" document="0"/>
                 <entry offset="0x8" startLine="4" startColumn="5" endLine="4" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="o" il_index="0" il_start="0x0" il_end="0x9" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name=""/>
                 <local name="o" il_index="0" il_start="0x0" il_end="0x9" attributes="0"/>
@@ -2306,13 +2161,6 @@ End Module
                 <entry offset="0x4a" hidden="true" document="0"/>
                 <entry offset="0x58" startLine="24" startColumn="5" endLine="24" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="I" il_index="0" il_start="0x0" il_end="0x59" attributes="0"/>
-                <local name="J" il_index="1" il_start="0x0" il_end="0x59" attributes="0"/>
-                <local name="q" il_index="2" il_start="0x0" il_end="0x59" attributes="0"/>
-                <local name="count" il_index="3" il_start="0x0" il_end="0x59" attributes="0"/>
-                <local name="dims" il_index="4" il_start="0x0" il_end="0x59" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x59">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2366,7 +2214,6 @@ End Module
                 <entry offset="0x8" startLine="9" startColumn="9" endLine="9" endColumn="16" document="0"/>
                 <entry offset="0xa" startLine="10" startColumn="5" endLine="10" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xb">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2408,7 +2255,6 @@ End Module
                 <entry offset="0x1" startLine="4" startColumn="9" endLine="4" endColumn="12" document="0"/>
                 <entry offset="0x7" startLine="5" startColumn="5" endLine="5" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x8">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2419,7 +2265,6 @@ End Module
                 <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="19" document="0"/>
                 <entry offset="0x1" startLine="11" startColumn="5" endLine="11" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="M1" methodName="Main"/>
             </scope>
@@ -2475,10 +2320,6 @@ End Module
                 <entry offset="0x4" startLine="19" startColumn="13" endLine="19" endColumn="25" document="0"/>
                 <entry offset="0xb" startLine="20" startColumn="5" endLine="20" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-                <local name="b2" il_index="1" il_start="0x0" il_end="0xc" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xc">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2492,7 +2333,6 @@ End Module
                 <entry offset="0x7" startLine="9" startColumn="13" endLine="9" endColumn="18" document="0"/>
                 <entry offset="0xe" startLine="10" startColumn="9" endLine="10" endColumn="16" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xf">
                 <importsforward declaringType="Module1" methodName="Main"/>
             </scope>
@@ -2508,7 +2348,6 @@ End Module
                 <entry offset="0x1" startLine="13" startColumn="13" endLine="13" endColumn="29" document="0"/>
                 <entry offset="0xa" startLine="14" startColumn="9" endLine="14" endColumn="21" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="Module1" methodName="Main"/>
             </scope>
@@ -2559,7 +2398,6 @@ End Module
                 <entry offset="0x21" startLine="6" startColumn="12" endLine="6" endColumn="31" document="0"/>
                 <entry offset="0x28" startLine="10" startColumn="5" endLine="10" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x29">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2649,9 +2487,6 @@ End Class
                 <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="23" document="0"/>
                 <entry offset="0xa" startLine="6" startColumn="5" endLine="6" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="F" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xc">
                 <type name="Microsoft.VisualBasic.Strings" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2705,10 +2540,6 @@ End Module
                 <entry offset="0xe" startLine="8" startColumn="9" endLine="10" endColumn="21" document="0"/>
                 <entry offset="0x1d" startLine="11" startColumn="5" endLine="11" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
-                <local name="MakeIncrementer" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x1f">
                 <importsforward declaringType="Module1" methodName="Main"/>
                 <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
@@ -2746,7 +2577,6 @@ End Class
                 <entry offset="0x0" hidden="true" document="0"/>
                 <entry offset="0x6" startLine="2" startColumn="13" endLine="2" endColumn="39" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x17">
                 <currentnamespace name=""/>
             </scope>
@@ -2794,7 +2624,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="3" startColumn="13" endLine="7" endColumn="21" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x16">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2810,7 +2639,6 @@ End Module
                 <entry offset="0x0" startLine="5" startColumn="96" endLine="5" endColumn="107" document="0"/>
                 <entry offset="0x1" startLine="5" startColumn="108" endLine="5" endColumn="112" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x17">
                 <importsforward declaringType="M" methodName=".cctor"/>
             </scope>
@@ -2830,10 +2658,6 @@ End Module
                 <entry offset="0x4b" startLine="6" startColumn="13" endLine="6" endColumn="33" document="0"/>
                 <entry offset="0x5b" startLine="7" startColumn="9" endLine="7" endColumn="21" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="f" il_index="1" il_start="0x0" il_end="0x5d" attributes="0"/>
-                <local name="g" il_index="2" il_start="0x0" il_end="0x5d" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x5d">
                 <importsforward declaringType="M" methodName=".cctor"/>
                 <local name="f" il_index="1" il_start="0x0" il_end="0x5d" attributes="0"/>
@@ -2850,7 +2674,6 @@ End Module
                 <entry offset="0x0" startLine="4" startColumn="49" endLine="4" endColumn="60" document="0"/>
                 <entry offset="0x1" startLine="4" startColumn="61" endLine="4" endColumn="62" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="M" methodName=".cctor"/>
             </scope>
@@ -2867,9 +2690,6 @@ End Module
                 <entry offset="0x1" hidden="true" document="0"/>
                 <entry offset="0xe" startLine="5" startColumn="96" endLine="5" endColumn="112" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x1f">
                 <importsforward declaringType="M" methodName=".cctor"/>
                 <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
@@ -2929,9 +2749,6 @@ End Module
                 <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="25" document="0"/>
                 <entry offset="0x15" startLine="7" startColumn="5" endLine="7" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x17" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x17">
                 <namespace name="System.Collections.Generic" importlevel="file"/>
                 <namespace name="System.Linq" importlevel="file"/>
@@ -2965,10 +2782,6 @@ End Module
                 <entry offset="0x100" startLine="22" startColumn="9" endLine="22" endColumn="21" document="0"/>
                 <entry offset="0x107" startLine="23" startColumn="5" endLine="23" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x108" attributes="0"/>
-                <local name="qq" il_index="1" il_start="0x0" il_end="0x108" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x108">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x108" attributes="0"/>
@@ -2979,7 +2792,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="13" startColumn="26" endLine="13" endColumn="27" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -2988,7 +2800,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="14" startColumn="60" endLine="14" endColumn="67" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x4">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -2998,7 +2809,6 @@ End Module
                 <entry offset="0x0" startLine="14" startColumn="27" endLine="14" endColumn="33" document="0"/>
                 <entry offset="0x4" startLine="14" startColumn="39" endLine="14" endColumn="46" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xe">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3009,7 +2819,6 @@ End Module
                 <entry offset="0x1" startLine="15" startColumn="30" endLine="15" endColumn="44" document="0"/>
                 <entry offset="0x2b" startLine="15" startColumn="50" endLine="15" endColumn="64" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x5b">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3018,7 +2827,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="34" endLine="15" endColumn="43" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xd">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3027,7 +2835,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="54" endLine="15" endColumn="63" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xd">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3036,7 +2843,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="19" startColumn="25" endLine="19" endColumn="32" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3045,7 +2851,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="20" startColumn="26" endLine="20" endColumn="27" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3097,9 +2902,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -3125,10 +2927,6 @@ End Module
                 <entry offset="0x30" startLine="15" startColumn="9" endLine="15" endColumn="36" document="0"/>
                 <entry offset="0x3c" startLine="16" startColumn="5" endLine="16" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x3d">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
@@ -3182,9 +2980,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -3213,10 +3008,6 @@ End Module
                 <entry offset="0x7d" startLine="15" startColumn="9" endLine="15" endColumn="35" document="0"/>
                 <entry offset="0x89" startLine="16" startColumn="5" endLine="16" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x8a">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
@@ -3227,7 +3018,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="14" startColumn="28" endLine="14" endColumn="35" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3236,7 +3026,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="14" startColumn="68" endLine="14" endColumn="74" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2f">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3245,7 +3034,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="14" startColumn="57" endLine="14" endColumn="64" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3298,9 +3086,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -3326,10 +3111,6 @@ End Module
                 <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
                 <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x3d">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
@@ -3340,7 +3121,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="29" endLine="15" endColumn="42" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xa">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3393,9 +3173,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -3422,10 +3199,6 @@ End Module
                 <entry offset="0x59" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
                 <entry offset="0x65" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x66">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
@@ -3436,7 +3209,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="37" endLine="15" endColumn="50" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xb">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3445,7 +3217,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="64" endLine="15" endColumn="85" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x20">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3498,9 +3269,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -3526,10 +3294,6 @@ End Module
                 <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="36" document="0"/>
                 <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x3d">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
@@ -3540,7 +3304,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="32" endLine="15" endColumn="45" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x4">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3593,9 +3356,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -3621,10 +3381,6 @@ End Module
                 <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="36" document="0"/>
                 <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x3d">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
@@ -3635,7 +3391,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="33" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x4">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3688,9 +3443,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -3716,10 +3468,6 @@ End Module
                 <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
                 <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x3d">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
@@ -3731,7 +3479,6 @@ End Module
                 <entry offset="0x0" startLine="15" startColumn="32" endLine="15" endColumn="45" document="0"/>
                 <entry offset="0x3" startLine="15" startColumn="59" endLine="15" endColumn="72" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x15">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3784,9 +3531,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -3815,10 +3559,6 @@ End Module
                 <entry offset="0xa6" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
                 <entry offset="0xb2" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0xb3" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0xb3" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xb3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0xb3" attributes="0"/>
@@ -3829,7 +3569,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="14" startColumn="53" endLine="14" endColumn="60" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3838,7 +3577,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="41" endLine="15" endColumn="50" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3847,7 +3585,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="58" endLine="15" endColumn="67" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3902,9 +3639,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -3935,10 +3669,6 @@ End Module
                 <entry offset="0xf3" startLine="18" startColumn="9" endLine="18" endColumn="35" document="0"/>
                 <entry offset="0xff" startLine="19" startColumn="5" endLine="19" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x100" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x100" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x100">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x100" attributes="0"/>
@@ -3949,7 +3679,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="63" endLine="16" endColumn="72" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3958,7 +3687,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="46" endLine="16" endColumn="55" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3968,7 +3696,6 @@ End Module
                 <entry offset="0x0" startLine="17" startColumn="41" endLine="17" endColumn="50" document="0"/>
                 <entry offset="0x1" startLine="17" startColumn="93" endLine="17" endColumn="106" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xa">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -3978,7 +3705,6 @@ End Module
                 <entry offset="0x0" startLine="17" startColumn="58" endLine="17" endColumn="67" document="0"/>
                 <entry offset="0x6" startLine="17" startColumn="72" endLine="17" endColumn="85" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x14">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4032,9 +3758,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -4063,10 +3786,6 @@ End Module
                 <entry offset="0xa6" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
                 <entry offset="0xb2" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0xb3" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0xb3" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xb3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0xb3" attributes="0"/>
@@ -4077,7 +3796,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="14" startColumn="59" endLine="14" endColumn="66" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4086,7 +3804,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="41" endLine="15" endColumn="50" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4095,7 +3812,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="58" endLine="15" endColumn="67" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4152,9 +3868,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -4189,10 +3902,6 @@ End Module
                 <entry offset="0x145" startLine="20" startColumn="9" endLine="20" endColumn="35" document="0"/>
                 <entry offset="0x151" startLine="21" startColumn="5" endLine="21" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x152" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x152" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x152">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x152" attributes="0"/>
@@ -4203,7 +3912,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="14" startColumn="59" endLine="14" endColumn="66" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4212,7 +3920,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="63" endLine="15" endColumn="70" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4221,7 +3928,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="69" endLine="16" endColumn="78" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4230,7 +3936,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="52" endLine="16" endColumn="61" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4240,7 +3945,6 @@ End Module
                 <entry offset="0x0" hidden="true" document="0"/>
                 <entry offset="0x1" startLine="17" startColumn="47" endLine="17" endColumn="61" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x31">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4249,7 +3953,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="17" startColumn="51" endLine="17" endColumn="60" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4258,7 +3961,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="18" startColumn="41" endLine="18" endColumn="50" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4267,7 +3969,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="18" startColumn="58" endLine="18" endColumn="67" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4277,7 +3978,6 @@ End Module
                 <entry offset="0x0" hidden="true" document="0"/>
                 <entry offset="0x1" startLine="19" startColumn="43" endLine="19" endColumn="57" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x31">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4286,7 +3986,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="19" startColumn="47" endLine="19" endColumn="56" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4340,9 +4039,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -4371,10 +4067,6 @@ End Module
                 <entry offset="0x7d" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
                 <entry offset="0x89" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x8a">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
@@ -4386,7 +4078,6 @@ End Module
                 <entry offset="0x0" startLine="15" startColumn="41" endLine="15" endColumn="50" document="0"/>
                 <entry offset="0x1" startLine="15" startColumn="93" endLine="15" endColumn="106" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xa">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4396,7 +4087,6 @@ End Module
                 <entry offset="0x0" startLine="15" startColumn="58" endLine="15" endColumn="67" document="0"/>
                 <entry offset="0x1" startLine="15" startColumn="72" endLine="15" endColumn="85" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xa">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4407,7 +4097,6 @@ End Module
                 <entry offset="0x2" startLine="16" startColumn="56" endLine="16" endColumn="70" document="0"/>
                 <entry offset="0x2c" startLine="16" startColumn="72" endLine="16" endColumn="79" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x38">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4416,7 +4105,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="60" endLine="16" endColumn="69" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4469,9 +4157,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -4499,10 +4184,6 @@ End Module
                 <entry offset="0x7d" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
                 <entry offset="0x89" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x8a">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
@@ -4513,7 +4194,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4522,7 +4202,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="19" endLine="15" endColumn="73" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x22">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4575,9 +4254,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -4605,10 +4281,6 @@ End Module
                 <entry offset="0x7d" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
                 <entry offset="0x89" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x8a">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
@@ -4619,7 +4291,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4628,7 +4299,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="24" endLine="15" endColumn="78" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x22">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4681,9 +4351,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -4711,10 +4378,6 @@ End Module
                 <entry offset="0x7d" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
                 <entry offset="0x89" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x8a">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
@@ -4725,7 +4388,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4734,7 +4396,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="24" endLine="15" endColumn="78" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x22">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -4787,9 +4448,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -4811,10 +4469,6 @@ End Module
                 <entry offset="0xd" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
                 <entry offset="0x19" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x1a" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x1a">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
@@ -4869,9 +4523,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -4893,10 +4544,6 @@ End Module
                 <entry offset="0xd" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
                 <entry offset="0x19" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x1a" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x1a">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
@@ -4952,9 +4599,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -4983,10 +4627,6 @@ End Module
                 <entry offset="0xa1" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
                 <entry offset="0xad" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0xae" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0xae" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xae">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0xae" attributes="0"/>
@@ -4997,7 +4637,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5006,7 +4645,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="22" endLine="15" endColumn="31" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5060,9 +4698,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -5092,10 +4727,6 @@ End Module
                 <entry offset="0xa1" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
                 <entry offset="0xad" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0xae" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0xae" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xae">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0xae" attributes="0"/>
@@ -5106,7 +4737,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5115,7 +4745,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="34" endLine="15" endColumn="47" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5125,7 +4754,6 @@ End Module
                 <entry offset="0x0" hidden="true" document="0"/>
                 <entry offset="0x1" startLine="16" startColumn="18" endLine="16" endColumn="32" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x31">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5134,7 +4762,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="22" endLine="16" endColumn="31" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5188,9 +4815,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -5220,10 +4844,6 @@ End Module
                 <entry offset="0xa1" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
                 <entry offset="0xad" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0xae" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0xae" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xae">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0xae" attributes="0"/>
@@ -5234,7 +4854,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5244,7 +4863,6 @@ End Module
                 <entry offset="0x0" startLine="15" startColumn="34" endLine="15" endColumn="47" document="0"/>
                 <entry offset="0x8" startLine="15" startColumn="61" endLine="15" endColumn="74" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x1f">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5255,7 +4873,6 @@ End Module
                 <entry offset="0xd" startLine="16" startColumn="31" endLine="16" endColumn="45" document="0"/>
                 <entry offset="0x37" startLine="16" startColumn="47" endLine="16" endColumn="54" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x43">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5264,7 +4881,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="35" endLine="16" endColumn="44" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5318,9 +4934,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -5348,10 +4961,6 @@ End Module
                 <entry offset="0x30" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
                 <entry offset="0x3c" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x3d">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
@@ -5362,7 +4971,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="13" endLine="16" endColumn="36" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x5e">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5371,7 +4979,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5380,7 +4987,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="22" endLine="16" endColumn="35" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xd">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5434,9 +5040,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -5466,10 +5069,6 @@ End Module
                 <entry offset="0x30" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
                 <entry offset="0x3c" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x3d">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
@@ -5480,7 +5079,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="13" endLine="16" endColumn="50" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xab">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5489,7 +5087,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5498,7 +5095,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="65" endLine="15" endColumn="71" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5507,7 +5103,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="49" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xf">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5562,9 +5157,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -5593,10 +5185,6 @@ End Module
                 <entry offset="0x59" startLine="18" startColumn="9" endLine="18" endColumn="35" document="0"/>
                 <entry offset="0x65" startLine="19" startColumn="5" endLine="19" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x66">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
@@ -5607,7 +5195,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5616,7 +5203,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="13" endLine="17" endColumn="36" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x58">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5625,7 +5211,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="33" endLine="16" endColumn="40" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5634,7 +5219,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="17" startColumn="22" endLine="17" endColumn="35" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xd">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5688,9 +5272,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -5718,10 +5299,6 @@ End Module
                 <entry offset="0x59" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
                 <entry offset="0x65" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x66">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
@@ -5732,7 +5309,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="13" endLine="15" endColumn="42" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5743,7 +5319,6 @@ End Module
                 <entry offset="0x6" startLine="16" startColumn="24" endLine="16" endColumn="38" document="0"/>
                 <entry offset="0x35" startLine="16" startColumn="40" endLine="16" endColumn="47" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x46">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5752,7 +5327,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="37" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5806,9 +5380,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -5839,10 +5410,6 @@ End Module
                 <entry offset="0x59" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
                 <entry offset="0x65" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x66">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
@@ -5853,7 +5420,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="13" endLine="15" endColumn="71" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x82">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5862,7 +5428,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5871,7 +5436,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="65" endLine="15" endColumn="71" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5882,7 +5446,6 @@ End Module
                 <entry offset="0x6" startLine="16" startColumn="24" endLine="16" endColumn="38" document="0"/>
                 <entry offset="0x35" startLine="16" startColumn="40" endLine="16" endColumn="47" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x46">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5891,7 +5454,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="37" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -5945,9 +5507,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -5979,10 +5538,6 @@ End Module
                 <entry offset="0x59" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
                 <entry offset="0x65" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x66">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
@@ -5993,7 +5548,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="13" endLine="15" endColumn="105" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xab">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6002,7 +5556,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6011,7 +5564,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="79" endLine="15" endColumn="88" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6020,7 +5572,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="96" endLine="15" endColumn="105" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6031,7 +5582,6 @@ End Module
                 <entry offset="0x6" startLine="16" startColumn="24" endLine="16" endColumn="38" document="0"/>
                 <entry offset="0x35" startLine="16" startColumn="40" endLine="16" endColumn="47" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x46">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6040,7 +5590,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="37" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6095,9 +5644,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -6126,10 +5672,6 @@ End Module
                 <entry offset="0x82" startLine="18" startColumn="9" endLine="18" endColumn="35" document="0"/>
                 <entry offset="0x8e" startLine="19" startColumn="5" endLine="19" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8f" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8f" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x8f">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x8f" attributes="0"/>
@@ -6140,7 +5682,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6149,7 +5690,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="13" endLine="16" endColumn="42" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6159,7 +5699,6 @@ End Module
                 <entry offset="0x0" startLine="17" startColumn="24" endLine="17" endColumn="38" document="0"/>
                 <entry offset="0x2a" startLine="17" startColumn="40" endLine="17" endColumn="47" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x36">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6168,7 +5707,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="17" startColumn="28" endLine="17" endColumn="37" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6223,9 +5761,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -6257,10 +5792,6 @@ End Module
                 <entry offset="0x82" startLine="18" startColumn="9" endLine="18" endColumn="35" document="0"/>
                 <entry offset="0x8e" startLine="19" startColumn="5" endLine="19" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8f" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8f" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x8f">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x8f" attributes="0"/>
@@ -6271,7 +5802,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6280,7 +5810,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="13" endLine="16" endColumn="71" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7c">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6289,7 +5818,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="33" endLine="16" endColumn="40" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6298,7 +5826,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="65" endLine="16" endColumn="71" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x6">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6308,7 +5835,6 @@ End Module
                 <entry offset="0x0" startLine="17" startColumn="24" endLine="17" endColumn="38" document="0"/>
                 <entry offset="0x2a" startLine="17" startColumn="40" endLine="17" endColumn="47" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x36">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6317,7 +5843,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="17" startColumn="28" endLine="17" endColumn="37" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6372,9 +5897,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -6407,10 +5929,6 @@ End Module
                 <entry offset="0x82" startLine="18" startColumn="9" endLine="18" endColumn="35" document="0"/>
                 <entry offset="0x8e" startLine="19" startColumn="5" endLine="19" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8f" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8f" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x8f">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="q" il_index="0" il_start="0x0" il_end="0x8f" attributes="0"/>
@@ -6421,7 +5939,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6430,7 +5947,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="13" endLine="16" endColumn="105" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xa5">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6439,7 +5955,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="33" endLine="16" endColumn="40" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6448,7 +5963,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="79" endLine="16" endColumn="88" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6457,7 +5971,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="16" startColumn="96" endLine="16" endColumn="105" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6467,7 +5980,6 @@ End Module
                 <entry offset="0x0" startLine="17" startColumn="24" endLine="17" endColumn="38" document="0"/>
                 <entry offset="0x2a" startLine="17" startColumn="40" endLine="17" endColumn="47" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x36">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6476,7 +5988,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="17" startColumn="28" endLine="17" endColumn="37" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6526,9 +6037,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -6553,9 +6061,6 @@ End Module
                 <entry offset="0x1" startLine="12" startColumn="9" endLine="13" endColumn="36" document="0"/>
                 <entry offset="0x5e" startLine="14" startColumn="5" endLine="14" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x5f" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x5f">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="x" il_index="0" il_start="0x0" il_end="0x5f" attributes="0"/>
@@ -6565,7 +6070,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="12" startColumn="33" endLine="12" endColumn="40" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6574,7 +6078,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="13" startColumn="22" endLine="13" endColumn="35" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xd">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6624,9 +6127,6 @@ End Module
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
                 <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <namespace name="System.Collections" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -6654,9 +6154,6 @@ End Module
                 <entry offset="0x1" startLine="12" startColumn="9" endLine="13" endColumn="47" document="0"/>
                 <entry offset="0x8a" startLine="14" startColumn="5" endLine="14" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x8b" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x8b">
                 <importsforward declaringType="Module1" methodName="Nums"/>
                 <local name="x" il_index="0" il_start="0x0" il_end="0x8b" attributes="0"/>
@@ -6666,7 +6163,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="12" startColumn="65" endLine="12" endColumn="71" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2f">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6675,7 +6171,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="12" startColumn="54" endLine="12" endColumn="61" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x3">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6684,7 +6179,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="13" startColumn="28" endLine="13" endColumn="37" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="Module1" methodName="Nums"/>
             </scope>
@@ -6723,7 +6217,6 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" startLine="8" startColumn="25" endLine="8" endColumn="30" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xa">
                 <importsforward declaringType="Module1" methodName="Main"/>
             </scope>
@@ -6769,7 +6262,6 @@ End Class
                 <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="38" document="0"/>
                 <entry offset="0x15" startLine="4" startColumn="5" endLine="4" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x16">
                 <currentnamespace name=""/>
             </scope>
@@ -6780,7 +6272,6 @@ End Class
                 <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="17" document="0"/>
                 <entry offset="0x7" startLine="8" startColumn="5" endLine="8" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x8">
                 <importsforward declaringType="IntervalUpdate" methodName="Update"/>
             </scope>
@@ -6791,7 +6282,6 @@ End Class
                 <entry offset="0x1" startLine="108" startColumn="13" endLine="108" endColumn="25" document="0"/>
                 <entry offset="0x8" startLine="109" startColumn="9" endLine="109" endColumn="16" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name="My"/>
             </scope>
@@ -6807,9 +6297,6 @@ End Class
                 <entry offset="0x1" startLine="122" startColumn="17" endLine="122" endColumn="62" document="0"/>
                 <entry offset="0xe" startLine="123" startColumn="13" endLine="123" endColumn="20" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Computer" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Computer" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -6826,9 +6313,6 @@ End Class
                 <entry offset="0x1" startLine="134" startColumn="17" endLine="134" endColumn="57" document="0"/>
                 <entry offset="0xe" startLine="135" startColumn="13" endLine="135" endColumn="20" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Application" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Application" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -6845,9 +6329,6 @@ End Class
                 <entry offset="0x1" startLine="145" startColumn="17" endLine="145" endColumn="58" document="0"/>
                 <entry offset="0xe" startLine="146" startColumn="13" endLine="146" endColumn="20" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="User" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="User" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -6864,9 +6345,6 @@ End Class
                 <entry offset="0x1" startLine="238" startColumn="17" endLine="238" endColumn="67" document="0"/>
                 <entry offset="0xe" startLine="239" startColumn="13" endLine="239" endColumn="20" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="WebServices" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="WebServices" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -6879,7 +6357,6 @@ End Class
                 <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136" document="0"/>
                 <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x29">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
@@ -6895,9 +6372,6 @@ End Class
                 <entry offset="0x1" startLine="248" startColumn="17" endLine="248" endColumn="40" document="0"/>
                 <entry offset="0x10" startLine="249" startColumn="13" endLine="249" endColumn="25" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Equals" il_index="0" il_start="0x0" il_end="0x12" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x12">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Equals" il_index="0" il_start="0x0" il_end="0x12" attributes="0"/>
@@ -6914,9 +6388,6 @@ End Class
                 <entry offset="0x1" startLine="252" startColumn="17" endLine="252" endColumn="42" document="0"/>
                 <entry offset="0xa" startLine="253" startColumn="13" endLine="253" endColumn="25" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="GetHashCode" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="GetHashCode" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
@@ -6933,9 +6404,6 @@ End Class
                 <entry offset="0x1" startLine="256" startColumn="17" endLine="256" endColumn="46" document="0"/>
                 <entry offset="0xe" startLine="257" startColumn="13" endLine="257" endColumn="25" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="GetType" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="GetType" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -6952,9 +6420,6 @@ End Class
                 <entry offset="0x1" startLine="260" startColumn="17" endLine="260" endColumn="39" document="0"/>
                 <entry offset="0xa" startLine="261" startColumn="13" endLine="261" endColumn="25" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="ToString" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="ToString" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
@@ -6975,9 +6440,6 @@ End Class
                 <entry offset="0x17" startLine="268" startColumn="21" endLine="268" endColumn="36" document="0"/>
                 <entry offset="0x1b" startLine="270" startColumn="13" endLine="270" endColumn="25" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="Create__Instance__" il_index="0" il_start="0x0" il_end="0x1d" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x1d">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Create__Instance__" il_index="0" il_start="0x0" il_end="0x1d" attributes="0"/>
@@ -6989,7 +6451,6 @@ End Class
                 <entry offset="0x1" startLine="274" startColumn="17" endLine="274" endColumn="35" document="0"/>
                 <entry offset="0x8" startLine="275" startColumn="13" endLine="275" endColumn="20" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
@@ -7000,7 +6461,6 @@ End Class
                 <entry offset="0x1" startLine="280" startColumn="16" endLine="280" endColumn="28" document="0"/>
                 <entry offset="0x8" startLine="281" startColumn="13" endLine="281" endColumn="20" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
@@ -7019,9 +6479,6 @@ End Class
                 <entry offset="0x1c" startLine="343" startColumn="21" endLine="343" endColumn="47" document="0"/>
                 <entry offset="0x24" startLine="344" startColumn="17" endLine="344" endColumn="24" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="GetInstance" il_index="0" il_start="0x0" il_end="0x26" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x26">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="GetInstance" il_index="0" il_start="0x0" il_end="0x26" attributes="0"/>
@@ -7033,7 +6490,6 @@ End Class
                 <entry offset="0x1" startLine="351" startColumn="17" endLine="351" endColumn="29" document="0"/>
                 <entry offset="0x8" startLine="352" startColumn="13" endLine="352" endColumn="20" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
@@ -7112,7 +6568,6 @@ End Class
                 <entry offset="0x12" startLine="81" startColumn="13" endLine="81" endColumn="37" document="0"/>
                 <entry offset="0x1e" startLine="82" startColumn="9" endLine="82" endColumn="16" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x1f">
                 <currentnamespace name="My"/>
             </scope>
@@ -7165,7 +6620,6 @@ End Class
                 <entry offset="0x50" startLine="11" startColumn="9" endLine="11" endColumn="19" document="0"/>
                 <entry offset="0x51" startLine="12" startColumn="5" endLine="12" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x52">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -7243,33 +6697,6 @@ End Class
                 <entry offset="0x0" startLine="18" startColumn="5" endLine="18" endColumn="25" document="0"/>
                 <entry offset="0x1" startLine="48" startColumn="5" endLine="48" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <constant name="B" value="0" type="Boolean"/>
-                <constant name="C" value="0" type="Char"/>
-                <constant name="I1" value="0" type="SByte"/>
-                <constant name="U1" value="0" type="Byte"/>
-                <constant name="I2" value="0" type="Int16"/>
-                <constant name="U2" value="0" type="UInt16"/>
-                <constant name="I4" value="0" type="Int32"/>
-                <constant name="U4" value="0" type="UInt32"/>
-                <constant name="I8" value="0" type="Int64"/>
-                <constant name="U8" value="0" type="UInt64"/>
-                <constant name="R4" value="0" type="Single"/>
-                <constant name="R8" value="0" type="Double"/>
-                <constant name="EI1" value="0" signature="15-11-10-01-08"/>
-                <constant name="EU1" value="0" signature="15-11-14-01-08"/>
-                <constant name="EI2" value="0" signature="15-11-18-01-08"/>
-                <constant name="EU2" value="0" signature="15-11-1C-01-08"/>
-                <constant name="EI4" value="null" signature="15-11-20-01-08"/>
-                <constant name="EU4" value="0" signature="15-11-24-01-08"/>
-                <constant name="EI8" value="0" signature="15-11-28-01-08"/>
-                <constant name="EU8" value="0" signature="15-11-2C-01-08"/>
-                <constant name="EmptyStr" value="" type="String"/>
-                <constant name="NullStr" value="null" type="String"/>
-                <constant name="NullObject" value="null" type="Object"/>
-                <constant name="D" value="0" type="Decimal"/>
-                <constant name="DT" value="01/01/2015 00:00:00" type="DateTime"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x2">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>

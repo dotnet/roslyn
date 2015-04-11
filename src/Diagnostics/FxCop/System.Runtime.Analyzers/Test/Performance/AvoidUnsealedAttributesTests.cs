@@ -1,23 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Performance;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace System.Runtime.Analyzers.UnitTests
 {
-    public partial class CA1813Tests : DiagnosticAnalyzerTestBase
+    public partial class AvoidUnsealedAttributeTests : DiagnosticAnalyzerTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return new CA1813DiagnosticAnalyzer();
+            return new AvoidUnsealedAttributesAnalyzer();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CA1813DiagnosticAnalyzer();
+            return new AvoidUnsealedAttributesAnalyzer();
         }
 
         #region Diagnostic Tests
@@ -133,12 +132,12 @@ End Class
 
         private static DiagnosticResult GetCA1813CSharpResultAt(int line, int column)
         {
-            return GetCSharpResultAt(line, column, CA1813Name, FxCopRulesResources.SealAttributeTypesForImprovedPerf);
+            return GetCSharpResultAt(line, column, CA1813Name, SystemRuntimeAnalyzersResources.SealAttributeTypesForImprovedPerf);
         }
 
         private static DiagnosticResult GetCA1813BasicResultAt(int line, int column)
         {
-            return GetBasicResultAt(line, column, CA1813Name, FxCopRulesResources.SealAttributeTypesForImprovedPerf);
+            return GetBasicResultAt(line, column, CA1813Name, SystemRuntimeAnalyzersResources.SealAttributeTypesForImprovedPerf);
         }
     }
 }

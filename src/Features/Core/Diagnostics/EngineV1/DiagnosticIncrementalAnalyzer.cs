@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         await HandleSuppressedAnalyzerAsync(document, stateSet, StateType.Syntax, cancellationToken).ConfigureAwait(false);
                     }
-                    else if (ShouldRunAnalyzerForStateType(userDiagnosticDriver, stateSet.Analyzer, StateType.Syntax, diagnosticIds) &&
+                    else if (await ShouldRunAnalyzerForStateTypeAsync(userDiagnosticDriver, stateSet.Analyzer, StateType.Syntax, diagnosticIds).ConfigureAwait(false) &&
                         (skipClosedFileChecks || ShouldRunAnalyzerForClosedFile(openedDocument, stateSet.Analyzer)))
                     {
                         var data = await _executor.GetSyntaxAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
@@ -204,13 +204,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 foreach (var stateSet in _stateManger.GetOrUpdateStateSets(document.Project))
                 {
-                    bool supportsSemanticInSpan;
                     if (spanBasedDriver.IsAnalyzerSuppressed(stateSet.Analyzer))
                     {
                         await HandleSuppressedAnalyzerAsync(document, stateSet, StateType.Document, cancellationToken).ConfigureAwait(false);
                     }
-                    else if (ShouldRunAnalyzerForStateType(spanBasedDriver, stateSet.Analyzer, StateType.Document, out supportsSemanticInSpan))
+                    else if (await ShouldRunAnalyzerForStateTypeAsync(spanBasedDriver, stateSet.Analyzer, StateType.Document).ConfigureAwait(false))
                     {
+                        var supportsSemanticInSpan = await stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysisAsync(spanBasedDriver).ConfigureAwait(false);
                         var userDiagnosticDriver = supportsSemanticInSpan ? spanBasedDriver : documentBasedDriver;
 
                         var ranges = _memberRangeMap.GetSavedMemberRange(stateSet.Analyzer, document);
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         await HandleSuppressedAnalyzerAsync(document, stateSet, StateType.Document, cancellationToken).ConfigureAwait(false);
                     }
-                    else if (ShouldRunAnalyzerForStateType(userDiagnosticDriver, stateSet.Analyzer, StateType.Document, diagnosticIds) &&
+                    else if (await ShouldRunAnalyzerForStateTypeAsync(userDiagnosticDriver, stateSet.Analyzer, StateType.Document, diagnosticIds).ConfigureAwait(false) &&
                         (skipClosedFileChecks || ShouldRunAnalyzerForClosedFile(openedDocument, stateSet.Analyzer)))
                     {
                         var data = await _executor.GetDocumentAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         await HandleSuppressedAnalyzerAsync(project, stateSet, cancellationToken).ConfigureAwait(false);
                     }
-                    else if (ShouldRunAnalyzerForStateType(analyzerDriver, stateSet.Analyzer, StateType.Project, diagnosticIds) &&
+                    else if (await ShouldRunAnalyzerForStateTypeAsync(analyzerDriver, stateSet.Analyzer, StateType.Project, diagnosticIds).ConfigureAwait(false) &&
                         (skipClosedFileChecks || ShouldRunAnalyzerForClosedFile(openedDocument: false, analyzer: stateSet.Analyzer)))
                     {
                         var data = await _executor.GetProjectAnalysisDataAsync(analyzerDriver, stateSet, versions).ConfigureAwait(false);
@@ -436,20 +436,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return Owner.GetDiagnosticDescriptors(analyzer).Any(d => d.DefaultSeverity != DiagnosticSeverity.Hidden);
         }
 
-        private bool ShouldRunAnalyzerForStateType(DiagnosticAnalyzerDriver driver, DiagnosticAnalyzer analyzer,
-            StateType stateTypeId, ImmutableHashSet<string> diagnosticIds)
+        private async Task<bool> ShouldRunAnalyzerForStateTypeAsync(DiagnosticAnalyzerDriver driver, DiagnosticAnalyzer analyzer, StateType stateTypeId, ImmutableHashSet<string> diagnosticIds)
         {
-            bool discarded;
-            return ShouldRunAnalyzerForStateType(driver, analyzer, stateTypeId, out discarded, diagnosticIds, Owner.GetDiagnosticDescriptors);
+            return await ShouldRunAnalyzerForStateTypeAsync(driver, analyzer, stateTypeId, diagnosticIds, Owner.GetDiagnosticDescriptors).ConfigureAwait(false);
         }
 
-        private static bool ShouldRunAnalyzerForStateType(DiagnosticAnalyzerDriver driver, DiagnosticAnalyzer analyzer, StateType stateTypeId,
-            out bool supportsSemanticInSpan, ImmutableHashSet<string> diagnosticIds = null, Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getDescriptor = null)
+        private static async Task<bool> ShouldRunAnalyzerForStateTypeAsync(DiagnosticAnalyzerDriver driver, DiagnosticAnalyzer analyzer, StateType stateTypeId,
+            ImmutableHashSet<string> diagnosticIds = null, Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getDescriptors = null)
         {
             Debug.Assert(!driver.IsAnalyzerSuppressed(analyzer));
 
-            supportsSemanticInSpan = false;
-            if (diagnosticIds != null && getDescriptor(analyzer).All(d => !diagnosticIds.Contains(d.Id)))
+            if (diagnosticIds != null && getDescriptors(analyzer).All(d => !diagnosticIds.Contains(d.Id)))
             {
                 return false;
             }
@@ -457,13 +454,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             switch (stateTypeId)
             {
                 case StateType.Syntax:
-                    return analyzer.SupportsSyntaxDiagnosticAnalysis(driver);
+                    return await analyzer.SupportsSyntaxDiagnosticAnalysisAsync(driver).ConfigureAwait(false);
 
                 case StateType.Document:
-                    return analyzer.SupportsSemanticDiagnosticAnalysis(driver, out supportsSemanticInSpan);
+                    return await analyzer.SupportsSemanticDiagnosticAnalysisAsync(driver).ConfigureAwait(false);
 
                 case StateType.Project:
-                    return analyzer.SupportsProjectDiagnosticAnalysis(driver);
+                    return await analyzer.SupportsProjectDiagnosticAnalysisAsync(driver).ConfigureAwait(false);
 
                 default:
                     throw ExceptionUtilities.Unreachable;

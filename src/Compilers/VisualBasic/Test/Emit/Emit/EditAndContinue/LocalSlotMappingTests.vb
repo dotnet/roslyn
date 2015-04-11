@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
@@ -110,10 +110,6 @@ End Class
         <entry offset=""0x29"" hidden=""true"" document=""1"" />
         <entry offset=""0x35"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""12"" document=""1"" />
       </sequencePoints>
-      <locals>
-        <local name=""index"" il_index=""1"" il_start=""0x1"" il_end=""0x18"" attributes=""0"" />
-        <local name=""index"" il_index=""4"" il_start=""0x19"" il_end=""0x34"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x36"">
         <namespace name=""System"" importlevel=""file"" />
         <currentnamespace name="""" />
@@ -239,7 +235,6 @@ End Class
         <entry offset=""0xb"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
         <entry offset=""0x1c"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""12"" document=""1"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x1d"">
         <importsforward declaringType=""C"" methodName=""F"" />
       </scope>
@@ -261,7 +256,6 @@ End Class
         <entry offset=""0x9"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
         <entry offset=""0x13"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""12"" document=""1"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x14"">
         <importsforward declaringType=""C"" methodName=""F"" />
       </scope>
@@ -596,7 +590,6 @@ End Class
         <entry offset=""0xd"" startLine=""13"" startColumn=""21"" endLine=""13"" endColumn=""30"" document=""1"" />
         <entry offset=""0x1e"" startLine=""14"" startColumn=""17"" endLine=""14"" endColumn=""29"" document=""1"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x20"">
         <importsforward declaringType=""C"" methodName=""F"" />
       </scope>
@@ -806,7 +799,6 @@ End Class
         <entry offset=""0xb3"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""16"" document=""1"" />
         <entry offset=""0xce"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""17"" document=""1"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0xd2"">
         <importsforward declaringType=""C"" methodName=""F"" />
       </scope>
@@ -990,7 +982,7 @@ End Class
           <slot kind=""27"" offset=""-1"" />
           <slot kind=""0"" offset=""-1"" />
           <slot kind=""temp"" />
-          <slot kind=""temp"" />
+          <slot kind=""33"" offset=""38"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
@@ -1005,13 +997,13 @@ End Class
         <entry offset=""0x2f"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
         <entry offset=""0x4b"" hidden=""true"" document=""1"" />
         <entry offset=""0x4c"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x5b"" hidden=""true"" document=""1"" />
         <entry offset=""0xbb"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""17"" document=""1"" />
         <entry offset=""0xbf"" hidden=""true"" document=""1"" />
         <entry offset=""0xc7"" hidden=""true"" document=""1"" />
         <entry offset=""0xe4"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""17"" document=""1"" />
         <entry offset=""0xee"" hidden=""true"" document=""1"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0xfc"">
         <importsforward declaringType=""C"" methodName=""F"" />
       </scope>

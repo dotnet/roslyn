@@ -730,4 +730,7 @@ Do you want to proceed?</value>
   <data name="TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable" xml:space="preserve">
     <value>The rename tracking session was cancelled and is no longer available.</value>
   </data>
+  <data name="HighlightedWrittenReference" xml:space="preserve">
+    <value>Highlighted Written Reference</value>
+  </data>
 </root>

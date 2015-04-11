@@ -94,7 +94,7 @@ public sealed class SetterOnlyTestAttribute : Attribute
 }", allowNewCompilerDiagnostics: true);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/662"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CSharp_CA1019_MakeGetterPublic()
         {
             VerifyCSharpFix(@"
@@ -113,7 +113,7 @@ public sealed class InternalGetterTestAttribute : Attribute
     public string Name
     {
         internal get { return m_name; }
-        set { m_name = value; }
+        internal set { m_name = value; }
     }
 }", @"
 using System;
@@ -131,12 +131,12 @@ public sealed class InternalGetterTestAttribute : Attribute
     public string Name
     {
         get { return m_name; }
-        set { m_name = value; }
+        internal set { m_name = value; }
     }
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/662"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CSharp_CA1019_MakeGetterPublic2()
         {
             VerifyCSharpFix(@"
@@ -173,12 +173,53 @@ public sealed class InternalGetterTestAttribute : Attribute
     public string Name
     {
         get { return m_name; }
-        set { m_name = value; }
+
+        internal set { m_name = value; }
     }
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/662"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CSharp_CA1019_MakeGetterPublic3()
+        {
+            VerifyCSharpFix(@"
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+public sealed class InternalGetterTestAttribute : Attribute
+{
+    private string m_name;
+
+    public InternalGetterTestAttribute(string name)
+    {
+        m_name = name;
+    }
+
+    internal string Name
+    {
+        get { return m_name; }
+    }
+}", @"
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+public sealed class InternalGetterTestAttribute : Attribute
+{
+    private string m_name;
+
+    public InternalGetterTestAttribute(string name)
+    {
+        m_name = name;
+    }
+
+    public string Name
+    {
+        get { return m_name; }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CSharp_CA1019_MakeSetterInternal()
         {
             VerifyCSharpFix(@"
@@ -215,6 +256,7 @@ public sealed class PublicSetterTestAttribute : Attribute
     public string Name
     {
         get { return m_name; }
+
         internal set { m_name = value; }
     }
 }");
@@ -253,7 +295,7 @@ Public NotInheritable Class NoAccessorTestAttribute
 End Class", allowNewCompilerDiagnostics: true);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/679"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void VisualBasic_CA1019_AddAccessor2()
         {
             VerifyBasicFix(@"
@@ -267,9 +309,9 @@ Public NotInheritable Class SetterOnlyTestAttribute
     Public Sub New(name As String)
         m_name = name
     End Sub
-    
+
     Public WriteOnly Property Name() As String
-        Set
+        Friend Set
             m_name = value
         End Set
     End Property
@@ -284,9 +326,9 @@ Public NotInheritable Class SetterOnlyTestAttribute
     Public Sub New(name As String)
         m_name = name
     End Sub
-    
+
     Public Property Name() As String
-        Set
+        Friend Set
             m_name = value
         End Set
         Get
@@ -295,7 +337,7 @@ Public NotInheritable Class SetterOnlyTestAttribute
 End Class", allowNewCompilerDiagnostics: true);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/662"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void VisualBasic_CA1019_MakeGetterPublic()
         {
             VerifyBasicFix(@"
@@ -309,12 +351,12 @@ Public NotInheritable Class InternalGetterTestAttribute
     Public Sub New(name As String)
         m_name = name
     End Sub
-    
+
     Public Property Name() As String
         Friend Get
             Return m_name
         End Get
-        Set
+        Friend Set
             m_name = value
         End Set
     End Property
@@ -329,19 +371,19 @@ Public NotInheritable Class InternalGetterTestAttribute
     Public Sub New(name As String)
         m_name = name
     End Sub
-    
+
     Public Property Name() As String
         Get
             Return m_name
         End Get
-        Set
+        Friend Set
             m_name = value
         End Set
     End Property
 End Class", allowNewCompilerDiagnostics: true);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/662"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void VisualBasic_CA1019_MakeGetterPublic2()
         {
             VerifyBasicFix(@"
@@ -355,7 +397,7 @@ Public NotInheritable Class InternalGetterTestAttribute
     Public Sub New(name As String)
         m_name = name
     End Sub
-    
+
     Friend Property Name() As String
         Get
             Return m_name
@@ -375,19 +417,59 @@ Public NotInheritable Class InternalGetterTestAttribute
     Public Sub New(name As String)
         m_name = name
     End Sub
-    
+
     Public Property Name() As String
         Get
             Return m_name
         End Get
-        Set
+        Friend Set
             m_name = value
         End Set
     End Property
 End Class", allowNewCompilerDiagnostics: true);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/662"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void VisualBasic_CA1019_MakeGetterPublic3()
+        {
+            VerifyBasicFix(@"
+Imports System
+
+<AttributeUsage(AttributeTargets.All)> _
+Public NotInheritable Class InternalGetterTestAttribute
+    Inherits Attribute
+    Private m_name As String
+    
+    Public Sub New(name As String)
+        m_name = name
+    End Sub
+
+    Friend Property Name() As String
+        Get
+            Return m_name
+        End Get
+    End Property
+End Class", @"
+Imports System
+
+<AttributeUsage(AttributeTargets.All)> _
+Public NotInheritable Class InternalGetterTestAttribute
+    Inherits Attribute
+    Private m_name As String
+    
+    Public Sub New(name As String)
+        m_name = name
+    End Sub
+
+    Public Property Name() As String
+        Get
+            Return m_name
+        End Get
+    End Property
+End Class", allowNewCompilerDiagnostics: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void VisualBasic_CA1019_MakeSetterInternal()
         {
             VerifyBasicFix(@"
@@ -401,8 +483,8 @@ Public NotInheritable Class PublicSetterTestAttribute
     Public Sub New(name As String)
         m_name = name
     End Sub
-    
-    Property Name() As String
+
+    Public Property Name() As String
         Get
             Return m_name
         End Get
@@ -421,7 +503,7 @@ Public NotInheritable Class PublicSetterTestAttribute
     Public Sub New(name As String)
         m_name = name
     End Sub
-    
+
     Public Property Name() As String
         Get
             Return m_name

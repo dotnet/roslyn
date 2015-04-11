@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal static extern bool CreateProcess
         (
             string lpApplicationName,
-            string lpCommandLine,
+            [In, Out]StringBuilder lpCommandLine,
             IntPtr lpProcessAttributes,
             IntPtr lpThreadAttributes,
             [In, MarshalAs(UnmanagedType.Bool)]

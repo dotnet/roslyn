@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             // 
             // 1) A label may be marked "tied to parent". Let x, y have both label l and l is "tied to parent".
             //    Then (x,y) can be in M only if (parent(x), parent(y)) in M.
-            //    Thus we require labels of children tied to a parent to be preceeded by all their possible parent labels.
+            //    Thus we require labels of children tied to a parent to be preceded by all their possible parent labels.
             //
             // 2) Rather than defining function equal in terms of constants f and t, which are hard to get right,
             //    we try to match multiple times with different threashold for node distance.

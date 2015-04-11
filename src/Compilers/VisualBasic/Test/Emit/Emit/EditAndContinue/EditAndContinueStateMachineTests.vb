@@ -362,7 +362,6 @@ End Class
                 <entry offset="0x25" startLine="7" startColumn="9" endLine="7" endColumn="16" document="1"/>
                 <entry offset="0x40" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x42">
                 <namespace name="System.Collections.Generic" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -669,13 +668,13 @@ End Class
                 <entry offset="0x7" hidden="true" document="1"/>
                 <entry offset="0xf" startLine="3" startColumn="5" endLine="3" endColumn="43" document="1"/>
                 <entry offset="0x10" startLine="4" startColumn="9" endLine="4" endColumn="33" document="1"/>
+                <entry offset="0x1d" hidden="true" document="1"/>
                 <entry offset="0x7d" startLine="5" startColumn="9" endLine="5" endColumn="17" document="1"/>
                 <entry offset="0x81" hidden="true" document="1"/>
                 <entry offset="0x89" hidden="true" document="1"/>
                 <entry offset="0xa6" startLine="6" startColumn="5" endLine="6" endColumn="17" document="1"/>
                 <entry offset="0xb0" hidden="true" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xbe">
                 <namespace name="System.Threading.Tasks" importlevel="file"/>
                 <currentnamespace name=""/>

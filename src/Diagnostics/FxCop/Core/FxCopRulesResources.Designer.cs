@@ -88,15 +88,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Avoid unsealed attributes..
-        /// </summary>
-        internal static string AvoidUnsealedAttributes {
-            get {
-                return ResourceManager.GetString("AvoidUnsealedAttributes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Design.
         /// </summary>
         internal static string CategoryDesign {
@@ -475,15 +466,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Seal attribute types for improved performance. Sealing attribute types speeds up performance during reflection on custom attributes..
-        /// </summary>
-        internal static string SealAttributeTypesForImprovedPerf {
-            get {
-                return ResourceManager.GetString("SealAttributeTypesForImprovedPerf", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Serializable type {0} doesn&apos;t have a serialization constructor.
         /// </summary>
         internal static string SerializableTypeDoesntHaveCtor {
@@ -561,24 +543,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         internal static string StaticHolderTypesShouldNotHaveConstructorsMessage {
             get {
                 return ResourceManager.GetString("StaticHolderTypesShouldNotHaveConstructorsMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to For non-linguistic comparisons, StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase should be used instead of the linguistically-sensitive StringComparison.InvariantCulture..
-        /// </summary>
-        internal static string StringComparisonShouldBeOrdinalDescription {
-            get {
-                return ResourceManager.GetString("StringComparisonShouldBeOrdinalDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase.
-        /// </summary>
-        internal static string StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase {
-            get {
-                return ResourceManager.GetString("StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase", resourceCulture);
             }
         }
         

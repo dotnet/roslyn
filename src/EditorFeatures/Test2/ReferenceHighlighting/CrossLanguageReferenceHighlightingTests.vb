@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                             {
                                 void Blah()
                                 {
-                                    [|$$Console|].WriteLine();
+                                    {|Reference:$$Console|}.WriteLine();
                                 }
                             }
                         </Document>

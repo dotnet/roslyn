@@ -1,16 +1,14 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
-Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
-Imports System.Collections.Immutable
-Imports System.Threading
+Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
+Namespace System.Runtime.Analyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Public Class BasicCA1309DiagnosticAnalyzer
-        Inherits CA1309DiagnosticAnalyzer
+    Public Class BasicUseOrdinalStringComparisonAnalyzer
+        Inherits UseOrdinalStringComparisonAnalyzer
 
         Protected Overrides Sub GetAnalyzer(context As CompilationStartAnalysisContext, stringComparisonType As INamedTypeSymbol)
             context.RegisterSyntaxNodeAction(AddressOf New Analyzer(stringComparisonType).AnalyzeNode, SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression, SyntaxKind.InvocationExpression)
