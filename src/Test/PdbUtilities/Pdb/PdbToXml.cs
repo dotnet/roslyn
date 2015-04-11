@@ -1086,17 +1086,22 @@ namespace Roslyn.Test.PdbUtilities
         // Other references to docs will then just refer to this list.
         private void WriteDocList()
         {
-            var documents = _symReader.GetDocuments();
-            if (documents.Length == 0)
-            {
-                return;
-            }
-
             int id = 0;
-            _writer.WriteStartElement("files");
-            foreach (ISymUnmanagedDocument doc in documents)
+            foreach (ISymUnmanagedDocument doc in _symReader.GetDocuments())
             {
                 string name = doc.GetName();
+
+                // Native PDB doesn't allow no-name documents. SymWriter silently ignores them.
+                // In Portable PDB all methods must be contained in a document, whose name may be empty. Skip such document.
+                if (name.Length == 0)
+                {
+                    continue;
+                }
+
+                if (id == 0)
+                {
+                    _writer.WriteStartElement("files");
+                }
 
                 // Symbol store may give out duplicate documents. We'll fold them here
                 if (_fileMapping.ContainsKey(name))
@@ -1126,7 +1131,11 @@ namespace Roslyn.Test.PdbUtilities
 
                 _writer.WriteEndElement(); // file
             }
-            _writer.WriteEndElement(); // files
+
+            if (id > 0)
+            {
+                _writer.WriteEndElement(); // files
+            }
         }
 
         private void WriteAllMethodSpans()

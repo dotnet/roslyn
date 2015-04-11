@@ -9,19 +9,6 @@ using System.Text;
 
 namespace Microsoft.DiaSymReader.PortablePdb
 {
-    internal struct COR_FIELD_OFFSET
-    {
-        public uint RidOfField;
-        public uint UlOffset;
-
-        // Only here to shut up the warning about fields never being assigned to.
-        internal COR_FIELD_OFFSET(object dummy)
-        {
-            this.RidOfField = 0;
-            this.UlOffset = 0;
-        }
-    }
-
     internal static class IMetadataImportExtensions
     {
         public static string GetQualifiedTypeName(this IMetadataImport importer, Handle typeDefOrRef)
@@ -67,11 +54,11 @@ namespace Microsoft.DiaSymReader.PortablePdb
         }
     }
 
-    [ComVisible(true)]
+    [ComVisible(false)]
     [ComImport]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [Guid("7DAC8207-D3AE-4c75-9B67-92801A497D44")]
-    internal unsafe interface IMetadataImport
+    public unsafe interface IMetadataImport
     {
         [PreserveSig]
         void CloseEnum(uint handleEnum);
@@ -128,7 +115,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
           [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 11)] uint[] rmdOtherMethod, uint countMax);
         uint EnumMethodSemantics(ref uint handlePointerEnum, uint mb, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] uint[] arrayEventProp, uint countMax);
         uint GetMethodSemantics(uint mb, uint tokenEventProp);
-        uint GetClassLayout(uint td, out uint pdwPackSize, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] COR_FIELD_OFFSET[] arrayFieldOffset, uint countMax, out uint countPointerFieldOffset);
+        uint GetClassLayout(uint td, out uint pdwPackSize, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] ulong[] arrayFieldOffset, uint countMax, out uint countPointerFieldOffset);
         unsafe uint GetFieldMarshal(uint tk, out byte* ppvNativeType);
         uint GetRVA(uint tk, out uint pulCodeRVA);
         unsafe uint GetPermissionSetProps(uint pm, out uint pdwAction, out void* ppvPermission);

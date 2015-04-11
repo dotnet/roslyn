@@ -119,12 +119,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal static string GetPdbXml(Compilation compilation, string qualifiedMethodName = "")
         {
+            bool isPortable = true;
+
             string actual = null;
             using (var exebits = new MemoryStream())
             {
                 using (var pdbbits = new MemoryStream())
                 {
-                    compilation.Emit(exebits, pdbbits);
+                    compilation.Emit(
+                        exebits, 
+                        pdbbits, 
+                        options: EmitOptions.Default.WithDebugInformationFormat(isPortable ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb));
 
                     pdbbits.Position = 0;
                     exebits.Position = 0;
@@ -132,13 +137,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     actual = PdbToXmlConverter.ToXml(pdbbits, exebits, PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError, methodName: qualifiedMethodName);
                 }
 
-                ValidateDebugDirectory(exebits, compilation.AssemblyName + ".pdb");
+                ValidateDebugDirectory(exebits, compilation.AssemblyName + ".pdb", isPortable);
             }
 
             return actual;
         }
 
-        public static void ValidateDebugDirectory(Stream peStream, string pdbPath)
+        public static void ValidateDebugDirectory(Stream peStream, string pdbPath, bool isPortable)
         {
             peStream.Seek(0, SeekOrigin.Begin);
             PEReader peReader = new PEReader(peStream);
@@ -161,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             uint timeDateStamp = reader.ReadUInt32();
 
             uint version = reader.ReadUInt32();
-            Assert.Equal(0u, version);
+            Assert.Equal(isPortable ? 0x504d0001u : 0, version);
 
             int type = reader.ReadInt32();
             Assert.Equal(2, type);

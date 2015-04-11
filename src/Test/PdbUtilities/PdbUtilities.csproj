@@ -99,7 +99,6 @@
     <Compile Include="Shared\CustomDebugInfoReader.cs" />
     <Compile Include="Shared\DateTimeUtilities.cs" />
     <Compile Include="Shared\DummyMetadataImport.cs" />
-    <Compile Include="Shared\IMetadataImport.cs" />
     <Compile Include="Shared\SymUnmanagedReaderTestExtensions.cs" />
     <Compile Include="Shared\SymUnmanagedReaderExtensions.cs" />
   </ItemGroup>

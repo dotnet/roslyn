@@ -247,7 +247,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             throw new NotImplementedException();
         }
 
-        public uint GetClassLayout(uint td, out uint pdwPackSize, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]COR_FIELD_OFFSET[] arrayFieldOffset, uint countMax, out uint countPointerFieldOffset)
+        public uint GetClassLayout(uint td, out uint pdwPackSize, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]ulong[] arrayFieldOffset, uint countMax, out uint countPointerFieldOffset)
         {
             throw new NotImplementedException();
         }
