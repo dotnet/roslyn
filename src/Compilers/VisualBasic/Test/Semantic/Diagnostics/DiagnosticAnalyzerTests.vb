@@ -777,5 +777,27 @@ End Class
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                     AnalyzerDiagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id))
         End Sub
+
+        <Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
+        Public Sub TestCodeBlockAction()
+            Dim analyzer = New CodeBlockActionAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
+Class C 
+    Public Sub M()
+    End Sub
+End Class
+]]>
+                              </file>
+                          </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources, references:={SystemCoreRef, MsvbRef})
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                    AnalyzerDiagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, <![CDATA[M]]>).WithArguments("M"),
+                    AnalyzerDiagnostic(CodeBlockActionAnalyzer.CodeBlockPerCompilationRule.Id, <![CDATA[M]]>).WithArguments("M"))
+        End Sub
     End Class
 End Namespace

@@ -138,14 +138,20 @@ namespace Microsoft.CodeAnalysis
             var builder = ArrayBuilder<Value>.GetInstance();
 
             var locationValue = GetLocationValue(location);
-            builder.Add(locationValue);
+            if (locationValue != null)
+            {
+                builder.Add(locationValue);
+            }
 
             if (additionalLocations?.Count > 0)
             {
                 foreach (var additionalLocation in additionalLocations)
                 {
                     locationValue = GetLocationValue(additionalLocation);
-                    builder.Add(locationValue);
+                    if (locationValue != null)
+                    {
+                        builder.Add(locationValue);
+                    }
                 }
             }
 
@@ -154,10 +160,13 @@ namespace Microsoft.CodeAnalysis
 
         private Value GetLocationValue(Location location)
         {
-            var builder = ArrayBuilder<KeyValuePair<string, Value>>.GetInstance();
+            if (location.SourceTree == null)
+            {
+                return null;
+            }
 
-            var path = location.IsInSource ? location.SourceTree.FilePath : WellKnownStrings.None;
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSyntaxTreePath, path));
+            var builder = ArrayBuilder<KeyValuePair<string, Value>>.GetInstance();
+            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSyntaxTreePath, location.SourceTree.FilePath));
 
             var spanInfoValue = GetSpanInfoValue(location.GetLineSpan());
             builder.Add(KeyValuePair.Create(WellKnownStrings.LocationSpanInfo, spanInfoValue));

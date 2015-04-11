@@ -121,7 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override int ERR_FailedToCreateTempFile { get { return (int)ErrorCode.ERR_CantMakeTempFile; } }
 
-
         // command line:
         public override int ERR_NoScriptsSpecified { get { return (int)ErrorCode.ERR_NoScriptsSpecified; } }
         public override int ERR_OpenResponseFile { get { return (int)ErrorCode.ERR_OpenResponseFile; } }
@@ -161,14 +160,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void ReportDuplicateMetadataReferenceStrong(DiagnosticBag diagnostics, Location location, MetadataReference reference, AssemblyIdentity identity, MetadataReference equivalentReference, AssemblyIdentity equivalentIdentity)
         {
-            diagnostics.Add(ErrorCode.ERR_DuplicateImport, (Location)location,
+            diagnostics.Add(ErrorCode.ERR_DuplicateImport, location,
                 reference.Display ?? identity.GetDisplayName(),
                 equivalentReference.Display ?? equivalentIdentity.GetDisplayName());
         }
 
         public override void ReportDuplicateMetadataReferenceWeak(DiagnosticBag diagnostics, Location location, MetadataReference reference, AssemblyIdentity identity, MetadataReference equivalentReference, AssemblyIdentity equivalentIdentity)
         {
-            diagnostics.Add(ErrorCode.ERR_DuplicateImportSimple, (Location)location,
+            diagnostics.Add(ErrorCode.ERR_DuplicateImportSimple, location,
                 identity.Name,
                 reference.Display ?? identity.GetDisplayName());
         }

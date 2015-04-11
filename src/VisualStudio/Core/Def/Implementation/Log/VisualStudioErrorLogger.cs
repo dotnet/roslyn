@@ -22,6 +22,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
         {
             return ActivityLog.TryLogError(source, message);
         }
-
     }
 }

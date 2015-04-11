@@ -1795,8 +1795,7 @@ a.vb
             Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/preferreduilang:en", "/t:library", "/a:" + GetType(Object).Assembly.Location, "a.vb"})
             Dim exitCode = vbc.Run(outWriter, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Equal("vbc : warning BC42377: The assembly " + GetType(Object).Assembly.Location + " does not contain any analyzers.", outWriter.ToString().Trim())
-
+            Assert.DoesNotContain("warning", outWriter.ToString())
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub

@@ -118,5 +118,61 @@ End Class]]>
             VerifyItemInLinkedFiles(markup, "Public", Nothing)
             VerifyItemInLinkedFiles(markup, "For", Nothing)
         End Sub
+
+        <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub NotInInteger()
+            Dim code = <Text>
+Class C
+    Sub Main(args As String())
+        dim c = 2$$00
+    End Sub
+End Class
+</Text>.Value
+
+            VerifyNoItemsExist(code)
+        End Sub
+
+        <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub NotInDecimal()
+            Dim code = <Text>
+Class C
+    Sub Main(args As String())
+        dim c = 2$$.00D
+    End Sub
+End Class
+</Text>.Value
+
+            VerifyNoItemsExist(code)
+        End Sub
+
+        <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub NotInFloat()
+            Dim code = <Text>
+Class C
+    Sub Main(args As String())
+        dim c = 2$$.00
+    End Sub
+End Class
+</Text>.Value
+
+            VerifyNoItemsExist(code)
+        End Sub
+
+        <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub NotInDate()
+            Dim code = <Text>
+Class C
+    Sub Main(args As String())
+        dim c = #4/2$$/2015
+    End Sub
+End Class
+</Text>.Value
+
+            VerifyNoItemsExist(code)
+        End Sub
     End Class
 End Namespace

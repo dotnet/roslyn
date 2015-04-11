@@ -45,9 +45,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.CSharp, workspaceDiagnosticAnalyzer)
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
                 Dim codefixService = New CodeFixService(
                                         diagnosticService,
-                                        workspace.Services.GetService(Of IErrorLoggerService),
+                                        logger,
                                         {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
                                             Function() workspaceCodeFixProvider,
                                             New Mef.CodeChangeProviderMetadata(New Dictionary(Of String, Object)() From {{"Name", "C#"}, {"Languages", {LanguageNames.CSharp}}}))},
@@ -108,10 +109,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.VisualBasic, workspaceDiagnosticAnalyzer)
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
-
+                Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
                 Dim codefixService = New CodeFixService(
                                         diagnosticService,
-                                        workspace.Services.GetService(Of IErrorLoggerService),
+                                        logger,
                                         {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
                                             Function() workspaceCodeFixProvider,
                                             New Mef.CodeChangeProviderMetadata(New Dictionary(Of String, Object)() From {{"Name", "C#"}, {"Languages", {LanguageNames.CSharp}}}))},

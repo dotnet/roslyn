@@ -16,10 +16,10 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
-using Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -44,19 +44,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
+
+            ImmutableArray<MetadataBlock> blocks;
+            Guid moduleVersionId;
+            ISymUnmanagedReader symReader;
+            int methodToken;
+            int localSignatureToken;
+            GetContextState(runtime, "C.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+
+            int ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
+            var context = EvaluationContext.CreateMethodContext(
+                default(CSharpMetadataContext),
+                blocks,
+                symReader,
+                moduleVersionId,
+                methodToken: methodToken,
+                methodVersion: 1,
+                ilOffset: ilOffset,
+                localSignatureToken: localSignatureToken);
+
             string error;
             var result = context.CompileExpression("1", out error);
             var mvid1 = result.Assembly.GetModuleVersionId();
             var name1 = result.Assembly.GetAssemblyName();
             Assert.NotEqual(mvid1, Guid.Empty);
 
-            context = CreateMethodContext(
-                runtime,
-                methodName: "C.M",
-                previous: new CSharpMetadataContext(context));
+            context = EvaluationContext.CreateMethodContext(
+                new CSharpMetadataContext(blocks, context),
+                blocks,
+                symReader,
+                moduleVersionId,
+                methodToken: methodToken,
+                methodVersion: 1,
+                ilOffset: ilOffset,
+                localSignatureToken: localSignatureToken);
+
             result = context.CompileExpression("2", out error);
             var mvid2 = result.Assembly.GetModuleVersionId();
             var name2 = result.Assembly.GetAssemblyName();
@@ -353,21 +375,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // At start of outer scope.
             var context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, startOffset, localSignatureToken);
             Assert.Equal(default(CSharpMetadataContext), previous);
-            previous = new CSharpMetadataContext(context);
+            previous = new CSharpMetadataContext(methodBlocks, context);
 
             // At end of outer scope - not reused because of the nested scope.
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken);
             Assert.NotEqual(context, previous.EvaluationContext); // Not required, just documentary.
 
             // At type context.
-            context = EvaluationContext.CreateTypeContext(previous, methodBlocks, moduleVersionId, typeToken);
+            context = EvaluationContext.CreateTypeContext(previous, typeBlocks, moduleVersionId, typeToken);
             Assert.NotEqual(context, previous.EvaluationContext);
             Assert.Null(context.MethodContextReuseConstraints);
             Assert.Equal(context.Compilation, previous.Compilation);
 
             // Step through entire method.
             var previousScope = (Scope)null;
-            previous = new CSharpMetadataContext(context);
+            previous = new CSharpMetadataContext(typeBlocks, context);
             for (int offset = startOffset; offset <= endOffset; offset++)
             {
                 var scope = scopes.GetInnermostScope(offset);
@@ -393,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 previousScope = scope;
-                previous = new CSharpMetadataContext(context);
+                previous = new CSharpMetadataContext(methodBlocks, context);
             }
 
             // With different references.
@@ -407,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(context, previous.EvaluationContext);
             Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset));
             Assert.NotEqual(context.Compilation, previous.Compilation);
-            previous = new CSharpMetadataContext(context);
+            previous = new CSharpMetadataContext(methodBlocks, context);
 
             // Different method. Should reuse Compilation.
             GetContextState(runtime, "C.G", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
@@ -3815,98 +3837,6 @@ class C
 }");
         }
 
-        /// <summary>
-        /// The same assembly may be loaded in
-        /// multiple app domains.
-        /// </summary>
-        [Fact]
-        public void AssemblyDuplicateReferences()
-        {
-            var sourceA =
-@"public class A
-{
-    public int F;
-}";
-            var sourceB =
-@"public class B : A
-{
-}";
-            var sourceC =
-@"class C
-{
-    static A x;
-    static B y;
-    static void M()
-    {
-    }
-}";
-            var assemblyName = ExpressionCompilerUtilities.GenerateUniqueName();
-            var compilationA = CreateCompilationWithMscorlib(
-                sourceA,
-                options: TestOptions.DebugDll,
-                assemblyName: assemblyName + "_A");
-            var referenceA = AssemblyMetadata.CreateFromImage(compilationA.EmitToArray()).GetReference(display: assemblyName + "_A");
-            var compilationB = CreateCompilationWithMscorlib(
-                sourceB,
-                options: TestOptions.DebugDll,
-                assemblyName: assemblyName + "_B",
-                references: new MetadataReference[] { referenceA });
-            var referenceB = AssemblyMetadata.CreateFromImage(compilationB.EmitToArray()).GetReference(display: assemblyName + "_B");
-            var compilationC = CreateCompilationWithMscorlib(
-                sourceC,
-                options: TestOptions.DebugDll,
-                assemblyName: assemblyName + "_C",
-                references: new MetadataReference[] { referenceA, referenceB });
-
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            var testData0 = new CompilationTestData();
-            using (var pdbStream = new MemoryStream())
-            {
-                using (var exeStream = new MemoryStream())
-                {
-                    var result = compilationC.Emit(
-                        peStream: exeStream,
-                        pdbStream: pdbStream,
-                        xmlDocumentationStream: null,
-                        win32Resources: null,
-                        manifestResources: null,
-                        options: EmitOptions.Default,
-                        testData: testData0,
-                        getHostDiagnostics: null,
-                        cancellationToken: default(CancellationToken));
-                    exeBytes = exeStream.ToArray();
-                    pdbBytes = pdbStream.ToArray();
-                }
-            }
-
-            var references = ImmutableArray.Create<MetadataReference>(
-                    MscorlibRef,
-                    referenceA,
-                    referenceB,
-                    referenceB,
-                    referenceA,
-                    referenceA);
-            var runtime = CreateRuntimeInstance(assemblyName + "_C", references, exeBytes, new SymReader(pdbBytes));
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression("x.F + y.F", out error, testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
-  // Code size       22 (0x16)
-  .maxstack  2
-  IL_0000:  ldsfld     ""A C.x""
-  IL_0005:  ldfld      ""int A.F""
-  IL_000a:  ldsfld     ""B C.y""
-  IL_000f:  ldfld      ""int A.F""
-  IL_0014:  add
-  IL_0015:  ret
-}");
-        }
-
         [Fact]
         public void SizeOfReferenceType()
         {
@@ -6002,10 +5932,14 @@ public class C
                 Assert.True(comp1.Emit(peStream1Unused, pdbStream1).Success);
                 Assert.True(comp2.Emit(peStream2, pdbStream2).Success);
 
+                pdbStream1.Position = 0;
+                pdbStream2.Position = 0;
+                peStream2.Position = 0;
+
                 // Note: This SymReader will behave differently from the ISymUnmanagedReader
                 // we receive during real debugging.  We're just using it as a rough
                 // approximation of ISymUnmanagedReader3, which is unavailable here.
-                var symReader = new SymReader(new[] { pdbStream1, pdbStream2 });
+                var symReader = new SymReader(new[] { pdbStream1, pdbStream2 }, peStream2, null);
 
                 var runtime = CreateRuntimeInstance(
                     GetUniqueName(),
@@ -6040,7 +5974,8 @@ public class C
                 context1.CompileGetLocals(
                     locals,
                     argumentsOnly: false,
-                    typeName: out typeName);
+                    typeName: out typeName,
+                    testData: null);
                 AssertEx.SetEqual(locals.Select(l => l.LocalName), "x");
 
                 var context2 = EvaluationContext.CreateMethodContext(
@@ -6057,9 +5992,150 @@ public class C
                 context2.CompileGetLocals(
                     locals,
                     argumentsOnly: false,
-                    typeName: out typeName);
+                    typeName: out typeName,
+                    testData: null);
                 AssertEx.SetEqual(locals.Select(l => l.LocalName), "x", "y");
             }
+        }
+
+        /// <summary>
+        /// Ignore accessibility in lambda rewriter.
+        /// </summary>
+        [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
+        [Fact]
+        public void LambdaRewriterIgnoreAccessibility()
+        {
+            var source =
+@"using System.Linq;
+class C
+{
+    static void M()
+    {
+        var q = new[] { new C() }.AsQueryable();
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(
+                source,
+                options: TestOptions.DebugDll,
+                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(runtime, methodName: "C.M");
+            var testData = new CompilationTestData();
+            string error;
+            context.CompileExpression("q.Where(c => true)", out error, testData);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       64 (0x40)
+  .maxstack  6
+  .locals init (System.Linq.IQueryable<C> V_0, //q
+                System.Linq.Expressions.ParameterExpression V_1)
+  IL_0000:  ldloc.0
+  IL_0001:  ldtoken    ""C""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""c""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.1
+  IL_0016:  ldc.i4.1
+  IL_0017:  box        ""bool""
+  IL_001c:  ldtoken    ""bool""
+  IL_0021:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0026:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_002b:  ldc.i4.1
+  IL_002c:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0031:  dup
+  IL_0032:  ldc.i4.0
+  IL_0033:  ldloc.1
+  IL_0034:  stelem.ref
+  IL_0035:  call       ""System.Linq.Expressions.Expression<System.Func<C, bool>> System.Linq.Expressions.Expression.Lambda<System.Func<C, bool>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003a:  call       ""System.Linq.IQueryable<C> System.Linq.Queryable.Where<C>(System.Linq.IQueryable<C>, System.Linq.Expressions.Expression<System.Func<C, bool>>)""
+  IL_003f:  ret
+}");
+        }
+
+        /// <summary>
+        /// Ignore accessibility in async rewriter.
+        /// </summary>
+        [Fact]
+        public void AsyncRewriterIgnoreAccessibility()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static void F<T>(Func<Task<T>> f)
+    {
+    }
+    static void M()
+    {
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(
+                source,
+                options: TestOptions.DebugDll,
+                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(runtime, methodName: "C.M");
+            var testData = new CompilationTestData();
+            string error;
+            context.CompileExpression("F(async () => new C())", out error, testData);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       37 (0x25)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<System.Threading.Tasks.Task<C>> <>x.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_000e:  ldftn      ""System.Threading.Tasks.Task<C> <>x.<>c.<<>m0>b__0_0()""
+  IL_0014:  newobj     ""System.Func<System.Threading.Tasks.Task<C>>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Func<System.Threading.Tasks.Task<C>> <>x.<>c.<>9__0_0""
+  IL_001f:  call       ""void C.F<C>(System.Func<System.Threading.Tasks.Task<C>>)""
+  IL_0024:  ret
+}");
+        }
+
+        [Fact]
+        public void CapturedLocalInLambda()
+        {
+            var source = @"
+using System;
+class C
+{
+    void M(Func<int> f)
+    {
+        int x = 42;
+        M(() => x);
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(source);
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+
+            string error;
+            var testData = new CompilationTestData();
+            context.CompileExpression("M(() => x)", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                <>x.<>c__DisplayClass0_0 V_1) //CS$<>8__locals0
+  IL_0000:  newobj     ""<>x.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.1
+  IL_0007:  ldloc.0
+  IL_0008:  stfld      ""C.<>c__DisplayClass0_0 <>x.<>c__DisplayClass0_0.CS$<>8__locals0""
+  IL_000d:  ldarg.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldftn      ""int <>x.<>c__DisplayClass0_0.<<>m0>b__0()""
+  IL_0015:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_001a:  callvirt   ""void C.M(System.Func<int>)""
+  IL_001f:  ret
+}");
         }
     }
 }

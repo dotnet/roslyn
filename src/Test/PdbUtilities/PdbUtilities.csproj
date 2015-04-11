@@ -100,6 +100,7 @@
       <Link>Shared\CustomDebugInfoConstants.cs</Link>
     </Compile>
     <Compile Include="Shared\CustomDebugInfoReader.cs" />
+    <Compile Include="Shared\DateTimeUtilities.cs" />
     <Compile Include="Shared\DummyMetadataImport.cs" />
     <Compile Include="Shared\IMetadataImport.cs" />
     <Compile Include="Shared\SymUnmanagedReaderTestExtensions.cs" />

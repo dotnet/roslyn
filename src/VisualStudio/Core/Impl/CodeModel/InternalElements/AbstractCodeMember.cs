@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             }
         }
 
-        internal virtual ImmutableArray<IParameterSymbol> GetParameters()
+        internal virtual ImmutableArray<SyntaxNode> GetParameters()
         {
             throw Exceptions.ThrowEFail();
         }

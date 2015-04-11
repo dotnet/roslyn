@@ -58,11 +58,11 @@
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Xml\XmlCharType.cs">
       <Link>Compiler\Xml\XmlCharType.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
+      <Link>Helpers\DateTimeUtilities.cs</Link>
+    </Compile>
     <Compile Include="..\..\ExpressionCompiler\ExpressionEvaluatorFatalError.cs">
       <Link>ExpressionCompiler\ExpressionEvaluatorFatalError.cs</Link>
-    </Compile>
-    <Compile Include="..\..\ExpressionCompiler\DateTimeUtilities.cs">
-      <Link>ExpressionCompiler\DateTimeUtilities.cs</Link>
     </Compile>
     <Compile Include="Helpers\Placeholders.cs" />
     <Compile Include="..\SystemHelpers.cs">

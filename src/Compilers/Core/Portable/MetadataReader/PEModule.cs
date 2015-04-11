@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal Guid GetModuleVersionIdOrThrow()
         {
-            return MetadataReader.GetGuid(MetadataReader.GetModuleDefinition().Mvid);
+            return MetadataReader.GetModuleVersionIdOrThrow();
         }
 
         #endregion
@@ -364,37 +364,10 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_lazyAssemblyReferences == null)
                 {
-                    _lazyAssemblyReferences = GetReferencedAssembliesOrThrow(this.MetadataReader);
+                    _lazyAssemblyReferences = this.MetadataReader.GetReferencedAssembliesOrThrow();
                 }
 
                 return _lazyAssemblyReferences;
-            }
-        }
-
-        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private static ImmutableArray<AssemblyIdentity> GetReferencedAssembliesOrThrow(MetadataReader reader)
-        {
-            var result = ArrayBuilder<AssemblyIdentity>.GetInstance(reader.AssemblyReferences.Count);
-            try
-            {
-                foreach (var assemblyRef in reader.AssemblyReferences)
-                {
-                    AssemblyReference reference = reader.GetAssemblyReference(assemblyRef);
-                    result.Add(CreateAssemblyIdentityOrThrow(
-                        reader,
-                        reference.Version,
-                        reference.Flags,
-                        reference.PublicKeyOrToken,
-                        reference.Name,
-                        reference.Culture,
-                        isReference: true));
-                }
-
-                return result.ToImmutable();
-            }
-            finally
-            {
-                result.Free();
             }
         }
 
@@ -437,94 +410,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal AssemblyIdentity ReadAssemblyIdentityOrThrow()
         {
-            if (!MetadataReader.IsAssembly)
-            {
-                return null;
-            }
-
-            var assemblyDef = MetadataReader.GetAssemblyDefinition();
-
-            return CreateAssemblyIdentityOrThrow(
-                MetadataReader,
-                assemblyDef.Version,
-                assemblyDef.Flags,
-                assemblyDef.PublicKey,
-                assemblyDef.Name,
-                assemblyDef.Culture,
-                isReference: false);
-        }
-
-        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private static AssemblyIdentity CreateAssemblyIdentityOrThrow(
-            MetadataReader reader,
-            Version version,
-            AssemblyFlags flags,
-            BlobHandle publicKey,
-            StringHandle name,
-            StringHandle culture,
-            bool isReference)
-        {
-            string nameStr = reader.GetString(name);
-            if (!MetadataHelpers.IsValidMetadataIdentifier(nameStr))
-            {
-                throw new BadImageFormatException(string.Format(CodeAnalysisResources.InvalidAssemblyName, nameStr));
-            }
-
-            string cultureName = culture.IsNil ? null : reader.GetString(culture);
-            if (cultureName != null && !MetadataHelpers.IsValidMetadataIdentifier(cultureName))
-            {
-                throw new BadImageFormatException(string.Format(CodeAnalysisResources.InvalidCultureName, cultureName));
-            }
-
-            ImmutableArray<byte> publicKeyOrToken = reader.GetBlobContent(publicKey);
-            bool hasPublicKey;
-
-            if (isReference)
-            {
-                hasPublicKey = (flags & AssemblyFlags.PublicKey) != 0;
-                if (hasPublicKey)
-                {
-                    if (!MetadataHelpers.IsValidPublicKey(publicKeyOrToken))
-                    {
-                        throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKey);
-                    }
-                }
-                else
-                {
-                    if (!publicKeyOrToken.IsEmpty &&
-                        publicKeyOrToken.Length != AssemblyIdentity.PublicKeyTokenSize)
-                    {
-                        throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKeyToken);
-                    }
-                }
-            }
-            else
-            {
-                // Assembly definitions never contain a public key token, they only can have a full key or nothing,
-                // so the flag AssemblyFlags.PublicKey does not make sense for them and is ignored.
-                // See Ecma-335, Partition II Metadata, 22.2 "Assembly : 0x20".
-                // This also corresponds to the behavior of the native C# compiler and sn.exe tool.
-                hasPublicKey = !publicKeyOrToken.IsEmpty;
-                if (hasPublicKey && !MetadataHelpers.IsValidPublicKey(publicKeyOrToken))
-                {
-                    throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKey);
-                }
-            }
-
-            if (publicKeyOrToken.IsEmpty)
-            {
-                publicKeyOrToken = default(ImmutableArray<byte>);
-            }
-
-            return new AssemblyIdentity(
-                name: nameStr,
-                version: version,
-                cultureName: cultureName,
-                publicKeyOrToken: publicKeyOrToken,
-                hasPublicKey: hasPublicKey,
-                isRetargetable: (flags & AssemblyFlags.Retargetable) != 0,
-                contentType: (AssemblyContentType)((int)(flags & AssemblyFlags.ContentTypeMask) >> 9),
-                noThrow: true);
+            return MetadataReader.ReadAssemblyIdentityOrThrow();
         }
 
         #endregion

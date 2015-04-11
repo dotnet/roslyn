@@ -1344,6 +1344,56 @@ End Interface
 
 #End Region
 
+#Region "Parameter name tests"
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters()
+            Dim code =
+<Code>
+Class Program
+    Property $$P([integer] As Integer) As Integer
+        Get
+            Return [integer]
+        End Get
+        Set(value As Integer)
+
+        End Set
+    End Property
+    Sub Main(args As String())
+
+    End Sub
+End Class
+</Code>
+
+            TestAllParameterNames(code, "[integer]")
+        End Sub
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters_2()
+            Dim code =
+<Code>
+Class Program
+    Property $$P([integer] As Integer, [string] as String) As Integer
+        Get
+            Return [integer]
+        End Get
+        Set(value As Integer)
+
+        End Set
+    End Property
+    Sub Main(args As String())
+
+    End Sub
+End Class
+</Code>
+
+            TestAllParameterNames(code, "[integer]", "[string]")
+        End Sub
+
+#End Region
+
         Private Function GetAutoImplementedPropertyExtender(codeElement As EnvDTE80.CodeProperty2) As IVBAutoPropertyExtender
             Return CType(codeElement.Extender(ExtenderNames.VBAutoPropertyExtender), IVBAutoPropertyExtender)
         End Function

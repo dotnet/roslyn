@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Friend Class SourceNamespaceSymbol
+    Friend NotInheritable Class SourceNamespaceSymbol
         Inherits PEOrSourceOrMergedNamespaceSymbol
 
         Private ReadOnly _declaration As MergedNamespaceDeclaration
@@ -414,21 +414,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return True
             Else
                 ' Check if any namespace declaration block intersects with the given tree/span.
-                Dim syntaxRefs = Me.DeclaringSyntaxReferences
-                If syntaxRefs.Length = 0 Then
-                    Return True
-                End If
-
-                For Each syntaxRef In syntaxRefs
+                For Each decl In _declaration.Declarations
                     cancellationToken.ThrowIfCancellationRequested()
 
-                    Dim syntax = syntaxRef.GetSyntax(cancellationToken)
-                    If TypeOf syntax Is NamespaceStatementSyntax Then
-                        ' Get the parent NamespaceBlockSyntax
-                        syntax = syntax.Parent
-                    End If
+                    Dim reference = decl.SyntaxReference
+                    If reference IsNot Nothing Then
+                        If Not reference.SyntaxTree.IsEmbeddedOrMyTemplateTree() Then
+                            Dim syntaxRef = New NamespaceDeclarationSyntaxReference(reference)
+                            Dim syntax = syntaxRef.GetSyntax(cancellationToken)
+                            If TypeOf syntax Is NamespaceStatementSyntax Then
+                                ' Get the parent NamespaceBlockSyntax
+                                syntax = syntax.Parent
+                            End If
 
-                    If IsDefinedInSourceTree(syntax, tree, definedWithinSpan, cancellationToken) Then
+                            If IsDefinedInSourceTree(syntax, tree, definedWithinSpan, cancellationToken) Then
+                                Return True
+                            End If
+                        End If
+
+                    ElseIf decl.IsPartOfRootNamespace
+                        ' Root namespace is implicitly defined in every tree 
                         Return True
                     End If
                 Next

@@ -1378,6 +1378,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Error reading debug information for &apos;{0}&apos;.
+        '''</summary>
+        Friend ReadOnly Property ERR_BadPdbData() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadPdbData", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Property accessors cannot be declared &apos;{0}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_BadPropertyAccessorFlags() As String

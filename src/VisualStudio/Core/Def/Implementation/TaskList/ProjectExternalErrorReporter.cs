@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             var diagnostic = GetDiagnosticData(
                 hostDocument.Id, bstrErrorId, bstrErrorMessage, severity,
-                bstrFileName, iStartLine, iStartColumn, iEndLine, iEndColumn,
+                null, iStartLine, iStartColumn, iEndLine, iEndColumn,
                 bstrFileName, iStartLine, iStartColumn, iEndLine, iEndColumn);
 
             _diagnosticProvider.AddNewErrors(hostDocument.Id, diagnostic);
@@ -212,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 // right location on closed venus file.
                 return GetDiagnosticData(
                     id, GetErrorId(error), error.bstrText, GetDiagnosticSeverity(error),
-                    error.bstrFileName, error.iLine, error.iCol, error.iLine, error.iCol, error.bstrFileName, line, column, line, column);
+                    null, error.iLine, error.iCol, error.iLine, error.iCol, error.bstrFileName, line, column, line, column);
             }
 
             return GetDiagnosticData(

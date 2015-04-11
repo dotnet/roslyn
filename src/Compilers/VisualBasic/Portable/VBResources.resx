@@ -5255,6 +5255,9 @@
   <data name="ERR_LanguageVersion" xml:space="preserve">
     <value>Visual Basic {0} does not support {1}.</value>
   </data>
+  <data name="ERR_BadPdbData" xml:space="preserve">
+    <value>Error reading debug information for '{0}'</value>
+  </data>
   <data name="FEATURE_ArrayLiterals" xml:space="preserve">
     <value>array literal expressions</value>
   </data>

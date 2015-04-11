@@ -2086,6 +2086,36 @@ End Class
 
 #End Region
 
+#Region "Parameter name tests"
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters()
+            Dim code =
+<Code>
+Class C
+    Sub $$M1([integer] As Integer)
+    End Sub
+End Class
+</Code>
+            TestAllParameterNames(code, "[integer]")
+        End Sub
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters_2()
+            Dim code =
+<Code>
+Class C
+    Sub $$M1([integer] As Integer, [string] as String)
+    End Sub
+End Class
+</Code>
+            TestAllParameterNames(code, "[integer]", "[string]")
+        End Sub
+
+#End Region
+
         Private Function GetPartialMethodExtender(codeElement As EnvDTE80.CodeFunction2) As IVBPartialMethodExtender
             Return CType(codeElement.Extender(ExtenderNames.VBPartialMethodExtender), IVBPartialMethodExtender)
         End Function

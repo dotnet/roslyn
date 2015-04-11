@@ -2515,6 +2515,29 @@ BC30521: Overload resolution failed because no accessible 'Test1' is most specif
 </expected>)
         End Sub
 
+        <Fact(), WorkItem(377, "https://github.com/dotnet/roslyn/issues/377")>
+        Public Sub ConvertingNullDelegate()
+
+            Dim compilationDef =
+<compilation name="LambdaTests1">
+    <file name="a.vb">
+Imports System        
+
+Module Program
+    Sub Main()
+        Dim f As Func(Of Boolean) = (Function() If(True, Nothing, Function() True))()
+        System.Console.WriteLine(f Is Nothing)
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="True")
+            verifier.VerifyDiagnostics()
+        End Sub
+
     End Class
 
 End Namespace

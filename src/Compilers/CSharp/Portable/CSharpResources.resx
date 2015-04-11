@@ -4504,6 +4504,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CantReadRulesetFile" xml:space="preserve">
     <value>Error reading ruleset file {0} - {1}</value>
   </data>
+  <data name="ERR_BadPdbData" xml:space="preserve">
+    <value>Error reading debug information for '{0}'</value>
+  </data>
   <data name="IDS_OperationCausedStackOverflow" xml:space="preserve">
     <value>Operation caused a stack overflow.</value>
   </data>

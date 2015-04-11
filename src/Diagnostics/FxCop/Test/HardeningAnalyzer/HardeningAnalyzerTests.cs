@@ -47,7 +47,7 @@ public class Class6<TTypeParameter>
             AnalyzeDocumentCore(GetCSharpDiagnosticAnalyzer(), documentsAndSpan.Item1[0], diagnosticsBag.Add, null, logAnalyzerExceptionAsDiagnostics: true);
             var diagnostics = diagnosticsBag.ToReadOnlyAndFree();
             Assert.True(diagnostics.Length > 0);
-            Assert.Equal(string.Format("info AD0001: " + AnalyzerDriverResources.AnalyzerThrows, GetCSharpDiagnosticAnalyzer().GetType(), "The method or operation is not implemented."),
+            Assert.Equal(string.Format("info AD0001: " + AnalyzerDriverResources.AnalyzerThrows, GetCSharpDiagnosticAnalyzer().GetType(), "System.NotImplementedException", "The method or operation is not implemented."),
                 DiagnosticFormatter.Instance.Format(diagnostics[0], EnsureEnglishUICulture.PreferredOrNull));
         }
 

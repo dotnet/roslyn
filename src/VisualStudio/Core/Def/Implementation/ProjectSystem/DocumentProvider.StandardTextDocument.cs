@@ -38,11 +38,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private ITextBuffer _openTextBuffer;
             private readonly string _itemMoniker;
 
-            public DocumentId Id { get; private set; }
-            public IReadOnlyList<string> Folders { get; private set; }
-            public IVisualStudioHostProject Project { get; private set; }
-            public SourceCodeKind SourceCodeKind { get; private set; }
-            public DocumentKey Key { get; private set; }
+            public DocumentId Id { get; }
+            public IReadOnlyList<string> Folders { get; }
+            public IVisualStudioHostProject Project { get; }
+            public SourceCodeKind SourceCodeKind { get; }
+            public DocumentKey Key { get; }
+
+            /// <summary>
+            /// <see cref="IVsHierarchy"/> of shared or project k project.
+            /// </summary>
+            public IVsHierarchy SharedHierarchy { get; }
 
             public event EventHandler UpdatedOnDisk;
             public event EventHandler<bool> Opened;
@@ -66,7 +71,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.Project = project;
                 this.Id = id ?? DocumentId.CreateNewId(project.Id, documentKey.Moniker);
                 this.Folders = project.GetFolderNames(itemId);
+
+                this.SharedHierarchy = project.Hierarchy == null ? null : LinkedFileUtilities.GetSharedHierarchyForItem(project.Hierarchy, itemId);
                 _documentProvider = documentProvider;
+
                 this.Key = documentKey;
                 this.SourceCodeKind = sourceCodeKind;
                 _itemMoniker = documentKey.Moniker;

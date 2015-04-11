@@ -35,12 +35,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        public static ValueTuple<string, VersionStamp> GetUniqueId(this DiagnosticAnalyzer analyzer)
+        public static ValueTuple<string, VersionStamp> GetAnalyzerIdAndVersion(this DiagnosticAnalyzer analyzer)
         {
             // Get the unique ID for given diagnostic analyzer.
             // note that we also put version stamp so that we can detect changed analyzer.
             var type = analyzer.GetType();
-            return ValueTuple.Create(type.AssemblyQualifiedName, GetAnalyzerVersion(type.Assembly.Location));
+            return ValueTuple.Create(GetAssemblyQualifiedNameWithoutVersion(type), GetAnalyzerVersion(type.Assembly.Location));
+        }
+
+        private static string GetAssemblyQualifiedNameWithoutVersion(Type type)
+        {
+            var name = type.AssemblyQualifiedName;
+            var versionIndex = name.IndexOf(", Version=", StringComparison.InvariantCultureIgnoreCase);
+            if (versionIndex < 0)
+            {
+                return name;
+            }
+
+            return name.Substring(0, versionIndex);
         }
 
         internal static AnalyzerExecutor GetAnalyzerExecutorForSupportedDiagnostics(

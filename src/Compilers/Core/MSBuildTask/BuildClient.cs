@@ -31,32 +31,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private const int TimeOutMsNewProcess = 20000; 
 
         /// <summary>
-        /// Try to get the directory this assembly is in. Returns null if assembly
-        /// was in the GAC.
-        /// </summary>
-        private static string TryGetClientDir()
-        {
-            var assembly = typeof(BuildClient).Assembly;
-
-            if (assembly.GlobalAssemblyCache)
-                return null;
-
-            var uri = new Uri(assembly.CodeBase);
-            string assemblyPath = uri.IsFile 
-                ? uri.LocalPath
-                : Assembly.GetCallingAssembly().Location;
-            return Path.GetDirectoryName(assemblyPath);
-        }
-
-        /// <summary>
         /// Run a compilation through the compiler server and print the output
         /// to the console. If the compiler server fails, run the fallback
         /// compiler.
         /// </summary>
         public static int RunWithConsoleOutput(
             string[] args,
+            string clientDir,
+            string workingDir,
             RequestLanguage language,
-            Func<string[], int> fallbackCompiler)
+            Func<string, string[], int> fallbackCompiler)
         {
             args = args.Select(arg => arg.Trim()).ToArray();
 
@@ -79,7 +63,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 var responseTask = TryRunServerCompilation(
                     language,
-                    Environment.CurrentDirectory,
+                    clientDir,
+                    workingDir,
                     parsedArgs,
                     default(CancellationToken),
                     keepAlive: keepAlive,
@@ -92,7 +77,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            return fallbackCompiler(parsedArgs.ToArray());
+            return fallbackCompiler(clientDir, parsedArgs.ToArray());
         }
 
         private static int HandleResponse(BuildResponse response)
@@ -135,18 +120,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         public static Task<BuildResponse> TryRunServerCompilation(
             RequestLanguage language,
+            string clientDir, 
             string workingDir,
             IList<string> arguments,
             CancellationToken cancellationToken,
             string keepAlive = null,
-            string libEnvVariable = null,
-            string fallbackCompilerExeDir = null)
+            string libEnvVariable = null)
         {
             try
             {
                 NamedPipeClientStream pipe;
-
-                var clientDir = TryGetClientDir() ?? fallbackCompilerExeDir;
 
                 if (clientDir == null)
                     return Task.FromResult<BuildResponse>(null);

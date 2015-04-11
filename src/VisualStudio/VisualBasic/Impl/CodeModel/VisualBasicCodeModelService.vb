@@ -1098,7 +1098,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
         Public Overrides Function TryGetParameterNode(parentNode As SyntaxNode, name As String, ByRef parameterNode As SyntaxNode) As Boolean
             For Each parameter As ParameterSyntax In GetParameterNodes(parentNode)
-                If String.Equals(parameter.Identifier.Identifier.ValueText, name, StringComparison.OrdinalIgnoreCase) Then
+                Dim parameterName = GetNameFromParameter(parameter)
+                If String.Equals(parameterName, name, StringComparison.OrdinalIgnoreCase) Then
                     parameterNode = parameter
                     Return True
                 End If
@@ -1865,10 +1866,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Public Overrides Function GetParameterName(node As SyntaxNode) As String
             Dim parameter = TryCast(node, ParameterSyntax)
             If parameter IsNot Nothing Then
-                Return parameter.Identifier.Identifier.ValueText
+                Return GetNameFromParameter(parameter)
             End If
 
             Throw New InvalidOperationException()
+        End Function
+
+        Private Function GetNameFromParameter(parameter As ParameterSyntax) As String
+            Dim parameterName As String = parameter.Identifier.Identifier.ToString()
+            Return If(Not String.IsNullOrEmpty(parameterName) AndAlso SyntaxFactsService.IsTypeCharacter(parameterName.Last()),
+                parameterName.Substring(0, parameterName.Length - 1),
+                parameterName)
         End Function
 
         Public Overrides Function GetParameterFullName(node As SyntaxNode) As String

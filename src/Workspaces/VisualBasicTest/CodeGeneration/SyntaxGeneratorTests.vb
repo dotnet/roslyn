@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
     Public Class SyntaxGeneratorTests
         Private ReadOnly _g As SyntaxGenerator = SyntaxGenerator.GetGenerator(New AdhocWorkspace(), LanguageNames.VisualBasic)
 
-        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestReferences.NetFx.v4_0_30319.mscorlib})
+        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System})
 
         Private _ienumerableInt As INamedTypeSymbol
 
@@ -38,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
             Return SyntaxFactory.ParseCompilationUnit(fixedText)
         End Function
 
+#Region "Expressions & Statements"
         <Fact>
         Public Sub TestLiteralExpressions()
             VerifySyntax(Of LiteralExpressionSyntax)(_g.LiteralExpression(0), "0")
@@ -621,7 +622,9 @@ End Sub</x>.Value)
                 _g.VoidReturningLambdaExpression({_g.LambdaParameter("x", _g.IdentifierName("y")), _g.LambdaParameter("a", _g.IdentifierName("b"))}, _g.IdentifierName("z")),
                 <x>Sub(x As y, a As b) z</x>.Value)
         End Sub
+#End Region
 
+#Region "Declarations"
         <Fact>
         Public Sub TestFieldDeclarations()
             VerifySyntax(Of FieldDeclarationSyntax)(
@@ -1741,6 +1744,19 @@ End Class ' end</x>.Value)
 
         End Sub
 
+        <Fact>
+        Public Sub TestInterfaceDeclarationWithEventSymbol()
+            VerifySyntax(Of InterfaceBlockSyntax)(
+                _g.Declaration(_emptyCompilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged")),
+<x>Public Interface INotifyPropertyChanged
+
+    Event PropertyChanged As Global.System.ComponentModel.PropertyChangedEventHandler
+
+End Interface</x>.Value)
+        End Sub
+#End Region
+
+#Region "Add/Insert/Remove/Get/Set members & elements"
         <Fact>
         Public Sub TestDeclarationKind()
             Assert.Equal(DeclarationKind.CompilationUnit, _g.GetDeclarationKind(_g.CompilationUnit()))
@@ -3032,6 +3048,7 @@ Imports X
 </x>.Value)
 
         End Sub
+#End Region
 
     End Class
 End Namespace

@@ -75,8 +75,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// Close the PDB writer and write the contents to the stream provided by <see cref="_streamProvider"/> 
-        /// or file name specified by <see cref="_fileName"/> value if no stream has been provided. 
+        /// Close the PDB writer and write the PDB data to the stream provided by <see cref="_streamProvider"/>.
         /// </summary>
         public void WritePdbToOutput()
         {
@@ -559,14 +558,17 @@ namespace Microsoft.Cci
 
         public void SetMetadataEmitter(MetadataWriter metadataWriter)
         {
-            Stream streamOpt = _streamProvider();
+            Stream stream = _streamProvider() ?? new System.IO.MemoryStream();
 
             try
             {
                 var instance = (ISymUnmanagedWriter2)(_symWriterFactory != null ? _symWriterFactory() : Activator.CreateInstance(GetCorSymWriterSxSType()));
-                var comStream = (streamOpt != null) ? new ComStreamWrapper(streamOpt) : null;
 
-                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, comStream, fullBuild: true);
+                // Important: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
+                // and the resulting PDB has Age = existing_age + 1.
+                Debug.Assert(stream.Length == 0);
+
+                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, new ComStreamWrapper(stream), fullBuild: true);
 
                 _metadataWriter = metadataWriter;
                 _symWriter = instance;
@@ -577,7 +579,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public unsafe void GetDebugDirectoryGuidAndStamp(out Guid guid, out uint stamp)
+        public unsafe void GetDebugDirectoryGuidAndStampAndAge(out Guid guid, out uint stamp, out uint age)
         {
             // See symwrite.cpp - the data byte[] doesn't depend on the content of metadata tables or IL.
             // The writer only sets two values of the ImageDebugDirectory struct.
@@ -619,7 +621,7 @@ namespace Microsoft.Cci
             // {
             //     DWORD dwSig;                 // "RSDS"
             //     GUID guidSig;                // GUID
-            //     DWORD age;                   // always 1
+            //     DWORD age;                   // age
             //     char szPDB[0];               // zero-terminated UTF8 file name passed to the writer
             // };
             const int GuidSize = 16;
@@ -631,7 +633,6 @@ namespace Microsoft.Cci
             // Retrieve the timestamp the PDB writer generates when creating a new PDB stream.
             // Note that ImageDebugDirectory.TimeDateStamp is not set by GetDebugInfo, 
             // we need to go thru IPdbWriter interface to get it.
-            uint age;
             ((IPdbWriter)_symWriter).GetSignatureAge(out stamp, out age);
         }
 

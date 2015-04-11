@@ -495,6 +495,32 @@ Delegate Sub $$D()
 
 #End Region
 
+#Region "Parameter name tests"
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters()
+            Dim code =
+<Code>
+Delegate Sub $$D([integer] as Integer)
+</Code>
+
+            TestAllParameterNames(code, "[integer]")
+        End Sub
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters_2()
+            Dim code =
+<Code>
+Delegate Sub $$D([integer] as Integer, [string] as String)
+</Code>
+
+            TestAllParameterNames(code, "[integer]", "[string]")
+        End Sub
+
+#End Region
+
         Private Function GetGenericExtender(codeElement As EnvDTE80.CodeDelegate2) As IVBGenericExtender
             Return CType(codeElement.Extender(ExtenderNames.VBGenericExtender), IVBGenericExtender)
         End Function

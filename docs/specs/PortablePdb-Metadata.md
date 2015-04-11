@@ -17,7 +17,6 @@ The ECMA-335-II standard is amended by an addition of the following tables to th
 * [ImportScope](#ImportScopeTable)
 * [AsyncMethod](#AsyncMethodTable)
 * [CustomDebugInformation](#CustomDebugInformationTable)
-    * [EntryPoint](#EntryPoint)
     * [StateMachineHoistedLocalScopes](#StateMachineHoistedLocalScopes)
     * [DynamicLocalVariables](#DynamicLocalVariables)
     * [DefaultNamespace](#DefaultNamespace)
@@ -113,7 +112,7 @@ _Sequence points blob_ has the following structure:
 
     Blob ::= first-point-record SubsequentRecord*
     SubsequentRecord ::= subsequent-point-record |
-	                     subsequent-hidden-point-record |
+	                 subsequent-hidden-point-record |
                          subsequent-document-record
 
 #####first-point-record
@@ -222,48 +221,65 @@ There shall be no duplicate rows in the LocalVariable table, based upon owner an
 The LocalConstant table has the following columns:
 
 * _Name_ (String heap index)
-* _Value_ (Blob heap index)
-* _TypeCode_ (type code; encoding: uint8)
+* _Signature_ (Blob heap index, [LocalConstantSig blob](#LocalConstantSig))
 
 Conceptually, every row in the LocalConstant table is owned by one, and only one, row in the LocalScope table.
 
 There shall be no duplicate rows in the LocalConstant table, based upon owner and _Name_.
 
-_TypeCode_ shall be exactly one of 
+####<a name="LocalConstantSig"></a>LocalConstantSig Blob
 
-| _TypeCode_                | value | _Value_ encoding         |
-|:--------------------------|:------|:-------------------------|
-| Custom                    | 0x00  | [Custom constant blob](#CustomConstantBlob) |
-| ```ELEMENT_TYPE_BOOLEAN```| 0x02  | |
-| ```ELEMENT_TYPE_CHAR```   | 0x03  | |
-| ```ELEMENT_TYPE_I1```     | 0x04  | |
-| ```ELEMENT_TYPE_U1```     | 0x05  | |
-| ```ELEMENT_TYPE_I2```     | 0x06  | |
-| ```ELEMENT_TYPE_U2```     | 0x07  | |
-| ```ELEMENT_TYPE_I4```     | 0x08  | |
-| ```ELEMENT_TYPE_U4```     | 0x09  | |
-| ```ELEMENT_TYPE_I8```     | 0x0a  | |
-| ```ELEMENT_TYPE_U8```     | 0x0b  | |
-| ```ELEMENT_TYPE_R4```     | 0x0c  | |
-| ```ELEMENT_TYPE_R8```     | 0x0d  | |
-| ```ELEMENT_TYPE_STRING``` | 0x0e  | | 
-| ```ELEMENT_TYPE_CLASS```  | 0x12  | _Value_ must be 0. |
-| Decimal                   | 0x22  | sign (highest bit), scale (bits 0..7), low (uint32), mid (uint32), high (uint32) |
-| DateTime                  | 0x23  | ticks (int64)
+The structure of the blob is
 
-Values and encoding of ```ELEMENT_TYPE_*``` constants are defined in ECMA-335 §II.23.1.16.
+    Blob ::= CustomMod* (PrimitiveConstant | EnumConstant | GeneralConstant)
+             
+    PrimitiveConstant ::= PrimitiveTypeCode PrimitiveValue 
+    PrimitiveTypeCode ::= BOOLEAN | CHAR | I1 | U1 | I2 | U2 | I4 | U4 | I8 | U8 | R4 | R8 | STRING
+    
+    EnumConstant ::= EnumTypeCode EnumValue EnumType 
+    EnumTypeCode ::= BOOLEAN | CHAR | I1 | U1 | I2 | U2 | I4 | U4 | I8 | U8
+    EnumType ::= TypeDefOrRefOrSpecEncoded
+    
+    GeneralConstant ::= (CLASS | VALUETYPE) TypeDefOrRefOrSpecEncoded GeneralValue? |
+                        OBJECT
 
-####<a name="CustomConstantBlob"></a>Custom Constant Blob
-Custom constant blob represents a value of a constant whose encoding is language/tool specific.
+| component                   | description                                                |
+|:----------------------------|:-----------------------------------------------------------|
+| _PrimitiveTypeCode_         | A 1-byte constant describing the structure of the _PrimitiveValue_. |
+| _PrimitiveValue_            | The value of the constant.                                 |
+| _EnumTypeCode_              | A 1-byte constant describing the structure of the _EnumValue_. |
+| _EnumValue_                 | The underlying value of the enum.                          |
+| _CustomMod_                 | Custom modifier as specified in ECMA-335 §II.23.2.7        |
+| _TypeDefOrRefOrSpecEncoded_ | TypeDef, TypeRef or TypeSpec encoded as specified in ECMA-335 §II.23.2.8 |
 
-The blob has the following structure:
+The encoding of the _PrimitiveValue_ and _EnumValue_ is determined based upon the value of _PrimitiveTypeCode_ and _EnumTypeCode_, respectively.
 
-	Blob ::= kind value
+| Type code     | Value                      |
+|:--------------|:---------------------------|
+| ```BOOLEAN``` | uint8: 0 represents false, 1 represents true |
+| ```CHAR```    | uint16                     |
+| ```I1```      | int8                       |
+| ```U1```      | uint8                      |
+| ```I2```      | int16                      |
+| ```U2```      | uint16                     |
+| ```I4```      | int32                      |
+| ```U4```      | uint32                     |
+| ```I8```      | int64                      |
+| ```U8```      | uint64                     |
+| ```R4```      | float32                    |
+| ```R8```      | float64                    |
+| ```STRING```  | A single byte 0xff (represents a null string reference), or a UTF-16 little-endian encoded string (possibly empty). | 
 
-| terminal   | value                        | description                          |
-|:-----------|:-----------------------------|:-------------------------------------|
-| _kind_     | Compressed unsigned integer  | GUID heap index                      |
-| _value_    | Sequence of bytes            | Value                                |
+The numeric values of the type codes are defined by ECMA-335 §II.23.1.16.
+
+_EnumType_ must be an enum type as defined in ECMA-335 §II.14.3. The value of _EnumTypeCode_ must match the underlying type of the _EnumType_.
+
+The encoding of the _GeneralValue_ is determined based upon the type expressed by _TypeDefOrRefOrSpecEncoded_ specified in _GeneralConstant_. If the _GeneralValue_ is not present the value of the constant is the default value of the type. If the type is a reference type the value is a null reference, if the type is a pointer type the value is a null pointer, etc. 
+
+| Namespace     | Name     | _GeneralValue_ encoding  |
+|:--------------|:---------|:-------------------------|
+| System        | Decimal  | sign (highest bit), scale (bits 0..7), low (uint32), mid (uint32), high (uint32) |
+| System        | DateTime | int64: ticks             | 
 
 ###<a name="ImportScopeTable"></a>ImportScope Table: 0x35
 The ImportScope table has the following columns:
@@ -375,21 +391,6 @@ Kind is an id defined by the tool producing the information.
 #### Language Specific Custom Debug Information Records
 
 The following _Custom Debug Information_ records are currently produced by C#, VB and F# compilers. In future the compilers and other tools may define new records. Once specified they may not change. If a change is needed the owner has to define a new record with a new kind (GUID).
-
-##### <a name="EntryPoint"></a>Entry Point (C# & VB compilers)
-Parent: AssemblyDef
-
-Kind: {22DEB650-BB47-4D8A-B2A4-1BBA47FEB7F1}
-
-Specifies the entry-point MethodDef.
-
-Structure:
-
-    Blob ::= method
-
-| terminal  | encoding                    | description       |
-|:----------|:----------------------------|:------------------|
-| _method_  | Compressed unsigned integer | MethodDef row id. |
 
 ##### <a name="StateMachineHoistedLocalScopes"></a>State Machine Hoisted Local Scopes (C# & VB compilers)
 Parent: MethodDef

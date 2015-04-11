@@ -657,7 +657,11 @@ Do you want to continue?</value>
     <value>User Diagnostic Analyzer Failure.</value>
   </data>
   <data name="UserDiagnosticAnalyzerThrows" xml:space="preserve">
-    <value>The User Diagnostic Analyzer '{0}' threw an exception with message '{1}'.</value>
+    <value>The User Diagnostic Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</value>
+  </data>
+  <data name="UserDiagnosticAnalyzerThrowsDescription" xml:space="preserve">
+    <value>Analyzer '{0}' threw the following exception:
+'{1}'.</value>
   </data>
   <data name="RemoveUnnecessaryCast" xml:space="preserve">
     <value>Remove Unnecessary Cast</value>

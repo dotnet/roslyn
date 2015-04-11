@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -20,7 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private readonly Workspace _workspace;
         private readonly AbstractProject _vsProject;
 
-        private bool _isDisposed;        
+        private bool _isDisposed;
+
+        internal static readonly TraceLog log = new TraceLog(2048, "VsReadOnlyDocumentTracker");
 
         public VsReadOnlyDocumentTracker(IEditAndContinueWorkspaceService encService, IVsEditorAdaptersFactoryService adapters, AbstractProject vsProject)
             : base(assertIsForeground: true)
@@ -142,6 +145,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private static ITextBuffer GetTextBuffer(Workspace workspace, DocumentId documentId)
         {
             var doc = workspace.CurrentSolution.GetDocument(documentId);
+            if (doc == null)
+            {
+                // TODO (https://github.com/dotnet/roslyn/issues/1204): this check should be unnecessary.
+                log.Write($"GetTextBuffer: document not found for '{documentId?.GetDebuggerDisplay()}'");
+                return null;
+            }
+
             SourceText text;
             if (!doc.TryGetText(out text))
             {

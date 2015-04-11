@@ -27,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 End If
 
                 token = token.GetPreviousToken()
+
             Loop
 
             Return token
@@ -387,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             If syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken) OrElse
                syntaxTree.IsInInactiveRegion(position, cancellationToken) OrElse
                syntaxTree.IsEntirelyWithinComment(position, cancellationToken) OrElse
-               syntaxTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken) Then
+               syntaxTree.IsEntirelyWithinStringOrCharOrNumericLiteral(position, cancellationToken) Then
 
                 Return False
             End If
@@ -451,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             If syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken) OrElse
                syntaxTree.IsInInactiveRegion(position, cancellationToken) OrElse
                syntaxTree.IsEntirelyWithinComment(position, cancellationToken) OrElse
-               syntaxTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken) Then
+               syntaxTree.IsEntirelyWithinStringOrCharOrNumericLiteral(position, cancellationToken) Then
 
                 Return False
             End If

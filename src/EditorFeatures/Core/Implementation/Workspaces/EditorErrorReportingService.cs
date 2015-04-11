@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         public void ShowErrorInfoForCodeFix(string codefixName, Action OnEnableClicked, Action OnEnableAndIgnoreClicked)
         {
             var message = LogMessage.Create($"{codefixName} crashed");
-            Logger.Log(FunctionId.CodeFixe_Crash, message);
+            Logger.Log(FunctionId.Extension_Exception, message);
         }
     }
 }

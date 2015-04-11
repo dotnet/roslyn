@@ -4,7 +4,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
-    ' TODO: Verify the custom debug info - the current text is just based on the current output.
     Public Class PDBTests
         Inherits BasicTestBase
 
@@ -7174,6 +7173,135 @@ End Class
         </method>
     </methods>
 
+</symbols>)
+        End Sub
+
+        <Fact>
+        Public Sub Constant_AllTypes()
+            Dim source =
+<compilation>
+    <file>
+Imports System
+Imports System.Collections.Generic
+'Imports Microsoft.VisualBasic.Strings
+
+Class X 
+End Class
+
+Public Class C(Of S)
+    Enum EnumI1 As SByte    : A : End Enum
+    Enum EnumU1 As Byte     : A : End Enum 
+    Enum EnumI2 As Short    : A : End Enum 
+    Enum EnumU2 As UShort   : A : End Enum
+    Enum EnumI4 As Integer  : A : End Enum
+    Enum EnumU4 As UInteger : A : End Enum
+    Enum EnumI8 As Long     : A : End Enum
+    Enum EnumU8 As ULong    : A : End Enum
+
+    Public Sub F(Of T)()
+        Const B As Boolean = Nothing
+        Const C As Char = Nothing
+        Const I1 As SByte = 0
+        Const U1 As Byte = 0
+        Const I2 As Short = 0
+        Const U2 As UShort = 0
+        Const I4 As Integer = 0
+        Const U4 As UInteger = 0
+        Const I8 As Long = 0
+        Const U8 As ULong = 0
+        Const R4 As Single = 0
+        Const R8 As Double = 0
+
+        Const EI1 As C(Of Integer).EnumI1 = 0
+        Const EU1 As C(Of Integer).EnumU1 = 0
+        Const EI2 As C(Of Integer).EnumI2 = 0
+        Const EU2 As C(Of Integer).EnumU2 = 0
+        Const EI4 As C(Of Integer).EnumI4 = 0
+        Const EU4 As C(Of Integer).EnumU4 = 0
+        Const EI8 As C(Of Integer).EnumI8 = 0
+        Const EU8 As C(Of Integer).EnumU8 = 0
+
+        'Const StrWithNul As String = ChrW(0)
+        Const EmptyStr As String = ""
+        Const NullStr As String = Nothing
+        Const NullObject As Object = Nothing
+       
+        Const D As Decimal = Nothing
+        Const DT As DateTime = #1-1-2015#
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim c = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.DebugDll.WithEmbedVbCoreRuntime(True))
+
+            c.VerifyPdb("C`1.F",
+<symbols>
+    <methods>
+        <method containingType="C`1" name="F">
+            <sequencePoints>
+                <entry offset="0x0" startLine="18" startColumn="5" endLine="18" endColumn="25" document="0"/>
+                <entry offset="0x1" startLine="48" startColumn="5" endLine="48" endColumn="12" document="0"/>
+            </sequencePoints>
+            <locals>
+                <constant name="B" value="0" type="Boolean"/>
+                <constant name="C" value="0" type="Char"/>
+                <constant name="I1" value="0" type="SByte"/>
+                <constant name="U1" value="0" type="Byte"/>
+                <constant name="I2" value="0" type="Int16"/>
+                <constant name="U2" value="0" type="UInt16"/>
+                <constant name="I4" value="0" type="Int32"/>
+                <constant name="U4" value="0" type="UInt32"/>
+                <constant name="I8" value="0" type="Int64"/>
+                <constant name="U8" value="0" type="UInt64"/>
+                <constant name="R4" value="0" type="Single"/>
+                <constant name="R8" value="0" type="Double"/>
+                <constant name="EI1" value="0" signature="15-11-10-01-08"/>
+                <constant name="EU1" value="0" signature="15-11-14-01-08"/>
+                <constant name="EI2" value="0" signature="15-11-18-01-08"/>
+                <constant name="EU2" value="0" signature="15-11-1C-01-08"/>
+                <constant name="EI4" value="null" signature="15-11-20-01-08"/>
+                <constant name="EU4" value="0" signature="15-11-24-01-08"/>
+                <constant name="EI8" value="0" signature="15-11-28-01-08"/>
+                <constant name="EU8" value="0" signature="15-11-2C-01-08"/>
+                <constant name="EmptyStr" value="" type="String"/>
+                <constant name="NullStr" value="null" type="String"/>
+                <constant name="NullObject" value="null" type="Object"/>
+                <constant name="D" value="0" type="Decimal"/>
+                <constant name="DT" value="01/01/2015 00:00:00" type="DateTime"/>
+            </locals>
+            <scope startOffset="0x0" endOffset="0x2">
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Collections.Generic" importlevel="file"/>
+                <currentnamespace name=""/>
+                <constant name="B" value="0" type="Boolean"/>
+                <constant name="C" value="0" type="Char"/>
+                <constant name="I1" value="0" type="SByte"/>
+                <constant name="U1" value="0" type="Byte"/>
+                <constant name="I2" value="0" type="Int16"/>
+                <constant name="U2" value="0" type="UInt16"/>
+                <constant name="I4" value="0" type="Int32"/>
+                <constant name="U4" value="0" type="UInt32"/>
+                <constant name="I8" value="0" type="Int64"/>
+                <constant name="U8" value="0" type="UInt64"/>
+                <constant name="R4" value="0" type="Single"/>
+                <constant name="R8" value="0" type="Double"/>
+                <constant name="EI1" value="0" signature="15-11-10-01-08"/>
+                <constant name="EU1" value="0" signature="15-11-14-01-08"/>
+                <constant name="EI2" value="0" signature="15-11-18-01-08"/>
+                <constant name="EU2" value="0" signature="15-11-1C-01-08"/>
+                <constant name="EI4" value="null" signature="15-11-20-01-08"/>
+                <constant name="EU4" value="0" signature="15-11-24-01-08"/>
+                <constant name="EI8" value="0" signature="15-11-28-01-08"/>
+                <constant name="EU8" value="0" signature="15-11-2C-01-08"/>
+                <constant name="EmptyStr" value="" type="String"/>
+                <constant name="NullStr" value="null" type="String"/>
+                <constant name="NullObject" value="null" type="Object"/>
+                <constant name="D" value="0" type="Decimal"/>
+                <constant name="DT" value="01/01/2015 00:00:00" type="DateTime"/>
+            </scope>
+        </method>
+    </methods>
 </symbols>)
         End Sub
     End Class

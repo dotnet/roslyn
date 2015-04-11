@@ -1125,7 +1125,12 @@ public class C2
                 onAnalyzerException: (ex, a, d) => exceptionDiagnostics.Add(d));
 
             exceptionDiagnostics.Verify(
-                Diagnostic("AD0001", null).WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer", "ThrowExceptionAnalyzer exception").WithLocation(1, 1));
+                Diagnostic("AD0001", null)
+                    .WithArguments(
+                        "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer",
+                        "System.Exception",
+                        "ThrowExceptionAnalyzer exception")
+                    .WithLocation(1, 1));
         }
 
         #endregion

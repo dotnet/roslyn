@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Me.EvaluationContext = Nothing
         End Sub
 
-        Friend Sub New(evaluationContext As EvaluationContext)
-            Me.MetadataBlocks = evaluationContext.MetadataBlocks
+        Friend Sub New(metadataBlocks As ImmutableArray(Of MetadataBlock), evaluationContext As EvaluationContext)
+            Me.MetadataBlocks = metadataBlocks
             Me.Compilation = evaluationContext.Compilation
             Me.EvaluationContext = evaluationContext
         End Sub

@@ -2195,6 +2195,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
+            // Not if the position is *within* a numeric literal
+            if (token.IsKind(SyntaxKind.NumericLiteralToken) && token.Span.Contains(position))
+            {
+                return false;
+            }
+
             if (token.GetAncestor<BlockSyntax>() == null)
             {
                 return false;

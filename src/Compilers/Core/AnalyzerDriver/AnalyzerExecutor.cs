@@ -494,14 +494,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal static Diagnostic GetAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Exception e)
         {
+            var analyzerName = analyzer.ToString();
+
+            // TODO: It is not ideal to create a new descriptor per analyzer exception diagnostic instance.
+            // However, until we add a LongMessage field to the Diagnostic, we are forced to park the instance specific description onto the Descriptor's Description field.
+            // This requires us to create a new DiagnosticDescriptor instance per diagnostic instance.
             var descriptor = new DiagnosticDescriptor(AnalyzerExceptionDiagnosticId,
-                AnalyzerDriverResources.AnalyzerFailure,
-                AnalyzerDriverResources.AnalyzerThrows,
+                title: AnalyzerDriverResources.AnalyzerFailure,
+                messageFormat: AnalyzerDriverResources.AnalyzerThrows,
+                description: string.Format(AnalyzerDriverResources.AnalyzerThrowsDescription, analyzerName, e.ToString()),
                 category: DiagnosticCategory,
                 defaultSeverity: DiagnosticSeverity.Info,
                 isEnabledByDefault: true,
                 customTags: WellKnownDiagnosticTags.AnalyzerException);
-            return Diagnostic.Create(descriptor, Location.None, analyzer.ToString(), e.Message);
+
+            return Diagnostic.Create(descriptor, Location.None, analyzerName, e.GetType(), e.Message);
         }
 
         internal static bool IsAnalyzerExceptionDiagnostic(Diagnostic diagnostic)
@@ -520,6 +527,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return false;
+        }
+
+        internal static bool AreEquivalentAnalyzerExceptionDiagnostics(Diagnostic exceptionDiagnostic, Diagnostic other)
+        {
+            // We need to have custom de-duplication logic for diagnostics generated for analyzer exceptions.
+            // We create a new descriptor instance per each analyzer exception diagnostic instance (see comments in method "GetAnalyzerExceptionDiagnostic" above).
+            // This is primarily to allow us to embed exception stack trace in the diagnostic description.
+            // However, this might mean that two exception diagnostics which are equivalent in terms of ID and Message, might not have equal description strings.
+            // We want to classify such diagnostics as equal for de-duplication purpose to reduce the noise in output.
+
+            Debug.Assert(IsAnalyzerExceptionDiagnostic(exceptionDiagnostic));
+
+            if (!IsAnalyzerExceptionDiagnostic(other))
+            {
+                return false;
+            }
+
+            return exceptionDiagnostic.Id == other.Id && 
+                exceptionDiagnostic.Severity == other.Severity &&
+                exceptionDiagnostic.GetMessage() == other.GetMessage();
         }
 
         private bool IsSupportedDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic)

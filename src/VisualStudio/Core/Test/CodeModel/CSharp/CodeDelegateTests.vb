@@ -276,6 +276,32 @@ public delegate int? D();
 
 #End Region
 
+#Region "Parameter name tests"
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters()
+            Dim code =
+<Code>
+public delegate int $$M(int @int);
+</Code>
+
+            TestAllParameterNames(code, "@int")
+        End Sub
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters_2()
+            Dim code =
+<Code>
+public delegate int $$M(int @int, string @string);
+</Code>
+
+            TestAllParameterNames(code, "@int", "@string")
+        End Sub
+
+#End Region
+
         Protected Overrides ReadOnly Property LanguageName As String
             Get
                 Return LanguageNames.CSharp

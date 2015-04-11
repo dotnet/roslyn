@@ -115,19 +115,6 @@ public class C
     {{
       ""ruleId"": ""CS5001"",
       ""locations"": [
-        {{
-          ""analysisTarget"": [
-            {{
-              ""uri"": ""<None>"",
-              ""region"": {{
-                ""startLine"": 0,
-                ""startColumn"": 0,
-                ""endLine"": 0,
-                ""endColumn"": 0
-              }}
-            }}
-          ]
-        }}
       ],
       ""fullMessage"": ""Program does not contain a static 'Main' method suitable for an entry point"",
       ""properties"": {{

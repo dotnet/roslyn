@@ -3282,6 +3282,8 @@ End Class
 
 "
             Dim edits = GetTopEdits(src1, src2)
+
+            ' TODO: better location
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function(a2)", "y", "lambda"))
         End Sub
@@ -3310,7 +3312,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a1 As Integer", "a1"))
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"))
         End Sub
 
         <Fact>
@@ -3333,7 +3335,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a2 As Integer", "a2"))
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a2", "a2"))
         End Sub
 
         <Fact, WorkItem(1290)>
@@ -3364,7 +3366,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
 
-            ' TODO: better location (bug 1290)
+            ' TODO: better location
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.NotCapturingVariable, "F", "a1"))
         End Sub
@@ -3424,9 +3426,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
 
-            ' TODO: better location
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "Get", "a1"))
+                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"))
         End Sub
 
         <Fact>
@@ -3457,10 +3458,9 @@ Class C
     End Property
 End Class
 "
-            ' better location
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "Set", "a1"))
+                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"))
         End Sub
 
         <Fact>
@@ -3483,7 +3483,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "a2 As Integer", "a2"))
+                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"))
         End Sub
 
         <Fact>
@@ -3933,7 +3933,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
 
-            ' TODO "Function(a) x + x0" Is matched with "Function(a) y1 + x0", hence we report more errors.
+            ' TODO "Function(a) x + x0" is matched with "Function(a) y1 + x0", hence we report more errors.
             ' Including statement distance when matching would help.
 
             edits.VerifySemanticDiagnostics(
@@ -5016,7 +5016,7 @@ End Class"
                 Diagnostic(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, "Group Join", "method"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1312"), WorkItem(1312)>
+        <Fact, WorkItem(1312)>
         Public Sub Queries_CeaseCapturingTransparentIdentifiers1()
             Dim src1 As String = "
 Imports System
@@ -5055,12 +5055,11 @@ Class C
 End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            ' TODO: better Location(the variable, not the from clause)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "From", "b"))
+                Diagnostic(RudeEditKind.NotCapturingVariable, "b In {2}", "b"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1312"), WorkItem(1312)>
+        <Fact, WorkItem(1312)>
         Public Sub Queries_CapturingTransparentIdentifiers1()
             Dim src1 As String = "
 Imports System
@@ -5099,10 +5098,236 @@ Class C
 End Class"
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "From", "b"))
+                Diagnostic(RudeEditKind.CapturingVariable, "b", "b"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_AccessingCapturedTransparentIdentifier1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Where Z(Function() a) > 0
+                     Select 1
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1}
+                     Where Z(Function() a) > 0 
+                     Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", "Select clause"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_AccessingCapturedTransparentIdentifier2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     From b In {1}
+                     Where Z(Function() a) > 0
+                     Select b
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     From b In {1} 
+                     Where Z(Function() a) > 0 
+                     Select a + b
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", "Select clause"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_AccessingCapturedTransparentIdentifier3()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Where Z(Function() a) > 0 
+                     Select Z(Function() 1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Where Z(Function() a) > 0 
+                     Select Z(Function() a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", "Select clause"),
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", "lambda"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_NotAccessingCapturedTransparentIdentifier1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     From b In {1}
+                     Where Z(Function() a) > 0
+                     Select a + b
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     From b In {1} 
+                     Where Z(Function() a) > 0 
+                     Select b
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Select", "a", "Select clause"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_NotAccessingCapturedTransparentIdentifier2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Where Z(Function() a) > 0 
+                     Select Z(Function() a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Where Z(Function() a) > 0 
+                     Select Z(Function() 1)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Select", "a", "Select clause"),
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function()", "a", "lambda"))
         End Sub
 
 
+        <Fact>
+        Public Sub Queries_Insert1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
 #End Region
 
 #Region "Yield"

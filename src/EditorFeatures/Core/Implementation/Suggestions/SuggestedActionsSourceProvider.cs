@@ -144,11 +144,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
                 {
-                    if (range.IsEmpty)
-                    {
-                        return null;
-                    }
-
                     var documentAndSnapshot = GetMatchingDocumentAndSnapshotAsync(range.Snapshot, cancellationToken).WaitAndGetResult(cancellationToken);
                     if (!documentAndSnapshot.HasValue)
                     {

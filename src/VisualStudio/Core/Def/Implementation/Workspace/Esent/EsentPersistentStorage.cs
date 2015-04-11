@@ -304,8 +304,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 id = _nameTableCache.GetOrAdd(value, v =>
                 {
                     // okay, get one from esent
-                    var relativePathFromSolution = FilePathUtilities.GetRelativePath(Path.GetDirectoryName(SolutionFilePath), v);
-                    return _esentStorage.GetUniqueId(relativePathFromSolution);
+                    var uniqueIdValue = fileCheck ? FilePathUtilities.GetRelativePath(Path.GetDirectoryName(SolutionFilePath), v) : v;
+                    return _esentStorage.GetUniqueId(uniqueIdValue);
                 });
             }
             catch (Exception ex)

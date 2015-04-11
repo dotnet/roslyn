@@ -20,15 +20,13 @@ namespace Microsoft.CodeAnalysis
 
             private readonly CommonCompiler _compiler;
             private readonly string _filePath;
-            private readonly bool _streamCreatedByNativePdbWriter;
 
             private Stream _lazyStream;
 
-            internal CompilerEmitStreamProvider(CommonCompiler compiler, string filePath, bool streamCreatedByNativePdbWriter)
+            internal CompilerEmitStreamProvider(CommonCompiler compiler, string filePath)
             {
                 _compiler = compiler;
                 _filePath = filePath;
-                _streamCreatedByNativePdbWriter = streamCreatedByNativePdbWriter;
                 _lazyStream = s_uninitialized;
             }
 
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_lazyStream == s_uninitialized)
                 {
-                    _lazyStream = _streamCreatedByNativePdbWriter ? null : OpenFile(_filePath, diagnostics);
+                    _lazyStream = OpenFile(_filePath, diagnostics);
                 }
 
                 return _lazyStream;

@@ -121,19 +121,6 @@ End Class
     {{
       ""ruleId"": ""BC30420"",
       ""locations"": [
-        {{
-          ""analysisTarget"": [
-            {{
-              ""uri"": ""<None>"",
-              ""region"": {{
-                ""startLine"": 0,
-                ""startColumn"": 0,
-                ""endLine"": 0,
-                ""endColumn"": 0
-              }}
-            }}
-          ]
-        }}
       ],
       ""fullMessage"": ""'Sub Main' was not found in '{1}'."",
       ""properties"": {{
