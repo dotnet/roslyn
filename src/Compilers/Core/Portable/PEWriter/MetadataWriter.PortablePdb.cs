@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
@@ -47,8 +45,7 @@ namespace Microsoft.Cci
         private struct LocalConstantRow
         {
             public StringIdx Name;     // String
-            public uint Value;         // Blob
-            public byte TypeCode;
+            public uint Signature;     // Blob
         }
 
         private struct ImportScopeRow
@@ -80,104 +77,164 @@ namespace Microsoft.Cci
         private readonly List<AsyncMethodRow> _asyncMethodTable = new List<AsyncMethodRow>();
         private readonly List<CustomDebugInformationRow> _customDebugInformationTable = new List<CustomDebugInformationRow>();
 
-        private void PopulateDebugTableRows()
+        private readonly Dictionary<DebugSourceDocument, int> _documentIndex = new Dictionary<DebugSourceDocument, int>();
+        private readonly Dictionary<IImportScope, int> _scopeIndex = new Dictionary<IImportScope, int>();
+
+        private void SerializeMethodDebugInfo(IMethodBody bodyOpt, int methodRid)
         {
-            var documentIndex = new Dictionary<DebugSourceDocument, int>();
-            var scopeIndex = new Dictionary<IImportScope, int>();
-
-            DefineModuleImportScope();
-
-            int methodRid = 1;
-            foreach (IMethodDefinition methodDef in this.GetMethodDefs())
+            if (bodyOpt == null)
             {
-                IMethodBody body = methodDef.GetBody(Context);
-                if (body == null)
-                {
-                    _methodBodyTable.Add(default(MethodBodyRow));
-                    continue;
-                }
-
-                bool isIterator = body.StateMachineTypeName != null;
-                bool emitDebugInfo = isIterator || body.HasAnySequencePoints;
-
-                if (!emitDebugInfo)
-                {
-                    _methodBodyTable.Add(default(MethodBodyRow));
-                    continue;
-                }
-
-                var bodyImportScope = body.ImportScope;
-                int importScopeRid = (bodyImportScope != null) ? GetImportScopeIndex(bodyImportScope, scopeIndex) : 0;
-
-                // documents & sequence points:
-                uint sequencePointsBlob = SerializeSequencePoints(body.GetSequencePoints(), documentIndex);
-                _methodBodyTable.Add(new MethodBodyRow { SequencePoints = sequencePointsBlob });
-
-                // TODO: order by nesting
-                foreach (LocalScope scope in body.LocalScopes)
-                {
-                    _localScopeTable.Add(new LocalScopeRow
-                    {
-                        Method = (uint)methodRid,
-                        ImportScope = (uint)importScopeRid,
-                        VariableList = (uint)_localVariableTable.Count,
-                        ConstantList = (uint)_localConstantTable.Count,
-                        StartOffset = (uint)scope.StartOffset,
-                        Length = (uint)scope.Length
-                    });
-
-                    foreach (ILocalDefinition local in scope.Variables)
-                    {
-                        Debug.Assert(local.SlotIndex >= 0);
-
-                        _localVariableTable.Add(new LocalVariableRow
-                        {
-                            Attributes = (ushort)local.PdbAttributes,
-                            Index = (ushort)local.SlotIndex,
-                            Name = debugHeapsOpt.GetStringIndex(local.Name)
-                        });
-
-                        SerializeDynamicLocalInfo(local, rowId: _localVariableTable.Count, isConstant: false);
-                    }
-
-                    foreach (ILocalDefinition constant in scope.Constants)
-                    {
-                        var mdConstant = constant.CompileTimeValue;
-                        Debug.Assert(mdConstant != null);
-
-                        _localConstantTable.Add(new LocalConstantRow
-                        {
-                            Name = debugHeapsOpt.GetStringIndex(constant.Name),
-                            Value = debugHeapsOpt.GetConstantBlobIndex(mdConstant.Value),
-                            TypeCode = (byte)GetConstantTypeCode(mdConstant.Value)
-                        });
-
-                        SerializeDynamicLocalInfo(constant, rowId: _localConstantTable.Count, isConstant: true);
-                    }
-                }
-
-                var asyncDebugInfo = body.AsyncDebugInfo;
-                if (asyncDebugInfo != null)
-                {
-                    // TODO: sort by KickoffMethod
-                    _asyncMethodTable.Add(new AsyncMethodRow
-                    {
-                        KickoffMethod = GetMethodDefIndex(asyncDebugInfo.KickoffMethod),
-                        CatchHandlerOffset = (uint)(asyncDebugInfo.CatchHandlerOffset + 1),
-                        Awaits = SerializeAwaitsBlob(asyncDebugInfo, methodRid),
-                    });
-                }
-
-                SerializeStateMachineLocalScopes(body, methodRid);
-
-                // delta doesn't need this information - we use information recorded by previous generation emit
-                if (Context.ModuleBuilder.CommonCompilation.Options.EnableEditAndContinue && !IsFullMetadata)
-                {
-                    SerializeEncMethodDebugInformation(body, methodRid);
-                }
-
-                methodRid++;
+                _methodBodyTable.Add(default(MethodBodyRow));
+                return;
             }
+
+            bool isIterator = bodyOpt.StateMachineTypeName != null;
+            bool emitDebugInfo = isIterator || bodyOpt.HasAnySequencePoints;
+
+            if (!emitDebugInfo)
+            {
+                _methodBodyTable.Add(default(MethodBodyRow));
+                return;
+            }
+
+            var bodyImportScope = bodyOpt.ImportScope;
+            int importScopeRid = (bodyImportScope != null) ? GetImportScopeIndex(bodyImportScope, _scopeIndex) : 0;
+
+            // documents & sequence points:
+            uint sequencePointsBlob = SerializeSequencePoints(bodyOpt.GetSequencePoints(), _documentIndex);
+            _methodBodyTable.Add(new MethodBodyRow { SequencePoints = sequencePointsBlob });
+
+            // Unlike native PDB we don't emit an empty root scope.
+            // scopes are already ordered by StartOffset ascending then by EndOffset descending (the longest scope first)
+            foreach (LocalScope scope in bodyOpt.LocalScopes)
+            {
+                _localScopeTable.Add(new LocalScopeRow
+                {
+                    Method = (uint)methodRid,
+                    ImportScope = (uint)importScopeRid,
+                    VariableList = (uint)_localVariableTable.Count + 1,
+                    ConstantList = (uint)_localConstantTable.Count + 1,
+                    StartOffset = (uint)scope.StartOffset,
+                    Length = (uint)scope.Length
+                });
+
+                foreach (ILocalDefinition local in scope.Variables)
+                {
+                    Debug.Assert(local.SlotIndex >= 0);
+
+                    _localVariableTable.Add(new LocalVariableRow
+                    {
+                        Attributes = (ushort)local.PdbAttributes,
+                        Index = (ushort)local.SlotIndex,
+                        Name = debugHeapsOpt.GetStringIndex(local.Name)
+                    });
+
+                    SerializeDynamicLocalInfo(local, rowId: _localVariableTable.Count, isConstant: false);
+                }
+
+                foreach (ILocalDefinition constant in scope.Constants)
+                {
+                    var mdConstant = constant.CompileTimeValue;
+                    Debug.Assert(mdConstant != null);
+
+                    _localConstantTable.Add(new LocalConstantRow
+                    {
+                        Name = debugHeapsOpt.GetStringIndex(constant.Name),
+                        Signature = SerializeLocalConstantSignature(constant)
+                    });
+
+                    SerializeDynamicLocalInfo(constant, rowId: _localConstantTable.Count, isConstant: true);
+                }
+            }
+
+            var asyncDebugInfo = bodyOpt.AsyncDebugInfo;
+            if (asyncDebugInfo != null)
+            {
+                // TODO: sort by KickoffMethod
+                _asyncMethodTable.Add(new AsyncMethodRow
+                {
+                    KickoffMethod = GetMethodDefIndex(asyncDebugInfo.KickoffMethod),
+                    CatchHandlerOffset = (uint)(asyncDebugInfo.CatchHandlerOffset + 1),
+                    Awaits = SerializeAwaitsBlob(asyncDebugInfo, methodRid),
+                });
+            }
+
+            SerializeStateMachineLocalScopes(bodyOpt, methodRid);
+
+            // delta doesn't need this information - we use information recorded by previous generation emit
+            if (Context.ModuleBuilder.CommonCompilation.Options.EnableEditAndContinue && !IsFullMetadata)
+            {
+                SerializeEncMethodDebugInformation(bodyOpt, methodRid);
+            }
+        }
+
+        private uint SerializeLocalConstantSignature(ILocalDefinition localConstant)
+        {
+            var signature = MemoryStream.GetInstance();
+            var writer = new BinaryWriter(signature);
+
+            // CustomMod*
+            SerializeCustomModifiers(localConstant.CustomModifiers, writer);
+
+            var type = localConstant.Type;
+            var typeCode = type.TypeCode(Context);
+
+            object value = localConstant.CompileTimeValue.Value;
+
+            // PrimitiveConstant or EnumConstant
+            if (value is decimal)
+            {
+                writer.WriteByte(0x11);
+                writer.WriteCompressedUInt(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
+
+                writer.WriteDecimal((decimal)value);
+            }
+            else if (value is DateTime)
+            {
+                writer.WriteByte(0x11);
+                writer.WriteCompressedUInt(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
+
+                writer.WriteDateTime((DateTime)value);
+            }
+            else if (typeCode == PrimitiveTypeCode.String)
+            {
+                writer.WriteByte((byte)ConstantTypeCode.String);
+                if (value == null)
+                {
+                    writer.WriteByte(0xff);
+                }
+                else
+                {
+                    writer.WriteStringUtf16LE((string)value);
+                }
+            }
+            else if (value != null)
+            {
+                // TypeCode
+                writer.WriteByte((byte)GetConstantTypeCode(value));
+
+                // Value
+                writer.WriteConstantValueBlob(value);
+
+                // EnumType
+                if (type.IsEnum)
+                {
+                    writer.WriteCompressedUInt(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
+                }
+            }
+            else if (this.module.IsPlatformType(type, PlatformType.SystemObject))
+            {
+                writer.WriteByte(0x1c);
+            }
+            else
+            {
+                writer.WriteByte((byte)(type.IsValueType ? 0x11 : 0x12));
+                writer.WriteCompressedUInt(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
+            }
+
+            uint blobIndex = debugHeapsOpt.GetBlobIndex(signature);
+            signature.Free();
+            return blobIndex;
         }
 
         private static uint HasCustomDebugInformation(HasCustomDebugInformationTag tag, int rowId)
@@ -202,7 +259,7 @@ namespace Microsoft.Cci
             // <import> ::= AliasAssemblyReference <alias> <target-assembly>
             writer.WriteByte((byte)ImportDefinitionKind.AliasAssemblyReference);
             writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(alias.Name));
-            writer.WriteCompressedUInt(GetAssemblyRefIndex(alias.Assembly)); // TODO: index in release build            
+            writer.WriteCompressedUInt(GetOrAddAssemblyRefIndex(alias.Assembly));
         }
 
         private void SerializeImport(BinaryWriter writer, UsedNamespaceOrType import)
@@ -577,10 +634,7 @@ namespace Microsoft.Cci
 
         private uint SerializeDocumentName(string name)
         {
-            if (name.Length == 0)
-            {
-                return 0;
-            }
+            Debug.Assert(name != null);
 
             MemoryStream sig = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(sig);
@@ -705,8 +759,7 @@ namespace Microsoft.Cci
             foreach (var row in _localConstantTable)
             {
                 writer.WriteReference(debugHeapsOpt.ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference(row.Value, metadataSizes.BlobIndexSize);
-                writer.WriteByte(row.TypeCode);
+                writer.WriteReference(row.Signature, metadataSizes.BlobIndexSize);
             }
         }
 

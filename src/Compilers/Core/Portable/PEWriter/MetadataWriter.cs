@@ -1925,6 +1925,14 @@ namespace Microsoft.Cci
             throw ExceptionUtilities.Unreachable;
         }
 
+        private void SerializeCustomModifiers(ImmutableArray<ICustomModifier> customModifiers, BinaryWriter writer)
+        {
+            foreach (ICustomModifier customModifier in customModifiers)
+            {
+                this.SerializeCustomModifier(customModifier, writer);
+            }
+        }
+
         private void SerializeCustomModifier(ICustomModifier customModifier, BinaryWriter writer)
         {
             if (customModifier.IsOptional)
@@ -2070,6 +2078,11 @@ namespace Microsoft.Cci
 
             // Extract information from object model into tables, indices and streams
             CreateIndices();
+
+            if (debugHeapsOpt != null)
+            {
+                DefineModuleImportScope();
+            }
 
             uint[] methodBodyRvas = SerializeMethodBodies(ilWriter, nativePdbWriterOpt);
 
@@ -2452,11 +2465,6 @@ namespace Microsoft.Cci
 
             // This table is populated after the others because it depends on the order of the entries of the generic parameter table.
             this.PopulateCustomAttributeTableRows();
-
-            if (debugHeapsOpt != null)
-            {
-                this.PopulateDebugTableRows();
-            }
 
             ImmutableArray<int> rowCounts = GetRowCounts(includeTypeSystemTables: true, includeDebugTables: true);
             Debug.Assert(rowCounts[(int)TableIndex.EncLog] == 0 && rowCounts[(int)TableIndex.EncMap] == 0);
@@ -4152,15 +4160,16 @@ namespace Microsoft.Cci
             var methods = this.GetMethodDefs();
             uint[] rvas = new uint[methods.Count];
 
-            int i = 0;
+            int methodRid = 1;
             foreach (IMethodDefinition method in methods)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
                 uint rva;
+                IMethodBody body;
 
                 if (method.HasBody())
                 {
-                    IMethodBody body = method.GetBody(Context);
+                    body = method.GetBody(Context);
                     Debug.Assert(body != null || allowMissingMethodBodies);
 
                     if (body != null)
@@ -4181,9 +4190,17 @@ namespace Microsoft.Cci
                 {
                     // 0 is actually written to metadata when the row is serialized
                     rva = uint.MaxValue;
+                    body = null;
                 }
 
-                rvas[i++] = rva;
+                if (debugHeapsOpt != null)
+                {
+                    SerializeMethodDebugInfo(body, methodRid);
+                }
+
+                rvas[methodRid - 1] = rva;
+
+                methodRid++;
             }
 
             return rvas;
@@ -4301,7 +4318,7 @@ namespace Microsoft.Cci
             }
         }
 
-        internal uint SerializeLocalConstantSignature(ILocalDefinition localConstant)
+        internal uint SerializeLocalConstantStandAloneSignature(ILocalDefinition localConstant)
         {
             MemoryStream sig = MemoryStream.GetInstance();
             BinaryWriter writer = new BinaryWriter(sig);

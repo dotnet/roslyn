@@ -4,9 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Decoding;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 
@@ -46,6 +48,7 @@ namespace Roslyn.Test.MetadataUtilities
             Imports,
             ImportAlias,
             ImportNamespace,
+            LocalConstantSignature,
             CustomDebugInformation,
 
             Count
@@ -520,13 +523,15 @@ namespace Roslyn.Test.MetadataUtilities
 
             var sb = new StringBuilder();
 
-            foreach (var import in _reader.GetImportDefinitions(handle))
+            var importsReader = _reader.GetImportsReader(handle);
+            while (importsReader.MoveNext())
             {
                 if (sb.Length > 0)
                 {
                     sb.Append(", ");
                 }
 
+                var import = importsReader.Current;
                 switch (import.Kind)
                 {
                     case ImportDefinitionKind.ImportNamespace:
@@ -1456,8 +1461,7 @@ namespace Roslyn.Test.MetadataUtilities
         {
             AddHeader(
                 "Name",
-                "TypeCode",
-                "Value"
+                "Signature"
             );
 
             foreach (var handle in _reader.LocalConstants)
@@ -1466,12 +1470,110 @@ namespace Roslyn.Test.MetadataUtilities
 
                 AddRow(
                     Literal(entry.Name),
-                    EnumValue<byte>(entry.TypeCode),
-                    Literal(entry.Value, BlobKind.ConstantValue)
+                    Literal(entry.Signature, BlobKind.LocalConstantSignature, (r, h) => FormatLocalConstant(r, (BlobHandle)h))
                );
             }
 
             WriteTableName(TableIndex.LocalConstant);
+        }
+
+        private SignatureTypeCode ReadConstantTypeCode(ref BlobReader sigReader, List<CustomModifier<Handle>> modifiers)
+        {
+            while (true)
+            {
+                var s = sigReader.ReadSignatureTypeCode();
+                if (s == SignatureTypeCode.OptionalModifier || s == SignatureTypeCode.RequiredModifier)
+                {
+                    var type = sigReader.ReadTypeHandle();
+                    modifiers.Add(new CustomModifier<Handle>(type, isRequired: s == SignatureTypeCode.RequiredModifier));
+                }
+                else
+                {
+                    return s;
+                }
+            }
+        }
+
+        private string FormatLocalConstant(MetadataReader reader, BlobHandle signature)
+        {
+            var sigReader = reader.GetBlobReader(signature);
+
+            var modifiers = new List<CustomModifier<Handle>>();
+
+            SignatureTypeCode typeCode = ReadConstantTypeCode(ref sigReader, modifiers);
+
+            Handle typeHandle = default(Handle);
+            object value;
+            if (IsPrimitiveType(typeCode))
+            {
+                if (typeCode == SignatureTypeCode.String)
+                {
+                    if (sigReader.RemainingBytes == 1)
+                    {
+                        value = (sigReader.ReadByte() == 0xff) ? "null" : "<bad metadata>";
+                    }
+                    else if (sigReader.RemainingBytes % 2 != 0)
+                    {
+                        value = "<bad metadata>";
+                    }
+                    else
+                    {
+                        value = "'" + sigReader.ReadUTF16(sigReader.RemainingBytes) + "'";
+                    }
+                }
+                else
+                {
+                    value = string.Format(CultureInfo.InvariantCulture, "{0}", sigReader.ReadConstant((ConstantTypeCode)typeCode));
+                }
+
+                if (sigReader.RemainingBytes > 0)
+                {
+                    typeHandle = sigReader.ReadTypeHandle();
+                }
+            }
+            else if (typeCode == SignatureTypeCode.TypeHandle)
+            {
+                typeHandle = sigReader.ReadTypeHandle();
+                value = (sigReader.RemainingBytes > 0) ? BitConverter.ToString(sigReader.ReadBytes(sigReader.RemainingBytes)) : "default";
+            }
+            else 
+            {
+                value = (typeCode == SignatureTypeCode.Object) ? "null" : $"<bad type code: {typeCode}>";
+            }
+
+            return string.Format("{0} [{1}{2}]",
+                value,
+                FormatCustomModifiers(modifiers),
+                typeHandle.IsNil ? typeCode.ToString() : Token(typeHandle));
+        }
+
+        private string FormatCustomModifiers(IEnumerable<CustomModifier<Handle>> modifiers)
+        {
+            return string.Join(" ", modifiers.Select(m => (m.IsRequired ? "modreq" : "modopt") + "(" + Token(m.Type) + ")"));
+        }
+
+        private static bool IsPrimitiveType(SignatureTypeCode typeCode)
+        {
+            switch (typeCode)
+            {
+                case SignatureTypeCode.Boolean:
+                case SignatureTypeCode.Char:
+                case SignatureTypeCode.SByte:
+                case SignatureTypeCode.Byte:
+                case SignatureTypeCode.Int16:
+                case SignatureTypeCode.UInt16:
+                case SignatureTypeCode.Int32:
+                case SignatureTypeCode.UInt32:
+                case SignatureTypeCode.Int64:
+                case SignatureTypeCode.UInt64:
+                case SignatureTypeCode.Single:
+                case SignatureTypeCode.Double:
+                case SignatureTypeCode.String:
+                    return true;
+
+                default:
+                    return false;
+            }
         }
 
         private void WriteAsyncMethod()
