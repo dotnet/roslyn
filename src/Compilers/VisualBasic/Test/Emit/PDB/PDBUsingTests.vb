@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBUsingTests
@@ -36,13 +37,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
-
-            Dim expected =
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            compilation.VerifyPdb("C1.Main",
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -80,9 +76,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact>
@@ -119,7 +113,7 @@ End Class
                                <entry startLine="7" startColumn="5" endLine="7" endColumn="12"/>
                            </sequencePoints>
 
-            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
+            AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
         <Fact>
@@ -156,7 +150,7 @@ End Class
                                <entry startLine="7" startColumn="5" endLine="7" endColumn="12"/>
                            </sequencePoints>
 
-            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
+            AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
         <Fact>
@@ -197,7 +191,7 @@ End Class
                                <entry startLine="7" startColumn="5" endLine="7" endColumn="12"/>
                            </sequencePoints>
 
-            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
+            AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
         <Fact>
@@ -236,7 +230,7 @@ End Class
                                <entry startLine="7" startColumn="5" endLine="7" endColumn="12"/>
                            </sequencePoints>
 
-            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
+            AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
         <Fact>
@@ -283,7 +277,7 @@ End Class
                                <entry startLine="7" startColumn="5" endLine="7" endColumn="12"/>
                            </sequencePoints>
 
-            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
+            AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
         <Fact>
@@ -357,7 +351,7 @@ End Namespace
                     </methods>
                 </symbols>
             Dim actual = GetPdbXml(comp)
-            AssertXmlEqual(expected, actual)
+            AssertXml.Equal(expected, actual)
         End Sub
 
         <Fact>
