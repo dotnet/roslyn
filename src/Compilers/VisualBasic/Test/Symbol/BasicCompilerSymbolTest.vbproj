@@ -55,7 +55,7 @@
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\Scripting\Test\ScriptingTest.csproj">
       <Project>{2DAE4406-7A89-4B5F-95C3-BC5472CE47CE}</Project>
-      <Name>CommonScriptingTest</Name>
+      <Name>ScriptingTest</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
