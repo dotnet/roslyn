@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Flags.Includes(BinderFlags.AttributeArgument); }
         }
 
-        protected bool InCref
+        internal bool InCref
         {
             get { return this.Flags.Includes(BinderFlags.Cref); }
         }
