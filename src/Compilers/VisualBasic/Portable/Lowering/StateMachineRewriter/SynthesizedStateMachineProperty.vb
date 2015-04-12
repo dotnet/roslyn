@@ -21,10 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        name As String,
                        interfacePropertyGetter As MethodSymbol,
                        syntax As VisualBasicSyntaxNode,
-                       debugAttributes As DebugAttributes,
-                       declaredAccessibility As Accessibility,
-                       generateDebugInfo As Boolean,
-                       hasMethodBodyDependency As Boolean)
+                       declaredAccessibility As Accessibility)
 
             Me._name = name
 
@@ -39,15 +36,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 getterName = "IEnumerator.get_Current"
             End If
 
-            _getter = New SynthesizedStateMachineMethod(stateMachineType,
-                                                        getterName,
-                                                        interfacePropertyGetter,
-                                                        syntax,
-                                                        debugAttributes,
-                                                        declaredAccessibility,
-                                                        generateDebugInfo,
-                                                        hasMethodBodyDependency,
-                                                        associatedProperty:=Me)
+            _getter = New SynthesizedStateMachineDebuggerNonUserCodeMethod(stateMachineType,
+                                                                           getterName,
+                                                                           interfacePropertyGetter,
+                                                                           syntax,
+                                                                           declaredAccessibility,
+                                                                           hasMethodBodyDependency:=False,
+                                                                           associatedProperty:=Me)
 
         End Sub
 
