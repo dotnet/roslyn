@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerFilePath]string expectedValueSourcePath = null)
         {
             string actualPdb = GetPdbXml(compilation, qualifiedMethodName);
-            XmlElementDiff.AssertEqual(ParseExpectedPdbXml(expectedPdb), XElement.Parse(actualPdb), expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: false);
+            AssertXml.Equal(ParseExpectedPdbXml(expectedPdb), XElement.Parse(actualPdb), expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: false);
         }
 
         private static XElement ParseExpectedPdbXml(string str)
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerFilePath]string expectedValueSourcePath = null)
         {
             XElement actualPdb = XElement.Parse(GetPdbXml(compilation, qualifiedMethodName));
-            XmlElementDiff.AssertEqual(expectedPdb, actualPdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: true);
+            AssertXml.Equal(expectedPdb, actualPdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: true);
         }
 
         internal static string GetPdbXml(Compilation compilation, string qualifiedMethodName = "")

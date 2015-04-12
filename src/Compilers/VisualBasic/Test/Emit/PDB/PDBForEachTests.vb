@@ -65,7 +65,7 @@ End Class
 </symbols>")
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub ForEachOverOneDimensionalArray()
             Dim source =
 <compilation>
@@ -88,13 +88,8 @@ Imports System
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
-
-            Dim expected =
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            compilation.VerifyPdb("C1.Main",
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -131,12 +126,10 @@ Imports System
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub ForEachOverString()
             Dim source =
 <compilation>
@@ -157,13 +150,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
-
-            Dim expected =
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            compilation.VerifyPdb("C1.Main",
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -198,12 +186,10 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub ForEachIEnumerableWithNoTryCatch()
             Dim source =
 <compilation>
@@ -239,13 +225,8 @@ End Structure
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "C.Main")
-
-            Dim expected =
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            compilation.VerifyPdb("C.Main",
 <symbols>
     <entryPoint declaringType="C" methodName="Main"/>
     <methods>
@@ -274,12 +255,10 @@ End Structure
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub ForEachIEnumerableWithTryCatchImplementIDisposable()
             Dim source =
 <compilation>
@@ -313,13 +292,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "C.Main")
-
-            Dim expected =
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            compilation.VerifyPdb("C.Main",
 <symbols>
     <entryPoint declaringType="C" methodName="Main"/>
     <methods>
@@ -351,12 +325,10 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub ForEachIEnumerableWithTryCatchPossiblyImplementIDisposable()
             Dim source =
 <compilation>
@@ -385,13 +357,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "C.Main")
-
-            Dim expected =
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            compilation.VerifyPdb("C.Main",
 <symbols>
     <entryPoint declaringType="C" methodName="Main"/>
     <methods>
@@ -421,9 +388,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
 #End Region
@@ -431,7 +396,7 @@ End Class
 #Region "For Loop"
 
         <WorkItem(529183, "DevDiv")>
-        <Fact()>
+        <Fact>
         Public Sub ForLoop01()
             Dim source =
 <compilation>
@@ -451,50 +416,45 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            ' Note: the scope of the loop variable is intentionally different from Dev11. It's now the scope of the complete loop and not just the body
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "M1.Main")
-            Dim expected =
-<symbols>
-    <entryPoint declaringType="M1" methodName="Main"/>
-    <methods>
-        <method containingType="M1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="36"/>
-                    <slot kind="13" offset="56"/>
-                    <slot kind="temp"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="22" document="0"/>
-                <entry offset="0x8" startLine="8" startColumn="9" endLine="8" endColumn="23" document="0"/>
-                <entry offset="0xa" startLine="9" startColumn="13" endLine="9" endColumn="26" document="0"/>
-                <entry offset="0xe" startLine="10" startColumn="9" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x13" hidden="true" document="0"/>
-                <entry offset="0x1e" startLine="11" startColumn="5" endLine="11" endColumn="12" document="0"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x1f">
-                <namespace name="System" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="myFArr" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
-                <local name="i" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+            ' Note: the scope of the loop variable is intentionally different from Dev11. 
+            ' It's now the scope of the complete loop and not just the body
+            compilation.VerifyPdb("M1.Main",
+ <symbols>
+     <entryPoint declaringType="M1" methodName="Main"/>
+     <methods>
+         <method containingType="M1" name="Main">
+             <customDebugInfo>
+                 <encLocalSlotMap>
+                     <slot kind="0" offset="4"/>
+                     <slot kind="0" offset="36"/>
+                     <slot kind="13" offset="56"/>
+                     <slot kind="temp"/>
+                 </encLocalSlotMap>
+             </customDebugInfo>
+             <sequencePoints>
+                 <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="15" document="0"/>
+                 <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="22" document="0"/>
+                 <entry offset="0x8" startLine="8" startColumn="9" endLine="8" endColumn="23" document="0"/>
+                 <entry offset="0xa" startLine="9" startColumn="13" endLine="9" endColumn="26" document="0"/>
+                 <entry offset="0xe" startLine="10" startColumn="9" endLine="10" endColumn="15" document="0"/>
+                 <entry offset="0x13" hidden="true" document="0"/>
+                 <entry offset="0x1e" startLine="11" startColumn="5" endLine="11" endColumn="12" document="0"/>
+             </sequencePoints>
+             <scope startOffset="0x0" endOffset="0x1f">
+                 <namespace name="System" importlevel="file"/>
+                 <currentnamespace name=""/>
+                 <local name="myFArr" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
+                 <local name="i" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
+             </scope>
+         </method>
+     </methods>
+ </symbols>)
         End Sub
 
         <WorkItem(529183, "DevDiv")>
-        <Fact()>
+        <Fact>
         Public Sub ForLoop02()
             Dim source =
 <compilation>
@@ -512,14 +472,11 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            ' Note: the scope of the loop variable is intentionally different from Dev11. It's now the scope of the complete loop and not just the body            
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "M1.Main")
-            Dim expected =
+            ' Note: the scope of the loop variable is intentionally different from Dev11. 
+            ' It 's now the scope of the complete loop and not just the body            
+            compilation.VerifyPdb("M1.Main",
 <symbols>
     <entryPoint declaringType="M1" methodName="Main"/>
     <methods>
@@ -547,9 +504,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
 #End Region

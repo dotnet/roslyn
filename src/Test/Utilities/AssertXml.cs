@@ -6,16 +6,13 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Roslyn.Test.Utilities
 {
     /// <summary>
     /// There are many ways to compare XML documents.  This class aims to provide functionality somewhere
@@ -23,34 +20,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// given a shallow comparer (i.e. one that does not consider children), it will compare the root elements
     /// and, if they are equal, match up children by shallow equality, recursing on each pair.
     /// </summary>
-    public static class XmlElementDiff
+    public static class AssertXml
     {
-        private class ShallowElementComparer : IEqualityComparer<XElement>
+        public static void Equal(string expected, string actual)
         {
-            public static readonly IEqualityComparer<XElement> Instance = new ShallowElementComparer();
+            Equal(XElement.Parse(expected), XElement.Parse(actual), null, 0, expectedIsXmlLiteral: true);
+        }
 
-            private ShallowElementComparer() { }
-
-            public bool Equals(XElement element1, XElement element2)
-            {
-                Assert.NotNull(element1);
-                Assert.NotNull(element2);
-
-                return element1.Name == "customDebugInfo"
-                    ? element1.ToString() == element2.ToString()
-                    : XmlElementDiff.NameAndAttributeComparer.Instance.Equals(element1, element2);
-            }
-
-            public int GetHashCode(XElement element)
-            {
-                return element.Name.GetHashCode();
-            }
+        public static void Equal(XElement expected, XElement actual)
+        {
+            Equal(expected, actual, null, 0, expectedIsXmlLiteral: false);
         }
 
         /// <summary>
         /// Compare two XElements.  Assumed to be non-null.
         /// </summary>
-        public static void AssertEqual(
+        public static void Equal(
             XElement expectedRoot,
             XElement actualRoot,
             string expectedValueSourcePath,
@@ -137,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// Compare the root elements and, if they are equal, match up children by shallow equality, recursing on each pair.
         /// </summary>
         /// <returns>True if the elements are equal, false otherwise (in which case, firstMismatch will try to indicate a point of disagreement).</returns>
-        public static bool CheckEqual(XElement expectedRoot, XElement actualRoot, IEqualityComparer<XElement> shallowComparer, out Tuple<XElement, XElement> firstMismatch)
+        private static bool CheckEqual(XElement expectedRoot, XElement actualRoot, IEqualityComparer<XElement> shallowComparer, out Tuple<XElement, XElement> firstMismatch)
         {
             Assert.NotNull(expectedRoot);
             Assert.NotNull(actualRoot);
@@ -210,10 +195,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return true;
         }
 
+        private class ShallowElementComparer : IEqualityComparer<XElement>
+        {
+            public static readonly IEqualityComparer<XElement> Instance = new ShallowElementComparer();
+
+            private ShallowElementComparer() { }
+
+            public bool Equals(XElement element1, XElement element2)
+            {
+                Assert.NotNull(element1);
+                Assert.NotNull(element2);
+
+                return element1.Name == "customDebugInfo"
+                    ? element1.ToString() == element2.ToString()
+                    : AssertXml.NameAndAttributeComparer.Instance.Equals(element1, element2);
+            }
+
+            public int GetHashCode(XElement element)
+            {
+                return element.Name.GetHashCode();
+            }
+        }
+
         /// <summary>
         /// Convenience shallow element comparer.  Checks names and attribute name-value pairs (ignoring order).
         /// </summary>
-        public class NameAndAttributeComparer : IEqualityComparer<XElement>
+        private class NameAndAttributeComparer : IEqualityComparer<XElement>
         {
             public static readonly IEqualityComparer<XElement> Instance = new NameAndAttributeComparer();
 

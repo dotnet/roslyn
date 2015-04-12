@@ -29,11 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             var tree1 = SyntaxFactory.ParseSyntaxTree(StringText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), path: "sha1.cs");
             var tree256 = SyntaxFactory.ParseSyntaxTree(StringText.From(source256, Encoding.UTF8, SourceHashAlgorithm.Sha256), path: "sha256.cs");
 
-            var compilation = CreateCompilationWithMscorlib(new SyntaxTree[] { tree1, tree256 });
-
-            string actual = GetPdbXml(compilation);
-
-            string expected = @"
+            var compilation = CreateCompilationWithMscorlib(new[] { tree1, tree256 });
+            compilation.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name=""sha1.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""8E, 37, F3, 94, ED, 18, 24, 3F, 35, EC, 1B, 70, 25, 29, 42, 1C, B0, 84, 9B, C8, "" />
@@ -61,8 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
       </sequencePoints>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -228,14 +224,9 @@ int y = 1;
     }
 }
 ";
-            //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
-            //loads the assembly into the ReflectionOnlyLoadFrom context.
-            //So it's probably a good idea to have a new name for each assembly.
-            var compilation = CreateCompilationWithMscorlib(new SyntaxTree[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
-
-            string actual = PDBTests.GetPdbXml(compilation, "C.Main");
-
-            string expected = @"<symbols>
+            var compilation = CreateCompilationWithMscorlib(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
+            compilation.VerifyPdb("C.Main", @"
+<symbols>
   <files>
     <file id=""1"" name=""USED1.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""406ea660-64cf-4c82-b6f0-42d48172a799"" checkSum=""AB,  0, 7F, 1D, 23, D9, "" />
     <file id=""2"" name=""USED2.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""406ea660-64cf-4c82-b6f0-42d48172a799"" checkSum=""AB,  0, 7F, 1D, 23, D9, "" />
@@ -256,8 +247,7 @@ int y = 1;
       </sequencePoints>
     </method>
   </methods>
-</symbols>";
-            PDBTests.AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [WorkItem(729235, "DevDiv")]
@@ -272,13 +262,10 @@ class C
     }
 }
 ";
-
-
             var comp = CreateCompilationWithChecksums(source, "b.cs", @"b:\base");
-            string actual = PDBTests.GetPdbXml(comp, "C.M");
 
             // Verify the value of name attribute in file element.
-            string expected = @"
+            comp.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name=""b:\base\b.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum="" 5, 25, 26, AE, 53, A0, 54, 46, AC, A6, 1D, 8A, 3B, 1E, 3F, C3, 43, 39, FB, 59, "" />
@@ -296,9 +283,7 @@ class C
       </sequencePoints>
     </method>
   </methods>
-</symbols>";
-
-            PDBTests.AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -315,10 +300,8 @@ class C { void M() { } }
                 new[] { MscorlibRef },
                 TestOptions.DebugDll.WithSourceReferenceResolver(null));
 
-            string actual = PDBTests.GetPdbXml(comp, "C.M");
-
             // Verify the value of name attribute in file element.
-            string expected = @"
+            comp.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name=""a\..\a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""406ea660-64cf-4c82-b6f0-42d48172a799"" checkSum=""AB,  0, 7F, 1D, 23, D5, "" />
@@ -336,9 +319,7 @@ class C { void M() { } }
       </sequencePoints>
     </method>
   </methods>
-</symbols>";
-
-            PDBTests.AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [WorkItem(729235, "DevDiv")]
@@ -366,11 +347,10 @@ class C
 ";
 
             var comp = CreateCompilationWithChecksums(source, "b.cs", @"b:\base");
-            string actual = PDBTests.GetPdbXml(comp, "C.M");
 
             // Verify the fact that there's a single file element for "line.cs" and it has an absolute path.
             // Verify the fact that the path that was already absolute wasn't affected by the base directory.
-            string expected = @"
+            comp.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name=""b:\base\b.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""B6, C3, C8, D1, 2D, F4, BD, FA, F7, 25, AC, F8, 17, E1, 83, BE, CC, 9B, 40, 84, "" />
@@ -396,9 +376,7 @@ class C
       </sequencePoints>
     </method>
   </methods>
-</symbols>";
-
-            PDBTests.AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [WorkItem(729235, "DevDiv")]
@@ -432,10 +410,9 @@ class C
 
             var comp = CreateCompilationWithChecksums(source, "file.cs", @"b:\base");
             comp.VerifyDiagnostics();
-            string actual = PDBTests.GetPdbXml(comp, "C.M");
 
             // Verify the fact that all pragmas are referenced, even though the paths differ before normalization.
-            string expected = @"
+            comp.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name=""b:\base\file.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""2B, 34, 42, 7D, 32, E5,  A, 24, 3D,  1, 43, BF, 42, FB, 38, 57, 62, 60, 8B, 14, "" />
@@ -464,9 +441,7 @@ class C
       </sequencePoints>
     </method>
   </methods>
-</symbols>";
-
-            PDBTests.AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [WorkItem(729235, "DevDiv")]
@@ -492,10 +467,9 @@ class C
 
             var comp = CreateCompilationWithChecksums(source, "file.cs", null);
             comp.VerifyDiagnostics();
-            string actual = PDBTests.GetPdbXml(comp, "C.M");
 
             // Verify nothing blew up.
-            string expected = @"
+            comp.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name=""file.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""9B, 81, 4F, A7, E1, 1F, D2, 45, 8B,  0, F3, 82, 65, DF, E4, BF, A1, 3A, 3B, 29, "" />
@@ -520,9 +494,7 @@ class C
       </sequencePoints>
     </method>
   </methods>
-</symbols>";
-
-            PDBTests.AssertXmlEqual(expected, actual);
+</symbols>");
         }
     }
 }

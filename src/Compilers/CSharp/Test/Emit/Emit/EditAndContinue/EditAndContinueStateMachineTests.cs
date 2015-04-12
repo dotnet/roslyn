@@ -1,26 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class EditAndContinueStateMachineTests : EditAndContinueTestBase
     {
-        [Fact(Skip = "1137300")]
+        [Fact(Skip = "1068894"), WorkItem(1137300, "DevDiv")]
         public void AddIteratorMethod()
         {
             var source0 =
@@ -223,19 +218,18 @@ class C
                     Handle(2, TableIndex.NestedClass));
             }
 
-            string actualPdb1 = PdbToXmlConverter.DeltaPdbToXml(diff1.PdbDelta, Enumerable.Range(1, 100).Select(rid => 0x06000000 | rid));
-
-            // TODO (tomat): bug in SymWriter.
-            // The PDB is missing debug info for G method. The info is written to the PDB but the native SymWriter 
-            // seems to ignore it. If another method is added to the class all information is written. 
-            // This happens regardless of whether we emit just the delta or full PDB.
-
-            string expectedPdb1 = @"
+            diff1.VerifyPdb(Enumerable.Range(0x06000001, 0x20), @"
 <symbols>
   <files>
     <file id=""1"" name=""a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""6E, 19, 36, 2B, 9A, 28, AB, E3, A2, DA, EB, 51, C1, 37,  1, 10, B0, 4F, CA, 84, "" />
   </files>
   <methods>
+    <method token=""0x600000c"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;G&gt;d__1#1"" />
+      </customDebugInfo>
+      <sequencePoints />
+    </method>
     <method token=""0x600000f"">
       <customDebugInfo>
         <using>
@@ -254,9 +248,7 @@ class C
       </scope>
     </method>
   </methods>
-</symbols>";
-
-            AssertXmlEqual(expectedPdb1, actualPdb1);
+</symbols>");
         }
 
         [Fact]

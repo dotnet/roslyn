@@ -738,16 +738,6 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        public static void AssertXmlEqual(string expected, string actual)
-        {
-            XmlElementDiff.AssertEqual(XElement.Parse(expected), XElement.Parse(actual), null, 0, expectedIsXmlLiteral: true);
-        }
-
-        public static void AssertXmlEqual(XElement expected, XElement actual)
-        {
-            XmlElementDiff.AssertEqual(expected, actual, null, 0, expectedIsXmlLiteral: false);
-        }
-
         protected static string ConsolidateArguments(string[] args)
         {
             var consolidated = new StringBuilder();
