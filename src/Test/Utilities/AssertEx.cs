@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -527,5 +528,6 @@ namespace Roslyn.Test.Utilities
 
             return new List<Tuple<string, int, string>>();
         });
+
     }
 }

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -90,10 +91,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VerifyPdb(methodHandles.Select(h => MetadataTokens.GetToken(h)), expectedPdb);
         }
 
-        public void VerifyPdb(IEnumerable<int> methodTokens, string expectedPdb)
+        public void VerifyPdb(
+            IEnumerable<int> methodTokens, 
+            string expectedPdb,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
         {
             string actualPdb = PdbToXmlConverter.DeltaPdbToXml(PdbDelta, methodTokens);
-            TestBase.AssertXmlEqual(expectedPdb, actualPdb);
+            AssertXml.Equal(XElement.Parse(expectedPdb), XElement.Parse(actualPdb), expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: false);
         }
 
         internal string GetMethodIL(string qualifiedMethodName)

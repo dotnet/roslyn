@@ -277,14 +277,10 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.ReleaseDll)
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_1_Iterator_NoLambda_Hoisted.MoveNext")
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
 
             ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$0" and "$VB$ResumableLocal_y$1".
-            Dim expected =
+            compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_NoLambda_Hoisted.MoveNext",
 <symbols>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_NoLambda_Hoisted" name="MoveNext">
@@ -308,9 +304,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
@@ -331,14 +325,10 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.ReleaseDll)
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted.MoveNext")
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
 
             ' Goal: We're looking for the unmangled names "x" and "y".
-            Dim expected =
+            compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted.MoveNext",
 <symbols>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted" name="MoveNext">
@@ -360,9 +350,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         ''' <summary>
