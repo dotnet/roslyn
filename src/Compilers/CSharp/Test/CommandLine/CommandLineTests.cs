@@ -6167,7 +6167,7 @@ class Program2
         {
             string sourcePath = MakeTrivialExe();
             string exePath = Path.Combine(Path.GetDirectoryName(sourcePath), "test.exe");
-            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", $"/out:{exePath}", sourcePath });
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", $"/out:{exePath}", sourcePath });
             csc.FileOpen = (file, mode, access, share) =>
             {
                 if (file == exePath)
