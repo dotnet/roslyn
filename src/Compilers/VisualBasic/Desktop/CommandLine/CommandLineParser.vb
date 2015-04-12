@@ -1525,7 +1525,7 @@ lVbRuntimePlus:
             Dim diagnosticBuilder = ArrayBuilder(Of Diagnostic).GetInstance()
             Dim parsedTokensAsString As New StringBuilder
 
-            Dim defines As ImmutableDictionary(Of String, InternalSyntax.CConst) = PublicSymbolsToInternalDefines(symbols, NameOf(symbolList))
+            Dim defines As ImmutableDictionary(Of String, InternalSyntax.CConst) = PublicSymbolsToInternalDefines(symbols, "symbols")
 
             ' remove quotes around the whole /define argument (incl. nested)
             Dim unquotedString As String

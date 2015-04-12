@@ -27,7 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End If
 
             If codeModelService Is Nothing Then
-                Throw New ArgumentNullException(NameOf(workspace))
+                Throw New ArgumentNullException(NameOf(codeModelService))
             End If
 
             _workspace = workspace

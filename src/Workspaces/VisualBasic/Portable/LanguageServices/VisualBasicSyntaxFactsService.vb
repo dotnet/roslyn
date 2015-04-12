@@ -496,7 +496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If position < 0 OrElse position > root.Span.End Then
-                Throw New ArgumentOutOfRangeException(NameOf(root))
+                Throw New ArgumentOutOfRangeException(NameOf(position))
             End If
 
             Return root.
@@ -580,7 +580,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetContainingMemberDeclaration(root As SyntaxNode, position As Integer) As SyntaxNode Implements ISyntaxFactsService.GetContainingMemberDeclaration
             Contract.ThrowIfNull(root, NameOf(root))
-            Contract.ThrowIfTrue(position < 0 OrElse position > root.FullSpan.End, NameOf(root))
+            Contract.ThrowIfTrue(position < 0 OrElse position > root.FullSpan.End, NameOf(position))
 
             Dim [end] = root.FullSpan.End
             If [end] = 0 Then

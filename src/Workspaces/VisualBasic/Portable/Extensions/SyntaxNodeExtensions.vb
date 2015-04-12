@@ -724,7 +724,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End While
 
             Debug.Assert(Not self.FullSpan.Contains(position), "Position is valid. How could we not find a child?")
-            Throw New ArgumentOutOfRangeException(NameOf(self))
+            Throw New ArgumentOutOfRangeException(NameOf(position))
         End Function
 
 
