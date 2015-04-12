@@ -301,7 +301,6 @@
     <Compile Include="MetadataReader\MetadataHelpers.cs" />
     <Compile Include="MetadataReader\MetadataImportOptions.cs" />
     <Compile Include="MetadataReader\MetadataReaderExtensions.cs" />
-    <Compile Include="MetadataReader\MetadataReaderPdbExtensions.cs" />
     <Compile Include="MetadataReader\MetadataTypeCodeExtensions.cs" />
     <Compile Include="MetadataReader\MetadataTypeName.cs" />
     <Compile Include="MetadataReader\MetadataTypeName.Key.cs" />

@@ -234,7 +234,7 @@ namespace Microsoft.Cci
             size += GetTableSize(TableIndex.MethodBody, this.BlobIndexSize);
             size += GetTableSize(TableIndex.LocalScope, this.MethodDefIndexSize + this.ImportScopeIndexSize + this.LocalVariableIndexSize + this.LocalConstantIndexSize + 4 + 4);
             size += GetTableSize(TableIndex.LocalVariable, 2 + 2 + this.StringIndexSize);
-            size += GetTableSize(TableIndex.LocalConstant, this.StringIndexSize + this.BlobIndexSize + 1);
+            size += GetTableSize(TableIndex.LocalConstant, this.StringIndexSize + this.BlobIndexSize);
             size += GetTableSize(TableIndex.ImportScope, this.ImportScopeIndexSize + this.BlobIndexSize);
             size += GetTableSize(TableIndex.AsyncMethod, this.MethodDefIndexSize + 4 + this.BlobIndexSize);
             size += GetTableSize(TableIndex.CustomDebugInformation, this.HasCustomDebugInformationSize + this.GuidIndexSize + this.BlobIndexSize);
