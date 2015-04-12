@@ -121,7 +121,17 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 return HResult.E_INVALIDARG;
             }
 
-            method = new SymMethod(this, (MethodDefinitionHandle)handle);
+            var methodDefHandle = (MethodDefinitionHandle)handle;
+
+            var methodBody = MetadataReader.GetMethodBody(methodDefHandle);
+            if (methodBody.SequencePoints.IsNil)
+            {
+                // no debug info for the method
+                method = null;
+                return HResult.E_FAIL;
+            }
+
+            method = new SymMethod(this, methodDefHandle);
             return HResult.S_OK;
         }
 
