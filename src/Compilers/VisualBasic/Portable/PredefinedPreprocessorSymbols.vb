@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>Array of symbols that include VBC_VER and TARGET.</returns>
         Public Function AddPredefinedPreprocessorSymbols(kind As OutputKind, symbols As ImmutableArray(Of KeyValuePair(Of String, Object))) As ImmutableArray(Of KeyValuePair(Of String, Object))
             If Not kind.IsValid Then
-                Throw New ArgumentOutOfRangeException("kind")
+                Throw New ArgumentOutOfRangeException(NameOf(kind))
             End If
 
             Const CompilerVersionSymbol = "VBC_VER"

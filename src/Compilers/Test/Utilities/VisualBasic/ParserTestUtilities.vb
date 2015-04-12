@@ -320,7 +320,7 @@ Public Module VerificationHelpers
     <Extension()>
     Public Function FindNodeOrTokenByKind(tree As SyntaxTree, kind As SyntaxKind, Optional occurrence As Integer = 1) As SyntaxNodeOrToken
         If Not occurrence > 0 Then
-            Throw New ArgumentException("Specified value must be greater than zero.", "occurrence")
+            Throw New ArgumentException("Specified value must be greater than zero.", NameOf(tree))
         End If
         Dim foundNode As SyntaxNodeOrToken = Nothing
         If TryFindNodeOrToken(tree.GetRoot(), kind, occurrence, foundNode) Then

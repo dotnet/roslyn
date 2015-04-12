@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Else
                     Throw New ArgumentException(
                         VBWorkspaceResources.CannotMakeExplicit,
-                        paramName:="node")
+                        paramName:=NameOf(node))
                 End If
             End Using
         End Function
