@@ -177,7 +177,7 @@ end class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             Dim actual1 As XElement = GetPdbXml(compilation)
             Dim actual2 As XElement = GetPdbXml(compilation)
-            AssertXmlEqual(actual1, actual2)
+            AssertXml.Equal(actual1, actual2)
         End Sub
 
         <Fact>

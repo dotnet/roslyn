@@ -369,6 +369,7 @@ namespace X
                     new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("Q")),
                     new CSharpCompilationReference(dummyCompilation3, ImmutableArray.Create("R"))
                 });
+
             compilation.VerifyDiagnostics(
                 // (2,1): info CS8020: Unused extern alias.
                 // extern alias P;
@@ -380,9 +381,7 @@ namespace X
                 //         extern alias R;
                 Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias R;"));
 
-            //CONSIDER: Dev10 puts the <externinfo>s on A.M
-            string actual = GetPdbXml(compilation);
-            string expected = @"
+            compilation.VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -439,8 +438,7 @@ namespace X
       </scope>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact, WorkItem(1120579)]
@@ -672,10 +670,10 @@ namespace N
                 assemblyName: "Test",
                 options: TestOptions.DebugDll,
                 references: new[] { new CSharpCompilationReference(libComp, ImmutableArray.Create("P")) });
+
             compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            string actual = GetPdbXml(compilation);
-            string expected = @"
+            compilation.VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""N.B"" name=""M"">
@@ -701,8 +699,7 @@ namespace N
       </scope>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -787,9 +784,7 @@ namespace X
                 //         extern alias R;
                 Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias R;"));
 
-            //CONSIDER: Dev10 puts the <externinfo>s on A.M
-            string actual = GetPdbXml(compilation);
-            string expected = @"
+            compilation.VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -864,8 +859,7 @@ namespace X
       </scope>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact, WorkItem(913022, "DevDiv")]
@@ -905,9 +899,7 @@ public class C
                 });
 
             compilation2.VerifyDiagnostics();
-
-            string actual = GetPdbXml(compilation2);
-            string expected = @"
+            compilation2.VerifyPdb(@"
 <symbols>
     <methods>
         <method containingType=""C"" name=""Main"">
@@ -937,8 +929,7 @@ public class C
         </method>
     </methods>
 </symbols>
-";
-            AssertXmlEqual(expected, actual);
+");
         }
 
         [Fact, WorkItem(913022, "DevDiv")]
@@ -971,9 +962,7 @@ public class C
                 });
 
             compilation2.VerifyDiagnostics();
-
-            string actual = GetPdbXml(compilation2);
-            string expected = @"
+            compilation2.VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -998,8 +987,7 @@ public class C
     </method>
   </methods>
 </symbols>
-";
-            AssertXmlEqual(expected, actual);
+");
         }
 
         [Fact]
@@ -1091,8 +1079,7 @@ namespace X
                 //     extern alias Q;
                 Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Q;"));
 
-            string actual = GetPdbXml(compilation);
-            string expected = @"
+            compilation.VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""X.C"" name=""M"">
@@ -1167,8 +1154,7 @@ namespace X
       </scope>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -1804,8 +1790,10 @@ namespace @namespace
 
 class Test { static void Main() { } }
 ";
+            var comp = CreateCompilationWithMscorlib(source);
+            
             // As in dev12, we drop all '@'s.
-            var expectedXml = @"
+            comp.VerifyPdb("Test.Main", @"
 <symbols>
   <methods>
     <method containingType=""Test"" name=""Main"">
@@ -1824,10 +1812,7 @@ class Test { static void Main() { } }
       </scope>
     </method>
   </methods>
-</symbols>";
-
-            var comp = CreateCompilationWithMscorlib(source, assemblyName: "Test");
-            AssertXmlEqual(expectedXml, GetPdbXml(comp, "Test.Main"));
+</symbols>");
         }
 
         [WorkItem(842479, "DevDiv")]
@@ -1855,8 +1840,7 @@ namespace N
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, new[] { libRef });
-
-            var expectedXml = @"
+            comp.VerifyPdb("N.D.Main", @"
 <symbols>
   <methods>
     <method containingType=""N.D"" name=""Main"">
@@ -1879,9 +1863,7 @@ namespace N
       </scope>
     </method>
   </methods>
-</symbols>";
-
-            AssertXmlEqual(expectedXml, GetPdbXml(comp, "N.D.Main"));
+</symbols>");
         }
 
         [WorkItem(842478, "DevDiv")]
@@ -1897,8 +1879,7 @@ class D
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            var expectedXml = @"
+            comp.VerifyPdb("D.Main", @"
 <symbols>
   <methods>
     <method containingType=""D"" name=""Main"">
@@ -1915,9 +1896,7 @@ class D
       </scope>
     </method>
   </methods>
-</symbols>";
-
-            AssertXmlEqual(expectedXml, GetPdbXml(comp, "D.Main"));
+</symbols>");
         }
 
         [Fact]
@@ -2070,8 +2049,7 @@ class D
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            var expectedXml = @"
+            comp.VerifyPdb("D.Main", @"
 <symbols>
     <methods>
         <method containingType=""D"" name=""Main"">
@@ -2089,9 +2067,7 @@ class D
             </scope>
         </method>
     </methods>
-</symbols>";
-
-            AssertXmlEqual(expectedXml, GetPdbXml(comp, "D.Main"));
+</symbols>");
         }
 
         [Fact]
