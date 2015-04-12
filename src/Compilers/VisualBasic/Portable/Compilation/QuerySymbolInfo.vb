@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional cancellationToken As CancellationToken = Nothing
         ) As CollectionRangeVariableSymbolInfo
             If variableSyntax Is Nothing Then
-                Throw New ArgumentNullException(NameOf(variableSyntax))
+                Throw New ArgumentNullException("variableSyntax")
             End If
             If Not IsInTree(variableSyntax) Then
                 Throw New ArgumentException(VBResources.VariableSyntaxNotWithinSyntaxTree)
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional cancellationToken As CancellationToken = Nothing
         ) As AggregateClauseSymbolInfo
             If aggregateSyntax Is Nothing Then
-                Throw New ArgumentNullException(NameOf(aggregateSyntax))
+                Throw New ArgumentNullException("aggregateSyntax")
             End If
             If Not IsInTree(aggregateSyntax) Then
                 Throw New ArgumentException(VBResources.AggregateSyntaxNotWithinSyntaxTree)

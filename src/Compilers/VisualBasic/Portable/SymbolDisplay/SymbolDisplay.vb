@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        format As SymbolDisplayFormat,
                                        minimal As Boolean) As ImmutableArray(Of SymbolDisplayPart)
             If symbol Is Nothing Then
-                Throw New ArgumentNullException(NameOf(symbol))
+                Throw New ArgumentNullException("symbol")
             End If
 
             If minimal Then

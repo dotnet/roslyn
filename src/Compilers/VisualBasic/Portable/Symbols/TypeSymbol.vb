@@ -470,7 +470,7 @@ Done:
         Public Function FindImplementationForInterfaceMember(interfaceMember As Symbol) As Symbol
             ' This layer handles caching, ComputeImplementationForInterfaceMember does the work.
             If interfaceMember Is Nothing Then
-                Throw New ArgumentNullException(NameOf(interfaceMember))
+                Throw New ArgumentNullException("interfaceMember")
             End If
 
             If Not interfaceMember.ContainingType.IsInterfaceType() OrElse

@@ -545,7 +545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(identifierSyntax As ModifiedIdentifierSyntax, Optional cancellationToken As CancellationToken = Nothing) As ISymbol
             If identifierSyntax Is Nothing Then
-                Throw New ArgumentNullException(NameOf(identifierSyntax))
+                Throw New ArgumentNullException("identifierSyntax")
             End If
             If Not IsInTree(identifierSyntax) Then
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
@@ -579,7 +579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(anonymousObjectCreationExpressionSyntax As AnonymousObjectCreationExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
             If anonymousObjectCreationExpressionSyntax Is Nothing Then
-                Throw New ArgumentNullException(NameOf(anonymousObjectCreationExpressionSyntax))
+                Throw New ArgumentNullException("anonymousObjectCreationExpressionSyntax")
             End If
             If Not IsInTree(anonymousObjectCreationExpressionSyntax) Then
                 Throw New ArgumentException(VBResources.AnonymousObjectCreationExpressionSyntaxNotWithinTree)
@@ -595,7 +595,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(fieldInitializerSyntax As FieldInitializerSyntax, Optional cancellationToken As System.Threading.CancellationToken = Nothing) As IPropertySymbol
             If fieldInitializerSyntax Is Nothing Then
-                Throw New ArgumentNullException(NameOf(fieldInitializerSyntax))
+                Throw New ArgumentNullException("fieldInitializerSyntax")
             End If
             If Not IsInTree(fieldInitializerSyntax) Then
                 Throw New ArgumentException(VBResources.FieldInitializerSyntaxNotWithinSyntaxTree)
@@ -630,7 +630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(rangeVariableSyntax As CollectionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
             If rangeVariableSyntax Is Nothing Then
-                Throw New ArgumentNullException(NameOf(rangeVariableSyntax))
+                Throw New ArgumentNullException("rangeVariableSyntax")
             End If
             If Not IsInTree(rangeVariableSyntax) Then
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
@@ -651,7 +651,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(rangeVariableSyntax As ExpressionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
             If rangeVariableSyntax Is Nothing Then
-                Throw New ArgumentNullException(NameOf(rangeVariableSyntax))
+                Throw New ArgumentNullException("rangeVariableSyntax")
             End If
             If Not IsInTree(rangeVariableSyntax) Then
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
@@ -668,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(rangeVariableSyntax As AggregationRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
             If rangeVariableSyntax Is Nothing Then
-                Throw New ArgumentNullException(NameOf(rangeVariableSyntax))
+                Throw New ArgumentNullException("rangeVariableSyntax")
             End If
             If Not IsInTree(rangeVariableSyntax) Then
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)

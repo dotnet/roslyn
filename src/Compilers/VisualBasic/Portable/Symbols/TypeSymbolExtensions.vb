@@ -869,17 +869,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Friend Sub CheckTypeArguments(typeArguments As ImmutableArray(Of TypeSymbol), expectedCount As Integer)
             If typeArguments.IsDefault Then
-                Throw New Global.System.ArgumentNullException(NameOf(typeArguments))
+                Throw New Global.System.ArgumentNullException("typeArguments")
             End If
 
             For Each typeArg In typeArguments
                 If typeArg Is Nothing Then
-                    Throw New ArgumentException(VBResources.TypeArgumentCannotBeNothing, NameOf(typeArguments))
+                    Throw New ArgumentException(VBResources.TypeArgumentCannotBeNothing, "typeArguments")
                 End If
             Next
 
             If typeArguments.Length = 0 OrElse typeArguments.Length <> expectedCount Then
-                Throw New ArgumentException(VBResources.WrongNumberOfTypeArguments, NameOf(typeArguments))
+                Throw New ArgumentException(VBResources.WrongNumberOfTypeArguments, "typeArguments")
             End If
         End Sub
 

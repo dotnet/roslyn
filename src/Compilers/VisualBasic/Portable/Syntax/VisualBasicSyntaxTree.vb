@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function WithChanges(newText As SourceText, changes As TextChangeRange()) As SyntaxTree
             If changes Is Nothing Then
-                Throw New ArgumentNullException(NameOf(newText))
+                Throw New ArgumentNullException("changes")
             End If
 
             Dim scanner As scanner
@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       Optional path As String = "",
                                       Optional encoding As Encoding = Nothing) As SyntaxTree
             If root Is Nothing Then
-                Throw New ArgumentNullException(NameOf(root))
+                Throw New ArgumentNullException("root")
             End If
 
             Return New ParsedSyntaxTree(
@@ -217,11 +217,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
 
             If text Is Nothing Then
-                Throw New ArgumentNullException(NameOf(text))
+                Throw New ArgumentNullException("text")
             End If
 
             If path Is Nothing Then
-                Throw New ArgumentNullException(NameOf(text))
+                Throw New ArgumentNullException("path")
             End If
 
             options = If(options, VisualBasicParseOptions.Default)
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This method does not filter diagnostics based on compiler options like /nowarn, /warnaserror etc.
         ''' </remarks>
         Public Overrides Function GetDiagnostics(node As SyntaxNode) As IEnumerable(Of Diagnostic)
-            If node Is Nothing Then Throw New ArgumentNullException(NameOf(node))
+            If node Is Nothing Then Throw New ArgumentNullException("node")
 
             Return Me.GetDiagnostics(DirectCast(node.Green, InternalSyntax.VisualBasicSyntaxNode), DirectCast(node, VisualBasicSyntaxNode).Position, InDocumentationComment(node))
         End Function
@@ -451,7 +451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks>The list is pessimistic because it may claim more or larger regions than actually changed.</remarks>
         Public Overrides Function GetChangedSpans(oldTree As SyntaxTree) As IList(Of TextSpan)
             If oldTree Is Nothing Then
-                Throw New ArgumentNullException(NameOf(oldTree))
+                Throw New ArgumentNullException("oldTree")
             End If
 
             Return SyntaxDiffer.GetPossiblyDifferentTextSpans(oldTree.GetRoot(), Me.GetRoot())
@@ -464,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks>The list of changes may be different than the original changes that produced this tree.</remarks>
         Public Overrides Function GetChanges(oldTree As SyntaxTree) As IList(Of TextChange)
             If oldTree Is Nothing Then
-                Throw New ArgumentNullException(NameOf(oldTree))
+                Throw New ArgumentNullException("oldTree")
             End If
 
             Return SyntaxDiffer.GetTextChanges(oldTree, Me)

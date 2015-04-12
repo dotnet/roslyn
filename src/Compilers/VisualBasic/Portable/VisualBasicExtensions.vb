@@ -386,11 +386,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function Insert(list As SyntaxTokenList, index As Integer, ParamArray items As SyntaxToken()) As SyntaxTokenList
             If index < 0 OrElse index > list.Count Then
-                Throw New ArgumentOutOfRangeException(NameOf(list))
+                Throw New ArgumentOutOfRangeException("index")
             End If
 
             If items Is Nothing Then
-                Throw New ArgumentNullException(NameOf(list))
+                Throw New ArgumentNullException("items")
             End If
 
             If list.Count = 0 Then

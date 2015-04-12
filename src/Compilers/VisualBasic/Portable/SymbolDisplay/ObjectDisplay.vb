@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 Return If(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers), "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
             End If
 
-            Return """"c & EscapeQuote(c) & """"c & NameOf(c)
+            Return """"c & EscapeQuote(c) & """"c & "c"
         End Function
 
         Private Function EscapeQuote(c As Char) As String
