@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 this.ValueFlags,
                 this.Category,
                 this.Access,
-                this.NativeComPointer);
+                nativeComPointer);
         }
 
         public void Close()
@@ -761,7 +761,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
         private static DkmEvaluationResultAccessType GetPropertyAccess(Microsoft.VisualStudio.Debugger.Metadata.PropertyInfo property)
         {
-            return GetMethodAccess(property.GetGetMethod() ?? property.GetSetMethod());
+            return GetMethodAccess(property.GetGetMethod(nonPublic: true));
         }
 
         private static DkmEvaluationResultAccessType GetMethodAccess(Microsoft.VisualStudio.Debugger.Metadata.MethodBase method)

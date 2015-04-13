@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class NativeViewTests : CSharpResultProviderTestBase
     {
         [Fact]
-        public void NativeView1()
+        public void NativeView()
         {
             TestNativeView(true);
         }
@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestNativeView(bool enableNativeDebugging)
         {
             var source =
-@"using System.Collections;
-class C
+@"class C
 {
 }";
             using (new EnsureEnglishUICulture())
@@ -50,7 +49,7 @@ class C
                     {
                         DkmLanguage language = new DkmLanguage(new DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.Cpp));
                         Verify(children,
-                            EvalIntermediateResult("Native View", "{C++}(IUnknown*)0x000000fe", "(IUnknown*)0x000000fe", language));
+                            EvalIntermediateResult("Native View", "{C++}(IUnknown*)0x000000FE", "(IUnknown*)0x000000FE", language));
                     }
                     else
                     {

@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (value.NativeComPointer != 0)
             {
-                expansions.Add(new NativeViewExpansion());
+                expansions.Add(NativeViewExpansion.Instance);
             }
 
             if (nonPublicInstanceExpansion != null)
