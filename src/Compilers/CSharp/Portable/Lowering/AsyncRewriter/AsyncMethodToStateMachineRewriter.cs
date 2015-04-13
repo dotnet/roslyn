@@ -256,15 +256,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol isCompletedMethod = ((object)node.IsCompleted != null) ? VisitMethodSymbol(node.IsCompleted.GetMethod) : null;
             TypeSymbol type = VisitType(node.Type);
 
-            // The lifespan of awaiter temp doesn't cross sequence points (user code in between awaits), so it doesn't need to be named.
+            // The awaiter temp facilitates EnC method remapping and thus have to be long-lived.
+            // It transfers the awaiter objects from the old version of the MoveNext method to the new one.
+            Debug.Assert(node.Syntax.IsKind(SyntaxKind.AwaitExpression));
             TypeSymbol awaiterType = node.IsDynamic ? DynamicTypeSymbol.Instance : getAwaiter.ReturnType;
-            var awaiterTemp = F.SynthesizedLocal(awaiterType);
+            var awaiterTemp = F.SynthesizedLocal(awaiterType, syntax: node.Syntax, kind: SynthesizedLocalKind.Awaiter);
 
             var awaitIfIncomplete = F.Block(
                     // temp $awaiterTemp = <expr>.GetAwaiter();
                     F.Assignment(
                         F.Local(awaiterTemp),
                         MakeCallMaybeDynamic(expression, getAwaiter, WellKnownMemberNames.GetAwaiter)),
+
+                    // hidden sequence point facilitates EnC method remapping, see explanation on SynthesizedLocalKind.Awaiter:
+                    F.HiddenSequencePoint(),
 
                     // if(!($awaiterTemp.IsCompleted)) { ... }
                     F.If(

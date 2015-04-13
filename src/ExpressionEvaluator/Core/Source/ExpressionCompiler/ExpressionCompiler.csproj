@@ -74,6 +74,10 @@
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\PortablePdb\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
+      <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
+      <Name>Microsoft.DiaSymReader.PortablePdb</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Concord\Concord.csproj">
       <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
       <Name>Concord</Name>

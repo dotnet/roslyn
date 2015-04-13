@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 }
 
                 // only follow minimum length for live diagnostic. otherwise, let it be zero length.
-                var minimumLegnth = _id is UpdateArgsId ? _owner.MinimumLength : 0;
+                var minimumLegnth = _id is ISupportLiveUpdate ? _owner.MinimumLength : 0;
 
                 foreach (var data in result)
                 {

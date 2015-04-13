@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -10,12 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.AddImport;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -491,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 {
                     if (TryGetNamespaceString(namespaceSymbol, root, false, externAliasString, out namespaceString))
                     {
-                        return SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(namespaceString));
+                        return SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(namespaceString).WithAdditionalAnnotations(Simplifier.Annotation));
                     }
 
                     return null;
@@ -499,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
                 if (TryGetNamespaceString(namespaceSymbol, root, fullyQualify, null, out namespaceString))
                 {
-                    return SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(namespaceString));
+                    return SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(namespaceString).WithAdditionalAnnotations(Simplifier.Annotation));
                 }
             }
 
@@ -509,10 +506,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 if (TryGetStaticNamespaceString(namespaceSymbol, root, fullyQualify, null, out staticNamespaceString))
                 {
                     return SyntaxFactory.UsingDirective(
-                        SyntaxFactory.Token(SyntaxKind.UsingKeyword), 
-                        SyntaxFactory.Token(SyntaxKind.StaticKeyword), 
-                        null, 
-                        SyntaxFactory.ParseName(staticNamespaceString), 
+                        SyntaxFactory.Token(SyntaxKind.UsingKeyword),
+                        SyntaxFactory.Token(SyntaxKind.StaticKeyword),
+                        null,
+                        SyntaxFactory.ParseName(staticNamespaceString).WithAdditionalAnnotations(Simplifier.Annotation),
                         SyntaxFactory.Token(SyntaxKind.SemicolonToken));
                 }
             }

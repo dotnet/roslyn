@@ -2099,6 +2099,12 @@ namespace Microsoft.Cci
             if (IsFullMetadata && entryPoint?.GetResolvedMethod(Context) != null)
             {
                 entryPointToken = GetMethodToken(entryPoint);
+                nativePdbWriterOpt?.SetEntryPoint(entryPointToken);
+
+                if (debugHeapsOpt != null)
+                {
+                    DefineEntryPointCustomDebugInformation((int)entryPointToken);
+                }
             }
             else
             {

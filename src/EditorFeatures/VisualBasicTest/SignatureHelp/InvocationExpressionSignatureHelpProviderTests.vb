@@ -933,6 +933,47 @@ End Class
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub NonIdentifierConditionalIndexer()
+            Dim expected = {New SignatureHelpTestItem("String(index As Integer) As Char")}
+
+            ' inline with a string literal
+            Test("
+Class C
+    Sub M()
+        Dim c = """"?($$
+    End Sub
+End Class
+", expected)
+
+            ' parenthesized expression
+            Test("
+Class C
+    Sub M()
+        Dim c = ("""")?($$
+    End Sub
+End Class
+", expected)
+
+            ' new object expression
+            Test("
+Class C
+    Sub M()
+        Dim c = (New System.String("" ""c, 1))?($$
+    End Sub
+End Class
+", expected)
+
+            ' more complicated parenthesized expression
+            Test("
+Class C
+    Sub M()
+        Dim c = (CType(Nothing, System.Collections.Generic.List(Of Integer)))?($$
+    End Sub
+End Class
+", {New SignatureHelpTestItem("System.Collections.Generic.List(Of Integer)(index As Integer) As Integer")})
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestTriggerCharacters()
             Dim expectedTriggerCharacters() As Char = {","c, "("c}
             Dim unexpectedTriggerCharacters() As Char = {" "c, "["c, "<"c}

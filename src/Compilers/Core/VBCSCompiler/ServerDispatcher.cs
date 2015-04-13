@@ -72,6 +72,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // location of the response files.
             var compilerExeDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
+            // Pipename should be passed as the first and only argument to the server process
+            // and it must have the form "-pipename:name". Otherwise, exit with a non-zero
+            // exit code
+            const string pipeArgPrefix = "-pipename:";
+            if (args.Length != 1 ||
+                args[0].Length <= pipeArgPrefix.Length ||
+                !args[0].StartsWith(pipeArgPrefix))
+            {
+                return CommonCompiler.Failed;
+            }
+
+            var pipeName = args[0].Substring(pipeArgPrefix.Length);
+
             try
             {
                 int keepAliveValue;
@@ -106,10 +119,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var dispatcher = new ServerDispatcher(new CompilerRequestHandler(compilerExeDirectory), new EmptyDiagnosticListener());
 
             dispatcher.ListenAndDispatchConnections(
-                BuildProtocolConstants.GetPipeName(compilerExeDirectory),
+                pipeName,
                 keepAliveTimeout,
                 watchAnalyzerFiles: true);
-            return 0;
+            return CommonCompiler.Succeeded;
         }
 
         // Size of the buffers to use

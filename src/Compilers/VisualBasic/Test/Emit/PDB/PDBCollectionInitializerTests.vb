@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBCollectionInitializerTests
@@ -24,13 +26,9 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("C1.Main",
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -46,9 +44,6 @@ End Class
                 <entry offset="0x1" startLine="10" startColumn="13" endLine="10" endColumn="91" document="0"/>
                 <entry offset="0x2a" startLine="11" startColumn="5" endLine="11" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="aList1" il_index="0" il_start="0x0" il_end="0x2b" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x2b">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -57,9 +52,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact>
@@ -82,13 +75,9 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("C1.Main",
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -104,9 +93,6 @@ End Class
                 <entry offset="0x1" startLine="10" startColumn="13" endLine="10" endColumn="73" document="0"/>
                 <entry offset="0x2a" startLine="11" startColumn="5" endLine="11" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="aList2" il_index="0" il_start="0x0" il_end="0x2b" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x2b">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -115,9 +101,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact>
@@ -141,9 +125,7 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-            Dim actual = GetPdbXml(compilation, "C1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("C1.Main",
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -160,9 +142,6 @@ End Class
                 <entry offset="0x1" startLine="10" startColumn="13" endLine="10" endColumn="107" document="0"/>
                 <entry offset="0x2c" startLine="11" startColumn="5" endLine="11" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="aList1" il_index="0" il_start="0x0" il_end="0x2d" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x2d">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -171,9 +150,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact>
@@ -196,13 +173,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
-
-            Dim expected =
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            compilation.VerifyPdb("C1.Main",
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -220,10 +192,6 @@ End Class
                 <entry offset="0x2a" startLine="10" startColumn="21" endLine="10" endColumn="27" document="0"/>
                 <entry offset="0x53" startLine="11" startColumn="5" endLine="11" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="aList1" il_index="0" il_start="0x0" il_end="0x54" attributes="0"/>
-                <local name="aList2" il_index="1" il_start="0x0" il_end="0x54" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x54">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -233,9 +201,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
     End Class

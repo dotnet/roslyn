@@ -112,8 +112,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
 
             private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateAnalyzerMap(
-                    string language, IEnumerable<ImmutableArray<DiagnosticAnalyzer>> analyzerCollection)
+                HostAnalyzerManager analyzerManager, string language, IEnumerable<ImmutableArray<DiagnosticAnalyzer>> analyzerCollection)
             {
+                var compilerAnalyzer = analyzerManager.GetCompilerDiagnosticAnalyzer(language);
+
                 var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, StateSet>();
                 foreach (var analyzers in analyzerCollection)
                 {
@@ -128,11 +130,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                             continue;
                         }
 
-                        builder.Add(analyzer, new StateSet(language, analyzer));
+                        var errorSourceName = analyzer == compilerAnalyzer ?
+                            PredefinedErrorSources.Compiler : GetErrorSourceName(analyzerManager, language, analyzer);
+
+                        builder.Add(analyzer, new StateSet(language, analyzer, errorSourceName));
                     }
                 }
 
                 return builder.ToImmutable();
+            }
+
+            private static string GetErrorSourceName(HostAnalyzerManager analyzerManager, string language, DiagnosticAnalyzer analyzer)
+            {
+                var packageName = analyzerManager.GetDiagnosticAnalyzerPackageName(language, analyzer);
+                if (packageName == null)
+                {
+                    return null;
+                }
+
+                return $"{analyzer.GetAnalyzerAssemblyName()} [{packageName}]";
             }
 
             [Conditional("DEBUG")]

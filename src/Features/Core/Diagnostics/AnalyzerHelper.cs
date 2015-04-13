@@ -43,6 +43,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return ValueTuple.Create(GetAssemblyQualifiedNameWithoutVersion(type), GetAnalyzerVersion(type.Assembly.Location));
         }
 
+        public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
+        {
+            var type = analyzer.GetType();
+            return type.Assembly.GetName().Name;
+        }
+
         private static string GetAssemblyQualifiedNameWithoutVersion(Type type)
         {
             var name = type.AssemblyQualifiedName;

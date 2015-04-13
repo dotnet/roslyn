@@ -203,7 +203,8 @@ class C
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
                 C.<M>d__0 V_2,
                 int V_3,
-                System.Exception V_4)
+                System.Runtime.CompilerServices.TaskAwaiter V_4,
+                System.Exception V_5)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__0.{0}""
   IL_0006:  ret

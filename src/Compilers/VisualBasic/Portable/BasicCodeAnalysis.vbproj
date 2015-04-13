@@ -971,7 +971,9 @@
     <Compile Include="Compilation\ModuleCompilationState.vb" />
     <PublicAPI Include="PublicAPI.txt" />
     <Content Include="Symbols\SymbolsAndNoPia.docx" />
-    <ErrorCode Include="Errors\Errors.vb" />
+    <ErrorCode Include="Errors\Errors.vb">
+      <Visible>false</Visible>
+    </ErrorCode>
     <SyntaxDefinition Include="Syntax\Syntax.xml">
       <SubType>Designer</SubType>
     </SyntaxDefinition>

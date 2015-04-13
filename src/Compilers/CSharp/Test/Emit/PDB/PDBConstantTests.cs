@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -42,10 +43,6 @@ class C
         <entry offset=""0x2"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
         <entry offset=""0x3"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <constant name=""x"" value=""1"" type=""Int32"" />
-        <constant name=""y"" value=""2"" type=""Int32"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x4"">
         <constant name=""x"" value=""1"" type=""Int32"" />
         <scope startOffset=""0x1"" endOffset=""0x3"">
@@ -97,9 +94,6 @@ class C
         <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""15"" endColumn=""12"" document=""0"" />
         <entry offset=""0x27"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <constant name=""x"" value=""1"" type=""Int32"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x28"">
         <namespace name=""System"" />
         <constant name=""x"" value=""1"" type=""Int32"" />
@@ -115,10 +109,6 @@ class C
         <entry offset=""0x2"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""14"" document=""0"" />
         <entry offset=""0x5"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <constant name=""y"" value=""2"" type=""Int32"" />
-        <constant name=""z"" value=""3"" type=""Int32"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x6"">
         <constant name=""y"" value=""2"" type=""Int32"" />
         <scope startOffset=""0x1"" endOffset=""0x3"">
@@ -198,10 +188,6 @@ class C
         <entry offset=""0x68"" hidden=""true"" document=""0"" />
         <entry offset=""0x6b"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <constant name=""x"" value=""1"" type=""Int32"" />
-        <constant name=""y"" value=""2"" type=""Int32"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x6f"">
         <namespace name=""System.Collections.Generic"" />
         <scope startOffset=""0x21"" endOffset=""0x6f"">
@@ -246,12 +232,6 @@ class C
         <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <constant name=""o"" value=""null"" type=""Object"" />
-        <constant name=""s"" value=""hello"" type=""String"" />
-        <constant name=""f"" value=""-3.402823E+38"" type=""Single"" />
-        <constant name=""d"" value=""1.79769313486232E+308"" type=""Double"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <constant name=""o"" value=""null"" type=""Object"" />
         <constant name=""s"" value=""hello"" type=""String"" />
@@ -312,7 +292,9 @@ this is a string constant that is too long to fit into the PDB"";
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
+            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+            
+            c.VerifyPdb("C.M", @"
 <symbols>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -325,10 +307,24 @@ this is a string constant that is too long to fit into the PDB"";
         <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""43"" startColumn=""5"" endLine=""43"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
-</symbols>");
+</symbols>", DebugInformationFormat.Pdb);
+
+            c.VerifyPdb("C.M", @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""43"" startColumn=""5"" endLine=""43"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <constant name=""text"" value=""\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB"" type=""String"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>", DebugInformationFormat.PortablePdb);
         }
 
         [Fact]
@@ -358,9 +354,6 @@ class C
         <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <constant name=""d"" value=""1.5"" type=""Decimal"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <constant name=""d"" value=""1.5"" type=""Decimal"" />
       </scope>

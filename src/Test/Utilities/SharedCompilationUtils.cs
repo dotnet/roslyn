@@ -75,56 +75,173 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal static void VerifyPdb(
             this Compilation compilation,
             string expectedPdb,
+            DebugInformationFormat format = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            VerifyPdb(compilation, "", expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+            VerifyPdb(compilation, "", expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath);
         }
 
         internal static void VerifyPdb(
             this Compilation compilation,
             string qualifiedMethodName,
             string expectedPdb,
+            DebugInformationFormat format = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            string actualPdb = GetPdbXml(compilation, qualifiedMethodName);
-            XmlElementDiff.AssertEqual(ParseExpectedPdbXml(expectedPdb), XElement.Parse(actualPdb), expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: false);
-        }
+            var expectedPdbXml = XElement.Parse(string.IsNullOrWhiteSpace(expectedPdb) ? "<symbols></symbols>" : expectedPdb);
 
-        private static XElement ParseExpectedPdbXml(string str)
-        {
-            return XElement.Parse(string.IsNullOrWhiteSpace(str) ? "<symbols></symbols>" : str);
+            VerifyPdbImpl(
+                compilation, 
+                qualifiedMethodName,
+                expectedPdbXml,
+                format,
+                expectedValueSourceLine, 
+                expectedValueSourcePath,
+                expectedIsXmlLiteral: false);
         }
 
         internal static void VerifyPdb(
             this Compilation compilation,
             XElement expectedPdb,
+            DebugInformationFormat format = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            VerifyPdb(compilation, "", expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+            VerifyPdb(compilation, "", expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath);
         }
 
         internal static void VerifyPdb(
             this Compilation compilation,
             string qualifiedMethodName,
             XElement expectedPdb,
+            DebugInformationFormat format = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            XElement actualPdb = XElement.Parse(GetPdbXml(compilation, qualifiedMethodName));
-            XmlElementDiff.AssertEqual(expectedPdb, actualPdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: true);
+            VerifyPdbImpl(
+                compilation, 
+                qualifiedMethodName,
+                expectedPdb,
+                format,
+                expectedValueSourceLine, 
+                expectedValueSourcePath, 
+                expectedIsXmlLiteral: true);
         }
 
-        internal static string GetPdbXml(Compilation compilation, string qualifiedMethodName = "")
+        private static void VerifyPdbImpl(
+            this Compilation compilation,
+            string qualifiedMethodName,
+            XElement expectedPdb,
+            DebugInformationFormat format,
+            int expectedValueSourceLine,
+            string expectedValueSourcePath,
+            bool expectedIsXmlLiteral)
+        {
+            Assert.NotEqual(DebugInformationFormat.Embedded, format);
+
+            if (format == 0 || format == DebugInformationFormat.Pdb)
+            {
+                XElement actualNativePdb = XElement.Parse(GetPdbXml(compilation, qualifiedMethodName, portable: false));
+                AssertXml.Equal(expectedPdb, actualNativePdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
+            }
+
+            if (format == 0 || format == DebugInformationFormat.PortablePdb)
+            {
+                XElement actualPortablePdb = XElement.Parse(GetPdbXml(compilation, qualifiedMethodName, portable: true));
+
+                // SymWriter doesn't create empty scopes. When the C# compiler uses forwarding CDI instead of a NamespaceScope
+                // the scope is actually not empty - it logically contains the imports. Portable PDB does not used forwarding and thus
+                // creates the scope. When generating PDB XML for testing the Portable DiaSymReader returns empty namespaces.
+                RemoveEmptyScopes(actualPortablePdb);
+
+                // sharing the same expected output with native PDB
+                if (format == 0)
+                {
+                    RemoveNonPortablePdb(expectedPdb);
+
+                    // TODO: remove
+                    RemoveEmptySequencePoints(expectedPdb);
+
+                    // remove scopes that only contained non-portable elements (namespace scopes)
+                    RemoveEmptyScopes(expectedPdb);
+
+                    RemoveEmptyMethods(expectedPdb);
+                }
+
+                AssertXml.Equal(expectedPdb, actualPortablePdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
+            }
+        }
+
+        private static void RemoveEmptyScopes(XElement pdb)
+        {
+            var emptyScopes = from e in pdb.DescendantsAndSelf()
+                              where e.Name == "scope" && !e.HasElements
+                              select e;
+
+            foreach (var e in emptyScopes.ToArray())
+            {
+                e.Remove();
+            }
+        }
+
+        private static void RemoveEmptySequencePoints(XElement pdb)
+        {
+            var emptyScopes = from e in pdb.DescendantsAndSelf()
+                              where e.Name == "sequencePoints" && !e.HasElements
+                              select e;
+
+            foreach (var e in emptyScopes.ToArray())
+            {
+                e.Remove();
+            }
+        }
+
+        private static void RemoveEmptyMethods(XElement pdb)
+        {
+            var emptyScopes = from e in pdb.DescendantsAndSelf()
+                              where e.Name == "method" && !e.HasElements
+                              select e;
+
+            foreach (var e in emptyScopes.ToArray())
+            {
+                e.Remove();
+            }
+        }
+
+        private static void RemoveNonPortablePdb(XElement expectedNativePdb)
+        {
+            var nonPortableElements = from e in expectedNativePdb.DescendantsAndSelf()
+                                      where e.Name == "customDebugInfo" ||
+                                            e.Name == "currentnamespace" ||
+                                            e.Name == "defaultnamespace" ||
+                                            e.Name == "importsforward" ||
+                                            e.Name == "xmlnamespace" ||
+                                            e.Name == "alias" ||
+                                            e.Name == "namespace" ||
+                                            e.Name == "type" ||
+                                            e.Name == "extern" ||
+                                            e.Name == "externinfo"
+                                      select e;
+
+            foreach (var e in nonPortableElements.ToArray())
+            {
+                e.Remove();
+            }
+        }
+
+        internal static string GetPdbXml(Compilation compilation, string qualifiedMethodName = "", bool portable = true)
         {
             string actual = null;
             using (var exebits = new MemoryStream())
             {
                 using (var pdbbits = new MemoryStream())
                 {
-                    compilation.Emit(exebits, pdbbits);
+                    compilation.Emit(
+                        exebits, 
+                        pdbbits, 
+                        options: EmitOptions.Default.WithDebugInformationFormat(portable ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb));
 
                     pdbbits.Position = 0;
                     exebits.Position = 0;
@@ -132,13 +249,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     actual = PdbToXmlConverter.ToXml(pdbbits, exebits, PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError, methodName: qualifiedMethodName);
                 }
 
-                ValidateDebugDirectory(exebits, compilation.AssemblyName + ".pdb");
+                ValidateDebugDirectory(exebits, compilation.AssemblyName + ".pdb", portable);
             }
 
             return actual;
         }
 
-        public static void ValidateDebugDirectory(Stream peStream, string pdbPath)
+        public static void ValidateDebugDirectory(Stream peStream, string pdbPath, bool isPortable)
         {
             peStream.Seek(0, SeekOrigin.Begin);
             PEReader peReader = new PEReader(peStream);
@@ -161,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             uint timeDateStamp = reader.ReadUInt32();
 
             uint version = reader.ReadUInt32();
-            Assert.Equal(0u, version);
+            Assert.Equal(isPortable ? 0x504d0001u : 0, version);
 
             int type = reader.ReadInt32();
             Assert.Equal(2, type);

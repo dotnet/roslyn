@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
+using PortablePdb = Microsoft.DiaSymReader.PortablePdb;
 
 namespace Microsoft.DiaSymReader
 {
@@ -53,12 +54,23 @@ namespace Microsoft.DiaSymReader
 
         public static ISymUnmanagedReader CreateReader(Stream pdbStream, object metadataImporter)
         {
-            // NOTE: The product uses a different GUID (Microsoft.CodeAnalysis.ExpressionEvaluator.DkmUtilities.s_symUnmanagedReaderClassId).
-            Guid corSymReaderSxS = new Guid("0A3976C5-4529-4ef8-B0B0-42EED37082CD");
-            var reader = (ISymUnmanagedReader)Activator.CreateInstance(Type.GetTypeFromCLSID(corSymReaderSxS));
-            int hr = reader.Initialize(metadataImporter, null, null, new ComStreamWrapper(pdbStream));
-            SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
-            return reader;
+            pdbStream.Position = 0;
+            bool isPortable = pdbStream.ReadByte() == 'B' && pdbStream.ReadByte() == 'S' && pdbStream.ReadByte() == 'J' && pdbStream.ReadByte() == 'B';
+            pdbStream.Position = 0;
+
+            if (isPortable)
+            {
+                return new PortablePdb.SymReader(new PortablePdb.PortablePdbReader(pdbStream, metadataImporter));
+            }
+            else
+            {
+                // NOTE: The product uses a different GUID (Microsoft.CodeAnalysis.ExpressionEvaluator.DkmUtilities.s_symUnmanagedReaderClassId).
+                Guid corSymReaderSxS = new Guid("0A3976C5-4529-4ef8-B0B0-42EED37082CD");
+                var reader = (ISymUnmanagedReader)Activator.CreateInstance(Type.GetTypeFromCLSID(corSymReaderSxS));
+                int hr = reader.Initialize(metadataImporter, null, null, new ComStreamWrapper(pdbStream));
+                SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
+                return reader;
+            }
         }
     }
 }

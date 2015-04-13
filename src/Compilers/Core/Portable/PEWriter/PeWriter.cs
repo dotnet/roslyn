@@ -79,19 +79,13 @@ namespace Microsoft.Cci
 
             nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
 
-            uint entryPointToken;
-            if (!peWriter.Write(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt, out entryPointToken))
+            if (!peWriter.Write(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt))
             {
                 return false;
             }
 
             if (nativePdbWriterOpt != null)
             {
-                if (entryPointToken != 0)
-                {
-                    nativePdbWriterOpt.SetEntryPoint(entryPointToken);
-                }
-
                 var assembly = context.Module.AsAssembly;
                 if (assembly != null && assembly.Kind == ModuleKind.WindowsRuntimeMetadata)
                 {
@@ -104,7 +98,7 @@ namespace Microsoft.Cci
             return true;
         }
 
-        private bool Write(MetadataWriter mdWriter, Func<Stream> getPeStream, Func<Stream> getPdbStreamOpt, PdbWriter nativePdbWriterOpt, out uint entryPointToken)
+        private bool Write(MetadataWriter mdWriter, Func<Stream> getPeStream, Func<Stream> getPdbStreamOpt, PdbWriter nativePdbWriterOpt)
         {
             // TODO: we can precalculate the exact size of IL stream
             var ilBuffer = new MemoryStream(32 * 1024);
@@ -131,6 +125,7 @@ namespace Microsoft.Cci
                 return (int)_textSection.RelativeVirtualAddress + _sizeOfImportAddressTable + 72;
             });
 
+            uint entryPointToken;
             MetadataSizes metadataSizes;
             mdWriter.SerializeMetadataAndIL(
                 metadataWriter,

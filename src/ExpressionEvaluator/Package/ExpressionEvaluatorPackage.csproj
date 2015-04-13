@@ -45,9 +45,9 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\Core\Source\ResultProvider\Portable\ResultProvider.Portable.csproj">
+    <ProjectReference Include="..\Core\Source\ResultProvider\NetFX20\ResultProvider.NetFX20.csproj">
       <Project>{BEDC5A4A-809E-4017-9CFD-6C8D4E1847F0}</Project>
-      <Name>ResultProvider.Portable</Name>
+      <Name>ResultProvider.NetFX20</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
@@ -57,9 +57,9 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\CSharp\Source\ResultProvider\Portable\CSharpResultProvider.Portable.csproj">
+    <ProjectReference Include="..\CSharp\Source\ResultProvider\NetFX20\CSharpResultProvider.NetFX20.csproj">
       <Project>{BF9DAC1E-3A5E-4DC3-BB44-9A64E0D4E9D3}</Project>
-      <Name>CSharpResultProvider.Portable</Name>
+      <Name>CSharpResultProvider.NetFX20</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
@@ -69,9 +69,9 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\Source\ResultProvider\Portable\BasicResultProvider.Portable.vbproj">
+    <ProjectReference Include="..\VisualBasic\Source\ResultProvider\NetFX20\BasicResultProvider.NetFX20.vbproj">
       <Project>{76242A2D-2600-49DD-8C15-FEA07ECB1842}</Project>
-      <Name>BasicResultProvider.Portable</Name>
+      <Name>BasicResultProvider.NetFX20</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
