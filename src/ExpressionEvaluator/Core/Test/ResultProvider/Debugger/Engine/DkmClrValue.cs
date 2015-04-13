@@ -347,6 +347,11 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 throw new ArgumentNullException("inspectionContext");
             }
 
+            if (this.IsError())
+            {
+                throw new InvalidOperationException();
+            }
+
             var runtime = this.Type.RuntimeInstance;
             var getMemberValue = runtime.GetMemberValue;
             if (getMemberValue != null)
@@ -358,24 +363,12 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 }
             }
 
-            return this.GetMemberValue(MemberName, MemberType, ParentTypeName);
-        }
-
-        internal DkmClrValue GetMemberValue(string MemberName, int MemberType, string ParentTypeName)
-        {
-            if (this.IsError())
-            {
-                throw new InvalidOperationException();
-            }
-
             var declaringType = this.Type.GetLmrType();
             if (ParentTypeName != null)
             {
                 declaringType = GetAncestorType(declaringType, ParentTypeName);
                 Debug.Assert(declaringType != null);
             }
-
-            var runtime = this.Type.RuntimeInstance;
 
             // Special cases for nullables
             if (declaringType.IsNullable())

@@ -2157,11 +2157,7 @@ class D : C
 
             DkmClrRuntimeInstance runtime = null;
             GetModuleDelegate getModule = (r, a) => (a == assemblyB) ? new DkmClrModuleInstance(r, a, new DkmModule(a.GetName().Name + ".dll")) : null;
-            GetMemberValueDelegate getMemberValue = (v, n, t, p, i) => n.StartsWith("_") ? v.GetMemberValue(n, t, p) : null;
-            runtime = new DkmClrRuntimeInstance(
-                ReflectionUtilities.GetMscorlibAndSystemCore(assemblyA, assemblyB),
-                getModule: getModule,
-                getMemberValue: getMemberValue);
+            runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(assemblyA, assemblyB), getModule: getModule);
             using (runtime.Load())
             {
                 var type = runtime.GetType("B");
