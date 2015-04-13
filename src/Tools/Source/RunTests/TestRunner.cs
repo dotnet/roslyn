@@ -117,7 +117,6 @@ namespace RunTests
             builder.AppendFormat(@"""{0}""", assemblyPath);
             builder.AppendFormat(@" -{0} ""{1}""", _useHtml ? "html" : "xml", resultsPath);
             builder.Append(" -noshadow");
-            builder.Append(" -teamcity");
 
             var errorOutput = string.Empty;
             var start = DateTime.UtcNow;
@@ -158,7 +157,11 @@ namespace RunTests
                     + Environment.NewLine
                     + errorOutput;
 
-                Process.Start(resultsPath);
+                foreach (var outputLine in processOutput.OutputLines)
+                {
+                    Console.WriteLine(outputLine);
+                }                
+                // Process.Start(resultsPath);
             }
 
             return new TestResult(processOutput.ExitCode == 0, assemblyName, span, errorOutput);
