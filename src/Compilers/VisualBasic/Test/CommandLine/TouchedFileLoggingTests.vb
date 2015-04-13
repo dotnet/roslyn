@@ -173,6 +173,7 @@ End Class
                      source1},
                     RuntimeEnvironment.GetRuntimeDirectory(),
                     _baseDirectory,
+                    RuntimeEnvironment.GetRuntimeDirectory(),
                     s_libDirectory)
                 Dim expectedReads As List(Of String) = Nothing
                 Dim expectedWrites As List(Of String) = Nothing
