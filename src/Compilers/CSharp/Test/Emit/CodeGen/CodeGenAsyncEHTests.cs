@@ -545,7 +545,6 @@ class Test
           <slot kind=""28"" offset=""156"" ordinal=""1"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
   </methods>
 </symbols>

@@ -53,7 +53,6 @@ End Module
             <customDebugInfo>
                 <forwardIterator name="VB$StateMachine_1_F"/>
             </customDebugInfo>
-            <sequencePoints/>
         </method>
     </methods>
 </symbols>)
@@ -104,7 +103,6 @@ End Module
             <customDebugInfo>
                 <forwardIterator name="VB$StateMachine_2_Test"/>
             </customDebugInfo>
-            <sequencePoints/>
         </method>
     </methods>
 </symbols>)
@@ -185,7 +183,6 @@ End Module
             <customDebugInfo>
                 <forwardIterator name="VB$StateMachine_3_S"/>
             </customDebugInfo>
-            <sequencePoints/>
         </method>
     </methods>
 </symbols>)
