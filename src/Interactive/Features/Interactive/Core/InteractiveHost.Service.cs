@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     // The base directory for relative paths is the directory that contains the .rsp file.
                     // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
-                    var args = parser.Parse(new[] { "@" + initializationFileOpt }, Path.GetDirectoryName(initializationFileOpt), null /* TODO: pass a valid value*/);
+                    var args = parser.Parse(new[] { "@" + initializationFileOpt }, Path.GetDirectoryName(initializationFileOpt), RuntimeEnvironment.GetRuntimeDirectory(), null /* TODO: pass a valid value*/);
 
                     foreach (var error in args.Errors)
                     {

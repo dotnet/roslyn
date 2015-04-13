@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Execution;
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var commandLineParser = CSharpCommandLineParser.Default;
-                var commandLineArgs = commandLineParser.Parse(args, executedProject.Directory);
+                var commandLineArgs = commandLineParser.Parse(args, executedProject.Directory, RuntimeEnvironment.GetRuntimeDirectory());
 
                 var resolver = new MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
                 metadataReferences = commandLineArgs.ResolveMetadataReferences(new AssemblyReferenceResolver(resolver, _metadataService.GetProvider()));
