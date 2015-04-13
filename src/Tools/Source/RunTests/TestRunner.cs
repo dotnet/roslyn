@@ -117,6 +117,7 @@ namespace RunTests
             builder.AppendFormat(@"""{0}""", assemblyPath);
             builder.AppendFormat(@" -{0} ""{1}""", _useHtml ? "html" : "xml", resultsPath);
             builder.Append(" -noshadow");
+            builder.Append(" -teamcity");
 
             var errorOutput = string.Empty;
             var start = DateTime.UtcNow;
