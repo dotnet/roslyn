@@ -21,6 +21,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.SolutionExplorer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 using VSLangProj140;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -485,11 +486,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private void SetActiveRuleSetHandler(object sender, EventArgs e)
         {
             EnvDTE.Project project;
-            string fileName;
+            string ruleSetFileFullPath;
             if (_tracker.SelectedHierarchy.TryGetProject(out project) &&
-                _tracker.SelectedHierarchy.TryGetItemName(_tracker.SelectedItemId, out fileName))
+                _tracker.SelectedHierarchy.TryGetCanonicalName(_tracker.SelectedItemId, out ruleSetFileFullPath))
             {
-                UpdateProjectConfigurationsToUseRuleSetFile(project, fileName);
+                string projectDirectoryFullPath = Path.GetDirectoryName(project.FullName);
+                string ruleSetFileRelativePath = FilePathUtilities.GetRelativePath(projectDirectoryFullPath, ruleSetFileFullPath);
+
+                UpdateProjectConfigurationsToUseRuleSetFile(project, ruleSetFileRelativePath);
             }
         }
 
