@@ -34,14 +34,14 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             DkmClrValueFlags valueFlags,
             DkmEvaluationResultCategory category = default(DkmEvaluationResultCategory),
             DkmEvaluationResultAccessType access = default(DkmEvaluationResultAccessType),
-            bool isComObject = false)
+            ulong nativeComPointer = 0)
         {
             Debug.Assert(!type.GetLmrType().IsTypeVariables() || (valueFlags == DkmClrValueFlags.Synthetic));
             Debug.Assert((alias == null) || evalFlags.Includes(DkmEvaluationResultFlags.HasObjectId));
             // The "real" DkmClrValue will always have a value of zero for null pointers.
             Debug.Assert(!type.GetLmrType().IsPointer || (value != null));
 
-            _rawValue = value;
+            this.RawValue = value;
             this.HostObjectValue = hostObjectValue;
             this.Type = type;
             _formatter = formatter;
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             this.ValueFlags = valueFlags;
             this.Category = category;
             this.Access = access;
-            this.NativeComPointer = isComObject ? 1UL : 0;
+            this.NativeComPointer = nativeComPointer;
         }
 
         public readonly DkmEvaluationResultFlags EvalFlags;
@@ -67,7 +67,22 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         public readonly ulong NativeComPointer;
 
         private readonly IDkmClrFormatter _formatter;
-        private readonly object _rawValue;
+        internal readonly object RawValue;
+
+        internal DkmClrValue WithNativeComPointer(ulong nativeComPointer)
+        {
+            return new DkmClrValue(
+                this.RawValue,
+                this.HostObjectValue,
+                this.Type,
+                this.Alias,
+                this._formatter,
+                this.EvalFlags,
+                this.ValueFlags,
+                this.Category,
+                this.Access,
+                this.NativeComPointer);
+        }
 
         public void Close()
         {
@@ -80,7 +95,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 throw new ArgumentNullException("inspectionContext");
             }
 
-            if (_rawValue == null)
+            if (RawValue == null)
             {
                 throw new InvalidOperationException("Cannot dereference invalid value");
             }
@@ -90,7 +105,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             object value;
             try
             {
-                var intPtr = Environment.Is64BitProcess ? new IntPtr((long)_rawValue) : new IntPtr((int)_rawValue);
+                var intPtr = Environment.Is64BitProcess ? new IntPtr((long)RawValue) : new IntPtr((int)RawValue);
                 value = Dereference(intPtr, elementType);
             }
             catch (Exception e)
@@ -122,7 +137,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     throw new InvalidOperationException();
                 }
                 var lmrType = Type.GetLmrType();
-                return ((_rawValue == null) && !lmrType.IsValueType) || (lmrType.IsPointer && (Convert.ToInt64(_rawValue) == 0));
+                return ((RawValue == null) && !lmrType.IsValueType) || (lmrType.IsPointer && (Convert.ToInt64(RawValue) == 0));
             }
         }
 
@@ -197,7 +212,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 type = type.BaseType;
             }
 
-            var rawValue = _rawValue;
+            var rawValue = RawValue;
             Debug.Assert(rawValue != null || this.Type.GetLmrType().IsVoid(), "In our mock system, this should only happen for void.");
             return rawValue == null ? null : rawValue.ToString();
         }
@@ -260,7 +275,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     var field = type.GetField(name, bindingFlags);
                     if (field != null)
                     {
-                        var fieldValue = field.GetValue(_rawValue);
+                        var fieldValue = field.GetValue(RawValue);
                         exprValue = new DkmClrValue(
                             fieldValue,
                             fieldValue,
@@ -275,7 +290,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                         var property = type.GetProperty(name, bindingFlags);
                         if (property != null)
                         {
-                            var propertyValue = property.GetValue(_rawValue);
+                            var propertyValue = property.GetValue(RawValue);
                             exprValue = new DkmClrValue(
                                 propertyValue,
                                 propertyValue,
@@ -298,7 +313,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                             // we'll return error if there wasn't at least an open paren...
                             if ((openParenIndex >= 0) && method != null)
                             {
-                                var methodValue = method.Invoke(_rawValue, new object[] { });
+                                var methodValue = method.Invoke(RawValue, new object[] { });
                                 exprValue = new DkmClrValue(
                                     methodValue,
                                     methodValue,
@@ -347,17 +362,25 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 throw new ArgumentNullException("inspectionContext");
             }
 
+            var runtime = this.Type.RuntimeInstance;
+            var getMemberValue = runtime.GetMemberValue;
+            if (getMemberValue != null)
+            {
+                var memberValue = getMemberValue(this, MemberName, MemberType, ParentTypeName, InspectionContext);
+                if (memberValue != null)
+                {
+                    return memberValue;
+                }
+            }
+
+            return this.GetMemberValue(MemberName, MemberType, ParentTypeName);
+        }
+
+        internal DkmClrValue GetMemberValue(string MemberName, int MemberType, string ParentTypeName)
+        {
             if (this.IsError())
             {
                 throw new InvalidOperationException();
-            }
-
-            var runtime = this.Type.RuntimeInstance;
-
-            var memberValue = runtime.GetMemberValue(this, MemberName);
-            if (memberValue != null)
-            {
-                return memberValue;
             }
 
             var declaringType = this.Type.GetLmrType();
@@ -367,6 +390,8 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 Debug.Assert(declaringType != null);
             }
 
+            var runtime = this.Type.RuntimeInstance;
+
             // Special cases for nullables
             if (declaringType.IsNullable())
             {
@@ -374,7 +399,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 {
                     // In our mock implementation, RawValue is null for null nullables,
                     // so we have to compute HasValue some other way.
-                    var boolValue = _rawValue != null;
+                    var boolValue = RawValue != null;
                     var boolType = runtime.GetType((TypeImpl)typeof(bool));
                     return new DkmClrValue(
                         boolValue,
@@ -392,10 +417,10 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     // In our mock implementation, RawValue is of type T rather than
                     // Nullable<T> for nullables, so we'll just return that value
                     // (no need to unwrap by getting "value" field).
-                    var valueType = runtime.GetType((TypeImpl)_rawValue.GetType());
+                    var valueType = runtime.GetType((TypeImpl)RawValue.GetType());
                     return new DkmClrValue(
-                        _rawValue,
-                        _rawValue,
+                        RawValue,
+                        RawValue,
                         type: valueType,
                         alias: null,
                         formatter: _formatter,
@@ -432,7 +457,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     }
                     try
                     {
-                        value = field.GetValue(_rawValue);
+                        value = field.GetValue(RawValue);
                     }
                     catch (System.Reflection.TargetInvocationException e)
                     {
@@ -460,7 +485,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     }
                     try
                     {
-                        value = property.GetValue(_rawValue, bindingFlags, null, null, null);
+                        value = property.GetValue(RawValue, bindingFlags, null, null, null);
                     }
                     catch (System.Reflection.TargetInvocationException e)
                     {
@@ -525,7 +550,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 throw new ArgumentNullException("inspectionContext");
             }
 
-            var array = (System.Array)_rawValue;
+            var array = (System.Array)RawValue;
             var element = array.GetValue(indices);
             var type = DkmClrType.Create(this.Type.AppDomain, (TypeImpl)((element == null) ? array.GetType().GetElementType() : element.GetType()));
             return new DkmClrValue(
@@ -542,7 +567,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             get
             {
-                var array = (Array)_rawValue;
+                var array = (Array)RawValue;
                 if (array == null)
                 {
                     return null;
@@ -562,7 +587,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             get
             {
-                var array = (Array)_rawValue;
+                var array = (Array)RawValue;
                 if (array == null)
                 {
                     return null;
@@ -593,7 +618,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 BindingFlags.NonPublic |
                 BindingFlags.Public;
             var constructor = lmrType.GetConstructors(bindingFlags).Single();
-            var value = constructor.Invoke(bindingFlags, null, new[] { _rawValue }, null);
+            var value = constructor.Invoke(bindingFlags, null, new[] { RawValue }, null);
             return new DkmClrValue(
                 value,
                 value,

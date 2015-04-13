@@ -1479,7 +1479,7 @@ class C
     }
 }";
             DkmClrRuntimeInstance runtime = null;
-            GetMemberValueDelegate getMemberValue = (v, m) => (m == "P") ? CreateErrorValue(runtime.GetType(typeof(System.Collections.ArrayList)), "Function evaluation timed out") : null;
+            GetMemberValueDelegate getMemberValue = (v, n, t, p, i) => (n == "P") ? CreateErrorValue(runtime.GetType(typeof(System.Collections.ArrayList)), "Function evaluation timed out") : null;
             runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue: getMemberValue);
             using (runtime.Load())
             {
@@ -1515,7 +1515,7 @@ class C : IEnumerable
     }
 }";
             DkmClrRuntimeInstance runtime = null;
-            GetMemberValueDelegate getMemberValue = (v, m) => (m == "Items") ? CreateErrorValue(runtime.GetType(typeof(object)).MakeArrayType(), string.Format("Unable to evaluate '{0}'", m)) : null;
+            GetMemberValueDelegate getMemberValue = (v, n, t, p, i) => (n == "Items") ? CreateErrorValue(runtime.GetType(typeof(object)).MakeArrayType(), string.Format("Unable to evaluate '{0}'", n)) : null;
             runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue: getMemberValue);
             using (runtime.Load())
             {

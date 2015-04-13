@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             string alias = null,
             DkmEvaluationResultFlags evalFlags = DkmEvaluationResultFlags.None,
             DkmClrValueFlags valueFlags = DkmClrValueFlags.None,
-            bool isComObject = false)
+            ulong nativeComPointer = 0)
         {
             return new DkmClrValue(
                 value,
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 _formatter,
                 evalFlags,
                 valueFlags,
-                isComObject: isComObject);
+                nativeComPointer: nativeComPointer);
         }
 
         internal DkmClrValue CreateErrorValue(

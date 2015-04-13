@@ -122,7 +122,7 @@ Class C
     End Function
 End Class"
             Dim runtime As DkmClrRuntimeInstance = Nothing
-            Dim getMemberValue As GetMemberValueDelegate = Function(v, m) If(m = "Items", CreateErrorValue(runtime.GetType(GetType(Object)).MakeArrayType(), String.Format("Unable to evaluate '{0}'", m)), Nothing)
+            Dim getMemberValue As GetMemberValueDelegate = Function(v, n, t, p, i) If(n = "Items", CreateErrorValue(runtime.GetType(GetType(Object)).MakeArrayType(), String.Format("Unable to evaluate '{0}'", n)), Nothing)
             runtime = New DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue:=getMemberValue)
             Using runtime.Load()
                 Dim type = runtime.GetType("C")

@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
+using Microsoft.VisualStudio.Debugger.Symbols;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2154,9 +2155,15 @@ class D : C
             var assemblyA = ReflectionUtilities.Load(bytesA);
             var assemblyB = ReflectionUtilities.Load(bytesB);
 
-            using (ReflectionUtilities.LoadAssemblies(assemblyA, assemblyB))
+            DkmClrRuntimeInstance runtime = null;
+            GetModuleDelegate getModule = (r, a) => (a == assemblyB) ? new DkmClrModuleInstance(r, a, new DkmModule(a.GetName().Name + ".dll")) : null;
+            GetMemberValueDelegate getMemberValue = (v, n, t, p, i) => n.StartsWith("_") ? v.GetMemberValue(n, t, p).WithNativeComPointer(0xabcd) : null;
+            runtime = new DkmClrRuntimeInstance(
+                ReflectionUtilities.GetMscorlibAndSystemCore(assemblyA, assemblyB),
+                getModule: getModule,
+                getMemberValue: getMemberValue);
+            using (runtime.Load())
             {
-                var runtime = new DkmClrRuntimeInstance(new[] { assemblyB });
                 var type = runtime.GetType("B");
                 var value = CreateDkmClrValue(type.Instantiate(), type: type);
                 // Format with "Just my code".
@@ -2205,7 +2212,7 @@ class D : C
     }
 }";
             DkmClrRuntimeInstance runtime = null;
-            GetMemberValueDelegate getMemberValue = (v, m) => (m == "P") ? CreateErrorValue(runtime.GetType(typeof(int?)), "Function evaluation timed out") : null;
+            GetMemberValueDelegate getMemberValue = (v, n, t, p, i) => (n == "P") ? CreateErrorValue(runtime.GetType(typeof(int?)), "Function evaluation timed out") : null;
             runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue: getMemberValue);
             using (runtime.Load())
             {

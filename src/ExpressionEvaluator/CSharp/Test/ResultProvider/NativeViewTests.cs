@@ -41,7 +41,7 @@ class C
                     var value = CreateDkmClrValue(
                         value: type.Instantiate(),
                         type: runtime.GetType((TypeImpl)type),
-                        isComObject: true);
+                        nativeComPointer: 0xfe);
                     var evalResult = FormatResult("o", value, inspectionContext: inspectionContext);
                     Verify(evalResult,
                         EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
@@ -50,7 +50,7 @@ class C
                     {
                         DkmLanguage language = new DkmLanguage(new DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.Cpp));
                         Verify(children,
-                            EvalIntermediateResult("Native View", "{C++}(IUnknown*)0x00000001", "(IUnknown*)0x00000001", language));
+                            EvalIntermediateResult("Native View", "{C++}(IUnknown*)0x000000fe", "(IUnknown*)0x000000fe", language));
                     }
                     else
                     {
