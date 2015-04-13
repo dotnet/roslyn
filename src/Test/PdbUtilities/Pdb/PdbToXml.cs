@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Decoding;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
@@ -217,8 +218,7 @@ namespace Roslyn.Test.PdbUtilities
 
                 var rootScope = method.GetRootScope();
 
-                // C# and VB compilers leave the root scope empty and put outermost lexical scope in it.
-                // Don't display such empty root scope.
+                // The root scope is always empty. The first scope opened by SymWriter is the child of the root scope.
                 if (rootScope.GetNamespaces().IsEmpty && rootScope.GetLocals().IsEmpty && rootScope.GetConstants().IsEmpty)
                 {
                     foreach (ISymUnmanagedScope child in rootScope.GetScopes())
@@ -228,6 +228,7 @@ namespace Roslyn.Test.PdbUtilities
                 }
                 else
                 {
+                    // This shouldn't be executed for PDBs generated via SymWriter.
                     WriteScope(rootScope, isRoot: true);
                 }
 
@@ -920,10 +921,8 @@ namespace Roslyn.Test.PdbUtilities
                     (signature[0] == (byte)ConstantTypeCode.NullReference ||
                      signature[0] == (int)SignatureTypeCode.Object ||
                      signature[0] == (int)SignatureTypeCode.String ||
-                     signature[0] == (int)SignatureTypeCode.GenericTypeInstance))
+                     (signature.Length > 2 && signature[0] == (int)SignatureTypeCode.GenericTypeInstance && signature[1] == (byte)ConstantTypeCode.NullReference)))
                 {
-                    // TODO: 0 for enums nested in a generic class, null for reference type
-                    // We need to decode the signature and see if the target type is enum.
                     _writer.WriteAttributeString("value", "null");
 
                     if (signature[0] == (int)SignatureTypeCode.String)
@@ -940,7 +939,7 @@ namespace Roslyn.Test.PdbUtilities
                         // A null reference, the type is encoded in the signature. 
                         // Ideally we would parse the signature and display the target type name. 
                         // That requires MetadataReader vNext though.
-                        _writer.WriteAttributeString("signature", BitConverter.ToString(signature.ToArray()));
+                        _writer.WriteAttributeString("signature", FormatSignature(signature));
                     }
                 }
                 else if (value == null)
@@ -971,18 +970,22 @@ namespace Roslyn.Test.PdbUtilities
                 }
                 else
                 {
-                    _writer.WriteAttributeString("value", (value as string)?.Replace("\0", "U+0000") ?? string.Format(CultureInfo.InvariantCulture, "{0}", value));
+                    string str = value as string;
+                    if (str != null)
+                    {
+                        _writer.WriteAttributeString("value", EscapeNonPrintableCharacters(str));
+                    }
+                    else
+                    {
+                        _writer.WriteAttributeString("value", string.Format(CultureInfo.InvariantCulture, "{0}", value));
+                    }
 
                     var runtimeType = GetConstantRuntimeType(signature);
                     if (runtimeType == null && 
                         (value is sbyte || value is byte || value is short || value is ushort ||
                          value is int || value is uint || value is long || value is ulong))
                     {
-                        // TODO:
-                        // Enum.
-                        // Ideally we would parse the signature and display the target type name. 
-                        // That requires MetadataReader vNext though.
-                        _writer.WriteAttributeString("signature", BitConverter.ToString(signature.ToArray()));
+                        _writer.WriteAttributeString("signature", FormatSignature(signature));
                     }
                     else if (runtimeType == value.GetType())
                     {
@@ -997,6 +1000,134 @@ namespace Roslyn.Test.PdbUtilities
 
                 _writer.WriteEndElement();
             }
+        }
+
+        private unsafe string FormatSignature(ImmutableArray<byte> signature)
+        {
+            fixed (byte* sigPtr = signature.ToArray())
+            {
+                var sigReader = new BlobReader(sigPtr, signature.Length);
+                var provider = new SignatureVisualizer(_metadataReader);
+                return SignatureDecoder.DecodeType(ref sigReader, provider);
+            }
+        }
+
+        private sealed class SignatureVisualizer : ISignatureTypeProvider<string>
+        {
+            private readonly MetadataReader _reader;
+
+            public SignatureVisualizer(MetadataReader reader)
+            {
+                _reader = reader;
+            }
+
+            public MetadataReader Reader => _reader;
+
+            public string GetArrayType(string elementType, ArrayShape shape)
+            {
+                return elementType + "[" + new string(',', shape.Rank) + "]";
+            }
+
+            public string GetByReferenceType(string elementType)
+            {
+                return elementType + "&";  
+            }
+
+            public string GetFunctionPointerType(MethodSignature<string> signature)
+            {
+                // TODO:
+                return "method-ptr"; 
+            }
+
+            public string GetGenericInstance(string genericType, ImmutableArray<string> typeArguments)
+            {
+                // using {} since the result is embedded in XML
+                return genericType + "{" + string.Join(", ", typeArguments) + "}";
+            }
+
+            public string GetGenericMethodParameter(int index)
+            {
+                return "!!" + index;
+            }
+
+            public string GetGenericTypeParameter(int index)
+            {
+                return "!" + index;
+            }
+
+            public string GetModifiedType(string unmodifiedType, ImmutableArray<CustomModifier<string>> customModifiers)
+            {
+                return string.Join(" ", customModifiers.Select(mod => (mod.IsRequired ? "modreq(" : "modopt(") + mod.Type + ")")) + 
+                    unmodifiedType;
+            }
+
+            public string GetPinnedType(string elementType)
+            {
+                return "pinned " + elementType;
+            }
+
+            public string GetPointerType(string elementType)
+            {
+                return elementType + "*";
+            }
+
+            public string GetPrimitiveType(PrimitiveTypeCode typeCode)
+            {
+                return typeCode.ToString();
+            }
+
+            public string GetSZArrayType(string elementType)
+            {
+                return elementType + "[]";
+            }
+
+            public string GetTypeFromDefinition(TypeDefinitionHandle handle)
+            {
+                var typeDef = _reader.GetTypeDefinition(handle);
+                var name = _reader.GetString(typeDef.Name);
+                return typeDef.Namespace.IsNil ? name : _reader.GetString(typeDef.Namespace) + "." + name;
+            }
+
+            public string GetTypeFromReference(TypeReferenceHandle handle)
+            {
+                var typeRef = _reader.GetTypeReference(handle);
+                var name = _reader.GetString(typeRef.Name);
+                return typeRef.Namespace.IsNil ? name : _reader.GetString(typeRef.Namespace) + "." + name;
+            }
+        }
+
+        private static string EscapeNonPrintableCharacters(string str)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            foreach (char c in str)
+            {
+                bool escape;
+                switch (CharUnicodeInfo.GetUnicodeCategory(c))
+                {
+                    case UnicodeCategory.Control:
+                    case UnicodeCategory.OtherNotAssigned:
+                    case UnicodeCategory.ParagraphSeparator:
+                    case UnicodeCategory.Surrogate:
+                        escape = true;
+                        break;
+
+                    default:
+                        escape = c >= 0xFFFC;
+                        break;
+                }
+
+                if (escape)
+                {
+                    sb.AppendFormat("\\u{0:X4}", (int)c);
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+
+            return sb.ToString();
         }
 
         private static Type GetConstantRuntimeType(ImmutableArray<byte> signature)

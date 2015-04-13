@@ -51,6 +51,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             Guid documentType,      
             [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedDocument document)
         {
+            // TODO:
             throw new NotImplementedException();
         }
 
@@ -137,21 +138,25 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetMethodByVersionPreRemap(int methodToken, int version, [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedMethod method)
         {
+            // TODO:
             throw new NotSupportedException();
         }
 
         public int GetMethodFromDocumentPosition(ISymUnmanagedDocument document, int line, int column, [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedMethod method)
         {
+            // TODO:
             throw new NotImplementedException();
         }
 
         public int GetMethodsFromDocumentPosition(ISymUnmanagedDocument document, int line, int column, int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3), Out]ISymUnmanagedMethod[] methods)
         {
+            // TODO:
             throw new NotImplementedException();
         }
 
         public int GetMethodsInDocument(ISymUnmanagedDocument document, int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1), Out]ISymUnmanagedMethod[] methods)
         {
+            // TODO:
             throw new NotImplementedException();
         }
 
@@ -161,9 +166,14 @@ namespace Microsoft.DiaSymReader.PortablePdb
             return HResult.S_OK;
         }
 
-        public int GetNamespaces(int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedNamespace[] namespaces)
+        public int GetNamespaces(
+            int bufferLength, 
+            out int count, 
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedNamespace[] namespaces)
         {
-            throw new NotImplementedException();
+            // SymReader doesn't support
+            count = 0;
+            return HResult.E_NOTIMPL;
         }
 
         public int GetSymAttribute(int methodToken, 
@@ -219,6 +229,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2), Out]byte[] customDebugInformation)
         {
+            // TODO:
             throw new NotSupportedException();
         }
 
@@ -230,11 +241,13 @@ namespace Microsoft.DiaSymReader.PortablePdb
             out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3), Out]byte[] customDebugInformation)
         {
+            // TODO:
             throw new NotSupportedException();
         }
 
         public int GetSymbolStoreFileName(int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]char[] name)
         {
+            // TODO:
             throw new NotImplementedException();
         }
 
@@ -263,7 +276,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
             out int count, 
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1), Out]ISymUnmanagedVariable[] variables)
         {
-            throw new NotImplementedException();
+            // SymReader doesn't support non-local variables.
+            count = 0;
+            return HResult.E_NOTIMPL;
         }
 
         public int Initialize(
@@ -277,11 +292,13 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int ReplaceSymbolStore([MarshalAs(UnmanagedType.LPWStr)]string fileName, IStream stream)
         {
+            // TODO:
             throw new NotImplementedException();
         }
 
         public int UpdateSymbolStore([MarshalAs(UnmanagedType.LPWStr)]string fileName, IStream stream)
         {
+            // TODO:
             throw new NotImplementedException();
         }
     }

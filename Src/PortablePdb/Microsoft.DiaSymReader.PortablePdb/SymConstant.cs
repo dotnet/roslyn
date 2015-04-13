@@ -16,6 +16,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         private object _lazyValue = Uninitialized;
         private byte[] _lazySignature;
 
+        private static readonly object NullReferenceValue = 0;
         private static readonly object Uninitialized = new object();
 
         internal SymConstant(SymReader symReader, LocalConstantHandle handle)
@@ -97,7 +98,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 var typeHandle = sigReader.ReadTypeHandle();
                 if (sigReader.RemainingBytes == 0)
                 {
-                    translatedValue = null;
+                    // null reference is returned as a boxed integer 0:
+                    translatedValue = NullReferenceValue;
                 }
                 else
                 {
@@ -210,7 +212,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                             throw new BadImageFormatException();
                         }
 
-                        return null;
+                        return NullReferenceValue;
                     }
 
                     if (sigReader.RemainingBytes % 2 != 0)
@@ -220,10 +222,13 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
                     return sigReader.ReadUTF16(sigReader.RemainingBytes);
 
-                default:
-                    // non-primitive type
+                case SignatureTypeCode.Object:
+                    // null reference
                     isEnumTypeCode = false;
-                    return null;
+                    return NullReferenceValue;
+
+                default:
+                    throw new BadImageFormatException();
             }
         }
     }

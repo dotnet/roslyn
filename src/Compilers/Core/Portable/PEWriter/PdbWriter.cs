@@ -111,8 +111,7 @@ namespace Microsoft.Cci
 
             var localScopes = methodBody.LocalScopes;
 
-            // Open the outer-most language defined scope, the namespace scopes will be emitted to it.
-            // Note that the root scope has already been open, but native compilers leave it empty.
+            // Define locals, constants and namespaces in the outermost local scope (open in OpenMethod):
             if (localScopes.Length > 0)
             {
                 this.DefineScopeLocals(localScopes[0], localSignatureToken);
@@ -675,7 +674,7 @@ namespace Microsoft.Cci
             {
                 _symWriter.OpenMethod(methodToken);
 
-                // open root scope:
+                // open outermost scope:
                 _symWriter.OpenScope(startOffset: 0);
             }
             catch (Exception ex)

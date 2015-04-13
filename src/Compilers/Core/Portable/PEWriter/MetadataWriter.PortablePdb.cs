@@ -103,47 +103,64 @@ namespace Microsoft.Cci
             // documents & sequence points:
             uint sequencePointsBlob = SerializeSequencePoints(bodyOpt.GetSequencePoints(), _documentIndex);
             _methodBodyTable.Add(new MethodBodyRow { SequencePoints = sequencePointsBlob });
-
+            
             // Unlike native PDB we don't emit an empty root scope.
-            // scopes are already ordered by StartOffset ascending then by EndOffset descending (the longest scope first)
-            foreach (LocalScope scope in bodyOpt.LocalScopes)
+            // scopes are already ordered by StartOffset ascending then by EndOffset descending (the longest scope first).
+
+            if (bodyOpt.LocalScopes.Length == 0)
             {
+                // TODO: the compiler should produce a scope for each debuggable method 
                 _localScopeTable.Add(new LocalScopeRow
                 {
                     Method = (uint)methodRid,
                     ImportScope = (uint)importScopeRid,
                     VariableList = (uint)_localVariableTable.Count + 1,
                     ConstantList = (uint)_localConstantTable.Count + 1,
-                    StartOffset = (uint)scope.StartOffset,
-                    Length = (uint)scope.Length
+                    StartOffset = 0,
+                    Length = (uint)bodyOpt.IL.Length
                 });
-
-                foreach (ILocalDefinition local in scope.Variables)
+            }
+            else
+            {
+                foreach (LocalScope scope in bodyOpt.LocalScopes)
                 {
-                    Debug.Assert(local.SlotIndex >= 0);
-
-                    _localVariableTable.Add(new LocalVariableRow
+                    _localScopeTable.Add(new LocalScopeRow
                     {
-                        Attributes = (ushort)local.PdbAttributes,
-                        Index = (ushort)local.SlotIndex,
-                        Name = debugHeapsOpt.GetStringIndex(local.Name)
+                        Method = (uint)methodRid,
+                        ImportScope = (uint)importScopeRid,
+                        VariableList = (uint)_localVariableTable.Count + 1,
+                        ConstantList = (uint)_localConstantTable.Count + 1,
+                        StartOffset = (uint)scope.StartOffset,
+                        Length = (uint)scope.Length
                     });
 
-                    SerializeDynamicLocalInfo(local, rowId: _localVariableTable.Count, isConstant: false);
-                }
-
-                foreach (ILocalDefinition constant in scope.Constants)
-                {
-                    var mdConstant = constant.CompileTimeValue;
-                    Debug.Assert(mdConstant != null);
-
-                    _localConstantTable.Add(new LocalConstantRow
+                    foreach (ILocalDefinition local in scope.Variables)
                     {
-                        Name = debugHeapsOpt.GetStringIndex(constant.Name),
-                        Signature = SerializeLocalConstantSignature(constant)
-                    });
+                        Debug.Assert(local.SlotIndex >= 0);
 
-                    SerializeDynamicLocalInfo(constant, rowId: _localConstantTable.Count, isConstant: true);
+                        _localVariableTable.Add(new LocalVariableRow
+                        {
+                            Attributes = (ushort)local.PdbAttributes,
+                            Index = (ushort)local.SlotIndex,
+                            Name = debugHeapsOpt.GetStringIndex(local.Name)
+                        });
+
+                        SerializeDynamicLocalInfo(local, rowId: _localVariableTable.Count, isConstant: false);
+                    }
+
+                    foreach (ILocalDefinition constant in scope.Constants)
+                    {
+                        var mdConstant = constant.CompileTimeValue;
+                        Debug.Assert(mdConstant != null);
+
+                        _localConstantTable.Add(new LocalConstantRow
+                        {
+                            Name = debugHeapsOpt.GetStringIndex(constant.Name),
+                            Signature = SerializeLocalConstantSignature(constant)
+                        });
+
+                        SerializeDynamicLocalInfo(constant, rowId: _localConstantTable.Count, isConstant: true);
+                    }
                 }
             }
 
@@ -801,11 +818,25 @@ namespace Microsoft.Cci
 
         private void SerializeCustomDebugInformationTable(BinaryWriter writer, MetadataSizes metadataSizes)
         {
+            // sort by Parent, Kind
+            _customDebugInformationTable.Sort(CustomDebugInformationRowComparer.Instance);
+
             foreach (var row in _customDebugInformationTable)
             {
                 writer.WriteReference(row.Parent, metadataSizes.HasCustomDebugInformationSize);
                 writer.WriteReference(row.Kind, metadataSizes.GuidIndexSize);
                 writer.WriteReference(row.Value, metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private class CustomDebugInformationRowComparer : Comparer<CustomDebugInformationRow>
+        {
+            public static readonly CustomDebugInformationRowComparer Instance = new CustomDebugInformationRowComparer();
+
+            public override int Compare(CustomDebugInformationRow x, CustomDebugInformationRow y)
+            {
+                int result = (int)x.Parent - (int)y.Parent;
+                return (result != 0) ? result : (int)x.Kind - (int)y.Kind;
             }
         }
 
