@@ -68,6 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="args">A collection of strings representing the command line arguments.</param>
         ''' <param name="baseDirectory">The base directory used for qualifying file locations.</param>
+        ''' <param name="sdkDirectory">The directory to search for mscorlib.</param>
         ''' <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
         ''' <returns>A CommandLineArguments object representing the parsed command line.</returns>
         Public Shadows Function Parse(args As IEnumerable(Of String), baseDirectory As String, sdkDirectory As String, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments

@@ -60,6 +60,14 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories);
 
+        /// <summary>
+        /// Parses a command line.
+        /// </summary>
+        /// <param name="args">A collection of strings representing the command line arguments.</param>
+        /// <param name="baseDirectory">The base directory used for qualifying file locations.</param>
+        /// <param name="sdkDirectory">The directory to search for mscorlib.</param>
+        /// <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
+        /// <returns>a commandlinearguments object representing the parsed command line.</returns>
         public CommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
         {
             return CommonParse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);

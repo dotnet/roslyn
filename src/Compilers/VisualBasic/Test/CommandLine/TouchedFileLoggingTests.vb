@@ -171,7 +171,6 @@ End Class
                     {"/nologo",
                      "/touchedfiles:" + touchedBase,
                      source1},
-                    RuntimeEnvironment.GetRuntimeDirectory(),
                     _baseDirectory,
                     RuntimeEnvironment.GetRuntimeDirectory(),
                     s_libDirectory)
