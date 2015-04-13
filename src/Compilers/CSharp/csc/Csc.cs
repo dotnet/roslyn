@@ -11,17 +11,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 {
     internal sealed class Csc : CSharpCompiler
     {
-        internal Csc(string responseFile, string baseDirectory, string[] args)
-            : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
+        internal Csc(string responseFile, string baseDirectory, string sdkDirectory, string[] args)
+            : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, sdkDirectory, Environment.GetEnvironmentVariable("LIB"))
         {
         }
 
-        internal static int Run(string clientDir, string[] args)
+        internal static int Run(string clientDir, string sdkDirectory, string[] args)
         {
             FatalError.Handler = FailFast.OnFatalException;
 
             var responseFile = Path.Combine(clientDir, CSharpCompiler.ResponseFileName);
-            Csc compiler = new Csc(responseFile, Directory.GetCurrentDirectory(), args);
+            Csc compiler = new Csc(responseFile, Directory.GetCurrentDirectory(), sdkDirectory, args);
 
             // We store original encoding and restore it later to revert 
             // the changes that might be done by /utf8output options

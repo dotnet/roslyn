@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override string RegularFileExtension { get { return ".cs"; } }
         protected override string ScriptFileExtension { get { return ".csx"; } }
 
-        internal sealed override CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string additionalReferencePaths)
+        internal sealed override CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
         {
-            return Parse(args, baseDirectory, additionalReferencePaths);
+            return Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
-        public new CSharpCommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string additionalReferencePaths = null)
+        public new CSharpCommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories = null)
         {
             List<Diagnostic> diagnostics = new List<Diagnostic>();
             List<string> flattenedArgs = new List<string>();
@@ -981,12 +981,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // add additional reference paths if specified
-            if (!string.IsNullOrWhiteSpace(additionalReferencePaths))
+            if (!string.IsNullOrWhiteSpace(additionalReferenceDirectories))
             {
-                ParseAndResolveReferencePaths(null, additionalReferencePaths, baseDirectory, libPaths, MessageID.IDS_LIB_ENV, diagnostics);
+                ParseAndResolveReferencePaths(null, additionalReferenceDirectories, baseDirectory, libPaths, MessageID.IDS_LIB_ENV, diagnostics);
             }
 
-            ImmutableArray<string> referencePaths = BuildSearchPaths(libPaths);
+            ImmutableArray<string> referencePaths = BuildSearchPaths(sdkDirectory, libPaths);
 
             ValidateWin32Settings(win32ResourceFile, win32IconFile, win32ManifestFile, outputKind, diagnostics);
 
@@ -1218,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static ImmutableArray<string> BuildSearchPaths(List<string> libPaths)
+        private static ImmutableArray<string> BuildSearchPaths(string sdkDirectory, List<string> libPaths)
         {
             var builder = ArrayBuilder<string>.GetInstance();
 
@@ -1228,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // current folder first -- base directory is searched by default
 
             // SDK path is specified or current runtime directory
-            builder.Add(RuntimeEnvironment.GetRuntimeDirectory());
+            builder.Add(sdkDirectory);
 
             // libpath
             builder.AddRange(libPaths);

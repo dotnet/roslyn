@@ -1526,7 +1526,8 @@ System.Console.Write(x + y);
         {
             var commandLineArguments = CSharpCommandLineParser.Interactive.Parse(
                 new[] { "/r:" + typeof(Script).Assembly.Location }, //get corlib by default
-                Directory.GetDirectoryRoot(".")); //NOTE: any absolute path will do - we're not going to use this.
+                Directory.GetDirectoryRoot("."), //NOTE: any absolute path will do - we're not going to use this.
+                RuntimeEnvironment.GetRuntimeDirectory());
             var references = commandLineArguments.ResolveMetadataReferences(new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, metadataReferenceProvider));
             return references;
         }

@@ -171,6 +171,7 @@ End Class
                     {"/nologo",
                      "/touchedfiles:" + touchedBase,
                      source1},
+                    RuntimeEnvironment.GetRuntimeDirectory(),
                     _baseDirectory,
                     s_libDirectory)
                 Dim expectedReads As List(Of String) = Nothing

@@ -12,17 +12,17 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {
     internal sealed class Vbc : VisualBasicCompiler
     {
-        internal Vbc(string responseFile, string baseDirectory, string[] args)
-            : base(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
+        internal Vbc(string responseFile, string baseDirectory, string sdkDirectory, string[] args)
+            : base(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, sdkDirectory, Environment.GetEnvironmentVariable("LIB"))
         {
         }
 
-        internal static int Run(string clientDir, string[] args)
+        internal static int Run(string clientDir, string sdkDirectory, string[] args)
         {
             FatalError.Handler = FailFast.OnFatalException;
 
             var responseFile = Path.Combine(clientDir, VisualBasicCompiler.ResponseFileName);
-            Vbc compiler = new Vbc(responseFile, Directory.GetCurrentDirectory(), args);
+            Vbc compiler = new Vbc(responseFile, Directory.GetCurrentDirectory(), sdkDirectory, args);
 
             // We store original encoding and restore it later to revert 
             // the changes that might be done by /utf8output options

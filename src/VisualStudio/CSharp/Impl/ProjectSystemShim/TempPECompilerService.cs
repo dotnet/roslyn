@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -83,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 }
             }
 
-            return CSharpCommandLineParser.Default.Parse(arguments, baseDirectory);
+            return CSharpCommandLineParser.Default.Parse(arguments, baseDirectory, RuntimeEnvironment.GetRuntimeDirectory());
         }
     }
 }

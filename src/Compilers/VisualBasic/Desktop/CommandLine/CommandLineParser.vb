@@ -59,8 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend NotOverridable Overrides Function CommonParse(args As IEnumerable(Of String), baseDirectory As String, additionalReferencePaths As String) As CommandLineArguments
-            Return Parse(args, baseDirectory, additionalReferencePaths)
+        Friend NotOverridable Overrides Function CommonParse(args As IEnumerable(Of String), baseDirectory As String, sdkDirectory As String, additionalReferenceDirectories As String) As CommandLineArguments
+            Return Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
         End Function
 
         ''' <summary>
@@ -68,9 +68,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="args">A collection of strings representing the command line arguments.</param>
         ''' <param name="baseDirectory">The base directory used for qualifying file locations.</param>
-        ''' <param name="additionalReferencePaths">A string representing additional reference paths.</param>
+        ''' <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
         ''' <returns>A CommandLineArguments object representing the parsed command line.</returns>
-        Public Shadows Function Parse(args As IEnumerable(Of String), baseDirectory As String, Optional additionalReferencePaths As String = Nothing) As VisualBasicCommandLineArguments
+        Public Shadows Function Parse(args As IEnumerable(Of String), baseDirectory As String, sdkDirectory As String, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
             Const GenerateFileNameForDocComment As String = "USE-OUTPUT-NAME"
 
             Dim diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
@@ -95,9 +95,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim documentationPath As String = Nothing
             Dim errorLogPath As String = Nothing
             Dim parseDocumentationComments As Boolean = False ' Don't just null check documentationFileName because we want to do this even if the file name is invalid.
-            Dim outputKind As OutputKind = OutputKind.ConsoleApplication
+            Dim outputKind As outputKind = outputKind.ConsoleApplication
             Dim ssVersion As SubsystemVersion = SubsystemVersion.None
-            Dim languageVersion As LanguageVersion = LanguageVersion.VisualBasic14
+            Dim languageVersion As languageVersion = languageVersion.VisualBasic14
             Dim mainTypeName As String = Nothing
             Dim win32ManifestFile As String = Nothing
             Dim win32ResourceFile As String = Nothing
@@ -117,12 +117,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim keyFileSearchPaths = New List(Of String)()
             Dim globalImports = New List(Of GlobalImport)
             Dim rootNamespace As String = ""
-            Dim optionStrict As OptionStrict = OptionStrict.Off
+            Dim optionStrict As optionStrict = optionStrict.Off
             Dim optionInfer As Boolean = False ' MSDN says: ...The compiler default for this option is /optioninfer-.
             Dim optionExplicit As Boolean = True
             Dim optionCompareText As Boolean = False
             Dim embedVbCoreRuntime As Boolean = False
-            Dim platform As Platform = Platform.AnyCpu
+            Dim platform As platform = platform.AnyCpu
             Dim preferredUILang As CultureInfo = Nothing
             Dim fileAlignment As Integer = 0
             Dim baseAddress As ULong = 0
@@ -702,15 +702,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Else
                                 Select Case value.ToLowerInvariant()
                                     Case "9", "9.0"
-                                        languageVersion = LanguageVersion.VisualBasic9
+                                        languageVersion = languageVersion.VisualBasic9
                                     Case "10", "10.0"
-                                        languageVersion = LanguageVersion.VisualBasic10
+                                        languageVersion = languageVersion.VisualBasic10
                                     Case "11", "11.0"
-                                        languageVersion = LanguageVersion.VisualBasic11
+                                        languageVersion = languageVersion.VisualBasic11
                                     Case "12", "12.0"
-                                        languageVersion = LanguageVersion.VisualBasic12
+                                        languageVersion = languageVersion.VisualBasic12
                                     Case "14", "14.0"
-                                        languageVersion = LanguageVersion.VisualBasic12
+                                        languageVersion = languageVersion.VisualBasic12
                                     Case Else
                                         AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
                                 End Select
@@ -1046,7 +1046,7 @@ lVbRuntimePlus:
 
             ' Prepare SDK PATH
             If sdkPaths.Count = 0 Then
-                sdkPaths.Add(RuntimeEnvironment.GetRuntimeDirectory)
+                sdkPaths.Add(sdkDirectory)
             End If
 
             ' Locate default 'mscorlib.dll' or 'System.Runtime.dll', if any.
@@ -1081,8 +1081,8 @@ lVbRuntimePlus:
             End If
 
             ' add additional reference paths if specified
-            If Not String.IsNullOrWhiteSpace(additionalReferencePaths) Then
-                libPaths.AddRange(ParseSeparatedPaths(additionalReferencePaths))
+            If Not String.IsNullOrWhiteSpace(additionalReferenceDirectories) Then
+                libPaths.AddRange(ParseSeparatedPaths(additionalReferenceDirectories))
             End If
 
             ' Build search path
@@ -1150,7 +1150,7 @@ lVbRuntimePlus:
                         optimizationLevel:=If(optimize, OptimizationLevel.Release, OptimizationLevel.Debug),
                         parseOptions:=parseOptions).WithFeatures(features.AsImmutable())
 
-            Dim emitOptions = New EmitOptions(
+            Dim emitOptions = New emitOptions(
                     metadataOnly:=False,
                     debugInformationFormat:=DebugInformationFormat.Pdb,
                     pdbFilePath:=Nothing, ' to be determined later

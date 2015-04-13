@@ -58,11 +58,11 @@ namespace Microsoft.CodeAnalysis
             return Directory.EnumerateFiles(directory, fileNamePattern, searchOption);
         }
 
-        internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string additionalReferencePaths);
+        internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories);
 
-        public CommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string additionalReferencePaths)
+        public CommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
         {
-            return CommonParse(args, baseDirectory, additionalReferencePaths);
+            return CommonParse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
         internal static bool TryParseOption(string arg, out string name, out string value)
