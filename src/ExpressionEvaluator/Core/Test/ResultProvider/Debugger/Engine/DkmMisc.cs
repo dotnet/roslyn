@@ -36,8 +36,8 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         Internal,
     }
 
-    public enum DkmEvaluationResultStorageType { }
-    public enum DkmEvaluationResultTypeModifierFlags { }
+    public enum DkmEvaluationResultStorageType { None = 0 }
+    public enum DkmEvaluationResultTypeModifierFlags { None = 0 }
     public class DkmDataAddress { }
 }
 

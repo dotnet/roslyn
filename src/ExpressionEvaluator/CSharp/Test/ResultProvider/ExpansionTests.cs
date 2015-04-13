@@ -2157,15 +2157,13 @@ class D : C
 
             DkmClrRuntimeInstance runtime = null;
             GetModuleDelegate getModule = (r, a) => (a == assemblyB) ? new DkmClrModuleInstance(r, a, new DkmModule(a.GetName().Name + ".dll")) : null;
-            GetMemberValueDelegate getMemberValue = (v, n, t, p, i) => n.StartsWith("_") ? v.GetMemberValue(n, t, p).WithNativeComPointer(0xabcd) : null;
+            GetMemberValueDelegate getMemberValue = (v, n, t, p, i) => n.StartsWith("_") ? v.GetMemberValue(n, t, p) : null;
             runtime = new DkmClrRuntimeInstance(
                 ReflectionUtilities.GetMscorlibAndSystemCore(assemblyA, assemblyB),
                 getModule: getModule,
-                getMemberValue: getMemberValue,
-                enableNativeDebugging: true);
+                getMemberValue: getMemberValue);
             using (runtime.Load())
             {
-                var language = new DkmLanguage(new DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.Cpp));
                 var type = runtime.GetType("B");
                 var value = CreateDkmClrValue(type.Instantiate(), type: type);
                 // Format with "Just my code".
@@ -2179,24 +2177,20 @@ class D : C
                     EvalResult("_4", "{A}", "A", "o._4", DkmEvaluationResultFlags.Expandable, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Public));
                 var moreChildren = GetChildren(children[0], inspectionContext: inspectionContext);
                 Verify(moreChildren,
-                    EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class),
-                    EvalIntermediateResult("Native View", "{C++}(IUnknown*)0x0000ABCD", "(IUnknown*)0x0000ABCD", language),
-                    EvalResult("Non-Public members", null, "", "o._1, hidden", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
+                    EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class, DkmEvaluationResultAccessType.None),
+                    EvalResult("Non-Public members", null, "", "o._1, hidden", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.None));
                 moreChildren = GetChildren(children[1], inspectionContext: inspectionContext);
                 Verify(moreChildren,
-                    EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class),
-                    EvalIntermediateResult("Native View", "{C++}(IUnknown*)0x0000ABCD", "(IUnknown*)0x0000ABCD", language),
-                    EvalResult("Non-Public members", null, "", "o._2, hidden", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
+                    EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class, DkmEvaluationResultAccessType.None),
+                    EvalResult("Non-Public members", null, "", "o._2, hidden", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.None));
                 moreChildren = GetChildren(children[2], inspectionContext: inspectionContext);
                 Verify(moreChildren,
-                    EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class),
-                    EvalIntermediateResult("Native View", "{C++}(IUnknown*)0x0000ABCD", "(IUnknown*)0x0000ABCD", language),
-                    EvalResult("Non-Public members", null, "", "o._3, hidden", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
+                    EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class, DkmEvaluationResultAccessType.None),
+                    EvalResult("Non-Public members", null, "", "o._3, hidden", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.None));
                 moreChildren = GetChildren(children[3], inspectionContext: inspectionContext);
                 Verify(moreChildren,
-                    EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class),
-                    EvalIntermediateResult("Native View", "{C++}(IUnknown*)0x0000ABCD", "(IUnknown*)0x0000ABCD", language),
-                    EvalResult("Non-Public members", null, "", "o._4, hidden", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
+                    EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class, DkmEvaluationResultAccessType.None),
+                    EvalResult("Non-Public members", null, "", "o._4, hidden", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.None));
             }
         }
 

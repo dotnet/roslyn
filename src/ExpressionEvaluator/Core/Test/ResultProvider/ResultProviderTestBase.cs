@@ -237,14 +237,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return getItemsResult.Items;
         }
 
+        private const DkmEvaluationResultCategory UnspecifiedCategory = (DkmEvaluationResultCategory)(-1);
+        private const DkmEvaluationResultAccessType UnspecifiedAccessType = (DkmEvaluationResultAccessType)(-1);
+
         internal static DkmEvaluationResult EvalResult(
             string name,
             string value,
             string type,
             string fullName,
             DkmEvaluationResultFlags flags = DkmEvaluationResultFlags.None,
-            DkmEvaluationResultCategory category = DkmEvaluationResultCategory.Other,
-            DkmEvaluationResultAccessType access = DkmEvaluationResultAccessType.None,
+            DkmEvaluationResultCategory category = UnspecifiedCategory,
+            DkmEvaluationResultAccessType access = UnspecifiedAccessType,
             string editableValue = null,
             DkmCustomUIVisualizerInfo[] customUIVisualizerInfo = null)
         {
@@ -421,11 +424,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Assert.Equal(expectedSuccess.Value, actualSuccess.Value);
                 Assert.Equal(expectedSuccess.Type, actualSuccess.Type);
                 Assert.Equal(expectedSuccess.Flags, actualSuccess.Flags);
-                if (expectedSuccess.Category != default(DkmEvaluationResultCategory))
+                if (expectedSuccess.Category != UnspecifiedCategory)
                 {
                     Assert.Equal(expectedSuccess.Category, actualSuccess.Category);
                 }
-                Assert.Equal(expectedSuccess.Access, actualSuccess.Access);
+                if (expectedSuccess.Access != UnspecifiedAccessType)
+                {
+                    Assert.Equal(expectedSuccess.Access, actualSuccess.Access);
+                }
                 Assert.Equal(expectedSuccess.EditableValue, actualSuccess.EditableValue);
                 Assert.True(
                     (expectedSuccess.CustomUIVisualizers == actualSuccess.CustomUIVisualizers) ||

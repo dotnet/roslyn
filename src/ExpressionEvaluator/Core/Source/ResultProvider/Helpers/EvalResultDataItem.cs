@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         RawView,
         ResultsView,
         StaticMembers,
-        TypeVariables
+        TypeVariable
     }
 
     /// <summary>

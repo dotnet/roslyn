@@ -171,93 +171,99 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
                     break;
                 case ExpansionKind.NonPublicMembers:
+                    completionRoutine(DkmSuccessEvaluationResult.Create(
+                        inspectionContext,
+                        stackFrame,
+                        Name: Resources.NonPublicMembers,
+                        FullName: dataItem.FullName,
+                        Flags: dataItem.Flags,
+                        Value: null,
+                        EditableValue: null,
+                        Type: string.Empty,
+                        Category: DkmEvaluationResultCategory.Data,
+                        Access: DkmEvaluationResultAccessType.None,
+                        StorageType: DkmEvaluationResultStorageType.None,
+                        TypeModifierFlags: DkmEvaluationResultTypeModifierFlags.None,
+                        Address: dataItem.Value.Address,
+                        CustomUIVisualizers: null,
+                        ExternalModules: null,
+                        DataItem: dataItem));
+                    break;
                 case ExpansionKind.StaticMembers:
-                    {
-                        var value = dataItem.Value;
-                        completionRoutine(DkmSuccessEvaluationResult.Create(
-                            inspectionContext,
-                            stackFrame,
-                            Name: dataItem.Name,
-                            FullName: dataItem.FullName,
-                            Flags: dataItem.Flags,
-                            Value: null,
-                            EditableValue: dataItem.EditableValue,
-                            Type: string.Empty,
-                            Category: dataItem.Category,
-                            Access: value.Access,
-                            StorageType: value.StorageType,
-                            TypeModifierFlags: value.TypeModifierFlags,
-                            Address: value.Address,
-                            CustomUIVisualizers: null,
-                            ExternalModules: null,
-                            DataItem: dataItem));
-                    }
+                    completionRoutine(DkmSuccessEvaluationResult.Create(
+                        inspectionContext,
+                        stackFrame,
+                        Name: Formatter.StaticMembersString,
+                        FullName: dataItem.FullName,
+                        Flags: dataItem.Flags,
+                        Value: null,
+                        EditableValue: null,
+                        Type: string.Empty,
+                        Category: DkmEvaluationResultCategory.Class,
+                        Access: DkmEvaluationResultAccessType.None,
+                        StorageType: DkmEvaluationResultStorageType.None,
+                        TypeModifierFlags: DkmEvaluationResultTypeModifierFlags.None,
+                        Address: dataItem.Value.Address,
+                        CustomUIVisualizers: null,
+                        ExternalModules: null,
+                        DataItem: dataItem));
                     break;
                 case ExpansionKind.RawView:
-                    {
-                        var value = dataItem.Value;
-                        completionRoutine(DkmSuccessEvaluationResult.Create(
-                            inspectionContext,
-                            stackFrame,
-                            Name: Resources.RawView,
-                            FullName: dataItem.FullName,
-                            Flags: dataItem.Flags,
-                            Value: null,
-                            EditableValue: dataItem.EditableValue,
-                            Type: string.Empty,
-                            Category: DkmEvaluationResultCategory.Data,
-                            Access: DkmEvaluationResultAccessType.None,
-                            StorageType: value.StorageType,
-                            TypeModifierFlags: value.TypeModifierFlags,
-                            Address: value.Address,
-                            CustomUIVisualizers: null,
-                            ExternalModules: null,
-                            DataItem: dataItem));
-                    }
+                    completionRoutine(DkmSuccessEvaluationResult.Create(
+                        inspectionContext,
+                        stackFrame,
+                        Name: Resources.RawView,
+                        FullName: dataItem.FullName,
+                        Flags: dataItem.Flags,
+                        Value: null,
+                        EditableValue: dataItem.EditableValue,
+                        Type: string.Empty,
+                        Category: DkmEvaluationResultCategory.Data,
+                        Access: DkmEvaluationResultAccessType.None,
+                        StorageType: DkmEvaluationResultStorageType.None,
+                        TypeModifierFlags: DkmEvaluationResultTypeModifierFlags.None,
+                        Address: dataItem.Value.Address,
+                        CustomUIVisualizers: null,
+                        ExternalModules: null,
+                        DataItem: dataItem));
                     break;
                 case ExpansionKind.ResultsView:
-                    {
-                        var value = dataItem.Value;
-                        completionRoutine(DkmSuccessEvaluationResult.Create(
-                            inspectionContext,
-                            stackFrame,
-                            Name: dataItem.Name,
-                            FullName: dataItem.FullName,
-                            Flags: dataItem.Flags,
-                            Value: Resources.ResultsViewValueWarning,
-                            EditableValue: dataItem.EditableValue,
-                            Type: string.Empty,
-                            Category: DkmEvaluationResultCategory.Method,
-                            Access: DkmEvaluationResultAccessType.None,
-                            StorageType: value.StorageType,
-                            TypeModifierFlags: value.TypeModifierFlags,
-                            Address: value.Address,
-                            CustomUIVisualizers: null,
-                            ExternalModules: null,
-                            DataItem: dataItem));
-                    }
+                    completionRoutine(DkmSuccessEvaluationResult.Create(
+                        inspectionContext,
+                        stackFrame,
+                        Name: dataItem.Name,
+                        FullName: dataItem.FullName,
+                        Flags: dataItem.Flags,
+                        Value: Resources.ResultsViewValueWarning,
+                        EditableValue: null,
+                        Type: string.Empty,
+                        Category: DkmEvaluationResultCategory.Method,
+                        Access: DkmEvaluationResultAccessType.None,
+                        StorageType: DkmEvaluationResultStorageType.None,
+                        TypeModifierFlags: DkmEvaluationResultTypeModifierFlags.None,
+                        Address: dataItem.Value.Address,
+                        CustomUIVisualizers: null,
+                        ExternalModules: null,
+                        DataItem: dataItem));
                     break;
-                case ExpansionKind.TypeVariables:
-                    {
-                        var value = dataItem.Value;
-                        completionRoutine(DkmSuccessEvaluationResult.Create(
-                            inspectionContext,
-                            stackFrame,
-                            dataItem.Name,
-                            dataItem.FullName,
-                            dataItem.Flags,
-                            dataItem.DisplayValue,
-                            EditableValue: null,
-                            Type: dataItem.DisplayValue,
-                            Category: dataItem.Category,
-                            Access: value.Access,
-                            StorageType: value.StorageType,
-                            TypeModifierFlags: value.TypeModifierFlags,
-                            Address: value.Address,
-                            CustomUIVisualizers: null,
-                            ExternalModules: null,
-                            DataItem: dataItem));
-                    }
+                case ExpansionKind.TypeVariable:
+                    completionRoutine(DkmSuccessEvaluationResult.Create(
+                        inspectionContext,
+                        stackFrame,
+                        dataItem.Name,
+                        dataItem.FullName,
+                        dataItem.Flags,
+                        dataItem.DisplayValue,
+                        EditableValue: null,
+                        Type: dataItem.DisplayValue,
+                        Category: DkmEvaluationResultCategory.Data,
+                        Access: DkmEvaluationResultAccessType.None,
+                        StorageType: DkmEvaluationResultStorageType.None,
+                        TypeModifierFlags: DkmEvaluationResultTypeModifierFlags.None,
+                        Address: dataItem.Value.Address,
+                        CustomUIVisualizers: null,
+                        ExternalModules: null,
+                        DataItem: dataItem));
                     break;
                 case ExpansionKind.PointerDereference:
                 case ExpansionKind.Default:

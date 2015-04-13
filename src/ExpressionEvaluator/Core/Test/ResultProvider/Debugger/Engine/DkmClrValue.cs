@@ -69,21 +69,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         private readonly IDkmClrFormatter _formatter;
         internal readonly object RawValue;
 
-        internal DkmClrValue WithNativeComPointer(ulong nativeComPointer)
-        {
-            return new DkmClrValue(
-                this.RawValue,
-                this.HostObjectValue,
-                this.Type,
-                this.Alias,
-                this._formatter,
-                this.EvalFlags,
-                this.ValueFlags,
-                this.Category,
-                this.Access,
-                nativeComPointer);
-        }
-
         public void Close()
         {
         }
