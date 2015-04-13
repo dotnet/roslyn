@@ -139,20 +139,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Add bool IEnumerator.MoveNext() and void IDisposable.Dispose()
             Dim disposeMethod = Me.OpenMethodImplementation(SpecialMember.System_IDisposable__Dispose,
                                                              "Dispose",
-                                                             DebugAttributes.DebuggerNonUserCodeAttribute,
                                                              Accessibility.Private,
-                                                             generateDebugInfo:=False,
                                                              hasMethodBodyDependency:=True)
 
-            Dim debuggerHidden = IsDebuggerHidden(Me.Method)
-            Dim moveNextAttrs As DebugAttributes = DebugAttributes.CompilerGeneratedAttribute
-            If debuggerHidden Then moveNextAttrs = moveNextAttrs Or DebugAttributes.DebuggerHiddenAttribute
-            Dim moveNextMethod = Me.OpenMethodImplementation(SpecialMember.System_Collections_IEnumerator__MoveNext,
-                                                             "MoveNext",
-                                                             moveNextAttrs,
-                                                             Accessibility.Private,
-                                                             generateDebugInfo:=True,
-                                                             hasMethodBodyDependency:=True)
+            Dim moveNextMethod = Me.OpenMoveNextMethodImplementation(SpecialMember.System_Collections_IEnumerator__MoveNext,
+                                                                     Accessibility.Private)
 
             GenerateMoveNextAndDispose(moveNextMethod, disposeMethod)
             F.CurrentMethod = moveNextMethod
@@ -175,9 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim getEnumeratorGeneric = Me.OpenMethodImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_elementType),
                                                             SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator,
                                                             "GetEnumerator",
-                                                            DebugAttributes.DebuggerNonUserCodeAttribute,
                                                             Accessibility.Private,
-                                                            generateDebugInfo:=False,
                                                             hasMethodBodyDependency:=False)
 
                 Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
@@ -262,9 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '       It is also consistent with the naming of IEnumerable.Current (see below).
                 Me.OpenMethodImplementation(SpecialMember.System_Collections_IEnumerable__GetEnumerator,
                                             "IEnumerable.GetEnumerator",
-                                            DebugAttributes.DebuggerNonUserCodeAttribute,
                                             Accessibility.Private,
-                                            generateDebugInfo:=False,
                                             hasMethodBodyDependency:=False)
                 F.CloseMethod(F.Return(F.Call(F.Me, getEnumeratorGeneric)))
             End If
@@ -273,17 +260,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.OpenPropertyImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(_elementType),
                                           SpecialMember.System_Collections_Generic_IEnumerator_T__Current,
                                           "Current",
-                                          DebugAttributes.DebuggerNonUserCodeAttribute,
-                                          Accessibility.Private,
-                                          False)
+                                          Accessibility.Private)
             F.CloseMethod(F.Return(F.Field(F.Me, _currentField, False)))
 
             ' Add void IEnumerator.Reset()
             Me.OpenMethodImplementation(SpecialMember.System_Collections_IEnumerator__Reset,
                                         "Reset",
-                                        DebugAttributes.DebuggerNonUserCodeAttribute,
                                         Accessibility.Private,
-                                        generateDebugInfo:=False,
                                         hasMethodBodyDependency:=False)
             F.CloseMethod(F.Throw(F.[New](F.WellKnownType(WellKnownType.System_NotSupportedException))))
 
@@ -296,9 +279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '       it is clear why we have the property, and "Current" suffix will be shared in metadata with another Current.
             Me.OpenPropertyImplementation(SpecialMember.System_Collections_IEnumerator__Current,
                                           "IEnumerator.Current",
-                                          DebugAttributes.DebuggerNonUserCodeAttribute,
-                                          Accessibility.Private,
-                                          False)
+                                          Accessibility.Private)
             F.CloseMethod(F.Return(F.Field(F.Me, _currentField, False)))
 
             ' Add a body for the constructor
@@ -346,12 +327,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Sub GenerateMoveNextAndDispose(moveNextMethod As SynthesizedStateMachineMethod, disposeMethod As SynthesizedStateMachineMethod)
+        Private Sub GenerateMoveNextAndDispose(moveNextMethod As SynthesizedMethod, disposeMethod As SynthesizedMethod)
             Dim rewriter = New IteratorMethodToClassRewriter(method:=Me.Method,
                                                           F:=Me.F,
                                                           state:=Me.StateField,
                                                           current:=Me._currentField,
-                                                          HoistedVariables:=Me.hoistedVariables,
+                                                          hoistedVariables:=Me.hoistedVariables,
                                                           localProxies:=Me.nonReusableLocalProxies,
                                                           SynthesizedLocalOrdinals:=Me.SynthesizedLocalOrdinals,
                                                           slotAllocatorOpt:=Me.SlotAllocatorOpt,

@@ -134,6 +134,48 @@ NewLines("Interface I \n Sub M() \n End Interface \n Class C \n Implements I \n 
 index:=1)
         End Sub
 
+        <WorkItem(472, "https://github.com/dotnet/roslyn/issues/472")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Sub TestImplementThroughFieldMemberRemoveUnnecessaryCast()
+            Test(
+"Imports System.Collections
+
+NotInheritable Class X : Implements [|IComparer|]
+    Private x As X
+End Class",
+"Imports System.Collections
+
+NotInheritable Class X : Implements IComparer
+    Private x As X
+
+    Public Function Compare(x As Object, y As Object) As Integer Implements IComparer.Compare
+        Return Me.x.Compare(x, y)
+    End Function
+End Class",
+index:=1)
+        End Sub
+
+        <WorkItem(472, "https://github.com/dotnet/roslyn/issues/472")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Sub TestImplementThroughFieldMemberRemoveUnnecessaryCastAndMe()
+            Test(
+"Imports System.Collections
+
+NotInheritable Class X : Implements [|IComparer|]
+    Private a As X
+End Class",
+"Imports System.Collections
+
+NotInheritable Class X : Implements IComparer
+    Private a As X
+
+    Public Function Compare(x As Object, y As Object) As Integer Implements IComparer.Compare
+        Return a.Compare(x, y)
+    End Function
+End Class",
+index:=1)
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestImplementThroughFieldMemberInterfaceWithNonStandardProperties()
             Dim source =
@@ -851,6 +893,67 @@ Class C
     Implements [|I|]
 End Class]]></Text>.Value.Replace(vbLf, vbCrLf),
 <Text><![CDATA[Imports System
+
+Enum E
+    A = 1
+    B = 2
+End Enum
+
+<FlagsAttribute>
+Enum FlagE
+    A = 1
+    B = 2
+End Enum
+
+Interface I
+    Sub M1(Optional e As E = E.A Or E.B)
+    Sub M2(Optional e As FlagE = FlagE.A Or FlagE.B)
+End Interface
+
+Class C
+    Implements I
+
+    Public Sub M1(Optional e As E = 3) Implements I.M1
+        Throw New NotImplementedException()
+    End Sub
+
+    Public Sub M2(Optional e As FlagE = FlagE.A Or FlagE.B) Implements I.M2
+        Throw New NotImplementedException()
+    End Sub
+End Class]]></Text>.Value.Replace(vbLf, vbCrLf),
+compareTokens:=False)
+        End Sub
+
+        <WorkItem(715013)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Sub TestEnumParameters2()
+            Test(
+<Text><![CDATA[
+Option Strict On
+Imports System
+
+Enum E
+    A = 1
+    B = 2
+End Enum
+
+<FlagsAttribute>
+Enum FlagE
+    A = 1
+    B = 2
+End Enum
+
+Interface I
+    Sub M1(Optional e As E = E.A Or E.B)
+    Sub M2(Optional e As FlagE = FlagE.A Or FlagE.B)
+End Interface
+
+Class C
+    Implements [|I|]
+End Class]]></Text>.Value.Replace(vbLf, vbCrLf),
+<Text><![CDATA[
+Option Strict On
+Imports System
 
 Enum E
     A = 1

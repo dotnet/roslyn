@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Globalization
+namespace System.Runtime.Analyzers.UnitTests
 {
     [WorkItem(858659)]
     public class CA1309FixerTests : CodeFixTestBase
@@ -17,22 +16,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.Globalization
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CSharpCA1309DiagnosticAnalyzer();
+            return new CSharpUseOrdinalStringComparisonAnalyzer();
         }
 
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return new BasicCA1309DiagnosticAnalyzer();
+            return new BasicUseOrdinalStringComparisonAnalyzer();
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new CA1309CSharpCodeFixProvider();
+            return new CSharpUseOrdinalStringComparisonFixer();
         }
 
         protected override CodeFixProvider GetBasicCodeFixProvider()
         {
-            return new CA1309BasicCodeFixProvider();
+            return new BasicUseOrdinalStringComparisonFixer();
         }
 
         #endregion

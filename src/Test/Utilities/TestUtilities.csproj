@@ -183,7 +183,7 @@
     <Compile Include="Traits.cs" />
     <Compile Include="Win32Res.cs" />
     <Compile Include="WorkItemAttribute.cs" />
-    <Compile Include="XmlElementDiff.cs" />
+    <Compile Include="AssertXml.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="TestResource.resx">

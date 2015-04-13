@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private DiagnosticsUpdatedArgs MakeArgs(DiagnosticAnalyzer analyzer, ImmutableHashSet<DiagnosticData> items, Project project)
         {
             return new DiagnosticsUpdatedArgs(
-                id: Tuple.Create(this, analyzer, project?.Id),
+                id: new HostArgsId(this, analyzer, project?.Id),
                 workspace: this.Workspace,
                 solution: project?.Solution,
                 projectId: project?.Id,
@@ -141,6 +141,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return diagnostics;
+        }
+
+        private class HostArgsId : AnalyzerUpdateArgsId
+        {
+            private readonly AbstractHostDiagnosticUpdateSource _source;
+            private readonly ProjectId _projectId;
+
+            public HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId id) : base(analyzer)
+            {
+                this._source = source;
+                this._projectId = id;
+            }
+
+            public override bool Equals(object obj)
+            {
+                var other = obj as HostArgsId;
+                if (other == null)
+                {
+                    return false;
+                }
+
+                return _source == other._source && _projectId == other._projectId && base.Equals(obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return Hash.Combine(_source.GetHashCode(), Hash.Combine(_projectId.GetHashCode(), base.GetHashCode()));
+            }
         }
     }
 }

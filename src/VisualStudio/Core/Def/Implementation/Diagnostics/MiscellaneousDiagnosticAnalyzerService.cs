@@ -21,6 +21,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     [Shared]
     internal partial class MiscellaneousDiagnosticAnalyzerService : IIncrementalAnalyzerProvider, IDiagnosticUpdateSource
     {
+        private readonly IDiagnosticAnalyzerService analyzerService;
+
+        [ImportingConstructor]
+        public MiscellaneousDiagnosticAnalyzerService(IDiagnosticAnalyzerService analyzerService)
+        {
+            this.analyzerService = analyzerService;
+        }
+
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
             if (!workspace.Options.GetOption(ServiceComponentOnOffOptions.DiagnosticProvider))
@@ -82,7 +90,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 Contract.Requires(document.Project.Solution.Workspace == _workspace);
 
                 var diagnosticData = diagnostics == null ? ImmutableArray<DiagnosticData>.Empty : diagnostics.Select(d => DiagnosticData.Create(document, d)).ToImmutableArrayOrEmpty();
-                _service.RaiseDiagnosticsUpdated(new DiagnosticsUpdatedArgs(new MiscUpdateArgsId(document.Id), _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
+                _service.RaiseDiagnosticsUpdated(
+                    new DiagnosticsUpdatedArgs(new MiscUpdateArgsId(document.Id),
+                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
             }
 
             public void RemoveDocument(DocumentId documentId)
@@ -137,13 +147,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             {
             }
 
-            private class MiscUpdateArgsId : UpdateArgsId
+            private class MiscUpdateArgsId : ErrorSourceId.Base<DocumentId>, ISupportLiveUpdate
             {
-                private readonly DocumentId _documentId;
-
-                public MiscUpdateArgsId(DocumentId documentId) : base(null)
+                public MiscUpdateArgsId(DocumentId documentId) : base(documentId)
                 {
-                    _documentId = documentId;
+                }
+
+                public override string ErrorSource
+                {
+                    get
+                    {
+                        return PredefinedErrorSources.Compiler;
+                    }
                 }
 
                 public override bool Equals(object obj)
@@ -154,12 +169,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                         return false;
                     }
 
-                    return _documentId == other._documentId && base.Equals(obj);
+                    return base.Equals(obj);
                 }
 
                 public override int GetHashCode()
                 {
-                    return Hash.Combine(_documentId.GetHashCode(), base.GetHashCode());
+                    return base.GetHashCode();
                 }
             }
         }

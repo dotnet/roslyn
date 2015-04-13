@@ -454,23 +454,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private class ArgumentKey
+        private class ArgumentKey : ErrorSourceId.Base<object>
         {
-            public object Key;
-
-            public ArgumentKey(object key)
+            public ArgumentKey(object key) : base(key)
             {
-                this.Key = key;
             }
 
-            public DocumentId DocumentId
+            public override string ErrorSource
             {
-                get { return this.Key as DocumentId; }
-            }
-
-            public ProjectId ProjectId
-            {
-                get { return this.Key as ProjectId; }
+                get { return PredefinedErrorSources.Build; }
             }
 
             public override bool Equals(object obj)
@@ -481,12 +473,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     return false;
                 }
 
-                return Key == other.Key;
+                return base.Equals(obj);
             }
 
             public override int GetHashCode()
             {
-                return this.Key.GetHashCode();
+                return base.GetHashCode();
             }
         }
 

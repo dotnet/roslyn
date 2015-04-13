@@ -98,7 +98,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var invocations = nodes.Where(n => syntaxFactsService.IsInvocationExpression(n))
                 .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol.OriginalDefinition == methodSymbol);
 
-            return invocations.Concat(convertedAnonymousFunctions).Select(e => new ReferenceLocation(document, null, e.GetLocation(), isImplicit: false, candidateReason: CandidateReason.None));
+            return invocations.Concat(convertedAnonymousFunctions).Select(
+                e => new ReferenceLocation(document, null, e.GetLocation(), isImplicit: false, isWrittenTo: false, candidateReason: CandidateReason.None));
         }
     }
 }

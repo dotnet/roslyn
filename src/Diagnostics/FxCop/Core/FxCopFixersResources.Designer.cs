@@ -176,14 +176,5 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
                 return ResourceManager.GetString("SpecifyMarshalingForPInvokeStringArguments", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase.
-        /// </summary>
-        internal static string StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase {
-            get {
-                return ResourceManager.GetString("StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase", resourceCulture);
-            }
-        }
     }
 }

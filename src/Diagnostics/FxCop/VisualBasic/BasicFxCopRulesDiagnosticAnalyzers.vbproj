@@ -102,8 +102,6 @@
     <Compile Include="Design\CodeFixes\CA1008BasicCodeFixProvider.vb" />
     <Compile Include="Design\CodeFixes\CA1052BasicCodeFixProvider.vb" />
     <Compile Include="Design\CodeFixes\EnumWithFlagsBasicCodeFixProvider.vb" />
-    <Compile Include="Globalization\BasicCA1309DiagnosticAnalyzer.vb" />
-    <Compile Include="Globalization\CodeFixes\CA1309BasicCodeFixProvider.vb" />
     <Compile Include="Globalization\CodeFixes\CA2101BasicCodeFixProvider.vb" />
     <Compile Include="Performance\BasicCA1821DiagnosticAnalyzer.vb" />
     <Compile Include="Reliability\BasicCA2002DiagnosticAnalyzer.vb" />

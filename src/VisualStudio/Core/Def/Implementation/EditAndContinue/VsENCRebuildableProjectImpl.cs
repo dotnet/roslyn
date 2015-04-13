@@ -87,12 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
         private ISymUnmanagedReader _pdbReader;
 
-        // used when the symbol reader is retrieved from the debugger:
-        private object _pdbReaderObj;
-
-        // used when we can't retrive the reader from the debugger due to bug 775251 
-        private SymbolReaderProvider _pdbProvider;
-        private byte[] _pdbImage;
+        private IntPtr _pdbReaderMtaPointer;
 
         #endregion
 
@@ -327,19 +322,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 _committedBaseline = null;
                 _activeStatementIds = null;
 
-                if (_pdbReaderObj != null)
+                Debug.Assert((_pdbReader == null) == (_pdbReaderMtaPointer == IntPtr.Zero));
+
+                if (_pdbReader != null)
                 {
-                    Marshal.ReleaseComObject(_pdbReaderObj);
-                    _pdbReaderObj = null;
+                    Marshal.ReleaseComObject(_pdbReader);
+                    _pdbReader = null;
                 }
 
-                if (_pdbProvider != null)
-                {
-                    _pdbProvider.Dispose();
-                    _pdbProvider = null;
-                }
-
-                _pdbReader = null;
+                _pdbReaderMtaPointer = IntPtr.Zero;
 
                 // The HResult is ignored by the debugger.
                 return VSConstants.S_OK;
@@ -941,27 +932,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     Interop.IENCDebugInfo debugInfo;
                     updater.GetENCDebugInfo(out debugInfo);
 
-#if TODO // bug 779679: If we use a SymReader provided by the debugger the DPB may stay locked even after the debug session ends.
-                try
-                {
                     var symbolReaderProvider = (Interop.IENCSymbolReaderProvider)debugInfo;
-                    symbolReaderProvider.GetSymbolReader(out this.pdbReaderObj);
-                }
-                catch (InvalidCastException) // bug 775251
-                {
-#endif
-                    try
-                    {
-                        string pdbPath = Path.ChangeExtension(_vsProject.TryGetObjOutputPath(), ".pdb");
-                        _pdbImage = File.ReadAllBytes(pdbPath);
-                    }
-                    catch (Exception)
-                    {
-                        return VSConstants.E_FAIL;
-                    }
-#if TODO
-                }
-#endif
+                    symbolReaderProvider.GetSymbolReader(out _pdbReaderMtaPointer);
 
                     _committedBaseline = EmitBaseline.CreateInitialBaseline(_metadata, GetBaselineEncDebugInfo);
                 }
@@ -1078,17 +1050,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
             if (_pdbReader == null)
             {
-                if (_pdbReaderObj != null)
-                {
-                    _pdbReader = (ISymUnmanagedReader)_pdbReaderObj;
-                }
-                else
-                {
-                    Debug.Assert(_pdbImage != null);
-                    _pdbProvider = SymbolReaderProvider.Create(_pdbImage);
-                    _pdbReader = _pdbProvider.SymbolReader;
-                    _pdbImage = null;
-                }
+                Debug.Assert(_pdbReaderMtaPointer != IntPtr.Zero);
+                object pdbReaderObj = Marshal.GetObjectForIUnknown(_pdbReaderMtaPointer);
+                _pdbReader = (ISymUnmanagedReader)pdbReaderObj;
             }
 
             int methodToken = MetadataTokens.GetToken(methodHandle);
