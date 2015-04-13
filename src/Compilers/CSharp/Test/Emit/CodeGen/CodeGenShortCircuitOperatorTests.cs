@@ -5787,6 +5787,127 @@ class C
 }");
         }
 
+        [WorkItem(825, "https://github.com/dotnet/roslyn/issues/825")]
+        [Fact]
+        public void ConditionalBoolExpr01a()
+        {
+            var source = @"
+class C 
+{ 
+    public static void Main() 
+    { 
+        System.Console.WriteLine(HasLength(null, 0));
+    }
+
+    static bool HasLength(string s, byte len)
+    {
+        return s?.Length == len;
+    }
+}
+
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"False");
+
+            verifier.VerifyIL("C.HasLength", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""int string.Length.get""
+  IL_000b:  ldarg.1
+  IL_000c:  ceq
+  IL_000e:  ret
+}");
+        }
+
+        [WorkItem(825, "https://github.com/dotnet/roslyn/issues/825")]
+        [Fact]
+        public void ConditionalBoolExpr01b()
+        {
+            var source = @"
+class C 
+{ 
+    public static void Main() 
+    { 
+        System.Console.WriteLine(HasLength(null, long.MaxValue));
+        try
+        {
+            System.Console.WriteLine(HasLengthChecked(null, long.MaxValue));
+        } 
+        catch (System.Exception ex)
+        {
+            System.Console.WriteLine(ex.Message);
+        }        
+    }
+
+    static bool HasLength(string s, long len)
+    {
+        return s?.Length == (int)(byte)len;
+    }
+
+    static bool HasLengthChecked(string s, long len)
+    {
+        checked
+        {
+            return s?.Length == (int)(byte)len;
+        }
+    }
+}
+
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"False
+Arithmetic operation resulted in an overflow.");
+
+            verifier.VerifyIL("C.HasLength", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""int string.Length.get""
+  IL_000b:  ldarg.1
+  IL_000c:  conv.u1
+  IL_000d:  ceq
+  IL_000f:  ret
+}").VerifyIL("C.HasLengthChecked", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (int? V_0,
+                int V_1,
+                int? V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    ""int?""
+  IL_000b:  ldloc.2
+  IL_000c:  br.s       IL_0019
+  IL_000e:  ldarg.0
+  IL_000f:  call       ""int string.Length.get""
+  IL_0014:  newobj     ""int?..ctor(int)""
+  IL_0019:  stloc.0
+  IL_001a:  ldarg.1
+  IL_001b:  conv.ovf.u1
+  IL_001c:  stloc.1
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  call       ""int int?.GetValueOrDefault()""
+  IL_0024:  ldloc.1
+  IL_0025:  beq.s      IL_0029
+  IL_0027:  ldc.i4.0
+  IL_0028:  ret
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  call       ""bool int?.HasValue.get""
+  IL_0030:  ret
+}");
+        }
+
         [Fact]
         public void ConditionalBoolExpr02()
         {

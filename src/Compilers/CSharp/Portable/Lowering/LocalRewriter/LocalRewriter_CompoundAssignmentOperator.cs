@@ -643,6 +643,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Lambda:
                     return false;
 
+                case BoundKind.Conversion:
+                    var conv = (BoundConversion)expression;
+                    return ConversionHasSideEffects(conv) || 
+                        ReadIsSideeffecting(conv.Operand);
+
                 case BoundKind.ObjectCreationExpression:
                     // common production of lowered conversions to nullable
                     // new S?(arg)
@@ -657,6 +662,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return true;
             }
+        }
+
+        internal static bool ConversionHasSideEffects(BoundConversion conversion)
+        {
+            // only some intrinsic conversions are side effect free the only side effect of an
+            // intrinsic conversion is a throw when we fail to convert.
+            switch (conversion.ConversionKind)
+            {
+                case ConversionKind.Identity:
+                // NOTE: even explicit float/double identity conversion does not have side
+                // effects since it does not throw
+                case ConversionKind.ImplicitNumeric:
+                case ConversionKind.ImplicitEnumeration:
+                // implicit ref cast does not throw ...
+                case ConversionKind.ImplicitReference:
+                case ConversionKind.Boxing:
+                    return false;
+
+                // unchecked numeric conversion does not throw 
+                case ConversionKind.ExplicitNumeric:
+                    return conversion.Checked;
+            }
+
+            return true;
         }
 
         // nontrivial literals do not change between reads
