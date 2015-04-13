@@ -60,6 +60,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ErrorString.resx</DependentUpon>
     </Compile>
+    <Compile Include="IAnalyzerDependencyHostObject.cs" />
     <Compile Include="ICscHostObject5.cs" />
     <Compile Include="IVbcHostObject6.cs" />
     <Compile Include="ManagedCompiler.cs" />
