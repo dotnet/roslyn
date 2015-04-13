@@ -6185,7 +6185,7 @@ class Program2
 
             using (var peFile = File.OpenRead(pePath))
             {
-                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdbPath);
+                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdbPath, isPortable: false);
             }
         }
 
