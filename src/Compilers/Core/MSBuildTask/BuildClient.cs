@@ -39,8 +39,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             string[] args,
             string clientDir,
             string workingDir,
+            string sdkDir,
             RequestLanguage language,
-            Func<string, string[], int> fallbackCompiler)
+            Func<string, string, string[], int> fallbackCompiler)
         {
             args = args.Select(arg => arg.Trim()).ToArray();
 
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            return fallbackCompiler(clientDir, parsedArgs.ToArray());
+            return fallbackCompiler(clientDir, sdkDir, parsedArgs.ToArray());
         }
 
         private static int HandleResponse(BuildResponse response)
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             }
                             else
                             {
-                                if (TryCreateServerProcess(clientDir) &&
+                                if (TryCreateServerProcess(clientDir, pipeName) &&
                                     null != (pipe = TryConnectToProcess(pipeName,
                                                                         TimeOutMsNewProcess,
                                                                         cancellationToken)))
@@ -365,7 +366,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Create a new instance of the server process, returning true on success
         /// and false otherwise.
         /// </summary>
-        private static bool TryCreateServerProcess(string clientDir)
+        private static bool TryCreateServerProcess(string clientDir, string pipeName)
         {
             // The server should be in the same directory as the client
             string expectedPath = Path.Combine(clientDir, s_serverName);
@@ -389,17 +390,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             Log("Attempting to create process '{0}'", expectedPath);
 
+            var builder = new StringBuilder($@"""{expectedPath}"" ""-pipename:{pipeName}""");
+
             bool success = CreateProcess(
-                expectedPath,
-                null,            // command line
-                NullPtr,         // process attributes
-                NullPtr,         // thread attributes
-                false,           // don't inherit handles
-                dwCreationFlags,
-                NullPtr,         // inherit environment
-                Path.GetDirectoryName(expectedPath),    // current directory
-                ref startInfo,
-                out processInfo);
+                lpApplicationName:    null,
+                lpCommandLine:        builder,
+                lpProcessAttributes:  NullPtr,
+                lpThreadAttributes:   NullPtr,
+                bInheritHandles:      false,
+                dwCreationFlags:      dwCreationFlags,
+                lpEnvironment:        NullPtr, // Inherit environment
+                lpCurrentDirectory:   clientDir,
+                lpStartupInfo:        ref startInfo,
+                lpProcessInformation: out processInfo);
 
             if (success)
             {

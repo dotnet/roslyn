@@ -27,10 +27,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
             [Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null,
             [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
-            : this(workspaceAnalyzerAssemblies: diagnosticAnalyzerProviderService != null ?
-                   diagnosticAnalyzerProviderService.GetWorkspaceAnalyzerAssemblies() :
-                   SpecializedCollections.EmptyEnumerable<string>(),
-                  hostDiagnosticUpdateSource: hostDiagnosticUpdateSource)
+            : this(diagnosticAnalyzerProviderService != null ? diagnosticAnalyzerProviderService.GetHostDiagnosticAnalyzerPackages() : SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(),
+                   hostDiagnosticUpdateSource)
         {
             _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService);
         }
@@ -38,9 +36,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public IAsynchronousOperationListener Listener => _listener;
 
         // protected for testing purposes.
-        protected DiagnosticAnalyzerService(IEnumerable<string> workspaceAnalyzerAssemblies, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) : this()
+        protected DiagnosticAnalyzerService(IEnumerable<HostDiagnosticAnalyzerPackage> workspaceAnalyzerPackages, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) : this()
         {
-            _hostAnalyzerManager = new HostAnalyzerManager(workspaceAnalyzerAssemblies, hostDiagnosticUpdateSource);
+            _hostAnalyzerManager = new HostAnalyzerManager(workspaceAnalyzerPackages, hostDiagnosticUpdateSource);
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
@@ -172,6 +170,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic)
         {
             return _hostAnalyzerManager.IsCompilerDiagnostic(language, diagnostic);
+        }
+
+        public DiagnosticAnalyzer GetCompilerDiagnosticAnalyzer(string language)
+        {
+            return _hostAnalyzerManager.GetCompilerDiagnosticAnalyzer(language);
+        }
+
+        public bool IsCompilerDiagnosticAnalyzer(string language, DiagnosticAnalyzer analyzer)
+        {
+            return _hostAnalyzerManager.IsCompilerDiagnosticAnalyzer(language, analyzer);
         }
 
         // virtual for testing purposes.

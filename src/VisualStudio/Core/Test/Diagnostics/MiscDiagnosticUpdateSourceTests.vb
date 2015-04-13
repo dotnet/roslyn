@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 class 123 { }
                        </code>
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
-                Dim miscService = New MiscellaneousDiagnosticAnalyzerService()
+                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()))
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 Dim diagnosticWaiter = New DiagnosticServiceWaiter()
@@ -54,6 +54,49 @@ class 123 { }
                 Assert.True(spans.All(Function(s) s.Span.Length > 0))
 
                 taggerSource.TestOnly_Dispose()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestMiscCSharpErrorSource()
+            Dim code = <code>
+class 123 { }
+                       </code>
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
+                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()))
+                Dim errorSource = String.Empty
+
+                AddHandler miscService.DiagnosticsUpdated, Sub(e, a)
+                                                               Dim id = DirectCast(a.Id, ErrorSourceId)
+                                                               errorSource = id.ErrorSource
+                                                           End Sub
+
+                Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
+                analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
+
+                Assert.Equal(PredefinedErrorSources.Compiler, errorSource)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestMiscVBErrorSource()
+            Dim code = <code>
+Class 123
+End Class
+                       </code>
+            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
+                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()))
+                Dim errorSource = String.Empty
+
+                AddHandler miscService.DiagnosticsUpdated, Sub(e, a)
+                                                               Dim id = DirectCast(a.Id, ErrorSourceId)
+                                                               errorSource = id.ErrorSource
+                                                           End Sub
+
+                Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
+                analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
+
+                Assert.Equal(PredefinedErrorSources.Compiler, errorSource)
             End Using
         End Sub
 

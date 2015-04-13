@@ -95,7 +95,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         try
                         {
-                            var typeArguments = _instructionDecoder.GetTypeSymbols(compilation, method, result.ParameterTypeNames);
+                            // DkmGetClrGenericParametersAsyncResult.ParameterTypeNames will throw if ErrorCode != 0.
+                            var serializedTypeNames = (result.ErrorCode == 0) ? result.ParameterTypeNames : null;
+                            var typeArguments = _instructionDecoder.GetTypeSymbols(compilation, method, serializedTypeNames);
                             if (!typeArguments.IsEmpty)
                             {
                                 method = _instructionDecoder.ConstructMethod(method, typeParameters, typeArguments);
@@ -150,20 +152,25 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     frame,
                     result =>
                     {
-                        var argumentValues = result.Arguments;
+                        // DkmGetFrameArgumentsAsyncResult.Arguments will throw if ErrorCode != 0.
+                        var argumentValues = (result.ErrorCode == 0) ? result.Arguments : null;
                         try
                         {
-                            var builder = ArrayBuilder<string>.GetInstance();
-                            foreach (var argument in argumentValues)
+                            ArrayBuilder<string> builder = null;
+                            if (argumentValues != null)
                             {
-                                var formattedArgument = argument as DkmSuccessEvaluationResult;
-                                // Not expecting Expandable bit, at least not from this EE.
-                                Debug.Assert((formattedArgument == null) || (formattedArgument.Flags & DkmEvaluationResultFlags.Expandable) == 0);
-                                builder.Add(formattedArgument?.Value);
+                                builder = ArrayBuilder<string>.GetInstance();
+                                foreach (var argument in argumentValues)
+                                {
+                                    var formattedArgument = argument as DkmSuccessEvaluationResult;
+                                    // Not expecting Expandable bit, at least not from this EE.
+                                    Debug.Assert((formattedArgument == null) || (formattedArgument.Flags & DkmEvaluationResultFlags.Expandable) == 0);
+                                    builder.Add(formattedArgument?.Value);
+                                }
                             }
 
-                            var frameName = _instructionDecoder.GetName(method, includeParameterTypes, includeParameterNames, builder);
-                            builder.Free();
+                            var frameName = _instructionDecoder.GetName(method, includeParameterTypes, includeParameterNames, argumentValues: builder);
+                            builder?.Free();
                             completionRoutine(new DkmGetFrameNameAsyncResult(frameName));
                         }
                         catch (Exception e) when (ExpressionEvaluatorFatalError.ReportNonFatalException(e, DkmComponentManager.ReportCurrentNonFatalException))
@@ -172,16 +179,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         }
                         finally
                         {
-                            foreach (var argument in argumentValues)
+                            if (argumentValues != null)
                             {
-                                argument.Close();
+                                foreach (var argument in argumentValues)
+                                {
+                                    argument.Close();
+                                }
                             }
                         }
                     });
             }
             else
             {
-                var frameName = _instructionDecoder.GetName(method, includeParameterTypes, includeParameterNames, null);
+                var frameName = _instructionDecoder.GetName(method, includeParameterTypes, includeParameterNames, argumentValues: null);
                 completionRoutine(new DkmGetFrameNameAsyncResult(frameName));
             }
         }

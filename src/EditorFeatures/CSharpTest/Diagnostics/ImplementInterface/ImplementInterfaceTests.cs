@@ -3,12 +3,12 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementInterface;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementInterface
 {
@@ -138,6 +138,26 @@ index: 1);
             Test(
 @"interface IFoo { int this[int x] { get; set; } } class Foo : [|IFoo|] { IFoo f; }",
 @"interface IFoo { int this[int x] { get; set; } } class Foo : IFoo { IFoo f; public int this[int x] { get { return f[x]; } set { f[x] = value; } } }",
+index: 1);
+        }
+
+        [WorkItem(472, "https://github.com/dotnet/roslyn/issues/472")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public void TestImplementThroughFieldMemberRemoveUnnecessaryCast()
+        {
+            Test(
+@"using System.Collections; sealed class X : [|IComparer|] { X x; }",
+@"using System.Collections; sealed class X : IComparer { X x; public int Compare(object x, object y) { return this.x.Compare(x, y); } }",
+index: 1);
+        }
+
+        [WorkItem(472, "https://github.com/dotnet/roslyn/issues/472")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public void TestImplementThroughFieldMemberRemoveUnnecessaryCastAndThis()
+        {
+            Test(
+@"using System.Collections; sealed class X : [|IComparer|] { X a; }",
+@"using System.Collections; sealed class X : IComparer { X a; public int Compare(object x, object y) { return a.Compare(x, y); } }",
 index: 1);
         }
 

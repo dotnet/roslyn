@@ -2217,5 +2217,14 @@ class Hello
             Assert.Equal(0, result.ExitCode);
             Assert.Equal("Hello from VB", result.Output.Trim());
         }
+
+        [Fact]
+        public void ServerExitsWhenRunWithNoArgs()
+        {
+            var result = ProcessLauncher.Run(_compilerServerExecutable, "");
+
+            Assert.Equal(1, result.ExitCode);
+            Assert.Equal("", result.Output);
+        }
     }
 }

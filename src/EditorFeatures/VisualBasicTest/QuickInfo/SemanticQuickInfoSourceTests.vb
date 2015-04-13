@@ -830,6 +830,52 @@ End Class]]></Text>.NormalizedValue,
             MainDescription($"({FeaturesResources.Field}) Class1Attribute.x As Class1Attribute"))
         End Sub
 
+        <WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Sub AttributeQuickInfoBindsToClassTest()
+            Test("
+Imports System
+
+''' <summary>
+''' class comment
+''' </summary>
+<Some$$>
+Class SomeAttribute
+    Inherits Attribute
+
+    ''' <summary>
+    ''' ctor comment
+    ''' </summary>
+    Public Sub New()
+    End Sub
+End Class
+",
+                Documentation("class comment"))
+        End Sub
+
+        <WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Sub AttributeConstructorQuickInfo()
+            Test("
+Imports System
+
+''' <summary>
+''' class comment
+''' </summary>
+Class SomeAttribute
+    Inherits Attribute
+
+    ''' <summary>
+    ''' ctor comment
+    ''' </summary>
+    Public Sub New()
+        Dim s = New Some$$Attribute()
+    End Sub
+End Class
+",
+                Documentation("ctor comment"))
+        End Sub
+
         <WorkItem(542613)>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestUnboundGeneric()

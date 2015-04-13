@@ -40,7 +40,7 @@ Microsoft.CodeAnalysis.CommandLineArguments.Win32Manifest.get -> string
 Microsoft.CodeAnalysis.CommandLineArguments.Win32ResourceFile.get -> string
 Microsoft.CodeAnalysis.CommandLineParser
 Microsoft.CodeAnalysis.CommandLineParser.IsInteractive.get -> bool
-Microsoft.CodeAnalysis.CommandLineParser.Parse(System.Collections.Generic.IEnumerable<string> args, string baseDirectory, string additionalReferencePaths) -> Microsoft.CodeAnalysis.CommandLineArguments
+Microsoft.CodeAnalysis.CommandLineParser.Parse(System.Collections.Generic.IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories) -> Microsoft.CodeAnalysis.CommandLineArguments
 Microsoft.CodeAnalysis.CommandLineReference
 Microsoft.CodeAnalysis.CommandLineReference.Equals(Microsoft.CodeAnalysis.CommandLineReference other) -> bool
 Microsoft.CodeAnalysis.CommandLineReference.Properties.get -> Microsoft.CodeAnalysis.MetadataReferenceProperties

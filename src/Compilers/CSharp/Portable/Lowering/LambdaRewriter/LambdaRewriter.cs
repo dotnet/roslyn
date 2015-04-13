@@ -520,7 +520,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Symbol oldInnermostFramePointer = _innermostFramePointer;
-
             _innermostFramePointer = framePointer;
             var addedLocals = ArrayBuilder<LocalSymbol>.GetInstance();
             addedLocals.Add(framePointer);

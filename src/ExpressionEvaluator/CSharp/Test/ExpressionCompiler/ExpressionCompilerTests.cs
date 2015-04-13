@@ -6096,5 +6096,46 @@ class C
   IL_0024:  ret
 }");
         }
+
+        [Fact]
+        public void CapturedLocalInLambda()
+        {
+            var source = @"
+using System;
+class C
+{
+    void M(Func<int> f)
+    {
+        int x = 42;
+        M(() => x);
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(source);
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+
+            string error;
+            var testData = new CompilationTestData();
+            context.CompileExpression("M(() => x)", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                <>x.<>c__DisplayClass0_0 V_1) //CS$<>8__locals0
+  IL_0000:  newobj     ""<>x.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.1
+  IL_0007:  ldloc.0
+  IL_0008:  stfld      ""C.<>c__DisplayClass0_0 <>x.<>c__DisplayClass0_0.CS$<>8__locals0""
+  IL_000d:  ldarg.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldftn      ""int <>x.<>c__DisplayClass0_0.<<>m0>b__0()""
+  IL_0015:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_001a:  callvirt   ""void C.M(System.Func<int>)""
+  IL_001f:  ret
+}");
+        }
     }
 }

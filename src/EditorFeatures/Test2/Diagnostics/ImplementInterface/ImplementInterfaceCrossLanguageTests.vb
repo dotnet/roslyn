@@ -51,7 +51,7 @@ End Class
 Class C
     Implements I
  
-    Public Sub Foo(Optional x As E = CType(1, E)) Implements I.Foo
+    Public Sub Foo(Optional x As E = 1) Implements I.Foo
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -93,7 +93,7 @@ End Class
 Class C
     Implements I
  
-    Public Sub Foo(Optional x As E = CType(1, E)) Implements I.Foo
+    Public Sub Foo(Optional x As E = 1) Implements I.Foo
         Throw New NotImplementedException()
     End Sub
 End Class

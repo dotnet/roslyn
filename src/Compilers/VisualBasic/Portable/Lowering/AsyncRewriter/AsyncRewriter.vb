@@ -160,25 +160,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Sub GenerateMethodImplementations()
             ' Add IAsyncStateMachine.MoveNext()
-            Dim debuggerHidden = IsDebuggerHidden(Me.Method)
-            Dim moveNextAttrs As DebugAttributes = DebugAttributes.CompilerGeneratedAttribute
-            If debuggerHidden Then moveNextAttrs = moveNextAttrs Or DebugAttributes.DebuggerHiddenAttribute
             GenerateMoveNext(
-                Me.OpenMethodImplementation(
+                Me.OpenMoveNextMethodImplementation(
                     WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext,
-                    "MoveNext",
-                    moveNextAttrs,
-                    Accessibility.Friend,
-                    generateDebugInfo:=True,
-                    hasMethodBodyDependency:=True))
+                    Accessibility.Friend))
 
             'Add IAsyncStateMachine.SetStateMachine()
             Me.OpenMethodImplementation(
                     WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine,
                     "System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine",
-                    DebugAttributes.DebuggerNonUserCodeAttribute,
                     Accessibility.Private,
-                    generateDebugInfo:=False,
                     hasMethodBodyDependency:=False)
 
             ' SetStateMachine is used to initialize the underlying AsyncMethodBuilder's reference to the boxed copy of the state machine.

@@ -3,15 +3,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
@@ -41,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var usingDirectives =
                     from n in namespaces
                     let displayString = n.ToDisplayString(SymbolDisplayFormats.NameFormat)
-                    let name = SyntaxFactory.ParseName(displayString)
+                    let name = SyntaxFactory.ParseName(displayString).WithAdditionalAnnotations(Simplifier.Annotation)
                     select SyntaxFactory.UsingDirective(name);
 
                 return usingDirectives.ToList();

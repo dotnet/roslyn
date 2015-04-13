@@ -12,7 +12,10 @@
       -Microsoft.Design#CA1014;
       -Microsoft.Design#CA1016;
       -Microsoft.Design#CA1017;
+      -Microsoft.Design#CA1018;
       -Microsoft.Design#CA1036;
+      
+      -Microsoft.Performance#CA1813;
       
       -Microsoft.Usage#CA2231;
     </CodeAnalysisRuleSetOverrides>

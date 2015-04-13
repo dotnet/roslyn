@@ -3,6 +3,7 @@
 Imports System.Globalization
 Imports System.IO
 Imports System.Reflection
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -17,7 +18,7 @@ Friend NotInheritable Class Vbi
     Friend Const InteractiveResponseFileName As String = "vbi.rsp"
 
     Friend Sub New(responseFile As String, baseDirectory As String, args As String())
-        MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, baseDirectory, Nothing) ' TODO: what to pass as additionalReferencePaths?
+        MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Nothing) ' TODO: what to pass as additionalReferencePaths?
     End Sub
 
     Public Shared Function Main(args As String()) As Integer

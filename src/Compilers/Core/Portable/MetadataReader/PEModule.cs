@@ -2754,52 +2754,58 @@ namespace Microsoft.CodeAnalysis
         private ConstantValue GetConstantValueOrThrow(ConstantHandle handle)
         {
             var constantRow = MetadataReader.GetConstant(handle);
-            ConstantTypeCode type = constantRow.TypeCode;
-
-            // Partition II section 22.9:
-            //
-            // Type shall be exactly one of: ELEMENT_TYPE_BOOLEAN, ELEMENT_TYPE_CHAR, ELEMENT_TYPE_I1, 
-            // ELEMENT_TYPE_U1, ELEMENT_TYPE_I2, ELEMENT_TYPE_U2, ELEMENT_TYPE_I4, ELEMENT_TYPE_U4, 
-            // ELEMENT_TYPE_I8, ELEMENT_TYPE_U8, ELEMENT_TYPE_R4, ELEMENT_TYPE_R8, or ELEMENT_TYPE_STRING; 
-            // or ELEMENT_TYPE_CLASS with a Value of zero  (23.1.16)
-
             BlobReader reader = MetadataReader.GetBlobReader(constantRow.Value);
-            // TODO: Error checking; we do not verify that the block size matches the size of the constant we are expecting.
-            // TODO: The blob heap could be corrupt.
-            switch (type)
+            switch (constantRow.TypeCode)
             {
                 case ConstantTypeCode.Boolean:
-                    byte b = reader.ReadByte();
-                    return ConstantValue.Create(b != 0);
+                    return ConstantValue.Create(reader.ReadBoolean());
+
                 case ConstantTypeCode.Char:
                     return ConstantValue.Create(reader.ReadChar());
+
                 case ConstantTypeCode.SByte:
                     return ConstantValue.Create(reader.ReadSByte());
+
                 case ConstantTypeCode.Int16:
                     return ConstantValue.Create(reader.ReadInt16());
+
                 case ConstantTypeCode.Int32:
                     return ConstantValue.Create(reader.ReadInt32());
+
                 case ConstantTypeCode.Int64:
                     return ConstantValue.Create(reader.ReadInt64());
+
                 case ConstantTypeCode.Byte:
                     return ConstantValue.Create(reader.ReadByte());
+
                 case ConstantTypeCode.UInt16:
                     return ConstantValue.Create(reader.ReadUInt16());
+
                 case ConstantTypeCode.UInt32:
                     return ConstantValue.Create(reader.ReadUInt32());
+
                 case ConstantTypeCode.UInt64:
                     return ConstantValue.Create(reader.ReadUInt64());
+
                 case ConstantTypeCode.Single:
                     return ConstantValue.Create(reader.ReadSingle());
+
                 case ConstantTypeCode.Double:
                     return ConstantValue.Create(reader.ReadDouble());
+
                 case ConstantTypeCode.String:
-                    // A null string constant is represented as an ELEMENT_TYPE_CLASS.
-                    int byteLen = reader.Length;
-                    return ConstantValue.Create(byteLen == 0 ? "" : reader.ReadUTF16(byteLen));
+                    return ConstantValue.Create(reader.ReadUTF16(reader.Length));
+
                 case ConstantTypeCode.NullReference:
-                    // TODO: Error checking; verify that the value is all zero bytes;
-                    return ConstantValue.Null;
+                    // Partition II section 22.9:
+                    // The encoding of Type for the nullref value is ELEMENT_TYPE_CLASS with a Value of a 4-byte zero.
+                    // Unlike uses of ELEMENT_TYPE_CLASS in signatures, this one is not followed by a type token.
+                    if (reader.ReadUInt32() == 0)
+                    {
+                        return ConstantValue.Null;
+                    }
+
+                    break;
             }
 
             return ConstantValue.Bad;

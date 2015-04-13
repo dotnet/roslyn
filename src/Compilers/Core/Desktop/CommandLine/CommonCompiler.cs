@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession);
         protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles);
 
-        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string baseDirectory, string additionalReferencePaths)
+        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
         {
             IEnumerable<string> allArgs = args;
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
                 allArgs = new[] { "@" + responseFile }.Concat(allArgs);
             }
 
-            this.Arguments = parser.Parse(allArgs, baseDirectory, additionalReferencePaths);
+            this.Arguments = parser.Parse(allArgs, baseDirectory, sdkDirectory, additionalReferenceDirectories);
             this.MessageProvider = parser.MessageProvider;
         }
 

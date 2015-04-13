@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             DebuggingSession session, object errorId, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items)
         {
             return new DiagnosticsUpdatedArgs(
-                id: Tuple.Create(session, errorId),
+                id: new EnCId(session, errorId),
                 workspace: workspace,
                 solution: solution,
                 projectId: projectId,
@@ -108,6 +108,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             if (updated != null)
             {
                 updated(this, args);
+            }
+        }
+
+        private class EnCId : ErrorSourceId.Base<DebuggingSession, object>
+        {
+            public EnCId(DebuggingSession session, object errorId) :
+                base(session, errorId)
+            {
+            }
+
+            public override string ErrorSource
+            {
+                get { return PredefinedErrorSources.EnC; }
             }
         }
     }

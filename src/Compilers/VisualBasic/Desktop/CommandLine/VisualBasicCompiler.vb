@@ -18,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _responseFile As String
         Private ReadOnly _diagnosticFormatter As CommandLineDiagnosticFormatter
 
-        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), baseDirectory As String, additionalReferencePaths As String)
-            MyBase.New(parser, responseFile, args, baseDirectory, additionalReferencePaths)
+        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), baseDirectory As String, sdkDirectory As String, additionalReferenceDirectories As String)
+            MyBase.New(parser, responseFile, args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
             Debug.Assert(responseFile Is Nothing OrElse Path.IsPathRooted(responseFile))
             _responseFile = responseFile
             _diagnosticFormatter = New CommandLineDiagnosticFormatter(baseDirectory)
