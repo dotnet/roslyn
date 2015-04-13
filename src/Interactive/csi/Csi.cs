@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,7 +20,7 @@ namespace CSharpInteractive
         private const string InteractiveResponseFileName = "csi.rsp";
 
         internal Csi(string responseFile, string baseDirectory, string[] args)
-            : base(CSharpCommandLineParser.Interactive, responseFile, args, baseDirectory, null /* TODO: what to pass as additionalReferencePaths? */)
+            : base(CSharpCommandLineParser.Interactive, responseFile, args, baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null /* TODO: what to pass as additionalReferencePaths? */)
         {
         }
 
