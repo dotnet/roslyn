@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _hostObject = new InteractiveHostObject();
 
                 _options = _options
-                                   .WithBaseDirectory(Environment.CurrentDirectory)
+                                   .WithBaseDirectory(Directory.GetCurrentDirectory())
                                    .AddReferences(_hostObject.GetType().Assembly);
 
                 _hostObject.ReferencePaths.AddRange(_options.SearchPaths);
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // send any updates to the host object and current directory back to the client:
                 var newSourcePaths = _hostObject.SourcePaths.List.GetNewContent();
                 var newReferencePaths = _hostObject.ReferencePaths.List.GetNewContent();
-                var currentDirectory = Environment.CurrentDirectory;
+                var currentDirectory = Directory.GetCurrentDirectory();
                 var oldWorkingDirectory = _options.BaseDirectory;
                 var newWorkingDirectory = (oldWorkingDirectory != currentDirectory) ? currentDirectory : null;
 
