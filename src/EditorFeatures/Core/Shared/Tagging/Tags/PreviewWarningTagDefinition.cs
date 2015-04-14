@@ -9,12 +9,12 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.Tags
 {
     [Export(typeof(EditorFormatDefinition))]
-    [Name(WarningTag.TagId)]
+    [Name(PreviewWarningTag.TagId)]
     [UserVisible(true)]
     [ExcludeFromCodeCoverage]
-    internal class WarningTagDefinition : MarkerFormatDefinition
+    internal class PreviewWarningTagDefinition : MarkerFormatDefinition
     {
-        public WarningTagDefinition()
+        public PreviewWarningTagDefinition()
         {
             // this.Border = new Pen(Brushes.Yellow, thickness: 1.5);
             this.BackgroundColor = Colors.Yellow;

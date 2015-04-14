@@ -58,11 +58,19 @@ namespace Microsoft.CodeAnalysis
             return Directory.EnumerateFiles(directory, fileNamePattern, searchOption);
         }
 
-        internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string additionalReferencePaths);
+        internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories);
 
-        public CommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string additionalReferencePaths)
+        /// <summary>
+        /// Parses a command line.
+        /// </summary>
+        /// <param name="args">A collection of strings representing the command line arguments.</param>
+        /// <param name="baseDirectory">The base directory used for qualifying file locations.</param>
+        /// <param name="sdkDirectory">The directory to search for mscorlib.</param>
+        /// <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
+        /// <returns>a commandlinearguments object representing the parsed command line.</returns>
+        public CommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
         {
-            return CommonParse(args, baseDirectory, additionalReferencePaths);
+            return CommonParse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
         internal static bool TryParseOption(string arg, out string name, out string value)

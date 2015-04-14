@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Warning.
+        ///   Looks up a localized string similar to Preview Warning.
         /// </summary>
         internal static string Warning {
             get {

@@ -1174,9 +1174,13 @@ namespace Roslyn.Test.PdbUtilities
         // A single method could span multiple files (use C#'s #line directive to see for yourself).        
         private void WriteSequencePoints(ISymUnmanagedMethod method)
         {
-            _writer.WriteStartElement("sequencePoints");
-
             var sequencePoints = method.GetSequencePoints();
+            if (sequencePoints.Length == 0)
+            {
+                return;
+            }
+
+            _writer.WriteStartElement("sequencePoints");
 
             // Write out sequence points
             foreach (var sequencePoint in sequencePoints)

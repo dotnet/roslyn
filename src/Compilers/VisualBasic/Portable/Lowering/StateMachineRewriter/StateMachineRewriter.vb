@@ -381,77 +381,65 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Friend Function OpenMethodImplementation(interfaceMethod As WellKnownMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, generateDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedStateMachineMethod
+        Friend Function OpenMethodImplementation(interfaceMethod As WellKnownMember, name As String, accessibility As Accessibility, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedMethod
             Dim methodToImplement As MethodSymbol = Me.F.WellKnownMember(Of MethodSymbol)(interfaceMethod)
 
-            Return OpenMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, generateDebugInfo, hasMethodBodyDependency, associatedProperty)
+            Return OpenMethodImplementation(methodToImplement, name, accessibility, hasMethodBodyDependency, associatedProperty)
         End Function
 
-        Friend Function OpenMethodImplementation(interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, generateDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedStateMachineMethod
+        Friend Function OpenMethodImplementation(interfaceMethod As SpecialMember, name As String, accessibility As Accessibility, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedMethod
             Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceMethod), MethodSymbol)
 
-            Return OpenMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, generateDebugInfo, hasMethodBodyDependency, associatedProperty)
+            Return OpenMethodImplementation(methodToImplement, name, accessibility, hasMethodBodyDependency, associatedProperty)
         End Function
 
-        Friend Function OpenMethodImplementation(interfaceType As NamedTypeSymbol, interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, generateDebugInfo As Boolean, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedStateMachineMethod
+        Friend Function OpenMethodImplementation(interfaceType As NamedTypeSymbol, interfaceMethod As SpecialMember, name As String, accessibility As Accessibility, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedMethod
             Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceMethod), MethodSymbol).AsMember(interfaceType)
 
-            Return OpenMethodImplementation(methodToImplement, name, dbgAttrs, accessibility, generateDebugInfo, hasMethodBodyDependency, associatedProperty)
+            Return OpenMethodImplementation(methodToImplement, name, accessibility, hasMethodBodyDependency, associatedProperty)
         End Function
 
         Private Function OpenMethodImplementation(methodToImplement As MethodSymbol,
                                                   methodName As String,
-                                                  debugAttributes As DebugAttributes,
                                                   accessibility As Accessibility,
-                                                  generateDebugInfo As Boolean,
                                                   Optional hasMethodBodyDependency As Boolean = False,
-                                                  Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedStateMachineMethod
+                                                  Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedMethod
 
             ' Errors must be reported before and if any thispoint should not be reachable
             Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteErrorInfo Is Nothing)
 
-            Dim result As New SynthesizedStateMachineMethod(DirectCast(Me.F.CurrentType, StateMachineTypeSymbol),
-                                                            methodName,
-                                                            methodToImplement,
-                                                            Me.F.Syntax,
-                                                            debugAttributes,
-                                                            accessibility,
-                                                            generateDebugInfo,
-                                                            hasMethodBodyDependency,
-                                                            associatedProperty)
+            Dim result As New SynthesizedStateMachineDebuggerNonUserCodeMethod(DirectCast(Me.F.CurrentType, StateMachineTypeSymbol),
+                                                                               methodName,
+                                                                               methodToImplement,
+                                                                               Me.F.Syntax,
+                                                                               accessibility,
+                                                                               hasMethodBodyDependency,
+                                                                               associatedProperty)
 
             Me.F.AddMethod(Me.F.CurrentType, result)
             Me.F.CurrentMethod = result
             Return result
         End Function
 
-        Friend Function OpenPropertyImplementation(interfaceProperty As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, generateDebugInfo As Boolean) As MethodSymbol
+        Friend Function OpenPropertyImplementation(interfaceProperty As SpecialMember, name As String, accessibility As Accessibility) As MethodSymbol
             Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceProperty), PropertySymbol).GetMethod
 
-            Return OpenPropertyImplementation(methodToImplement, name, dbgAttrs, accessibility, generateDebugInfo)
+            Return OpenPropertyImplementation(methodToImplement, name, accessibility)
         End Function
 
-        Friend Function OpenPropertyImplementation(interfaceType As NamedTypeSymbol, interfaceMethod As SpecialMember, name As String, dbgAttrs As DebugAttributes, accessibility As Accessibility, generateDebugInfo As Boolean) As MethodSymbol
+        Friend Function OpenPropertyImplementation(interfaceType As NamedTypeSymbol, interfaceMethod As SpecialMember, name As String, accessibility As Accessibility) As MethodSymbol
             Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceMethod), PropertySymbol).GetMethod.AsMember(interfaceType)
 
-            Return OpenPropertyImplementation(methodToImplement, name, dbgAttrs, accessibility, generateDebugInfo)
+            Return OpenPropertyImplementation(methodToImplement, name, accessibility)
         End Function
 
-        Private Function OpenPropertyImplementation(getterToImplement As MethodSymbol,
-                                                    name As String,
-                                                    debugAttributes As DebugAttributes,
-                                                    accessibility As Accessibility,
-                                                    generateDebugInfo As Boolean,
-                                                    Optional hasMethodBodyDependency As Boolean = False) As MethodSymbol
+        Private Function OpenPropertyImplementation(getterToImplement As MethodSymbol, name As String, accessibility As Accessibility) As MethodSymbol
 
             Dim prop As New SynthesizedStateMachineProperty(DirectCast(Me.F.CurrentType, StateMachineTypeSymbol),
                                                             name,
                                                             getterToImplement,
                                                             Me.F.Syntax,
-                                                            debugAttributes,
-                                                            accessibility,
-                                                            generateDebugInfo,
-                                                            hasMethodBodyDependency)
+                                                            accessibility)
 
             Me.F.AddProperty(Me.F.CurrentType, prop)
 
@@ -470,13 +458,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return body
         End Function
 
-        Protected Function IsDebuggerHidden(method As MethodSymbol) As Boolean
-            Dim debuggerHiddenAttribute = F.CompilationState.Compilation.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggerHiddenAttribute)
-            For Each a In Me.Method.GetAttributes()
-                If a.AttributeClass = debuggerHiddenAttribute Then Return True
-            Next
+        Friend Function OpenMoveNextMethodImplementation(interfaceMethod As WellKnownMember, accessibility As Accessibility) As SynthesizedMethod
+            Dim methodToImplement As MethodSymbol = Me.F.WellKnownMember(Of MethodSymbol)(interfaceMethod)
 
-            Return False
+            Return OpenMoveNextMethodImplementation(methodToImplement, accessibility)
+        End Function
+
+        Friend Function OpenMoveNextMethodImplementation(interfaceMethod As SpecialMember, accessibility As Accessibility) As SynthesizedMethod
+            Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceMethod), MethodSymbol)
+
+            Return OpenMoveNextMethodImplementation(methodToImplement, accessibility)
+        End Function
+
+        Private Function OpenMoveNextMethodImplementation(methodToImplement As MethodSymbol, accessibility As Accessibility) As SynthesizedMethod
+
+            ' Errors must be reported before and if any thispoint should not be reachable
+            Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteErrorInfo Is Nothing)
+
+            Dim result As New SynthesizedStateMachineMoveNextMethod(DirectCast(Me.F.CurrentType, StateMachineTypeSymbol),
+                                                                    methodToImplement,
+                                                                    Me.F.Syntax,
+                                                                    accessibility)
+
+            Me.F.AddMethod(Me.F.CurrentType, result)
+            Me.F.CurrentMethod = result
+            Return result
         End Function
     End Class
 

@@ -729,8 +729,8 @@
     <Compile Include="Shared\Tagging\Tags\AbstractNavigatableReferenceHighlightingTag.cs" />
     <Compile Include="Shared\Tagging\Tags\ConflictTag.cs" />
     <Compile Include="Shared\Tagging\Tags\ConflictTagDefinition.cs" />
-    <Compile Include="Shared\Tagging\Tags\WarningTag.cs" />
-    <Compile Include="Shared\Tagging\Tags\WarningTagDefinition.cs" />
+    <Compile Include="Shared\Tagging\Tags\PreviewWarningTag.cs" />
+    <Compile Include="Shared\Tagging\Tags\PreviewWarningTagDefinition.cs" />
     <Compile Include="Shared\Tagging\TagSources\BufferTagSource.cs" />
     <Compile Include="Implementation\ReferenceHighlighting\ReferenceHighlightingTagSource.cs" />
     <Compile Include="Shared\Tagging\TagSources\SemanticBufferTagSource.cs" />

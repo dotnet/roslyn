@@ -487,6 +487,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     param = "Analyzers"; this.CheckHostObjectSupport(param, analyzerHostObject.SetAnalyzers(this.Analyzers));
                 }
+
+                // For host objects which support it, pass the list of analyzer dependencies.
+                IAnalyzerDependencyHostObject analyzerDependencyHostObject = cscHostObject as IAnalyzerDependencyHostObject;
+                if (analyzerDependencyHostObject != null)
+                {
+                    param = "AnalyzerDependencies"; this.CheckHostObjectSupport(param, analyzerDependencyHostObject.SetAnalyzerDependencies(this.AnalyzerDependencies));
+                }
             }
             catch (Exception e) when (!Utilities.IsCriticalException(e))
             {

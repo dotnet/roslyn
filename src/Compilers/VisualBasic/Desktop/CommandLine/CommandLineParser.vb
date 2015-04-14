@@ -59,8 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend NotOverridable Overrides Function CommonParse(args As IEnumerable(Of String), baseDirectory As String, additionalReferencePaths As String) As CommandLineArguments
-            Return Parse(args, baseDirectory, additionalReferencePaths)
+        Friend NotOverridable Overrides Function CommonParse(args As IEnumerable(Of String), baseDirectory As String, sdkDirectory As String, additionalReferenceDirectories As String) As CommandLineArguments
+            Return Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
         End Function
 
         ''' <summary>
@@ -68,9 +68,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="args">A collection of strings representing the command line arguments.</param>
         ''' <param name="baseDirectory">The base directory used for qualifying file locations.</param>
-        ''' <param name="additionalReferencePaths">A string representing additional reference paths.</param>
+        ''' <param name="sdkDirectory">The directory to search for mscorlib.</param>
+        ''' <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
         ''' <returns>A CommandLineArguments object representing the parsed command line.</returns>
-        Public Shadows Function Parse(args As IEnumerable(Of String), baseDirectory As String, Optional additionalReferencePaths As String = Nothing) As VisualBasicCommandLineArguments
+        Public Shadows Function Parse(args As IEnumerable(Of String), baseDirectory As String, sdkDirectory As String, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
             Const GenerateFileNameForDocComment As String = "USE-OUTPUT-NAME"
 
             Dim diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
@@ -1050,7 +1051,7 @@ lVbRuntimePlus:
 
             ' Prepare SDK PATH
             If sdkPaths.Count = 0 Then
-                sdkPaths.Add(RuntimeEnvironment.GetRuntimeDirectory)
+                sdkPaths.Add(sdkDirectory)
             End If
 
             ' Locate default 'mscorlib.dll' or 'System.Runtime.dll', if any.
@@ -1085,8 +1086,8 @@ lVbRuntimePlus:
             End If
 
             ' add additional reference paths if specified
-            If Not String.IsNullOrWhiteSpace(additionalReferencePaths) Then
-                libPaths.AddRange(ParseSeparatedPaths(additionalReferencePaths))
+            If Not String.IsNullOrWhiteSpace(additionalReferenceDirectories) Then
+                libPaths.AddRange(ParseSeparatedPaths(additionalReferenceDirectories))
             End If
 
             ' Build search path

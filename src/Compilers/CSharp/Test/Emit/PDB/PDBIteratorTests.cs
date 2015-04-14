@@ -34,7 +34,6 @@ class Program
       <customDebugInfo>
         <forwardIterator name=""&lt;Foo&gt;d__0"" />
       </customDebugInfo>
-      <sequencePoints />
     </method>
     <method containingType=""Program"" name=""F"">
       <customDebugInfo>
@@ -89,7 +88,6 @@ class Program
       <customDebugInfo>
         <forwardIterator name=""&lt;Foo&gt;d__0"" />
       </customDebugInfo>
-      <sequencePoints />
     </method>
     <method containingType=""Program"" name=""F"">
       <customDebugInfo>
@@ -144,7 +142,6 @@ class Program
       <customDebugInfo>
         <forwardIterator name=""&lt;Foo&gt;d__0"" />
       </customDebugInfo>
-      <sequencePoints />
     </method>
     <method containingType=""Program"" name=""F"">
       <customDebugInfo>
@@ -207,7 +204,6 @@ class Program
       <customDebugInfo>
         <forwardIterator name=""&lt;IEI&gt;d__0"" />
       </customDebugInfo>
-      <sequencePoints />
     </method>
     <method containingType=""Program"" name=""F"">
       <customDebugInfo>
@@ -280,7 +276,6 @@ class Program
           <slot kind=""0"" offset=""101"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
     <method containingType=""Program"" name=""F"">
       <customDebugInfo>
@@ -364,7 +359,6 @@ class Test<T>
           <slot kind=""0"" offset=""42"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
     <method containingType=""Test`1"" name=""F"">
       <customDebugInfo>
@@ -461,7 +455,6 @@ class C
       <customDebugInfo>
         <forwardIterator name=""&lt;M&gt;d__0"" />
       </customDebugInfo>
-      <sequencePoints />
     </method>
     <method containingType=""C"" name=""Main"">
       <customDebugInfo>
@@ -596,19 +589,16 @@ public class Test
           <slot kind=""0"" offset=""104"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
     <method containingType=""Test`1"" name=""get_IterProp"">
       <customDebugInfo>
         <forwardIterator name=""&lt;get_IterProp&gt;d__3"" />
       </customDebugInfo>
-      <sequencePoints />
     </method>
     <method containingType=""Test`1"" name=""IterMethod"">
       <customDebugInfo>
         <forwardIterator name=""&lt;IterMethod&gt;d__4"" />
       </customDebugInfo>
-      <sequencePoints />
     </method>
     <method containingType=""Test"" name=""Main"">
       <customDebugInfo>
@@ -991,7 +981,6 @@ class C
           <slot kind=""2"" offset=""367"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
   </methods>
 </symbols>");
@@ -1186,7 +1175,6 @@ class C
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
   </methods>
 </symbols>");
@@ -1342,7 +1330,6 @@ class C
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
   </methods>
 </symbols>");
@@ -1418,7 +1405,6 @@ class C
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
   </methods>
 </symbols>

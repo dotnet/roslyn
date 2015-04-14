@@ -172,6 +172,7 @@ End Class
                      "/touchedfiles:" + touchedBase,
                      source1},
                     _baseDirectory,
+                    RuntimeEnvironment.GetRuntimeDirectory(),
                     s_libDirectory)
                 Dim expectedReads As List(Of String) = Nothing
                 Dim expectedWrites As List(Of String) = Nothing

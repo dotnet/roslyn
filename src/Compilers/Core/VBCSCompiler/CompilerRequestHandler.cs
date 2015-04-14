@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
@@ -158,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 responseFileDirectory,
                 commandLineArguments,
                 currentDirectory,
+                RuntimeEnvironment.GetRuntimeDirectory(),
                 libDirectory,
                 output,
                 cancellationToken,
@@ -220,6 +222,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 responseFileDirectory,
                 commandLineArguments,
                 currentDirectory,
+                RuntimeEnvironment.GetRuntimeDirectory(),
                 libDirectory,
                 output,
                 cancellationToken,
