@@ -95,13 +95,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _compilationResults.TryRemove(projectId, out results);
             }
 
-            Owner.RaiseDiagnosticsUpdated(this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, projectId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
+            Owner.RaiseDiagnosticsUpdated(this, new DiagnosticsUpdatedArgs(new AnalyzerData<ProjectId>(this, projectId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
 
         public override void RemoveDocument(DocumentId documentId)
         {
             Owner.RaiseDiagnosticsUpdated(
-                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, documentId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
+                this, new DiagnosticsUpdatedArgs(new AnalyzerData<DocumentId>(this, documentId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
         #endregion
 
@@ -190,16 +190,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private async Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(CompilationVintage vintage, Solution solution, object id, CancellationToken cancellationToken)
         {
-            if (id is ValueTuple<DiagnosticIncrementalAnalyzer, DocumentId>)
+            AnalyzerData<DocumentId> documentId = id as AnalyzerData<DocumentId>;
+            if (documentId != null)
             {
-                var key = (ValueTuple<DiagnosticIncrementalAnalyzer, DocumentId>)id;
-                return await GetDiagnosticsAsync(vintage, solution, key.Item2.ProjectId, key.Item2, cancellationToken).ConfigureAwait(false);
+                return await GetDiagnosticsAsync(vintage, solution, documentId.Container.ProjectId, documentId.Container, cancellationToken).ConfigureAwait(false);
             }
 
-            if (id is ValueTuple<DiagnosticIncrementalAnalyzer, ProjectId>)
+            AnalyzerData<ProjectId> projectId = id as AnalyzerData<ProjectId>;
+            if (projectId != null)
             {
-                var key = (ValueTuple<DiagnosticIncrementalAnalyzer, ProjectId>)id;
-                ImmutableArray<DiagnosticData> diagnostics = await GetDiagnosticsAsync(vintage, solution, key.Item2, null, cancellationToken).ConfigureAwait(false);
+                ImmutableArray<DiagnosticData> diagnostics = await GetDiagnosticsAsync(vintage, solution, projectId.Container, null, cancellationToken).ConfigureAwait(false);
                 return diagnostics.Where(d => d.DocumentId == null).ToImmutableArray();
             }
 
@@ -281,13 +281,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         Owner.RaiseDiagnosticsUpdated(
                             this, new DiagnosticsUpdatedArgs(
-                                ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, kv.ToImmutableArrayOrEmpty()));
+                                new AnalyzerData<ProjectId>(this, project.Id), workspace, solution, project.Id, null, kv.ToImmutableArrayOrEmpty()));
                     }
                     else
                     {
                         Owner.RaiseDiagnosticsUpdated(
                             this, new DiagnosticsUpdatedArgs(
-                                ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty()));
+                                new AnalyzerData<DocumentId>(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty()));
                     }
                 }
             }
@@ -298,13 +298,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     Owner.RaiseDiagnosticsUpdated(
                            this, new DiagnosticsUpdatedArgs(
-                               ValueTuple.Create(this, document.Id), workspace, solution, project.Id, document.Id, ImmutableArray<DiagnosticData>.Empty));
+                               new AnalyzerData<DocumentId>(this, document.Id), workspace, solution, project.Id, document.Id, ImmutableArray<DiagnosticData>.Empty));
                 }
                 else
                 {
                     Owner.RaiseDiagnosticsUpdated(
                             this, new DiagnosticsUpdatedArgs(
-                                ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, ImmutableArray<DiagnosticData>.Empty));
+                                new AnalyzerData<ProjectId>(this, project.Id), workspace, solution, project.Id, null, ImmutableArray<DiagnosticData>.Empty));
                 }
             }
         }
@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     await _completionTask.ConfigureAwait(false);
                 }
 
-                return diagnostics;
+                return Flatten(_diagnosticsPerDocuments.Values);
             }
 
             public async Task<ImmutableArray<Diagnostic>> AnalyzeDocumentAsync(Document document, CancellationToken cancellationToken)
@@ -618,6 +618,53 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 return _noDocument;
             }
+        }
+
+        private class AnalyzerData<ContainerId> : IEquatable<AnalyzerData<ContainerId>>, ISupportLiveUpdate
+        {
+            public DiagnosticIncrementalAnalyzer Analyzer { get; private set; }
+            public ContainerId Container { get; private set; }
+
+            public AnalyzerData(DiagnosticIncrementalAnalyzer analyzer, ContainerId container)
+            {
+                Analyzer = analyzer;
+                Container = container;
+            }
+
+            public bool Equals(AnalyzerData<ContainerId> other)
+            {
+                return s_compareAnalyzers.Equals(this.Analyzer, other.Analyzer)
+                    && s_compareIds.Equals(this.Container, other.Container);
+            }
+
+            public override bool Equals(object obj)
+            {
+                AnalyzerData<ContainerId> other = obj as AnalyzerData<ContainerId>;
+                if (((object)other) != null)
+                {
+                    return this.Equals(other);
+                }
+
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                return Hash.Combine(s_compareAnalyzers.GetHashCode(Analyzer), s_compareIds.GetHashCode(Container));
+            }
+
+            public static bool operator ==(AnalyzerData<ContainerId> left, AnalyzerData<ContainerId> right)
+            {
+                return left.Equals(right);
+            }
+
+            public static bool operator !=(AnalyzerData<ContainerId> left, AnalyzerData<ContainerId> right)
+            {
+                return !left.Equals(right);
+            }
+
+            private static readonly EqualityComparer<DiagnosticIncrementalAnalyzer> s_compareAnalyzers = EqualityComparer<DiagnosticIncrementalAnalyzer>.Default;
+            private static readonly EqualityComparer<ContainerId> s_compareIds = EqualityComparer<ContainerId>.Default;
         }
     }
 }
