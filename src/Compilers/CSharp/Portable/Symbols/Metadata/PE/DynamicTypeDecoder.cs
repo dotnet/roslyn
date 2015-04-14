@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 TypeSymbol transformedType = decoder.TransformType(metadataType);
 
-                if ((object)transformedType != null && decoder._index == dynamicTransformFlags.Length)
+                if ((object)transformedType != null) // TODO (bug 1990): && decoder._index == dynamicTransformFlags.Length)
                 {
                     return transformedType;
                 }

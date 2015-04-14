@@ -3810,7 +3810,7 @@ class C
                     referenceN0, // From D1
                     referenceN1, // From D2
                     referenceN2); // From D2
-            var runtime = CreateRuntimeInstance(assemblyName, references, exeBytes, new SymReader(pdbBytes));
+            var runtime = CreateRuntimeInstance(assemblyName, references, exeBytes, new SymReader(pdbBytes, exeBytes));
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
@@ -5739,7 +5739,7 @@ namespace Windows.Foundation.Metadata
         }
 
         [WorkItem(1089591)]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1985")]
         public void BadPdb_MissingMethod()
         {
             var source = @"
@@ -5969,7 +5969,7 @@ public class C
                     ilOffset: 0,
                     localSignatureToken: localSignatureToken);
 
-                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                var locals = new ArrayBuilder<LocalAndMethod>();
                 string typeName;
                 context1.CompileGetLocals(
                     locals,

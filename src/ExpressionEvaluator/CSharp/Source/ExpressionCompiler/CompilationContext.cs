@@ -590,7 +590,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 BinderFlags.UncheckedRegion |
                 BinderFlags.AllowManagedAddressOf |
                 BinderFlags.AllowAwaitInUnsafeContext);
-            var hasImports = !importRecordGroups.IsDefault;
+
+            var hasImports = !importRecordGroups.IsDefaultOrEmpty;
             var numImportStringGroups = hasImports ? importRecordGroups.Length : 0;
             var currentStringGroup = numImportStringGroups - 1;
 
