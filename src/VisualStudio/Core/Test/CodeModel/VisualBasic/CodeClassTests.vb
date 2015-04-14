@@ -2812,6 +2812,38 @@ End Class
         End Sub
 #End Region
 
+#Region "NameSpace Tests"
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetNamespaceNameFromInnerClass()
+            Dim code =
+    <Code>
+Namespace NS1
+    Class C1
+        Class $$C2
+        End Class
+    End Class
+End NameSpace
+</Code>
+
+            TestNamespaceName(code, "NS1")
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetNamespaceNameFromOuterClass()
+            Dim code =
+    <Code>
+Namespace NS1
+    Class $$C1
+        Class C2
+        End Class
+    End Class
+End NameSpace
+</Code>
+
+            TestNamespaceName(code, "NS1")
+        End Sub
+#End Region
+
 #Region "GenericExtender"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

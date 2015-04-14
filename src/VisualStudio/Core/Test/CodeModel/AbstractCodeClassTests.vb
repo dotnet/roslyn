@@ -108,6 +108,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return Sub(name) codeElement.Name = name
         End Function
 
+        Protected Overrides Function GetNamespace(codeElement As EnvDTE80.CodeClass2) As EnvDTE.CodeNamespace
+            Return codeElement.Namespace
+        End Function
+
         Protected Overrides Function GetParent(codeElement As EnvDTE80.CodeClass2) As Object
             Return codeElement.Parent
         End Function
