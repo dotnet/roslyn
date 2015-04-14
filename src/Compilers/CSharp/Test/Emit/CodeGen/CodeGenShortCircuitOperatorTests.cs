@@ -5949,6 +5949,100 @@ class C
         }
 
         [Fact]
+        public void ConditionalBoolExpr02a()
+        {
+            var source = @"
+class C 
+{ 
+    public static void Main() 
+    { 
+        System.Console.Write(NotHasLength(null, 0));
+        System.Console.Write(NotHasLength(null, 3));
+        System.Console.Write(NotHasLength(""q"", 2));
+    }
+
+    static bool NotHasLength(string s, int len)
+    {
+        return s?.Length + 1 != len;
+    }
+}
+
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"TrueTrueFalse");
+
+            verifier.VerifyIL("C.NotHasLength", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.1
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""int string.Length.get""
+  IL_000b:  ldc.i4.1
+  IL_000c:  add
+  IL_000d:  ldarg.1
+  IL_000e:  ceq
+  IL_0010:  ldc.i4.0
+  IL_0011:  ceq
+  IL_0013:  ret
+}");
+        }
+
+        [Fact]
+        public void ConditionalBoolExpr02b()
+        {
+            var source = @"
+class C 
+{ 
+    public static void Main() 
+    { 
+        System.Console.Write(NotHasLength(null, 0));
+        System.Console.Write(NotHasLength(null, 3));
+        System.Console.Write(NotHasLength(""q"", 2));
+        System.Console.Write(NotHasLength(null, null));
+    }
+
+    static bool NotHasLength(string s, int? len)
+    {
+        return s?.Length + 1 != len;
+    }
+}
+
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"TrueTrueFalseFalse");
+
+            verifier.VerifyIL("C.NotHasLength", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals init (int? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000b
+  IL_0003:  ldarga.s   V_1
+  IL_0005:  call       ""bool int?.HasValue.get""
+  IL_000a:  ret
+  IL_000b:  ldarg.0
+  IL_000c:  call       ""int string.Length.get""
+  IL_0011:  ldc.i4.1
+  IL_0012:  add
+  IL_0013:  ldarg.1
+  IL_0014:  stloc.0
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""int int?.GetValueOrDefault()""
+  IL_001c:  beq.s      IL_0020
+  IL_001e:  ldc.i4.1
+  IL_001f:  ret
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  call       ""bool int?.HasValue.get""
+  IL_0027:  ldc.i4.0
+  IL_0028:  ceq
+  IL_002a:  ret
+}");
+        }
+
+        [Fact]
         public void ConditionalBoolExpr03()
         {
             var source = @"
@@ -6179,6 +6273,324 @@ True");
             var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
             var comp = CompileAndVerify(c, expectedOutput: @"False
 True");
+        }
+
+        [Fact]
+        public void ConditionalUserDef01()
+        {
+            var source = @"
+class C
+{
+    struct S1
+    {
+        public static bool operator ==(S1? x, S1?y)
+        {
+            System.Console.Write(""=="");
+            return true;
+        }
+
+        public static bool operator !=(S1? x, S1? y)
+        {
+            System.Console.Write(""!="");
+            return false;
+        }
+
+    }
+
+    class C1
+    {
+        public S1 Foo()
+        {
+            return new S1();
+        }
+    }
+
+    public static void Main()
+    {
+        System.Console.WriteLine(TestEq(null, new S1()));
+        System.Console.WriteLine(TestEq(new C1(), new S1()));
+
+        System.Console.WriteLine(TestNeq(null, new S1()));
+        System.Console.WriteLine(TestNeq(new C1(), new S1()));
+    }
+
+    static bool TestEq(C1 c, S1 arg)
+    {
+        return c?.Foo() == arg;
+    }
+
+    static bool TestNeq(C1 c, S1 arg)
+    {
+        return c?.Foo() != arg;
+    }
+
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"==True
+==True
+!=False
+!=False");
+
+            verifier.VerifyIL("C.TestNeq", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (C.S1? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  initobj    ""C.S1?""
+  IL_000b:  ldloc.0
+  IL_000c:  br.s       IL_0019
+  IL_000e:  ldarg.0
+  IL_000f:  call       ""C.S1 C.C1.Foo()""
+  IL_0014:  newobj     ""C.S1?..ctor(C.S1)""
+  IL_0019:  ldarg.1
+  IL_001a:  newobj     ""C.S1?..ctor(C.S1)""
+  IL_001f:  call       ""bool C.S1.op_Inequality(C.S1?, C.S1?)""
+  IL_0024:  ret
+}");
+        }
+
+        [Fact]
+        public void ConditionalUserDef01n()
+        {
+            var source = @"
+class C
+{
+    struct S1
+    {
+        public static bool operator ==(S1? x, S1?y)
+        {
+            System.Console.Write(""=="");
+            return true;
+        }
+
+        public static bool operator !=(S1? x, S1? y)
+        {
+            System.Console.Write(""!="");
+            return false;
+        }
+
+    }
+
+    class C1
+    {
+        public S1 Foo()
+        {
+            return new S1();
+        }
+    }
+
+    public static void Main()
+    {
+        System.Console.WriteLine(TestEq(null, new S1()));
+        System.Console.WriteLine(TestEq(new C1(), new S1()));
+        System.Console.WriteLine(TestEq(new C1(), null));
+
+        System.Console.WriteLine(TestNeq(null, new S1()));
+        System.Console.WriteLine(TestNeq(new C1(), new S1()));
+        System.Console.WriteLine(TestNeq(new C1(), null));
+    }
+
+    static bool TestEq(C1 c, S1? arg)
+    {
+        return c?.Foo() == arg;
+    }
+
+    static bool TestNeq(C1 c, S1? arg)
+    {
+        return c?.Foo() != arg;
+    }
+
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"==True
+==True
+==True
+!=False
+!=False
+!=False");
+
+            verifier.VerifyIL("C.TestNeq", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (C.S1? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  initobj    ""C.S1?""
+  IL_000b:  ldloc.0
+  IL_000c:  br.s       IL_0019
+  IL_000e:  ldarg.0
+  IL_000f:  call       ""C.S1 C.C1.Foo()""
+  IL_0014:  newobj     ""C.S1?..ctor(C.S1)""
+  IL_0019:  ldarg.1
+  IL_001a:  call       ""bool C.S1.op_Inequality(C.S1?, C.S1?)""
+  IL_001f:  ret
+}");
+        }
+
+        [Fact]
+        public void ConditionalUserDef02()
+        {
+            var source = @"
+class C
+{
+    struct S1
+    {
+        public static bool operator ==(S1 x, S1 y)
+        {
+            System.Console.Write(""=="");
+            return true;
+        }
+
+        public static bool operator !=(S1 x, S1 y)
+        {
+            System.Console.Write(""!="");
+            return false;
+        }
+
+    }
+
+    class C1
+    {
+        public S1 Foo()
+        {
+            return new S1();
+        }
+    }
+
+    public static void Main()
+    {
+        System.Console.WriteLine(TestEq(null, new S1()));
+        System.Console.WriteLine(TestEq(new C1(), new S1()));
+
+        System.Console.WriteLine(TestNeq(null, new S1()));
+        System.Console.WriteLine(TestNeq(new C1(), new S1()));
+    }
+
+    static bool TestEq(C1 c, S1 arg)
+    {
+        return c?.Foo() == arg;
+    }
+
+    static bool TestNeq(C1 c, S1 arg)
+    {
+        return c?.Foo() != arg;
+    }
+
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"False
+==True
+True
+!=False");
+
+            verifier.VerifyIL("C.TestNeq", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.1
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""C.S1 C.C1.Foo()""
+  IL_000b:  ldarg.1
+  IL_000c:  call       ""bool C.S1.op_Inequality(C.S1, C.S1)""
+  IL_0011:  ret
+}");
+        }
+
+        [Fact]
+        public void ConditionalUserDef02n()
+        {
+            var source = @"
+class C
+{
+    struct S1
+    {
+        public static bool operator ==(S1 x, S1 y)
+        {
+            System.Console.Write(""=="");
+            return true;
+        }
+
+        public static bool operator !=(S1 x, S1 y)
+        {
+            System.Console.Write(""!="");
+            return false;
+        }
+
+    }
+
+    class C1
+    {
+        public S1 Foo()
+        {
+            return new S1();
+        }
+    }
+
+    public static void Main()
+    {
+        System.Console.WriteLine(TestEq(null, new S1()));
+        System.Console.WriteLine(TestEq(new C1(), new S1()));
+        System.Console.WriteLine(TestEq(new C1(), null));
+
+        System.Console.WriteLine(TestNeq(null, new S1()));
+        System.Console.WriteLine(TestNeq(new C1(), new S1()));
+        System.Console.WriteLine(TestNeq(new C1(), null));
+    }
+
+    static bool TestEq(C1 c, S1? arg)
+    {
+        return c?.Foo() == arg;
+    }
+
+    static bool TestNeq(C1 c, S1? arg)
+    {
+        return c?.Foo() != arg;
+    }
+
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"False
+==True
+False
+True
+!=False
+True");
+
+            verifier.VerifyIL("C.TestNeq", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (C.S1 V_0,
+                C.S1? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000b
+  IL_0003:  ldarga.s   V_1
+  IL_0005:  call       ""bool C.S1?.HasValue.get""
+  IL_000a:  ret
+  IL_000b:  ldarg.0
+  IL_000c:  call       ""C.S1 C.C1.Foo()""
+  IL_0011:  stloc.0
+  IL_0012:  ldarg.1
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       ""bool C.S1?.HasValue.get""
+  IL_001b:  brtrue.s   IL_001f
+  IL_001d:  ldc.i4.1
+  IL_001e:  ret
+  IL_001f:  ldloc.0
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  call       ""C.S1 C.S1?.GetValueOrDefault()""
+  IL_0027:  call       ""bool C.S1.op_Inequality(C.S1, C.S1)""
+  IL_002c:  ret
+}");
         }
 
     }

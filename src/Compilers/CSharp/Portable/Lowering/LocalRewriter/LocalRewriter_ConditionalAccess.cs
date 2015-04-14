@@ -39,6 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = loweredReceiver.Type;
 
             ConditionalAccessLoweringKind loweringKind;
+            // nullable and dynamic receivers are not directly supported in codegen and need to be lowered
+            // in particular nullable receiver implies that the condition of the 
+            // conditional and the access receiver are actually different expressions 
+            // (HasValue and GetValueOrDefault respectively)
             var lowerToTernary = receiverType.IsNullableType() || node.AccessExpression.Type.IsDynamic();
 
             if (!lowerToTernary)
@@ -127,8 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression result;
             var objectType = _compilation.GetSpecialType(SpecialType.System_Object);
 
-            rewrittenWhenNull = rewrittenWhenNull ?? _factory.Default(nodeType);
-
             switch (loweringKind)
             {
                 case ConditionalAccessLoweringKind.LoweredConditionalAccess:
@@ -165,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = RewriteConditionalOperator(node.Syntax,
                             condition,
                             consequence,
-                            rewrittenWhenNull,
+                            rewrittenWhenNull ?? _factory.Default(nodeType),
                             null,
                             nodeType);
 

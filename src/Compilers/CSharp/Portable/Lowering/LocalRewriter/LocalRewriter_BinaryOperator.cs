@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (operatorKind.IsLifted())
                 {
-                    return RewriteLiftedBinaryOperator(syntax, operatorKind, ref loweredLeft, loweredRight, type, method);
+                    return RewriteLiftedBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, type, method);
                 }
 
                 if (operatorKind.IsUserDefined())
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, null, null, LookupResultKind.Viable, type);
         }
 
-        private BoundExpression RewriteLiftedBinaryOperator(CSharpSyntaxNode syntax, BinaryOperatorKind operatorKind, ref BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, MethodSymbol method)
+        private BoundExpression RewriteLiftedBinaryOperator(CSharpSyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, MethodSymbol method)
         {
             var conditionalLeft = loweredLeft as BoundLoweredConditionalAccess;
 
@@ -501,16 +501,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression whenNullOpt = null;
 
-                if (operatorKind.Operator() == BinaryOperatorKind.NotEqual)
+                // for all operators null-in means null-out
+                // except for the Equal/NotEqual since null == null ==> true
+                if (operatorKind.Operator() == BinaryOperatorKind.NotEqual ||
+                    operatorKind.Operator() == BinaryOperatorKind.Equal)
                 {
-                    whenNullOpt = MakeBooleanConstant(syntax, true);
+                    whenNullOpt = RewriteLiftedBinaryOperator(syntax, operatorKind, _factory.Default(loweredLeft.Type), loweredRight, type, method);
                 }
 
                 result = conditionalLeft.Update(
                     conditionalLeft.Receiver,
                     whenNotNull: result,
                     whenNullOpt: whenNullOpt,
-                    iD: conditionalLeft.ID,
+                    id: conditionalLeft.Id,
                     type: result.Type
                 );
             }
@@ -704,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (operatorKind.IsLifted())
             {
-                return RewriteLiftedBinaryOperator(syntax, operatorKind, ref loweredLeft, loweredRight, type, method);
+                return RewriteLiftedBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, type, method);
             }
 
             // Otherwise, nothing special here.
@@ -1736,7 +1739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: returnType);
             }
 
-            // arr?.Leghth == null   
+            // arr?.Length == null   
             var conditionalAccess = nullable as BoundLoweredConditionalAccess;
             if (conditionalAccess != null && 
                 (conditionalAccess.WhenNullOpt == null || conditionalAccess.WhenNullOpt.IsDefaultValue()))
@@ -1750,7 +1753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var whenNull = kind == BinaryOperatorKind.NullableNullEqual ? MakeBooleanConstant(syntax, true) : null;
 
-                return conditionalAccess.Update(conditionalAccess.Receiver, whenNotNull, whenNull, conditionalAccess.ID, whenNotNull.Type);
+                return conditionalAccess.Update(conditionalAccess.Receiver, whenNotNull, whenNull, conditionalAccess.Id, whenNotNull.Type);
             }
 
             MethodSymbol get_HasValue = GetNullableMethod(syntax, nullable.Type, SpecialMember.System_Nullable_T_get_HasValue);

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return;
             }
 
-            if (!used && !LocalRewriter.ConversionHasSideEffects(conversion))
+            if (!used && !conversion.ConversionHasSideEffects())
             {
                 EmitExpression(conversion.Operand, false); // just do expr side effects
                 return;

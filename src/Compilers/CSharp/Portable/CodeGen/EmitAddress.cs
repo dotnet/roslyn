@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ComplexConditionalReceiver:
-                    EmitComplexConditionalReceiver((BoundComplexConditionalReceiver)expression);
+                    EmitComplexConditionalReceiverAddress((BoundComplexConditionalReceiver)expression);
                     break;
 
                 case BoundKind.Parameter:
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return null;
         }
 
-        private void EmitComplexConditionalReceiver(BoundComplexConditionalReceiver expression)
+        private void EmitComplexConditionalReceiverAddress(BoundComplexConditionalReceiver expression)
         {
             Debug.Assert(!expression.Type.IsReferenceType);
             Debug.Assert(!expression.Type.IsValueType);

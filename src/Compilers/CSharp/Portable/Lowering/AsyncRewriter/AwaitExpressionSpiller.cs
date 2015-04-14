@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (whenNotNullBuilder == null && whenNullBuilder == null)
             {
-                return UpdateExpression(receiverBuilder, node.Update(receiver, whenNotNull, whenNullOpt, node.ID, node.Type));
+                return UpdateExpression(receiverBuilder, node.Update(receiver, whenNotNull, whenNullOpt, node.Id, node.Type));
             }
 
             if (receiverBuilder == null) receiverBuilder = new BoundSpillSequenceBuilder();
@@ -942,19 +942,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 receiver = _F.ComplexConditionalReceiver(receiver, _F.Local(clone));
             }
-
-
-            whenNullOpt = whenNullOpt ?? _F.Default(node.Type);
-
+            
             if (node.Type.SpecialType == SpecialType.System_Void)
             {
                 var wnenNotNullStatement = UpdateStatement(whenNotNullBuilder, _F.ExpressionStatement(whenNotNull), substituteTemps: false);
-                wnenNotNullStatement = ConditionalReceiverReplacer.Replace(wnenNotNullStatement, receiver, node.ID);
+                wnenNotNullStatement = ConditionalReceiverReplacer.Replace(wnenNotNullStatement, receiver, node.Id);
 
-                receiverBuilder.AddStatement(
-                    _F.If(condition,
-                        wnenNotNullStatement,
-                        UpdateStatement(whenNullBuilder, _F.ExpressionStatement(whenNullOpt), substituteTemps: false)));
+                Debug.Assert(whenNullOpt == null || !LocalRewriter.ReadIsSideeffecting(whenNullOpt));
+
+                receiverBuilder.AddStatement(_F.If(condition, wnenNotNullStatement));
 
                 return receiverBuilder.Update(_F.Default(node.Type));
             }
@@ -963,7 +959,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(_F.Syntax.IsKind(SyntaxKind.AwaitExpression));
                 var tmp = _F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.AwaitSpill, syntax: _F.Syntax);
                 var wnenNotNullStatement = UpdateStatement(whenNotNullBuilder, _F.Assignment(_F.Local(tmp), whenNotNull), substituteTemps: false);
-                wnenNotNullStatement = ConditionalReceiverReplacer.Replace(wnenNotNullStatement, receiver, node.ID);
+                wnenNotNullStatement = ConditionalReceiverReplacer.Replace(wnenNotNullStatement, receiver, node.Id);
+
+                whenNullOpt = whenNullOpt ?? _F.Default(node.Type);
 
                 receiverBuilder.AddLocal(tmp, _F.Diagnostics);
                 receiverBuilder.AddStatement(
@@ -1004,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
             {
-                if (node.ID == this._receiverID)
+                if (node.Id == this._receiverID)
                 {
 #if DEBUG
                     _replaced++;

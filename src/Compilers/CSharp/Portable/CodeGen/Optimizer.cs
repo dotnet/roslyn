@@ -1231,8 +1231,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 whenNull = (BoundExpression)this.Visit(whenNull);
                 EnsureStackState(cookie);   // implicit label here
             }
+            else
+            {
+                _counter += 1;
+            }
 
-            return node.Update(receiver, whenNotNull, whenNull, node.ID, node.Type);
+            return node.Update(receiver, whenNotNull, whenNull, node.Id, node.Type);
         }
 
         public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
@@ -1251,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EnsureStackState(cookie); // implicit label here 
 
             this._evalStack = origStack; // alternative is evaluated with original stack 
-             var referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
+            var referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
 
             EnsureStackState(cookie); // implicit label here 
 

@@ -979,16 +979,16 @@
     expressions.
     To be able to do that, during lowering, we will assign 
     BoundLoweredConditionalAccess and corresponding BoundConditionalReceiver 
-    matching ID that are integers unique for the containing method body.
+    matching Id that are integers unique for the containing method body.
     -->
-    <Field Name="ID" Type="int"/>
+    <Field Name="Id" Type="int"/>
   </Node>
   
   <!-- represents the receiver of a conditional access expression -->
   <Node Name="BoundConditionalReceiver" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <!-- See the comment in BoundLoweredConditionalAccess -->
-    <Field Name="ID" Type="int"/>
+    <Field Name="Id" Type="int"/>
   </Node>
 
   <!--  This node represents a complex receiver for a conditional access.  
