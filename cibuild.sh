@@ -6,12 +6,12 @@ docompile()
     xbuild /v:m /p:SignAssembly=false /p:DebugSymbols=false /p:DefineConstants=COMPILERCORE,DEBUG $1 src/Compilers/CSharp/csc/csc.csproj
 }
 
-echo Changing mono snapshot
-. mono-snapshot mono/20150316155603
-if [ $? -ne 0 ]; then
-    echo Could not set mono snapshot 
-    exit 1
-fi
+# echo Changing mono snapshot
+#. mono-snapshot mono/20150316155603
+#if [ $? -ne 0 ]; then
+#    echo Could not set mono snapshot 
+#    exit 1
+#fi
 
 # NuGet on mono crashes about every 5th time we run it.  This is causing
 # Linux runs to fail frequently enough that we need to employ a 

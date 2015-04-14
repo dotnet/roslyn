@@ -157,7 +157,11 @@ namespace RunTests
                     + Environment.NewLine
                     + errorOutput;
 
-                Process.Start(resultsPath);
+                foreach (var outputLine in processOutput.OutputLines)
+                {
+                    Console.WriteLine(outputLine);
+                }                
+                // Process.Start(resultsPath);
             }
 
             return new TestResult(processOutput.ExitCode == 0, assemblyName, span, errorOutput);
