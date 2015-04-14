@@ -1623,6 +1623,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub CompleteTree(tree As SyntaxTree)
+            If tree.IsEmbeddedOrMyTemplateTree Then
+                ' The syntax trees added to AllSyntaxTrees by the compiler
+                ' do not count toward completion.
+                Return
+            End If
+
+            Debug.Assert(AllSyntaxTrees.Contains(tree))
             Dim completedCompilationUnit As Boolean = False
             Dim completedCompilation As Boolean = False
 
@@ -1649,9 +1656,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        Friend Function ShouldAddEvent(symbol As Symbol) As Boolean
+            If EventQueue Is Nothing Then
+                Return False
+            End If
+
+            For Each location As Location In symbol.Locations
+                If location.SourceTree IsNot Nothing Then
+                    Debug.Assert(AllSyntaxTrees.Contains(location.SourceTree))
+                    Return True
+                End If
+            Next
+
+            Return False
+        End Function
+
         Friend Sub SymbolDeclaredEvent(symbol As Symbol)
-            If EventQueue IsNot Nothing Then
-                Debug.Assert(Not EventQueue.IsCompleted)
+            If ShouldAddEvent(symbol) Then
                 EventQueue.Enqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
             End If
         End Sub
