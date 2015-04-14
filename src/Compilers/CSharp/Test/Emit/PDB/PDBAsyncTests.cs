@@ -213,7 +213,6 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
           <lambda offset=""86"" />
         </encLambdaMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
     <method containingType=""TestCase"" name="".cctor"">
       <customDebugInfo>
@@ -398,7 +397,6 @@ namespace ConsoleApplication1
       <customDebugInfo>
         <forwardIterator name=""&lt;QBar&gt;d__2"" />
       </customDebugInfo>
-      <sequencePoints />
     </method>
     <method containingType=""ConsoleApplication1.Program"" name=""ZBar"">
       <customDebugInfo>
@@ -412,7 +410,6 @@ namespace ConsoleApplication1
           <slot kind=""28"" offset=""141"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
     <method containingType=""ConsoleApplication1.Program"" name=""GetNextInt"" parameterNames=""random"">
       <customDebugInfo>
@@ -663,7 +660,6 @@ class C
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
   </methods>
 </symbols>");
@@ -763,7 +759,6 @@ class C
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
   </methods>
 </symbols>");
@@ -852,7 +847,6 @@ class C
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
   </methods>
 </symbols>");
@@ -952,7 +946,6 @@ class C
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
   </methods>
 </symbols>");
@@ -1037,7 +1030,6 @@ class C
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
   </methods>
 </symbols>
@@ -1116,7 +1108,6 @@ class C
       <customDebugInfo>
         <forwardIterator name=""&lt;M&gt;d__0"" />
       </customDebugInfo>
-      <sequencePoints />
     </method>
   </methods>
 </symbols>
@@ -1202,7 +1193,6 @@ class C
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
   </methods>
 </symbols>
@@ -1307,7 +1297,6 @@ class C
           <slot kind=""28"" offset=""105"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
   </methods>
 </symbols>");
@@ -1573,7 +1562,6 @@ class C
           <slot kind=""29"" offset=""150"" ordinal=""3"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
   </methods>
 </symbols>");
