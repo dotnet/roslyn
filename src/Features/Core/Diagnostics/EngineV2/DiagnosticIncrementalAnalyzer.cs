@@ -127,15 +127,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (project != null)
                 {
+                    Document document = documentId != null ? project.GetDocument(documentId) : null;
                     VersionStamp projectVersion = vintage == CompilationVintage.Current ? await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false) : VersionStamp.Default;
                     CompilationResult compilationResult = GetCompilationResult(project, projectVersion, vintage);
-                    if (compilationResult == null || compilationResult.ProjectVersion.Equals(VersionStamp.Default))
+                    if (compilationResult == null ||
+                        compilationResult.ProjectVersion.Equals(VersionStamp.Default) ||
+                        (documentId == null && !compilationResult.CompletionStarted))
                     {
-                        // There has been no request to analyze the project, so initiate analysis now.
+                        // There has been no request to analyze the project or document, so initiate analysis now.
                         // The cancellation token provided here is actually not necessarily appropriate for
                         // the analysis, because cancelling this diagnostics request should not necessarily
                         // cancel the analysis.
-                        await AnalyzeProjectAsync(project, false, cancellationToken).ConfigureAwait(false);
+                        {
+                            if (document != null)
+                            {
+                                await AnalyzeDocumentAsync(document, null, cancellationToken).ConfigureAwait(false);
+                            }
+                        }
+                        else
+                        {
+                            await AnalyzeProjectAsync(project, false, cancellationToken).ConfigureAwait(false);
+                        }
                         compilationResult = GetCompilationResult(project, projectVersion, vintage);
                     }
 
@@ -143,7 +155,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         if (documentId != null)
                         {
-                            Document document = project.GetDocument(documentId);
                             if (document != null)
                             {
                                 return GetDiagnosticData(project, await compilationResult.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
@@ -488,16 +499,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         {
                             _analyzedDocuments[documentId] = Task.Run(async () =>
                             {
-#if false
-                                var comp = _compilationWithAnalyzers.Compilation;
-                                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                                var model = comp.GetSemanticModel(syntaxTree);
-                                var mumble0 = model.GetDiagnostics(null, cancellationToken);
-                                var mumble00 = model.GetDiagnostics(null, cancellationToken);
-
-                                var mumble = comp.GetDiagnostics(cancellationToken);
-                                var mumble1 = comp.GetDiagnostics(cancellationToken);
-#endif
                                 diagnostics = await GetDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
                                 DistributeDiagnostics(diagnostics);
                             }, cancellationToken);
@@ -558,6 +559,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ImmutableArray<Diagnostic> documentDiagnostics;
                 if (_diagnosticsPerDocuments.TryGetValue(document.Id, out documentDiagnostics))
                 {
+                    // ToDo: filter out non-local diagnostics here. Otherwise, the set of diagnostics returned can vary
+                    // depending on how much of a project has been analyzed prior to the request.
                     return documentDiagnostics;
                 }
 
