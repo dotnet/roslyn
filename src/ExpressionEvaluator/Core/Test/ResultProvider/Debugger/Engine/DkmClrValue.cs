@@ -356,7 +356,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             var getMemberValue = runtime.GetMemberValue;
             if (getMemberValue != null)
             {
-                var memberValue = getMemberValue(this, MemberName, MemberType, ParentTypeName, InspectionContext);
+                var memberValue = getMemberValue(this, MemberName);
                 if (memberValue != null)
                 {
                     return memberValue;

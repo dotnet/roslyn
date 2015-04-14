@@ -520,9 +520,9 @@ class C
     }
 }";
             DkmClrRuntimeInstance runtime = null;
-            GetMemberValueDelegate getMemberValue = (v, n, t, p, i) =>
+            GetMemberValueDelegate getMemberValue = (v, m) =>
                 {
-                    switch (n)
+                    switch (m)
                     {
                         case "P":
                             return CreateErrorValue(runtime.GetType(typeof(System.Collections.ArrayList)), "Property 'P' evaluation timed out");

@@ -4,7 +4,6 @@
 
 #endregion
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Symbols;
 using System;
@@ -14,12 +13,7 @@ using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.VisualStudio.Debugger.Clr
 {
-    internal delegate DkmClrValue GetMemberValueDelegate(
-        DkmClrValue value,
-        string memberName,
-        int memberType,
-        string parentTypeName,
-        DkmInspectionContext inspectionContext);
+    internal delegate DkmClrValue GetMemberValueDelegate(DkmClrValue value, string memberName);
 
     internal delegate DkmClrModuleInstance GetModuleDelegate(DkmClrRuntimeInstance runtime, Assembly assembly);
 
