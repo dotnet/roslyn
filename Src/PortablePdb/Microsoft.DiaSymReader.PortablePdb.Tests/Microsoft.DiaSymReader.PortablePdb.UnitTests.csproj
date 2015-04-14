@@ -71,7 +71,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <EmbeddedResource Include="Resources\Scopes.dll" />
-    <EmbeddedResource Include="Resources\Scopes.pdb" />
+    <EmbeddedResource Include="Resources\Scopes.pdbx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Scopes.cs" />
@@ -86,7 +86,7 @@
     <EmbeddedResource Include="Resources\HelloWorld.pdb" />
     -->
     <EmbeddedResource Include="Resources\z.dll" />
-    <EmbeddedResource Include="Resources\z.pdb" />
+    <EmbeddedResource Include="Resources\z.pdbx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
