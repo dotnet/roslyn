@@ -85,6 +85,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Debugger\Engine\DkmClrCustomTypeInfo.cs" />
     <Compile Include="Debugger\Engine\DkmCompilerId.cs" />
     <Compile Include="Debugger\Engine\DkmContinueCorruptingException.cs" />
     <Compile Include="Debugger\Engine\DkmEngineSettings.cs" />

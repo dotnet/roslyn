@@ -154,7 +154,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 ResultCategory: resultProperties.Category,
                 Access: resultProperties.AccessType,
                 StorageType: resultProperties.StorageType,
-                TypeModifierFlags: resultProperties.ModifierFlags);
+                TypeModifierFlags: resultProperties.ModifierFlags,
+                CustomTypeInfo: null);
         }
 
         internal static ResultProperties GetResultProperties<TSymbol>(this TSymbol symbol, DkmClrCompilationResultFlags flags, bool isConstant)

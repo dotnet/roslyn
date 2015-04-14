@@ -3828,6 +3828,15 @@
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Metadata'.'TypeCode' 'UInt32' = int32(0x0000000A)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Metadata'.'TypeCode' 'UInt64' = int32(0x0000000C)
 	}
+	.class public abstract sealed 'TypeExtensions'
+		extends ['System.Runtime']'System'.'Object'
+	{
+		.method public static hidebysig 
+			class ['System.Reflection']'System.Reflection'.'TypeInfo' 'GetTypeInfo'(class ['System.Runtime']'System'.'Type' 'type')
+		{
+			ret
+		}
+	}
 	.class public sealed 'TypeFilter'
 		extends ['System.Runtime']'System'.'MulticastDelegate'
 	{
