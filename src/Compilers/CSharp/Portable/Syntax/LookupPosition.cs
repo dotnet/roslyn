@@ -121,8 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             Debug.Assert(methodDecl != null);
 
             var body = methodDecl.Body;
-            SyntaxToken lastToken = body == null ? methodDecl.SemicolonToken : body.CloseBraceToken;
-            return IsBeforeToken(position, methodDecl, lastToken);
+            if (body == null)
+            {
+                return IsBeforeToken(position, methodDecl, methodDecl.SemicolonToken);
+            }
+
+            return IsBeforeToken(position, methodDecl, body.CloseBraceToken) ||
+                   IsInExpressionBody(position, methodDecl.GetExpressionBodySyntax(), methodDecl.SemicolonToken);
         }
 
         internal static bool IsInMethodDeclaration(int position, AccessorDeclarationSyntax accessorDecl)
