@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
             var responseFile = Path.Combine(clientDir, VisualBasicCompiler.ResponseFileName);
             Vbc compiler = new Vbc(responseFile, Directory.GetCurrentDirectory(), sdkDirectory, args);
 
-            return ConsoleUtil.RunWithUtf8Output(compiler.Arguments.Utf8Output, (textWriterOut, _) => compiler.Run(textWriterOut));
+            return ConsoleUtil.RunWithOutput(compiler.Arguments.Utf8Output, (textWriterOut, _) => compiler.Run(textWriterOut));
         }
 
         public override Assembly LoadAssembly(string fullPath)

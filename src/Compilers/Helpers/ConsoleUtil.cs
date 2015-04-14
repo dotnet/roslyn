@@ -13,11 +13,11 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// When <paramref name="utf8Encoding"/> is true then <paramref name="func"/> will be run
-        /// ent while both <see cref="Console.Out"/> and <see cref="Console.Error"/> are set 
+        /// while both <see cref="Console.Out"/> and <see cref="Console.Error"/> are set 
         /// to set to UTF8 encoding.  Otherwise it will be run with the <see cref="Console"/> in
         /// its current state.
         /// </summary>
-        internal static T RunWithUtf8Output<T>(bool utf8Encoding, Func<TextWriter, TextWriter, T> func)
+        internal static T RunWithOutput<T>(bool utf8Encoding, Func<TextWriter, TextWriter, T> func)
         {
             return utf8Encoding
                 ? RunWithEncoding(s_utf8Encoding, func)
@@ -46,15 +46,16 @@ namespace Roslyn.Utilities
             {
                 try
                 {
-                    if (savedOut != null)
-                    {
-                        Console.SetOut(savedOut);
-                    }
+                    Console.SetOut(savedOut);
+                }
+                catch
+                {
+                    // Nothing to do if we can't reset the console. 
+                }
 
-                    if (savedError != null)
-                    {
-                        Console.SetError(savedError);
-                    }
+                try
+                {
+                    Console.SetError(savedOut);
                 }
                 catch
                 {

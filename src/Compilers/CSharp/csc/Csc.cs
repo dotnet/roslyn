@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
             var responseFile = Path.Combine(clientDir, CSharpCompiler.ResponseFileName);
             Csc compiler = new Csc(responseFile, Directory.GetCurrentDirectory(), sdkDirectory, args);
 
-            return ConsoleUtil.RunWithUtf8Output(compiler.Arguments.Utf8Output, (textWriterOut, _) => compiler.Run(textWriterOut));
+            return ConsoleUtil.RunWithOutput(compiler.Arguments.Utf8Output, (textWriterOut, _) => compiler.Run(textWriterOut));
         }
 
         public override Assembly LoadAssembly(string fullPath)

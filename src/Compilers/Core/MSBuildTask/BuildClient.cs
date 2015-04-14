@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             if (response.Type == BuildResponse.ResponseType.Completed)
             {
                 var completedResponse = (CompletedBuildResponse)response;
-                return ConsoleUtil.RunWithUtf8Output(
+                return ConsoleUtil.RunWithOutput(
                     completedResponse.Utf8Output,
                     (outWriter, errorWriter) =>
                     {
