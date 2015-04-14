@@ -4,9 +4,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {
@@ -24,28 +23,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
             var responseFile = Path.Combine(clientDir, VisualBasicCompiler.ResponseFileName);
             Vbc compiler = new Vbc(responseFile, Directory.GetCurrentDirectory(), sdkDirectory, args);
 
-            // We store original encoding and restore it later to revert 
-            // the changes that might be done by /utf8output options
-            // NOTE: original encoding may not be restored if process terminated 
-            Encoding origEncoding = Console.OutputEncoding;
-            try
-            {
-                if (compiler.Arguments.Utf8Output && Console.IsOutputRedirected)
-                {
-                    Console.OutputEncoding = Encoding.UTF8;
-                }
-                return compiler.Run(Console.Out, default(CancellationToken));
-            }
-            finally
-            {
-                try
-                {
-                    Console.OutputEncoding = origEncoding;
-                }
-                catch
-                { // Try to reset the output encoding, ignore if we can't
-                }
-            }
+            return ConsoleUtil.RunWithUtf8Output(compiler.Arguments.Utf8Output, (textWriterOut, _) => compiler.Run(textWriterOut));
         }
 
         public override Assembly LoadAssembly(string fullPath)

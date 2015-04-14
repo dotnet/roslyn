@@ -82,6 +82,9 @@
     <Compile Include="..\..\Core\VBCSCompiler\CompilerServerLogger.cs">
       <Link>CompilerServerLogger.cs</Link>
     </Compile>
+    <Compile Include="..\..\Helpers\ConsoleUtil.cs">
+      <Link>ConsoleUtil.cs</Link>
+    </Compile>
     <Compile Include="Csc.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
