@@ -22,7 +22,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         {
             var importer = new SymMetadataImport(TestResources.ResourceHelper.GetResourceStream(name + ".dll"));
             mdReader = importer.MetadataReader;
-            return new SymReader(new PortablePdbReader(TestResources.ResourceHelper.GetResourceStream(name + ".pdb"), importer));
+            return new SymReader(new PortablePdbReader(TestResources.ResourceHelper.GetResourceStream(name + ".pdbx"), importer));
         }
 
         private void ValidateRange(ISymUnmanagedScope scope, int expectedStartOffset, int expectedLength)
@@ -282,17 +282,17 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
 
             ValidateConstant(constants[20], "StrWithNul", "\0", new byte[] { 0x0e });
             ValidateConstant(constants[21], "EmptyStr", "", new byte[] { 0x0e });
-            ValidateConstant(constants[22], "NullStr", null, new byte[] { 0x0e });
-            ValidateConstant(constants[23], "NullObject", null, new byte[] { 0x1c });
-            ValidateConstant(constants[24], "NullDynamic", null, new byte[] { 0x1c });
+            ValidateConstant(constants[22], "NullStr", 0, new byte[] { 0x0e });
+            ValidateConstant(constants[23], "NullObject", 0, new byte[] { 0x1c });
+            ValidateConstant(constants[24], "NullDynamic", 0, new byte[] { 0x1c });
 
             // Note: Natvie PDBs produce expanded form of the signature stored as StandAloneSig.
             // In Portable PDBs we produce a TypeSpec. Since a StandAlongSig can also contain a TypeSpec 
             // the consumers should be able to resolve it. If we find a case where that's not true we can
             // potentially expand the TypeSpec signature in ISymUnmanagedConstant.GetValue.
-            ValidateConstant(constants[25], "NullTypeDef", null, new byte[] { 0x12, 0x08 });
-            ValidateConstant(constants[26], "NullTypeRef", null, new byte[] { 0x12, 0x1D });
-            ValidateConstant(constants[27], "NullTypeSpec", null, new byte[] { 0x12, 0x26 });
+            ValidateConstant(constants[25], "NullTypeDef", 0, new byte[] { 0x12, 0x08 });
+            ValidateConstant(constants[26], "NullTypeRef", 0, new byte[] { 0x12, 0x1D });
+            ValidateConstant(constants[27], "NullTypeSpec", 0, new byte[] { 0x12, 0x26 });
 
             ValidateConstant(constants[28], "D", 123456.78M, new byte[] { 0x11, 0x2D });
 

@@ -9,7 +9,7 @@ namespace TestResources
     internal static class Z
     {
         public static readonly byte[] dll = ResourceHelper.GetResource("z.dll");
-        public static readonly byte[] pdb = ResourceHelper.GetResource("z.pdb");
+        public static readonly byte[] pdb = ResourceHelper.GetResource("z.pdbx");
     }
 
     internal static class ResourceHelper
