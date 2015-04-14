@@ -138,6 +138,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // The cancellation token provided here is actually not necessarily appropriate for
                         // the analysis, because cancelling this diagnostics request should not necessarily
                         // cancel the analysis.
+                        if (documentId != null && vintage != CompilationVintage.Completed)
                         {
                             if (document != null)
                             {
