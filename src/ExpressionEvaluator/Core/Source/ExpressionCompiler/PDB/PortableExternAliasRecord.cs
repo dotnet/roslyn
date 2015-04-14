@@ -6,16 +6,15 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal sealed class PortableExternAliasRecord<TModuleSymbol> : ExternAliasRecord
-        where TModuleSymbol : class, IModuleSymbol
+    internal sealed class PortableExternAliasRecord : ExternAliasRecord
     {
-        private readonly TModuleSymbol _owningModule;
+        private readonly IModuleSymbol _owningModule;
         private readonly PEModule _owningPEModule;
         private readonly AssemblyReferenceHandle _targetAssemblyHandle;
 
         public PortableExternAliasRecord(
             string alias,
-            TModuleSymbol owningModule,
+            IModuleSymbol owningModule,
             PEModule owningPEModule,
             AssemblyReferenceHandle targetAssemblyHandle)
             : base(alias)

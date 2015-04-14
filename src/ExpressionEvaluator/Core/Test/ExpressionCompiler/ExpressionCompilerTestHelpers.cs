@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         xmlDocumentationStream: null,
                         win32Resources: null,
                         manifestResources: null,
-                        options: EmitOptions.Default,
+                        options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                         testData: null,
                         getHostDiagnostics: null,
                         cancellationToken: default(CancellationToken));

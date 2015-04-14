@@ -175,12 +175,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var inScopeHoistedLocals = InScopeHoistedLocals.Empty;
             var methodDebugInfo = default(MethodDebugInfo);
 
+            var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(methodToken);
+            var currentFrame = compilation.GetMethod(moduleVersionId, methodHandle);
+            var module = (PEModuleSymbol)currentFrame.ContainingModule;
+
             if (typedSymReader != null)
             {
                 try
                 {
-                    // TODO (https://github.com/dotnet/roslyn/issues/702): switch on the type of typedSymReader and call the appropriate helper.
-                    methodDebugInfo = typedSymReader.GetMethodDebugInfo(methodToken, methodVersion, localNames.FirstOrDefault());
+                    methodDebugInfo = typedSymReader.GetMethodDebugInfo(module, methodToken, methodVersion, localNames.FirstOrDefault());
                     var inScopeHoistedLocalIndices = methodDebugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref methodContextReuseConstraints);
                     inScopeHoistedLocals = new CSharpInScopeHoistedLocals(inScopeHoistedLocalIndices);
                 }
@@ -190,10 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
 
-            var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(methodToken);
-            var currentFrame = compilation.GetMethod(moduleVersionId, methodHandle);
             Debug.Assert((object)currentFrame != null);
-            var metadataDecoder = new MetadataDecoder((PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
+            var metadataDecoder = new MetadataDecoder(module, currentFrame);
             var localInfo = metadataDecoder.GetLocalInfo(localSignatureToken);
             var localBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             var sourceAssembly = compilation.SourceAssembly;

@@ -885,7 +885,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// C# or VB namespace import.
         /// </summary>
-        Namespace,
+        Namespace = 1,
 
         /// <summary>
         /// C# or VB type import.

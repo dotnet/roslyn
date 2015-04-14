@@ -326,7 +326,8 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                throw new UnsupportedSignatureContent();
+                isNoPiaLocalType = false;
+                typeSymbol = GetTypeOfTypeSpec((TypeSpecificationHandle)token);
             }
 
             Debug.Assert(typeSymbol != null);

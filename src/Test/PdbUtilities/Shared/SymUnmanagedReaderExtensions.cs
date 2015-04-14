@@ -53,6 +53,8 @@ namespace Microsoft.DiaSymReader
         // MSCUSTOMDEBUGINFO in Dev10.
         private const string CdiAttributeName = "MD2";
 
+        private const string PortablePdbImageCdiName = "<PortablePdbImage>";
+
         #region Interop Helpers
 
         // PERF: The purpose of all this code duplication is to avoid allocating any display class instances.
@@ -61,6 +63,7 @@ namespace Microsoft.DiaSymReader
         private delegate int ItemsGetter<TEntity, TItem>(TEntity entity, int bufferLength, out int count, TItem[] buffer);
         private delegate int ItemsGetter<TEntity, TArg1, TItem>(TEntity entity, TArg1 arg1, int bufferLength, out int count, TItem[] buffer);
         private delegate int ItemsGetter<TEntity, TArg1, TArg2, TItem>(TEntity entity, TArg1 arg1, TArg2 arg2, int bufferLength, out int count, TItem[] buffer);
+        private delegate int ItemsGetter<TEntity, TArg1, TArg2, TArg3, TItem>(TEntity entity, TArg1 arg1, TArg2 arg2, TArg3 arg3, int bufferLength, out int count, TItem[] buffer);
 
         private static ImmutableArray<T> ToImmutableOrEmpty<T>(T[] items)
         {
@@ -149,19 +152,44 @@ namespace Microsoft.DiaSymReader
             return result;
         }
 
+        private static TItem[] GetItems<TEntity, TArg1, TArg2, TArg3, TItem>(TEntity entity, TArg1 arg1, TArg2 arg2, TArg3 arg3, ItemsGetter<TEntity, TArg1, TArg2, TArg3, TItem> getter)
+        {
+            int count;
+            int hr = getter(entity, arg1, arg2, arg3, 0, out count, null);
+            ThrowExceptionForHR(hr);
+            if (count == 0)
+            {
+                return null;
+            }
+
+            var result = new TItem[count];
+            hr = getter(entity, arg1, arg2, arg3, count, out count, result);
+            ThrowExceptionForHR(hr);
+            ValidateItems(count, result.Length);
+            return result;
+        }
+
         #endregion
 
-        /// <summary>
-        /// Get the blob of binary custom debug info for a given method.
-        /// </summary>
+        public static byte[] GetPortablePdbImage(this ISymUnmanagedReader reader)
+        {
+            return GetCustomDebugInfoBytes(reader, 0, 1, PortablePdbImageCdiName);
+        }
+
         public static byte[] GetCustomDebugInfoBytes(this ISymUnmanagedReader reader, int methodToken, int methodVersion)
+        {
+            return GetCustomDebugInfoBytes(reader, methodToken, methodVersion, CdiAttributeName);
+        }
+
+        private static byte[] GetCustomDebugInfoBytes(this ISymUnmanagedReader reader, int methodToken, int methodVersion, string cdiName)
         {
             return GetItems(
                 reader,
                 methodToken,
                 methodVersion,
-                (ISymUnmanagedReader pReader, int pMethodToken, int pMethodVersion, int pBufferLength, out int pCount, byte[] pCustomDebugInfo) =>
-                    ((ISymUnmanagedReader3)pReader).GetSymAttributeByVersion(pMethodToken, pMethodVersion, CdiAttributeName, pBufferLength, out pCount, pCustomDebugInfo));
+                cdiName,
+                (ISymUnmanagedReader pReader, int pMethodToken, int pMethodVersion, string name, int pBufferLength, out int pCount, byte[] pCustomDebugInfo) =>
+                    ((ISymUnmanagedReader3)pReader).GetSymAttributeByVersion(pMethodToken, pMethodVersion, name, pBufferLength, out pCount, pCustomDebugInfo));
         }
 
         public static int GetUserEntryPoint(this ISymUnmanagedReader symReader)

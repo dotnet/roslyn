@@ -7,10 +7,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal struct HoistedLocalScopeRecord
     {
-        public readonly uint StartOffset;
-        public readonly uint Length;
+        public readonly int StartOffset;
+        public readonly int Length;
 
-        private HoistedLocalScopeRecord(uint startOffset, uint length)
+        private HoistedLocalScopeRecord(int startOffset, int length)
         {
             this.StartOffset = startOffset;
             this.Length = length;
@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public static HoistedLocalScopeRecord FromNative(int startOffset, int endOffsetInclusive)
         {
-            return new HoistedLocalScopeRecord((uint)startOffset, (uint)(endOffsetInclusive - startOffset + 1));
+            return new HoistedLocalScopeRecord(startOffset, endOffsetInclusive - startOffset + 1);
         }
 
-        public static HoistedLocalScopeRecord FromPortable(uint startOffset, uint length)
+        public static HoistedLocalScopeRecord FromPortable(int startOffset, int length)
         {
             return new HoistedLocalScopeRecord(startOffset, length);
         }
