@@ -24,8 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
     [ExportLanguageService(typeof(AbstractEncapsulateFieldService), LanguageNames.CSharp), Shared]
     internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
     {
-        protected async override Task<SyntaxNode> RewriteFieldNameAndAccessibility(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken)
+        protected async override Task<Tuple<SyntaxNode, List<SyntaxTrivia>>> RewriteFieldNameAndAccessibility(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken)
         {
+            List<SyntaxTrivia> documentationTrivia = new List<SyntaxTrivia>();
+
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var declarator = root.GetAnnotatedNodes<VariableDeclaratorSyntax>(declarationAnnotation).FirstOrDefault();
@@ -34,13 +36,34 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
             // and the declaration is not conditionally compiled in this document's project.
             if (declarator == null)
             {
-                return root;
+                return Tuple.Create(root, documentationTrivia);
             }
 
             var tempAnnotation = new SyntaxAnnotation();
             var newIdentifier = SyntaxFactory.Identifier(originalFieldName)
                                              .WithTrailingTrivia(declarator.Identifier.TrailingTrivia)
                                              .WithLeadingTrivia(declarator.Identifier.LeadingTrivia);
+
+            var fieldSyntax = declarator.GetAncestor<FieldDeclarationSyntax>();
+            var fieldSyntaxWithoutDocumentation = fieldSyntax;
+            if (fieldSyntax != null && fieldSyntax.HasStructuredTrivia)
+            {
+                // Use elastic trivia to introduce a newline, if neccecssary.
+                documentationTrivia.Add(SyntaxFactory.ElasticMarker);
+
+                // Locate and remove the documentation trivia
+                foreach (var trivia in fieldSyntax.DescendantTrivia())
+                {
+                    if (trivia.IsDocComment())
+                    {
+                        documentationTrivia.Add(trivia);
+                        fieldSyntaxWithoutDocumentation = fieldSyntaxWithoutDocumentation.ReplaceTrivia(trivia, SyntaxFactory.ElasticMarker);
+                    }
+                }
+            }
+
+            root = root.ReplaceNode(fieldSyntax, fieldSyntaxWithoutDocumentation.WithAdditionalAnnotations(Formatter.Annotation));
+            declarator = root.GetAnnotatedNodes<VariableDeclaratorSyntax>(declarationAnnotation).FirstOrDefault();
 
             var updatedDeclarator = declarator.WithIdentifier(newIdentifier).WithAdditionalAnnotations(tempAnnotation);
 
@@ -51,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
 
             if (declaration.Variables.Count == 1)
             {
-                var fieldSyntax = declaration.Parent as FieldDeclarationSyntax;
+                fieldSyntax = declaration.Parent as FieldDeclarationSyntax;
 
                 var modifierKinds = new[] { SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword, SyntaxKind.PublicKeyword };
 
@@ -96,10 +119,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
                 declarator = root.GetAnnotatedNodes<VariableDeclaratorSyntax>(tempAnnotation).First();
                 declaration = declarator.Parent as VariableDeclarationSyntax;
 
-                return root.RemoveNode(declarator, SyntaxRemoveOptions.KeepNoTrivia);
+                return Tuple.Create(root.RemoveNode(declarator, SyntaxRemoveOptions.KeepNoTrivia), documentationTrivia);
             }
 
-            return root;
+            return Tuple.Create(root, documentationTrivia);
         }
 
         protected override async Task<IEnumerable<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken)

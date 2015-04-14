@@ -980,5 +980,48 @@ namespace ConsoleApplication1
 
             Test(text, expected);
         }
+
+        [WorkItem(1123652)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public void DocumentationTrivia()
+        {
+            var text = @"
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        /// Some random doc comment
+        // Why would you write a regular comment?
+        public int myI[||]nt;
+    }
+}
+";
+
+            var expected = @"
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        // Why would you write a regular comment?
+        private int myInt;
+
+        /// Some random doc comment
+        public int MyInt
+        {
+            get
+            {
+                return myInt;
+            }
+
+            set
+            {
+                myInt = value;
+            }
+        }
+    }
+}";
+
+            Test(text, expected);
+        }
     }
 }

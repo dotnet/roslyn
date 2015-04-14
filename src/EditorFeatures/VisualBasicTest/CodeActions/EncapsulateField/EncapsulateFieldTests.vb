@@ -557,5 +557,31 @@ End Class</File>.ConvertTestSourceTag()
             Test(text, expected, compareTokens:=False)
 
         End Sub
+
+        <WorkItem(1123652)>
+        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        Public Sub DocumentationComment()
+            Dim text = <File>
+Class C
+    ''' Documentation
+    Protected [|x|] As Integer
+End Class</File>.ConvertTestSourceTag()
+
+            Dim expected = <File>
+Class C
+    Private _x As Integer
+    ''' Documentation
+    Protected Property X As Integer
+        Get
+            Return _x
+        End Get
+        Set(value As Integer)
+            _x = value
+        End Set
+    End Property
+End Class</File>.ConvertTestSourceTag()
+
+            Test(text, expected, compareTokens:=False)
+        End Sub
     End Class
 End Namespace
