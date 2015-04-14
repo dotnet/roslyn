@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 declaredType: declaredType ?? value.Type,
                 inspectionContext: inspectionContext ?? DefaultInspectionContext,
                 formatSpecifiers: Formatter.NoFormatSpecifiers,
+                customTypeInfo: null,
                 resultName: name,
                 resultFullName: null,
                 completionRoutine: asyncResult => evaluationResult = asyncResult.Result);

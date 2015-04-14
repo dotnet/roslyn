@@ -86,12 +86,6 @@
     <Compile Include="..\..\..\Compilers\Helpers\InMemoryAssemblyProvider.cs">
       <Link>InMemoryAssemblyProvider.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\DummyMetadataImport.cs">
-      <Link>Shared\DummyMetadataImport.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\IMetadataImport.cs">
-      <Link>Shared\IMetadataImport.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
       <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
     </Compile>
@@ -322,7 +316,6 @@
     <Compile Include="Implementation\EditAndContinue\Interop\IENCSymbolReaderProvider.cs" />
     <Compile Include="Implementation\EditAndContinue\Interop\IVsENCRebuildableProjectCfg2.cs" />
     <Compile Include="Implementation\EditAndContinue\Interop\IVsENCRebuildableProjectCfg4.cs" />
-    <Compile Include="Implementation\EditAndContinue\SymbolReaderProvider.cs" />
     <Compile Include="Implementation\EditAndContinue\VsENCRebuildableProjectImpl.cs" />
     <Compile Include="Implementation\EditAndContinue\VsReadOnlyDocumentTracker.cs" />
     <Compile Include="Implementation\Extensions\DocumentExtensions.cs" />

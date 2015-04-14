@@ -39,6 +39,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 .FirstOrDefault();
         }
 
+        private SyntaxNode GetNamespaceNode()
+        {
+            return LookupNode().Ancestors()
+                .Where(n => CodeModelService.IsNamespace(n))
+                .FirstOrDefault();
+        }
+
         internal INamedTypeSymbol LookupTypeSymbol()
         {
             return (INamedTypeSymbol)LookupSymbol();
@@ -123,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                var namespaceNode = GetNamespaceOrTypeNode();
+                var namespaceNode = GetNamespaceNode();
 
                 return namespaceNode != null
                     ? FileCodeModel.CreateCodeElement<EnvDTE.CodeNamespace>(namespaceNode)

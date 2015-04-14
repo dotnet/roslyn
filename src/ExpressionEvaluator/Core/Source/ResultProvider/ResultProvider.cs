@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.Formatter = formatter;
         }
 
-        void IDkmClrResultProvider.GetResult(DkmClrValue value, DkmWorkList workList, DkmClrType declaredType, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine)
+        void IDkmClrResultProvider.GetResult(DkmClrValue value, DkmWorkList workList, DkmClrType declaredType, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, DkmClrCustomTypeInfo customTypeInfo, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine)
         {
             // TODO: Use full name
             var wl = new WorkList(workList, e => completionRoutine(DkmEvaluationAsyncResult.CreateErrorResult(e)));
@@ -354,9 +354,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 !declaredLmrType.IsPointer &&
                 (kind != ExpansionKind.PointerDereference) &&
                 (!declaredLmrType.IsNullable() || value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown));
-            var declaredTypeName = inspectionContext.GetTypeName(declaredType, Formatter.NoFormatSpecifiers);
+            var declaredTypeName = inspectionContext.GetTypeName(declaredType, Formatter.NoFormatSpecifiers, CustomTypeInfo: null);
             return includeRuntimeTypeName ?
-                string.Format("{0} {{{1}}}", declaredTypeName, inspectionContext.GetTypeName(runtimeType, Formatter.NoFormatSpecifiers)) :
+                string.Format("{0} {{{1}}}", declaredTypeName, inspectionContext.GetTypeName(runtimeType, Formatter.NoFormatSpecifiers, CustomTypeInfo: null)) :
                 declaredTypeName;
         }
 

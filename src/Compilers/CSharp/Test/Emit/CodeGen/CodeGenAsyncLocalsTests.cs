@@ -287,7 +287,6 @@ class C
           <slot kind=""2"" offset=""410"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
   </methods>
 </symbols>

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.Shell.Interop
 {
@@ -44,21 +45,22 @@ namespace Microsoft.VisualStudio.Shell.Interop
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern IntPtr LoadLibrary(String libPath);
 
-        private static Lazy<QueryServiceDelegate> s_queryService = new Lazy<QueryServiceDelegate>(TryGetSqmServiceDelegate, true);
+        private static Optional<QueryServiceDelegate> s_queryService;
+        private static readonly object s_guard = new object();
 
-        private static QueryServiceDelegate TryGetSqmServiceDelegate()
+        private static QueryServiceDelegate TryGetSqmServiceDelegateCore(string baseDirectory)
         {
             try
             {
                 IntPtr vssqmdll = IntPtr.Zero;
-                string vssqmpath = AppDomain.CurrentDomain.BaseDirectory;
-                if (Environment.Is64BitProcess)
+                string vssqmpath;
+                if (IntPtr.Size == 8)
                 {
-                    vssqmpath = Path.Combine(vssqmpath, @"sqmamd64\vssqmmulti.dll");
+                    vssqmpath = Path.Combine(baseDirectory, @"sqmamd64\vssqmmulti.dll");
                 }
                 else
                 {
-                    vssqmpath = Path.Combine(vssqmpath, @"sqmx86\vssqmmulti.dll");
+                    vssqmpath = Path.Combine(baseDirectory, @"sqmx86\vssqmmulti.dll");
                 }
                 vssqmdll = SqmServiceProvider.LoadLibrary(vssqmpath);
                 if (vssqmdll != IntPtr.Zero)
@@ -74,16 +76,30 @@ namespace Microsoft.VisualStudio.Shell.Interop
             return null;
         }
 
-        public static IVsSqmMulti TryGetSqmService()
+        private static QueryServiceDelegate TryGetSqmServiceDelegate(string baseDirectory)
+        {
+            lock (s_guard)
+            {
+                if (!s_queryService.HasValue)
+                {
+                    s_queryService = TryGetSqmServiceDelegateCore(baseDirectory);
+                }
+
+                return s_queryService.Value;
+            }
+        }
+
+        public static IVsSqmMulti TryGetSqmService(string baseDirectory)
         {
             IVsSqmMulti result = null;
             Guid rsid = new Guid("2508FDF0-EF80-4366-878E-C9F024B8D981");
             Guid riid = new Guid("B17A7D4A-C1A3-45A2-B916-826C3ABA067E");
-            if (s_queryService.Value != null)
+            QueryServiceDelegate queryService = TryGetSqmServiceDelegate(baseDirectory);
+            if (queryService != null)
             {
                 try
                 {
-                    s_queryService.Value(ref rsid, ref riid, out result);
+                    queryService(ref rsid, ref riid, out result);
                 }
                 catch (Exception e)
                 {

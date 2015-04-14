@@ -51,6 +51,9 @@
     <Compile Include="..\VBCSCompiler\CompilerServerLogger.cs">
       <Link>CompilerServerLogger.cs</Link>
     </Compile>
+    <Compile Include="..\..\Helpers\ConsoleUtil.cs">
+      <Link>ConsoleUtil.cs</Link>
+    </Compile>
     <Compile Include="BuildClient.cs" />
     <Compile Include="CanonicalError.cs" />
     <Compile Include="CommandLineBuilderExtension.cs" />

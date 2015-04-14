@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return GetValueString(value, inspectionContext, options, GetValueFlags.IncludeObjectId);
         }
 
-        string IDkmClrFormatter.GetTypeName(DkmInspectionContext inspectionContext, DkmClrType type, ReadOnlyCollection<string> formatSpecifiers)
+        string IDkmClrFormatter.GetTypeName(DkmInspectionContext inspectionContext, DkmClrType type, ReadOnlyCollection<string> formatSpecifiers, DkmClrCustomTypeInfo CustomTypeInfo)
         {
             return GetTypeName(type.GetLmrType());
         }

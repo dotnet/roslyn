@@ -10,15 +10,15 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
     [Export(typeof(ITaggerProvider))]
-    [TagType(typeof(WarningTag))]
+    [TagType(typeof(PreviewWarningTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(TextViewRoles.PreviewRole)]
     internal class PreviewWarningTaggerProvider
-        : AbstractPreviewTaggerProvider<WarningTag>
+        : AbstractPreviewTaggerProvider<PreviewWarningTag>
     {
         [ImportingConstructor]
         public PreviewWarningTaggerProvider() :
-            base(PredefinedPreviewTaggerKeys.WarningSpansKey, WarningTag.Instance)
+            base(PredefinedPreviewTaggerKeys.WarningSpansKey, PreviewWarningTag.Instance)
         {
         }
     }
