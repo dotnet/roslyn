@@ -81,6 +81,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _syntaxTrees As ImmutableArray(Of SyntaxTree)
 
         ''' <summary>
+        ''' The syntax trees explicitly given to the compilation at creation, in set form.
+        ''' </summary>
+        Private ReadOnly _syntaxTreeSet As HashSet(Of SyntaxTree)
+
+        ''' <summary>
         ''' The syntax trees of this compilation plus all 'hidden' trees 
         ''' added to the compilation by compiler, e.g. Vb Core Runtime.
         ''' </summary>
@@ -421,6 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             _options = options
             _syntaxTrees = syntaxTrees
+            _syntaxTreeSet = New HashSet(Of SyntaxTree)(_syntaxTrees)
             _rootNamespaces = rootNamespaces
             _embeddedTrees = embeddedTrees
             _declarationTable = declarationTable
@@ -767,6 +773,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shadows ReadOnly Property SyntaxTrees As ImmutableArray(Of SyntaxTree)
             Get
                 Return _syntaxTrees
+            End Get
+        End Property
+
+        Private ReadOnly Property SyntaxTreesSet As HashSet(Of SyntaxTree)
+            Get
+                Return _syntaxTreeSet
             End Get
         End Property
 
@@ -1623,6 +1635,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub CompleteTree(tree As SyntaxTree)
+            If Not SyntaxTreesSet.Contains(tree) Then
+                ' The syntax trees added to AllSyntaxTrees by the compiler
+                ' do not count toward completion.
+                Return
+            End If
+
             Dim completedCompilationUnit As Boolean = False
             Dim completedCompilation As Boolean = False
 
@@ -1649,9 +1667,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        Friend Function ShouldAddEvent(symbol As Symbol) As Boolean
+            If EventQueue Is Nothing Then
+                Return False
+            End If
+
+            For Each location As Location In symbol.Locations
+                If SyntaxTreesSet.Contains(location.SourceTree) Then
+                    Return True
+                End If
+            Next
+
+            Return False
+        End Function
+
         Friend Sub SymbolDeclaredEvent(symbol As Symbol)
-            If EventQueue IsNot Nothing Then
-                Debug.Assert(Not EventQueue.IsCompleted)
+            If ShouldAddEvent(symbol) Then
                 EventQueue.Enqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
             End If
         End Sub
