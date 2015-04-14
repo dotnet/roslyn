@@ -12,17 +12,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 {
     internal sealed class Csc : CSharpCompiler
     {
-        internal Csc(string responseFile, string baseDirectory, string sdkDirectory, string[] args)
-            : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, sdkDirectory, Environment.GetEnvironmentVariable("LIB"))
+        internal Csc(string responseFile, string clientDirectory, string baseDirectory, string sdkDirectory, string[] args)
+            : base(CSharpCommandLineParser.Default, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, Environment.GetEnvironmentVariable("LIB"))
         {
         }
 
-        internal static int Run(string clientDir, string sdkDirectory, string[] args)
+        internal static int Run(string clientDirectory, string sdkDirectory, string[] args)
         {
             FatalError.Handler = FailFast.OnFatalException;
 
-            var responseFile = Path.Combine(clientDir, CSharpCompiler.ResponseFileName);
-            Csc compiler = new Csc(responseFile, Directory.GetCurrentDirectory(), sdkDirectory, args);
+            var responseFile = Path.Combine(clientDirectory, CSharpCompiler.ResponseFileName);
+            Csc compiler = new Csc(responseFile, clientDirectory, Directory.GetCurrentDirectory(), sdkDirectory, args);
 
             return ConsoleUtil.RunWithOutput(compiler.Arguments.Utf8Output, (textWriterOut, _) => compiler.Run(textWriterOut));
         }
