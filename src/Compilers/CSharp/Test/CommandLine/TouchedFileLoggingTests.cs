@@ -213,8 +213,9 @@ public class C { }").Path;
 
                 filelist.Add(source1);
                 var outWriter = new StringWriter();
-                var cmd = new CSharpCompilerServer(null,
+                var cmd = new CSharpCompilerServer(
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
+                    null,
                     _baseDirectory,
                     RuntimeEnvironment.GetRuntimeDirectory(),
                     s_libDirectory);

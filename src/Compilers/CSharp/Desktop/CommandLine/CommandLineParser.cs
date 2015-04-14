@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!noStdLib)
             {
-                metadataReferences.Insert(0, new CommandLineReference(typeof(object).Assembly.Location, MetadataReferenceProperties.Assembly));
+                metadataReferences.Insert(0, new CommandLineReference(Path.Combine(sdkDirectory, "mscorlib.dll"), MetadataReferenceProperties.Assembly));
             }
 
             if (!platform.Requires64Bit())

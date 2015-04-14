@@ -11,17 +11,17 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {
     internal sealed class Vbc : VisualBasicCompiler
     {
-        internal Vbc(string responseFile, string baseDirectory, string sdkDirectory, string[] args)
-            : base(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, sdkDirectory, Environment.GetEnvironmentVariable("LIB"))
+        internal Vbc(string responseFile, string clientDirectory, string baseDirectory, string sdkDirectory, string[] args)
+            : base(VisualBasicCommandLineParser.Default, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, Environment.GetEnvironmentVariable("LIB"))
         {
         }
 
-        internal static int Run(string clientDir, string sdkDirectory, string[] args)
+        internal static int Run(string clientDirectory, string sdkDirectory, string[] args)
         {
             FatalError.Handler = FailFast.OnFatalException;
 
-            var responseFile = Path.Combine(clientDir, VisualBasicCompiler.ResponseFileName);
-            Vbc compiler = new Vbc(responseFile, Directory.GetCurrentDirectory(), sdkDirectory, args);
+            var responseFile = Path.Combine(clientDirectory, VisualBasicCompiler.ResponseFileName);
+            Vbc compiler = new Vbc(responseFile, clientDirectory, Directory.GetCurrentDirectory(), sdkDirectory, args);
 
             return ConsoleUtil.RunWithOutput(compiler.Arguments.Utf8Output, (textWriterOut, _) => compiler.Run(textWriterOut));
         }
