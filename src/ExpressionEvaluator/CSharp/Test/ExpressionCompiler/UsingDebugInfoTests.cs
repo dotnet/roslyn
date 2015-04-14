@@ -16,6 +16,7 @@ using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -243,7 +244,7 @@ namespace D
             {
                 using (var pdbbits = new MemoryStream())
                 {
-                    compilation.Emit(exebits, pdbbits);
+                    compilation.Emit(exebits, pdbbits, options: EmitOptions.Default);
 
                     exebits.Position = 0;
                     using (var module = new PEModule(new PEReader(exebits, PEStreamOptions.LeaveOpen), metadataOpt: IntPtr.Zero, metadataSizeOpt: 0))
@@ -255,8 +256,9 @@ namespace D
                         // Create a SymReader, rather than a raw COM object, because
                         // SymReader implements ISymUnmanagedReader3 and the COM object
                         // might not.
+                        exebits.Position = 0;
                         pdbbits.Position = 0;
-                        using (var reader = new SymReader(pdbbits.ToArray()))
+                        using (var reader = new SymReader(pdbbits, exebits))
                         {
                             return reader.GetCSharpGroupedImportStrings(methodToken, methodVersion: 1, externAliasStrings: out externAliasStrings);
                         }
@@ -317,7 +319,7 @@ namespace D
         }
 
         [WorkItem(999086)]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1985")]
         public void BadPdb_InvalidAliasSyntax()
         {
             var source = @"
@@ -353,7 +355,7 @@ public class C
         }
 
         [WorkItem(999086)]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1985")]
         public void BadPdb_DotInAlias()
         {
             var source = @"
@@ -389,7 +391,7 @@ public class C
         }
 
         [WorkItem(1007917)]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1985")]
         public void BadPdb_NestingLevel_TooMany()
         {
             var source = @"
@@ -431,7 +433,7 @@ public class C
         }
 
         [WorkItem(1007917)]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1985")]
         public void BadPdb_NestingLevel_TooFew()
         {
             var source = @"
@@ -476,7 +478,7 @@ namespace N
         }
 
         [WorkItem(1084059)]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1985")]
         public void BadPdb_NonStaticTypeImport()
         {
             var source = @"
