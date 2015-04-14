@@ -54,25 +54,34 @@
   <!-- Import the global NuGet packages -->
   <PropertyGroup>
     <ToolsetCompilerPackageName>Microsoft.Net.ToolsetCompilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.ToolsetCompilers.1.0.0-rc1-20150122-03\build\Microsoft.Net.ToolsetCompilers.props</ToolsetCompilerPropsFilePath>
-    <RoslynDiagnosticsPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.0.0-rc1-20150122-03\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <ToolsetCompilerPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.ToolsetCompilers.1.0.0-rc2-20150319-05\build\Microsoft.Net.ToolsetCompilers.props</ToolsetCompilerPropsFilePath>
+    <RoslynDiagnosticsPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.0.0-rc2-20150319-05\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
   </PropertyGroup>
-  <ImportGroup Label="GlobalNuGets">
+
+  <!-- Import the props files from the toolset NuGet packages if we're not in a bootstrap build -->
+  <ImportGroup Label="GlobalNuGets" Condition="'$(BootstrapBuildPath)' == ''">
     <Import Project="$(ToolsetCompilerPropsFilePath)"
             Condition="Exists('$(ToolsetCompilerPropsFilePath)')" />
     <Import Project="$(RoslynDiagnosticsPropsFilePath)"
             Condition="Exists('$(RoslynDiagnosticsPropsFilePath)') And ('$(UseRoslynAnalyzers)' == 'true')" />
   </ImportGroup>
-  <Target Name="EnsureGlobalNuGets">
+
+  <Target Name="EnsureGlobalNuGets" Condition="'$(BootstrapBuildPath)' == ''">
     <Error Condition="!$(CscToolPath.Contains('$(ToolsetCompilerPackageName)'))"
            Text="This project requires the $(ToolsetCompilerPackageName) NuGet package to build. Use NuGet Package Restore to download the required files (&quot;powershell .nuget\NuGetRestore.ps1&quot;). The missing file is &quot;$(ToolsetCompilerPropsFilePath)&quot;." />
   </Target>
 
+  <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
+    <CscToolPath>$(BootstrapBuildPath)</CscToolPath>
+    <CscToolExe>csc.exe</CscToolExe>
+    <VbcToolPath>$(BootstrapBuildPath)</VbcToolPath>
+    <VbcToolExe>vbc.exe</VbcToolExe>
+  </PropertyGroup>
+
   <!-- Common project settings -->
   <PropertyGroup>
     <DeployToSamplesSubfolder Condition="'$(DeployToSamplesSubfolder)' == ''">false</DeployToSamplesSubfolder>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>

@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Public ReadOnly InsertionText As String
             Public ReadOnly GenericInsertionText As String
 
-            Sub New(provider As ImplementsInheritsStatementCompletionProvider,
+            Public Sub New(provider As ImplementsInheritsStatementCompletionProvider,
                     displayText As String,
                     span As TextSpan,
                     description As Func(Of CancellationToken, Task(Of ImmutableArray(Of SymbolDisplayPart))),

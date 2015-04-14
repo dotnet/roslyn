@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
@@ -163,7 +162,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             var projBuffer = projectionBufferFactory.CreateProjectionBuffer(
                 new EditResolver(this),
-                SpecializedCollections.EmptyList<object>(),
+                Array.Empty<object>(),
                 ProjectionBufferOptions.None,
                 replContentType);
 
@@ -1801,7 +1800,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var taskDone = Submit();
                 if (submission.Completion != null)
                 {
-                    taskDone.ContinueWith(x => submission.Completion.SetResult(null));
+                    taskDone.ContinueWith(x => submission.Completion.SetResult(null), TaskScheduler.Current);
                 }
             }));
         }
@@ -2860,7 +2859,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private void RemoveProjectionSpans(int index, int count)
         {
             _projectionSpans.RemoveRange(index, count);
-            _projectionBuffer.ReplaceSpans(index, count, SpecializedCollections.EmptyList<object>(), EditOptions.None, s_suppressPromptInjectionTag);
+            _projectionBuffer.ReplaceSpans(index, count, Array.Empty<object>(), EditOptions.None, s_suppressPromptInjectionTag);
         }
 
         #endregion

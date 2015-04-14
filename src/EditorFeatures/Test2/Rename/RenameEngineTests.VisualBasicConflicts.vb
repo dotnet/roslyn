@@ -2805,6 +2805,72 @@ End Class
                     AssertTokenRenamable(workspace)
                 End Using
             End Sub
+
+            <WorkItem(1193, "https://github.com/dotnet/roslyn/issues/1193")>
+            <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+            Public Sub MemberQualificationInNameOfUsesTypeName_StaticReferencingInstance()
+                Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
+                            <Document>
+Class C
+    Shared Sub F([|$$z|] As Integer)
+        Dim x = NameOf({|ref:zoo|})
+    End Sub
+
+    Dim zoo As Integer
+End Class
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="zoo")
+
+                    result.AssertLabeledSpansAre("ref", "Dim x = NameOf(C.zoo)", RelatedLocationType.ResolvedNonReferenceConflict)
+                End Using
+            End Sub
+
+            <WorkItem(1193, "https://github.com/dotnet/roslyn/issues/1193")>
+            <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+            Public Sub MemberQualificationInNameOfUsesTypeName_InstanceReferencingStatic()
+                Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
+                            <Document>
+Class C
+    Sub F([|$$z|] As Integer)
+        Dim x = NameOf({|ref:zoo|})
+    End Sub
+
+    Shared zoo As Integer
+End Class
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="zoo")
+
+                    result.AssertLabeledSpansAre("ref", "Dim x = NameOf(C.zoo)", RelatedLocationType.ResolvedNonReferenceConflict)
+                End Using
+            End Sub
+
+            <WorkItem(1193, "https://github.com/dotnet/roslyn/issues/1193")>
+            <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+            Public Sub MemberQualificationInNameOfUsesTypeName_InstanceReferencingInstance()
+                Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
+                            <Document>
+Class C
+    Sub F([|$$z|] As Integer)
+        Dim x = NameOf({|ref:zoo|})
+    End Sub
+
+    Dim zoo As Integer
+End Class
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="zoo")
+
+                    result.AssertLabeledSpansAre("ref", "Dim x = NameOf(C.zoo)", RelatedLocationType.ResolvedNonReferenceConflict)
+                End Using
+            End Sub
         End Class
     End Class
 End Namespace

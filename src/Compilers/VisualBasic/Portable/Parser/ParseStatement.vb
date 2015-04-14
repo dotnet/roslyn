@@ -123,10 +123,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     blockKeyword = DirectCast(CurrentToken, KeywordSyntax)
                     GetNextToken()
 
-                    ' The pretty lister is expected to turn Exit statements
-                    ' that don
-                    ' statements that do. That requires identifying this
-                    ' condition during parsing and correcting the parse trees.
+                ' The pretty lister is expected to turn Exit statements
+                ' that don
+                ' statements that do. That requires identifying this
+                ' condition during parsing and correcting the parse trees.
 
                 Case SyntaxKind.SubKeyword
                     ' Error message moved to context

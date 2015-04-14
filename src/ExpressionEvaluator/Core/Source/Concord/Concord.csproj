@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) Microsoft. All Rights Reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <TargetNetFX20>true</TargetNetFX20>
-  </PropertyGroup>
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
     <Import Project="..\..\..\..\..\build\VSL.Settings.Closed.targets" />
@@ -16,20 +13,17 @@
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.Concord.DoNotUse</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <ConcordDir>$(MSBuildThisFileDirectory)</ConcordDir>
-	  <NonShipping>true</NonShipping>
+    <NonShipping>true</NonShipping>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
     <None Include="$(ConcordDir)Microsoft.VisualStudio.Debugger.Engine.xml">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <Visible>false</Visible>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ConcordAssemblies Include="Microsoft.VisualStudio.Debugger.Metadata">
@@ -42,21 +36,21 @@
   <Target Name="IlasmNetFX20" 
           AfterTargets="CoreCompile"
           Inputs="@(ConcordAssemblies->'$(ConcordDir)%(Identity).NetFX20.il')"
-          Outputs="$(OutDir)%(Identity).dll">
-    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet /mdv:v2.0.50727 &quot;/output:$(OutDir)@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).NetFX20.il" />
-    <Exec Command="$(VSLOutDir)\FakeSign.exe &quot;$(OutDir)@(ConcordAssemblies).dll&quot;" />
+          Outputs="$(OutDir)NetFX20\%(Identity).dll">
+    <MakeDir Directories="$(OutDir)NetFX20" />
+    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet /mdv:v2.0.50727 &quot;/output:$(OutDir)NetFX20\@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).NetFX20.il" />
+    <Exec Command="$(FakeSignToolPath) &quot;$(OutDir)NetFX20\@(ConcordAssemblies).dll&quot;" />
   </Target>
   <Target Name="IlasmPortable" 
           AfterTargets="CoreCompile"
           Inputs="@(ConcordAssemblies->'$(ConcordDir)%(Identity).Portable.il')"
-          Outputs="$(OutDir)Phone\%(Identity).dll">
-    <MakeDir Directories="$(OutDir)Phone" />
-    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet &quot;/output:$(OutDir)Phone\@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).Portable.il" />
-    <Exec Command="$(VSLOutDir)\FakeSign.exe &quot;$(OutDir)Phone\@(ConcordAssemblies).dll&quot;" />
+          Outputs="$(OutDir)%(Identity).dll">
+    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet &quot;/output:$(OutDir)@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).Portable.il" />
+    <Exec Command="$(FakeSignToolPath) &quot;$(OutDir)@(ConcordAssemblies).dll&quot;" />
   </Target>
   <Target Name="CleanIlasmOutputs" AfterTargets="Clean">
+    <Delete Files="@(ConcordAssemblies->'$(OutDir)NetFX20\%(Identity).dll')" />
     <Delete Files="@(ConcordAssemblies->'$(OutDir)%(Identity).dll')" />
-    <Delete Files="@(ConcordAssemblies->'$(OutDir)Phone\%(Identity).dll')" />
   </Target>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

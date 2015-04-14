@@ -12,7 +12,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
     Friend Class EditAndContinueTestHelper
 
-        Shared Function CreateTestWorkspace() As TestWorkspace
+        Public Shared Function CreateTestWorkspace() As TestWorkspace
             ' create workspace
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -27,13 +27,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
         Public Class TestDiagnosticAnalyzerService
             Implements IDiagnosticAnalyzerService, IDiagnosticUpdateSource
 
-            Private ReadOnly data As ImmutableArray(Of DiagnosticData)
+            Private ReadOnly _data As ImmutableArray(Of DiagnosticData)
 
             Public Sub New()
             End Sub
 
             Public Sub New(data As ImmutableArray(Of DiagnosticData))
-                Me.data = data
+                Me._data = data
             End Sub
 
             Public ReadOnly Property SupportGetDiagnostics As Boolean Implements IDiagnosticUpdateSource.SupportGetDiagnostics
@@ -45,7 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticUpdateSource.DiagnosticsUpdated
 
             Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticUpdateSource.GetDiagnostics
-                Return data
+                Return _data
             End Function
 
             Public Sub Reanalyze(workspace As Workspace, Optional projectIds As IEnumerable(Of ProjectId) = Nothing, Optional documentIds As IEnumerable(Of DocumentId) = Nothing) Implements IDiagnosticAnalyzerService.Reanalyze
@@ -90,8 +90,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Public Function GetDiagnosticDescriptors(analyzer As DiagnosticAnalyzer) As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzerService.GetDiagnosticDescriptors
                 Return ImmutableArray(Of DiagnosticDescriptor).Empty
             End Function
+
+            Public Function IsCompilerDiagnostic(language As String, diagnostic As DiagnosticData) As Boolean Implements IDiagnosticAnalyzerService.IsCompilerDiagnostic
+                Return False
+            End Function
+
+            Public Function GetCompilerDiagnosticAnalyzer(language As String) As DiagnosticAnalyzer Implements IDiagnosticAnalyzerService.GetCompilerDiagnosticAnalyzer
+                Return Nothing
+            End Function
+
+            Public Function IsCompilerDiagnosticAnalyzer(language As String, analyzer As DiagnosticAnalyzer) As Boolean Implements IDiagnosticAnalyzerService.IsCompilerDiagnosticAnalyzer
+                Return False
+            End Function
         End Class
-
     End Class
-
 End Namespace

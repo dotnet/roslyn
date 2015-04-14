@@ -11,13 +11,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
-Imports Microsoft.VisualStudio.SymReaderInterop
+Imports Microsoft.DiaSymReader
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend NotInheritable Class CompilationContext
 
-        Private Shared ReadOnly FullNameFormat As New SymbolDisplayFormat(
+        Private Shared ReadOnly s_fullNameFormat As New SymbolDisplayFormat(
             globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
             typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             metadataDecoder As MetadataDecoder,
             currentFrame As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
-            hoistedLocalFieldNames As ImmutableHashSet(Of String),
+            inScopeHoistedLocals As InScopeHoistedLocals,
             methodDebugInfo As MethodDebugInfo,
             syntax As ExecutableStatementSyntax)
 
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If _methodNotType Then
                 _locals = locals
                 Dim displayClassVariableNamesInOrder As ImmutableArray(Of String) = Nothing
-                GetDisplayClassVariables(currentFrame, locals, hoistedLocalFieldNames, displayClassVariableNamesInOrder, _displayClassVariables, _hoistedParameterNames)
+                GetDisplayClassVariables(currentFrame, locals, inScopeHoistedLocals, displayClassVariableNamesInOrder, _displayClassVariables, _hoistedParameterNames)
                 Debug.Assert(displayClassVariableNamesInOrder.Length = _displayClassVariables.Count)
                 _localsForBinding = GetLocalsForBinding(locals, displayClassVariableNamesInOrder, _displayClassVariables)
             Else
@@ -947,7 +947,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared Sub GetDisplayClassVariables(
             method As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
-            hoistedLocalFieldNames As ImmutableHashSet(Of String),
+            inScopeHoistedLocals As InScopeHoistedLocals,
             <Out> ByRef displayClassVariableNamesInOrder As ImmutableArray(Of String),
             <Out> ByRef displayClassVariables As ImmutableDictionary(Of String, DisplayClassVariable),
             <Out> ByRef hoistedParameterNames As ImmutableHashSet(Of String))
@@ -1017,7 +1017,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         displayClassVariableNamesInOrderBuilder,
                         displayClassVariablesBuilder,
                         parameterNames,
-                        hoistedLocalFieldNames,
+                        inScopeHoistedLocals,
                         instance,
                         pooledHoistedParameterNames)
                 Next
@@ -1136,7 +1136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             displayClassVariableNamesInOrder As ArrayBuilder(Of String),
             displayClassVariablesBuilder As Dictionary(Of String, DisplayClassVariable),
             parameterNames As HashSet(Of String),
-            hoistedLocalFieldNames As ImmutableHashSet(Of String),
+            inScopeHoistedLocals As InScopeHoistedLocals,
             instance As DisplayClassInstanceAndFields,
             hoistedParameterNames As HashSet(Of String))
 
@@ -1165,7 +1165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     variableKind = DisplayClassVariableKind.Local
                     variableName = Nothing
                     Dim unusedIndex As Integer = Nothing
-                    If Not hoistedLocalFieldNames.Contains(fieldName) OrElse Not GeneratedNames.TryParseStateMachineHoistedUserVariableName(fieldName, variableName, unusedIndex) Then
+                    If Not inScopeHoistedLocals.IsInScope(fieldName) OrElse Not GeneratedNames.TryParseStateMachineHoistedUserVariableName(fieldName, variableName, unusedIndex) Then
                         Continue For
                     End If
                 ElseIf IsHoistedMeFieldName(fieldName) Then

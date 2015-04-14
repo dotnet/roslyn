@@ -4988,8 +4988,11 @@
   <data name="ChainingSpeculativeModelIsNotSupported" xml:space="preserve">
     <value>Chaining speculative semantic model is not supported. You should create a speculative model from the non-speculative ParentModel.</value>
   </data>
+  <data name="IDS_ToolName" xml:space="preserve">
+    <value>Microsoft (R) Visual Basic Compiler</value>
+  </data>
   <data name="IDS_LogoLine1" xml:space="preserve">
-    <value>Microsoft (R) Visual Basic Compiler version {0}</value>
+    <value>{0} version {1}</value>
   </data>
   <data name="IDS_LogoLine2" xml:space="preserve">
     <value>Copyright (C) Microsoft Corporation. All rights reserved.</value>
@@ -5056,6 +5059,8 @@
 /warnaserror[+|-]                 Treat all warnings as errors.
 /warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
 /ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
+                                  diagnostics.
+/errorlog:&lt;file&gt;                  Specify a file to log all compiler and analyzer
                                   diagnostics.
 
                                   - LANGUAGE -
@@ -5249,6 +5254,9 @@
   </data>
   <data name="ERR_LanguageVersion" xml:space="preserve">
     <value>Visual Basic {0} does not support {1}.</value>
+  </data>
+  <data name="ERR_BadPdbData" xml:space="preserve">
+    <value>Error reading debug information for '{0}'</value>
   </data>
   <data name="FEATURE_ArrayLiterals" xml:space="preserve">
     <value>array literal expressions</value>

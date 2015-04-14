@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Execution;
@@ -24,11 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private class CSharpProjectFile : ProjectFile
         {
             private readonly IMetadataService _metadataService;
+            private readonly IAnalyzerService _analyzerService;
 
-            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, IMetadataService metadataService)
+            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, IMetadataService metadataService, IAnalyzerService analyzerService)
                 : base(loader, project)
             {
                 _metadataService = metadataService;
+                _analyzerService = analyzerService;
             }
 
             public override SourceCodeKind GetSourceCodeKind(string documentFileName)
@@ -53,8 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var compilerInputs = new CSharpCompilerInputs(this);
 
-                var result = await this.BuildAsync("Csc", compilerInputs, cancellationToken).ConfigureAwait(false);
-                var executedProject = result.Instance;
+                var executedProject = await this.BuildAsync("Csc", compilerInputs, cancellationToken).ConfigureAwait(false);
 
                 if (!compilerInputs.Initialized)
                 {
@@ -177,11 +179,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var commandLineParser = CSharpCommandLineParser.Default;
-                var commandLineArgs = commandLineParser.Parse(args, executedProject.Directory);
+                var commandLineArgs = commandLineParser.Parse(args, executedProject.Directory, RuntimeEnvironment.GetRuntimeDirectory());
 
                 var resolver = new MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
                 metadataReferences = commandLineArgs.ResolveMetadataReferences(new AssemblyReferenceResolver(resolver, _metadataService.GetProvider()));
-                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences();
+                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(_analyzerService.GetAnalyzer);
             }
 
             private void InitializeFromModel(CSharpCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)

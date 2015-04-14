@@ -28,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                         <Document>
                             Class {|Definition:$$Foo|}
                                 Public Sub {|Definition:New|}()
-                                    Dim x = New [|Foo|]()
-                                    Dim y As New [|Foo|]()
+                                    Dim x = New {|Reference:Foo|}()
+                                    Dim y As New {|Reference:Foo|}()
                                 End Sub
                             End Class
                         </Document>
@@ -47,8 +47,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                         <Document>
                             Class {|Definition:Foo|}
                                 Public Sub Blah()
-                                    Dim x = New [|$$Foo|]()
-                                    Dim y As New [|Foo|]()
+                                    Dim x = New {|Reference:$$Foo|}()
+                                    Dim y As New {|Reference:Foo|}()
                                 End Sub
                             End Class
                         </Document>
@@ -71,7 +71,7 @@ End Interface
 Class C
     Implements I
 
-    Public Sub Bar() Implements I.[|Foo|]
+    Public Sub Bar() Implements I.{|Reference:Foo|}
     End Sub
 End Class
                         </Document>
@@ -94,7 +94,7 @@ End Interface
 Class C
     Implements I
 
-    Public Sub Bar() Implements I.[|$$Foo|]
+    Public Sub Bar() Implements I.{|Reference:$$Foo|}
     End Sub
 End Class
                         </Document>
@@ -117,7 +117,7 @@ End Interface
 Class C
     Implements I
 
-    Public Sub {|Definition:Foo|}() Implements I.[|$$Foo|]
+    Public Sub {|Definition:Foo|}() Implements I.{|Reference:$$Foo|}
     End Sub
 End Class
                         </Document>
@@ -151,8 +151,8 @@ End Class
                         <Document>
 Module M
     Sub Main
-        [|$$Global|].M.Main()
-        [|Global|].M.Main()
+        {|Reference:$$Global|}.M.Main()
+        {|Reference:Global|}.M.Main()
     End Sub
 End Module
                         </Document>
@@ -218,12 +218,53 @@ End Class
 Class C
     Default Public Property Foo($${|Definition:x|} As Integer) As Integer
         Get
-            Return [|x|]
+            Return {|Reference:x|}
         End Get
         Set(value As Integer)
 
         End Set
     End Property
+End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            VerifyHighlights(input)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Sub TestWrittenReference()
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+Class Foo
+    Public Sub New()
+        Dim {|Definition:$$x|} As Integer
+        {|WrittenReference:x|} = 0
+    End Sub
+End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            VerifyHighlights(input)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Sub TestWrittenReference2()
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+Class Foo
+    Public Sub New()
+        Dim {|Definition:$$x|} As Integer
+        Foo({|WrittenReference:x|})
+    End Sub
+
+    Public Sub Foo(ByRef a as Integer)
+    End Sub
 End Class
                     </Document>
                 </Project>

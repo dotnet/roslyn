@@ -248,5 +248,21 @@ namespace Microsoft.CodeAnalysis
             builder.Add(LanguageNames.VisualBasic, ImmutableArray.Create(GetCompilerDiagnosticAnalyzerReference(LanguageNames.VisualBasic)));
             return builder.ToImmutable();
         }
+
+        internal static string GetExpectedErrorLogHeader(string actualOutput, CommonCompiler compiler)
+        {
+            var expectedToolName = compiler.GetToolName();
+            var expectedProductVersion = compiler.GetAssemblyVersion().ToString(fieldCount: 3);
+            var fileVersion = compiler.GetAssemblyFileVersion();
+            var expectedFileVersion = fileVersion.Substring(0, fileVersion.LastIndexOf('.'));
+
+            return string.Format(@"{{
+  ""version"": ""{0}"",
+  ""toolInfo"": {{
+    ""toolName"": ""{1}"",
+    ""productVersion"": ""{2}"",
+    ""fileVersion"": ""{3}""
+  }},", ErrorLogger.OutputFormatVersion, expectedToolName, expectedProductVersion, expectedFileVersion);
+        }
     }
 }

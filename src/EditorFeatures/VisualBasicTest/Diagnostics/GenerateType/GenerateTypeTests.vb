@@ -162,7 +162,7 @@ expectedDocumentName:="Bar.vb")
             TestAddDocument(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim x As New [|Foo|] \n End Sub \n End Module"),
 NewLines("Friend Class Foo \n End Class"),
-expectedContainers:={},
+expectedContainers:=Array.Empty(Of String)(),
 expectedDocumentName:="Foo.vb")
         End Sub
 
@@ -269,7 +269,7 @@ NewLines("Imports [|System|]"))
             TestAddDocument(
 NewLines("Class Base \n Sub Main \n Dim p = New [|Derived|]() \n End Sub \n End Class"),
 NewLines("Friend Class Derived \n Public Sub New() \n End Sub \n End Class"),
-expectedContainers:=New String() {},
+expectedContainers:=Array.Empty(Of String)(),
 expectedDocumentName:="Derived.vb")
         End Sub
 

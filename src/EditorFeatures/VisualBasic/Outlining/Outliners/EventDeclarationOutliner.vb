@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-    Class EventDeclarationOutliner
+    Friend Class EventDeclarationOutliner
         Inherits AbstractSyntaxNodeOutliner(Of EventStatementSyntax)
 
         Private Shared Function GetBannerText(eventDeclaration As EventStatementSyntax) As String

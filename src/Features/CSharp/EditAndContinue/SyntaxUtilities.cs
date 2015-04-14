@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         public static void AssertIsBody(SyntaxNode syntax, bool allowLambda)
         {
             // lambda/query
-            if (SyntaxFacts.IsLambdaBody(syntax))
+            if (LambdaUtilities.IsLambdaBody(syntax))
             {
                 Debug.Assert(allowLambda);
                 Debug.Assert(syntax is ExpressionSyntax || syntax is BlockSyntax);
@@ -157,106 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return rightNode;
         }
 
-        public static bool IsNotLambda(SyntaxNode node)
-        {
-            return !IsLambda(node);
-        }
-
-        public static bool IsLambda(SyntaxNode node)
-        {
-            switch (node.Kind())
-            {
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                case SyntaxKind.SimpleLambdaExpression:
-                case SyntaxKind.AnonymousMethodExpression:
-                case SyntaxKind.LetClause:
-                case SyntaxKind.WhereClause:
-                case SyntaxKind.AscendingOrdering:
-                case SyntaxKind.DescendingOrdering:
-                case SyntaxKind.SelectClause:
-                case SyntaxKind.JoinClause:
-                case SyntaxKind.GroupClause:
-                    return true;
-
-                case SyntaxKind.FromClause:
-                    // The first from clause of a query expression is not a lambda.
-                    return !node.Parent.IsKind(SyntaxKind.QueryExpression);
-            }
-
-            return false;
-        }
-
-        public static bool IsRangeVariableDeclarator(SyntaxNode node)
-        {
-            switch (node.Kind())
-            {
-                case SyntaxKind.FromClause:
-                case SyntaxKind.JoinClause:
-                case SyntaxKind.LetClause:
-                case SyntaxKind.JoinIntoClause:
-                case SyntaxKind.QueryContinuation:
-                    return true;
-            }
-
-            return false;
-        }
-
-        public static bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2)
-        {
-            body1 = null;
-            body2 = null;
-
-            switch (node.Kind())
-            {
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                case SyntaxKind.SimpleLambdaExpression:
-                case SyntaxKind.AnonymousMethodExpression:
-                    body1 = ((AnonymousFunctionExpressionSyntax)node).Body;
-                    return true;
-
-                case SyntaxKind.FromClause:
-                    // The first from clause of a query expression is not a lambda.
-                    if (node.Parent.IsKind(SyntaxKind.QueryExpression))
-                    {
-                        return false;
-                    }
-
-                    body1 = ((FromClauseSyntax)node).Expression;
-                    return true;
-
-                case SyntaxKind.JoinClause:
-                    var joinClause = (JoinClauseSyntax)node;
-                    body1 = joinClause.LeftExpression;
-                    body2 = joinClause.RightExpression;
-                    return true;
-
-                case SyntaxKind.LetClause:
-                    body1 = ((LetClauseSyntax)node).Expression;
-                    return true;
-
-                case SyntaxKind.WhereClause:
-                    body1 = ((WhereClauseSyntax)node).Condition;
-                    return true;
-
-                case SyntaxKind.AscendingOrdering:
-                case SyntaxKind.DescendingOrdering:
-                    body1 = ((OrderingSyntax)node).Expression;
-                    return true;
-
-                case SyntaxKind.SelectClause:
-                    body1 = ((SelectClauseSyntax)node).Expression;
-                    return true;
-
-                case SyntaxKind.GroupClause:
-                    var groupClause = (GroupClauseSyntax)node;
-                    body1 = groupClause.GroupExpression;
-                    body2 = groupClause.ByExpression;
-                    return true;
-            }
-
-            return false;
-        }
-
         public static bool Any(TypeParameterListSyntax listOpt)
         {
             return listOpt != null && listOpt.ChildNodesAndTokens().Count != 0;
@@ -319,6 +219,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.DestructorDeclaration:
                     return true;
 
+                case SyntaxKind.IndexerDeclaration:
+                    // expression bodied indexer
+                    return ((IndexerDeclarationSyntax)declaration).ExpressionBody != null;
+
                 default:
                     return false;
             }
@@ -373,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         public static ImmutableArray<SyntaxNode> GetAwaitExpressions(SyntaxNode body)
         {
             // skip lambda bodies:
-            return ImmutableArray.CreateRange(body.DescendantNodesAndSelf(IsNotLambda).Where(n => n.IsKind(SyntaxKind.AwaitExpression)));
+            return ImmutableArray.CreateRange(body.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).Where(n => n.IsKind(SyntaxKind.AwaitExpression)));
         }
 
         public static ImmutableArray<SyntaxNode> GetYieldStatements(SyntaxNode body)

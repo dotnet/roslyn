@@ -178,7 +178,7 @@ End Module
 #Region "Semantic API test"
 
         <Fact()>
-        Sub SimpleLabel()
+        Public Sub SimpleLabel()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SimpleLabel">
     <file name="a.vb">
@@ -210,7 +210,7 @@ End Module
 
         <WorkItem(543378, "DevDiv")>
         <Fact()>
-        Sub DuplicatedLabel()
+        Public Sub DuplicatedLabel()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="DuplicatedLabel">
     <file name="a.vb">
@@ -252,7 +252,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub NumericLabel()
+        Public Sub NumericLabel()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NumericLabel">
     <file name="a.vb">
@@ -282,7 +282,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub SameLabelNameInDifferentScope()
+        Public Sub SameLabelNameInDifferentScope()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SameLabelNameInDifferentScope">
     <file name="a.vb">
@@ -317,7 +317,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub LabelOnCaseElse()
+        Public Sub LabelOnCaseElse()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="LabelOnCaseElse">
     <file name="a.vb">
@@ -355,7 +355,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub LabelOnIfElse()
+        Public Sub LabelOnIfElse()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="LabelOnIfElse">
     <file name="a.vb">
@@ -391,7 +391,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub GotoLabelDefinedInTryFromCatch()
+        Public Sub GotoLabelDefinedInTryFromCatch()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="GotoLabelDefinedInTryFromCatch">
     <file name="a.vb">
@@ -425,7 +425,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub GoToInNestedLambda()
+        Public Sub GoToInNestedLambda()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="GoToInNestedLambda">
     <file name="a.vb">

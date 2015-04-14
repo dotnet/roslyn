@@ -11,23 +11,23 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
-    Class TokenComparer
+    Friend Class TokenComparer
         Implements IComparer(Of SyntaxToken)
 
-        Private Const SystemNamespace = "System"
+        Private Const s_systemNamespace = "System"
 
         Public Shared ReadOnly NormalInstance As TokenComparer = New TokenComparer(specialCaseSystem:=False)
         Public Shared ReadOnly SystemFirstInstance As TokenComparer = New TokenComparer(specialCaseSystem:=True)
 
-        Private ReadOnly specialCaseSystem As Boolean
+        Private ReadOnly _specialCaseSystem As Boolean
 
         Private Sub New(specialCaseSystem As Boolean)
-            Me.specialCaseSystem = specialCaseSystem
+            Me._specialCaseSystem = specialCaseSystem
         End Sub
 
         Public Function Compare(token1 As SyntaxToken,
                                 token2 As SyntaxToken) As Integer Implements IComparer(Of SyntaxToken).Compare
-            If specialCaseSystem AndAlso
+            If _specialCaseSystem AndAlso
                 token1.GetPreviousToken().Kind = SyntaxKind.ImportsKeyword AndAlso
                 token2.GetPreviousToken().Kind = SyntaxKind.ImportsKeyword Then
 
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Private Shared Function IsSystem(s As String) As Boolean
-            Return s = SystemNamespace
+            Return s = s_systemNamespace
         End Function
 
         Private Function CompareWorker(x As SyntaxToken, y As SyntaxToken) As Integer

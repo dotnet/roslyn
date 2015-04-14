@@ -35,7 +35,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' If diagnostic is not configurable, keep it as it is.
             If diagnostic.IsNotConfigurable Then
-                Return diagnostic
+                If diagnostic.IsEnabledByDefault Then
+                    ' Enabled NotConfigurable should always be reported as it is.
+                    Return diagnostic
+                Else
+                    ' Disabled NotConfigurable should never be reported.
+                    Return Nothing
+                End If
             End If
 
             ' In the native compiler, all warnings originating from alink.dll were issued

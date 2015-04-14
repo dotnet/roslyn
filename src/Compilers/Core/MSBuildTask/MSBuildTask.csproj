@@ -13,6 +13,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <AssemblyName>Microsoft.Build.Tasks.Roslyn</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
@@ -59,9 +60,13 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ErrorString.resx</DependentUpon>
     </Compile>
+    <Compile Include="IAnalyzerDependencyHostObject.cs" />
+    <Compile Include="ICscHostObject5.cs" />
+    <Compile Include="IVbcHostObject6.cs" />
     <Compile Include="ManagedCompiler.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="PropertyDictionary.cs" />
+    <Compile Include="RCWForCurrentContext.cs" />
     <Compile Include="Utilities.cs" />
     <Compile Include="Vbc.cs" />
   </ItemGroup>

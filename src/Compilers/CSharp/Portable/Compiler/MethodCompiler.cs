@@ -1317,7 +1317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.RealizedIL,
                     builder.MaxStack,
                     method.PartialDefinitionPart ?? method,
-                    methodOrdinal,
+                    variableSlotAllocatorOpt?.MethodId ?? new DebugId(methodOrdinal, moduleBuilder.CurrentGenerationOrdinal),
                     localVariables,
                     builder.RealizedSequencePoints,
                     debugDocumentProvider,

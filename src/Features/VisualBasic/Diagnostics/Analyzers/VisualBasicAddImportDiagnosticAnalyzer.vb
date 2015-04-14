@@ -12,20 +12,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.AddImport
     Friend NotInheritable Class VisualBasicAddImportDiagnosticAnalyzer
         Inherits AddImportDiagnosticAnalyzerBase(Of SyntaxKind, SimpleNameSyntax, QualifiedNameSyntax, IncompleteMemberSyntax)
 
-        Private Const UndefinedType1 As String = "BC30002"
-        Private Const MessageFormat As String = "Type '{0}' is not defined."
+        Private Const s_undefinedType1 As String = "BC30002"
+        Private Const s_messageFormat As String = "Type '{0}' is not defined."
 
-        Private Shared ReadOnly _kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(SyntaxKind.IncompleteMember)
+        Private Shared ReadOnly s_kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(SyntaxKind.IncompleteMember)
 
         Protected Overrides ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind)
             Get
-                Return _kindsOfInterest
+                Return s_kindsOfInterest
             End Get
         End Property
 
         Protected Overrides ReadOnly Property DiagnosticDescriptor As DiagnosticDescriptor
             Get
-                Return GetDiagnosticDescriptor(UndefinedType1, MessageFormat)
+                Return GetDiagnosticDescriptor(s_undefinedType1, s_messageFormat)
             End Get
         End Property
     End Class

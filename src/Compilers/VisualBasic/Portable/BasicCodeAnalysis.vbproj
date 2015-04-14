@@ -15,6 +15,7 @@
     <BoundTreeGeneratorToolPath>$(OutDir)\BoundTreeGenerator.exe</BoundTreeGeneratorToolPath>
     <VBErrorFactsGeneratorToolPath>$(OutDir)\VBErrorFactsGenerator.exe</VBErrorFactsGeneratorToolPath>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{14182A97-F7F0-4C62-8B27-98AA8AE2109A};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
@@ -446,7 +447,6 @@
     <Compile Include="Lowering\AsyncRewriter\AsyncRewriter.vb" />
     <Compile Include="Lowering\AsyncRewriter\AsyncStateMachine.vb" />
     <Compile Include="Lowering\AsyncRewriter\ClosureKind.vb" />
-    <Compile Include="Lowering\DebugAttributes.vb" />
     <Compile Include="Lowering\Diagnostics\DiagnosticsPass.vb" />
     <Compile Include="Lowering\Diagnostics\DiagnosticsPass_ExpressionLambdas.vb" />
     <Compile Include="Lowering\ExpressionLambdaRewriter\ExpressionLambdaRewriter.vb" />
@@ -921,7 +921,7 @@
     <Compile Include="Syntax\SyntaxTreeDiagnosticEnumerator.vb" />
     <Compile Include="Syntax\SyntaxTriviaFunctions.vb" />
     <Compile Include="Syntax\SyntaxTriviaListBuilder.vb" />
-    <Compile Include="Syntax\SyntaxUtilities.vb" />
+    <Compile Include="Syntax\LambdaUtilities.vb" />
     <Compile Include="Syntax\TypeBlockSyntax.vb" />
     <Compile Include="Syntax\TypeStatementSyntax.vb" />
     <Compile Include="Syntax\VisualBasicWarningStateMap.vb" />
@@ -970,7 +970,9 @@
     <Compile Include="Compilation\ModuleCompilationState.vb" />
     <PublicAPI Include="PublicAPI.txt" />
     <Content Include="Symbols\SymbolsAndNoPia.docx" />
-    <ErrorCode Include="Errors\Errors.vb" />
+    <ErrorCode Include="Errors\Errors.vb">
+      <Visible>false</Visible>
+    </ErrorCode>
     <SyntaxDefinition Include="Syntax\Syntax.xml">
       <SubType>Designer</SubType>
     </SyntaxDefinition>

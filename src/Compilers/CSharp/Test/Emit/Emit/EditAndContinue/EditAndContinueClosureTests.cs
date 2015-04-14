@@ -100,7 +100,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -154,7 +154,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -210,7 +210,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -266,7 +266,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -340,7 +340,7 @@ class C : D
             var ctor0 = compilation0.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
             var ctor1 = compilation1.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -406,7 +406,7 @@ partial class C
             var ctor0 = compilation0.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
             var ctor1 = compilation1.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -466,7 +466,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -514,9 +514,9 @@ class C
     void F()
     {
 		var result = <N:0>from a in new[] { 1 }</N:0>
-		             <N:1>from b in new[] { 1 }</N:1>
+		             <N:1>from b in <N:9>new[] { 1 }</N:9></N:1>
 		             <N:2>where <N:7>Z(<N:5>() => a</N:5>) > 0</N:7></N:2>
-		             <N:3>where <N:8>Z(<N:6>() => b</N:7>) > 0</N:8></N:3>
+		             <N:3>where <N:8>Z(<N:6>() => b</N:6>) > 0</N:8></N:3>
 		             <N:4>select a</N:4>;
     }
 }");
@@ -535,9 +535,9 @@ class C
     void F()
     {
 		var result = <N:0>from a in new[] { 1 }</N:0>
-		             <N:1>from b in new[] { 2 }</N:1>
+		             <N:1>from b in <N:9>new[] { 2 }</N:9></N:1>
 		             <N:2>where <N:7>Z(<N:5>() => a</N:5>) > 1</N:7></N:2>
-		             <N:3>where <N:8>Z(<N:6>() => b</N:7>) > 2</N:8></N:3>
+		             <N:3>where <N:8>Z(<N:6>() => b</N:6>) > 2</N:8></N:3>
 		             <N:4>select a</N:4>;
     }
 }");
@@ -550,7 +550,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -636,7 +636,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -719,7 +719,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -807,7 +807,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -886,7 +886,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -911,6 +911,227 @@ class C
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+        }
+
+        [Fact]
+        public void LambdasMultipleGenerations()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    static object F()
+    {
+        return G(<N:0>a => a + 1</N:0>);
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    static object F()
+    {
+        return G(<N:0>a => a + 2</N:0>) + G(<N:1>b => b + 20</N:1>);
+    }
+}");
+            var source2 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    static object F()
+    {
+        return G(<N:0>a => a + 3</N:0>) + G(<N:1>b => b + 30</N:1>) + G(<N:2>c => c + 0x300</N:2>);
+    }
+}");
+            var source3 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    static object F()
+    {
+        return G(<N:0>a => a + 4</N:0>) + G(<N:1>b => b + 40</N:1>) + G(<N:2>c => c + 0x400</N:2>);
+    }
+}");
+
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+            var compilation3 = compilation2.WithSource(source3.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            var f3 = compilation3.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // new lambda "<F>b__1_1#1" has been added:
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__1_0, <>9__1_1#1, <F>b__1_0, <F>b__1_1#1}");
+
+            // updated:
+            diff1.VerifyIL("C.<>c.<F>b__1_0", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  add
+  IL_0003:  stloc.0
+  IL_0004:  br.s       IL_0006
+  IL_0006:  ldloc.0
+  IL_0007:  ret
+}
+");
+            // added:
+            diff1.VerifyIL("C.<>c.<F>b__1_1#1", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.s   20
+  IL_0003:  add
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0007
+  IL_0007:  ldloc.0
+  IL_0008:  ret
+}
+");
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            // new lambda "<F>b__1_2#2" has been added:
+            diff2.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__1_0, <>9__1_1#1, <>9__1_2#2, <F>b__1_0, <F>b__1_1#1, <F>b__1_2#2}");
+
+            // updated:
+            diff2.VerifyIL("C.<>c.<F>b__1_0", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.3
+  IL_0002:  add
+  IL_0003:  stloc.0
+  IL_0004:  br.s       IL_0006
+  IL_0006:  ldloc.0
+  IL_0007:  ret
+}
+");
+            // updated:
+            diff2.VerifyIL("C.<>c.<F>b__1_1#1", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.s   30
+  IL_0003:  add
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0007
+  IL_0007:  ldloc.0
+  IL_0008:  ret
+}
+");
+
+            // added:
+            diff2.VerifyIL("C.<>c.<F>b__1_2#2", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4     0x300
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ldloc.0
+  IL_000b:  ret
+}
+");
+
+            var diff3 = compilation3.EmitDifference(
+                diff2.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
+
+            diff3.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__1_0, <>9__1_1#1, <>9__1_2#2, <F>b__1_0, <F>b__1_1#1, <F>b__1_2#2}");
+
+            // updated:
+            diff3.VerifyIL("C.<>c.<F>b__1_0", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.4
+  IL_0002:  add
+  IL_0003:  stloc.0
+  IL_0004:  br.s       IL_0006
+  IL_0006:  ldloc.0
+  IL_0007:  ret
+}
+");
+            // updated:
+            diff3.VerifyIL("C.<>c.<F>b__1_1#1", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.s   40
+  IL_0003:  add
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0007
+  IL_0007:  ldloc.0
+  IL_0008:  ret
+}
+");
+
+            // updated:
+            diff3.VerifyIL("C.<>c.<F>b__1_2#2", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4     0x400
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ldloc.0
+  IL_000b:  ret
+}
+");
         }
 
         [Fact]
@@ -1001,7 +1222,7 @@ public class C
             CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", "<F>b__0_1", ".ctor", "<F>b__2", ".cctor", ".ctor", "<F>b__0_0");
             CheckNames(reader0, reader0.GetFieldDefNames(), "a", "<>9", "<>9__0_0");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
@@ -1009,14 +1230,14 @@ public class C
 
             var reader1 = diff1.GetMetadata().Reader;
 
-            CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>c__DisplayClass0#1_0");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), ".ctor", "F", "<F>b__0#1_1", ".ctor", "<F>b__2", "<F>b__0#1_0");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "a", "<>9__0#1_0");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>c__DisplayClass0#1_0#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), ".ctor", "F", "<F>b__0#1_1#1", ".ctor", "<F>b__2#1", "<F>b__0#1_0#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "a", "<>9__0#1_0#1");
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>b__0#1_1, <>c__DisplayClass0#1_0, <>c}",
-                "C.<>c: {<>9__0#1_0, <F>b__0#1_0}",
-                "C.<>c__DisplayClass0#1_0: {a, <F>b__2}");
+                "C: {<F>b__0#1_1#1, <>c__DisplayClass0#1_0#1, <>c}",
+                "C.<>c: {<>9__0#1_0#1, <F>b__0#1_0#1}",
+                "C.<>c__DisplayClass0#1_0#1: {a, <F>b__2#1}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1025,9 +1246,9 @@ public class C
 
             var reader2 = diff2.GetMetadata().Reader;
 
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>c__DisplayClass1#2_0");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), ".ctor", "F", "<F>b__1#2_1", ".ctor", "<F>b__2", "<F>b__1#2_0");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "a", "<>9__1#2_0");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>c__DisplayClass1#2_0#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), ".ctor", "F", "<F>b__1#2_1#2", ".ctor", "<F>b__2#2", "<F>b__1#2_0#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "a", "<>9__1#2_0#2");
         }
 
         [Fact]
@@ -1118,7 +1339,7 @@ public class C
             CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", "<F>b__0_1", ".ctor", "<F>b__2", ".cctor", ".ctor", "<F>b__0_0");
             CheckNames(reader0, reader0.GetFieldDefNames(), "a", "<>9", "<>9__0_0");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
@@ -1126,14 +1347,14 @@ public class C
 
             var reader1 = diff1.GetMetadata().Reader;
 
-            CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>c__DisplayClass0#1_0`1", "<>c__0#1`1");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), "F", "<F>b__0#1_1", ".ctor", "<F>b__2", ".cctor", ".ctor", "<F>b__0#1_0");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "a", "<>9", "<>9__0#1_0");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>c__DisplayClass0#1_0#1`1", "<>c__0#1`1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), "F", "<F>b__0#1_1#1", ".ctor", "<F>b__2#1", ".cctor", ".ctor", "<F>b__0#1_0#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "a", "<>9", "<>9__0#1_0#1");
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>b__0#1_1, <>c__DisplayClass0#1_0, <>c__0#1}",
-                "C.<>c__0#1<T>: {<>9__0#1_0, <F>b__0#1_0}",
-                "C.<>c__DisplayClass0#1_0<T>: {a, <F>b__2}");
+                "C: {<F>b__0#1_1#1, <>c__DisplayClass0#1_0#1, <>c__0#1}",
+                "C.<>c__0#1<T>: {<>9__0#1_0#1, <F>b__0#1_0#1}",
+                "C.<>c__DisplayClass0#1_0#1<T>: {a, <F>b__2#1}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1142,9 +1363,9 @@ public class C
 
             var reader2 = diff2.GetMetadata().Reader;
 
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>c__DisplayClass1#2_0`1", "<>c__1#2`1");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), "F", "<F>b__1#2_1", ".ctor", "<F>b__2", ".cctor", ".ctor", "<F>b__1#2_0");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "a", "<>9", "<>9__1#2_0");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>c__DisplayClass1#2_0#2`1", "<>c__1#2`1");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), "F", "<F>b__1#2_1#2", ".ctor", "<F>b__2#2", ".cctor", ".ctor", "<F>b__1#2_0#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "a", "<>9", "<>9__1#2_0#2");
         }
 
         [Fact]
@@ -1251,7 +1472,7 @@ public class C
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
@@ -1259,9 +1480,9 @@ public class C
                     new SemanticEdit(SemanticEditKind.Update, main0, main1, preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>b__1#1_1, <>c__DisplayClass1#1_0, <>c}",
-                "C.<>c: {<>9__1#1_0, <F>b__1#1_0}",
-                "C.<>c__DisplayClass1#1_0: {a, <F>b__2}");
+                "C: {<F>b__1#1_1#1, <>c__DisplayClass1#1_0#1, <>c}",
+                "C.<>c: {<>9__1#1_0#1, <F>b__1#1_0#1}",
+                "C.<>c__DisplayClass1#1_0#1: {a, <F>b__2#1}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1270,10 +1491,10 @@ public class C
                     new SemanticEdit(SemanticEditKind.Update, main1, main2, preserveLocalVariables: true)));
 
             diff2.VerifySynthesizedMembers(
-                "C: {<F>b__1#2_1, <>c__DisplayClass1#2_0, <>c, <F>b__1#1_1, <>c__DisplayClass1#1_0}",
-                "C.<>c: {<>9__1#2_0, <F>b__1#2_0, <>9__1#1_0, <F>b__1#1_0}",
-                "C.<>c__DisplayClass1#1_0: {a, <F>b__2}",
-                "C.<>c__DisplayClass1#2_0: {a, <F>b__2}");
+                "C: {<F>b__1#2_1#2, <>c__DisplayClass1#2_0#2, <>c, <F>b__1#1_1#1, <>c__DisplayClass1#1_0#1}",
+                "C.<>c: {<>9__1#2_0#2, <F>b__1#2_0#2, <>9__1#1_0#1, <F>b__1#1_0#1}",
+                "C.<>c__DisplayClass1#1_0#1: {a, <F>b__2#1}",
+                "C.<>c__DisplayClass1#2_0#2: {a, <F>b__2#2}");
 
             var diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
@@ -1281,10 +1502,10 @@ public class C
                     new SemanticEdit(SemanticEditKind.Update, main2, main3, preserveLocalVariables: true)));
 
             diff3.VerifySynthesizedMembers(
-                "C: {<F>b__1#2_1, <>c__DisplayClass1#2_0, <>c, <F>b__1#1_1, <>c__DisplayClass1#1_0}",
-                "C.<>c: {<>9__1#2_0, <F>b__1#2_0, <>9__1#1_0, <F>b__1#1_0}",
-                "C.<>c__DisplayClass1#1_0: {a, <F>b__2}",
-                "C.<>c__DisplayClass1#2_0: {a, <F>b__2}");
+                "C: {<F>b__1#2_1#2, <>c__DisplayClass1#2_0#2, <>c, <F>b__1#1_1#1, <>c__DisplayClass1#1_0#1}",
+                "C.<>c: {<>9__1#2_0#2, <F>b__1#2_0#2, <>9__1#1_0#1, <F>b__1#1_0#1}",
+                "C.<>c__DisplayClass1#1_0#1: {a, <F>b__2#1}",
+                "C.<>c__DisplayClass1#2_0#2: {a, <F>b__2#2}");
         }
 
         [Fact]
@@ -1322,7 +1543,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,

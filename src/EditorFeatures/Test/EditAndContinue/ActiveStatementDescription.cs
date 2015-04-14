@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private ActiveStatementsDescription()
         {
-            OldSpans = new ActiveStatementSpan[0];
-            NewSpans = new TextSpan[0];
-            OldRegions = new ImmutableArray<TextSpan>[0];
-            NewRegions = new ImmutableArray<TextSpan>[0];
+            OldSpans = Array.Empty<ActiveStatementSpan>();
+            NewSpans = Array.Empty<TextSpan>();
+            OldRegions = Array.Empty<ImmutableArray<TextSpan>>();
+            NewRegions = Array.Empty<ImmutableArray<TextSpan>>();
             TrackingSpans = null;
         }
 

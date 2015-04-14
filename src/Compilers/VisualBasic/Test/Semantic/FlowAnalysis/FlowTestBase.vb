@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Function
 
         Private Sub AdjustToken(ByRef token As SyntaxToken)
-tryAgain :
+tryAgain:
             Select Case token.Kind
                 Case SyntaxKind.StatementTerminatorToken
                     token = token.GetNextToken()

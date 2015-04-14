@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -14,12 +11,12 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract Func<SyntaxTrivia, bool> GetStepIntoFunction(bool skipped, bool directives, bool docComments);
 
-        private Func<SyntaxToken, bool> GetPredicateFunction(bool includeZeroWidth)
+        private static Func<SyntaxToken, bool> GetPredicateFunction(bool includeZeroWidth)
         {
             return includeZeroWidth ? SyntaxToken.Any : SyntaxToken.NonZeroWidth;
         }
 
-        private bool Matches(Func<SyntaxToken, bool> predicate, SyntaxToken token)
+        private static bool Matches(Func<SyntaxToken, bool> predicate, SyntaxToken token)
         {
             return predicate == null || ReferenceEquals(predicate, SyntaxToken.Any) || predicate(token);
         }
@@ -116,10 +113,10 @@ namespace Microsoft.CodeAnalysis
             Func<SyntaxTrivia, bool> stepInto)
         {
             Debug.Assert(stepInto != null);
-            var token = default(SyntaxToken);
 
             foreach (var trivia in list.Reverse())
             {
+                SyntaxToken token;
                 if (TryGetLastTokenForStructuredTrivia(trivia, predicate, stepInto, out token))
                 {
                     return token;
@@ -316,12 +313,11 @@ namespace Microsoft.CodeAnalysis
             Func<SyntaxTrivia, bool> stepInto,
             ref bool returnPrevious)
         {
-            var token = default(SyntaxToken);
-
             foreach (var trivia in list.Reverse())
             {
                 if (returnPrevious)
                 {
+                    SyntaxToken token;
                     if (TryGetLastTokenForStructuredTrivia(trivia, predicate, stepInto, out token))
                     {
                         return token;

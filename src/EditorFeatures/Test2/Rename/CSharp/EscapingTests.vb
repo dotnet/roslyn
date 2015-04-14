@@ -92,7 +92,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
                 result.AssertLabeledSpecialSpansAre("escaped", "@if", RelatedLocationType.NoConflict)
             End Using
         End Sub
-        
+
         <WorkItem(527603)>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>

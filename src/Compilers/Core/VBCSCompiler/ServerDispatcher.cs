@@ -11,9 +11,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 using System.Globalization;
-using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -70,6 +68,23 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             TimeSpan? keepAliveTimeout = null;
 
+            // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
+            // location of the response files.
+            var compilerExeDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
+            // Pipename should be passed as the first and only argument to the server process
+            // and it must have the form "-pipename:name". Otherwise, exit with a non-zero
+            // exit code
+            const string pipeArgPrefix = "-pipename:";
+            if (args.Length != 1 ||
+                args[0].Length <= pipeArgPrefix.Length ||
+                !args[0].StartsWith(pipeArgPrefix))
+            {
+                return CommonCompiler.Failed;
+            }
+
+            var pipeName = args[0].Substring(pipeArgPrefix.Length);
+
             try
             {
                 int keepAliveValue;
@@ -101,17 +116,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             CompilerServerLogger.Log("Keep alive timeout is: {0} milliseconds.", keepAliveTimeout?.TotalMilliseconds ?? 0);
             FatalError.Handler = FailFast.OnFatalException;
 
-            // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
-            // location of the response files.
-            var responseFileDirectory = CommonCompiler.GetResponseFileDirectory();
-            var dispatcher = new ServerDispatcher(new CompilerRequestHandler(responseFileDirectory), new EmptyDiagnosticListener());
+            var dispatcher = new ServerDispatcher(new CompilerRequestHandler(compilerExeDirectory), new EmptyDiagnosticListener());
 
-            // Add the process ID onto the pipe name so each process gets a semi-unique and predictable pipe 
-            // name.  The client must use this algorithm too to connect.
-            string pipeName = BuildProtocolConstants.PipeName + Process.GetCurrentProcess().Id.ToString();
-
-            dispatcher.ListenAndDispatchConnections(pipeName, keepAliveTimeout, watchAnalyzerFiles: true);
-            return 0;
+            dispatcher.ListenAndDispatchConnections(
+                pipeName,
+                keepAliveTimeout,
+                watchAnalyzerFiles: true);
+            return CommonCompiler.Succeeded;
         }
 
         // Size of the buffers to use

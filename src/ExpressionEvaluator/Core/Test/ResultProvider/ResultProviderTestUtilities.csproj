@@ -17,6 +17,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="File References">
@@ -67,8 +68,8 @@
     <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs">
       <Link>Compiler\Symbols\WellKnownMemberNames.cs</Link>
     </Compile>
-    <Compile Include="..\..\Source\ExpressionCompiler\DateTimeUtilities.cs">
-      <Link>ExpressionCompiler\DateTimeUtilities.cs</Link>
+    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
+      <Link>DateTimeUtilities.cs</Link>
     </Compile>
     <Compile Include="..\..\Source\ExpressionCompiler\ExpressionCompilerConstants.cs">
       <Link>ExpressionCompiler\ExpressionCompilerConstants.cs</Link>
@@ -76,7 +77,7 @@
     <Compile Include="..\..\Source\ExpressionCompiler\ExpressionEvaluatorFatalError.cs">
       <Link>ExpressionCompiler\ExpressionEvaluatorFatalError.cs</Link>
     </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Resources.Designer.cs">
+    <Compile Include="..\..\Source\ResultProvider\Portable\Resources.Designer.cs">
       <Link>Resources.Designer.cs</Link>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -84,6 +85,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Debugger\Engine\DkmClrCustomTypeInfo.cs" />
     <Compile Include="Debugger\Engine\DkmCompilerId.cs" />
     <Compile Include="Debugger\Engine\DkmContinueCorruptingException.cs" />
     <Compile Include="Debugger\Engine\DkmEngineSettings.cs" />
@@ -148,7 +150,7 @@
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ResultProvider.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\..\Source\ResultProvider\Resources.resx">
+    <EmbeddedResource Include="..\..\Source\ResultProvider\Portable\Resources.resx">
       <Link>Resources.resx</Link>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

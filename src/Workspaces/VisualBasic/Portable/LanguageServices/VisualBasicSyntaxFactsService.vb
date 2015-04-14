@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageService(GetType(ISyntaxFactsService), LanguageNames.VisualBasic), [Shared]>
-    Class VisualBasicSyntaxFactsService
+    Friend Class VisualBasicSyntaxFactsService
         Implements ISyntaxFactsService
 
         Public Function IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
@@ -82,13 +82,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return vbTree.IsInNonUserCode(position, cancellationToken)
         End Function
 
-        Public Function IsEntirelyWithinStringOrCharLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsEntirelyWithinStringOrCharLiteral
+        Public Function IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsEntirelyWithinStringOrCharOrNumericLiteral
             Dim vbTree = TryCast(syntaxTree, SyntaxTree)
             If vbTree Is Nothing Then
                 Return False
             End If
 
-            Return vbTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken)
+            Return vbTree.IsEntirelyWithinStringOrCharOrNumericLiteral(position, cancellationToken)
         End Function
 
         Public Function IsDirective(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDirective
@@ -386,7 +386,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsLiteral
-            Return SyntaxFacts.IsLiteralExpressionToken(CType(token.Kind, SyntaxKind))
+            Select Case token.Kind()
+                Case _
+                        SyntaxKind.IntegerLiteralToken,
+                        SyntaxKind.CharacterLiteralToken,
+                        SyntaxKind.DecimalLiteralToken,
+                        SyntaxKind.FloatingLiteralToken,
+                        SyntaxKind.DateLiteralToken,
+                        SyntaxKind.StringLiteralToken,
+                        SyntaxKind.DollarSignDoubleQuoteToken,
+                        SyntaxKind.DoubleQuoteToken,
+                        SyntaxKind.InterpolatedStringTextToken,
+                        SyntaxKind.TrueKeyword,
+                        SyntaxKind.FalseKeyword,
+                        SyntaxKind.NothingKeyword
+                    Return True
+            End Select
+
+            Return False
         End Function
 
         Public Function IsStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteral
@@ -722,15 +739,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 Case SyntaxKind.ConstructorBlock
                     Dim constructor = CType(node, ConstructorBlockSyntax)
-                    Dim typeBlock = CType(constructor.Parent, TypeBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
-                        typeBlock.BlockStatement.Identifier.ValueText,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Constructor,
-                        constructor.SubNewStatement.NewKeyword.Span,
-                        parameterCount:=CType(If(constructor.SubNewStatement.ParameterList?.Parameters.Count, 0), UShort))
-                    Return True
+                    Dim typeBlock = TryCast(constructor.Parent, TypeBlockSyntax)
+                    If typeBlock IsNot Nothing Then
+                        declaredSymbolInfo = New DeclaredSymbolInfo(
+                            typeBlock.BlockStatement.Identifier.ValueText,
+                            GetContainerDisplayName(node.Parent),
+                            GetFullyQualifiedContainerName(node.Parent),
+                            DeclaredSymbolInfoKind.Constructor,
+                            constructor.SubNewStatement.NewKeyword.Span,
+                            parameterCount:=CType(If(constructor.SubNewStatement.ParameterList?.Parameters.Count, 0), UShort))
+
+                        Return True
+                    End If
                 Case SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement
                     Dim delegateDecl = CType(node, DelegateStatementSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(delegateDecl.Identifier.ValueText,
@@ -829,6 +849,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function GetContainer(node As SyntaxNode, immediate As Boolean) As String
+            If node Is Nothing Then
+                Return String.Empty
+            End If
+
             Dim name = GetNodeName(node, includeTypeParameters:=immediate)
             Dim names = New List(Of String) From {name}
 
@@ -1026,6 +1050,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         node = parent
                         Exit While
                     End If
+                End If
+
+                ' The inside of an interpolated string is treated as its own token so we
+                ' need to force navigation to the parent expression syntax.
+                If TypeOf node Is InterpolatedStringTextSyntax AndAlso TypeOf parent Is InterpolatedStringExpressionSyntax Then
+                    node = parent
+                    Exit While
                 End If
 
                 ' If this node is not parented by a name, we're done.

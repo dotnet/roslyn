@@ -8,7 +8,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
     Public Class ImplementsGraphQueryTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub TestClassImplementsInterface1()
+        Public Sub TestClassImplementsInterface1()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -40,7 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub TestMethodImplementsInterfaceMethod1()
+        Public Sub TestMethodImplementsInterfaceMethod1()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">

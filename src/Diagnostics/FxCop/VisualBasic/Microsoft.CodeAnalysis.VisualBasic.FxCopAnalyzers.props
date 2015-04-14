@@ -8,11 +8,8 @@
   <PropertyGroup>
     <CodeAnalysisRuleSetOverrides>$(CodeAnalysisRuleSetOverrides);
       -Microsoft.Design#CA1003;
-      -Microsoft.Design#CA1019;
       -Microsoft.Design#CA1024;
       -Microsoft.Design#CA1027;
-
-      -Microsoft.Globalization#CA1309;
 
       -Microsoft.Performance#CA1821;
 

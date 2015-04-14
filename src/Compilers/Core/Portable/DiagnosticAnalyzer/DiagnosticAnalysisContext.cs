@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// A code block action reports <see cref="Diagnostic"/>s about code blocks. 
         /// </summary> 
         /// <param name="action">Action to be executed for a code block.</param> 
-        public abstract void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext> action); 
+        public abstract void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at completion of parsing of a code document.
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at the start of semantic analysis of a code block.</param>
         public abstract void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct;
-        
+
         /// <summary> 
         /// Register an action to be executed at the end of semantic analysis of a method body or an expression appearing outside a method body. 
         /// A code block action reports <see cref="Diagnostic"/>s about code blocks. 
@@ -272,6 +272,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Compilation _compilation;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
+        private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -289,11 +290,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
-        public CompilationAnalysisContext(Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        public CompilationAnalysisContext(Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _compilation = compilation;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
+            _isSupportedDiagnostic = isSupportedDiagnostic;
             _cancellationToken = cancellationToken;
         }
 
@@ -303,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
@@ -320,6 +322,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly SemanticModel _semanticModel;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
+        private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -337,11 +340,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
-        public SemanticModelAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        public SemanticModelAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _semanticModel = semanticModel;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
+            _isSupportedDiagnostic = isSupportedDiagnostic;
             _cancellationToken = cancellationToken;
         }
 
@@ -351,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
@@ -369,6 +373,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Compilation _compilation;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
+        private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -391,12 +396,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
-        public SymbolAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        public SymbolAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _symbol = symbol;
             _compilation = compilation;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
+            _isSupportedDiagnostic = isSupportedDiagnostic;
             _cancellationToken = cancellationToken;
         }
 
@@ -406,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
@@ -509,6 +515,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly SemanticModel _semanticModel;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
+        private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -536,13 +543,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
-        public CodeBlockAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        public CodeBlockAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _codeBlock = codeBlock;
             _owningSymbol = owningSymbol;
             _semanticModel = semanticModel;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
+            _isSupportedDiagnostic = isSupportedDiagnostic;
             _cancellationToken = cancellationToken;
         }
 
@@ -552,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
@@ -569,6 +577,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly SyntaxTree _tree;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
+        private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -586,11 +595,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
-        public SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        public SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _tree = tree;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
+            _isSupportedDiagnostic = isSupportedDiagnostic;
             _cancellationToken = cancellationToken;
         }
 
@@ -600,7 +610,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
@@ -618,6 +628,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly SemanticModel _semanticModel;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
+        private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -640,12 +651,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
-        public SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        public SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _node = node;
             _semanticModel = semanticModel;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
+            _isSupportedDiagnostic = isSupportedDiagnostic;
             _cancellationToken = cancellationToken;
         }
 
@@ -655,7 +667,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);

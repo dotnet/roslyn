@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Host
@@ -26,17 +27,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function CreateProjectFile(loadedProject As MSB.Evaluation.Project) As ProjectFile
-            Return New VisualBasicProjectFile(Me, loadedProject, Me._workspaceServices.GetService(Of IMetadataService))
+            Return New VisualBasicProjectFile(Me, loadedProject, Me._workspaceServices.GetService(Of IMetadataService), Me._workspaceServices.GetService(Of IAnalyzerService))
         End Function
 
         Friend Class VisualBasicProjectFile
             Inherits ProjectFile
 
-            Private _metadataService As IMetadataService
+            Private ReadOnly _metadataService As IMetadataService
+            Private ReadOnly _analyzerService As IAnalyzerService
 
-            Public Sub New(loader As VisualBasicProjectFileLoader, loadedProject As MSB.Evaluation.Project, metadataService As IMetadataService)
+            Public Sub New(loader As VisualBasicProjectFileLoader, loadedProject As MSB.Evaluation.Project, metadataService As IMetadataService, analyzerService As IAnalyzerService)
                 MyBase.New(loader, loadedProject)
                 Me._metadataService = metadataService
+                Me._analyzerService = analyzerService
             End Sub
 
             Public Overrides Function GetSourceCodeKind(documentFileName As String) As SourceCodeKind
@@ -58,8 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Async Function GetProjectFileInfoAsync(cancellationToken As CancellationToken) As Tasks.Task(Of ProjectFileInfo)
                 Dim compilerInputs As New VisualBasicCompilerInputs(Me)
 
-                Dim result = Await Me.BuildAsync("Vbc", compilerInputs, cancellationToken).ConfigureAwait(False)
-                Dim executedProject = result.Instance
+                Dim executedProject = Await Me.BuildAsync("Vbc", compilerInputs, cancellationToken).ConfigureAwait(False)
 
                 If Not compilerInputs.Initialized Then
                     Me.InitializeFromModel(compilerInputs, executedProject)
@@ -138,10 +140,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim commandLineParser = VisualBasicCommandLineParser.Default
-                Dim commandLineArgs = commandLineParser.Parse(args, executedProject.Directory)
+                Dim commandLineArgs = commandLineParser.Parse(args, executedProject.Directory, RuntimeEnvironment.GetRuntimeDirectory())
                 Dim resolver = New MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)
                 metadataReferences = commandLineArgs.ResolveMetadataReferences(New AssemblyReferenceResolver(resolver, Me._metadataService.GetProvider()))
-                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences()
+                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(AddressOf _analyzerService.GetAnalyzer)
 
             End Sub
 
@@ -686,11 +688,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 End Function
 
-                Private Shared ReadOnly warningSeparators As Char() = {";"c, ","c}
+                Private Shared ReadOnly s_warningSeparators As Char() = {";"c, ","c}
 
                 Private Sub SetWarnings(warnings As String, reportStyle As ReportDiagnostic)
                     If Not String.IsNullOrEmpty(warnings) Then
-                        For Each warning In warnings.Split(warningSeparators, StringSplitOptions.None)
+                        For Each warning In warnings.Split(s_warningSeparators, StringSplitOptions.None)
                             Dim warningId As Integer
                             If Int32.TryParse(warning, warningId) Then
                                 Me._warnings("BC" + warningId.ToString("0000")) = reportStyle

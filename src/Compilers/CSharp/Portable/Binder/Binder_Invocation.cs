@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="allowFieldsAndProperties">True to allow invocation of fields and properties of delegate type. Only methods are allowed otherwise.</param>
         /// <param name="allowUnexpandedForm">False to prevent selecting a params method in unexpanded form.</param>
         /// <returns>Synthesized method invocation expression.</returns>
-        protected BoundExpression MakeInvocationExpression(
+        internal BoundExpression MakeInvocationExpression(
             CSharpSyntaxNode node,
             BoundExpression receiver,
             string methodName,

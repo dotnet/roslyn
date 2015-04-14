@@ -13,7 +13,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.Editor.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.UnitTests</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -213,6 +213,10 @@
     <Compile Include="CodeActions\CodeActionSmartTagProducerTests.cs" />
     <Compile Include="CodeAnalysisResources.cs" />
     <Compile Include="CodeFixes\CodeFixServiceTests.cs" />
+    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInFixableDiagnosticIds.cs" />
+    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInGetFixAllProvider.cs" />
+    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethod.cs" />
+    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethodAsync.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerationTests.cs" />
     <Compile Include="CodeGeneration\CodeGenerationTests.cs" />
     <Compile Include="CodeGeneration\CodeGenerationTests.CSharp.cs" />
@@ -222,6 +226,9 @@
     <Compile Include="CodeGeneration\ExpressionPrecedenceGenerationTests.cs" />
     <Compile Include="CodeGeneration\NameGenerationTests.cs" />
     <Compile Include="CodeGeneration\StatementGenerationTests.cs" />
+    <Compile Include="CodeRefactorings\CodeRefactoringServiceTest.cs" />
+    <Compile Include="CodeRefactorings\ErrorCases\CodeRefactoringExceptionInComputeRefactorings.cs" />
+    <Compile Include="CodeRefactorings\ErrorCases\CodeRefactoringExceptionInComputeRefactoringsAsync.cs" />
     <Compile Include="Collections\Immutable\Maps\BidirectionalMapTests.cs" />
     <Compile Include="Collections\Immutable\Maps\MapTests.cs" />
     <Compile Include="Collections\IntervalTreeTests.cs" />
@@ -234,6 +241,7 @@
     <Compile Include="Diagnostics\AbstractSuppressionDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AbstractUserDiagnosticTest.cs" />
+    <Compile Include="Diagnostics\TestDiagnosticAnalyzerService.cs" />
     <Compile Include="Diagnostics\DiagnosticDataTests.cs" />
     <Compile Include="Diagnostics\DiagnosticProviderTestUtilities.cs" />
     <Compile Include="Diagnostics\DiagnosticServiceTests.cs" />
@@ -360,6 +368,7 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
+  <ItemGroup />
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\build\VSL.Imports.Closed.targets" />

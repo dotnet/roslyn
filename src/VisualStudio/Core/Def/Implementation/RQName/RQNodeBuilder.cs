@@ -269,7 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName
                 if (buildForPublicAPIs)
                 {
                     var objectType = new RQUnconstructedType(new[] { "System" }, new[] { new RQUnconstructedTypeInfo("Object", 0) });
-                    return new RQConstructedType(objectType, new RQType[] { });
+                    return new RQConstructedType(objectType, Array.Empty<RQType>());
                 }
                 else
                 {

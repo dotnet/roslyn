@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly Cci.AsyncMethodBodyDebugInfo _asyncMethodDebugInfo;
 
         // Debug information emitted to Debug PDBs supporting EnC:
-        private readonly int _methodOrdinal;
+        private readonly DebugId _methodId;
         private readonly ImmutableArray<EncHoistedLocalInfo> _stateMachineHoistedLocalSlots;
         private readonly ImmutableArray<LambdaDebugInfo> _lambdaDebugInfo;
         private readonly ImmutableArray<ClosureDebugInfo> _closureDebugInfo;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             byte[] ilBits,
             ushort maxStack,
             Cci.IMethodDefinition parent,
-            int methodOrdinal,
+            DebugId methodId,
             ImmutableArray<Cci.ILocalDefinition> locals,
             SequencePointList sequencePoints,
             DebugDocumentProvider debugDocumentProvider,
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _asyncMethodDebugInfo = asyncMethodDebugInfo;
             _maxStack = maxStack;
             _parent = parent;
-            _methodOrdinal = methodOrdinal;
+            _methodId = methodId;
             _locals = locals;
             _sequencePoints = sequencePoints;
             _debugDocumentProvider = debugDocumentProvider;
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         bool Cci.IMethodBody.HasDynamicLocalVariables => _hasDynamicLocalVariables;
 
-        public int MethodOrdinal => _methodOrdinal;
+        public DebugId MethodId => _methodId;
 
         public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo => _lambdaDebugInfo;
 

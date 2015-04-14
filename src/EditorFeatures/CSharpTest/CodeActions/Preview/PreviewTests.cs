@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
 {
-    public class PreviewTests : AbstractCSharpCodeActionTest
+    public partial class PreviewTests : AbstractCSharpCodeActionTest
     {
         private const string AddedDocumentName = "AddedDocument";
         private const string AddedDocumentText = "class C1 {}";

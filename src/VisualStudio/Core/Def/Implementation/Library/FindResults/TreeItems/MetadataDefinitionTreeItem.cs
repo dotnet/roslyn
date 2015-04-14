@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Navigation;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
 {
-    internal class MetadataDefinitionTreeItem : AbstractTreeItem, ITreeItemWithReferenceCount
+    internal class MetadataDefinitionTreeItem : AbstractTreeItem
     {
         private readonly string _assemblyName;
         private readonly string _symbolDefinition;
@@ -40,10 +40,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             return VSConstants.E_FAIL;
         }
 
-        public void SetReferenceCount(int referenceCount)
+        internal override void SetReferenceCount(int referenceCount)
         {
             var referenceCountDisplay = referenceCount == 1
-                ? string.Format(ServicesVSResources.ReferenceCountSingular, referenceCount)
+                ? ServicesVSResources.ReferenceCountSingular
                 : string.Format(ServicesVSResources.ReferenceCountPlural, referenceCount);
 
             this.DisplayText = $"[{_assemblyName}] {_symbolDefinition} ({referenceCountDisplay})";

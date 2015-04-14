@@ -141,7 +141,7 @@ namespace Roslyn.Utilities
         {
             if (index < 0 || index >= _size)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             return _items[index];

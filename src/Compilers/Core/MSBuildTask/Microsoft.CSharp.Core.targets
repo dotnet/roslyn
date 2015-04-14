@@ -34,11 +34,6 @@
       <NoWarn Condition=" '$(BuildingInsideVisualStudio)' == 'true' and '$(VisualStudioVersion)' != '' and '$(VisualStudioVersion)' > '10.0' ">$(NoWarn);2008</NoWarn>
     </PropertyGroup>
 
-    <PropertyGroup>
-      <!-- If we are building in visual studio setting the CscToolPath will prevent the inproc compiler from being used during compile-->
-      <CscToolPath Condition="'$(CscToolPath)' == '' and '$(BuildingOutOfProcess)' != 'false'" >$(MsBuildToolsPath)</CscToolPath>
-    </PropertyGroup>
-
     <ItemGroup Condition="'$(TargetingClr2Framework)'=='true'">
       <ReferencePath>
         <EmbedInteropTypes/>
@@ -64,6 +59,10 @@
       <AdditionalFiles Include="@(%(AdditionalFileItems.Identity))" />
     </ItemGroup>
 
+    <PropertyGroup Condition="'$(UseSharedCompilation)' == ''">
+      <UseSharedCompilation>true</UseSharedCompilation>
+    </PropertyGroup>
+
     <!-- Condition is to filter out the _CoreCompileResourceInputs so that it doesn't pass in culture resources to the compiler -->
     <Csc  Condition=" '%(_CoreCompileResourceInputs.WithCulture)' != 'true' "
           AdditionalLibPaths="$(AdditionalLibPaths)"
@@ -71,6 +70,7 @@
           AdditionalFiles="@(AdditionalFiles)"
           AllowUnsafeBlocks="$(AllowUnsafeBlocks)"
           Analyzers="@(Analyzer)"
+          AnalyzerDependencies="@(AnalyzerDependency)"
           ApplicationConfiguration="$(AppConfigForCompiler)"
           BaseAddress="$(BaseAddress)"
           CheckForOverflowUnderflow="$(CheckForOverflowUnderflow)"
@@ -84,6 +84,7 @@
           EmitDebugInformation="$(DebugSymbols)"
           EnvironmentVariables="$(CscEnvironment)"
           ErrorEndLocation="$(ErrorEndLocation)"
+          ErrorLog="$(ErrorLog)"
           ErrorReport="$(ErrorReport)"
           FileAlignment="$(FileAlignment)"
           GenerateFullPaths="$(GenerateFullPaths)"
@@ -105,6 +106,7 @@
           Prefer32Bit="$(Prefer32Bit)"
           PreferredUILang="$(PreferredUILang)"
           References="@(ReferencePath)"
+          ReportAnalyzer="$(ReportAnalyzer)"
           Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
           ResponseFiles="$(CompilerResponseFile)"
           Sources="@(Compile)"
@@ -114,6 +116,7 @@
           ToolPath="$(CscToolPath)"
           TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
           UseHostCompilerIfAvailable="$(UseHostCompilerIfAvailable)"
+          UseSharedCompilation="$(UseSharedCompilation)"
           Utf8Output="$(Utf8Output)"
           VsSessionGuid="$(VsSessionGuid)"
           WarningLevel="$(WarningLevel)"

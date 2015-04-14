@@ -637,16 +637,16 @@ End Class");
             using (var context = new TestContext())
             {
                 Assert.Throws<ArgumentException>(() =>
-        {
-            try
-            {
-                context.GenerateSource(namespaceSymbol);
-            }
-            catch (AggregateException ae)
-            {
-                throw ae.InnerException;
-            }
-        });
+                {
+                    try
+                    {
+                        context.GenerateSource(namespaceSymbol);
+                    }
+                    catch (AggregateException ae)
+                    {
+                        throw ae.InnerException;
+                    }
+                });
             }
         }
 

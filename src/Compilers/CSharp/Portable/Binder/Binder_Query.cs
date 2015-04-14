@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private UnboundLambda MakePairLambda(CSharpSyntaxNode node, QueryTranslationState state, RangeVariableSymbol x1, RangeVariableSymbol x2)
         {
-            Debug.Assert(SyntaxFacts.IsQueryPairLambda(node));
+            Debug.Assert(LambdaUtilities.IsQueryPairLambda(node));
 
             LambdaBodyFactory bodyFactory = (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag d) =>
             {
@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private UnboundLambda MakeQueryUnboundLambda(CSharpSyntaxNode node, QueryUnboundLambdaState state)
         {
-            Debug.Assert(node is ExpressionSyntax || SyntaxFacts.IsQueryPairLambda(node));
+            Debug.Assert(node is ExpressionSyntax || LambdaUtilities.IsQueryPairLambda(node));
             var lambda = new UnboundLambda(node, state, hasErrors: false) { WasCompilerGenerated = true };
             state.SetUnboundLambda(lambda);
             return lambda;

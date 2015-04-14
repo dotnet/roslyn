@@ -48,19 +48,19 @@ Public Class ParseTree
     Public RootToken, RootTrivia As ParseNodeStructure
 
     ' Remember nodes with errors so we only report one error per node.
-    Private ElementsWithErrors As New Dictionary(Of XNode, Boolean)
+    Private _elementsWithErrors As New Dictionary(Of XNode, Boolean)
 
     ' Report an error.
     Public Sub ReportError(referencingNode As XNode, message As String, ParamArray args As Object())
         Dim fullMessage As String = FileName
 
         If referencingNode IsNot Nothing Then
-            If ElementsWithErrors.ContainsKey(referencingNode) Then
+            If _elementsWithErrors.ContainsKey(referencingNode) Then
                 ' We already reported an error on this node.
                 Exit Sub
             End If
 
-            ElementsWithErrors(referencingNode) = True      ' remember this so we only report errors on this node once.
+            _elementsWithErrors(referencingNode) = True      ' remember this so we only report errors on this node once.
             Dim lineInfo = CType(referencingNode, IXmlLineInfo)
             fullMessage += String.Format("({0})", lineInfo.LineNumber)
         End If

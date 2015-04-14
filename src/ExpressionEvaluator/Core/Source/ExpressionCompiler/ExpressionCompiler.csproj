@@ -9,36 +9,39 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B8DA3A90-A60C-42E3-9D8E-6C67B800C395}</ProjectGuid>
     <OutputType>Library</OutputType>
+    <AuthenticodeCertificateName>WindowsPhone623</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <RestorePackages>true</RestorePackages>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
+      <Link>Shared\DateTimeUtilities.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
       <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\CustomDebugInfoReader.cs">
       <Link>Shared\CustomDebugInfoReader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\ISymUnmanagedAsyncMethod.cs">
-      <Link>Shared\ISymUnmanagedAsyncMethod.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\ISymENCUnmanagedMethod.cs">
-      <Link>Shared\ISymENCUnmanagedMethod.cs</Link>
-    </Compile>
     <Compile Include="AssemblyReaders.cs" />
     <Compile Include="AssemblyReference.cs" />
+    <Compile Include="Placeholders.cs" />
+    <Compile Include="ReflectionHelpers.cs" />
     <Compile Include="ImmutableArrayExtensions.cs" />
-    <Compile Include="MetadataContext.cs" />
     <Compile Include="CompileResult.cs" />
-    <Compile Include="DateTimeUtilities.cs" />
     <Compile Include="FrameDecoder.cs" />
     <Compile Include="InstructionDecoder.cs" />
     <Compile Include="LanguageInstructionDecoder.cs" />
+    <Compile Include="PDB\InScopeHoistedLocals.cs" />
     <Compile Include="PDB\HoisedLocalScopeRecord.cs" />
     <Compile Include="PDB\ExternAliasRecord.cs" />
     <Compile Include="PDB\MethodDebugInfo.cs" />
@@ -61,18 +64,13 @@
     <Compile Include="MetadataUtilities.cs" />
     <Compile Include="AbstractTypeParameterChecker.cs" />
     <Compile Include="MethodContextReuseConstraints.cs" />
-    <Compile Include="NamedLocalConstant.cs" />
     <Compile Include="PseudoVariableUtilities.cs" />
-    <Compile Include="Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="RuntimeInspectionContext.cs" />
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
     <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
+    <Reference Include="..\..\..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll" />
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -80,10 +78,6 @@
       <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
       <Name>Concord</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -108,14 +102,7 @@
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\WindowsProxy.winmd" />
+    <EmbeddedResource Include="Resources\WindowsProxy.winmd" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

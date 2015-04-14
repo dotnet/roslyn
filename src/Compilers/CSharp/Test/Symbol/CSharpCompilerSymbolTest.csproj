@@ -16,6 +16,7 @@
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Scripting\Test\ScriptingTest.csproj">
@@ -67,6 +68,7 @@
     </Reference>
     <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
     <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll" />    
     <Reference Include="xunit">
       <HintPath>..\..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
     </Reference>
@@ -92,7 +94,6 @@
     <Compile Include="Compilation\GetSemanticInfoTests.cs" />
     <Compile Include="Compilation\GetUnusedImportDirectivesTests.cs" />
     <Compile Include="Compilation\IndexedProperties_BindingTests.cs" />
-    <Compile Include="Compilation\MetadataFileReferenceCompilationTests.cs" />
     <Compile Include="Compilation\QueryClauseInfoTests.cs" />
     <Compile Include="Compilation\ReferenceManagerTests.cs" />
     <Compile Include="Compilation\SemanticModelAPITests.cs" />
@@ -139,7 +140,6 @@
     <Compile Include="Symbols\InterfaceImplementationTests.cs" />
     <Compile Include="Symbols\InterfaceOverriddenOrHiddenMembersTests.cs" />
     <Compile Include="Symbols\LookupSymbolsInfoTests.cs" />
-    <Compile Include="Symbols\MetadataCacheTests.cs" />
     <Compile Include="Symbols\Metadata\MetadataMemberTests.cs" />
     <Compile Include="Symbols\Metadata\MetadataTypeTests.cs" />
     <Compile Include="Symbols\Metadata\PE\BaseTypeResolution.cs" />

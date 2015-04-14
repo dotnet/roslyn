@@ -9,14 +9,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.InsertMissingCast
         Private Class InsertMissingCastCodeAction
             Inherits CodeAction
 
-            Private ReadOnly document As Document
-            Private ReadOnly newNode As SyntaxNode
-            Private ReadOnly node As SyntaxNode
+            Private ReadOnly _document As Document
+            Private ReadOnly _newNode As SyntaxNode
+            Private ReadOnly _node As SyntaxNode
 
-            Sub New(document As Document, node As SyntaxNode, newNode As SyntaxNode)
-                Me.document = document
-                Me.newNode = newNode
-                Me.node = node
+            Public Sub New(document As Document, node As SyntaxNode, newNode As SyntaxNode)
+                Me._document = document
+                Me._newNode = newNode
+                Me._node = node
             End Sub
 
             Public Overrides ReadOnly Property Title As String
@@ -26,9 +26,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.InsertMissingCast
             End Property
 
             Protected Overrides Async Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
-                Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-                Dim updatedRoot = root.ReplaceNode(node, newNode)
-                Return document.WithSyntaxRoot(updatedRoot)
+                Dim root = Await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+                Dim updatedRoot = root.ReplaceNode(_node, _newNode)
+                Return _document.WithSyntaxRoot(updatedRoot)
             End Function
         End Class
     End Class

@@ -14,7 +14,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
     <ExportLanguageService(GetType(IProximityExpressionsService), LanguageNames.VisualBasic), [Shared]>
-    Partial Class VisualBasicProximityExpressionsService
+    Friend Partial Class VisualBasicProximityExpressionsService
         Implements IProximityExpressionsService
 
         Public Async Function GetProximityExpressionsAsync(

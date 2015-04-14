@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
         private IEnumerable<SyntaxNode> DescendantNodesImpl(TextSpan span, Func<SyntaxNode, bool> descendIntoChildren, bool descendIntoTrivia, bool includeSelf)
         {
             return descendIntoTrivia
-                ? DescendantNodesAndTokensImpl(span, descendIntoChildren, descendIntoTrivia, includeSelf).Where(e => e.IsNode).Select(e => e.AsNode())
+                ? DescendantNodesAndTokensImpl(span, descendIntoChildren, true, includeSelf).Where(e => e.IsNode).Select(e => e.AsNode())
                 : DescendantNodesOnly(span, descendIntoChildren, includeSelf);
         }
 
@@ -516,9 +516,9 @@ namespace Microsoft.CodeAnalysis
         {
             using (var stack = new ChildSyntaxListEnumeratorStack(this, descendIntoChildren))
             {
-                SyntaxNodeOrToken value;
                 while (stack.IsNotEmpty)
                 {
+                    SyntaxNodeOrToken value;
                     if (stack.TryGetNextInSpan(ref span, out value))
                     {
                         if (value.IsNode)

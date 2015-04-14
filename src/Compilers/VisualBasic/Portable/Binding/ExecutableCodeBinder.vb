@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Select Case labels.Count
                     Case 0
-                    ' Not found
+                        ' Not found
 
                     Case 1
                         lookupResult.SetFrom(SingleLookupResult.Good(labels.Single()))

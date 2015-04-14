@@ -70,7 +70,7 @@
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
     
-    <Exec Command="$(VSLOutDir)\FakeSign.exe &quot;@(IntermediateAssembly)&quot;" />
+    <Exec Command="$(FakeSignToolPath) &quot;@(IntermediateAssembly)&quot;" />
     
   </Target>
 
@@ -98,7 +98,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="SignVsixInputs" Condition="'$(ProducingSignedVsix)' == 'true'" DependsOnTargets="GetVsixSourceItems" BeforeTargets="CopyFilesToOutputDirectory">
+  <Target Name="SignVsixInputs" Condition="'$(ProducingSignedVsix)' == 'true'" DependsOnTargets="GetVsixSourceItems" BeforeTargets="AfterCompile">
     <!-- Ensure the build tasks project is already built -->
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\Closed\Setup\BuildTasks\BuildTasks.vbproj" Condition="!Exists('$(OutDir)\Roslyn.Setup.BuildTasks.dll') AND '$(RunningInMicroBuild)' != 'true'" />
     

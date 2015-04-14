@@ -2577,20 +2577,11 @@ index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInPropertyInitializers()
-        {
-            Test(
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public int MyProperty { get ; } = [|y|] ; } ",
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { private int y ; public int MyProperty { get ; } = y ; } ");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public void TestGenerateFieldInPropertyInitializers()
         {
             Test(
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public int MyProperty { get ; } = [|y|] ; } ",
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { private readonly int y ; public int MyProperty { get ; } = y ; } ",
-index: 1);
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { private static int y ; public int MyProperty { get ; } = y ; } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -2598,7 +2589,16 @@ index: 1);
         {
             Test(
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public int MyProperty { get ; } = [|y|] ; } ",
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public int MyProperty { get ; } = y ; public int y { get ; private set ; } } ",
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { private static readonly int y ; public int MyProperty { get ; } = y ; } ",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public void TestGeneratePropertyInPropertyInitializers()
+        {
+            Test(
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public int MyProperty { get ; } = [|y|] ; } ",
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public static int y { get ; private set ; } public int MyProperty { get ; } = y ;  } ",
 index: 2);
         }
 

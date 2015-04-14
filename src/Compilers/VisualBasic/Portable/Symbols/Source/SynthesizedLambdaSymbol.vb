@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             binder As Binder)
 
             MyBase.New(syntaxNode, parameters, returnType, binder)
-            Debug.Assert((returnType Is ReturnTypePendingDelegate) = (kind = SynthesizedLambdaKind.QueryLambda))
+            Debug.Assert((returnType Is ReturnTypePendingDelegate) = kind.IsQueryLambda)
 
             _kind = kind
         End Sub
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Sub SetQueryLambdaReturnType(returnType As TypeSymbol)
-            Debug.Assert(_kind = SynthesizedLambdaKind.QueryLambda)
+            Debug.Assert(_kind.IsQueryLambda)
             Debug.Assert(m_ReturnType Is ReturnTypePendingDelegate)
 
             m_ReturnType = returnType

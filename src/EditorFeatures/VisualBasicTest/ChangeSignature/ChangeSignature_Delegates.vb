@@ -731,7 +731,7 @@ Class C
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
-            Dim updatedSignature = New Integer() {}
+            Dim updatedSignature = Array.Empty(Of Integer)()
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Sub MyDelegate(Of T)()
 

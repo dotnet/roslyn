@@ -137,34 +137,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var disposeMethod = OpenMethodImplementation(
                     IDisposable_Dispose,
-                    debuggerHidden: true,
-                    generateDebugInfo: false,
                     hasMethodBodyDependency: true);
 
-                var moveNextMethod = OpenMethodImplementation(
-                    IEnumerator_MoveNext,
-                    methodName: WellKnownMemberNames.MoveNextMethodName,
-                    debuggerHidden: IsDebuggerHidden(this.method),
-                    hasMethodBodyDependency: true);
+                var moveNextMethod = OpenMoveNextMethodImplementation(IEnumerator_MoveNext);
 
                 GenerateMoveNextAndDispose(moveNextMethod, disposeMethod);
             }
 
             // Add T IEnumerator<T>.Current
             {
-                OpenPropertyImplementation(IEnumeratorOfElementType_get_Current, debuggerHidden: true, hasMethodBodyDependency: false);
+                OpenPropertyImplementation(IEnumeratorOfElementType_get_Current);
                 F.CloseMethod(F.Return(F.Field(F.This(), _currentField)));
             }
 
             // Add void IEnumerator.Reset()
             {
-                OpenMethodImplementation(IEnumerator_Reset, debuggerHidden: true, generateDebugInfo: false, hasMethodBodyDependency: false);
+                OpenMethodImplementation(IEnumerator_Reset, hasMethodBodyDependency: false);
                 F.CloseMethod(F.Throw(F.New(F.WellKnownType(WellKnownType.System_NotSupportedException))));
             }
 
             // Add object IEnumerator.Current
             {
-                OpenPropertyImplementation(IEnumerator_get_Current, debuggerHidden: true, hasMethodBodyDependency: false);
+                OpenPropertyImplementation(IEnumerator_get_Current);
                 F.CloseMethod(F.Return(F.Field(F.This(), _currentField)));
             }
         }
@@ -197,8 +191,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Only on it's parameters and staticness.
             var getEnumeratorGeneric = OpenMethodImplementation(
                 IEnumerableOfElementType_GetEnumerator,
-                debuggerHidden: true,
-                generateDebugInfo: false,
                 hasMethodBodyDependency: false);
 
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
@@ -278,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CloseMethod(F.Block(ImmutableArray.Create(resultVariable), bodyBuilder.ToImmutableAndFree()));
 
             // Generate IEnumerable.GetEnumerator
-            var getEnumerator = OpenMethodImplementation(IEnumerable_GetEnumerator, debuggerHidden: true, generateDebugInfo: false);
+            var getEnumerator = OpenMethodImplementation(IEnumerable_GetEnumerator);
             F.CloseMethod(F.Return(F.Call(F.This(), getEnumeratorGeneric)));
         }
 

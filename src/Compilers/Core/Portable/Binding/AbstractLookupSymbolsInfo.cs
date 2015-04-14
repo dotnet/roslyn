@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
         public struct ArityEnumerator : IEnumerator<int>
         {
             private int _current;
-            private int _low32bits;
+            private readonly int _low32bits;
             private int[] _arities;
 
             private const int resetValue = -1;

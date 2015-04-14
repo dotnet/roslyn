@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend NotOverridable Overrides ReadOnly Property IsQueryLambdaMethod As Boolean
             Get
-                Return SynthesizedKind = SynthesizedLambdaKind.QueryLambda
+                Return SynthesizedKind.IsQueryLambda
             End Get
         End Property
 

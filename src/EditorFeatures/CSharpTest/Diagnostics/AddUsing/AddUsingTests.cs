@@ -712,7 +712,7 @@ using System.Linq.Expressions;
 
 Expression",
 parseOptions: GetScriptOptions(),
-compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new AssemblyReferenceResolver(new MetadataFileReferenceResolver(new string[0], null), MetadataFileReferenceProvider.Default)),
+compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new AssemblyReferenceResolver(new MetadataFileReferenceResolver(Array.Empty<string>(), null), MetadataFileReferenceProvider.Default)),
 compareTokens: false);
         }
 
@@ -1322,7 +1322,7 @@ class Test
 
             var expectedText =
 @"using System;
-using Outer;
+using static Outer;
 
 public static class Outer
 {
@@ -1364,7 +1364,7 @@ class Test
 
             var expectedText =
 @"using System;
-using Outer.Inner;
+using static Outer.Inner;
 
 public static class Outer
 {
@@ -1434,7 +1434,7 @@ class Test
             var expectedText =
 @"using System;
 using Outer;
-using Outer.Inner;
+using static Outer.Inner;
 
 public static class Outer
 {
@@ -1925,6 +1925,49 @@ namespace ConsoleApplication1
             Test(
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public B B { get { return B . [|Instance|] ; } } } namespace A { public class B { public static readonly B Instance ; } } ",
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; using A ; class Program { public B B { get { return B . Instance ; } } } namespace A { public class B { public static readonly B Instance ; } } ");
+        }
+
+        [WorkItem(1893, "https://github.com/dotnet/roslyn/issues/1893")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNameSimplification()
+        {
+            // Generated using directive must be simplified from "using A.B;" to "using B;" below.
+            Test(
+@"
+namespace A.B
+{
+    class T1 { }
+}
+namespace A.C
+{
+    using System;
+    class T2
+    {
+        void Test()
+        {
+            Console.WriteLine();
+            [|T1|] t1;
+        }
+    }
+}",
+@"
+namespace A.B
+{
+    class T1 { }
+}
+namespace A.C
+{
+    using System;
+    using B;
+    class T2
+    {
+        void Test()
+        {
+            Console.WriteLine();
+            T1 t1;
+        }
+    }
+}");
         }
 
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest

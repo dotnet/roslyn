@@ -22,6 +22,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.FxCopAnalyzers</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
@@ -125,17 +126,13 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>FxCopRulesResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Globalization\CA1309DiagnosticAnalyzer.cs" />
-    <Compile Include="Globalization\CodeFixes\CA1309CodeFixProviderBase.cs" />
     <Compile Include="Globalization\CodeFixes\CA2101CodeFixProviderBase.cs" />
     <Compile Include="Interoperability\PInvokeDiagnosticAnalyzer.cs" />
     <Compile Include="MultipleCodeFixProviderBase.cs" />
     <Compile Include="Naming\CA1708DiagnosticAnalyzer.cs" />
     <Compile Include="Naming\CA1715DiagnosticAnalyzer.cs" />
-    <Compile Include="Performance\CA1813DiagnosticAnalyzer.cs" />
     <Compile Include="Performance\CA1821DiagnosticAnalyzer.cs" />
     <Compile Include="Performance\CA1821DiagnosticAnalyzerRule.cs" />
-    <Compile Include="Performance\CodeFixes\CA1813CodeFixProviderBase.cs" />
     <Compile Include="Performance\CodeFixes\CA1821CodeFixProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reliability\CA2002DiagnosticAnalyzer.cs" />

@@ -23,6 +23,7 @@ using PDB::Roslyn.Test.PdbUtilities;
 using Roslyn.Utilities;
 using Xunit;
 using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
+using System.Reflection.PortableExecutable;
 
 namespace Roslyn.Test.Utilities
 {
@@ -546,7 +547,7 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Used to validate metadata blobs emitted for MarshalAs.
         /// </summary>
-        internal static void MarshalAsMetadataValidator(PEAssembly assembly, Func<string, PEAssembly, TestEmitters, byte[]> getExpectedBlob, TestEmitters emitOptions, bool isField = true)
+        internal static void MarshalAsMetadataValidator(PEAssembly assembly, Func<string, PEAssembly, TestEmitters, byte[]> getExpectedBlob, TestEmitters emitters, bool isField = true)
         {
             var metadataReader = assembly.GetMetadataReader();
 
@@ -566,7 +567,7 @@ namespace Roslyn.Test.Utilities
                     var field = metadataReader.GetFieldDefinition(fieldDef);
                     string fieldName = metadataReader.GetString(field.Name);
 
-                    byte[] expectedBlob = getExpectedBlob(fieldName, assembly, emitOptions);
+                    byte[] expectedBlob = getExpectedBlob(fieldName, assembly, emitters);
                     if (expectedBlob != null)
                     {
                         BlobHandle descriptor = metadataReader.GetFieldDefinition(fieldDef).GetMarshallingDescriptor();
@@ -596,7 +597,7 @@ namespace Roslyn.Test.Utilities
                         var paramRow = metadataReader.GetParameter(paramHandle);
                         string paramName = metadataReader.GetString(paramRow.Name);
 
-                        byte[] expectedBlob = getExpectedBlob(memberName + ":" + paramName, assembly, emitOptions);
+                        byte[] expectedBlob = getExpectedBlob(memberName + ":" + paramName, assembly, emitters);
                         if (expectedBlob != null)
                         {
                             Assert.NotEqual(0, (int)(paramRow.Attributes & ParameterAttributes.HasFieldMarshal));
@@ -666,21 +667,7 @@ namespace Roslyn.Test.Utilities
 
         public static string GetPdbXml(Compilation compilation, string qualifiedMethodName = "")
         {
-            string actual = null;
-            using (var exebits = new MemoryStream())
-            {
-                using (var pdbbits = new MemoryStream())
-                {
-                    compilation.Emit(exebits, pdbbits);
-
-                    pdbbits.Position = 0;
-                    exebits.Position = 0;
-
-                    actual = PdbToXmlConverter.ToXml(pdbbits, exebits, PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError, methodName: qualifiedMethodName);
-                }
-            }
-
-            return actual;
+            return SharedCompilationUtils.GetPdbXml(compilation, qualifiedMethodName);
         }
 
         public static Dictionary<int, string> GetMarkers(string pdbXml)
@@ -749,16 +736,6 @@ namespace Roslyn.Test.Utilities
                     return Token2SourceLineExporter.TokenToSourceMap2Xml(pdbbits, maskToken);
                 }
             }
-        }
-
-        public static void AssertXmlEqual(string expected, string actual)
-        {
-            XmlElementDiff.AssertEqual(XElement.Parse(expected), XElement.Parse(actual), null, 0, expectedIsXmlLiteral: true);
-        }
-
-        public static void AssertXmlEqual(XElement expected, XElement actual)
-        {
-            XmlElementDiff.AssertEqual(expected, actual, null, 0, expectedIsXmlLiteral: false);
         }
 
         protected static string ConsolidateArguments(string[] args)

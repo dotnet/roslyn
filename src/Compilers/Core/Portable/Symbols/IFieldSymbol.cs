@@ -8,6 +8,10 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a field in a class, struct or enum.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IFieldSymbol : ISymbol
     {
         /// <summary>

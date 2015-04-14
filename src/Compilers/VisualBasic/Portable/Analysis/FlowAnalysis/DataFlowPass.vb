@@ -1202,7 +1202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(type.IsValueType)
                         Select Case MethodSymbol.MethodKind
                             Case MethodKind.Conversion, MethodKind.UserDefinedOperator
-                            ' no warning is given in this case.
+                                ' no warning is given in this case.
                             Case MethodKind.PropertyGet
                                 warning = ERRID.WRN_DefAsgNoRetValPropRef1
                             Case MethodKind.EventAdd

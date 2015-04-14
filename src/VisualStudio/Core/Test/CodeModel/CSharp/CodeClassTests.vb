@@ -2637,7 +2637,7 @@ interface I { }
 #Region "RemoveMember tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember1()
+        Public Sub RemoveMember1()
             Dim code =
 <Code>
 class $$C
@@ -2659,7 +2659,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember2()
+        Public Sub RemoveMember2()
             Dim code =
 <Code><![CDATA[
 class $$C
@@ -2684,7 +2684,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember3()
+        Public Sub RemoveMember3()
             Dim code =
 <Code><![CDATA[
 class $$C
@@ -2707,7 +2707,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember4()
+        Public Sub RemoveMember4()
             Dim code =
 <Code><![CDATA[
 class $$C
@@ -2732,7 +2732,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember5()
+        Public Sub RemoveMember5()
             Dim code =
 <Code><![CDATA[
 class $$C
@@ -2763,7 +2763,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember6()
+        Public Sub RemoveMember6()
             Dim code =
 <Code><![CDATA[
 class $$C
@@ -2792,7 +2792,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember7()
+        Public Sub RemoveMember7()
             Dim code =
 <Code><![CDATA[
 class $$C
@@ -2816,7 +2816,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember8()
+        Public Sub RemoveMember8()
             Dim code =
 <Code>
 class $$C
@@ -2853,7 +2853,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember_Event1()
+        Public Sub RemoveMember_Event1()
             Dim code =
 <Code>
 class $$C
@@ -2873,7 +2873,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember_Event2()
+        Public Sub RemoveMember_Event2()
             Dim code =
 <Code>
 class $$C
@@ -2894,7 +2894,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember_Event3()
+        Public Sub RemoveMember_Event3()
             Dim code =
 <Code>
 class $$C
@@ -2915,7 +2915,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember_Event4()
+        Public Sub RemoveMember_Event4()
             Dim code =
 <Code>
 class $$C
@@ -2936,7 +2936,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveMember_Event5()
+        Public Sub RemoveMember_Event5()
             Dim code =
 <Code>
 class $$C
@@ -3619,7 +3619,7 @@ class C
 
 #Region "Set Name tests"
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName1()
+        Public Sub SetName1()
             Dim code =
 <Code>
 class $$Foo
@@ -3638,7 +3638,7 @@ class Bar
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName2()
+        Public Sub SetName2()
             Dim code =
 <Code>
 class $$Foo
@@ -3663,7 +3663,7 @@ class Bar
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName3()
+        Public Sub SetName3()
             Dim code =
 <Code>
 partial class $$Foo
@@ -3692,7 +3692,7 @@ partial class Foo
 #End Region
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub ExternalClass_ImplementedInterfaces()
+        Public Sub ExternalClass_ImplementedInterfaces()
             Dim code =
 <Code>
 class $$Foo : System.Collections.Generic.List&lt;int&gt;
@@ -3710,7 +3710,7 @@ class $$Foo : System.Collections.Generic.List&lt;int&gt;
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub ExternalFunction_Overloads()
+        Public Sub ExternalFunction_Overloads()
             Dim code =
 <Code>
 class $$Derived : System.Console
@@ -3733,7 +3733,7 @@ class $$Derived : System.Console
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub ExternalFunction_Overloads_NotOverloaded()
+        Public Sub ExternalFunction_Overloads_NotOverloaded()
             Dim code =
 <Code>
 class $$Derived : System.Console

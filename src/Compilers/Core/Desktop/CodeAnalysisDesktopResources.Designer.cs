@@ -79,6 +79,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;/keepalive&apos; option is only valid with &apos;/shared&apos; option..
+        /// </summary>
+        internal static string KeepAliveWithoutShared {
+            get {
+                return ResourceManager.GetString("KeepAliveWithoutShared", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Roslyn compiler server reports different protocol version than build task..
         /// </summary>
         internal static string MismatchedVersion {
@@ -93,6 +102,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string MissingKeepAlive {
             get {
                 return ResourceManager.GetString("MissingKeepAlive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The attribute {0} has an invalid value of {1}..
+        /// </summary>
+        internal static string RuleSetBadAttributeValue {
+            get {
+                return ResourceManager.GetString("RuleSetBadAttributeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The element {0} is missing an attribute named {1}..
+        /// </summary>
+        internal static string RuleSetMissingAttribute {
+            get {
+                return ResourceManager.GetString("RuleSetMissingAttribute", resourceCulture);
             }
         }
     }

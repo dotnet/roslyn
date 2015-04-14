@@ -16,10 +16,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
     Partial Friend Class VisualBasicIndentationService
         Inherits AbstractIndentationService
 
-        Private Shared ReadOnly instance As IFormattingRule = New SpecialFormattingRule()
+        Private Shared ReadOnly s_instance As IFormattingRule = New SpecialFormattingRule()
 
         Protected Overrides Function GetSpecializedIndentationFormattingRule() As IFormattingRule
-            Return instance
+            Return s_instance
         End Function
 
         Protected Overrides Function GetIndenter(document As Document, lineToBeIndented As ITextSnapshotLine, formattingRules As IEnumerable(Of IFormattingRule), optionSet As OptionSet, cancellationToken As CancellationToken) As AbstractIndenter

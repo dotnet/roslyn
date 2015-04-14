@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Emit
         // syntax:
         private readonly Func<SyntaxNode, SyntaxNode> _syntaxMapOpt;
         private readonly IMethodSymbolInternal _previousMethod;
-        private readonly MethodDebugId _previousMethodId;
+        private readonly DebugId _methodId;
 
         // locals:
         private readonly IReadOnlyDictionary<EncLocalInfo, int> _previousLocalSlots;
@@ -33,17 +33,17 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly IReadOnlyDictionary<Cci.ITypeReference, int> _awaiterMapOpt;
 
         // closures:
-        private readonly IReadOnlyDictionary<int, KeyValuePair<int, int>> _lambdaMapOpt; // SyntaxOffset -> (Lambda Ordinal, Closure Ordinal)
-        private readonly IReadOnlyDictionary<int, int> _closureMapOpt; // SyntaxOffset -> Ordinal
+        private readonly IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> _lambdaMapOpt; // SyntaxOffset -> (Lambda Id, Closure Ordinal)
+        private readonly IReadOnlyDictionary<int, DebugId> _closureMapOpt; // SyntaxOffset -> Id
 
         public EncVariableSlotAllocator(
             SymbolMatcher symbolMap,
             Func<SyntaxNode, SyntaxNode> syntaxMapOpt,
             IMethodSymbolInternal previousMethod,
-            MethodDebugId previousMethodId,
+            DebugId methodId,
             ImmutableArray<EncLocalInfo> previousLocals,
-            IReadOnlyDictionary<int, KeyValuePair<int, int>> lambdaMapOpt,
-            IReadOnlyDictionary<int, int> closureMapOpt,
+            IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> lambdaMapOpt,
+            IReadOnlyDictionary<int, DebugId> closureMapOpt,
             string stateMachineTypeNameOpt,
             int hoistedLocalSlotCount,
             IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalSlotsOpt,
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _syntaxMapOpt = syntaxMapOpt;
             _previousLocals = previousLocals;
             _previousMethod = previousMethod;
-            _previousMethodId = previousMethodId;
+            _methodId = methodId;
             _hoistedLocalSlotsOpt = hoistedLocalSlotsOpt;
             _hoistedLocalSlotCount = hoistedLocalSlotCount;
             _stateMachineTypeNameOpt = stateMachineTypeNameOpt;
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _previousLocalSlots = previousLocalInfoToSlot;
         }
 
-        public override MethodDebugId PreviousMethodId => _previousMethodId;
+        public override DebugId? MethodId => _methodId;
 
         public override void AddPreviousLocals(ArrayBuilder<Cci.ILocalDefinition> builder)
         {
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             // Syntax map contains mapping for lambdas, but not their bodies. 
             // Map the lambda first and then determine the corresponding body.
-            var currentLambdaSyntax = isLambdaBody ? lambdaOrLambdaBodySyntax.Parent : lambdaOrLambdaBodySyntax;
+            var currentLambdaSyntax = isLambdaBody ? lambdaOrLambdaBodySyntax.GetLambda() : lambdaOrLambdaBodySyntax;
 
             // no syntax map 
             // => the source of the current method is the same as the source of the previous method 
@@ -251,34 +251,34 @@ namespace Microsoft.CodeAnalysis.Emit
             return true;
         }
 
-        public override bool TryGetPreviousClosure(SyntaxNode scopeSyntax, out int closureOrdinal)
+        public override bool TryGetPreviousClosure(SyntaxNode scopeSyntax, out DebugId closureId)
         {
             int syntaxOffset;
             if (_closureMapOpt != null &&
                 TryGetPreviousSyntaxOffset(scopeSyntax, out syntaxOffset) &&
-                _closureMapOpt.TryGetValue(syntaxOffset, out closureOrdinal))
+                _closureMapOpt.TryGetValue(syntaxOffset, out closureId))
             {
                 return true;
             }
 
-            closureOrdinal = -1;
+            closureId = default(DebugId);
             return false;
         }
 
-        public override bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out int lambdaOrdinal)
+        public override bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out DebugId lambdaId)
         {
-            KeyValuePair<int, int> id;
+            KeyValuePair<DebugId, int> idAndClosureOrdinal;
 
             int syntaxOffset;
             if (_lambdaMapOpt != null &&
                 TryGetPreviousLambdaSyntaxOffset(lambdaOrLambdaBodySyntax, isLambdaBody, out syntaxOffset) &&
-                _lambdaMapOpt.TryGetValue(syntaxOffset, out id))
+                _lambdaMapOpt.TryGetValue(syntaxOffset, out idAndClosureOrdinal))
             {
-                lambdaOrdinal = id.Key;
+                lambdaId = idAndClosureOrdinal.Key;
                 return true;
             }
 
-            lambdaOrdinal = -1;
+            lambdaId = default(DebugId);
             return false;
         }
     }

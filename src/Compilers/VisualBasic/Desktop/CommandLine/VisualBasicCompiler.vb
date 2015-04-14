@@ -18,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _responseFile As String
         Private ReadOnly _diagnosticFormatter As CommandLineDiagnosticFormatter
 
-        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), baseDirectory As String, additionalReferencePaths As String)
-            MyBase.New(parser, responseFile, args, baseDirectory, additionalReferencePaths)
+        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), baseDirectory As String, sdkDirectory As String, additionalReferenceDirectories As String)
+            MyBase.New(parser, responseFile, args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
             Debug.Assert(responseFile Is Nothing OrElse Path.IsPathRooted(responseFile))
             _responseFile = responseFile
             _diagnosticFormatter = New CommandLineDiagnosticFormatter(baseDirectory)
@@ -41,13 +41,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    parseOptions As VisualBasicParseOptions,
                                    scriptParseOptions As VisualBasicParseOptions,
                                    ByRef hadErrors As Boolean,
-                                   file As CommandLineSourceFile) As SyntaxTree
+                                   file As CommandLineSourceFile,
+                                   errorLogger As ErrorLogger) As SyntaxTree
 
             Dim fileReadDiagnostics As New List(Of DiagnosticInfo)()
             Dim content = ReadFileContent(file, fileReadDiagnostics, Arguments.Encoding, Arguments.ChecksumAlgorithm)
 
             If content Is Nothing Then
-                PrintErrors(fileReadDiagnostics, consoleOutput)
+                ReportErrors(fileReadDiagnostics, consoleOutput, errorLogger)
                 fileReadDiagnostics.Clear()
                 hadErrors = True
                 Return Nothing
@@ -64,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return tree
         End Function
 
-        Protected Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger) As Compilation
+        Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger) As Compilation
             Dim parseOptions = Arguments.ParseOptions
             Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
 
@@ -78,12 +79,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    UICultureUtilities.WithCurrentUICulture(Of Integer)(
                         Sub(i As Integer)
                             ' NOTE: order of trees is important!!
-                            trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i))
+                            trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i), errorLogger)
                         End Sub))
             Else
                 For i = 0 To sourceFiles.Length - 1
                     ' NOTE: order of trees is important!!
-                    trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i))
+                    trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i), errorLogger)
                 Next
             End If
 
@@ -107,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim externalReferenceResolver = GetExternalMetadataResolver(touchedFilesLogger)
             Dim resolvedReferences = ResolveMetadataReferences(externalReferenceResolver, metadataProvider, diagnostics, assemblyIdentityComparer, touchedFilesLogger, referenceDirectiveResolver)
 
-            If PrintErrors(diagnostics, consoleOutput) Then
+            If ReportErrors(diagnostics, consoleOutput, errorLogger) Then
                 Return Nothing
             End If
 
@@ -149,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             consoleOutput.WriteLine()
         End Sub
 
-        Friend Overrides Sub PrintError(Diagnostic As DiagnosticInfo, consoleOutput As TextWriter)
+        Protected Overrides Sub PrintError(Diagnostic As DiagnosticInfo, consoleOutput As TextWriter)
             consoleOutput.Write(VisualBasicCompiler.VbcCommandLinePrefix)
             consoleOutput.WriteLine(Diagnostic.ToString(Culture))
         End Sub
@@ -168,18 +169,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Print compiler logo
         ''' </summary>
         ''' <param name="consoleOutput"></param>
-        Protected Overrides Sub PrintLogo(consoleOutput As TextWriter)
-            Dim thisAssembly As Assembly = Me.GetType().Assembly
-            consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_LogoLine1, Culture), FileVersionInfo.GetVersionInfo(thisAssembly.Location).FileVersion)
+        Public Overrides Sub PrintLogo(consoleOutput As TextWriter)
+            consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_LogoLine1, Culture), GetToolName(), GetAssemblyFileVersion())
             consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_LogoLine2, Culture))
             consoleOutput.WriteLine()
         End Sub
+
+        Friend Overrides Function GetToolName() As String
+            Return ErrorFactory.IdToString(ERRID.IDS_ToolName, Culture)
+        End Function
+
+        Friend Overrides Function GetAssemblyFileVersion() As String
+            Return FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion
+        End Function
+
+        Friend Overrides Function GetAssemblyVersion() As Version
+            Return Assembly.GetExecutingAssembly().GetName().Version
+        End Function
 
         ''' <summary>
         ''' Print Commandline help message (up to 80 English characters per line)
         ''' </summary>
         ''' <param name="consoleOutput"></param>
-        Protected Overrides Sub PrintHelp(consoleOutput As TextWriter)
+        Public Overrides Sub PrintHelp(consoleOutput As TextWriter)
             consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_VBCHelp, Culture))
         End Sub
 
@@ -188,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function ResolveAnalyzersFromArguments(diagnostics As List(Of DiagnosticInfo), messageProvider As CommonMessageProvider, touchedFiles As TouchedFileLogger) As ImmutableArray(Of DiagnosticAnalyzer)
-            Return Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, touchedFiles)
+            Return Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, touchedFiles, AddressOf LoadAssembly)
         End Function
     End Class
 End Namespace

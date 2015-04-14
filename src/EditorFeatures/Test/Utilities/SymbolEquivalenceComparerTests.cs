@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -1422,8 +1423,8 @@ End Class
                 r2 = MetadataReference.CreateFromImage(bytes);
             }
 
-            var c1 = CS.CSharpCompilation.Create("comp1", new SyntaxTree[0], new[] { TestReferences.NetFx.v4_0_30319.mscorlib, r1 });
-            var c2 = CS.CSharpCompilation.Create("comp2", new SyntaxTree[0], new[] { TestReferences.NetFx.v4_0_30319.mscorlib, r2 });
+            var c1 = CS.CSharpCompilation.Create("comp1", Array.Empty<SyntaxTree>(), new[] { TestReferences.NetFx.v4_0_30319.mscorlib, r1 });
+            var c2 = CS.CSharpCompilation.Create("comp2", Array.Empty<SyntaxTree>(), new[] { TestReferences.NetFx.v4_0_30319.mscorlib, r2 });
             var type1 = (ITypeSymbol)c1.GlobalNamespace.GetMembers("C").Single();
             var type2 = (ITypeSymbol)c2.GlobalNamespace.GetMembers("C").Single();
 

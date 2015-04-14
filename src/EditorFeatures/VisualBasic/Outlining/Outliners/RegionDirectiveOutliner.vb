@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-    Class RegionDirectiveOutliner
+    Friend Class RegionDirectiveOutliner
         Inherits AbstractSyntaxNodeOutliner(Of RegionDirectiveTriviaSyntax)
 
         Private Shared Function GetBannerText(regionDirective As RegionDirectiveTriviaSyntax) As String

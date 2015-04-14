@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
                         Case BoundKind.YieldStatement
                         Case BoundKind.ReturnStatement
-                        ' These are always included (we don't dive into lambda expressions)
+                            ' These are always included (we don't dive into lambda expressions)
                         Case Else
                             Debug.Assert(False) ' there are no other branch statements
                     End Select

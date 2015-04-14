@@ -3,12 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
+using System.IO;
 using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -18,12 +16,21 @@ namespace Microsoft.CodeAnalysis
         private NonReentrantLock _gate = new NonReentrantLock();
         private Dictionary<string, string> _docComments;
 
+        protected abstract Stream GetSourceStream(CancellationToken cancellationToken);
+
         public static XmlDocumentationProvider Create(byte[] xmlDocCommentBytes)
         {
             return new ContentBasedXmlDocumentationProvider(xmlDocCommentBytes);
         }
 
-        protected abstract XDocument GetXDocument();
+        private XDocument GetXDocument(CancellationToken cancellationToken)
+        {
+            using (var stream = GetSourceStream(cancellationToken))
+            using (var xmlReader = XmlReader.Create(stream, s_xmlSettings))
+            {
+                return XDocument.Load(xmlReader);
+            }
+        }
 
         protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -35,12 +42,12 @@ namespace Microsoft.CodeAnalysis
                     {
                         _docComments = new Dictionary<string, string>();
 
-                        XDocument doc = this.GetXDocument();
+                        XDocument doc = this.GetXDocument(cancellationToken);
                         foreach (var e in doc.Descendants("member"))
                         {
                             if (e.Attribute("name") != null)
                             {
-                                _docComments[e.Attribute("name").Value] = e.Value;
+                                _docComments[e.Attribute("name").Value] = string.Concat(e.Nodes());
                             }
                         }
                     }
@@ -70,13 +77,9 @@ namespace Microsoft.CodeAnalysis
                 _xmlDocCommentBytes = xmlDocCommentBytes;
             }
 
-            protected override XDocument GetXDocument()
+            protected override Stream GetSourceStream(CancellationToken cancellationToken)
             {
-                using (var stream = SerializableBytes.CreateReadableStream(_xmlDocCommentBytes, CancellationToken.None))
-                using (var xmlReader = XmlReader.Create(stream, s_xmlSettings))
-                {
-                    return XDocument.Load(xmlReader);
-                }
+                return SerializableBytes.CreateReadableStream(_xmlDocCommentBytes, cancellationToken);
             }
 
             public override bool Equals(object obj)

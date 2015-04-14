@@ -35,7 +35,7 @@ namespace Roslyn.Utilities
         internal ObjectWriterData(ObjectWriterData baseData)
         {
             _baseData = baseData;
-            _nextId = (baseData != null) ? baseData._nextId : 0;
+            _nextId = baseData?._nextId ?? 0;
         }
 
         public void Dispose()

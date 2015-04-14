@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case opKind
                     Case BinaryOperatorKind.Like,
                          BinaryOperatorKind.Concatenate
-                    'Do Nothing
+                        'Do Nothing
 
                     Case Else
                         If (node.OperatorKind And BinaryOperatorKind.Lifted) <> 0 Then

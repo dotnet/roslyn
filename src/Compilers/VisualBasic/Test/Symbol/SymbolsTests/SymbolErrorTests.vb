@@ -10404,7 +10404,7 @@ BC31086: 'Public Overrides Sub F1()' cannot override 'Public Sub F1()' because i
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        Private Shared TypeWithMixedProperty As String = <![CDATA[
+        Private Shared s_typeWithMixedProperty As String = <![CDATA[
 .class public auto ansi beforefieldinit Base_VirtGet_Set
        extends [mscorlib]System.Object
 {
@@ -10498,7 +10498,7 @@ Class VBDerived
 
 End Class
         ]]></file>
-    </compilation>, TypeWithMixedProperty)
+    </compilation>, s_typeWithMixedProperty)
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC31086: 'Public Overrides Property Prop As Integer' cannot override 'Public Overloads Property Prop As Integer' because it is not declared 'Overridable'.
@@ -10528,7 +10528,7 @@ Class VBDerived
 
 End Class
         ]]></file>
-    </compilation>, TypeWithMixedProperty)
+    </compilation>, s_typeWithMixedProperty)
 
             ' WARNING: There are no Errors, but setter is actually not overriden!!!
 
@@ -20748,7 +20748,7 @@ BC30461: Classes cannot be declared 'MustOverride'.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
 
-        ' Checks for accessibilty across partial types
+        ' Checks for accessibility across partial types
         <Fact>
         Public Sub ModifierErrorsAcrossPartialTypes()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(

@@ -36,15 +36,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public bool IsImplicit { get; }
 
+        /// <summary>
+        /// Inidicates if this is a location where the reference is written to.
+        /// </summary>
+        internal bool IsWrittenTo { get; }
+
         public CandidateReason CandidateReason { get; }
 
-        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, CandidateReason candidateReason)
+        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, bool isWrittenTo, CandidateReason candidateReason)
             : this()
         {
             this.Document = document;
             this.Alias = alias;
             this.Location = location;
             this.IsImplicit = isImplicit;
+            this.IsWrittenTo = isWrittenTo;
             this.CandidateReason = candidateReason;
         }
 

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
@@ -47,9 +48,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // Share the diagnostic analyzer driver across all analyzers.
                 var fullSpan = root?.FullSpan;
 
-                _spanBasedDriver = new DiagnosticAnalyzerDriver(_document, _range, root, _owner._diagnosticLogAggregator, _owner.HostDiagnosticUpdateSource, _cancellationToken);
-                _documentBasedDriver = new DiagnosticAnalyzerDriver(_document, fullSpan, root, _owner._diagnosticLogAggregator, _owner.HostDiagnosticUpdateSource, _cancellationToken);
-                _projectDriver = new DiagnosticAnalyzerDriver(_document.Project, _owner._diagnosticLogAggregator, _owner.HostDiagnosticUpdateSource, _cancellationToken);
+                _spanBasedDriver = new DiagnosticAnalyzerDriver(_document, _range, root, _owner, _cancellationToken);
+                _documentBasedDriver = new DiagnosticAnalyzerDriver(_document, fullSpan, root, _owner, _cancellationToken);
+                _projectDriver = new DiagnosticAnalyzerDriver(_document.Project, _owner, _cancellationToken);
             }
 
             public List<DiagnosticData> Diagnostics { get; }
@@ -110,13 +111,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 StateSet stateSet, StateType stateType, Func<VersionStamp, VersionStamp, bool> versionCheck,
                 Func<DiagnosticAnalyzerDriver, DiagnosticAnalyzer, Task<IEnumerable<DiagnosticData>>> getDiagnostics)
             {
-                bool supportsSemanticInSpan;
                 if (_spanBasedDriver.IsAnalyzerSuppressed(stateSet.Analyzer) ||
-                    !ShouldRunAnalyzerForStateType(stateSet, stateType, out supportsSemanticInSpan))
+                    !(await ShouldRunAnalyzerForStateTypeAsync(stateSet, stateType).ConfigureAwait(false)))
                 {
                     return true;
                 }
 
+                bool supportsSemanticInSpan = await stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysisAsync(_spanBasedDriver).ConfigureAwait(false);
                 var analyzerDriver = GetAnalyzerDriverBasedOnStateType(stateType, supportsSemanticInSpan);
                 Func<DiagnosticData, bool> shouldInclude = d => d.DocumentId == _document.Id && _range.IntersectsWith(d.TextSpan);
 
@@ -153,14 +154,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return true;
             }
 
-            private bool ShouldRunAnalyzerForStateType(StateSet stateSet, StateType stateType, out bool supportsSemanticInSpan)
+            private async Task<bool> ShouldRunAnalyzerForStateTypeAsync(StateSet stateSet, StateType stateType)
             {
                 if (stateType == StateType.Project)
                 {
-                    return DiagnosticIncrementalAnalyzer.ShouldRunAnalyzerForStateType(_projectDriver, stateSet.Analyzer, stateType, out supportsSemanticInSpan);
+                    return await DiagnosticIncrementalAnalyzer.ShouldRunAnalyzerForStateTypeAsync(_projectDriver, stateSet.Analyzer, stateType).ConfigureAwait(false);
                 }
 
-                return DiagnosticIncrementalAnalyzer.ShouldRunAnalyzerForStateType(_spanBasedDriver, stateSet.Analyzer, stateType, out supportsSemanticInSpan);
+                return await DiagnosticIncrementalAnalyzer.ShouldRunAnalyzerForStateTypeAsync(_spanBasedDriver, stateSet.Analyzer, stateType).ConfigureAwait(false);
             }
 
             private bool BlockForData(StateType stateType, bool supportsSemanticInSpan)

@@ -19,6 +19,7 @@
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
     <!-- Needed for the _CompileTemporaryAssembly target which runs due to having .xaml files that reference types from this project -->
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
@@ -353,6 +354,7 @@
     <Compile Include="Implementation\Diagnostics\DiagnosticsClassificationTaggerProvider.TagSource.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsSquiggleTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsSquiggleTaggerProvider.TagSource.cs" />
+    <Compile Include="Implementation\Diagnostics\WellKnownDiagnosticPropertyNames.cs" />
     <Compile Include="Implementation\DocumentationComments\AbstractDocumentationCommentCommandHandler.cs" />
     <Compile Include="Implementation\DocumentationComments\AbstractXmlTagCompletionCommandHandler.cs" />
     <Compile Include="Implementation\EditAndContinue\ActiveStatementTag.cs" />
@@ -405,6 +407,7 @@
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_RenameHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_ReturnHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_SelectAllHandler.cs" />
+    <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_SaveHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_TabHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_OpenLineAboveHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_TypeCharHandler.cs" />
@@ -452,6 +455,7 @@
     <Compile Include="Implementation\Intellisense\Completion\Controller.Session_SetModelSelectedItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller.Session_Wait.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_AutomaticLineEnder.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Controller_SelectAll.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_Delete.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_Backspace.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_CaretPositionChanged.cs" />
@@ -574,6 +578,8 @@
     <Compile Include="Implementation\Peek\PeekableItemSource.cs" />
     <Compile Include="Implementation\Peek\PeekableItemSourceProvider.cs" />
     <Compile Include="Implementation\Peek\PeekHelpers.cs" />
+    <Compile Include="Implementation\ReferenceHighlighting\WrittenReferenceHighlightTag.cs" />
+    <Compile Include="Implementation\ReferenceHighlighting\WrittenReferenceHighlightTagDefinition.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingCancellationCommandHandler.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTagDefinition.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTag.cs" />
@@ -631,6 +637,8 @@
     <Compile Include="Implementation\TodoComment\TodoCommentState.cs" />
     <Compile Include="Implementation\TodoComment\TodoCommentTokens.cs" />
     <Compile Include="Implementation\TodoComment\TodoTaskItem.cs" />
+    <Compile Include="Implementation\Workspaces\EditorErrorReportingService.cs" />
+    <Compile Include="Implementation\Workspaces\EditorErrorReportingServiceFactory.cs" />
     <Compile Include="Implementation\Workspaces\ProjectCacheServiceFactory.cs" />
     <Compile Include="Implementation\Workspaces\EditorTextFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />

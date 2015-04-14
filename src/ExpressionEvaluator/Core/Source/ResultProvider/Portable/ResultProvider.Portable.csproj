@@ -1,24 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <TargetNetFX20>true</TargetNetFX20>
-  </PropertyGroup>
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
     <Import Project="..\..\..\..\..\..\build\VSL.Settings.Closed.targets" />
   </ImportGroup>
   <PropertyGroup>
-    <OutDir>$(OutDir)Phone\</OutDir>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{FA0E905D-EC46-466D-B7B2-3B5557F9428C}</ProjectGuid>
     <OutputType>Library</OutputType>
+    <AuthenticodeCertificateName>WindowsPhone623</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs">
@@ -57,18 +57,16 @@
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Xml\XmlCharType.cs">
       <Link>Compiler\Xml\XmlCharType.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
+      <Link>Helpers\DateTimeUtilities.cs</Link>
+    </Compile>
     <Compile Include="..\..\ExpressionCompiler\ExpressionEvaluatorFatalError.cs">
       <Link>ExpressionCompiler\ExpressionEvaluatorFatalError.cs</Link>
     </Compile>
-    <Compile Include="..\..\ExpressionCompiler\DateTimeUtilities.cs">
-      <Link>ExpressionCompiler\DateTimeUtilities.cs</Link>
+    <Compile Include="..\..\ExpressionCompiler\ReflectionHelpers.cs">
+      <Link>ExpressionCompiler\ReflectionHelpers.cs</Link>
     </Compile>
-    <Compile Include="..\Helpers\Placeholders.cs">
-      <Link>Helpers\Placeholders.cs</Link>
-    </Compile>
-    <Compile Include="..\SystemHelpers.cs">
-      <Link>Helpers\SystemHelpers.cs</Link>
-    </Compile>
+    <Compile Include="Helpers\Placeholders.cs" />
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
@@ -84,16 +82,14 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
-    <Compile Include="..\Resources.Designer.cs">
-      <Link>Resources.Designer.cs</Link>
+    <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\Resources.resx">
-      <Link>Resources.resx</Link>
+    <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
@@ -101,9 +97,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="..\ResultProvider.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

@@ -16,17 +16,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     {
         // ToDo: What is _correlationId for?
         private readonly int _correlationId;
-        private readonly DiagnosticAnalyzerService _owner;
-        private readonly HostAnalyzerManager _hostAnalyzerManager;
 
         private readonly ConcurrentDictionary<ProjectId, CompilationResults> _compilationResults = new ConcurrentDictionary<ProjectId, CompilationResults>();
 
         public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
-            : base(workspace, hostDiagnosticUpdateSource)
+            : base(owner, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource)
         {
             _correlationId = correlationId;
-            _owner = owner;
-            _hostAnalyzerManager = hostAnalyzerManager;
         }
 
         #region IIncrementalAnalyzer
@@ -99,12 +95,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _compilationResults.TryRemove(projectId, out results);
             }
 
-            _owner.RaiseDiagnosticsUpdated(this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, projectId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
+            Owner.RaiseDiagnosticsUpdated(this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, projectId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
 
         public override void RemoveDocument(DocumentId documentId)
         {
-            _owner.RaiseDiagnosticsUpdated(
+            Owner.RaiseDiagnosticsUpdated(
                 this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, documentId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
         #endregion
@@ -238,6 +234,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return diagnostics.Where(d => range.IntersectsWith(d.TextSpan));
         }
 
+        public override Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics)
+        {
+            // Always prefer live diagnostics to diagnostics produced by a build.
+            return SpecializedTasks.EmptyTask;
+        }
+
+        public override Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics)
+        {
+            // Always prefer live diagnostics to diagnostics produced by a build.
+            return SpecializedTasks.EmptyTask;
+        }
+
         private IEnumerable<DiagnosticData> GetDiagnosticData(Project project, ImmutableArray<Diagnostic> diagnostics)
         {
             foreach (Diagnostic diagnostic in diagnostics)
@@ -271,13 +279,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     if (kv.Key == null)
                     {
-                        _owner.RaiseDiagnosticsUpdated(
+                        Owner.RaiseDiagnosticsUpdated(
                             this, new DiagnosticsUpdatedArgs(
                                 ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, kv.ToImmutableArrayOrEmpty()));
                     }
                     else
                     {
-                        _owner.RaiseDiagnosticsUpdated(
+                        Owner.RaiseDiagnosticsUpdated(
                             this, new DiagnosticsUpdatedArgs(
                                 ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty()));
                     }
@@ -288,13 +296,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // There are no diagnostics. Update the document or project with that information.
                 if (document != null)
                 {
-                    _owner.RaiseDiagnosticsUpdated(
+                    Owner.RaiseDiagnosticsUpdated(
                            this, new DiagnosticsUpdatedArgs(
                                ValueTuple.Create(this, document.Id), workspace, solution, project.Id, document.Id, ImmutableArray<DiagnosticData>.Empty));
                 }
                 else
                 {
-                    _owner.RaiseDiagnosticsUpdated(
+                    Owner.RaiseDiagnosticsUpdated(
                             this, new DiagnosticsUpdatedArgs(
                                 ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, ImmutableArray<DiagnosticData>.Empty));
                 }
@@ -365,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // The requested project version is not the same as that of the current compilation.
                     // Assume that the requested version is newer.
 
-                    ImmutableArray<DiagnosticAnalyzer> analyzers = Flatten(_hostAnalyzerManager.CreateDiagnosticAnalyzersPerReference(project).Values);
+                    ImmutableArray<DiagnosticAnalyzer> analyzers = Flatten(HostAnalyzerManager.CreateDiagnosticAnalyzersPerReference(project).Values);
                     CompilationWithAnalyzers newCompilationWithAnalyzers = !analyzers.IsEmpty ? compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, cancellationToken) : null;
                     results.CurrentCompilation = new CompilationResult(project, projectVersion, newCompilationWithAnalyzers);
                 }

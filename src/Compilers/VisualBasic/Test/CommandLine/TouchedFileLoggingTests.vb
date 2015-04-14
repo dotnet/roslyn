@@ -14,11 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
     Public Class TouchedFileLoggingTests
         Inherits BasicTestBase
 
-        Private Shared ReadOnly libDirectory As String = Environment.GetEnvironmentVariable("LIB")
+        Private Shared ReadOnly s_libDirectory As String = Environment.GetEnvironmentVariable("LIB")
 
-        Private ReadOnly baseDirectory As String = TempRoot.Root
+        Private ReadOnly _baseDirectory As String = TempRoot.Root
 
-        Private ReadOnly helloWorldCS As String = <text>
+        Private ReadOnly _helloWorldCS As String = <text>
 Imports System
 Class C
     Shared Sub Main(args As String())
@@ -29,11 +29,11 @@ End Class
 
         <Fact>
         Public Sub TrivialSourceFileOnlyVbc()
-            Dim hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path
+            Dim hello = Temp.CreateFile().WriteAllText(_helloWorldCS).Path
             Dim touchedDir = Temp.CreateDirectory()
             Dim touchedBase = Path.Combine(touchedDir.Path, "touched")
 
-            Dim cmd = New MockVisualBasicCompiler(Nothing, baseDirectory,
+            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
                 {"/nologo",
                  "/touchedfiles:" + touchedBase,
                  hello})
@@ -59,13 +59,13 @@ End Class
 
         <Fact>
         Public Sub StrongNameKeyVbc()
-            Dim hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path
+            Dim hello = Temp.CreateFile().WriteAllText(_helloWorldCS).Path
             Dim snkPath = Temp.CreateFile("TestKeyPair_", ".snk").WriteAllBytes(TestResources.SymbolsTests.General.snKey).Path
             Dim touchedDir = Temp.CreateDirectory()
             Dim touchedBase = Path.Combine(touchedDir.Path, "touched")
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim cmd = New MockVisualBasicCompiler(Nothing, baseDirectory,
+            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
                 {"/nologo",
                  "/touchedfiles:" + touchedBase,
                  "/keyfile:" + snkPath,
@@ -106,7 +106,7 @@ End Class
             Dim touchedDir = Temp.CreateDirectory()
             Dim touchedBase = Path.Combine(touchedDir.Path, "touched")
 
-            Dim cmd = New MockVisualBasicCompiler(Nothing, baseDirectory,
+            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
                 {"/nologo",
                  "/target:library",
                  "/doc:" + xml.Path,
@@ -160,7 +160,7 @@ End Class
             Dim filelist As New List(Of String)
 
             For i = 0 To 2 - 1
-                Dim source1 = Temp.CreateFile().WriteAllText(helloWorldCS).Path
+                Dim source1 = Temp.CreateFile().WriteAllText(_helloWorldCS).Path
                 Dim touchedDir = Temp.CreateDirectory()
                 Dim touchedBase = Path.Combine(touchedDir.Path, "touched")
                 filelist.Add(source1)
@@ -171,8 +171,9 @@ End Class
                     {"/nologo",
                      "/touchedfiles:" + touchedBase,
                      source1},
-                    baseDirectory,
-                    libDirectory)
+                    _baseDirectory,
+                    RuntimeEnvironment.GetRuntimeDirectory(),
+                    s_libDirectory)
                 Dim expectedReads As List(Of String) = Nothing
                 Dim expectedWrites As List(Of String) = Nothing
                 BuildTouchedFiles(cmd,

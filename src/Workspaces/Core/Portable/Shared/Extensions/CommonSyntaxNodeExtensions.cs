@@ -266,7 +266,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             SyntaxNode lastNode = null;
             TextSpan? textSpan = null;
-            foreach (var node in nodes)
+
+            // Sort the nodes in source location order.
+            foreach (var node in nodes.OrderBy(n => n.SpanStart))
             {
                 if (lastNode == null)
                 {

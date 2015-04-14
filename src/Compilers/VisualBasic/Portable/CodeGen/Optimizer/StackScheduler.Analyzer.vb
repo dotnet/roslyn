@@ -523,7 +523,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                             Me._lastExpressionCnt += 1
 
                         Case ExprContext.Sideeffects
-                        ' do nothing
+                            ' do nothing
 
                         Case ExprContext.Value,
                             ExprContext.Box
@@ -880,6 +880,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Public Overrides Function VisitConditionalAccessReceiverPlaceholder(node As BoundConditionalAccessReceiverPlaceholder) As BoundNode
                 Return MyBase.VisitConditionalAccessReceiverPlaceholder(node)
+            End Function
+
+            Public Overrides Function VisitComplexConditionalAccessReceiver(node As BoundComplexConditionalAccessReceiver) As BoundNode
+                EnsureOnlyEvalStack()
+
+                Dim origStack As Integer = Me._evalStack
+
+                Me._evalStack += 1
+
+                Dim cookie As Object = GetStackStateCookie() ' implicit goto here
+
+                Me._evalStack = origStack ' consequence is evaluated with original stack
+                Dim valueTypeReceiver = DirectCast(Me.Visit(node.ValueTypeReceiver), BoundExpression)
+
+                EnsureStackState(cookie) ' implicit label here
+
+                Me._evalStack = origStack ' alternative is evaluated with original stack
+                Dim referenceTypeReceiver = DirectCast(Me.Visit(node.ReferenceTypeReceiver), BoundExpression)
+
+                EnsureStackState(cookie) ' implicit label here
+
+                Return node.Update(valueTypeReceiver, referenceTypeReceiver, node.Type)
             End Function
 
             Public Overrides Function VisitBinaryOperator(node As BoundBinaryOperator) As BoundNode

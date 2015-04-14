@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
-    NotInheritable Class MidAssignmentDocumentation
+    Friend NotInheritable Class MidAssignmentDocumentation
         Inherits AbstractIntrinsicOperatorDocumentation
 
         Public Overrides ReadOnly Property DocumentationText As String

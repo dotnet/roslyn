@@ -17,6 +17,7 @@
     <LargeAddressAware>true</LargeAddressAware>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\CSharp\Desktop\CSharpCodeAnalysis.Desktop.csproj">
@@ -103,6 +104,11 @@
     <Compile Include="ServerDispatcher.cs" />
     <Compile Include="ServerDispatcher.MemoryHelper.cs" />
     <Compile Include="VisualBasicCompilerServer.cs" />
+  </ItemGroup>
+  <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\Helpers\InMemoryAssemblyProvider.cs">
+      <Link>InMemoryAssemblyProvider.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

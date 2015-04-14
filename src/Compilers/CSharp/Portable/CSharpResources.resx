@@ -4332,8 +4332,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ChainingSpeculativeModelIsNotSupported" xml:space="preserve">
     <value>Chaining speculative semantic model is not supported. You should create a speculative model from the non-speculative ParentModel.</value>
   </data>
+  <data name="IDS_ToolName" xml:space="preserve">
+    <value>Microsoft (R) Visual C# Compiler</value>
+  </data>
   <data name="IDS_LogoLine1" xml:space="preserve">
-    <value>Microsoft (R) Visual C# Compiler version {0}</value>
+    <value>{0} version {1}</value>
   </data>
   <data name="IDS_LogoLine2" xml:space="preserve">
     <value>Copyright (C) Microsoft Corporation. All rights reserved.</value>
@@ -4402,7 +4405,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /nowarn:&lt;warn list&gt;           Disable specific warning messages
  /ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
                                diagnostics.
-
+ /errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
+                               diagnostics.
+ 
                         - LANGUAGE -
  /checked[+|-]                 Generate overflow checks
  /unsafe[+|-]                  Allow 'unsafe' code
@@ -4498,6 +4503,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_CantReadRulesetFile" xml:space="preserve">
     <value>Error reading ruleset file {0} - {1}</value>
+  </data>
+  <data name="ERR_BadPdbData" xml:space="preserve">
+    <value>Error reading debug information for '{0}'</value>
   </data>
   <data name="IDS_OperationCausedStackOverflow" xml:space="preserve">
     <value>Operation caused a stack overflow.</value>

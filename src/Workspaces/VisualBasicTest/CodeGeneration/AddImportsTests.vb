@@ -208,19 +208,19 @@ End Class",
 End Class")
         End Sub
 
-    <Fact>
-    Public Sub TestImportNotAddedIfGloballyImported()
-        Test(
-"Class C
+        <Fact>
+        Public Sub TestImportNotAddedIfGloballyImported()
+            Test(
+    "Class C
     Public F As System.Collections.Generic.List(Of Integer)
 End Class",
-"Class C
+    "Class C
     Public F As System.Collections.Generic.List(Of Integer)
 End Class",
-"Class C
+    "Class C
     Public F As List(Of Integer)
 End Class",
-globalImports:={"System.Collections.Generic"})
+    globalImports:={"System.Collections.Generic"})
 
         End Sub
 
@@ -235,22 +235,22 @@ End Namespace",
 End Namespace")
         End Sub
 
-<Fact>
-Public Sub TestImportAddedAndRemovedForReferencesInsideNamespaceDeclarations()
-    Test(
-"Namespace N
+        <Fact>
+        Public Sub TestImportAddedAndRemovedForReferencesInsideNamespaceDeclarations()
+            Test(
+        "Namespace N
     Class C
         Private _c As N.C
     End Class
 End Namespace",
-"Imports N
+        "Imports N
 
 Namespace N
     Class C
         Private _c As N.C
     End Class
 End Namespace",
-"Namespace N
+        "Namespace N
     Class C
         Private _c As C
     End Class

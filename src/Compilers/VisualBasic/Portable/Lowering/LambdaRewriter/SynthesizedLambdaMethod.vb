@@ -44,14 +44,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub New(containingType As InstanceTypeSymbol,
                        closureKind As ClosureKind,
                        topLevelMethod As MethodSymbol,
-                       topLevelMethodId As MethodDebugId,
+                       topLevelMethodId As DebugId,
                        lambdaNode As BoundLambda,
-                       lambdaOrdinal As Integer,
+                       lambdaId As DebugId,
                        diagnostics As DiagnosticBag)
 
             MyBase.New(lambdaNode.Syntax,
                        containingType,
-                       MakeName(topLevelMethodId, closureKind, lambdaNode.LambdaSymbol.SynthesizedKind, lambdaOrdinal),
+                       MakeName(topLevelMethodId, closureKind, lambdaNode.LambdaSymbol.SynthesizedKind, lambdaId),
                        isShared:=False)
 
             Me._lambda = lambdaNode.LambdaSymbol
@@ -84,17 +84,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._topLevelMethod = topLevelMethod
         End Sub
 
-        Private Shared Function MakeName(topLevelMethodId As MethodDebugId,
+        Private Shared Function MakeName(topLevelMethodId As DebugId,
                                          closureKind As ClosureKind,
                                          lambdaKind As SynthesizedLambdaKind,
-                                         lambdaOrdinal As Integer) As String
+                                         lambdaId As DebugId) As String
             ' Lambda method name must contain the declaring method ordinal to be unique unless the method is emitted into a closure class exclusive to the declaring method.
             ' Lambdas that only close over "Me" are emitted directly into the top-level method containing type.
             ' Lambdas that don't close over anything (static) are emitted into a shared closure singleton.
             Return GeneratedNames.MakeLambdaMethodName(
                 If(closureKind = ClosureKind.General, -1, topLevelMethodId.Ordinal),
                 topLevelMethodId.Generation,
-                lambdaOrdinal,
+                lambdaId.Ordinal,
+                lambdaId.Generation,
                 lambdaKind)
         End Function
 

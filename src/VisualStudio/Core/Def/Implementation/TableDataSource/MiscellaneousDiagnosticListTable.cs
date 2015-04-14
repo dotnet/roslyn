@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.TableControl;
 using Microsoft.VisualStudio.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
@@ -21,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             SVsServiceProvider serviceProvider, MiscellaneousFilesWorkspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
             base(serviceProvider, workspace, diagnosticService, Identifier, provider)
         {
-            AddTableSource();
+            ConnectWorkspaceEvents();
         }
 
         /// this is for test only

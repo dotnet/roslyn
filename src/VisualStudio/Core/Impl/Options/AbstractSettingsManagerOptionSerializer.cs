@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var values = new List<KeyValuePair<string, IOption>>();
             foreach (Type type in types)
             {
-                FieldInfo[] fields = type.GetFields(flags) ?? new FieldInfo[0];
+                FieldInfo[] fields = type.GetFields(flags) ?? Array.Empty<FieldInfo>();
                 Func<FieldInfo, bool> localFilter = (fi) =>
                     {
                         if (!(fi.GetValue(null) is IOption))

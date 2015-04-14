@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 #Region "Symbol / Type Info"
 
         <Fact>
-        Sub WithAliasedStaticField()
+        Public Sub WithAliasedStaticField()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
@@ -49,7 +49,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub WithDeclaresAnonymousLocalSymbolAndTypeInfo()
+        Public Sub WithDeclaresAnonymousLocalSymbolAndTypeInfo()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
@@ -76,7 +76,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(544083, "DevDiv")>
-        Sub WithSpeculativeSymbolInfo()
+        Public Sub WithSpeculativeSymbolInfo()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
@@ -114,7 +114,7 @@ End Module
 #Region "FlowAnalysis"
 
         <Fact>
-        Sub UseWithVariableInNestedLambda()
+        Public Sub UseWithVariableInNestedLambda()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation>
     <file name="a.vb">
@@ -152,7 +152,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub WithDeclaresAnonymousLocalDataFlow()
+        Public Sub WithDeclaresAnonymousLocalDataFlow()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation>
     <file name="a.vb">
@@ -184,7 +184,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub EmptyWith()
+        Public Sub EmptyWith()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation>
     <file name="a.vb">

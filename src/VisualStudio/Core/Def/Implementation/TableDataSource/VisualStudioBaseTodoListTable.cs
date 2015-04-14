@@ -22,13 +22,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         private static readonly string[] s_columns = new string[]
         {
-            ShimTableColumnDefinitions.Priority,
+            StandardTableColumnDefinitions.Priority,
             StandardTableColumnDefinitions.Text,
-            ShimTableColumnDefinitions.ProjectName,
+            StandardTableColumnDefinitions.ProjectName,
             StandardTableColumnDefinitions.DocumentName,
             StandardTableColumnDefinitions.Line,
             StandardTableColumnDefinitions.Column,
-            ShimTableColumnDefinitions.TaskCategory
+            StandardTableColumnDefinitions.TaskCategory
         };
 
         protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, Guid identifier, ITableManagerProvider provider) :
@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         internal override IReadOnlyCollection<string> Columns { get { return s_columns; } }
 
-        private class TableDataSource : AbstractTableDataSource<TaskListEventArgs, TodoTaskItem>
+        private class TableDataSource : AbstractRoslynTableDataSource<TaskListEventArgs, TodoTaskItem>
         {
             private readonly Workspace _workspace;
             private readonly Guid _identifier;
@@ -110,7 +110,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private readonly Workspace _workspace;
                 private readonly DocumentId _documentId;
 
-                public TableEntriesFactory(TableDataSource source, Workspace workspace, DocumentId documentId)
+                public TableEntriesFactory(TableDataSource source, Workspace workspace, DocumentId documentId) :
+                    base(source)
                 {
                     _source = source;
                     _workspace = workspace;
@@ -168,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                         switch (columnName)
                         {
-                            case ShimTableKeyNames.Priority:
+                            case StandardTableKeyNames.Priority:
                                 content = (VSTASKPRIORITY)item.Priority;
                                 return true;
                             case StandardTableKeyNames.Text:
@@ -183,13 +184,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case StandardTableKeyNames.Column:
                                 content = GetLineColumn(item).Character;
                                 return true;
-                            case ShimTableKeyNames.ProjectName:
+                            case StandardTableKeyNames.ProjectName:
                                 content = GetProjectName(_factory._workspace, _factory._documentId.ProjectId);
                                 return content != null;
-                            case ShimTableKeyNames.Project:
-                                content = GetHierarchy(_factory._workspace, _factory._documentId.ProjectId);
+                            case StandardTableKeyNames.Project:
+                                content = GetHierarchy(_factory._workspace, _factory._documentId.ProjectId, _factory._documentId);
                                 return content != null;
-                            case ShimTableKeyNames.TaskCategory:
+                            case StandardTableKeyNames.TaskCategory:
                                 content = VSTASKCATEGORY.CAT_COMMENTS;
                                 return true;
                             default:

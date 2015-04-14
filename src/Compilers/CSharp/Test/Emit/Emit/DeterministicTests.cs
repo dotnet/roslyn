@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 options: TestOptions.ReleaseExe.WithFeatures(ImmutableArray.Create("deterministic")));
 
             Guid result = default(Guid);
-            base.CompileAndVerify(compilation, emitOptions: TestEmitters.CCI, validator: (a, eo) =>
+            base.CompileAndVerify(compilation, emitters: TestEmitters.CCI, validator: (a, eo) =>
             {
                 var module = a.Modules[0];
                 result = module.GetModuleVersionIdOrThrow();
@@ -32,13 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             return result;
         }
 
-        private ImmutableArray<byte> GetBytesEmitted(string source, Platform platform, bool debug, bool deterministic)
+        private ImmutableArray<byte> EmitDeterministic(string source, Platform platform, bool debug)
         {
             var options = (debug ? TestOptions.DebugExe : TestOptions.ReleaseExe).WithPlatform(platform);
-            if (deterministic)
-            {
-                options = options.WithFeatures((new[] { "dEtErmInIstIc" }).AsImmutable()); // expect case-insensitivity
-            }
+            options = options.WithFeatures((new[] { "dEtErmInIstIc" }).AsImmutable()); // expect case-insensitivity
 
             var compilation = CreateCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef }, options: options);
 
@@ -47,19 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             Thread.Sleep(TimeSpan.FromSeconds(1));
 
             return compilation.EmitToArray();
-        }
-
-        private class ImmutableByteArrayEqualityComparer : IEqualityComparer<ImmutableArray<byte>>
-        {
-            public bool Equals(ImmutableArray<byte> x, ImmutableArray<byte> y)
-            {
-                return x.SequenceEqual(y);
-            }
-
-            public int GetHashCode(ImmutableArray<byte> obj)
-            {
-                return obj.GetHashCode();
-            }
         }
 
         [Fact(Skip = "900646"), WorkItem(900646)]
@@ -80,28 +64,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         }
 
         [Fact]
-        public void CompareAllBytesEmitted()
+        public void CompareAllBytesEmitted_Release()
         {
             var source =
 @"class Program
 {
     public static void Main(string[] args) {}
 }";
-            var comparer = new ImmutableByteArrayEqualityComparer();
+            var result1 = EmitDeterministic(source, platform: Platform.AnyCpu32BitPreferred, debug: false);
+            var result2 = EmitDeterministic(source, platform: Platform.AnyCpu32BitPreferred, debug: false);
+            AssertEx.Equal(result1, result2);
 
-            var result1 = GetBytesEmitted(source, platform: Platform.AnyCpu32BitPreferred, debug: true, deterministic: true);
-            var result2 = GetBytesEmitted(source, platform: Platform.AnyCpu32BitPreferred, debug: true, deterministic: true);
-            Assert.Equal(result1, result2, comparer);
+            var result3 = EmitDeterministic(source, platform: Platform.X64, debug: false);
+            var result4 = EmitDeterministic(source, platform: Platform.X64, debug: false);
+            AssertEx.Equal(result3, result4);
+        }
 
-            var result3 = GetBytesEmitted(source, platform: Platform.X64, debug: false, deterministic: true);
-            var result4 = GetBytesEmitted(source, platform: Platform.X64, debug: false, deterministic: true);
-            Assert.Equal(result3, result4, comparer);
-            Assert.NotEqual(result1, result3, comparer);
+        [Fact(Skip="https://github.com/dotnet/roslyn/issues/926"), WorkItem(926)]
+        public void CompareAllBytesEmitted_Debug()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args) {}
+}";
+            var result1 = EmitDeterministic(source, platform: Platform.AnyCpu32BitPreferred, debug: true);
+            var result2 = EmitDeterministic(source, platform: Platform.AnyCpu32BitPreferred, debug: true);
+            AssertEx.Equal(result1, result2);
 
-            var result5 = GetBytesEmitted(source, platform: Platform.X64, debug: false, deterministic: false);
-            var result6 = GetBytesEmitted(source, platform: Platform.X64, debug: false, deterministic: false);
-            Assert.NotEqual(result5, result6, comparer);
-            Assert.NotEqual(result3, result5, comparer);
+            var result3 = EmitDeterministic(source, platform: Platform.X64, debug: true);
+            var result4 = EmitDeterministic(source, platform: Platform.X64, debug: true);
+            AssertEx.Equal(result3, result4);
         }
 
         [Fact]

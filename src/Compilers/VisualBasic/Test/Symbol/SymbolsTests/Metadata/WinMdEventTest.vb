@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
     Public Class WinMdEventTest
         Inherits BasicTestBase
 
-        Private EventInterfaceILTemplate As String = <![CDATA[
+        Private _eventInterfaceILTemplate As String = <![CDATA[
 .class interface public abstract auto ansi {0}
 {{
   .method public hidebysig newslot specialname abstract virtual 
@@ -55,9 +55,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
   }}
 }} // end of class {0}
 ]]>.Value
-        Private ReadOnly EventLibRef As MetadataReference
+        Private ReadOnly _eventLibRef As MetadataReference
 
-        Private DynamicCommonSrc As XElement =
+        Private _dynamicCommonSrc As XElement =
             <compilation>
                 <file name="dynamic_common.vb">
                     <![CDATA[
@@ -154,7 +154,7 @@ Namespace EventLibrary
 End Namespace
 ]]>
                     </file></compilation>
-            EventLibRef = CreateCompilationWithReferences(
+            _eventLibRef = CreateCompilationWithReferences(
                 eventLibSrc,
                 references:={MscorlibRef_v4_0_30316_17626, SystemCoreRef_v4_0_30319_17929},
                 options:=TestOptions.ReleaseWinMD).EmitToImageReference()
@@ -205,10 +205,10 @@ End Class
 ]]>
                     </file></compilation>
             Dim dynamicCommonRef As MetadataReference = CreateCompilationWithReferences(
-                DynamicCommonSrc,
+                _dynamicCommonSrc,
                 references:={
                     MscorlibRef_v4_0_30316_17626,
-                    EventLibRef},
+                    _eventLibRef},
                 options:=TestOptions.ReleaseModule).EmitToImageReference()
 
             Dim verifer = CompileAndVerifyOnWin8Only(
@@ -217,9 +217,9 @@ End Class
                     MscorlibRef_v4_0_30316_17626,
                     SystemCoreRef_v4_0_30319_17929,
                     CSharpRef,
-                    EventLibRef,
+                    _eventLibRef,
                     dynamicCommonRef},
-                emitOptions:=TestEmitters.RefEmitBug)
+                emitters:=TestEmitters.RefEmitBug)
             verifer.VerifyIL("C.Main", <![CDATA[
 {
   // Code size      931 (0x3a3)
@@ -575,7 +575,7 @@ Public Partial Class A
 ]]>
                     </file>
                     <file name="b.vb">
-                        <%= DynamicCommonSrc %>
+                        <%= _dynamicCommonSrc %>
                     </file>
                 </compilation>
 
@@ -584,8 +584,8 @@ Public Partial Class A
                 allReferences:={
                     MscorlibRef_v4_0_30316_17626,
                     SystemCoreRef_v4_0_30319_17929,
-                    EventLibRef},
-                emitOptions:=TestEmitters.RefEmitBug)
+                    _eventLibRef},
+                emitters:=TestEmitters.RefEmitBug)
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("A.Scenario1", <![CDATA[
 {
@@ -1021,7 +1021,7 @@ End Class
         </file>
 </compilation>
 
-            Dim ilRef = CompileIL(String.Format(EventInterfaceILTemplate, "I"))
+            Dim ilRef = CompileIL(String.Format(_eventInterfaceILTemplate, "I"))
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
                 Dim comp = CreateCompilationWithReferences(source, WinRtRefs.Concat({ilRef}), New VisualBasicCompilationOptions(kind))
@@ -1059,7 +1059,7 @@ End Class
         </file>
 </compilation>
 
-            Dim ilRef = CompileIL(String.Format(EventInterfaceILTemplate, "I1") + String.Format(EventInterfaceILTemplate, "I2"))
+            Dim ilRef = CompileIL(String.Format(_eventInterfaceILTemplate, "I1") + String.Format(_eventInterfaceILTemplate, "I2"))
 
             Dim comp = CreateCompilationWithReferences(source, WinRtRefs.Concat({ilRef}), TestOptions.ReleaseDll)
             comp.VerifyDiagnostics(
@@ -1089,7 +1089,7 @@ End Class
         </file>
 </compilation>
 
-            Dim ilRef = CompileIL(String.Format(EventInterfaceILTemplate, "I1") + String.Format(EventInterfaceILTemplate, "I2"))
+            Dim ilRef = CompileIL(String.Format(_eventInterfaceILTemplate, "I1") + String.Format(_eventInterfaceILTemplate, "I2"))
 
             Dim comp = CreateCompilationWithReferences(source, WinRtRefs.Concat({ilRef}), TestOptions.ReleaseDll)
 

@@ -8,6 +8,7 @@ using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Immutable;
 using Xunit;
+using Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

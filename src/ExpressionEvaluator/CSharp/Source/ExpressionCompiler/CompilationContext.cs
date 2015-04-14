@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Microsoft.VisualStudio.SymReaderInterop;
+using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MetadataDecoder metadataDecoder,
             MethodSymbol currentFrame,
             ImmutableArray<LocalSymbol> locals,
-            ImmutableSortedSet<int> inScopeHoistedLocalIndices,
+            InScopeHoistedLocals inScopeHoistedLocals,
             MethodDebugInfo methodDebugInfo,
             CSharpSyntaxNode syntax)
         {
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 GetDisplayClassVariables(
                     currentFrame,
                     _locals,
-                    inScopeHoistedLocalIndices,
+                    inScopeHoistedLocals,
                     out displayClassVariableNamesInOrder,
                     out _displayClassVariables,
                     out _hoistedParameterNames);
@@ -1053,7 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static void GetDisplayClassVariables(
             MethodSymbol method,
             ImmutableArray<LocalSymbol> locals,
-            ImmutableSortedSet<int> inScopeHoistedLocalIndices,
+            InScopeHoistedLocals inScopeHoistedLocals,
             out ImmutableArray<string> displayClassVariableNamesInOrder,
             out ImmutableDictionary<string, DisplayClassVariable> displayClassVariables,
             out ImmutableHashSet<string> hoistedParameterNames)
@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         displayClassVariableNamesInOrderBuilder,
                         displayClassVariablesBuilder,
                         parameterNames,
-                        inScopeHoistedLocalIndices,
+                        inScopeHoistedLocals,
                         instance,
                         pooledHoistedParameterNames);
                 }
@@ -1220,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ArrayBuilder<string> displayClassVariableNamesInOrderBuilder,
             Dictionary<string, DisplayClassVariable> displayClassVariablesBuilder,
             HashSet<string> parameterNames,
-            ImmutableSortedSet<int> inScopeHoistedLocalIndices,
+            InScopeHoistedLocals inScopeHoistedLocals,
             DisplayClassInstanceAndFields instance,
             HashSet<string> hoistedParameterNames)
         {
@@ -1252,8 +1252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         // Filter out hoisted locals that are known to be out-of-scope at the current IL offset.
                         // Hoisted locals with invalid indices will be included since more information is better
                         // than less in error scenarios.
-                        int slotIndex;
-                        if (GeneratedNames.TryParseSlotIndex(fieldName, out slotIndex) && !inScopeHoistedLocalIndices.Contains(slotIndex))
+                        if (!inScopeHoistedLocals.IsInScope(fieldName))
                         {
                             continue;
                         }

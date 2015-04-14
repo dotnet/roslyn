@@ -47,6 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _writtenOutside As HashSet(Of Symbol) = New HashSet(Of Symbol)()
         Private ReadOnly _captured As HashSet(Of Symbol) = New HashSet(Of Symbol)()
         Private _currentMethodOrLambda As Symbol
+        Private _currentQueryLambda As BoundQueryLambda
 
         Protected Overrides Sub NoteRead(variable As Symbol)
             If IsCompilerGeneratedTempLocal(variable) Then
@@ -79,6 +80,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
                 MyBase.NoteWrite(variable, value)
                 CheckCaptured(variable)
+            End If
+        End Sub
+
+        Private Sub NoteCaptured(variable As Symbol)
+            If variable.Kind <> SymbolKind.RangeVariable Then
+                _captured.Add(variable)
+            Else
+                Select Case Me._regionPlace
+                    Case RegionPlace.Before, RegionPlace.After
+                        ' range variables are only returned in the captured set if inside the region
+                    Case RegionPlace.Inside
+                        _captured.Add(variable)
+                    Case Else
+                        Debug.Assert(False)
+                End Select
             End If
         End Sub
 
@@ -135,13 +151,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case variable.Kind
                 Case SymbolKind.Local
                     Dim local = DirectCast(variable, LocalSymbol)
-                    If Not (local.IsConst Or Me._currentMethodOrLambda = local.ContainingSymbol) Then
-                        Me._captured.Add(local)
+                    If Not local.IsConst AndAlso Me._currentMethodOrLambda <> local.ContainingSymbol Then
+                        Me.NoteCaptured(local)
                     End If
                 Case SymbolKind.Parameter
                     Dim param = DirectCast(variable, ParameterSymbol)
-                    If Not (Me._currentMethodOrLambda = param.ContainingSymbol) Then
-                        Me._captured.Add(param)
+                    If Me._currentMethodOrLambda <> param.ContainingSymbol Then
+                        Me.NoteCaptured(param)
+                    End If
+                Case SymbolKind.RangeVariable
+                    Dim range = DirectCast(variable, RangeVariableSymbol)
+                    If Me._currentMethodOrLambda <> range.ContainingSymbol AndAlso
+                        Me._currentQueryLambda IsNot Nothing AndAlso ' might be Nothing in error scenarios
+                        (Me._currentMethodOrLambda <> Me._currentQueryLambda.LambdaSymbol OrElse
+                            Not Me._currentQueryLambda.RangeVariables.Contains(range)) Then
+                        Me.NoteCaptured(range) ' Range variables only captured if in region
                     End If
             End Select
         End Sub
@@ -157,8 +181,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitQueryLambda(node As BoundQueryLambda) As BoundNode
             Dim previousMethod = Me._currentMethodOrLambda
             Me._currentMethodOrLambda = node.LambdaSymbol
+            Dim previousQueryLambda = Me._currentQueryLambda
+            Me._currentQueryLambda = node
             Dim result = MyBase.VisitQueryLambda(node)
             Me._currentMethodOrLambda = previousMethod
+            Me._currentQueryLambda = previousQueryLambda
             Return result
         End Function
 

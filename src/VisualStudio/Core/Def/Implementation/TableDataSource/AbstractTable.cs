@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.TableControl;
 using Microsoft.VisualStudio.TableManager;
 using Roslyn.Utilities;
 
@@ -14,9 +15,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly Workspace _workspace;
         private readonly ITableManagerProvider _provider;
 
-        protected readonly AbstractTableDataSource<TArgs, TData> Source;
+        protected readonly AbstractRoslynTableDataSource<TArgs, TData> Source;
 
-        protected AbstractTable(Workspace workspace, ITableManagerProvider provider, Guid tableIdentifier, AbstractTableDataSource<TArgs, TData> source)
+        protected AbstractTable(Workspace workspace, ITableManagerProvider provider, Guid tableIdentifier, AbstractRoslynTableDataSource<TArgs, TData> source)
         {
             _workspace = workspace;
             _provider = provider;

@@ -174,7 +174,7 @@ line: 78
 line: 79
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected, emitOptions: TestEmitters.RefEmitBug_646048);
+            CompileAndVerify(compilation, expectedOutput: expected, emitters: TestEmitters.RefEmitBug_646048);
         }
 
         [Fact]

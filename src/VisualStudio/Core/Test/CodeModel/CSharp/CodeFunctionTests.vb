@@ -906,7 +906,7 @@ class A
 
 #Region "RemoveParameter tests"
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveParameter1()
+        Public Sub RemoveParameter1()
             Dim code =
 <Code>
 class C
@@ -927,7 +927,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveParameter2()
+        Public Sub RemoveParameter2()
             Dim code =
 <Code>
 class C
@@ -948,7 +948,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveParameter3()
+        Public Sub RemoveParameter3()
             Dim code =
 <Code>
 class C
@@ -969,7 +969,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub RemoveParameter4()
+        Public Sub RemoveParameter4()
             Dim code =
 <Code>
 class C
@@ -993,7 +993,7 @@ class C
 
 #Region "AddParameter tests"
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub AddParameter1()
+        Public Sub AddParameter1()
             Dim code =
 <Code>
 class C
@@ -1014,7 +1014,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub AddParameter2()
+        Public Sub AddParameter2()
             Dim code =
 <Code>
 class C
@@ -1035,7 +1035,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub AddParameter3()
+        Public Sub AddParameter3()
             Dim code =
 <Code>
 class C
@@ -1056,7 +1056,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub AddParameter4()
+        Public Sub AddParameter4()
             Dim code =
 <Code>
 class C
@@ -1080,7 +1080,7 @@ class C
 #Region "Set Access tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetAccess1()
+        Public Sub SetAccess1()
             Dim code =
 <Code>
 class C
@@ -1107,7 +1107,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetAccess2()
+        Public Sub SetAccess2()
             Dim code =
 <Code>
 class C
@@ -1134,7 +1134,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetAccess3()
+        Public Sub SetAccess3()
             Dim code =
 <Code>
 class C
@@ -1161,7 +1161,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetAccess4()
+        Public Sub SetAccess4()
             Dim code =
 <Code>
 class C
@@ -1188,7 +1188,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetAccess5()
+        Public Sub SetAccess5()
             Dim code =
 <Code>
 class C
@@ -1215,7 +1215,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetAccess6()
+        Public Sub SetAccess6()
             Dim code =
 <Code>
 interface I
@@ -1236,7 +1236,7 @@ interface I
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetAccess7()
+        Public Sub SetAccess7()
             Dim code =
 <Code>
 interface I
@@ -1261,7 +1261,7 @@ interface I
 #Region "Set IsShared tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared1()
+        Public Sub SetIsShared1()
             Dim code =
 <Code>
 class C
@@ -1286,7 +1286,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared2()
+        Public Sub SetIsShared2()
             Dim code =
 <Code>
 class C
@@ -1311,7 +1311,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared3()
+        Public Sub SetIsShared3()
             Dim code =
 <Code>
 class C
@@ -1336,7 +1336,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared4()
+        Public Sub SetIsShared4()
             Dim code =
 <Code>
 class C
@@ -1365,7 +1365,7 @@ class C
 #Region "Set CanOverride tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetCanOverride1()
+        Public Sub SetCanOverride1()
             Dim code =
 <Code>
 class C
@@ -1390,7 +1390,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetCanOverride2()
+        Public Sub SetCanOverride2()
             Dim code =
 <Code>
 class C
@@ -1415,7 +1415,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetCanOverride3()
+        Public Sub SetCanOverride3()
             Dim code =
 <Code>
 class C
@@ -1440,7 +1440,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetCanOverride4()
+        Public Sub SetCanOverride4()
             Dim code =
 <Code>
 class C
@@ -1465,7 +1465,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetCanOverride5()
+        Public Sub SetCanOverride5()
             Dim code =
 <Code>
 interface I
@@ -1486,7 +1486,7 @@ interface I
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetCanOverride6()
+        Public Sub SetCanOverride6()
             Dim code =
 <Code>
 interface I
@@ -1511,7 +1511,7 @@ interface I
 #Region "Set MustImplement tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetMustImplement1()
+        Public Sub SetMustImplement1()
             Dim code =
 <Code>
 abstract class C
@@ -1534,7 +1534,7 @@ abstract class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetMustImplement2()
+        Public Sub SetMustImplement2()
             Dim code =
 <Code>
 abstract class C
@@ -1561,7 +1561,7 @@ abstract class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetMustImplement3()
+        Public Sub SetMustImplement3()
             Dim code =
 <Code>
 abstract class C
@@ -1585,7 +1585,7 @@ abstract class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetMustImplement4()
+        Public Sub SetMustImplement4()
             Dim code =
 <Code>
 abstract class C
@@ -1606,7 +1606,7 @@ abstract class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetMustImplement5()
+        Public Sub SetMustImplement5()
             Dim code =
 <Code>
 abstract class C
@@ -1631,7 +1631,7 @@ abstract class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetMustImplement6()
+        Public Sub SetMustImplement6()
             Dim code =
 <Code>
 class C
@@ -1656,7 +1656,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetMustImplement7()
+        Public Sub SetMustImplement7()
             Dim code =
 <Code>
 class C
@@ -1681,7 +1681,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetMustImplement8()
+        Public Sub SetMustImplement8()
             Dim code =
 <Code>
 interface I
@@ -1706,7 +1706,7 @@ interface I
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetMustImplement9()
+        Public Sub SetMustImplement9()
             Dim code =
 <Code>
 interface I
@@ -1735,7 +1735,7 @@ interface I
 #Region "Set OverrideKind tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetOverrideKind1()
+        Public Sub SetOverrideKind1()
             Dim code =
 <Code>
 class C
@@ -1760,7 +1760,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetOverrideKind2()
+        Public Sub SetOverrideKind2()
             Dim code =
 <Code>
 class C
@@ -1785,7 +1785,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetOverrideKind3()
+        Public Sub SetOverrideKind3()
             Dim code =
 <Code>
 abstract class C
@@ -1812,7 +1812,7 @@ abstract class C
 #Region "Set Name tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName1()
+        Public Sub SetName1()
             Dim code =
 <Code>
 class C
@@ -1841,7 +1841,7 @@ class C
 #Region "Set Type tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetType1()
+        Public Sub SetType1()
             Dim code =
 <Code>
 class C
@@ -1870,7 +1870,7 @@ class C
 #Region "ExtensionMethodExtender"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub ExtensionMethodExtender_IsExtension1()
+        Public Sub ExtensionMethodExtender_IsExtension1()
             Dim code =
 <Code>
 public static class C
@@ -1885,7 +1885,7 @@ public static class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub ExtensionMethodExtender_IsExtension2()
+        Public Sub ExtensionMethodExtender_IsExtension2()
             Dim code =
 <Code>
 public static class C
@@ -1904,7 +1904,7 @@ public static class C
 #Region "PartialMethodExtender"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_IsPartial1()
+        Public Sub PartialMethodExtender_IsPartial1()
             Dim code =
 <Code>
 public partial class C
@@ -1925,7 +1925,7 @@ public partial class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_IsPartial2()
+        Public Sub PartialMethodExtender_IsPartial2()
             Dim code =
 <Code>
 public partial class C
@@ -1946,7 +1946,7 @@ public partial class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_IsPartial3()
+        Public Sub PartialMethodExtender_IsPartial3()
             Dim code =
 <Code>
 public partial class C
@@ -1967,7 +1967,7 @@ public partial class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_IsDeclaration1()
+        Public Sub PartialMethodExtender_IsDeclaration1()
             Dim code =
 <Code>
 public partial class C
@@ -1988,7 +1988,7 @@ public partial class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_IsDeclaration2()
+        Public Sub PartialMethodExtender_IsDeclaration2()
             Dim code =
 <Code>
 public partial class C
@@ -2009,7 +2009,7 @@ public partial class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_IsDeclaration3()
+        Public Sub PartialMethodExtender_IsDeclaration3()
             Dim code =
 <Code>
 public partial class C
@@ -2030,7 +2030,7 @@ public partial class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_HasOtherPart1()
+        Public Sub PartialMethodExtender_HasOtherPart1()
             Dim code =
 <Code>
 public partial class C
@@ -2051,7 +2051,7 @@ public partial class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_HasOtherPart2()
+        Public Sub PartialMethodExtender_HasOtherPart2()
             Dim code =
 <Code>
 public partial class C
@@ -2072,7 +2072,7 @@ public partial class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_HasOtherPart3()
+        Public Sub PartialMethodExtender_HasOtherPart3()
             Dim code =
 <Code>
 public partial class C
@@ -2093,7 +2093,7 @@ public partial class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub PartialMethodExtender_HasOtherPart4()
+        Public Sub PartialMethodExtender_HasOtherPart4()
             Dim code =
 <Code>
 public partial class C
@@ -2110,7 +2110,7 @@ public partial class C
 #Region "Overloads Tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub TestOverloads1()
+        Public Sub TestOverloads1()
             Dim code =
 <Code>
 public static class C
@@ -2128,7 +2128,7 @@ public static class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub TestOverloads2()
+        Public Sub TestOverloads2()
             Dim code =
 <Code>
 public static class C
@@ -2142,7 +2142,7 @@ public static class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub TestOverloads3()
+        Public Sub TestOverloads3()
             Dim code =
 <Code>
 class A
@@ -2154,6 +2154,40 @@ class A
 }
 </Code>
             TestOverloadsUniqueSignatures(code, "A.#op_Plus(A,A)")
+        End Sub
+
+#End Region
+
+#Region "Parameter name tests"
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters()
+            Dim code =
+<Code>
+public class C
+{
+    public void $$Foo(int @int)
+    {
+    }
+}
+</Code>
+            TestAllParameterNames(code, "@int")
+        End Sub
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters_2()
+            Dim code =
+<Code>
+public class C
+{
+    public void $$Foo(int @int, string @string)
+    {
+    }
+}
+</Code>
+            TestAllParameterNames(code, "@int", "@string")
         End Sub
 
 #End Region

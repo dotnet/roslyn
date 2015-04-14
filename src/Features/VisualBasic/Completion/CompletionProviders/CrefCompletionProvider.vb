@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class CrefCompletionProvider
         Inherits AbstractCompletionProvider
 
-        Dim CrefFormat2 As SymbolDisplayFormat =
+        Private _crefFormat2 As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameOnly,
@@ -161,14 +161,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                       Dim displayString As String
                                       If s.Kind = SymbolKind.Method Then
                                           Dim method = DirectCast(s, IMethodSymbol)
-                                          displayString = method.ToDisplayString(CrefFormat2) + CreateParameters(method, semanticModel, position)
+                                          displayString = method.ToDisplayString(_crefFormat2) + CreateParameters(method, semanticModel, position)
                                           If method.MethodKind = MethodKind.UserDefinedOperator Then
                                               displayString = "Operator " + displayString
                                           End If
                                       ElseIf s.GetParameters().Any() Then
-                                          displayString = s.ToDisplayString(CrefFormat2) + CreateParameters(s, semanticModel, position)
+                                          displayString = s.ToDisplayString(_crefFormat2) + CreateParameters(s, semanticModel, position)
                                       Else
-                                          displayString = s.ToDisplayString(CrefFormat2)
+                                          displayString = s.ToDisplayString(_crefFormat2)
                                       End If
 
                                       Return New CompletionItem(Me, displayString, span, glyph:=s.GetGlyph(),

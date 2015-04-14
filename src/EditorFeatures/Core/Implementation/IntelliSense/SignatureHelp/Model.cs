@@ -64,14 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 : new Model(_disconnectedBufferGraph, TextSpan, Provider, Items, SelectedItem, ArgumentIndex, ArgumentCount, ArgumentName, selectedParameter);
         }
 
-        public SnapshotPoint GetCaretPositionInSubjectBuffer(SnapshotPoint viewCaretPosition, ITextSnapshot bufferSnapshot)
-        {
-            var currentModelSpanInView = GetCurrentSpanInView(viewCaretPosition.Snapshot);
-            SnapshotSpan currentModelSpanInSubjectBuffer = GetCurrentSpanInSubjectBuffer(bufferSnapshot);
-
-            return currentModelSpanInSubjectBuffer.Start + (viewCaretPosition - currentModelSpanInView.Start);
-        }
-
         public SnapshotSpan GetCurrentSpanInSubjectBuffer(ITextSnapshot bufferSnapshot)
         {
             return _disconnectedBufferGraph.SubjectBufferSnapshot

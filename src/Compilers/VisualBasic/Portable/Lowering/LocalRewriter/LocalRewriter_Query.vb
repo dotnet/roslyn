@@ -86,53 +86,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #If Not DEBUG Then
             If GenerateDebugInfo Then
 #End If
-            If node.Syntax.Kind = SyntaxKind.AggregateClause Then
-                Dim aggregateClause = DirectCast(node.Syntax, AggregateClauseSyntax)
 
-                If aggregateClause.AggregationVariables.Count = 1 Then
-                    ' We are dealing with a simple case of an Aggregate clause - a single aggregate
-                    ' function in the Into clause. This lambda is responsible for calculating that
-                    ' aggregate function. Actually, it includes all code generated for the entire
-                    ' Aggregate clause. We should create sequence point for the entire clause
-                    ' rather than sequence points for the top level expressions within the lambda.
-                    createSequencePoint = aggregateClause
-                    sequencePointSpan = aggregateClause.Span
-                Else
-                    ' We are dealing with a complex case of an Aggregate clause - two or more aggregate
-                    ' functions in the Into clause. There will be two lambdas assosiated with an Aggregate
-                    ' clause like this: 
-                    '     - one that calculates and caches the group;
-                    '     - and the other that calculates aggregate functions.
-                    ' If we are dealing with the first kind of lambda, we should create sequence point 
-                    ' that spans from begining of the Aggregate clause to the begining of the Into clause
-                    ' because all that code is involved into group calculation.
-                    Dim haveAggregation As Boolean = False
+            Select Case node.LambdaSymbol.SynthesizedKind
+                Case SynthesizedLambdaKind.AggregateQueryLambda
+                    Dim aggregateClause = DirectCast(node.Syntax.Parent.Parent, AggregateClauseSyntax)
 
-                    If node.Expression.Kind = BoundKind.AnonymousTypeCreationExpression Then
-                        For Each n In DirectCast(node.Expression, BoundAnonymousTypeCreationExpression).Arguments
-                            If n.Syntax.Kind = SyntaxKind.AggregationRangeVariable Then
-                                haveAggregation = True
-                                Exit For
-                            End If
-                        Next
-                    End If
+                    If aggregateClause.AggregationVariables.Count = 1 Then
+                        ' We are dealing with a simple case of an Aggregate clause - a single aggregate
+                        ' function in the Into clause. This lambda is responsible for calculating that
+                        ' aggregate function. Actually, it includes all code generated for the entire
+                        ' Aggregate clause. We should create sequence point for the entire clause
+                        ' rather than sequence points for the top level expressions within the lambda.
+                        createSequencePoint = aggregateClause
+                        sequencePointSpan = aggregateClause.Span
+                    Else
+                        ' We should create sequence point that spans from begining of the Aggregate clause 
+                        ' to the begining of the Into clause because all that code is involved into group calculation.
 
-                    If Not haveAggregation Then
                         createSequencePoint = aggregateClause
                         If aggregateClause.AdditionalQueryOperators.Count = 0 Then
                             sequencePointSpan = TextSpan.FromBounds(aggregateClause.SpanStart,
-                                                                        aggregateClause.Variables.Last.Span.End)
+                                                                    aggregateClause.Variables.Last.Span.End)
                         Else
                             sequencePointSpan = TextSpan.FromBounds(aggregateClause.SpanStart,
-                                                                        aggregateClause.AdditionalQueryOperators.Last.Span.End)
+                                                                    aggregateClause.AdditionalQueryOperators.Last.Span.End)
                         End If
                     End If
-                End If
-            ElseIf node.Syntax.Parent.IsKind(SyntaxKind.ExpressionRangeVariable) AndAlso node.Syntax.Parent.Parent.IsKind(SyntaxKind.LetClause) Then
-                ' We will apply sequence points to synthesized return statements if they are contained in LetClause
-                createSequencePoint = node.Syntax
-                sequencePointSpan = TextSpan.FromBounds(node.Syntax.SpanStart, node.Syntax.Span.End)
-            End If
+
+                Case SynthesizedLambdaKind.LetVariableQueryLambda
+                    ' We will apply sequence points to synthesized return statements if they are contained in LetClause
+                    Debug.Assert(node.Syntax.Parent.IsKind(SyntaxKind.ExpressionRangeVariable))
+
+                    createSequencePoint = node.Syntax
+                    sequencePointSpan = TextSpan.FromBounds(node.Syntax.SpanStart, node.Syntax.Span.End)
+            End Select
 
             _createSequencePointsForTopLevelNonCompilerGeneratedExpressions = (createSequencePoint Is Nothing)
 #If Not DEBUG Then

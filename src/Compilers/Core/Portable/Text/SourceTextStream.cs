@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly SourceText _source;
         private readonly Encoder _encoder;
 
-        private int _minimumTargetBufferCount;
+        private readonly int _minimumTargetBufferCount;
         private int _position;
         private int _sourceOffset;
         private readonly char[] _charBuffer;

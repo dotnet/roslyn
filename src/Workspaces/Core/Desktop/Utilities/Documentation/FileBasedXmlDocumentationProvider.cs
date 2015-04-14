@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+using System.IO;
 using Roslyn.Utilities;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -22,9 +18,9 @@ namespace Microsoft.CodeAnalysis
             _filePath = filePath;
         }
 
-        protected override XDocument GetXDocument()
+        protected override Stream GetSourceStream(CancellationToken cancellationToken)
         {
-            return XDocument.Load(_filePath);
+            return new FileStream(_filePath, FileMode.Open, FileAccess.Read);
         }
 
         public override bool Equals(object obj)

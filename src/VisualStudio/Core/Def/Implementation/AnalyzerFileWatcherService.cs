@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _updateSource = hostDiagnosticUpdateSource;
             _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
 
-            AnalyzerFileReference.AssemblyLoad += AnalyzerFileReference_AssemblyLoad;
+            InMemoryAssemblyProvider.AssemblyLoad += AnalyzerFileReference_AssemblyLoad;
         }
 
         internal void ErrorIfAnalyzerAlreadyLoaded(ProjectId projectId, string analyzerPath)
@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private void AnalyzerFileReference_AssemblyLoad(object sender, AnalyzerAssemblyLoadEventArgs e)
+        private void AnalyzerFileReference_AssemblyLoad(object sender, InMemoryAssemblyProvider.AssemblyLoadEventArgs e)
         {
             lock (_guard)
             {
@@ -148,11 +148,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Traverse the chain of requesting assemblies to get back to the original analyzer
             // assembly.
             var assemblyPath = filePath;
-            var requestingAssemblyPath = AnalyzerFileReference.TryGetRequestingAssemblyPath(filePath);
+            var requestingAssemblyPath = InMemoryAssemblyProvider.TryGetRequestingAssembly(filePath);
             while (requestingAssemblyPath != null)
             {
                 assemblyPath = requestingAssemblyPath;
-                requestingAssemblyPath = AnalyzerFileReference.TryGetRequestingAssemblyPath(assemblyPath);
+                requestingAssemblyPath = InMemoryAssemblyProvider.TryGetRequestingAssembly(assemblyPath);
             }
 
             var projectsWithAnalyzer = _workspace.ProjectTracker.Projects.Where(p => p.CurrentProjectAnalyzersContains(assemblyPath)).ToArray();

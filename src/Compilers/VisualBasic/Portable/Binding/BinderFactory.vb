@@ -516,7 +516,7 @@ lAgain:
                      SyntaxKind.EnumMemberDeclaration,
                      SyntaxKind.ModuleStatement
 
-                ' we are not using field, enum, module symbols for params or type params resolution
+                    ' we are not using field, enum, module symbols for params or type params resolution
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(parent.Kind)

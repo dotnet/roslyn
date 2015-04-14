@@ -864,7 +864,7 @@ public class Test
 	}
 }";
 
-            var compVerifier = CompileAndVerify(text, emitOptions: TestEmitters.CCI, expectedOutput: "0");
+            var compVerifier = CompileAndVerify(text, emitters: TestEmitters.CCI, expectedOutput: "0");
             compVerifier.VerifyIL("Test.DoEnum", @"
 {
   // Code size      127 (0x7f)
@@ -2137,7 +2137,7 @@ class Test
 		Console.WriteLine(success);
 	}
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "True");
+            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: "True");
 
             compVerifier.VerifyIL("Test.M", @"
 {
@@ -2160,7 +2160,7 @@ class Test
   IL_001a:  callvirt   ""string string.Remove(int, int)""
   IL_001f:  starg.s    V_0
   IL_0021:  ldarg.0   
-  IL_0022:  call       ""$$method0x6000001-ComputeStringHash""
+  IL_0022:  call       ""ComputeStringHash""
   IL_0027:  stloc.1   
   IL_0028:  ldloc.1   
   IL_0029:  ldc.i4     0xc60bf9f2
@@ -2487,7 +2487,7 @@ class Test
 		Console.Write(status);
 	}
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "PASS");
+            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: "PASS");
 
             compVerifier.VerifyIL("Test.Switcheroo", @"
 {
@@ -2508,7 +2508,7 @@ class Test
   IL_0017:  callvirt   ""string string.Remove(int, int)""
   IL_001c:  starg.s    V_0
   IL_001e:  ldarg.0   
-  IL_001f:  call       ""$$method0x6000001-ComputeStringHash""
+  IL_001f:  call       ""ComputeStringHash""
   IL_0024:  stloc.1   
   IL_0025:  ldloc.1   
   IL_0026:  ldc.i4     0xb2f29419
@@ -3449,7 +3449,7 @@ class Program
                 references: new[] { AacorlibRef });
 
 
-            var verifier = CompileAndVerify(comp, verify: false, emitOptions: TestEmitters.RefEmitUnsupported);
+            var verifier = CompileAndVerify(comp, verify: false, emitters: TestEmitters.RefEmitUnsupported);
             verifier.VerifyIL("Program.Main", @"
 {
   // Code size      223 (0xdf)
@@ -6159,7 +6159,7 @@ public class Test
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
 {
   // Code size      328 (0x148)
@@ -6181,7 +6181,7 @@ public class Test
   IL_0019:  ldelem.ref
   IL_001a:  stloc.0
   IL_001b:  ldloc.0
-  IL_001c:  call       ""$$method0x6000001-ComputeStringHash""
+  IL_001c:  call       ""ComputeStringHash""
   IL_0021:  stloc.1
   IL_0022:  ldloc.1
   IL_0023:  ldc.i4     0xc30bf539
@@ -6326,7 +6326,7 @@ public class Test
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             // With special members available, we use a hashtable approach.
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
@@ -6340,7 +6340,7 @@ public class Test
   IL_0002:  ldelem.ref
   IL_0003:  stloc.0
   IL_0004:  ldloc.0
-  IL_0005:  call       ""$$method0x6000001-ComputeStringHash""
+  IL_0005:  call       ""ComputeStringHash""
   IL_000a:  stloc.1
   IL_000b:  ldloc.1
   IL_000c:  ldc.i4     0xc30bf539

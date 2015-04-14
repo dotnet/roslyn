@@ -8,6 +8,7 @@
     <Import Project="..\..\..\..\..\..\build\VSL.Settings.Closed.targets" />
   </ImportGroup>
   <PropertyGroup>
+    <OutDir>$(OutDir)NetFX20\</OutDir>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{76242A2D-2600-49DD-8C15-FEA07ECB1842}</ProjectGuid>
@@ -17,7 +18,7 @@
     </RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\..\</SolutionDir>
-    <VBSyntaxGeneratorToolPath>$(OutDir)\VBSyntaxGenerator.exe</VBSyntaxGeneratorToolPath>
+    <VBSyntaxGeneratorToolPath>$(OutDir)..\VBSyntaxGenerator.exe</VBSyntaxGeneratorToolPath>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
     <RemoveIntegerChecks>true</RemoveIntegerChecks>
@@ -58,25 +59,11 @@
     <Compile Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Syntax\SyntaxKindFacts.vb">
       <Link>Compiler\Syntax\SyntaxKindFacts.vb</Link>
     </Compile>
-    <Compile Include="..\Resources.Designer.vb">
-      <Link>Resources.Designer.vb</Link>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <SyntaxGetTextDefinition Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Syntax\Syntax.xml">
       <Link>Compiler\Syntax\Syntax.xml</Link>
       <SubType>Designer</SubType>
     </SyntaxGetTextDefinition>
     <Compile Include="$(IntermediateOutputPath)Syntax.xml.Generated.vb" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="..\Resources.resx">
-      <Link>Resources.resx</Link>
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
-      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator</CustomToolNamespace>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

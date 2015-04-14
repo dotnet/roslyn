@@ -92,7 +92,7 @@ End Class"
                 EvalResult("F", "1", "Object {Integer}", "(New C()).s1.F"))
         End Sub
 
-        <Fact(Skip := "Issue #321")>
+        <Fact(Skip:="Issue #321")>
         Public Sub Pointers()
             Dim source =
 ".class private auto ansi beforefieldinit C
@@ -284,6 +284,15 @@ End Class
             result = FormatResult("c", value, inspectionContext:=CreateDkmInspectionContext(radix:=16))
             Verify(result,
                 EvalResult("c", quotedChar, "Char", "c", editableValue:=quotedChar))
+        End Sub
+
+        <Fact>
+        Public Sub UnicodeString()
+            Const quotedString = """" & ChrW(&H1234) & """ & ChrW(7)"
+            Dim value = CreateDkmClrValue(New String({ChrW(&H1234), ChrW(&H0007)}))
+            Dim result = FormatResult("s", value)
+            Verify(result,
+                EvalResult("s", quotedString, "String", "s", editableValue:=quotedString, flags:=DkmEvaluationResultFlags.RawString))
         End Sub
 
         <Fact, WorkItem(1002381)>

@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 
             private readonly object _gate = new object();
             private readonly LinkedList<PendingWork> _list = new LinkedList<PendingWork>();
-            private readonly AsyncSemaphore _hasItemsGate = new AsyncSemaphore(initialCount: 0);
+            private readonly SemaphoreSlim _hasItemsGate = new SemaphoreSlim(initialCount: 0);
 
             public Task WaitForItemsAsync()
             {

@@ -70,6 +70,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Debug.Assert(Not expression.Type.IsReferenceType)
                     Debug.Assert(Not expression.Type.IsValueType)
 
+                Case BoundKind.ComplexConditionalAccessReceiver
+                    EmitComplexConditionalAccessReceiverAddress(DirectCast(expression, BoundComplexConditionalAccessReceiver))
+
                 Case BoundKind.Parameter
                     EmitParameterAddress(DirectCast(expression, BoundParameter))
 
@@ -273,7 +276,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' </summary>
         Private Function AllowedToTakeRef(expression As BoundExpression, addressKind As AddressKind) As Boolean
 
-            If expression.Kind = BoundKind.ConditionalAccessReceiverPlaceholder Then
+            If expression.Kind = BoundKind.ConditionalAccessReceiverPlaceholder OrElse
+               expression.Kind = BoundKind.ComplexConditionalAccessReceiver Then
                 Return addressKind = AddressKind.ReadOnly OrElse addressKind = AddressKind.Immutable
             End If
 

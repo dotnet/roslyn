@@ -82,7 +82,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE")).VerifyIL("C.Main", <![CDATA[
 {
   // Code size       37 (0x25)
   .maxstack  3
@@ -91,7 +91,7 @@ End Class
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.$$method0x6000001-E429CCA3F703A39CC5954A6572FEC9086135B34E"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  stloc.0
   IL_0012:  ldc.i4.0
@@ -913,7 +913,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={LinqAssemblyRef}, expectedOutput:=<![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE"), additionalRefs:={LinqAssemblyRef}, expectedOutput:=<![CDATA[
 1
 2
 3
@@ -927,7 +927,7 @@ End Class
     IL_0000:  ldc.i4.3
     IL_0001:  newarr     "Integer"
     IL_0006:  dup
-    IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.$$method0x6000001-E429CCA3F703A39CC5954A6572FEC9086135B34E"
+    IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E"
     IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
     IL_0011:  ldsfld     "C._Closure$__.$I1-0 As System.Func(Of Integer, String)"
     IL_0016:  brfalse.s  IL_001f
@@ -3028,7 +3028,7 @@ Class C
     End Sub
 End Class        
     </file>
-</compilation>, expectedOutput:=<![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput:=<![CDATA[
 1
 2
 3
@@ -3041,7 +3041,7 @@ End Class
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.$$method0x6000001-E429CCA3F703A39CC5954A6572FEC9086135B34E"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  stloc.0
   .try

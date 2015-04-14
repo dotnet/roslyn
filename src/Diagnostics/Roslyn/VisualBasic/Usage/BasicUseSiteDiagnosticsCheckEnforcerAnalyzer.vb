@@ -13,39 +13,39 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
     Public Class BasicUseSiteDiagnosticsCheckEnforcerAnalyzer
         Inherits AbstractSyntaxNodeAnalyzer(Of SyntaxKind)
 
-        Private Shared localizableTitle As LocalizableString = New LocalizableResourceString(NameOf(RoslynDiagnosticsResources.UseSiteDiagnosticsCheckerDescription), RoslynDiagnosticsResources.ResourceManager, GetType(RoslynDiagnosticsResources))
-        Private Shared localizableMessage As LocalizableString = New LocalizableResourceString(NameOf(RoslynDiagnosticsResources.UseSiteDiagnosticsCheckerMessage), RoslynDiagnosticsResources.ResourceManager, GetType(RoslynDiagnosticsResources))
+        Private Shared s_localizableTitle As LocalizableString = New LocalizableResourceString(NameOf(RoslynDiagnosticsResources.UseSiteDiagnosticsCheckerDescription), RoslynDiagnosticsResources.ResourceManager, GetType(RoslynDiagnosticsResources))
+        Private Shared s_localizableMessage As LocalizableString = New LocalizableResourceString(NameOf(RoslynDiagnosticsResources.UseSiteDiagnosticsCheckerMessage), RoslynDiagnosticsResources.ResourceManager, GetType(RoslynDiagnosticsResources))
 
-        Private Shared _descriptor As DiagnosticDescriptor = New DiagnosticDescriptor(RoslynDiagnosticIds.UseSiteDiagnosticsCheckerRuleId,
-                                                                             localizableTitle,
-                                                                             localizableMessage,
+        Private Shared s_descriptor As DiagnosticDescriptor = New DiagnosticDescriptor(RoslynDiagnosticIds.UseSiteDiagnosticsCheckerRuleId,
+                                                                             s_localizableTitle,
+                                                                             s_localizableMessage,
                                                                              "Usage",
                                                                              DiagnosticSeverity.Error,
                                                                              False,
                                                                              WellKnownDiagnosticTags.Telemetry)
 
-        Private Shared PropertiesToValidateMap As Dictionary(Of String, String) = New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase) From
+        Private Shared s_propertiesToValidateMap As Dictionary(Of String, String) = New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase) From
                 {
-                    {BaseTypeString, TypeSymbolFullyQualifiedName},
-                    {InterfacesString, TypeSymbolFullyQualifiedName},
-                    {AllInterfacesString, TypeSymbolFullyQualifiedName},
-                    {TypeArgumentsString, NamedTypeSymbolFullyQualifiedName},
-                    {ConstraintTypesString, TypeParameterSymbolFullyQualifiedName}
+                    {s_baseTypeString, s_typeSymbolFullyQualifiedName},
+                    {s_interfacesString, s_typeSymbolFullyQualifiedName},
+                    {s_allInterfacesString, s_typeSymbolFullyQualifiedName},
+                    {s_typeArgumentsString, s_namedTypeSymbolFullyQualifiedName},
+                    {s_constraintTypesString, s_typeParameterSymbolFullyQualifiedName}
                 }
 
-        Private Const BaseTypeString = "BaseType"
-        Private Const InterfacesString = "Interfaces"
-        Private Const AllInterfacesString = "AllInterfaces"
-        Private Const TypeArgumentsString = "TypeArguments"
-        Private Const ConstraintTypesString = "ConstraintTypes"
+        Private Const s_baseTypeString = "BaseType"
+        Private Const s_interfacesString = "Interfaces"
+        Private Const s_allInterfacesString = "AllInterfaces"
+        Private Const s_typeArgumentsString = "TypeArguments"
+        Private Const s_constraintTypesString = "ConstraintTypes"
 
-        Private Const TypeSymbolFullyQualifiedName = "Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol"
-        Private Const NamedTypeSymbolFullyQualifiedName = "Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol"
-        Private Const TypeParameterSymbolFullyQualifiedName = "Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeParameterSymbol"
+        Private Const s_typeSymbolFullyQualifiedName = "Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol"
+        Private Const s_namedTypeSymbolFullyQualifiedName = "Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol"
+        Private Const s_typeParameterSymbolFullyQualifiedName = "Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeParameterSymbol"
 
         Protected Overrides ReadOnly Property Descriptor As DiagnosticDescriptor
             Get
-                Return _descriptor
+                Return s_descriptor
             End Get
         End Property
 
@@ -60,7 +60,7 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
             If name.Kind = SyntaxKind.IdentifierName Then
                 Dim identifier = DirectCast(name, IdentifierNameSyntax)
                 Dim containingTypeName As String = Nothing
-                If PropertiesToValidateMap.TryGetValue(identifier.ToString(), containingTypeName) Then
+                If s_propertiesToValidateMap.TryGetValue(identifier.ToString(), containingTypeName) Then
                     Dim sym As ISymbol = context.SemanticModel.GetSymbolInfo(identifier, context.CancellationToken).Symbol
                     If sym IsNot Nothing AndAlso sym.Kind = SymbolKind.Property Then
                         If containingTypeName = sym.ContainingType.ToDisplayString() Then

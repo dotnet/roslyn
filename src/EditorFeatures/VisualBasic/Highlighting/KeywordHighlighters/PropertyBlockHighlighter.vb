@@ -20,15 +20,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
             With propertyBlock
                 With .PropertyStatement
-                    Dim firstKeyword = If( .Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
+                    Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
                     highlights.Add(TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End))
 
                     If .ImplementsClause IsNot Nothing Then
-                        highlights.Add( .ImplementsClause.ImplementsKeyword.Span)
+                        highlights.Add(.ImplementsClause.ImplementsKeyword.Span)
                     End If
                 End With
 
-                highlights.Add( .EndPropertyStatement.Span)
+                highlights.Add(.EndPropertyStatement.Span)
             End With
 
             Return highlights

@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(IsAtNewLine())
 
             ' leading whitespace until we see # should be regular whitespace
-            If CanGetChar() AndAlso IsWhitespace(PeekChar()) Then
+            If CanGet() AndAlso IsWhitespace(Peek()) Then
                 Dim ws = ScanWhitespace()
                 tList.Add(ws)
             End If
@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     SyntaxKind.EnableWarningDirectiveTrivia, 'TODO: Add support for processing #Enable and #Disable
                     SyntaxKind.DisableWarningDirectiveTrivia
 
-                ' These directives require no processing
+                    ' These directives require no processing
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(statement.Kind)

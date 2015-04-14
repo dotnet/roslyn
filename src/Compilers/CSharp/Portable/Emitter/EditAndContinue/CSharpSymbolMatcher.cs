@@ -350,7 +350,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol VisitArrayType(ArrayTypeSymbol symbol)
             {
                 var otherElementType = (TypeSymbol)this.Visit(symbol.ElementType);
-                Debug.Assert((object)otherElementType != null);
+                if ((object)otherElementType == null)
+                {
+                    // For a newly added type, there is no match in the previous generation, so it could be null.
+                    return null;
+                }
                 var otherModifiers = VisitCustomModifiers(symbol.CustomModifiers);
                 return new ArrayTypeSymbol(_otherAssembly, otherElementType, otherModifiers, symbol.Rank);
             }
@@ -421,7 +425,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     var otherTypeParameters = otherDef.GetAllTypeParameters();
                     var otherTypeArguments = typeArguments.SelectAsArray((t, v) => (TypeSymbol)v.Visit(t), this);
-                    Debug.Assert(otherTypeArguments.All(t => (object)t != null));
+                    if (otherTypeArguments.Any(t => (object)t == null))
+                    {
+                        // For a newly added type, there is no match in the previous generation, so it could be null.
+                        return null;
+                    }
 
                     // TODO: LambdaFrame has alpha renamed type parameters, should we rather fix that?
                     var typeMap = new TypeMap(otherTypeParameters, otherTypeArguments, allowAlpha: true);
@@ -474,7 +482,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol VisitPointerType(PointerTypeSymbol symbol)
             {
                 var otherPointedAtType = (TypeSymbol)this.Visit(symbol.PointedAtType);
-                Debug.Assert((object)otherPointedAtType != null);
+                if ((object)otherPointedAtType == null)
+                {
+                    // For a newly added type, there is no match in the previous generation, so it could be null.
+                    return null;
+                }
                 var otherModifiers = VisitCustomModifiers(symbol.CustomModifiers);
                 return new PointerTypeSymbol(otherPointedAtType, otherModifiers);
             }
@@ -525,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert((object)type.ContainingSymbol == (object)_sourceAssembly.GlobalNamespace);
                 Debug.Assert(AnonymousTypeManager.IsAnonymousTypeTemplate(type));
 
-                var key = new AnonymousTypeKey(AnonymousTypeManager.GetTemplatePropertyNames(type));
+                var key = AnonymousTypeManager.GetAnonymousTypeKey(type);
                 return _anonymousTypeMap.TryGetValue(key, out otherType);
             }
 

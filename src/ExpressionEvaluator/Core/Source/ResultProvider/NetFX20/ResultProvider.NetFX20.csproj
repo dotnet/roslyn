@@ -8,6 +8,7 @@
     <Import Project="..\..\..\..\..\..\build\VSL.Settings.Closed.targets" />
   </ImportGroup>
   <PropertyGroup>
+    <OutDir>$(OutDir)NetFX20\</OutDir>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{BEDC5A4A-809E-4017-9CFD-6C8D4E1847F0}</ProjectGuid>
@@ -57,15 +58,13 @@
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Xml\XmlCharType.cs">
       <Link>Compiler\Xml\XmlCharType.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
+      <Link>Helpers\DateTimeUtilities.cs</Link>
+    </Compile>
     <Compile Include="..\..\ExpressionCompiler\ExpressionEvaluatorFatalError.cs">
       <Link>ExpressionCompiler\ExpressionEvaluatorFatalError.cs</Link>
     </Compile>
-    <Compile Include="..\..\ExpressionCompiler\DateTimeUtilities.cs">
-      <Link>ExpressionCompiler\DateTimeUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\Helpers\Placeholders.cs">
-      <Link>Helpers\Placeholders.cs</Link>
-    </Compile>
+    <Compile Include="Helpers\Placeholders.cs" />
     <Compile Include="..\SystemHelpers.cs">
       <Link>Helpers\SystemHelpers.cs</Link>
     </Compile>
@@ -84,7 +83,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
-    <Compile Include="..\Resources.Designer.cs">
+    <Compile Include="..\Portable\Resources.Designer.cs">
       <Link>Resources.Designer.cs</Link>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -92,7 +91,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\Resources.resx">
+    <EmbeddedResource Include="..\Portable\Resources.resx">
       <Link>Resources.resx</Link>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

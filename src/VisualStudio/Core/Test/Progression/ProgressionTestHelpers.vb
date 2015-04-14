@@ -10,7 +10,7 @@ Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
 Imports <xmlns="http://schemas.microsoft.com/vs/2009/dgml">
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
-    Module ProgressionTestHelpers
+    Friend Module ProgressionTestHelpers
         Public ReadOnly CompositionCatalog As ComposableCatalog =
             TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
                 GetType(CSharpProgressionLanguageService),

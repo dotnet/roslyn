@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-    Class MultilineLambdaOutliner
+    Friend Class MultilineLambdaOutliner
         Inherits AbstractSyntaxNodeOutliner(Of MultiLineLambdaExpressionSyntax)
 
         Private Shared Function GetBannerText(lambdaHeader As LambdaHeaderSyntax) As String

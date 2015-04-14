@@ -44,12 +44,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, Project project)
+        internal void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, ProjectId projectId)
         {
             if (workspace != this.Workspace)
             {
                 return;
             }
+
+            var project = workspace.CurrentSolution.GetProject(projectId);
 
             bool raiseDiagnosticsUpdated = true;
             var diagnosticData = project != null ?
@@ -74,10 +76,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void ClearAnalyzerReferenceDiagnostics(AnalyzerFileReference analyzerReference, string language, ProjectId projectId)
         {
-            foreach (var analyzer in analyzerReference.GetAnalyzers(language))
+            var analyzers = analyzerReference.GetAnalyzers(language);
+            ClearAnalyzerDiagnostics(analyzers, projectId);
+            AnalyzerManager.Instance.ClearAnalyzerState(analyzers);
+        }
+
+        private void ClearAnalyzerDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers, ProjectId projectId)
+        {
+            foreach (var analyzer in analyzers)
             {
                 ClearAnalyzerDiagnostics(analyzer, projectId);
-                AnalyzerManager.Instance.ClearAnalyzerExceptionHandlers(analyzer);
             }
         }
 
@@ -115,10 +123,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private DiagnosticsUpdatedArgs MakeArgs(DiagnosticAnalyzer analyzer, ImmutableHashSet<DiagnosticData> items, Project project)
         {
-            var id = analyzer.GetUniqueId();
-
             return new DiagnosticsUpdatedArgs(
-                id: Tuple.Create(this, id, project?.Id),
+                id: new HostArgsId(this, analyzer, project?.Id),
                 workspace: this.Workspace,
                 solution: project?.Solution,
                 projectId: project?.Id,
@@ -135,6 +141,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return diagnostics;
+        }
+
+        private class HostArgsId : AnalyzerUpdateArgsId
+        {
+            private readonly AbstractHostDiagnosticUpdateSource _source;
+            private readonly ProjectId _projectId;
+
+            public HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId id) : base(analyzer)
+            {
+                this._source = source;
+                this._projectId = id;
+            }
+
+            public override bool Equals(object obj)
+            {
+                var other = obj as HostArgsId;
+                if (other == null)
+                {
+                    return false;
+                }
+
+                return _source == other._source && _projectId == other._projectId && base.Equals(obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return Hash.Combine(_source.GetHashCode(), Hash.Combine(_projectId.GetHashCode(), base.GetHashCode()));
+            }
         }
     }
 }

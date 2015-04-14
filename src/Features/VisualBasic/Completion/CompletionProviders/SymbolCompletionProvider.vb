@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Recommendations
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -61,11 +62,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             ' don't want to trigger after a number.  All other cases after dot are ok.
             Dim root = Await document.GetVisualBasicSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim token = root.FindToken(characterPosition)
-            If token.Kind = SyntaxKind.DotToken Then
-                token = token.GetPreviousToken()
+            Return IsValidTriggerToken(token)
+        End Function
+
+        Private Function IsValidTriggerToken(token As SyntaxToken) As Boolean
+            If token.Kind <> SyntaxKind.DotToken Then
+                Return False
             End If
 
-            Return token.Kind <> SyntaxKind.IntegerLiteralToken
+            Dim previousToken = token.GetPreviousToken()
+            If previousToken.Kind = SyntaxKind.IntegerLiteralToken Then
+                Return token.Parent.Kind <> SyntaxKind.SimpleMemberAccessExpression OrElse Not DirectCast(token.Parent, MemberAccessExpressionSyntax).Expression.IsKind(SyntaxKind.NumericLiteralExpression)
+            End If
+
+            Return True
         End Function
 
         Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String) As Boolean

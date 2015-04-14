@@ -11,7 +11,6 @@ using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -21,12 +20,12 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Roslyn.Utilities;
-using Microsoft.VisualStudio.SymReaderInterop;
 using ShellInterop = Microsoft.VisualStudio.Shell.Interop;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 using VsThreading = Microsoft.VisualStudio.Threading;
@@ -88,12 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
         private ISymUnmanagedReader _pdbReader;
 
-        // used when the symbol reader is retrieved from the debugger:
-        private object _pdbReaderObj;
-
-        // used when we can't retrive the reader from the debugger due to bug 775251 
-        private SymbolReaderProvider _pdbProvider;
-        private byte[] _pdbImage;
+        private IntPtr _pdbReaderMtaPointer;
 
         #endregion
 
@@ -221,6 +215,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     Debug.Assert(s_breakStateProjectCount == 0);
                     Debug.Assert(s_breakStateEnteredProjects.Count == 0);
 
+                    _encService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run);
+
                     _encService.StartDebuggingSession(_vsProject.VisualStudioWorkspace.CurrentSolution);
                     s_encDebuggingSessionInfo = new EncDebuggingSessionInfo();
 
@@ -298,6 +294,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // Avoid ending the debug session if it has already been ended.
                 if (_encService.DebuggingSession != null)
                 {
+                    _encService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Design);
+
                     _encService.EndDebuggingSession();
                     LogEncSession();
 
@@ -324,19 +322,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 _committedBaseline = null;
                 _activeStatementIds = null;
 
-                if (_pdbReaderObj != null)
+                Debug.Assert((_pdbReader == null) == (_pdbReaderMtaPointer == IntPtr.Zero));
+
+                if (_pdbReader != null)
                 {
-                    Marshal.ReleaseComObject(_pdbReaderObj);
-                    _pdbReaderObj = null;
+                    Marshal.ReleaseComObject(_pdbReader);
+                    _pdbReader = null;
                 }
 
-                if (_pdbProvider != null)
-                {
-                    _pdbProvider.Dispose();
-                    _pdbProvider = null;
-                }
-
-                _pdbReader = null;
+                _pdbReaderMtaPointer = IntPtr.Zero;
 
                 // The HResult is ignored by the debugger.
                 return VSConstants.S_OK;
@@ -425,6 +419,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 using (NonReentrantContext)
                 {
                     log.Write("Enter {2}Break Mode: project '{0}', AS#: {1}", _vsProject.DisplayName, pActiveStatements != null ? pActiveStatements.Length : -1, encBreakReason == Interop.ENC_BREAKSTATE_REASON.ENC_BREAK_EXCEPTION ? "Exception " : "");
+
                     Debug.Assert(cActiveStatements == (pActiveStatements != null ? pActiveStatements.Length : 0));
                     Debug.Assert(s_breakStateProjectCount < s_debugStateProjectCount);
                     Debug.Assert(s_breakStateProjectCount > 0 || _exceptionRegions.Count == 0);
@@ -433,6 +428,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     if (s_breakStateEntrySolution == null)
                     {
+                        _encService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
+
                         s_breakStateEntrySolution = _vsProject.VisualStudioWorkspace.CurrentSolution;
                     }
 
@@ -869,6 +866,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     {
                         Debug.Assert(s_breakStateProjectCount == s_debugStateProjectCount);
 
+                        _encService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
+
                         _encService.EditSession.LogEditSession(s_encDebuggingSessionInfo);
                         _encService.EndEditSession();
                         _trackingService.EndTracking();
@@ -933,27 +932,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     Interop.IENCDebugInfo debugInfo;
                     updater.GetENCDebugInfo(out debugInfo);
 
-#if TODO // bug 779679: If we use a SymReader provided by the debugger the DPB may stay locked even after the debug session ends.
-                try
-                {
                     var symbolReaderProvider = (Interop.IENCSymbolReaderProvider)debugInfo;
-                    symbolReaderProvider.GetSymbolReader(out this.pdbReaderObj);
-                }
-                catch (InvalidCastException) // bug 775251
-                {
-#endif
-                    try
-                    {
-                        string pdbPath = Path.ChangeExtension(_vsProject.TryGetObjOutputPath(), ".pdb");
-                        _pdbImage = File.ReadAllBytes(pdbPath);
-                    }
-                    catch (Exception)
-                    {
-                        return VSConstants.E_FAIL;
-                    }
-#if TODO
-                }
-#endif
+                    symbolReaderProvider.GetSymbolReader(out _pdbReaderMtaPointer);
 
                     _committedBaseline = EmitBaseline.CreateInitialBaseline(_metadata, GetBaselineEncDebugInfo);
                 }
@@ -1070,21 +1050,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
             if (_pdbReader == null)
             {
-                if (_pdbReaderObj != null)
-                {
-                    _pdbReader = (ISymUnmanagedReader)_pdbReaderObj;
-                }
-                else
-                {
-                    Debug.Assert(_pdbImage != null);
-                    _pdbProvider = SymbolReaderProvider.Create(_pdbImage);
-                    _pdbReader = _pdbProvider.SymbolReader;
-                    _pdbImage = null;
-                }
+                Debug.Assert(_pdbReaderMtaPointer != IntPtr.Zero);
+                object pdbReaderObj = Marshal.GetObjectForIUnknown(_pdbReaderMtaPointer);
+                _pdbReader = (ISymUnmanagedReader)pdbReaderObj;
             }
 
             int methodToken = MetadataTokens.GetToken(methodHandle);
-            byte[] debugInfo = _pdbReader.GetCustomDebugInfoBytes(methodToken, methodVersion: 0);
+            byte[] debugInfo = _pdbReader.GetCustomDebugInfoBytes(methodToken, methodVersion: 1);
             if (debugInfo != null)
             {
                 try

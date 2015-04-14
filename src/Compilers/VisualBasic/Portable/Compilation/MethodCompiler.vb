@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim emittedBody = GenerateMethodBody(moduleBeingBuilt,
                                                      scriptEntryPoint,
-                                                     methodOrdinal:=MethodDebugId.UndefinedOrdinal,
+                                                     methodOrdinal:=DebugId.UndefinedOrdinal,
                                                      block:=body,
                                                      lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
                                                      closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
@@ -361,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 For index = 0 To builder.Count - 1
-                    Dim symbol As symbol = builder(index)
+                    Dim symbol As Symbol = builder(index)
                     processedSymbols.Add(symbol)
 
 #If DEBUG Then
@@ -536,7 +536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim processedStaticInitializers = Binder.ProcessedFieldOrPropertyInitializers.Empty
             Dim processedInstanceInitializers = Binder.ProcessedFieldOrPropertyInitializers.Empty
-            Dim synthesizedSubmissionFields = If(symbol.IsSubmissionClass, New synthesizedSubmissionFields(_compilation, symbol), Nothing)
+            Dim synthesizedSubmissionFields = If(symbol.IsSubmissionClass, New SynthesizedSubmissionFields(_compilation, symbol), Nothing)
 
             ' if this is a type symbol from source we'll try to bind the field initializers as well
             Dim sourceTypeSymbol = TryCast(symbol, SourceMemberContainerTypeSymbol)
@@ -731,7 +731,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If sourceMethod IsNot Nothing AndAlso
                        sourceMethod.MethodKind = MethodKind.Constructor AndAlso
                        Not compilationState.CallsInitializeComponent(sourceMethod) Then
-                        Dim location As location = sourceMethod.NonMergedLocation
+                        Dim location As Location = sourceMethod.NonMergedLocation
                         Debug.Assert(location IsNot Nothing)
 
                         If location IsNot Nothing Then
@@ -847,7 +847,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                      method,
-                                                     methodOrdinal:=MethodDebugId.UndefinedOrdinal,
+                                                     methodOrdinal:=DebugId.UndefinedOrdinal,
                                                      block:=boundBody,
                                                      lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
                                                      closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
@@ -911,7 +911,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' (only user-defined methods have ordinals).
                             emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                              method,
-                                                             MethodDebugId.UndefinedOrdinal,
+                                                             DebugId.UndefinedOrdinal,
                                                              rewrittenBody,
                                                              lambdaDebugInfoBuilder.ToImmutable(),
                                                              closureDebugInfoBuilder.ToImmutable(),
@@ -960,7 +960,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                          method,
-                                                         methodOrdinal:=MethodDebugId.UndefinedOrdinal,
+                                                         methodOrdinal:=DebugId.UndefinedOrdinal,
                                                          block:=methodWithBody.Body,
                                                          lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
                                                          closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
@@ -1567,7 +1567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New MethodBody(builder.RealizedIL,
                                       builder.MaxStack,
                                       If(method.PartialDefinitionPart, method),
-                                      methodOrdinal,
+                                      If(variableSlotAllocatorOpt?.MethodId, New DebugId(methodOrdinal, moduleBuilder.CurrentGenerationOrdinal)),
                                       builder.LocalSlotManager.LocalsInOrder(),
                                       builder.RealizedSequencePoints,
                                       debugDocumentProvider,

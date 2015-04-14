@@ -2023,7 +2023,7 @@ Imports System
 
 <Assembly: CLSCompliant(True)>
                         ]]>
-                                                                                                                                               </file>
+                    </file>
                 </compilation>
 
             CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithRootNamespace("_A.B.C")).AssertTheseDiagnostics(<errors><![CDATA[

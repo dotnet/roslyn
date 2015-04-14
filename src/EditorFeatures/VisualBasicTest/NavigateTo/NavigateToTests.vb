@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         End Function
 
         Private Sub SetupNavigateTo(workspace As TestWorkspace)
-            Dim aggregateListener = New AggregateAsynchronousOperationListener({}, FeatureAttribute.NavigateTo)
+            Dim aggregateListener = New AggregateAsynchronousOperationListener(Array.Empty(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))(), FeatureAttribute.NavigateTo)
             _provider = New NavigateToItemProvider(workspace, _glyphServiceMock.Object, aggregateListener)
             _aggregator = New NavigateToTestAggregator(_provider)
         End Sub
@@ -548,6 +548,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
                 SetupVerifableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic)
                 Dim item = _aggregator.GetItems("C").Single
                 VerifyNavigateToResultItem(item, "C", MatchKind.Exact, NavigateToItemKind.Class, displayName:="C(Of T)")
+            End Using
+        End Sub
+
+        <WorkItem(1834, "https://github.com/dotnet/roslyn/issues/1834")>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        Public Sub ConstructorNotParentedByTypeBlock()
+            Using worker = SetupWorkspace("Module Program", "End Module", "Public Sub New()", "End Sub")
+                SetupVerifableGlyph(StandardGlyphGroup.GlyphGroupModule, StandardGlyphItem.GlyphItemFriend)
+                Assert.Equal(0, _aggregator.GetItems("New").Count)
+                Dim item = _aggregator.GetItems("Program").Single
+                VerifyNavigateToResultItem(item, "Program", MatchKind.Exact, NavigateToItemKind.Module, displayName:="Program")
             End Using
         End Sub
 

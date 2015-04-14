@@ -123,10 +123,19 @@
   <data name="KeepAliveIsTooSmall" xml:space="preserve">
     <value>Arguments to '/keepalive' option below -1 are invalid.</value>
   </data>
+  <data name="KeepAliveWithoutShared" xml:space="preserve">
+    <value>'/keepalive' option is only valid with '/shared' option.</value>
+  </data>
   <data name="MismatchedVersion" xml:space="preserve">
     <value>Roslyn compiler server reports different protocol version than build task.</value>
   </data>
   <data name="MissingKeepAlive" xml:space="preserve">
     <value>Missing argument for '/keepalive' option.</value>
+  </data>
+  <data name="RuleSetBadAttributeValue" xml:space="preserve">
+    <value>The attribute {0} has an invalid value of {1}.</value>
+  </data>
+  <data name="RuleSetMissingAttribute" xml:space="preserve">
+    <value>The element {0} is missing an attribute named {1}.</value>
   </data>
 </root>

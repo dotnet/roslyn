@@ -15,6 +15,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.ComponentModel.Composition" />
@@ -85,6 +86,9 @@
     <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
       <Link>InternalUtilities\GacFileResolver.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Helpers\AssemblyIdentityExtensions.cs">
+      <Link>InternalUtilities\AssemblyIdentityExtensions.cs</Link>
+    </Compile>
     <Compile Include="Options\ExportOptionAttribute.cs" />
     <Compile Include="InternalUtilities\FilePathUtilities.cs" />
     <Compile Include="Log\EtwLogger.cs" />
@@ -103,6 +107,7 @@
     <Compile Include="Workspace\Host\Documentation\DocumentationProviderServiceFactory.cs" />
     <Compile Include="Workspace\Host\Mef\DesktopMefHostServices.cs" />
     <Compile Include="Workspace\Host\Mef\MefV1HostServices.cs" />
+    <Compile Include="Workspace\Host\AnalyzerServiceFactory.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.MemoryMappedFiles.cs" />
     <Compile Include="Workspace\Host\TextFactory\DesktopTextFactoryService.cs" />
@@ -121,10 +126,6 @@
     <Compile Include="Workspace\MSBuild\SolutionFile\ProjectBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SectionBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SolutionFile.cs" />
-    <Compile Include="Workspace\Solution\SerializableDocumentId.cs" />
-    <Compile Include="Workspace\Solution\SerializableProjectId.cs" />
-    <Compile Include="Workspace\Solution\SerializableProjectReference.cs" />
-    <Compile Include="Workspace\Solution\SerializableVersionStamp.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Workspaces.Desktop" />
@@ -135,6 +136,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Roslyn.InteractiveFeatures" />

@@ -360,36 +360,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Serializability1()
-        {
-            VerifySerializability(new CSharpSerializableCompilationOptions(new CSharpCompilationOptions(
-                outputKind: OutputKind.WindowsApplication,
-                usings: new[] { "F", "G" },
-                generalDiagnosticOption: ReportDiagnostic.Hidden,
-                specificDiagnosticOptions: new[] { KeyValuePair.Create("CS0001", ReportDiagnostic.Suppress) })));
-        }
-
-        [Fact]
-        public void Serializability2()
-        {
-            var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp3, DocumentationMode.Diagnose, SourceCodeKind.Interactive);
-            var compilationOptions = new CSharpCompilationOptions(
-                OutputKind.DynamicallyLinkedLibrary,
-                moduleName: "M",
-                optimizationLevel: OptimizationLevel.Release);
-            compilationOptions = compilationOptions.
-                WithConcurrentBuild(!compilationOptions.ConcurrentBuild).
-                WithExtendedCustomDebugInformation(!compilationOptions.ExtendedCustomDebugInformation);
-            var deserializedCompilationOptions = VerifySerializability(new CSharpSerializableCompilationOptions(compilationOptions)).Options;
-
-            Assert.Equal(compilationOptions.OutputKind, deserializedCompilationOptions.OutputKind);
-            Assert.Equal(compilationOptions.ModuleName, deserializedCompilationOptions.ModuleName);
-            Assert.Equal(compilationOptions.OptimizationLevel, deserializedCompilationOptions.OptimizationLevel);
-            Assert.Equal(compilationOptions.ConcurrentBuild, deserializedCompilationOptions.ConcurrentBuild);
-            Assert.Equal(compilationOptions.ExtendedCustomDebugInformation, deserializedCompilationOptions.ExtendedCustomDebugInformation);
-        }
-
-        [Fact]
         public void WithCryptoPublicKey()
         {
             var options = new CSharpCompilationOptions(OutputKind.ConsoleApplication);

@@ -1893,7 +1893,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1", "field"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1", "const field"))
         End Sub
 
         <Fact>
@@ -1938,7 +1938,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1, b As Integer = 2", "field"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1, b As Integer = 2", "const field"))
         End Sub
 
         <Fact>
@@ -2810,8 +2810,7 @@ End Class
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each a In e1", "For Each block"),
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each b In e1", "For Each block"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Sub()", "method"))
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each b In e1", "For Each block"))
         End Sub
 
 #End Region
@@ -2887,8 +2886,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Using c", "Using block"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function()", "method"))
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Using c", "Using block"))
         End Sub
 
 #End Region
@@ -2965,8 +2963,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "With c", "With block"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function()", "method"))
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "With c", "With block"))
         End Sub
 
 #End Region
@@ -3845,8 +3842,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(x)", "method"))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact>
@@ -3887,8 +3883,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Return 1 + Foo(x)", "Try block"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(x)", "method"))
+                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Return 1 + Foo(x)", "Try block"))
         End Sub
 
         <Fact>
@@ -3929,7 +3924,52 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "method"))
+                Diagnostic(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, "Join", "method"))
+        End Sub
+
+        <Fact>
+        Public Sub Try_Query_Join2()
+            Dim src1 = "
+Class C
+    Function Foo(x As Integer) As Integer
+        <AS:0>Return 1</AS:0>
+    End Function
+
+    Sub Main()
+        Dim f = Sub()
+                    Try
+                        Dim q = From x In xs
+                                Join y In ys On <AS:1>F()</AS:1> Equals G()
+                                Select 1
+                    Catch
+                    End Try
+
+                    <AS:2>q.ToArray()</AS:2>
+                End Sub
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Function Foo(x As Integer) As Integer
+        <AS:0>Return 1</AS:0>
+    End Function
+
+    Sub Main()
+        Dim f = Sub()
+                    Dim q = From x In xs
+                            Join y In ys On <AS:1>F()</AS:1> Equals G()
+                            Select 1
+
+                    <AS:2>q.ToArray()</AS:2>
+                End Sub
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, "Join", "method"))
         End Sub
 #End Region
 
@@ -3955,9 +3995,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            ' TODO (bug 755959): better deleted active statement span
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(a)", "method"))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact>
@@ -3981,9 +4019,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            ' TODO (bug 755959): better deleted active statement span
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(a)", "method"))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4007,9 +4043,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            ' TODO (bug 755959): better deleted active statement span
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(a)", "method"))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4033,9 +4067,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            ' TODO (bug 755959): better deleted active statement span
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(a)", "method"))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4059,9 +4091,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            ' TODO (bug 755959): better deleted active statement span
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(a)", "method"))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4091,8 +4121,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Function(b)", "lambda"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(b)", "method"))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Function(b)", "lambda"))
         End Sub
 
         <Fact>
@@ -4120,8 +4149,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Function(b)", "lambda"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(b)", "method"))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Function(b)", "lambda"))
         End Sub
 
         <Fact>
@@ -4162,8 +4190,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "F(b)", "lambda"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(b)", "method"))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "F(b)", "lambda"))
         End Sub
 
         <Fact>
@@ -4207,7 +4234,7 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        Dim <AS:0>s = From a In b Select b.bar</AS:0>
+        Dim s = <AS:0>From</AS:0> a In b Select b.bar
         <AS:1>s.ToArray()</AS:1>
     End Sub
 End Class
@@ -4215,8 +4242,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = From a In b Select b.bar", "Where clause"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "method"))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", "Where clause"))
         End Sub
 
         <Fact, WorkItem(841361)>
@@ -4233,7 +4259,7 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        Dim <AS:0>s = From a In b Select x</AS:0>
+        Dim s = <AS:0>From</AS:0> a In b Select x
         <AS:1>s.ToArray()</AS:1>
     End Sub
 End Class
@@ -4243,8 +4269,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = From a In b Select x", "Let clause"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "method"))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", "Let clause"))
         End Sub
 
         <Fact>
@@ -4263,7 +4288,7 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        Dim <AS:0>s = From a In b Select a.bar</AS:0>
+        Dim s = <AS:0>From</AS:0> a In b Select a.bar
         <AS:1>s.ToArray()</AS:1>
     End Sub
 End Class
@@ -4271,8 +4296,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = From a In b Select a.bar", "join condition"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "method"))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", "join condition"))
         End Sub
 
         <Fact>
@@ -4291,7 +4315,7 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        Dim <AS:0>s = From a In b Select a.bar</AS:0>
+        Dim s = <AS:0>From</AS:0> a In b Select a.bar
         <AS:1>s.ToArray()</AS:1>
     End Sub
 End Class
@@ -4299,8 +4323,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = From a In b Select a.bar", "ordering clause"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "method"))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", "ordering clause"))
         End Sub
 
         <Fact>
@@ -4319,7 +4342,7 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        Dim <AS:0>s = From a In b Select a.bar</AS:0>
+        Dim s = <AS:0>From</AS:0> a In b Select a.bar
         <AS:1>s.ToArray()</AS:1>
     End Sub
 End Class
@@ -4327,8 +4350,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = From a In b Select a.bar", "ordering clause"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "method"))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", "ordering clause"))
         End Sub
 
         <Fact>
@@ -4347,7 +4369,7 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        Dim <AS:0>s = From a In b Select a.bar</AS:0>
+        Dim s = <AS:0>From</AS:0> a In b Select a.bar
         <AS:1>s.ToArray()</AS:1>
     End Sub
 End Class
@@ -4355,8 +4377,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = From a In b Select a.bar", "ordering clause"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "method"))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", "ordering clause"))
         End Sub
 
         <Fact>
@@ -4440,9 +4461,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            ' should not contain RUDE_EDIT_INSERT_AROUND
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Sub()", "method"))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4529,8 +4548,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Sub()", "method"))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact>

@@ -1,5 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Roslyn.Test.Utilities
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBVariableInitializerTests
         Inherits BasicTestBase
@@ -48,10 +51,7 @@ End Class
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-
-            Dim actual = GetPdbXml(compilation, "C1..ctor")
-
-            Dim expected =
+            compilation.VerifyPdb("C1..ctor",
     <symbols>
         <files>
             <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=" 1, 41, D1, CA, DD, B0,  B, 39, BE, 3C, 3D, 69, AA, 18, B3, 7A, F5, 65, C5, DD, "/>
@@ -68,16 +68,13 @@ End Class
                     <entry offset="0x24" startLine="8" startColumn="16" endLine="8" endColumn="18" document="1"/>
                     <entry offset="0x2f" startLine="11" startColumn="36" endLine="11" endColumn="54" document="2"/>
                 </sequencePoints>
-                <locals/>
                 <scope startOffset="0x0" endOffset="0x38">
                     <namespace name="System" importlevel="file"/>
                     <currentnamespace name=""/>
                 </scope>
             </method>
         </methods>
-    </symbols>
-
-            AssertXmlEqual(expected, actual)
+    </symbols>)
         End Sub
 
         <Fact>
@@ -111,7 +108,7 @@ End Class
     <entry startLine="8" startColumn=<%= expectedStart1 %> endLine="8" endColumn=<%= expectedEnd1 %>/>
 </sequencePoints>
 
-            AssertXmlEqual(expected, actual)
+            AssertXml.Equal(expected, actual)
         End Sub
 
         <Fact>
@@ -145,7 +142,7 @@ End Class
     <entry startLine="8" startColumn=<%= expectedStart1 %> endLine="8" endColumn=<%= expectedEnd1 %>/>
 </sequencePoints>
 
-            AssertXmlEqual(expected, actual)
+            AssertXml.Equal(expected, actual)
         End Sub
 
         <Fact>
@@ -179,7 +176,7 @@ End Class
     <entry startLine="8" startColumn=<%= expectedStart1 %> endLine="8" endColumn=<%= expectedEnd1 %>/>
 </sequencePoints>
 
-            AssertXmlEqual(expected, actual)
+            AssertXml.Equal(expected, actual)
         End Sub
 
         <Fact>
@@ -211,7 +208,7 @@ End Class
     <entry startLine="2" startColumn=<%= expectedStart2 %> endLine="2" endColumn=<%= expectedEnd2 %>/>
 </sequencePoints>
 
-            AssertXmlEqual(expected, actual)
+            AssertXml.Equal(expected, actual)
         End Sub
 
         <Fact>
@@ -246,7 +243,7 @@ End Class
     <entry startLine="4" startColumn="5" endLine="4" endColumn="12"/>
 </sequencePoints>
 
-            AssertXmlEqual(expected, actual)
+            AssertXml.Equal(expected, actual)
         End Sub
 
         <Fact>
@@ -278,7 +275,7 @@ End Class
     <entry startLine="2" startColumn=<%= expectedStart2 %> endLine="2" endColumn=<%= expectedEnd2 %>/>
 </sequencePoints>
 
-            AssertXmlEqual(expected, actual)
+            AssertXml.Equal(expected, actual)
         End Sub
 
         <Fact>
@@ -313,7 +310,7 @@ End Class
     <entry startLine="4" startColumn="5" endLine="4" endColumn="12"/>
 </sequencePoints>
 
-            AssertXmlEqual(expected, actual)
+            AssertXml.Equal(expected, actual)
         End Sub
 
         <Fact>
@@ -341,7 +338,7 @@ End Class
     <entry startLine="2" startColumn=<%= expectedStart1 %> endLine="2" endColumn=<%= expectedEnd1 %>/>
 </sequencePoints>
 
-            AssertXmlEqual(expected, actual)
+            AssertXml.Equal(expected, actual)
         End Sub
 
         <Fact>
@@ -372,7 +369,7 @@ End Class
     <entry startLine="4" startColumn="5" endLine="4" endColumn="12"/>
 </sequencePoints>
 
-            AssertXmlEqual(expected, actual)
+            AssertXml.Equal(expected, actual)
         End Sub
 
         <Fact>
@@ -400,7 +397,7 @@ End Class
     <entry startLine="2" startColumn=<%= expectedStart1 %> endLine="2" endColumn=<%= expectedEnd1 %>/>
 </sequencePoints>
 
-            AssertXmlEqual(expected, actual)
+            AssertXml.Equal(expected, actual)
         End Sub
 
         <Fact>
@@ -431,7 +428,7 @@ End Class
     <entry startLine="4" startColumn="5" endLine="4" endColumn="12"/>
 </sequencePoints>
 
-            AssertXmlEqual(expected, actual)
+            AssertXml.Equal(expected, actual)
         End Sub
     End Class
 End Namespace

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         static CommonTestBase()
         {
             var configFileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location) + ".config";
-            var configFilePath = Path.Combine(Environment.CurrentDirectory, configFileName);
+            var configFilePath = Path.Combine(Directory.GetCurrentDirectory(), configFileName);
 
             if (File.Exists(configFilePath))
             {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             CommonTestBase test,
             Compilation compilation,
             IEnumerable<ModuleData> dependencies,
-            TestEmitters emitOptions,
+            TestEmitters emitters,
             IEnumerable<ResourceDescription> manifestResources,
             SignatureDescription[] expectedSignatures,
             string expectedOutput,
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string source,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitOptions = TestEmitters.All,
+            TestEmitters emitters = TestEmitters.All,
             Action<IModuleSymbol, TestEmitters> sourceSymbolValidator = null,
             Action<PEAssembly, TestEmitters> assemblyValidator = null,
             Action<IModuleSymbol, TestEmitters> symbolValidator = null,
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sources: new string[] { source },
                 additionalRefs: additionalRefs,
                 dependencies: dependencies,
-                emitOptions: emitOptions,
+                emitters: emitters,
                 sourceSymbolValidator: sourceSymbolValidator,
                 assemblyValidator: assemblyValidator,
                 symbolValidator: symbolValidator,
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string[] sources,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitOptions = TestEmitters.All,
+            TestEmitters emitters = TestEmitters.All,
             Action<IModuleSymbol, TestEmitters> sourceSymbolValidator = null,
             Action<PEAssembly, TestEmitters> assemblyValidator = null,
             Action<IModuleSymbol, TestEmitters> symbolValidator = null,
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 compilation,
                 null,
                 dependencies,
-                emitOptions,
+                emitters,
                 sourceSymbolValidator,
                 assemblyValidator,
                 symbolValidator,
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources = null,
             IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitOptions = TestEmitters.All,
+            TestEmitters emitters = TestEmitters.All,
             Action<IModuleSymbol, TestEmitters> sourceSymbolValidator = null,
             Action<PEAssembly, TestEmitters> assemblyValidator = null,
             Action<IModuleSymbol, TestEmitters> symbolValidator = null,
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (sourceSymbolValidator != null)
             {
                 var module = compilation.Assembly.Modules.First();
-                sourceSymbolValidator(module, emitOptions);
+                sourceSymbolValidator(module, emitters);
             }
 
             if (s_emitters.IsDefaultOrEmpty)
@@ -222,7 +222,7 @@ Example app.config:
                 var verifier = emit(this,
                                     compilation,
                                     dependencies,
-                                    emitOptions,
+                                    emitters,
                                     manifestResources,
                                     expectedSignatures,
                                     expectedOutput,
@@ -261,7 +261,7 @@ Example app.config:
             }
         }
 
-        internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Dictionary<string, byte[]> expectedBlobs, bool isField = true, TestEmitters emitOptions = TestEmitters.All)
+        internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Dictionary<string, byte[]> expectedBlobs, bool isField = true, TestEmitters emitters = TestEmitters.All)
         {
             return CompileAndVerifyFieldMarshal(
                 source,
@@ -271,21 +271,21 @@ Example app.config:
                     return expectedBlobs[s];
                 },
                 isField,
-                emitOptions);
+                emitters);
         }
 
-        internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Func<string, PEAssembly, TestEmitters, byte[]> getExpectedBlob, bool isField = true, TestEmitters emitOptions = TestEmitters.All)
+        internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Func<string, PEAssembly, TestEmitters, byte[]> getExpectedBlob, bool isField = true, TestEmitters emitters = TestEmitters.All)
         {
-            return CompileAndVerify(source, emitOptions: emitOptions, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly, options) => MarshalAsMetadataValidator(assembly, getExpectedBlob, options, isField));
+            return CompileAndVerify(source, emitters: emitters, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly, options) => MarshalAsMetadataValidator(assembly, getExpectedBlob, options, isField));
         }
 
-        static internal void RunValidators(CompilationVerifier verifier, TestEmitters emitOptions, Action<PEAssembly, TestEmitters> assemblyValidator, Action<IModuleSymbol, TestEmitters> symbolValidator)
+        static internal void RunValidators(CompilationVerifier verifier, TestEmitters emitters, Action<PEAssembly, TestEmitters> assemblyValidator, Action<IModuleSymbol, TestEmitters> symbolValidator)
         {
             if (assemblyValidator != null)
             {
                 using (var emittedMetadata = AssemblyMetadata.Create(verifier.GetAllModuleMetadata()))
                 {
-                    assemblyValidator(emittedMetadata.GetAssembly(), emitOptions);
+                    assemblyValidator(emittedMetadata.GetAssembly(), emitters);
                 }
             }
 
@@ -293,7 +293,7 @@ Example app.config:
             {
                 var peModuleSymbol = verifier.GetModuleSymbolForEmittedImage();
                 Debug.Assert(peModuleSymbol != null);
-                symbolValidator(peModuleSymbol, emitOptions);
+                symbolValidator(peModuleSymbol, emitters);
             }
         }
 
@@ -310,7 +310,7 @@ Example app.config:
             CommonTestBase test,
             Compilation compilation,
             IEnumerable<ModuleData> dependencies,
-            TestEmitters emitOptions,
+            TestEmitters emitters,
             IEnumerable<ResourceDescription> manifestResources,
             SignatureDescription[] expectedSignatures,
             string expectedOutput,
@@ -322,13 +322,13 @@ Example app.config:
             CompilationVerifier verifier = null;
 
             // We only handle CCI emit here for now...
-            if (emitOptions != TestEmitters.RefEmit)
+            if (emitters != TestEmitters.RefEmit)
             {
                 verifier = new CompilationVerifier(test, compilation, dependencies);
 
                 verifier.Emit(expectedOutput, manifestResources, verify, expectedSignatures);
 
-                // We're dual-purposing EmitOptions here.  In this context, it
+                // We're dual-purposing emitters here.  In this context, it
                 // tells the validator the version of Emit that is calling it. 
                 RunValidators(verifier, TestEmitters.CCI, assemblyValidator, symbolValidator);
             }

@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            nextFreeHoistedLocalSlot As Integer,
                            Diagnostics As DiagnosticBag)
 
-                MyBase.New(slotAllocatorOpt, F.CompilationState, Diagnostics)
+                MyBase.New(slotAllocatorOpt, F.CompilationState, Diagnostics, preserveOriginalLocals:=False)
 
                 Debug.Assert(F IsNot Nothing)
                 Debug.Assert(stateField IsNot Nothing)

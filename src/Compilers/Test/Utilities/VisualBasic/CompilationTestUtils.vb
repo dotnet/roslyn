@@ -15,16 +15,16 @@ Imports Xunit
 
 Friend Module CompilationUtils
 
-    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of String), Optional references As IEnumerable(Of MetadataReference) = Nothing, Optional compOptions As VisualBasicCompilationOptions = Nothing, Optional assemblyName As String = Nothing) As VisualBasicCompilation
-        Return VisualBasicCompilation.Create(If(assemblyName, "Test"), sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s)), If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), compOptions)
+    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of String), Optional references As IEnumerable(Of MetadataReference) = Nothing, Optional options As VisualBasicCompilationOptions = Nothing, Optional assemblyName As String = Nothing) As VisualBasicCompilation
+        Return VisualBasicCompilation.Create(If(assemblyName, "Test"), sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s)), If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), options)
     End Function
 
-    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of SyntaxTree), Optional compOptions As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
-        Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, {MscorlibRef}, compOptions)
+    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of SyntaxTree), Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+        Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, {MscorlibRef}, options)
     End Function
 
-    Public Function CreateCompilationWithMscorlib(sourceTrees As SyntaxTree, Optional compOptions As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
-        Return VisualBasicCompilation.Create(GetUniqueName(), {sourceTrees}, {MscorlibRef}, compOptions)
+    Public Function CreateCompilationWithMscorlib(sourceTrees As SyntaxTree, Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+        Return VisualBasicCompilation.Create(GetUniqueName(), {sourceTrees}, {MscorlibRef}, options)
     End Function
 
 
@@ -114,9 +114,6 @@ Friend Module CompilationUtils
     ''' &lt;/file&gt;
     ''' &lt;/compilation&gt;
     ''' </param>
-    ''' <param name="additionalRefs"></param>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
     Public Function CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
         sources As XElement,
         Optional additionalRefs As IEnumerable(Of MetadataReference) = Nothing,

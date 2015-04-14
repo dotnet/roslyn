@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private sealed class AnalyzerAndOptions
         {
-            private readonly DiagnosticAnalyzer _analyzer;
+            public readonly DiagnosticAnalyzer Analyzer;
             private readonly AnalyzerOptions _analyzerOptions;
 
             public AnalyzerAndOptions(DiagnosticAnalyzer analyzer, AnalyzerOptions analyzerOptions)
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Debug.Assert(analyzer != null);
                 Debug.Assert(analyzerOptions != null);
 
-                _analyzer = analyzer;
+                Analyzer = analyzer;
                 _analyzerOptions = analyzerOptions;
             }
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 return other != null &&
-                    _analyzer.Equals(other._analyzer) &&
+                    Analyzer.Equals(other.Analyzer) &&
                     _analyzerOptions.Equals(other._analyzerOptions);
             }
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override int GetHashCode()
             {
-                return Hash.Combine(_analyzer.GetHashCode(), _analyzerOptions.GetHashCode());
+                return Hash.Combine(Analyzer.GetHashCode(), _analyzerOptions.GetHashCode());
             }
         }
     }

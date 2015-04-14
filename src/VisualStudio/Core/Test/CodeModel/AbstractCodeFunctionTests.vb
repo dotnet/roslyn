@@ -106,6 +106,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             codeElement.RemoveParameter(child)
         End Sub
 
+        Protected Overrides Function GetParameters(codeElement As EnvDTE80.CodeFunction2) As EnvDTE.CodeElements
+            Return codeElement.Parameters
+        End Function
+
         Protected Overridable Function ExtensionMethodExtender_GetIsExtension(codeElement As EnvDTE80.CodeFunction2) As Boolean
             Throw New NotSupportedException
         End Function

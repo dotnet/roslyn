@@ -1,15 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV1;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class DiagnosticAnalyzerExtensions
     {
-        public static DiagnosticAnalyzerCategory GetDiagnosticAnalyzerCategory(this DiagnosticAnalyzer analyzer, DiagnosticAnalyzerDriver driver)
+        public static async Task<DiagnosticAnalyzerCategory> GetDiagnosticAnalyzerCategoryAsync(this DiagnosticAnalyzer analyzer, DiagnosticAnalyzerDriver driver)
         {
             var category = DiagnosticAnalyzerCategory.None;
 
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // to be able to operate on a limited span of the document. In practical terms, no analyzer
                 // can have both SemanticDocumentAnalysis and SemanticSpanAnalysis as categories.
                 bool cantSupportSemanticSpanAnalysis = false;
-                var analyzerActions = driver.GetAnalyzerActionsAsync(analyzer).WaitAndGetResult(driver.CancellationToken);
+                var analyzerActions = await driver.GetAnalyzerActionsAsync(analyzer).ConfigureAwait(false);
                 if (analyzerActions != null)
                 {
                     if (analyzerActions.SyntaxTreeActionsCount > 0)
@@ -45,24 +46,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         // It is not possible to know what actions a compilation start action will register without executing it,
                         // so return a worst-case categorization.
-                        category |= DiagnosticAnalyzerCategory.SyntaxAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis;
+                        category |= (DiagnosticAnalyzerCategory.SyntaxAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis);
                         cantSupportSemanticSpanAnalysis = true;
                     }
 
-                    if (analyzerActions.CompilationEndActionsCount > 0 || analyzerActions.CompilationActionsCount > 0 || analyzerActions.CompilationStartActionsCount > 0)
+                    if (analyzerActions.CompilationActionsCount > 0 || analyzerActions.CompilationStartActionsCount > 0)
                     {
                         category |= DiagnosticAnalyzerCategory.ProjectAnalysis;
                     }
 
-                    if (!cantSupportSemanticSpanAnalysis)
+                    if (HasSemanticDocumentActions(analyzerActions))
                     {
-                        if (analyzerActions.SymbolActionsCount > 0 ||
-                            analyzerActions.CodeBlockStartActionsCount > 0 ||
-                            analyzerActions.CodeBlockEndActionsCount > 0 ||
-                            analyzerActions.SyntaxNodeActionsCount > 0)
-                        {
-                            category |= DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-                        }
+                        var semanticDocumentAnalysisCategory = cantSupportSemanticSpanAnalysis ?
+                            DiagnosticAnalyzerCategory.SemanticDocumentAnalysis :
+                            DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+                        category |= semanticDocumentAnalysisCategory;
                     }
                 }
             }
@@ -70,29 +68,36 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return category;
         }
 
-        public static bool SupportsSyntaxDiagnosticAnalysis(this DiagnosticAnalyzer analyzer, DiagnosticAnalyzerDriver driver)
+        private static bool HasSemanticDocumentActions(AnalyzerActions analyzerActions)
         {
-            var category = analyzer.GetDiagnosticAnalyzerCategory(driver);
+            return analyzerActions.SymbolActionsCount > 0 ||
+                analyzerActions.SyntaxNodeActionsCount > 0 ||
+                analyzerActions.SemanticModelActionsCount > 0 ||
+                analyzerActions.CodeBlockActionsCount > 0 ||
+                analyzerActions.CodeBlockStartActionsCount > 0;
+        }
+
+        public static async Task<bool> SupportsSyntaxDiagnosticAnalysisAsync(this DiagnosticAnalyzer analyzer, DiagnosticAnalyzerDriver driver)
+        {
+            var category = await analyzer.GetDiagnosticAnalyzerCategoryAsync(driver).ConfigureAwait(false);
             return (category & DiagnosticAnalyzerCategory.SyntaxAnalysis) != 0;
         }
 
-        public static bool SupportsSemanticDiagnosticAnalysis(this DiagnosticAnalyzer analyzer, DiagnosticAnalyzerDriver driver, out bool supportsSemanticSpanAnalysis)
+        public static async Task<bool> SupportsSemanticDiagnosticAnalysisAsync(this DiagnosticAnalyzer analyzer, DiagnosticAnalyzerDriver driver)
         {
-            var category = analyzer.GetDiagnosticAnalyzerCategory(driver);
-            supportsSemanticSpanAnalysis = (category & DiagnosticAnalyzerCategory.SemanticSpanAnalysis) != 0;
-            return supportsSemanticSpanAnalysis ||
-                (category & DiagnosticAnalyzerCategory.SemanticDocumentAnalysis) != 0;
+            var category = await analyzer.GetDiagnosticAnalyzerCategoryAsync(driver).ConfigureAwait(false);
+            return (category & (DiagnosticAnalyzerCategory.SemanticSpanAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis)) != 0;
         }
 
-        public static bool SupportsSemanticDiagnosticAnalysis(this DiagnosticAnalyzer analyzer, DiagnosticAnalyzerDriver driver)
+        public static async Task<bool> SupportsSpanBasedSemanticDiagnosticAnalysisAsync(this DiagnosticAnalyzer analyzer, DiagnosticAnalyzerDriver driver)
         {
-            bool discarded;
-            return analyzer.SupportsSemanticDiagnosticAnalysis(driver, out discarded);
+            var category = await analyzer.GetDiagnosticAnalyzerCategoryAsync(driver).ConfigureAwait(false);
+            return (category & DiagnosticAnalyzerCategory.SemanticSpanAnalysis) != 0;
         }
 
-        public static bool SupportsProjectDiagnosticAnalysis(this DiagnosticAnalyzer analyzer, DiagnosticAnalyzerDriver driver)
+        public static async Task<bool> SupportsProjectDiagnosticAnalysisAsync(this DiagnosticAnalyzer analyzer, DiagnosticAnalyzerDriver driver)
         {
-            var category = analyzer.GetDiagnosticAnalyzerCategory(driver);
+            var category = await analyzer.GetDiagnosticAnalyzerCategoryAsync(driver).ConfigureAwait(false);
             return (category & DiagnosticAnalyzerCategory.ProjectAnalysis) != 0;
         }
     }

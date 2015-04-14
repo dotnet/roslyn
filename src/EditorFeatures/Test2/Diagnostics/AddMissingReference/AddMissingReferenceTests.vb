@@ -7,21 +7,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
     Public Class AddMissingReferenceTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
-        Private ReadOnly PresentationCoreAssemblyIdentity As AssemblyIdentity
-        Private ReadOnly PresentationFrameworkAssemblyIdentity As AssemblyIdentity
-        Private ReadOnly WindowsBaseAssemblyIdentity As AssemblyIdentity
-        Private ReadOnly SystemXamlAssemblyIdentity As AssemblyIdentity
+        Private ReadOnly _presentationCoreAssemblyIdentity As AssemblyIdentity
+        Private ReadOnly _presentationFrameworkAssemblyIdentity As AssemblyIdentity
+        Private ReadOnly _windowsBaseAssemblyIdentity As AssemblyIdentity
+        Private ReadOnly _systemXamlAssemblyIdentity As AssemblyIdentity
 
-        Private ReadOnly PresentationCoreAssemblyPath As String
-        Private ReadOnly PresentationFrameworkAssemblyPath As String
-        Private ReadOnly WindowsBaseAssemblyPath As String
-        Private ReadOnly SystemXamlAssemblyPath As String
+        Private ReadOnly _presentationCoreAssemblyPath As String
+        Private ReadOnly _presentationFrameworkAssemblyPath As String
+        Private ReadOnly _windowsBaseAssemblyPath As String
+        Private ReadOnly _systemXamlAssemblyPath As String
 
-        Sub New()
-            PresentationCoreAssemblyIdentity = GlobalAssemblyCache.ResolvePartialName("PresentationCore", PresentationCoreAssemblyPath)
-            PresentationFrameworkAssemblyIdentity = GlobalAssemblyCache.ResolvePartialName("PresentationFramework", PresentationFrameworkAssemblyPath)
-            WindowsBaseAssemblyIdentity = GlobalAssemblyCache.ResolvePartialName("WindowsBase", WindowsBaseAssemblyPath)
-            SystemXamlAssemblyIdentity = GlobalAssemblyCache.ResolvePartialName("System.Xaml", SystemXamlAssemblyPath)
+        Public Sub New()
+            _presentationCoreAssemblyIdentity = GlobalAssemblyCache.ResolvePartialName("PresentationCore", _presentationCoreAssemblyPath)
+            _presentationFrameworkAssemblyIdentity = GlobalAssemblyCache.ResolvePartialName("PresentationFramework", _presentationFrameworkAssemblyPath)
+            _windowsBaseAssemblyIdentity = GlobalAssemblyCache.ResolvePartialName("WindowsBase", _windowsBaseAssemblyPath)
+            _systemXamlAssemblyIdentity = GlobalAssemblyCache.ResolvePartialName("System.Xaml", _systemXamlAssemblyPath)
         End Sub
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                         </Document>
                     </Project>
                     <Project Language="Visual Basic" AssemblyName="VBProject2" CommonReferences="true">
-                        <MetadataReference><%= WindowsBaseAssemblyPath %></MetadataReference>
+                        <MetadataReference><%= _windowsBaseAssemblyPath %></MetadataReference>
                         <Document>
                             Public Module ModuleWithEvent
                                 Public Event E As System.Windows.PropertyChangedCallback
@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                         </Document>
                     </Project>
                 </Workspace>,
-                "VBProject", WindowsBaseAssemblyIdentity)
+                "VBProject", _windowsBaseAssemblyIdentity)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
@@ -136,11 +136,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
             TestAddUnresolvedMetadataReference(
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VBProject" CommonReferences="true">
-                        <MetadataReference><%= PresentationCoreAssemblyPath %></MetadataReference>
+                        <MetadataReference><%= _presentationCoreAssemblyPath %></MetadataReference>
                         <Document>Public Class Foo : Inherits System.Windows.UIElement$$ : End Class</Document>
                     </Project>
                 </Workspace>,
-                "VBProject", WindowsBaseAssemblyIdentity)
+                "VBProject", _windowsBaseAssemblyIdentity)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                         </Document>
                     </Project>
                     <Project Language="Visual Basic" AssemblyName="VBProject2" CommonReferences="true">
-                        <MetadataReference><%= WindowsBaseAssemblyPath %></MetadataReference>
+                        <MetadataReference><%= _windowsBaseAssemblyPath %></MetadataReference>
                         <Document>
                             Public Module ModuleWithEvent
                                 Public Sub E(x As System.Windows.DependencyProperty) : End Sub
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                         </Document>
                     </Project>
                 </Workspace>,
-                "VBProject", WindowsBaseAssemblyIdentity)
+                "VBProject", _windowsBaseAssemblyIdentity)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
@@ -174,11 +174,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
             TestAddUnresolvedMetadataReference(
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpProject" CommonReferences="true">
-                        <MetadataReference><%= PresentationCoreAssemblyPath %></MetadataReference>
+                        <MetadataReference><%= _presentationCoreAssemblyPath %></MetadataReference>
                         <Document>public class Foo : System.Windows.UIElement$$ { }</Document>
                     </Project>
                 </Workspace>,
-                "CSharpProject", WindowsBaseAssemblyIdentity)
+                "CSharpProject", _windowsBaseAssemblyIdentity)
         End Sub
     End Class
 End Namespace

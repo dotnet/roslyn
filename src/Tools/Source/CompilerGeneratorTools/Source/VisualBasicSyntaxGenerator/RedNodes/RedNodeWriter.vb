@@ -3,7 +3,7 @@
 Imports System.IO
 
 ' Class to write out the code for the code tree.
-Class RedNodeWriter
+Friend Class RedNodeWriter
     Inherits WriteUtils
 
     Private _writer As TextWriter    'output is sent here.

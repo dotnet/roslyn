@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
-using PDB::Microsoft.VisualStudio.SymReaderInterop;
+using PDB::Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -214,14 +214,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
 
             var closures = ImmutableArray.Create(
-                new ClosureDebugInfo(-100),
-                new ClosureDebugInfo(10),
-                new ClosureDebugInfo(-200));
+                new ClosureDebugInfo(-100, 0),
+                new ClosureDebugInfo(10, 0),
+                new ClosureDebugInfo(-200, 0));
 
             var lambdas = ImmutableArray.Create(
-                new LambdaDebugInfo(20, 1),
-                new LambdaDebugInfo(-50, 0),
-                new LambdaDebugInfo(-180, LambdaDebugInfo.StaticClosureOrdinal));
+                new LambdaDebugInfo(20, 1, 0),
+                new LambdaDebugInfo(-50, 0, 0),
+                new LambdaDebugInfo(-180, LambdaDebugInfo.StaticClosureOrdinal, 0));
 
             var customMetadata = new Cci.MemoryStream();
             var cmw = new Cci.BinaryWriter(customMetadata);
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
 
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
-            var lambdas = ImmutableArray.Create(new LambdaDebugInfo(20, LambdaDebugInfo.StaticClosureOrdinal));
+            var lambdas = ImmutableArray.Create(new LambdaDebugInfo(20, LambdaDebugInfo.StaticClosureOrdinal, 0));
 
             var customMetadata = new Cci.MemoryStream();
             var cmw = new Cci.BinaryWriter(customMetadata);

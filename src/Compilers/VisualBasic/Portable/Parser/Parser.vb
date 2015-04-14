@@ -1927,25 +1927,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                          SyntaxKind.ProtectedKeyword,
                          SyntaxKind.FriendKeyword
 
-                    ' Storage category
+                        ' Storage category
                     Case SyntaxKind.SharedKeyword,
                          SyntaxKind.ShadowsKeyword
 
-                    ' Inheritance category
+                        ' Inheritance category
                     Case SyntaxKind.MustInheritKeyword,
                          SyntaxKind.OverloadsKeyword,
                          SyntaxKind.NotInheritableKeyword,
                          SyntaxKind.OverridesKeyword
 
-                    ' Partial types category
+                        ' Partial types category
                     Case SyntaxKind.PartialKeyword
 
-                    ' Modifier category
+                        ' Modifier category
                     Case SyntaxKind.NotOverridableKeyword,
                          SyntaxKind.OverridableKeyword,
                          SyntaxKind.MustOverrideKeyword
 
-                    ' Writeability category
+                        ' Writeability category
                     Case SyntaxKind.ReadOnlyKeyword,
                          SyntaxKind.WriteOnlyKeyword
 
@@ -1955,7 +1955,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                          SyntaxKind.DefaultKeyword,
                          SyntaxKind.WithEventsKeyword
 
-                    ' Conversion category
+                        ' Conversion category
                     Case SyntaxKind.WideningKeyword,
                          SyntaxKind.NarrowingKeyword
 

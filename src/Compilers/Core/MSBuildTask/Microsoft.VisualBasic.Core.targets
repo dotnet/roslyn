@@ -28,9 +28,6 @@
     </PropertyGroup>
 
     <PropertyGroup>
-      <!-- If we are building in visual studio setting the VbcToolPath will prevent the inproc compiler from being used during compile-->
-      <VbcToolPath Condition="'$(VbcToolPath)' == '' and '$(BuildingInsideVisualStudio)' != 'true'">$(MsBuildToolsPath)</VbcToolPath>
-
       <!-- If we are targeting winmdobj we want to specifically the pdbFile property since we do not want it to collide with the output of winmdexp-->
       <PdbFile Condition="'$(PdbFile)' == '' and '$(OutputType)' == 'winmdobj' and '$(DebugSymbols)' == 'true'">$(IntermediateOutputPath)$(TargetName).compile.pdb</PdbFile>
     </PropertyGroup>
@@ -51,12 +48,17 @@
       <AdditionalFiles Include="@(%(AdditionalFileItems.Identity))" />
     </ItemGroup>
 
+    <PropertyGroup Condition="'$(UseSharedCompilation)' == ''">
+      <UseSharedCompilation>true</UseSharedCompilation>
+    </PropertyGroup>
+
     <!-- Condition is to filter out the _CoreCompileResourceInputs so that it doesn't pass in culture resources to the compiler -->
     <Vbc  Condition=" '%(_CoreCompileResourceInputs.WithCulture)' != 'true' "
           AdditionalLibPaths="$(AdditionalLibPaths)"
           AddModules="@(AddModules)"
           AdditionalFiles="@(AdditionalFiles)"
           Analyzers="@(Analyzer)"
+          AnalyzerDependencies="@(AnalyzerDependency)"
           BaseAddress="$(BaseAddress)"
           CodeAnalysisRuleSet="$(ResolvedCodeAnalysisRuleSet)"
           CodePage="$(CodePage)"
@@ -67,6 +69,7 @@
           DocumentationFile="@(DocFileItem)"
           EmitDebugInformation="$(DebugSymbols)"
           EnvironmentVariables="$(VbcEnvironment)"
+          ErrorLog="$(ErrorLog)"
           ErrorReport="$(ErrorReport)"
           FileAlignment="$(FileAlignment)"
           GenerateDocumentation="$(GenerateDocumentation)"
@@ -96,6 +99,7 @@
           PreferredUILang="$(PreferredUILang)"
           References="@(ReferencePath)"
           RemoveIntegerChecks="$(RemoveIntegerChecks)"
+          ReportAnalyzer="$(ReportAnalyzer)"
           Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
           ResponseFiles="$(CompilerResponseFile)"
           RootNamespace="$(RootNamespace)"
@@ -108,6 +112,7 @@
           ToolPath="$(VbcToolPath)"
           TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
           UseHostCompilerIfAvailable="$(UseHostCompilerIfAvailable)"
+          UseSharedCompilation="$(UseSharedCompilation)"
           Utf8Output="$(Utf8Output)"
           VBRuntimePath="$(VBRuntimePath)"
           Verbosity="$(VbcVerbosity)"

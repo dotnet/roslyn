@@ -2105,5 +2105,23 @@ End Class
                 state.AssertMatchesTextStartingAtLine(4, "Dim x = String.Empty?")
             End Using
         End Sub
+
+        <WorkItem(1659, "https://github.com/dotnet/roslyn/issues/1659")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub DismissOnSelectAllCommand()
+            Using state = TestState.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Class C
+    Sub foo()
+        $$]]></Document>)
+                ' Note: the caret is at the file, so the Select All command's movement
+                ' of the caret to the end of the selection isn't responsible for 
+                ' dismissing the session.
+                state.SendInvokeCompletionList()
+                state.AssertCompletionSession()
+                state.SendSelectAll()
+                state.AssertNoCompletionSession()
+            End Using
+        End Sub
     End Class
 End Namespace

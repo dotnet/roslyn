@@ -17,11 +17,11 @@ namespace Microsoft.Cci
         private static readonly Guid s_corSymLanguageVendorMicrosoft = new Guid("{994b45c4-e6e9-11d2-903f-00c04fa302a1}");
         private static readonly Guid s_corSymDocumentTypeText = new Guid("{5a869d0b-6611-11d3-bd2a-0000f80849bd}");
 
-        private string _location;
-        private Guid _language;
-        private bool _isComputedChecksum;
+        private readonly string _location;
+        private readonly Guid _language;
+        private readonly bool _isComputedChecksum;
 
-        private Task<ValueTuple<ImmutableArray<byte>, Guid>> _checksumAndAlgorithm;
+        private readonly Task<ValueTuple<ImmutableArray<byte>, Guid>> _checksumAndAlgorithm;
 
         public DebugSourceDocument(string location, Guid language)
         {
@@ -103,7 +103,7 @@ namespace Microsoft.Cci
         {
             get
             {
-                return (_checksumAndAlgorithm == null) ? default(ValueTuple<ImmutableArray<byte>, Guid>) : _checksumAndAlgorithm.Result;
+                return _checksumAndAlgorithm?.Result ?? default(ValueTuple<ImmutableArray<byte>, Guid>);
             }
         }
 

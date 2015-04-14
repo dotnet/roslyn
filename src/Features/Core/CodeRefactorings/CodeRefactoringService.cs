@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -69,6 +68,29 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 return SpecializedCollections.EmptyEnumerable<CodeRefactoringProvider>();
             }
+        }
+
+        public async Task<bool> HasRefactoringsAsync(
+            Document document,
+            TextSpan state,
+            CancellationToken cancellationToken)
+        {
+            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+
+            foreach (var provider in this.GetProviders(document))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var refactoring = await GetRefactoringFromProviderAsync(
+                    document, state, provider, extensionManager, cancellationToken).ConfigureAwait(false);
+
+                if (refactoring != null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public async Task<IEnumerable<CodeRefactoring>> GetRefactoringsAsync(

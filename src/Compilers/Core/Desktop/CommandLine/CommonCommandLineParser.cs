@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         // internal for testing
         internal virtual TextReader CreateTextFileReader(string fullPath)
         {
-            return new StreamReader(fullPath, detectEncodingFromByteOrderMarks: true);
+            return new StreamReader(File.OpenRead(fullPath), detectEncodingFromByteOrderMarks: true);
         }
 
         /// <summary>
@@ -58,11 +58,19 @@ namespace Microsoft.CodeAnalysis
             return Directory.EnumerateFiles(directory, fileNamePattern, searchOption);
         }
 
-        internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string additionalReferencePaths);
+        internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories);
 
-        public CommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string additionalReferencePaths)
+        /// <summary>
+        /// Parses a command line.
+        /// </summary>
+        /// <param name="args">A collection of strings representing the command line arguments.</param>
+        /// <param name="baseDirectory">The base directory used for qualifying file locations.</param>
+        /// <param name="sdkDirectory">The directory to search for mscorlib.</param>
+        /// <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
+        /// <returns>a commandlinearguments object representing the parsed command line.</returns>
+        public CommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
         {
-            return CommonParse(args, baseDirectory, additionalReferencePaths);
+            return CommonParse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
         internal static bool TryParseOption(string arg, out string name, out string value)
@@ -317,22 +325,51 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns an error message if any of the client arguments are invalid
-        /// and null otherwise.
+        /// Returns false if any of the client arguments are invalid and true otherwise.
         /// </summary>
-        internal static string CheckClientArgsForErrors(IEnumerable<string> args)
+        /// <param name="args">
+        /// The original args to the client.
+        /// </param>
+        /// <param name="parsedArgs">
+        /// The original args minus the client args, if no errors were encountered.
+        /// </param>
+        /// <param name="containsShared">
+        /// Only defined if no errors were encountered.
+        /// True if '/shared' was an argument, false otherwise.
+        /// </param>
+        /// <param name="keepAliveValue">
+        /// Only defined if no errors were encountered.
+        /// The value to the '/keepalive' argument if one was specified, null otherwise.
+        /// </param>
+        /// <param name="errorMessage">
+        /// Only defined if errors were encountered.
+        /// The error message for the encountered error.
+        /// </param>
+        internal static bool TryParseClientArgs(
+            IEnumerable<string> args,
+            out List<string> parsedArgs,
+            out bool containsShared,
+            out string keepAliveValue,
+            out string errorMessage)
         {
+            const string keepAlive = "/keepalive";
+            const string shared = "/shared";
+            containsShared = false;
+            keepAliveValue = null;
+            errorMessage = null;
+            parsedArgs = null;
+            var newArgs = new List<string>();
             foreach (var arg in args)
             {
-                const string keepAlive = "/keepalive";
                 var prefixLength = keepAlive.Length;
-                if (arg.StartsWith(keepAlive, StringComparison.Ordinal))
+                if (arg.StartsWith(keepAlive, StringComparison.OrdinalIgnoreCase))
                 {
                     if (arg.Length < prefixLength + 2 ||
                         arg[prefixLength] != ':' &&
                         arg[prefixLength] != '=')
                     {
-                        return CodeAnalysisDesktopResources.MissingKeepAlive;
+                        errorMessage = CodeAnalysisDesktopResources.MissingKeepAlive;
+                        return false;
                     }
 
                     var value = arg.Substring(prefixLength + 1).Trim('"');
@@ -341,16 +378,37 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (intValue < -1)
                         {
-                            return CodeAnalysisDesktopResources.KeepAliveIsTooSmall;
+                            errorMessage = CodeAnalysisDesktopResources.KeepAliveIsTooSmall;
+                            return false;
                         }
+                        keepAliveValue = value;
                     }
                     else
                     {
-                        return CodeAnalysisDesktopResources.KeepAliveIsNotAnInteger;
+                        errorMessage = CodeAnalysisDesktopResources.KeepAliveIsNotAnInteger;
+                        return false;
                     }
+                    continue;
                 }
+
+                if (string.Equals(arg, shared, StringComparison.OrdinalIgnoreCase))
+                {
+                    containsShared = true;
+                    continue;
+                }
+                newArgs.Add(arg);
             }
-            return null;
+
+            if (keepAliveValue != null && !containsShared)
+            {
+                errorMessage = CodeAnalysisDesktopResources.KeepAliveWithoutShared;
+                return false;
+            }
+            else
+            {
+                parsedArgs = newArgs;
+                return true;
+            }
         }
 
         internal static string MismatchedVersionErrorText => CodeAnalysisDesktopResources.MismatchedVersion;
@@ -504,6 +562,10 @@ namespace Microsoft.CodeAnalysis
             bool inQuotes = false;
             int backslashCount = 0;
 
+            // separate the line into multiple arguments on whitespaces. 
+            // we maintain the inQuotes state to ensure we do not break line while in a quoted text.
+            // we also need to count slashes since odd number of slashes before a quote 
+            // makes that quote just a regular char
             return Split(commandLine,
                 (c =>
                 {
@@ -528,8 +590,52 @@ namespace Microsoft.CodeAnalysis
                 }))
             .Select(arg => arg.Trim())                                                                  // Trim whitespace
             .TakeWhile(arg => (!removeHashComments || !arg.StartsWith("#", StringComparison.Ordinal)))  // If removeHashComments is true, skip all arguments after one that starts with '#'
-            .Select(arg => CondenseDoubledBackslashes(arg).Unquote())                                   // Remove quotes and handle backslashes.
+            .Select(arg => UnquoteAndUnescape(NormalizeBackslashes(arg)))                               // Remove quotes and handle backslashes.
             .Where(arg => !string.IsNullOrEmpty(arg));                        							// Don't produce empty strings.
+        }
+
+        // Once the line is split into arguments we need to remove quotes 
+        // that are not escaped, and need to remove slashes that are used for escaping
+        private static string UnquoteAndUnescape(string v)
+        {
+            if (v.IndexOf('"') < 0 && v.IndexOf('\\') < 0)
+            {
+                return v;
+            }
+
+            // split on " 
+            // except for preceded by \ like  \" 
+            // ignore pairs like \\
+            bool afterSingleBackslash = false;
+            var split = Split(v, c =>
+                {
+                    if (!afterSingleBackslash && c == '\"')
+                    {
+                        return true;
+                    }
+
+                    afterSingleBackslash = !afterSingleBackslash & c == '\\';
+                    return false;
+                }).ToArray();
+
+
+            // unescape escaped \"  and \\
+            for(int i = 0; i < split.Length; i++)
+            {
+                if (split[i].IndexOf('\\') >= 0)
+                {
+                    split[i] = split[i].Replace(@"\""", @"""");
+                    split[i] = split[i].Replace(@"\\", @"\");
+                }
+            }
+
+            // the behavior of unpaired quote seems to be not well defined
+            // Exprimentally I can see the following behaviors:
+            // 1) command arg parsing fails (Main is not called)
+            // 2) the text following the last quote is appended to the last argv as-is
+            // We will use strategy #2 for unpaired quote. 
+            // It is a broken and unlikely case but we have to do something.
+            return string.Join("", split);
         }
 
         private static bool IsCommandLineDelimiter(char c)
@@ -561,10 +667,15 @@ namespace Microsoft.CodeAnalysis
             yield return str.Substring(nextPiece);
         }
 
-        /// <summary>
-        /// Condense double backslashes that precede a quotation mark to single backslashes.
-        /// </summary>
-        private static string CondenseDoubledBackslashes(string input)
+        // In the input, the backslashes not preceding quotes are not escaped 
+        // (possibly to not force the user to type so many slashes). 
+        // That makes it hard to either unescape slashes after quotes are removed 
+        // or remove quotes after slashes are unescaped.
+        // NormalizeBackslashes makes the slashes that do not precede quotes to 
+        // be "escaped" the same way as the slashes that do. 
+        // This way we can later unescape all slashes in the same way and 
+        // not rely on presence of quotes.
+        private static string NormalizeBackslashes(string input)
         {
             int i = input.IndexOf('\\');
 
@@ -589,11 +700,11 @@ namespace Microsoft.CodeAnalysis
                     // Add right amount of pending backslashes.
                     if (c == '\"')
                     {
-                        AddBackslashes(builder, backslashCount / 2);
+                        AddBackslashes(builder, backslashCount);
                     }
                     else
                     {
-                        AddBackslashes(builder, backslashCount);
+                        AddBackslashes(builder, backslashCount * 2);
                     }
 
                     builder.Append(c);
@@ -601,7 +712,7 @@ namespace Microsoft.CodeAnalysis
                 }
             } while (++i < input.Length);
 
-            AddBackslashes(builder, backslashCount);
+            AddBackslashes(builder, backslashCount * 2);
             return pooledBuilder.ToStringAndFree();
         }
 

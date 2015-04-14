@@ -421,6 +421,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing the type of &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ChangingQueryLambdaType {
+            get {
+                return ResourceManager.GetString("ChangingQueryLambdaType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing the constraint from &apos;{0}&apos; to &apos;{1}&apos; will prevent the debug session from continuing..
         /// </summary>
         internal static string ChangingTheConstraintFromTo {
@@ -520,15 +529,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The DiagnosticDescriptor with ID &apos;{0}&apos; threw an exception with message &apos;{1}&apos;..
-        /// </summary>
-        internal static string DiagnosticDescriptorThrows {
-            get {
-                return ResourceManager.GetString("DiagnosticDescriptorThrows", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to TODO: dispose managed state (managed objects)..
         /// </summary>
         internal static string DisposeManagedStateTodo {
@@ -588,6 +588,33 @@ namespace Microsoft.CodeAnalysis {
         internal static string ErrorOrUnknownType {
             get {
                 return ResourceManager.GetString("ErrorOrUnknownType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Build.
+        /// </summary>
+        internal static string ErrorSourceBuild {
+            get {
+                return ResourceManager.GetString("ErrorSourceBuild", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit And Continue.
+        /// </summary>
+        internal static string ErrorSourceEnC {
+            get {
+                return ResourceManager.GetString("ErrorSourceEnC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IntelliSense Build.
+        /// </summary>
+        internal static string ErrorSourceIntelliSense {
+            get {
+                return ResourceManager.GetString("ErrorSourceIntelliSense", resourceCulture);
             }
         }
         
@@ -1240,6 +1267,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ModifyingAWhichContainsComplexQuery {
+            get {
+                return ResourceManager.GetString("ModifyingAWhichContainsComplexQuery", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a lambda expression will prevent the debug session from continuing..
         /// </summary>
         internal static string ModifyingAWhichContainsLambda {
@@ -1272,6 +1308,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string ModifyingAWhichContainsStackalloc {
             get {
                 return ResourceManager.GetString("ModifyingAWhichContainsStackalloc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a static variable will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ModifyingAWhichContainsStaticLocal {
+            get {
+                return ResourceManager.GetString("ModifyingAWhichContainsStaticLocal", resourceCulture);
             }
         }
         
@@ -1746,6 +1791,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic with ID &apos;{0}&apos; is not supported by the analyzer..
+        /// </summary>
+        internal static string UnsupportedDiagnosticReported {
+            get {
+                return ResourceManager.GetString("UnsupportedDiagnosticReported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Updating an active statement will prevent the debug session from continuing..
         /// </summary>
         internal static string UpdatingAnActiveStatement {
@@ -1926,11 +1980,21 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The User Diagnostic Analyzer &apos;{0}&apos; threw an exception with message &apos;{1}&apos;..
+        ///   Looks up a localized string similar to The User Diagnostic Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
         /// </summary>
         internal static string UserDiagnosticAnalyzerThrows {
             get {
                 return ResourceManager.GetString("UserDiagnosticAnalyzerThrows", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; threw the following exception:
+        ///&apos;{1}&apos;..
+        /// </summary>
+        internal static string UserDiagnosticAnalyzerThrowsDescription {
+            get {
+                return ResourceManager.GetString("UserDiagnosticAnalyzerThrowsDescription", resourceCulture);
             }
         }
         

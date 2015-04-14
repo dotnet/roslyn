@@ -39,5 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             return options.WithFeatures(options.Features.Add("strict"));
         }
+        public static CSharpCompilation WithStrictMode(this CSharpCompilation compilation)
+        {
+            return compilation.WithOptions(compilation.Options.WithFeatures(compilation.Options.Features.Add("strict")));
+        }
     }
 }

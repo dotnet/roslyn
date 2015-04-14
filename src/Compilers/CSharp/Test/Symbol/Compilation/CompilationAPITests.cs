@@ -656,7 +656,7 @@ var a = new C2();
 }"
             });
             assembly.VerifyEmitDiagnostics();
-            CompileAndVerify(assembly, emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(assembly, emitters: TestEmitters.RefEmitBug);
         }
 
         [WorkItem(713356, "DevDiv")]
@@ -1908,7 +1908,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
     <file id=""3"" name=""Baz.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" + checksum4 + @""" />
 </files>";
 
-            AssertXmlEqual(expected, actual);
+            AssertXml.Equal(expected, actual);
         }
 
         [Fact]

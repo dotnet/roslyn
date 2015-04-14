@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected internal override IEnumerable<SyntaxNode> GetChildren(SyntaxNode node)
         {
-            Debug.Assert(GetLabel(node) != IgnoredNode);
+            Debug.Assert(HasLabel(node));
 
             if (node == _oldRoot || node == _newRoot)
             {
@@ -58,18 +58,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             foreach (var child in node.ChildNodes())
             {
-                if (SyntaxFacts.IsLambdaBody(child))
+                if (LambdaUtilities.IsLambdaBodyStatementOrExpression(child))
                 {
                     continue;
                 }
 
-                if (GetLabelImpl(child) != Label.Ignored)
+                if (HasLabel(child))
                 {
                     yield return child;
                 }
                 else
                 {
-                    foreach (var descendant in child.DescendantNodes(descendIntoChildren: DescendIntoChildren))
+                    foreach (var descendant in child.DescendantNodes(DescendIntoChildren))
                     {
                         if (HasLabel(descendant))
                         {
@@ -82,6 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private IEnumerable<SyntaxNode> EnumerateRootChildren(SyntaxNode root)
         {
+            Debug.Assert(_oldRoot != null && _newRoot != null);
+
             var child = (root == _oldRoot) ? _oldRootChild : _newRootChild;
 
             if (GetLabelImpl(child) != Label.Ignored)
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
             else
             {
-                foreach (var descendant in child.DescendantNodes(descendIntoChildren: DescendIntoChildren))
+                foreach (var descendant in child.DescendantNodes(DescendIntoChildren))
                 {
                     if (HasLabel(descendant))
                     {
@@ -102,26 +104,29 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private bool DescendIntoChildren(SyntaxNode node)
         {
-            return !SyntaxFacts.IsLambdaBody(node) && !HasLabel(node);
+            return !LambdaUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
         }
 
         protected internal sealed override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
         {
             if (node == _oldRoot || node == _newRoot)
             {
-                var descendant = (node == _oldRoot) ? _oldRootChild : _newRootChild;
+                Debug.Assert(_oldRoot != null && _newRoot != null);
 
-                if (GetLabelImpl(descendant) != Label.Ignored)
+                var rootChild = (node == _oldRoot) ? _oldRootChild : _newRootChild;
+
+                if (HasLabel(rootChild))
                 {
-                    yield return descendant;
+                    yield return rootChild;
                 }
 
-                node = descendant;
+                node = rootChild;
             }
 
-            foreach (var descendant in node.DescendantNodes(descendIntoChildren: c => c == node || !IsLeaf(c) && !SyntaxFacts.IsLambdaBody(c)))
+            // TODO: avoid allocation of closure
+            foreach (var descendant in node.DescendantNodes(descendIntoChildren: c => !IsLeaf(c) && (c == node || !LambdaUtilities.IsLambdaBodyStatementOrExpression(c))))
             {
-                if (!SyntaxFacts.IsLambdaBody(descendant) && HasLabel(descendant))
+                if (!LambdaUtilities.IsLambdaBodyStatementOrExpression(descendant) && HasLabel(descendant))
                 {
                     yield return descendant;
                 }
@@ -152,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             TryStatement,
             CatchClause,                      // tied to parent
+            CatchDeclaration,                 // tied to parent
             CatchFilterClause,                // tied to parent
             FinallyClause,                    // tied to parent
             ForStatement,
@@ -179,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             // TODO: 
             // Ideally we could declare LocalVariableDeclarator tied to the first enclosing node that defines local scope (block, foreach, etc.)
-            // Also consider handling LocalDeclarationStatement in the same way we handle DeclarationExpression - just a bag of variable declarators,
+            // Also consider handling LocalDeclarationStatement as just a bag of variable declarators,
             // so that variable declarators contained in one can be matched with variable declarators contained in the other.
             LocalDeclarationStatement,         // tied to parent
             LocalVariableDeclaration,          // tied to parent
@@ -188,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             AwaitExpression,
 
             Lambda,
+
             FromClause,
             QueryBody,
             FromClauseLambda,                 // tied to parent
@@ -217,6 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.BreakContinueStatement:
                 case Label.ElseClause:
                 case Label.CatchClause:
+                case Label.CatchDeclaration:
                 case Label.CatchFilterClause:
                 case Label.FinallyClause:
                 case Label.ForStatementPart:
@@ -360,6 +368,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.CatchClause:
                     return Label.CatchClause;
 
+                case SyntaxKind.CatchDeclaration:
+                    // the declarator of the exception variable
+                    return Label.CatchDeclaration;
+
                 case SyntaxKind.CatchFilterClause:
                     return Label.CatchFilterClause;
 
@@ -381,9 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // Therefore we assign it a dedicated label.
                     // 
                     // The parent is not available only when comparing nodes for value equality.
-                    // In that case we use "Ignored" for all from clauses, even when they translate to lambdas.
-                    // As a result we mark the containing statement as modified even if the change is entirely 
-                    // in the from clause lambda, which is ok.
+                    // In that case it doesn't matter what label the node has as long as it has some.
                     if (nodeOpt == null || nodeOpt.Parent.IsKind(SyntaxKind.QueryExpression))
                     {
                         return Label.FromClause;
@@ -474,8 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal static bool HasLabel(SyntaxNode node)
         {
-            bool isLeaf;
-            return Classify(node.Kind(), node, out isLeaf) != Label.Ignored;
+            return GetLabelImpl(node) != Label.Ignored;
         }
 
         protected internal override int LabelCount

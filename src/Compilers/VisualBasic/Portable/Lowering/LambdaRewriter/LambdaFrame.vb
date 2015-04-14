@@ -39,16 +39,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                         container,
                                                                                         GeneratedNames.MakeDisplayClassGenericParameterName(typeParameter.Ordinal),
                                                                                         s_typeSubstitutionFactory)
-        Friend Sub New(slotAllocatorOpt As VariableSlotAllocator,
-                       topLevelMethod As MethodSymbol,
-                       methodId As MethodDebugId,
+        Friend Sub New(topLevelMethod As MethodSymbol,
                        scopeSyntaxOpt As VisualBasicSyntaxNode,
-                       closureOrdinal As Integer,
+                       methodId As DebugId,
+                       closureId As DebugId,
                        copyConstructor As Boolean,
                        isStatic As Boolean,
                        isDelegateRelaxationFrame As Boolean)
 
-            MyBase.New(topLevelMethod, MakeName(slotAllocatorOpt, scopeSyntaxOpt, methodId, closureOrdinal, isStatic, isDelegateRelaxationFrame), topLevelMethod.ContainingType, ImmutableArray(Of NamedTypeSymbol).Empty)
+            MyBase.New(topLevelMethod, MakeName(scopeSyntaxOpt, methodId, closureId, isStatic, isDelegateRelaxationFrame), topLevelMethod.ContainingType, ImmutableArray(Of NamedTypeSymbol).Empty)
 
             If copyConstructor Then
                 Me._constructor = New SynthesizedLambdaCopyConstructor(scopeSyntaxOpt, Me)
@@ -75,10 +74,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._topLevelMethod = topLevelMethod
         End Sub
 
-        Private Shared Function MakeName(slotAllocatorOpt As VariableSlotAllocator,
-                                         scopeSyntaxOpt As SyntaxNode,
-                                         methodId As MethodDebugId,
-                                         closureOrdinal As Integer,
+        Private Shared Function MakeName(scopeSyntaxOpt As SyntaxNode,
+                                         methodId As DebugId,
+                                         closureId As DebugId,
                                          isStatic As Boolean,
                                          isDelegateRelaxation As Boolean) As String
 
@@ -88,23 +86,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return GeneratedNames.MakeStaticLambdaDisplayClassName(methodId.Ordinal, methodId.Generation)
             End If
 
-            Dim previousClosureOrdinal As Integer
-            If slotAllocatorOpt IsNot Nothing AndAlso slotAllocatorOpt.TryGetPreviousClosure(scopeSyntaxOpt, previousClosureOrdinal) Then
-                methodId = slotAllocatorOpt.PreviousMethodId
-                closureOrdinal = previousClosureOrdinal
-            End If
-
-            ' If we haven't found existing closure in the previous generation, use the current generation method ordinal.
-            ' That is, don't try to reuse previous generation method ordinal as that might create name conflict.
-            ' E.g.
-            '     Gen0                    Gen1
-            '                             F() { new closure } // ordinal 0
-            '     G() { } // ordinal 0    G() { new closure } // ordinal 1
-            '
-            ' In the example above G is updated and F is added. 
-            ' G's ordinal in Gen0 is 0. If we used that ordinal for updated G's new closure it would conflict with F's ordinal.
             Debug.Assert(methodId.Ordinal >= 0)
-            Return GeneratedNames.MakeLambdaDisplayClassName(methodId.Ordinal, methodId.Generation, closureOrdinal, isDelegateRelaxation)
+            Return GeneratedNames.MakeLambdaDisplayClassName(methodId.Ordinal, methodId.Generation, closureId.Ordinal, closureId.Generation, isDelegateRelaxation)
         End Function
 
         <Conditional("DEBUG")>
@@ -114,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return
             End If
 
-            If SyntaxUtilities.IsClosureScope(syntaxOpt) Then
+            If LambdaUtilities.IsClosureScope(syntaxOpt) Then
                 Return
             End If
 

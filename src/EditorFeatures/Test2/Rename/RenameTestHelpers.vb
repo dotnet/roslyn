@@ -18,7 +18,7 @@ Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
-    Module RenameTestHelpers
+    Friend Module RenameTestHelpers
 
         <ThreadStatic>
         Friend _exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(

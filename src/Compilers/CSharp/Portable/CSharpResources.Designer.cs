@@ -1682,6 +1682,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error reading debug information for &apos;{0}&apos;.
+        /// </summary>
+        internal static string ERR_BadPdbData {
+            get {
+                return ResourceManager.GetString("ERR_BadPdbData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /platform; must be anycpu, x86, Itanium or x64.
         /// </summary>
         internal static string ERR_BadPlatformType {
@@ -9189,7 +9198,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Microsoft (R) Visual C# Compiler version {0}.
+        ///   Looks up a localized string similar to {0} version {1}.
         /// </summary>
         internal static string IDS_LogoLine1 {
             get {
@@ -9392,6 +9401,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_Text {
             get {
                 return ResourceManager.GetString("IDS_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Microsoft (R) Visual C# Compiler.
+        /// </summary>
+        internal static string IDS_ToolName {
+            get {
+                return ResourceManager.GetString("IDS_ToolName", resourceCulture);
             }
         }
         

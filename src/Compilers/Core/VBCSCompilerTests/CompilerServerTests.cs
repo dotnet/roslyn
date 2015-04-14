@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         private static string MSBuildExecutable { get; } = Path.Combine(MSBuildDirectory, "MSBuild.exe");
 
-        private static readonly string s_workingDirectory = Environment.CurrentDirectory;
+        private static readonly string s_workingDirectory = Directory.GetCurrentDirectory();
         private static string ResolveAssemblyPath(string exeName)
         {
             var path = Path.Combine(s_workingDirectory, exeName);
@@ -1292,7 +1292,7 @@ End Class
 "}
             };
 
-        [Fact()]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1445")]
         public void SimpleMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 HelloSolution.sln");
@@ -1949,7 +1949,7 @@ class Hello
             ProcessStartInfo processStartInfo = new ProcessStartInfo();
             processStartInfo.CreateNoWindow = true;
             processStartInfo.FileName = pathToProcDump;
-            processStartInfo.WorkingDirectory = Environment.CurrentDirectory;
+            processStartInfo.WorkingDirectory = Directory.GetCurrentDirectory();
             processStartInfo.UseShellExecute = false;
 
             processStartInfo.Arguments = " -accepteula -c 0 -ma " + pid.ToString();
@@ -2096,6 +2096,16 @@ class Hello
             Assert.Equal("", result.Errors);
         }
 
+        [Fact]
+        public void SimpleKeepAlive()
+        {
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable,
+                                                $"/nologo /keepalive:1 hello.cs",
+                                                _tempDirectory,
+                                                s_helloWorldSrcCs);
+            VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
+        }
+
         [Fact, WorkItem(1024619, "DevDiv")]
         public void Bug1024619_01()
         {
@@ -2206,6 +2216,15 @@ class Hello
             var result = ProcessLauncher.Run(exeFile, "");
             Assert.Equal(0, result.ExitCode);
             Assert.Equal("Hello from VB", result.Output.Trim());
+        }
+
+        [Fact]
+        public void ServerExitsWhenRunWithNoArgs()
+        {
+            var result = ProcessLauncher.Run(_compilerServerExecutable, "");
+
+            Assert.Equal(1, result.ExitCode);
+            Assert.Equal("", result.Output);
         }
     }
 }

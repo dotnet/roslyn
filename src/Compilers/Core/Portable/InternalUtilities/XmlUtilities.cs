@@ -66,7 +66,7 @@ namespace Roslyn.Utilities
 
         // TODO (DevDiv workitem 966425): replace with Portable profile API when available.
 
-        private static Lazy<Func<XNode, string, IEnumerable<XElement>>> s_XPathNodeSelector = new Lazy<Func<XNode, string, IEnumerable<XElement>>>(() =>
+        private static readonly Lazy<Func<XNode, string, IEnumerable<XElement>>> s_XPathNodeSelector = new Lazy<Func<XNode, string, IEnumerable<XElement>>>(() =>
         {
             Type type;
 
@@ -97,7 +97,7 @@ namespace Roslyn.Utilities
                 var xpathResult = s_XPathNodeSelector.Value(node, xpath);
 
                 // Throws InvalidOperationException if the result of the XPath is an XDocument:
-                return (xpathResult != null) ? xpathResult.ToArray() : null;
+                return xpathResult?.ToArray();
             }
             catch (InvalidOperationException e)
             {

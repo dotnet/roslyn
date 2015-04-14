@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly Compilation _compilation;
         private GlobalSuppressions _lazyGlobalSuppressions;
-        private ConcurrentDictionary<ISymbol, ImmutableArray<string>> _localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableArray<string>>();
+        private readonly ConcurrentDictionary<ISymbol, ImmutableArray<string>> _localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableArray<string>>();
         private ISymbol _lazySuppressMessageAttribute;
 
         private class GlobalSuppressions
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Check for suppression on parent symbol
             var parent = symbol.ContainingSymbol;
-            return parent != null ? IsDiagnosticSuppressed(id, parent) : false;
+            return parent != null && IsDiagnosticSuppressed(id, parent);
         }
 
         private bool IsDiagnosticSuppressed(string id, Location location)

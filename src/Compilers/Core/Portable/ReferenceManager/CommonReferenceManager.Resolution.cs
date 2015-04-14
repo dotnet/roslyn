@@ -146,7 +146,6 @@ namespace Microsoft.CodeAnalysis
             // References originating from #r directives precede references supplied as arguments of the compilation.
             int referenceCount = references.Length;
             int referenceDirectiveCount = (referenceDirectiveLocations != null ? referenceDirectiveLocations.Length : 0);
-            int externalReferenceCount = referenceCount - referenceDirectiveCount;
 
             var referenceMap = new ResolvedReference[referenceCount];
 
@@ -389,7 +388,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            Metadata newMetadata = null;
+            Metadata newMetadata;
             Diagnostic newDiagnostic = null;
             try
             {
@@ -617,7 +616,7 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(equivalent.Identity.IsStrongName);
 
-                // versions migth have been unified for a Framework assembly:
+                // versions might have been unified for a Framework assembly:
                 if (identity != equivalent.Identity)
                 {
                     // Dev12 C# reports an error
@@ -710,7 +709,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 references = referencesBuilder.ToImmutable();
-                referenceDirectiveLocations = referenceDirectiveLocationsBuilder == null ? ImmutableArray<Location>.Empty : referenceDirectiveLocationsBuilder.ToImmutableAndFree();
+                referenceDirectiveLocations = referenceDirectiveLocationsBuilder?.ToImmutableAndFree() ?? ImmutableArray<Location>.Empty;
             }
             finally
             {
@@ -723,7 +722,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// For each given directive return a bound PE reference, or null if the binding fails.
         /// </summary>
-        private PortableExecutableReference ResolveReferenceDirective(string reference, Location location, TCompilation compilation)
+        private static PortableExecutableReference ResolveReferenceDirective(string reference, Location location, TCompilation compilation)
         {
             var tree = location.SourceTree;
             string basePath = (tree != null && tree.FilePath.Length > 0) ? tree.FilePath : null;

@@ -18,10 +18,6 @@ namespace Microsoft.CodeAnalysis
         private ImmutableArray<byte> _lazySHA512Hash;
         private ImmutableArray<byte> _lazyMD5Hash;
 
-        public CryptographicHashProvider()
-        {
-        }
-
         internal abstract ImmutableArray<byte> ComputeHash(HashAlgorithm algorithm);
 
         internal ImmutableArray<byte> GetHash(AssemblyHashAlgorithm algorithmId)

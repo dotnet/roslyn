@@ -30,7 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.Equal(manager.Identifier, StandardTables.ErrorsTable)
                 Assert.Equal(1, manager.Sources.Count())
 
-                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
                 AssertEx.SetEqual(table.Columns, manager.GetColumnsForSources(SpecializedCollections.SingletonEnumerable(source)))
 
                 Assert.Equal(ServicesVSResources.DiagnosticsTableSourceName, source.DisplayName)
@@ -61,7 +61,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -79,7 +79,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
 
-                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -88,7 +88,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseDiagnosticsUpdated(workspace)
                 Assert.Equal(1, sink.Entries.Count)
 
-                provider.Items = New DiagnosticData() {}
+                provider.Items = Array.Empty(Of DiagnosticData)()
                 provider.RaiseClearDiagnosticsUpdated(workspace, documentId.ProjectId, documentId)
                 Assert.Equal(0, sink.Entries.Count)
             End Using
@@ -107,7 +107,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -119,7 +119,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(Path.Combine(item.OriginalFilePath, item.OriginalFilePath), filename)
+                Assert.Equal(item.OriginalFilePath, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -148,7 +148,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -167,7 +167,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(Path.Combine(item.OriginalFilePath, item.OriginalFilePath), filename)
+                Assert.Equal(item.OriginalFilePath, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -196,7 +196,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -228,7 +228,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -254,7 +254,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -282,7 +282,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     provider.RaiseDiagnosticsUpdated(workspace1)
 
                     Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                    Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                    Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
                     Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                     Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -316,7 +316,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -353,7 +353,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -364,7 +364,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.NotNull(wpfTableEntriesSnapshot)
 
                 Dim ui As FrameworkElement = Nothing
-                Assert.False(wpfTableEntriesSnapshot.TryCreateColumnContent(0, ShimTableKeyNames.ErrorCode, False, ui))
+                Assert.False(wpfTableEntriesSnapshot.TryCreateColumnContent(0, StandardTableKeyNames.ErrorCode, False, ui))
 
                 Assert.Null(ui)
             End Using
@@ -385,7 +385,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -396,7 +396,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.NotNull(wpfTableEntriesSnapshot)
 
                 Dim ui As FrameworkElement = Nothing
-                Assert.False(wpfTableEntriesSnapshot.TryCreateColumnContent(0, ShimTableKeyNames.ErrorCode, False, ui))
+                Assert.False(wpfTableEntriesSnapshot.TryCreateColumnContent(0, StandardTableKeyNames.ErrorCode, False, ui))
 
                 Assert.Null(ui)
             End Using
@@ -417,7 +417,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -446,7 +446,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -475,7 +475,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -483,9 +483,38 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.Equal(1, snapshot.Count)
 
                 Dim content As Object = Nothing
-                Assert.True(snapshot.TryGetValue(0, ShimTableKeyNames.ProjectRank, content))
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.ProjectRank, content))
                 Assert.NotNull(content)
                 Assert.Equal(CType(content, Integer), 0)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestErrorSource()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
+                Dim projectId = documentId.ProjectId
+
+                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error, "http://link/")
+                Dim provider = New TestDiagnosticService(item1)
+
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                provider.RaiseDiagnosticsUpdated(workspace)
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+                Assert.Equal(1, snapshot.Count)
+
+                Dim errorSource As Object = Nothing
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.ErrorSource, errorSource))
+
+                Assert.Equal("ErrorSource", errorSource.ToString())
             End Using
         End Sub
 
@@ -529,7 +558,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim id = If(CObj(item.DocumentId), item.ProjectId)
                 RaiseEvent DiagnosticsUpdated(Me, New DiagnosticsUpdatedArgs(
-                        ValueTuple.Create(Of IDiagnosticService, Object)(Me, id), workspace, workspace.CurrentSolution, item.ProjectId, item.DocumentId, items.ToImmutableArray()))
+                        New ErrorId(Me, id), workspace, workspace.CurrentSolution, item.ProjectId, item.DocumentId, items.ToImmutableArray()))
             End Sub
 
             Public Sub RaiseDiagnosticsUpdated(workspace As Workspace)
@@ -537,21 +566,35 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 For Each group In documentMap
                     RaiseEvent DiagnosticsUpdated(Me, New DiagnosticsUpdatedArgs(
-                        ValueTuple.Create(Of IDiagnosticService, Object)(Me, group.Key), workspace, workspace.CurrentSolution, group.Key.ProjectId, group.Key, group.ToImmutableArrayOrEmpty()))
+                        New ErrorId(Me, group.Key), workspace, workspace.CurrentSolution, group.Key.ProjectId, group.Key, group.ToImmutableArrayOrEmpty()))
                 Next
 
                 Dim projectMap = Items.Where(Function(t) t.DocumentId Is Nothing).Where(Function(t) t.Workspace Is workspace).ToLookup(Function(t) t.ProjectId)
 
                 For Each group In projectMap
                     RaiseEvent DiagnosticsUpdated(Me, New DiagnosticsUpdatedArgs(
-                        ValueTuple.Create(Of IDiagnosticService, Object)(Me, group.Key), workspace, workspace.CurrentSolution, group.Key, Nothing, group.ToImmutableArrayOrEmpty()))
+                        New ErrorId(Me, group.Key), workspace, workspace.CurrentSolution, group.Key, Nothing, group.ToImmutableArrayOrEmpty()))
                 Next
             End Sub
 
             Public Sub RaiseClearDiagnosticsUpdated(workspace As Workspace, projectId As ProjectId, documentId As DocumentId)
                 RaiseEvent DiagnosticsUpdated(Me, New DiagnosticsUpdatedArgs(
-                    ValueTuple.Create(Of IDiagnosticService, Object)(Me, documentId), workspace, workspace.CurrentSolution, projectId, documentId, ImmutableArray(Of DiagnosticData).Empty))
+                    New ErrorId(Me, documentId), workspace, workspace.CurrentSolution, projectId, documentId, ImmutableArray(Of DiagnosticData).Empty))
             End Sub
+
+            Private Class ErrorId
+                Inherits ErrorSourceId.Base(Of TestDiagnosticService, Object)
+
+                Public Sub New(service As TestDiagnosticService, id As Object)
+                    MyBase.New(service, id)
+                End Sub
+
+                Public Overrides ReadOnly Property ErrorSource As String
+                    Get
+                        Return "ErrorSource"
+                    End Get
+                End Property
+            End Class
         End Class
     End Class
 End Namespace

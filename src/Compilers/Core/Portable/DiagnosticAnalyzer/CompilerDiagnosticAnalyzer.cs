@@ -38,10 +38,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var analyzer = new CompilationAnalyzer(c.Compilation);
                 c.RegisterSyntaxTreeAction(analyzer.AnalyzeSyntaxTree);
-                c.RegisterSemanticModelAction(analyzer.AnalyzeSemanticModel);
+                c.RegisterSemanticModelAction(CompilationAnalyzer.AnalyzeSemanticModel);
             });
-
-            context.RegisterCompilationAction(CompilationAnalyzer.AnalyzeCompilation);
         }
     }
 }

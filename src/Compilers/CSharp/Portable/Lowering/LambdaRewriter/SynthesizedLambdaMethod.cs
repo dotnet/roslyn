@@ -18,15 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol containingType,
             ClosureKind closureKind,
             MethodSymbol topLevelMethod,
-            MethodDebugId topLevelMethodId,
+            DebugId topLevelMethodId,
             BoundLambda lambdaNode,
-            int lambdaOrdinal)
+            DebugId lambdaId)
             : base(containingType,
                    lambdaNode.Symbol,
                    null,
                    lambdaNode.SyntaxTree.GetReference(lambdaNode.Body.Syntax),
                    lambdaNode.Syntax.GetLocation(),
-                   MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaOrdinal),
+                   MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),
                    (closureKind == ClosureKind.ThisOnly ? DeclarationModifiers.Private : DeclarationModifiers.Internal)
                        | (lambdaNode.Symbol.IsAsync ? DeclarationModifiers.Async : 0))
         {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssignTypeMapAndTypeParameters(typeMap, typeParameters);
         }
 
-        private static string MakeName(string topLevelMethodName, MethodDebugId topLevelMethodId, ClosureKind closureKind, int lambdaOrdinal)
+        private static string MakeName(string topLevelMethodName, DebugId topLevelMethodId, ClosureKind closureKind, DebugId lambdaId)
         {
             // Lambda method name must contain the declaring method ordinal to be unique unless the method is emitted into a closure class exclusive to the declaring method.
             // Lambdas that only close over "this" are emitted directly into the top-level method containing type.
@@ -63,7 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 topLevelMethodName,
                 (closureKind == ClosureKind.General) ? -1 : topLevelMethodId.Ordinal,
                 topLevelMethodId.Generation,
-                lambdaOrdinal);
+                lambdaId.Ordinal,
+                lambdaId.Generation);
         }
 
         internal override int ParameterCount => this.BaseMethod.ParameterCount;

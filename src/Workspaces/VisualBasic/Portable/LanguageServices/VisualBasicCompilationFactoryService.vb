@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicCompilationFactoryService
         Implements ICompilationFactoryService
 
-        Private Shared ReadOnly defaultOptions As New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild:=False)
+        Private Shared ReadOnly s_defaultOptions As New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild:=False)
 
         Public Overloads Function CreateCompilation(
             assemblyName As String,
@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return VisualBasicCompilation.Create(
                 assemblyName,
-                options:=If(DirectCast(options, VisualBasicCompilationOptions), defaultOptions))
+                options:=If(DirectCast(options, VisualBasicCompilationOptions), s_defaultOptions))
         End Function
 
         Public Function CreateSubmissionCompilation(
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetDefaultCompilationOptions() As CompilationOptions Implements ICompilationFactoryService.GetDefaultCompilationOptions
-            Return defaultOptions
+            Return s_defaultOptions
         End Function
     End Class
 End Namespace

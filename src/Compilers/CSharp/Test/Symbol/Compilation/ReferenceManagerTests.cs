@@ -353,7 +353,7 @@ public class OKImpl : I
                 // warning CS1701: Assuming assembly reference 'Lib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'X' matches identity 'Lib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'Lib', you may need to supply runtime policy
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("Lib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "X", "Lib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "Lib"));
 
-            CompileAndVerify(main, emitOptions: TestEmitters.CCI, validator: (assembly, _) =>
+            CompileAndVerify(main, emitters: TestEmitters.CCI, validator: (assembly, _) =>
             {
                 var reader = assembly.GetMetadataReader();
                 List<string> refs = new List<string>();

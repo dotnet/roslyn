@@ -369,4 +369,7 @@
   <data name="IntoClause" xml:space="preserve">
     <value>into clause</value>
   </data>
+  <data name="RemoveUnnecessaryUsingsDiagnosticTitle" xml:space="preserve">
+    <value>Using directive is unnecessary.</value>
+  </data>
 </root>

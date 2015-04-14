@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Private Class VisualBasicAnalyzer
             Inherits Analyzer
 
-            Private Shared ReadOnly NonNoisySyntaxKindSet As HashSet(Of Integer) = New HashSet(Of Integer) From {SyntaxKind.WhitespaceTrivia, SyntaxKind.EndOfLineTrivia}
+            Private Shared ReadOnly s_nonNoisySyntaxKindSet As HashSet(Of Integer) = New HashSet(Of Integer) From {SyntaxKind.WhitespaceTrivia, SyntaxKind.EndOfLineTrivia}
 
             Public Shared Function AnalyzeResultAsync(currentSelectionResult As SelectionResult, cancellationToken As CancellationToken) As Task(Of AnalyzerResult)
                 Dim analyzer = New VisualBasicAnalyzer(currentSelectionResult, cancellationToken)
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     style = AlwaysReturn(style)
                 End If
 
-                Return CreateFromSymbolCommon(Of LocalDeclarationStatementSyntax)(compilation, symbol, type, style, NonNoisySyntaxKindSet)
+                Return CreateFromSymbolCommon(Of LocalDeclarationStatementSyntax)(compilation, symbol, type, style, s_nonNoisySyntaxKindSet)
             End Function
 
             Protected Overrides Function GetIndexOfVariableInfoToUseAsReturnValue(variableInfo As IList(Of VariableInfo)) As Integer

@@ -539,7 +539,7 @@ End Structure
             GetTypeInfoTest(comp, "MyClass", "s1")
         End Sub
 
-        Function LookUpSymbolTest(comp As VisualBasicCompilation, name As String, Optional index As Integer = 1, Optional expectedCount As Integer = 0, Optional expectedString As String = "") As ISymbol
+        Public Function LookUpSymbolTest(comp As VisualBasicCompilation, name As String, Optional index As Integer = 1, Optional expectedCount As Integer = 0, Optional expectedString As String = "") As ISymbol
             Dim tree = comp.SyntaxTrees.First
             Dim nodes As New List(Of VisualBasicSyntaxNode)
             Dim model = comp.GetSemanticModel(tree)
@@ -556,7 +556,7 @@ End Structure
 
         End Function
 
-        Sub GetSymbolInfoTest(comp As VisualBasicCompilation, nodeName As String, expectedSymbol As ISymbol)
+        Public Sub GetSymbolInfoTest(comp As VisualBasicCompilation, nodeName As String, expectedSymbol As ISymbol)
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
             Dim expressions = tree.GetCompilationUnitRoot().DescendantNodesAndSelf.Where(Function(x) x.Kind = SyntaxKind.MeExpression Or x.Kind = SyntaxKind.MyBaseExpression Or x.Kind = SyntaxKind.MyClassExpression Or x.Kind = SyntaxKind.SimpleMemberAccessExpression).ToList()
@@ -574,7 +574,7 @@ End Structure
             End If
         End Sub
 
-        Sub GetTypeInfoTest(comp As VisualBasicCompilation, nodeName As String, expectedTypeInfo As String)
+        Public Sub GetTypeInfoTest(comp As VisualBasicCompilation, nodeName As String, expectedTypeInfo As String)
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
             Dim expressions = tree.GetCompilationUnitRoot().DescendantNodesAndSelf.Where(Function(x) x.Kind = SyntaxKind.MeExpression Or x.Kind = SyntaxKind.MyBaseExpression Or x.Kind = SyntaxKind.MyClassExpression Or x.Kind = SyntaxKind.SimpleMemberAccessExpression).ToList()

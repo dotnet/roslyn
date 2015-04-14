@@ -4144,27 +4144,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Checks if a given symbol is a function that takes no parameters.
         ''' </summary>
         Private Shared s_isFunctionWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
-                                                                                    If sym.Kind = SymbolKind.Method Then
-                                                                                        Dim method = DirectCast(sym, MethodSymbol)
-                                                                                        Return Not method.IsSub() AndAlso
-                                                                                               Not method.IsGenericMethod AndAlso
-                                                                                               method.CanBeCalledWithNoParameters
-                                                                                    End If
-                                                                                    Return False
-                                                                                End Function
+                                                                                      If sym.Kind = SymbolKind.Method Then
+                                                                                          Dim method = DirectCast(sym, MethodSymbol)
+                                                                                          Return Not method.IsSub() AndAlso
+                                                                                                 Not method.IsGenericMethod AndAlso
+                                                                                                 method.CanBeCalledWithNoParameters
+                                                                                      End If
+                                                                                      Return False
+                                                                                  End Function
 
         ''' <summary>
         ''' Checks if a given symbol is a property that is readable.
         ''' </summary>
         Private Shared s_isReadablePropertyWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
-                                                                                            If sym.Kind = SymbolKind.Property Then
-                                                                                                Dim prop = DirectCast(sym, PropertySymbol)
-                                                                                                Return prop.IsReadable AndAlso
-                                                                                                       Not prop.GetMostDerivedGetMethod().IsGenericMethod AndAlso
-                                                                                                       prop.GetCanBeCalledWithNoParameters
-                                                                                            End If
-                                                                                            Return False
-                                                                                        End Function
+                                                                                              If sym.Kind = SymbolKind.Property Then
+                                                                                                  Dim prop = DirectCast(sym, PropertySymbol)
+                                                                                                  Return prop.IsReadable AndAlso
+                                                                                                         Not prop.GetMostDerivedGetMethod().IsGenericMethod AndAlso
+                                                                                                         prop.GetCanBeCalledWithNoParameters
+                                                                                              End If
+                                                                                              Return False
+                                                                                          End Function
 
         ''' <summary>
         ''' Returns the lookup result if at least one found symbol matches the requirements that are verified

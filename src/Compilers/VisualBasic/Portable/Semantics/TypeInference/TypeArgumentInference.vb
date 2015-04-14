@@ -1924,10 +1924,10 @@ HandleAsAGeneralExpression:
 
                     Select Case argument.Kind
                         Case BoundKind.QueryLambda
-                        ' Do not infer Anonymous Delegate type from query lambda.
+                            ' Do not infer Anonymous Delegate type from query lambda.
 
                         Case BoundKind.GroupTypeInferenceLambda
-                        ' Can't infer from this lambda.
+                            ' Can't infer from this lambda.
 
                         Case BoundKind.UnboundLambda
                             ' Infer Anonymous Delegate type from unbound lambda.

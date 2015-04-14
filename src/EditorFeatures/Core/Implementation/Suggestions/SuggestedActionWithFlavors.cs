@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -53,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         private SuggestedActionSet GetPreviewChangesSuggestedActionSet()
         {
-            var previewResult = GetPreviewResult(CancellationToken.None);
+            var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
+            var previewResult = extensionManager.PerformFunction(this.Provider, () => GetPreviewResult(CancellationToken.None));
             if (previewResult == null)
             {
                 return null;

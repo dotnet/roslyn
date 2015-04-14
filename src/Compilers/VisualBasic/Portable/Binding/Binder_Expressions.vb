@@ -1070,7 +1070,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Select Case propertyAccess.AccessKind
                     Case PropertyAccessKind.Get
-                    ' Nothing to do.
+                        ' Nothing to do.
 
                     Case PropertyAccessKind.Unknown
                         Debug.Assert(propertyAccess.PropertySymbol.IsReadable)
@@ -1085,7 +1085,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Select Case expr.GetLateBoundAccessKind()
                     Case LateBoundAccessKind.Get
-                    ' Nothing to do.
+                        ' Nothing to do.
 
                     Case LateBoundAccessKind.Unknown
                         expr = expr.SetLateBoundAccessKind(LateBoundAccessKind.Get)
@@ -3505,7 +3505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' "Structure '{0}' cannot be indexed because it has no default property."
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_StructureNoDefault1, type)
                 Case TypeKind.Error
-                ' We should have reported an error elsewhere.
+                    ' We should have reported an error elsewhere.
                 Case Else
                     ' "'{0}' cannot be indexed because it has no default property."
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_InterfaceNoDefault1, type)
@@ -4620,7 +4620,7 @@ lElseClause:
                              ERRID.ERR_UseOfObsoletePropertyAccessor3,
                              ERRID.ERR_UseOfObsoleteSymbolNoMessage1,
                              ERRID.ERR_UseOfObsoleteSymbol2
-                        ' ignore
+                            ' ignore
 
                         Case Else
                             Return True

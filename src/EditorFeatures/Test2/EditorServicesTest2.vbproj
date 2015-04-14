@@ -13,7 +13,7 @@
     <AssemblyName>Roslyn.Services.Editor.UnitTests2</AssemblyName>
     <OptionStrict>Off</OptionStrict>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -191,8 +191,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CallHierarchy\CallHierarchyTests.vb" />
-    <Compile Include="CallHierarchy\MockDocumentNavigationServiceProvider.vb" />
-    <Compile Include="CallHierarchy\MockSymbolNavigationServiceProvider.vb" />
+    <Compile Include="Utilities\MockDocumentNavigationServiceProvider.vb" />
+    <Compile Include="Utilities\MockSymbolNavigationServiceProvider.vb" />
     <Compile Include="CodeFixes\CodeFixServiceTests.vb" />
     <Compile Include="Compilation\CompilationTests.vb" />
     <Compile Include="Diagnostics\AbstractCrossLanguageUserDiagnosticTest.vb" />

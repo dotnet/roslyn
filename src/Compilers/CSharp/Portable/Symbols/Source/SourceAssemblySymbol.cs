@@ -2339,11 +2339,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (FieldSymbol field in _unassignedFieldsMap.Keys) // Not mutating, so no snapshot required.
                 {
-                    bool isInternalAccessiblity;
-                    bool success = _unassignedFieldsMap.TryGetValue(field, out isInternalAccessiblity);
+                    bool isInternalAccessibility;
+                    bool success = _unassignedFieldsMap.TryGetValue(field, out isInternalAccessibility);
                     Debug.Assert(success, "Once CompletionPart.Module is set, no one should be modifying the map.");
 
-                    if (isInternalAccessiblity && internalsAreVisible)
+                    if (isInternalAccessibility && internalsAreVisible)
                     {
                         continue;
                     }

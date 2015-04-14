@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis
 
             internal SimpleEmitStreamProvider(Stream stream)
             {
+                Debug.Assert(stream != null);
                 _stream = stream;
             }
 

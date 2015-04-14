@@ -93,12 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Add IAsyncStateMachine.MoveNext()
 
-            var moveNextMethod = OpenMethodImplementation(
-                IAsyncStateMachine_MoveNext,
-                WellKnownMemberNames.MoveNextMethodName,
-                debuggerHidden: IsDebuggerHidden(this.method),
-                generateDebugInfo: true,
-                hasMethodBodyDependency: true);
+            var moveNextMethod = OpenMoveNextMethodImplementation(IAsyncStateMachine_MoveNext);
 
             GenerateMoveNext(moveNextMethod);
 
@@ -107,8 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             OpenMethodImplementation(
                 IAsyncStateMachine_SetStateMachine,
                 "SetStateMachine",
-                debuggerHidden: true,
-                generateDebugInfo: false,
                 hasMethodBodyDependency: false);
 
             // SetStateMachine is used to initialize the underlying AsyncMethodBuilder's reference to the boxed copy of the state machine.
@@ -173,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bodyBuilder.Add(
                     F.Assignment(
                         F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType)),
-                        F.StaticCall(methodScopeAsyncMethodBuilderMemberCollection.BuilderType, "Create", ImmutableArray<TypeSymbol>.Empty)));
+                        F.StaticCall(BinderFlags.IgnoreAccessibility, methodScopeAsyncMethodBuilderMemberCollection.BuilderType, "Create", ImmutableArray<TypeSymbol>.Empty)));
 
                 // local.$stateField = NotStartedStateMachine
                 bodyBuilder.Add(

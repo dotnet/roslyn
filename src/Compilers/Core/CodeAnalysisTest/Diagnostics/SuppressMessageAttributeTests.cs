@@ -1125,7 +1125,12 @@ public class C2
                 onAnalyzerException: (ex, a, d) => exceptionDiagnostics.Add(d));
 
             exceptionDiagnostics.Verify(
-                Diagnostic("AD0001", null).WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer", "ThrowExceptionAnalyzer exception").WithLocation(1, 1));
+                Diagnostic("AD0001", null)
+                    .WithArguments(
+                        "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer",
+                        "System.Exception",
+                        "ThrowExceptionAnalyzer exception")
+                    .WithLocation(1, 1));
         }
 
         #endregion
@@ -1222,9 +1227,17 @@ public class C2
             }
         }
 
-        protected static DiagnosticDescription Diagnostic(string id, string squiggledText)
+        protected virtual bool ConsiderArgumentsForComparingDiagnostics
         {
-            var arguments = squiggledText != null ? new[] { squiggledText } : null;
+            get
+            {
+                return true;
+            }
+        }
+
+        protected DiagnosticDescription Diagnostic(string id, string squiggledText)
+        {
+            var arguments = (this.ConsiderArgumentsForComparingDiagnostics && squiggledText != null) ? new[] { squiggledText } : null;
             return new DiagnosticDescription(id, false, squiggledText, arguments, null, null, false);
         }
     }

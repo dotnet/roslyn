@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.ChangingCapturedVariableScope,             FeaturesResources.ChangingCapturedVariableScope) },
             { GetDescriptorPair(RudeEditKind.ChangingLambdaParameters,                  FeaturesResources.ChangingLambdaParameters) },
             { GetDescriptorPair(RudeEditKind.ChangingLambdaReturnType,                  FeaturesResources.ChangingLambdaReturnType) },
+            { GetDescriptorPair(RudeEditKind.ChangingQueryLambdaType,                   FeaturesResources.ChangingQueryLambdaType) },
             { GetDescriptorPair(RudeEditKind.AccessingCapturedVariableInLambda,         FeaturesResources.AccessingCapturedVariableInLambda) },
             { GetDescriptorPair(RudeEditKind.NotAccessingCapturedVariableInLambda,      FeaturesResources.NotAccessingCapturedVariableInLambda) },
             { GetDescriptorPair(RudeEditKind.InsertLambdaWithMultiScopeCapture,         FeaturesResources.InsertLambdaWithMultiScopeCapture) },
@@ -77,12 +78,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_ANON_METHOD,                     FeaturesResources.ModifyingAWhichContainsAnonymousMethod) },
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION,               FeaturesResources.ModifyingAWhichContainsLambda) },
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION,                FeaturesResources.ModifyingAWhichContainsQuery) },
+            { GetDescriptorPair(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION,        FeaturesResources.ModifyingAWhichContainsComplexQuery) },
 
             // VB specific,
             { GetDescriptorPair(RudeEditKind.HandlesClauseUpdate,                       FeaturesResources.UpdatingTheHandlesClause) },
             { GetDescriptorPair(RudeEditKind.ImplementsClauseUpdate,                    FeaturesResources.UpdatingTheImplementsClause) },
             { GetDescriptorPair(RudeEditKind.ConstraintKindUpdate,                      FeaturesResources.ChangingTheConstraintFromTo) },
             { GetDescriptorPair(RudeEditKind.InsertHandlesClause,                       FeaturesResources.AddingAWithTheHandlesClause) },
+            { GetDescriptorPair(RudeEditKind.UpdateStaticLocal,                         FeaturesResources.ModifyingAWhichContainsStaticLocal) },
         }.ToImmutableDictionary();
 
         private static KeyValuePair<RudeEditKind, DiagnosticDescriptor> GetDescriptorPair(RudeEditKind kind, string message)

@@ -36,7 +36,7 @@ namespace Roslyn.Utilities
                 {
                     get
                     {
-                        throw new ArgumentOutOfRangeException("index");
+                        throw new ArgumentOutOfRangeException(nameof(index));
                     }
 
                     set

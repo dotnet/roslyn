@@ -1267,6 +1267,34 @@ class C
                 MainDescription("class System.String"));
         }
 
+        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void TestVerbatimStringLiteral()
+        {
+            TestInMethod(@"string f = @""cat""$$",
+                MainDescription("class System.String"));
+        }
+
+        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void TestInterpolatedStringLiteral()
+        {
+            TestInMethod(@"string f = $""cat""$$", MainDescription("class System.String"));
+            TestInMethod(@"string f = $""c$$at""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $""$$cat""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $""cat {1$$ + 2} dog""", MainDescription("struct System.Int32"));
+        }
+
+        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void TestVerbatimInterpolatedStringLiteral()
+        {
+            TestInMethod(@"string f = $@""cat""$$", MainDescription("class System.String"));
+            TestInMethod(@"string f = $@""c$$at""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $@""$$cat""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $@""cat {1$$ + 2} dog""", MainDescription("struct System.Int32"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestCharLiteral()
         {
@@ -2564,6 +2592,54 @@ class class1Attribute : Attribute
     private class1Attribute x$$;
 }",
                 MainDescription($"({FeaturesResources.Field}) class1Attribute class1Attribute.x"));
+        }
+
+        [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void AttributeQuickInfoBindsToClassTest()
+        {
+            Test(@"
+using System;
+
+/// <summary>
+/// class comment
+/// </summary>
+[Some$$]
+class SomeAttribute : Attribute
+{
+    /// <summary>
+    /// ctor comment
+    /// </summary>
+    public SomeAttribute()
+    {
+    }
+}
+",
+                Documentation("class comment"));
+        }
+
+        [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void AttributeConstructorQuickInfo()
+        {
+            Test(@"
+using System;
+
+/// <summary>
+/// class comment
+/// </summary>
+class SomeAttribute : Attribute
+{
+    /// <summary>
+    /// ctor comment
+    /// </summary>
+    public SomeAttribute()
+    {
+        var s = new Some$$Attribute();
+    }
+}
+",
+                Documentation("ctor comment"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -3975,6 +4051,36 @@ class Program
     }
 }";
             Test(markup, MainDescription("dynamic"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void MethodOverloadDifferencesIgnored()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""SourceDocument""><![CDATA[
+class C
+{
+#if ONE
+    void Do(int x){}
+#endif
+#if TWO
+    void Do(string x){}
+#endif
+    void Shared()
+    {
+        this.Do$$
+    }
+
+}]]></Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"void C.Do(int x)";
+            VerifyWithReferenceWorker(markup, MainDescription(expectedDescription));
         }
     }
 }

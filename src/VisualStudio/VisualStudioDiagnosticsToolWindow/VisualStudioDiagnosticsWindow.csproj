@@ -28,6 +28,7 @@
     <TargetVsixContainerName>Roslyn.VisualStudio.DiagnosticsWindow.vsix</TargetVsixContainerName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -106,6 +107,7 @@
   <ItemGroup>
     <Compile Include="DiagnosticsWindow.cs" />
     <Compile Include="Guids.cs" />
+    <Compile Include="OptionPages\InternalSolutionCrawlerPage.cs" />
     <Compile Include="OptionPages\InternalComponentsOnOffPage.cs" />
     <Compile Include="OptionPages\InternalDiagnosticsPage.cs" />
     <Compile Include="OptionPages\InternalFeaturesOnOffPage.cs" />

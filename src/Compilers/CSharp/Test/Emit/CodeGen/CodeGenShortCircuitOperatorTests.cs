@@ -4176,7 +4176,7 @@ class Program
             var comp = CompileAndVerify(source, expectedOutput: @"Success");
         }
 
-        [Fact(Skip = "836"), WorkItem(836, "GitHub")]
+        [Fact(), WorkItem(836, "GitHub")]
         public void ConditionalMemberAccessRace002()
         {
             var source = @"
@@ -4218,24 +4218,29 @@ class Program
             }
         };
 
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
-        Task.Factory.StartNew(a);
+        var tasks = new List<Task>();
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
+        tasks.Add(Task.Factory.StartNew(a));
 
         a();
+
+        // wait for all tasks to exit or we may have
+        // test issues when unloading ApDomain while threads still running in it
+        Task.WaitAll(tasks.ToArray());
 
         System.Console.WriteLine(""Success"");
     }

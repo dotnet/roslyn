@@ -2,8 +2,8 @@
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend NotInheritable Class AnonymousTypeManager
@@ -124,9 +124,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 parameters.Free()
             End Sub
 
-            Friend Overrides Function GetAnonymousTypeKey() As Microsoft.CodeAnalysis.Emit.AnonymousTypeKey
-                Dim names = TypeDescr.Parameters.SelectAsArray(Function(p) p.Name)
-                Return New Microsoft.CodeAnalysis.Emit.AnonymousTypeKey(names, isDelegate:=True)
+            Friend Overrides Function GetAnonymousTypeKey() As AnonymousTypeKey
+                Dim parameters = TypeDescr.Parameters.SelectAsArray(Function(p) AnonymousTypeKeyField.CreateField(p.Name, isKey:=False))
+                Return New AnonymousTypeKey(parameters, isDelegate:=True)
             End Function
 
             Public Overrides Function GetMembers() As ImmutableArray(Of Symbol)
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                 MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                 ' Attribute: System.Runtime.CompilerServices.CompilerGeneratedAttribute()

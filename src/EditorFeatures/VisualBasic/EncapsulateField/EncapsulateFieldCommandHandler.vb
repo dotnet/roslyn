@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
         Inherits AbstractEncapsulateFieldCommandHandler
 
         <ImportingConstructor>
-        Sub New(waitIndicator As IWaitIndicator, undoManager As ITextBufferUndoManagerProvider)
+        Public Sub New(waitIndicator As IWaitIndicator, undoManager As ITextBufferUndoManagerProvider)
             MyBase.New(waitIndicator, undoManager)
         End Sub
     End Class

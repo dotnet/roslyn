@@ -1821,7 +1821,7 @@ End Class
             edits.VerifyEdits(
                 "Reorder [Sub g() : End Sub]@64 -> @11")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, {})
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, Array.Empty(Of SemanticEditDescription)())
         End Sub
 
         <Fact>
@@ -2280,9 +2280,7 @@ End Class
             Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "F(2, Function(a As Integer) a) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            ' TODO (tomat): should be allowed (726990)
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(a As Integer)", "method"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -2291,9 +2289,7 @@ End Class
             Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "F(2, From foo In bar Select baz) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            ' TODO (tomat): should be allowed (726990)
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "method"))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -2410,6 +2406,35 @@ End Class
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertHandlesClause, "Private Sub Foo()", "method"))
+        End Sub
+
+        <Fact>
+        Public Sub MethodUpdate_WithStaticLocal()
+            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", "method"))
+        End Sub
+
+        <Fact>
+        Public Sub MethodUpdate_AddingStaticLocal()
+            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a = 0 : a = 1 : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", "method"))
+        End Sub
+
+        <Fact>
+        Public Sub MethodUpdate_DeletingStaticLocal()
+            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a = 0 : a = 2 : End Sub : End Module"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics()
         End Sub
 #End Region
 
@@ -4702,6 +4727,37 @@ End Class
 
             edits.VerifyRudeDiagnostics()
         End Sub
+
+        <Fact>
+        Public Sub ConstField_Update()
+            Dim src1 = "Class C : Const x = 0 : End Class"
+            Dim src2 = "Class C : Const x = 1 : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Update, "x = 1", "const field"))
+        End Sub
+
+        <Fact>
+        Public Sub ConstField_Delete()
+            Dim src1 = "Class C : Const x = 0 : End Class"
+            Dim src2 = "Class C : Dim x = 0 : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Dim x = 0", "field"))
+        End Sub
+
+        <Fact>
+        Public Sub ConstField_Add()
+            Dim src1 = "Class C : Dim x = 0 : End Class"
+            Dim src2 = "Class C : Const x = 0 : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Const x = 0", "const field"))
+        End Sub
+
 #End Region
 
 #Region "Events"

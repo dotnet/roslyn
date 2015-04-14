@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -34,8 +34,6 @@ class Program
       <customDebugInfo>
         <forwardIterator name=""&lt;Foo&gt;d__0"" />
       </customDebugInfo>
-      <sequencePoints />
-      <locals />
     </method>
     <method containingType=""Program"" name=""F"">
       <customDebugInfo>
@@ -47,7 +45,6 @@ class Program
         <entry offset=""0x0"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""22"" document=""0"" />
         <entry offset=""0x1"" startLine=""9"" startColumn=""23"" endLine=""9"" endColumn=""24"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
@@ -62,7 +59,6 @@ class Program
         <entry offset=""0x19"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1a"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""21"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -92,8 +88,6 @@ class Program
       <customDebugInfo>
         <forwardIterator name=""&lt;Foo&gt;d__0"" />
       </customDebugInfo>
-      <sequencePoints />
-      <locals />
     </method>
     <method containingType=""Program"" name=""F"">
       <customDebugInfo>
@@ -105,7 +99,6 @@ class Program
         <entry offset=""0x0"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""22"" document=""0"" />
         <entry offset=""0x1"" startLine=""9"" startColumn=""23"" endLine=""9"" endColumn=""24"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
@@ -120,7 +113,6 @@ class Program
         <entry offset=""0x19"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1a"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""21"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -150,8 +142,6 @@ class Program
       <customDebugInfo>
         <forwardIterator name=""&lt;Foo&gt;d__0"" />
       </customDebugInfo>
-      <sequencePoints />
-      <locals />
     </method>
     <method containingType=""Program"" name=""F"">
       <customDebugInfo>
@@ -163,7 +153,6 @@ class Program
         <entry offset=""0x0"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""22"" document=""0"" />
         <entry offset=""0x1"" startLine=""9"" startColumn=""23"" endLine=""9"" endColumn=""24"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
@@ -180,7 +169,6 @@ class Program
         <entry offset=""0x34"" hidden=""true"" document=""0"" />
         <entry offset=""0x3b"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -216,8 +204,6 @@ class Program
       <customDebugInfo>
         <forwardIterator name=""&lt;IEI&gt;d__0"" />
       </customDebugInfo>
-      <sequencePoints />
-      <locals />
     </method>
     <method containingType=""Program"" name=""F"">
       <customDebugInfo>
@@ -228,7 +214,6 @@ class Program
       <sequencePoints>
         <entry offset=""0x0"" startLine=""17"" startColumn=""23"" endLine=""17"" endColumn=""24"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"">
       <customDebugInfo>
@@ -252,7 +237,6 @@ class Program
         <entry offset=""0xab"" hidden=""true"" document=""0"" />
         <entry offset=""0xb2"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""21"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -292,8 +276,6 @@ class Program
           <slot kind=""0"" offset=""101"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
-      <locals />
     </method>
     <method containingType=""Program"" name=""F"">
       <customDebugInfo>
@@ -305,7 +287,6 @@ class Program
         <entry offset=""0x0"" startLine=""17"" startColumn=""21"" endLine=""17"" endColumn=""22"" document=""0"" />
         <entry offset=""0x1"" startLine=""17"" startColumn=""23"" endLine=""17"" endColumn=""24"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"">
       <customDebugInfo>
@@ -336,7 +317,6 @@ class Program
         <entry offset=""0xd0"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
         <entry offset=""0xd1"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""21"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -379,8 +359,6 @@ class Test<T>
           <slot kind=""0"" offset=""42"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
-      <locals />
     </method>
     <method containingType=""Test`1"" name=""F"">
       <customDebugInfo>
@@ -392,7 +370,6 @@ class Test<T>
         <entry offset=""0x0"" startLine=""19"" startColumn=""21"" endLine=""19"" endColumn=""22"" document=""0"" />
         <entry offset=""0x1"" startLine=""19"" startColumn=""23"" endLine=""19"" endColumn=""24"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
@@ -431,7 +408,6 @@ class Test<T>
         <entry offset=""0xde"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
         <entry offset=""0xe2"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -479,8 +455,6 @@ class C
       <customDebugInfo>
         <forwardIterator name=""&lt;M&gt;d__0"" />
       </customDebugInfo>
-      <sequencePoints />
-      <locals />
     </method>
     <method containingType=""C"" name=""Main"">
       <customDebugInfo>
@@ -497,7 +471,6 @@ class C
         <entry offset=""0x27"" hidden=""true"" document=""0"" />
         <entry offset=""0x31"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x32"">
         <namespace name=""System.Collections.Generic"" />
       </scope>
@@ -516,11 +489,6 @@ class C
         <entry offset=""0x80"" hidden=""true"" document=""0"" />
         <entry offset=""0x87"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""21"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <constant name=""d1"" value=""0.1"" type=""Decimal"" />
-        <constant name=""dx"" value=""1.23"" type=""Decimal"" />
-        <constant name=""d2"" value=""0.2"" type=""Decimal"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x89"">
         <scope startOffset=""0x26"" endOffset=""0x89"">
           <constant name=""d1"" value=""0.1"" type=""Decimal"" />
@@ -605,7 +573,6 @@ public class Test
         <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""32"" document=""0"" />
         <entry offset=""0xa"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0xc"">
         <namespace name=""System"" />
         <namespace name=""System.Collections"" />
@@ -622,22 +589,16 @@ public class Test
           <slot kind=""0"" offset=""104"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
-      <locals />
     </method>
     <method containingType=""Test`1"" name=""get_IterProp"">
       <customDebugInfo>
         <forwardIterator name=""&lt;get_IterProp&gt;d__3"" />
       </customDebugInfo>
-      <sequencePoints />
-      <locals />
     </method>
     <method containingType=""Test`1"" name=""IterMethod"">
       <customDebugInfo>
         <forwardIterator name=""&lt;IterMethod&gt;d__4"" />
       </customDebugInfo>
-      <sequencePoints />
-      <locals />
     </method>
     <method containingType=""Test"" name=""Main"">
       <customDebugInfo>
@@ -659,9 +620,6 @@ public class Test
         <entry offset=""0x22"" hidden=""true"" document=""0"" />
         <entry offset=""0x2d"" startLine=""47"" startColumn=""5"" endLine=""47"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""v"" il_index=""1"" il_start=""0xf"" il_end=""0x18"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2e"">
         <scope startOffset=""0xf"" endOffset=""0x18"">
           <local name=""v"" il_index=""1"" il_start=""0xf"" il_end=""0x18"" attributes=""0"" />
@@ -707,7 +665,6 @@ public class Test
         <entry offset=""0x12a"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""0"" />
         <entry offset=""0x12e"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Test`1+&lt;get_IterProp&gt;d__3"" name=""MoveNext"">
       <customDebugInfo>
@@ -726,7 +683,6 @@ public class Test
         <entry offset=""0x62"" hidden=""true"" document=""0"" />
         <entry offset=""0x69"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""Test`1+&lt;IterMethod&gt;d__4"" name=""MoveNext"">
       <customDebugInfo>
@@ -745,7 +701,6 @@ public class Test
         <entry offset=""0x62"" hidden=""true"" document=""0"" />
         <entry offset=""0x69"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""21"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -809,7 +764,6 @@ class C
         <entry offset=""0x80"" hidden=""true"" document=""0"" />
         <entry offset=""0x87"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x8b"">
         <namespace name=""System.Collections.Generic"" />
       </scope>
@@ -924,7 +878,6 @@ class C
         <entry offset=""0x45"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""0"" />
         <entry offset=""0x46"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x4a"">
         <namespace name=""System.Collections.Generic"" />
       </scope>
@@ -1028,8 +981,6 @@ class C
           <slot kind=""2"" offset=""367"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1099,7 +1050,6 @@ class C
         <entry offset=""0xee"" hidden=""true"" document=""0"" />
         <entry offset=""0xf5"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1209,7 +1159,6 @@ class C
         <entry offset=""0x51"" hidden=""true"" document=""0"" />
         <entry offset=""0x58"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1226,8 +1175,6 @@ class C
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
-      <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1364,7 +1311,6 @@ class C
         <entry offset=""0x7a"" hidden=""true"" document=""0"" />
         <entry offset=""0x81"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1384,8 +1330,6 @@ class C
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
-      <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1447,7 +1391,6 @@ class C
         <entry offset=""0x8d"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""22"" document=""0"" />
         <entry offset=""0xe5"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1462,8 +1405,6 @@ class C
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>
@@ -1517,9 +1458,6 @@ class C
         <entry offset=""0x6d"" hidden=""true"" document=""0"" />
         <entry offset=""0x74"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d"" il_index=""1"" il_start=""0x17"" il_end=""0x76"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x76"">
         <scope startOffset=""0x17"" endOffset=""0x76"">
           <local name=""d"" il_index=""1"" il_start=""0x17"" il_end=""0x76"" attributes=""0"" />
@@ -1584,7 +1522,6 @@ class C
         <entry offset=""0x86"" hidden=""true"" document=""0"" />
         <entry offset=""0x8d"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1629,7 +1566,6 @@ class C
         <entry offset=""0x19"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1a"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");

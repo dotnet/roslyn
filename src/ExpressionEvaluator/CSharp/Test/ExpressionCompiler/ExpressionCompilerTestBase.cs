@@ -12,11 +12,12 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
-using Microsoft.VisualStudio.SymReaderInterop;
 using Xunit;
+using Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 references.AddIntrinsicAssembly(),
                 exeBytes,
-                includeSymbols ? new SymReader(pdbBytes) : null);
+                includeSymbols ? new SymReader(pdbBytes, exeBytes) : null);
         }
 
         internal RuntimeInstance CreateRuntimeInstance(
@@ -114,8 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static EvaluationContext CreateMethodContext(
             RuntimeInstance runtime,
             string methodName,
-            int atLineNumber = -1,
-            CSharpMetadataContext previous = null)
+            int atLineNumber = -1)
         {
             ImmutableArray<MetadataBlock> blocks;
             Guid moduleVersionId;
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber);
 
             return EvaluationContext.CreateMethodContext(
-                previous,
+                default(CSharpMetadataContext),
                 blocks,
                 symReader,
                 moduleVersionId,
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int localSignatureToken;
             GetContextState(runtime, typeName, out blocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
             return EvaluationContext.CreateTypeContext(
-                null,
+                default(CSharpMetadataContext),
                 blocks,
                 moduleVersionId,
                 typeToken);

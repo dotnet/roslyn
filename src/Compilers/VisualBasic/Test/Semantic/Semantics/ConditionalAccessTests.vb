@@ -7043,5 +7043,1809 @@ End Class
 ]]>)
         End Sub
 
+        <Fact()>
+        Public Sub RaceInAsync_01()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+Imports System.Runtime.CompilerServices
+
+Interface I1
+    Sub Test(val As Object)
+End Interface
+
+Module Module1
+
+    Sub Main()
+        Test1()
+        System.Console.WriteLine()
+        Test2()
+        System.Console.WriteLine()
+        Test3()
+    End Sub
+
+    Sub Test1()
+        System.Console.WriteLine("--- Test1 ---")
+
+        Dim a1 = {New S1()}
+        Test11(a1)
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test12(a1)
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test13(a1).Wait()
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test14(a1).Wait()
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        Test11(Of C1)({New C1()})
+        System.Console.WriteLine("----")
+
+        Test12(Of C1)({New C1()})
+        System.Console.WriteLine("----")
+
+        Test12(Of C1)({Nothing})
+        System.Console.WriteLine("----")
+
+        Test13(Of C1)({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test14(Of C1)({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test14(Of C1)({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Sub Test2()
+        System.Console.WriteLine("--- Test2 ---")
+
+        Dim a1 = {New S1()}
+        Test21(a1)
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test22(a1)
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test23(a1).Wait()
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test24(a1).Wait()
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        Test21(Of C1)({New C1()})
+        System.Console.WriteLine("----")
+
+        Test22(Of C1)({New C1()})
+        System.Console.WriteLine("----")
+
+        Test22(Of C1)({Nothing})
+        System.Console.WriteLine("----")
+
+        Test23(Of C1)({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test24(Of C1)({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test24(Of C1)({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Sub Test3()
+        System.Console.WriteLine("--- Test3 ---")
+
+        Dim a1 = {New S1()}
+        Test31(a1)
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test32(a1)
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test33(a1).Wait()
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test34(a1).Wait()
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        Test31(Of C1)({New C1()})
+        System.Console.WriteLine("----")
+
+        Test32(Of C1)({New C1()})
+        System.Console.WriteLine("----")
+
+        Test32(Of C1)({Nothing})
+        System.Console.WriteLine("----")
+
+        Test33(Of C1)({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test34(Of C1)({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test34(Of C1)({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Function GetVal(Of T)(val As T) As T
+        System.Console.WriteLine("GetVal")
+        Return val
+    End Function
+
+    Sub Test11(Of T As I1)(array As T())
+        GetVal(array)(0).Test(DoNothing1())
+    End Sub
+
+    Sub Test12(Of T As I1)(array As T())
+        GetVal(array)(0)?.Test(Clear1(array))
+    End Sub
+
+    Async Function Test13(Of T As I1)(array As T()) As Threading.Tasks.Task
+        GetVal(array)(0).Test(Await DoNothing2(array))
+    End Function
+
+    Async Function Test14(Of T As I1)(array As T()) As Threading.Tasks.Task
+        GetVal(array)(0)?.Test(Await Clear2(array))
+    End Function
+
+    Sub Test21(Of T As I1)(array As T())
+        GetVal(array)(0).ExtensionByVal(Clear1(array))
+    End Sub
+
+    Sub Test22(Of T As I1)(array As T())
+        GetVal(array)(0)?.ExtensionByVal(Clear1(array))
+    End Sub
+
+    Async Function Test23(Of T As I1)(array As T()) As Threading.Tasks.Task
+        GetVal(array)(0).ExtensionByVal(Await DoNothing2(array))
+    End Function
+
+    Async Function Test24(Of T As I1)(array As T()) As Threading.Tasks.Task
+        GetVal(array)(0)?.ExtensionByVal(Await Clear2(array))
+    End Function
+
+    Sub Test31(Of T As I1)(array As T())
+        GetVal(array)(0).ExtensionByRef(DoNothing1())
+    End Sub
+
+    Sub Test32(Of T As I1)(array As T())
+        GetVal(array)(0)?.ExtensionByRef(Clear1(array))
+    End Sub
+
+    Async Function Test33(Of T As I1)(array As T()) As Threading.Tasks.Task
+        GetVal(array)(0).ExtensionByRef(Await DoNothing2(array))
+    End Function
+
+    Async Function Test34(Of T As I1)(array As T()) As Threading.Tasks.Task
+        GetVal(array)(0)?.ExtensionByRef(Await Clear2(array))
+    End Function
+
+    Function Clear1(Of T)(array As T()) As Object
+        System.Console.WriteLine("Clear")
+        array(0) = Nothing
+        Return Nothing
+    End Function
+
+    Async Function Clear2(Of T)(array As T()) As Threading.Tasks.Task(Of Object)
+        System.Console.WriteLine("Clear")
+        array(0) = Nothing
+        Await Task.Delay(10)
+        Return Nothing
+    End Function
+
+    Function DoNothing1() As Object
+        System.Console.WriteLine("Clear")
+        Return Nothing
+    End Function
+
+    Async Function DoNothing2(Of T)(array As T()) As Threading.Tasks.Task(Of Object)
+        System.Console.WriteLine("Clear")
+        Return Nothing
+    End Function
+
+    <Runtime.CompilerServices.Extension()>
+    Sub ExtensionByVal(Of T As I1)(receiver As T, val As Object)
+        receiver.Test(val)
+    End Sub
+
+    <Runtime.CompilerServices.Extension()>
+    Sub ExtensionByRef(Of T As I1)(ByRef receiver As T, val As Object)
+        receiver.Test(val)
+    End Sub
+End Module
+
+Structure S1
+    Implements I1
+
+    Public IsMutated As Boolean
+
+    Public Sub Test(val As Object) Implements I1.Test
+        IsMutated = True
+        System.Console.WriteLine("S1.Test")
+    End Sub
+End Structure
+
+Class C1
+    Implements I1
+
+    Public Sub Test(val As Object) Implements I1.Test
+        System.Console.WriteLine("C1.Test")
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+--- Test1 ---
+GetVal
+Clear
+S1.Test
+True
+----
+GetVal
+Clear
+S1.Test
+True
+----
+GetVal
+Clear
+S1.Test
+True
+----
+GetVal
+Clear
+S1.Test
+True
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+
+--- Test2 ---
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+
+--- Test3 ---
+GetVal
+Clear
+S1.Test
+True
+----
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+S1.Test
+True
+----
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub RaceInAsync_02()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+Imports System.Runtime.CompilerServices
+
+Interface I1
+    Sub Test(val As Object)
+End Interface
+
+Module Module1
+
+    Sub Main()
+        Test1()
+        System.Console.WriteLine()
+        Test2()
+        System.Console.WriteLine()
+        Test3()
+    End Sub
+
+    Sub Test1()
+        System.Console.WriteLine("--- Test1 ---")
+
+        Dim a1 = {New S1()}
+        Test11(a1)
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test12(a1)
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test13(a1).Wait()
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test14(a1).Wait()
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        Test11(Of C1)({New C1()})
+        System.Console.WriteLine("----")
+
+        Test12(Of C1)({New C1()})
+        System.Console.WriteLine("----")
+
+        Test12(Of C1)({Nothing})
+        System.Console.WriteLine("----")
+
+        Test13(Of C1)({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test14(Of C1)({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test14(Of C1)({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Sub Test2()
+        System.Console.WriteLine("--- Test2 ---")
+
+        Dim a1 = {New S1()}
+        Test21(a1)
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test22(a1)
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test23(a1).Wait()
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test24(a1).Wait()
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        Test21(Of C1)({New C1()})
+        System.Console.WriteLine("----")
+
+        Test22(Of C1)({New C1()})
+        System.Console.WriteLine("----")
+
+        Test22(Of C1)({Nothing})
+        System.Console.WriteLine("----")
+
+        Test23(Of C1)({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test24(Of C1)({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test24(Of C1)({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Sub Test3()
+        System.Console.WriteLine("--- Test3 ---")
+
+        Dim a1 = {New S1()}
+        Test31(a1)
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test32(a1)
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test33(a1).Wait()
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        a1 = {New S1()}
+        Test34(a1).Wait()
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        Test31(Of C1)({New C1()})
+        System.Console.WriteLine("----")
+
+        Test32(Of C1)({New C1()})
+        System.Console.WriteLine("----")
+
+        Test32(Of C1)({Nothing})
+        System.Console.WriteLine("----")
+
+        Test33(Of C1)({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test34(Of C1)({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test34(Of C1)({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Function GetVal(Of T)(val As T) As T
+        System.Console.WriteLine("GetVal")
+        Return val
+    End Function
+
+    Sub Test11(Of T As I1)(array As T())
+        Call (GetVal(array)(0)).Test(DoNothing1())
+    End Sub
+
+    Sub Test12(Of T As I1)(array As T())
+        Call (GetVal(array)(0))?.Test(Clear1(array))
+    End Sub
+
+    Async Function Test13(Of T As I1)(array As T()) As Threading.Tasks.Task
+        Call (GetVal(array)(0)).Test(Await DoNothing2(array))
+    End Function
+
+    Async Function Test14(Of T As I1)(array As T()) As Threading.Tasks.Task
+        Call (GetVal(array)(0))?.Test(Await Clear2(array))
+    End Function
+
+    Sub Test21(Of T As I1)(array As T())
+        Call (GetVal(array)(0)).ExtensionByVal(Clear1(array))
+    End Sub
+
+    Sub Test22(Of T As I1)(array As T())
+        Call (GetVal(array)(0))?.ExtensionByVal(Clear1(array))
+    End Sub
+
+    Async Function Test23(Of T As I1)(array As T()) As Threading.Tasks.Task
+        Call (GetVal(array)(0)).ExtensionByVal(Await DoNothing2(array))
+    End Function
+
+    Async Function Test24(Of T As I1)(array As T()) As Threading.Tasks.Task
+        Call (GetVal(array)(0))?.ExtensionByVal(Await Clear2(array))
+    End Function
+
+    Sub Test31(Of T As I1)(array As T())
+        Call (GetVal(array)(0)).ExtensionByRef(DoNothing1())
+    End Sub
+
+    Sub Test32(Of T As I1)(array As T())
+        Call (GetVal(array)(0))?.ExtensionByRef(Clear1(array))
+    End Sub
+
+    Async Function Test33(Of T As I1)(array As T()) As Threading.Tasks.Task
+        Call (GetVal(array)(0)).ExtensionByRef(Await DoNothing2(array))
+    End Function
+
+    Async Function Test34(Of T As I1)(array As T()) As Threading.Tasks.Task
+        Call (GetVal(array)(0))?.ExtensionByRef(Await Clear2(array))
+    End Function
+
+    Function Clear1(Of T)(array As T()) As Object
+        System.Console.WriteLine("Clear")
+        array(0) = Nothing
+        Return Nothing
+    End Function
+
+    Async Function Clear2(Of T)(array As T()) As Threading.Tasks.Task(Of Object)
+        System.Console.WriteLine("Clear")
+        array(0) = Nothing
+        Await Task.Delay(10)
+        Return Nothing
+    End Function
+
+    Function DoNothing1() As Object
+        System.Console.WriteLine("Clear")
+        Return Nothing
+    End Function
+
+    Async Function DoNothing2(Of T)(array As T()) As Threading.Tasks.Task(Of Object)
+        System.Console.WriteLine("Clear")
+        Return Nothing
+    End Function
+
+    <Runtime.CompilerServices.Extension()>
+    Sub ExtensionByVal(Of T As I1)(receiver As T, val As Object)
+        receiver.Test(val)
+    End Sub
+
+    <Runtime.CompilerServices.Extension()>
+    Sub ExtensionByRef(Of T As I1)(ByRef receiver As T, val As Object)
+        receiver.Test(val)
+    End Sub
+End Module
+
+Structure S1
+    Implements I1
+
+    Public IsMutated As Boolean
+
+    Public Sub Test(val As Object) Implements I1.Test
+        IsMutated = True
+        System.Console.WriteLine("S1.Test")
+    End Sub
+End Structure
+
+Class C1
+    Implements I1
+
+    Public Sub Test(val As Object) Implements I1.Test
+        System.Console.WriteLine("C1.Test")
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+--- Test1 ---
+GetVal
+Clear
+S1.Test
+True
+----
+GetVal
+Clear
+S1.Test
+True
+----
+GetVal
+Clear
+S1.Test
+True
+----
+GetVal
+Clear
+S1.Test
+True
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+
+--- Test2 ---
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+
+--- Test3 ---
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub RaceInAsync_03()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+Imports System.Runtime.CompilerServices
+
+Module Module1
+
+    Sub Main()
+        Test1()
+        System.Console.WriteLine()
+        Test2()
+        System.Console.WriteLine()
+        Test3()
+    End Sub
+
+    Sub Test1()
+        System.Console.WriteLine("--- Test1 ---")
+
+        Test12({New S1()})
+        System.Console.WriteLine("----")
+
+        Test12({Nothing})
+        System.Console.WriteLine("----")
+
+        Test14({New S1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test14({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Sub Test2()
+        System.Console.WriteLine("--- Test2 ---")
+
+        Test22({New S1()})
+        System.Console.WriteLine("----")
+
+        Test22({Nothing})
+        System.Console.WriteLine("----")
+
+        Test24({New S1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test24({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Sub Test3()
+        System.Console.WriteLine("--- Test3 ---")
+
+        Test32({New S1()})
+        System.Console.WriteLine("----")
+
+        Test32({Nothing})
+        System.Console.WriteLine("----")
+
+        Test34({New S1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test34({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Function GetVal(Of T)(val As T) As T
+        System.Console.WriteLine("GetVal")
+        Return val
+    End Function
+
+    Sub Test12(array As S1?())
+        GetVal(array)(0)?.Test(Clear1(array))
+    End Sub
+
+    Async Function Test14(array As S1?()) As Threading.Tasks.Task
+        GetVal(array)(0)?.Test(Await Clear2(array))
+    End Function
+
+    Sub Test22(array As S1?())
+        GetVal(array)(0)?.ExtensionByVal(Clear1(array))
+    End Sub
+
+    Async Function Test24(array As S1?()) As Threading.Tasks.Task
+        GetVal(array)(0)?.ExtensionByVal(Await Clear2(array))
+    End Function
+
+    Sub Test32(array As S1?())
+        GetVal(array)(0)?.ExtensionByRef(Clear1(array))
+    End Sub
+
+    Async Function Test34(array As S1?()) As Threading.Tasks.Task
+        GetVal(array)(0)?.ExtensionByRef(Await Clear2(array))
+    End Function
+
+    Function Clear1(array As S1?()) As Object
+        System.Console.WriteLine("Clear")
+        array(0) = New S1?()
+        Return Nothing
+    End Function
+
+    Async Function Clear2(array As S1?()) As Threading.Tasks.Task(Of Object)
+        System.Console.WriteLine("Clear")
+        array(0) = New S1?()
+        Await Task.Delay(10)
+        Return Nothing
+    End Function
+
+    <Runtime.CompilerServices.Extension()>
+    Sub ExtensionByVal(receiver As S1, val As Object)
+        receiver.Test(val)
+    End Sub
+
+    <Runtime.CompilerServices.Extension()>
+    Sub ExtensionByRef(ByRef receiver As S1, val As Object)
+        receiver.Test(val)
+    End Sub
+End Module
+
+Structure S1
+    Public Sub Test(val As Object)
+        System.Console.WriteLine("S1.Test")
+    End Sub
+End Structure
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+--- Test1 ---
+GetVal
+Clear
+S1.Test
+----
+GetVal
+----
+GetVal
+Clear
+S1.Test
+----
+GetVal
+----
+
+--- Test2 ---
+GetVal
+Clear
+S1.Test
+----
+GetVal
+----
+GetVal
+Clear
+S1.Test
+----
+GetVal
+----
+
+--- Test3 ---
+GetVal
+Clear
+S1.Test
+----
+GetVal
+----
+GetVal
+Clear
+S1.Test
+----
+GetVal
+----
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub RaceInAsync_04()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+Imports System.Runtime.CompilerServices
+
+Module Module1
+
+    Sub Main()
+        Test1()
+        System.Console.WriteLine()
+        Test2()
+        System.Console.WriteLine()
+        Test3()
+    End Sub
+
+    Sub Test1()
+        System.Console.WriteLine("--- Test1 ---")
+
+        Test12({New C1()})
+        System.Console.WriteLine("----")
+
+        Test12({Nothing})
+        System.Console.WriteLine("----")
+
+        Test14({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test14({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Sub Test2()
+        System.Console.WriteLine("--- Test2 ---")
+
+        Test22({New C1()})
+        System.Console.WriteLine("----")
+
+        Test22({Nothing})
+        System.Console.WriteLine("----")
+
+        Test24({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test24({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Sub Test3()
+        System.Console.WriteLine("--- Test3 ---")
+
+        Test32({New C1()})
+        System.Console.WriteLine("----")
+
+        Test32({Nothing})
+        System.Console.WriteLine("----")
+
+        Test34({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test34({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Function GetVal(Of T)(val As T) As T
+        System.Console.WriteLine("GetVal")
+        Return val
+    End Function
+
+    Sub Test12(array As C1())
+        GetVal(array)(0)?.Test(Clear1(array))
+    End Sub
+
+    Async Function Test14(array As C1()) As Threading.Tasks.Task
+        GetVal(array)(0)?.Test(Await Clear2(array))
+    End Function
+
+    Sub Test22(array As C1())
+        GetVal(array)(0)?.ExtensionByVal(Clear1(array))
+    End Sub
+
+    Async Function Test24(array As C1()) As Threading.Tasks.Task
+        GetVal(array)(0)?.ExtensionByVal(Await Clear2(array))
+    End Function
+
+    Sub Test32(array As C1())
+        GetVal(array)(0)?.ExtensionByRef(Clear1(array))
+    End Sub
+
+    Async Function Test34(array As C1()) As Threading.Tasks.Task
+        GetVal(array)(0)?.ExtensionByRef(Await Clear2(array))
+    End Function
+
+    Function Clear1(array As C1()) As Object
+        System.Console.WriteLine("Clear")
+        array(0) = Nothing
+        Return Nothing
+    End Function
+
+    Async Function Clear2(array As C1()) As Threading.Tasks.Task(Of Object)
+        System.Console.WriteLine("Clear")
+        array(0) = Nothing
+        Await Task.Delay(10)
+        Return Nothing
+    End Function
+
+    <Runtime.CompilerServices.Extension()>
+    Sub ExtensionByVal(receiver As C1, val As Object)
+        receiver.Test(val)
+    End Sub
+
+    <Runtime.CompilerServices.Extension()>
+    Sub ExtensionByRef(ByRef receiver As C1, val As Object)
+        receiver.Test(val)
+    End Sub
+End Module
+
+Class C1
+    Public Sub Test(val As Object)
+        System.Console.WriteLine("C1.Test")
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+--- Test1 ---
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+
+--- Test2 ---
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+
+--- Test3 ---
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub RaceInAsync_05()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+Imports System.Runtime.CompilerServices
+
+Module Module1
+
+    Sub Main()
+        Test1()
+        System.Console.WriteLine()
+        Test2()
+        System.Console.WriteLine()
+        Test3()
+    End Sub
+
+    Sub Test1()
+        System.Console.WriteLine("--- Test1 ---")
+
+        Test12({New S1()})
+        System.Console.WriteLine("----")
+
+        Test12({Nothing})
+        System.Console.WriteLine("----")
+
+        Test14({New S1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test14({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Sub Test2()
+        System.Console.WriteLine("--- Test2 ---")
+
+        Test22({New S1()})
+        System.Console.WriteLine("----")
+
+        Test22({Nothing})
+        System.Console.WriteLine("----")
+
+        Test24({New S1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test24({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Sub Test3()
+        System.Console.WriteLine("--- Test3 ---")
+
+        Test32({New S1()})
+        System.Console.WriteLine("----")
+
+        Test32({Nothing})
+        System.Console.WriteLine("----")
+
+        Test34({New S1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test34({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Function GetVal(Of T)(val As T) As T
+        System.Console.WriteLine("GetVal")
+        Return val
+    End Function
+
+    Sub Test12(array As S1?())
+        GetVal(array)(0)?.Instance(Clear1(array)).Dummy(Nothing)
+    End Sub
+
+    Async Function Test14(array As S1?()) As Threading.Tasks.Task
+        GetVal(array)(0)?.Instance(Clear1(array)).Dummy(Await DoNothing())
+    End Function
+
+    Sub Test22(array As S1?())
+        GetVal(array)(0)?.ExtensionByVal(Clear1(array)).Dummy(Nothing)
+    End Sub
+
+    Async Function Test24(array As S1?()) As Threading.Tasks.Task
+        GetVal(array)(0)?.ExtensionByVal(Clear1(array)).Dummy(Await DoNothing())
+    End Function
+
+    Sub Test32(array As S1?())
+        GetVal(array)(0)?.ExtensionByRef(Clear1(array)).Dummy(Nothing)
+    End Sub
+
+    Async Function Test34(array As S1?()) As Threading.Tasks.Task
+        GetVal(array)(0)?.ExtensionByRef(Clear1(array)).Dummy(Await DoNothing())
+    End Function
+
+    Function Clear1(array As S1?()) As Object
+        System.Console.WriteLine("Clear")
+        array(0) = New S1?()
+        Return Nothing
+    End Function
+
+    Async Function DoNothing() As Threading.Tasks.Task(Of Object)
+        Return Nothing
+    End Function
+
+    <Runtime.CompilerServices.Extension()>
+    Function ExtensionByVal(receiver As S1, val As Object) As S1
+        Return receiver.Instance(val)
+    End Function
+
+    <Runtime.CompilerServices.Extension()>
+    Function ExtensionByRef(ByRef receiver As S1, val As Object) As S1
+        Return receiver.Instance(val)
+    End Function
+End Module
+
+Structure S1
+    Public Function Instance(val As Object) As S1
+        System.Console.WriteLine("S1.Test")
+        Return Me
+    End Function
+
+    Public Sub Dummy(val As Object)
+    End Sub
+End Structure
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+--- Test1 ---
+GetVal
+Clear
+S1.Test
+----
+GetVal
+----
+GetVal
+Clear
+S1.Test
+----
+GetVal
+----
+
+--- Test2 ---
+GetVal
+Clear
+S1.Test
+----
+GetVal
+----
+GetVal
+Clear
+S1.Test
+----
+GetVal
+----
+
+--- Test3 ---
+GetVal
+Clear
+S1.Test
+----
+GetVal
+----
+GetVal
+Clear
+S1.Test
+----
+GetVal
+----
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub RaceInAsync_06()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+Imports System.Runtime.CompilerServices
+
+Module Module1
+
+    Sub Main()
+        Test1()
+        System.Console.WriteLine()
+        Test2()
+        System.Console.WriteLine()
+        Test3()
+    End Sub
+
+    Sub Test1()
+        System.Console.WriteLine("--- Test1 ---")
+
+        Test12({New C1()})
+        System.Console.WriteLine("----")
+
+        Test12({Nothing})
+        System.Console.WriteLine("----")
+
+        Test14({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test14({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Sub Test2()
+        System.Console.WriteLine("--- Test2 ---")
+
+        Test22({New C1()})
+        System.Console.WriteLine("----")
+
+        Test22({Nothing})
+        System.Console.WriteLine("----")
+
+        Test24({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test24({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Sub Test3()
+        System.Console.WriteLine("--- Test3 ---")
+
+        Test32({New C1()})
+        System.Console.WriteLine("----")
+
+        Test32({Nothing})
+        System.Console.WriteLine("----")
+
+        Test34({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test34({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Function GetVal(Of T)(val As T) As T
+        System.Console.WriteLine("GetVal")
+        Return val
+    End Function
+
+    Sub Test12(array As C1())
+        GetVal(array)(0)?.Instance(Clear1(array)).Dummy(Nothing)
+    End Sub
+
+    Async Function Test14(array As C1()) As Threading.Tasks.Task
+        GetVal(array)(0)?.Instance(Clear1(array)).Dummy(Await DoNothing())
+    End Function
+
+    Sub Test22(array As C1())
+        GetVal(array)(0)?.ExtensionByVal(Clear1(array)).Dummy(Nothing)
+    End Sub
+
+    Async Function Test24(array As C1()) As Threading.Tasks.Task
+        GetVal(array)(0)?.ExtensionByVal(Clear1(array)).Dummy(Await DoNothing())
+    End Function
+
+    Sub Test32(array As C1())
+        GetVal(array)(0)?.ExtensionByRef(Clear1(array)).Dummy(Nothing)
+    End Sub
+
+    Async Function Test34(array As C1()) As Threading.Tasks.Task
+        GetVal(array)(0)?.ExtensionByRef(Clear1(array)).Dummy(Await DoNothing())
+    End Function
+
+    Function Clear1(array As C1()) As Object
+        System.Console.WriteLine("Clear")
+        array(0) = Nothing
+        Return Nothing
+    End Function
+
+    Async Function DoNothing() As Threading.Tasks.Task(Of Object)
+        Await Task.Delay(10)
+        Return Nothing
+    End Function
+
+    <Runtime.CompilerServices.Extension()>
+    Function ExtensionByVal(receiver As C1, val As Object) As C1
+        Return receiver.Instance(val)
+    End Function
+
+    <Runtime.CompilerServices.Extension()>
+    Function ExtensionByRef(ByRef receiver As C1, val As Object) As C1
+        Return receiver.Instance(val)
+    End Function
+End Module
+
+Class C1
+    Public Function Instance(val As Object) As C1
+        System.Console.WriteLine("C1.Test")
+        Return Me
+    End Function
+
+    Public Sub Dummy(val As Object)
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+--- Test1 ---
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+
+--- Test2 ---
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+
+--- Test3 ---
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub RaceInAsync_07()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+Imports System.Runtime.CompilerServices
+
+Interface I1
+    Function Test(val As Object) As I1
+End Interface
+
+Module Module1
+
+    Sub Main()
+        Test1()
+        System.Console.WriteLine()
+        Test2()
+        System.Console.WriteLine()
+        Test3()
+    End Sub
+
+    Sub Test1()
+        System.Console.WriteLine("--- Test1 ---")
+
+        Dim a1 = {New S1()}
+        Test14(a1).Wait()
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        Test14(Of C1)({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test14(Of C1)({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Sub Test2()
+        System.Console.WriteLine("--- Test2 ---")
+
+        Dim a1 = {New S1()}
+        Test24(a1).Wait()
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        Test24(Of C1)({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test24(Of C1)({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Sub Test3()
+        System.Console.WriteLine("--- Test3 ---")
+
+        Dim a1 = {New S1()}
+        Test34(a1).Wait()
+        System.Console.WriteLine(a1(0).IsMutated)
+        System.Console.WriteLine("----")
+
+        Test34(Of C1)({New C1()}).Wait()
+        System.Console.WriteLine("----")
+
+        Test34(Of C1)({Nothing}).Wait()
+        System.Console.WriteLine("----")
+    End Sub
+
+    Function GetVal(Of T)(val As T) As T
+        System.Console.WriteLine("GetVal")
+        Return val
+    End Function
+
+    Async Function Test14(Of T As I1)(array As T()) As Threading.Tasks.Task
+        GetVal(array)(0)?.Test(Clear1(array)).Dummy(Await DoNothing())
+    End Function
+
+    Async Function Test24(Of T As I1)(array As T()) As Threading.Tasks.Task
+        GetVal(array)(0)?.ExtensionByVal(Clear1(array)).Dummy(Await DoNothing())
+    End Function
+
+    Async Function Test34(Of T As I1)(array As T()) As Threading.Tasks.Task
+        GetVal(array)(0)?.ExtensionByRef(Clear1(array)).Dummy(Await DoNothing())
+    End Function
+
+    Function Clear1(Of T)(array As T()) As Object
+        System.Console.WriteLine("Clear")
+        array(0) = Nothing
+        Return Nothing
+    End Function
+
+    Async Function DoNothing() As Threading.Tasks.Task(Of Object)
+        Await Task.Delay(10)
+        Return Nothing
+    End Function
+
+    <Runtime.CompilerServices.Extension()>
+    Function ExtensionByVal(Of T As I1)(receiver As T, val As Object) As I1
+        Return receiver.Test(val)
+    End Function
+
+    <Runtime.CompilerServices.Extension()>
+    Function ExtensionByRef(Of T As I1)(ByRef receiver As T, val As Object) As I1
+        Return receiver.Test(val)
+    End Function
+
+    <Runtime.CompilerServices.Extension()>
+    Sub Dummy(this As I1, val As Object)
+    End Sub
+End Module
+
+Structure S1
+    Implements I1
+
+    Public IsMutated As Boolean
+
+    Public Function Test(val As Object) As I1 Implements I1.Test
+        IsMutated = True
+        System.Console.WriteLine("S1.Test")
+        Return Me
+    End Function
+End Structure
+
+Class C1
+    Implements I1
+
+    Public Function Test(val As Object) As I1 Implements I1.Test
+        System.Console.WriteLine("C1.Test")
+        Return Me
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+--- Test1 ---
+GetVal
+Clear
+S1.Test
+True
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+
+--- Test2 ---
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+
+--- Test3 ---
+GetVal
+Clear
+S1.Test
+False
+----
+GetVal
+Clear
+C1.Test
+----
+GetVal
+----
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub NestedConditionalInAsync()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+Imports System.Runtime.CompilerServices
+
+
+Module Module1
+
+    Sub Main()
+        Test1(New C1(), New C1()).Wait()
+        System.Console.WriteLine("---")
+        Test1(New C1(), Nothing).Wait()
+        System.Console.WriteLine("---")
+        Test1(Nothing, Nothing).Wait()
+        System.Console.WriteLine("---")
+
+        Test2(New C1(), New C1()).Wait()
+        System.Console.WriteLine("---")
+        Test2(New C1(), Nothing).Wait()
+        System.Console.WriteLine("---")
+        Test2(Nothing, Nothing).Wait()
+        System.Console.WriteLine("---")
+
+        Test3(New C1(), New C1()).Wait()
+        System.Console.WriteLine("---")
+        Test3(New C1(), Nothing).Wait()
+        System.Console.WriteLine("---")
+        Test3(Nothing, Nothing).Wait()
+        System.Console.WriteLine("---")
+
+        Test4(Nothing, Nothing).Wait()
+        System.Console.WriteLine("---")
+        Test4(Nothing, New C1()).Wait()
+        System.Console.WriteLine("---")
+        Test4(New C1(), Nothing).Wait()
+        System.Console.WriteLine("---")
+        Test4(New C1(), New C1()).Wait()
+        System.Console.WriteLine("---")
+    End Sub
+
+    Function GetVal(Of T)(val As T) As T
+        System.Console.WriteLine("GetVal")
+        Return val
+    End Function
+
+    Async Function Test1(val1 As C1, val2 As C1) As Threading.Tasks.Task
+        GetVal(val1)?.M1(Await GetObject(), val2?.M2())
+    End Function
+
+    Async Function Test2(val1 As C1, val2 As C1) As Threading.Tasks.Task
+        GetVal(val1)?.M1(Await GetObject(), val2)?.M3(Await GetObject(), Nothing)
+    End Function
+
+    Async Function Test3(val1 As C1, val2 As C1) As Threading.Tasks.Task
+        GetVal(val1)?.M1(Nothing, val2)?.M3(Await GetObject(), Nothing)
+    End Function
+
+    Async Function Test4(val1 As C1, val2 As C1) As Threading.Tasks.Task
+        val1?.M1(GetObject().Result, val2?.M2())?.M3(Await GetObject(), Nothing)
+    End Function
+
+    Async Function GetObject() As Task(Of Object)
+        Return Nothing
+    End Function
+
+End Module
+
+Class C1
+    Public Function M1(val1 As Object, val2 As C1) As C1
+        System.Console.WriteLine("M1")
+        Return val2
+    End Function
+
+    Public Function M2() As C1
+        System.Console.WriteLine("M2")
+        Return Me
+    End Function
+
+    Public Function M3(val1 As Object, val2 As C1) As C1
+        System.Console.WriteLine("M3")
+        Return val2
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+GetVal
+M2
+M1
+---
+GetVal
+M1
+---
+GetVal
+---
+GetVal
+M1
+M3
+---
+GetVal
+M1
+---
+GetVal
+---
+GetVal
+M1
+M3
+---
+GetVal
+M1
+---
+GetVal
+---
+---
+---
+M1
+---
+M2
+M1
+M3
+---
+]]>)
+        End Sub
+
     End Class
 End Namespace

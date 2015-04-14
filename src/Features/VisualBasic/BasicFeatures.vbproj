@@ -14,6 +14,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Features</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
@@ -118,8 +119,8 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Compilers\VisualBasic\Portable\Syntax\SyntaxUtilities.vb">
-      <Link>InternalUtilities\SyntaxUtilities.vb</Link>
+    <Compile Include="..\..\Compilers\VisualBasic\Portable\Syntax\LambdaUtilities.vb">
+      <Link>InternalUtilities\LambdaUtilities.vb</Link>
     </Compile>
     <Compile Include="ChangeSignature\ChangeSignatureCodeRefactoringProvider.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.vb" />
@@ -342,8 +343,6 @@
     <Compile Include="Diagnostics\VisualBasicSyntaxNodeAnalyzerService.vb" />
     <Compile Include="DocumentationCommentFormatting\DocumentationCommentUtilities.vb" />
     <Compile Include="DocumentationCommentFormatting\VisualBasicDocumentationCommentFormattingService.vb" />
-    <Compile Include="EditAndContinue\StatementSyntaxComparer.MultiBody.vb" />
-    <Compile Include="EditAndContinue\StatementSyntaxComparer.SingleBody.vb" />
     <Compile Include="EditAndContinue\StatementSyntaxComparer.vb" />
     <Compile Include="EditAndContinue\SyntaxComparer.vb" />
     <Compile Include="EditAndContinue\SyntaxUtilities.vb" />

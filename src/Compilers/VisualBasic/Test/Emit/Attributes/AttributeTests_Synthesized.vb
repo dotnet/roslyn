@@ -1358,7 +1358,7 @@ End Class
 #Region "AsyncStateMachineAttribute"
 
         <Fact>
-        Sub AsyncStateMachineAttribute_Method()
+        Public Sub AsyncStateMachineAttribute_Method()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1385,7 +1385,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub AsyncStateMachineAttribute_Lambda()
+        Public Sub AsyncStateMachineAttribute_Lambda()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1415,7 +1415,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub AsyncStateMachineAttribute_GenericStateMachineClass()
+        Public Sub AsyncStateMachineAttribute_GenericStateMachineClass()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1443,7 +1443,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub AsyncStateMachineAttribute_MetadataOnly()
+        Public Sub AsyncStateMachineAttribute_MetadataOnly()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1471,7 +1471,7 @@ End Class
 #Region "IteratorStateMachineAttribute"
 
         <Fact>
-        Sub IteratorStateMachineAttribute_Method()
+        Public Sub IteratorStateMachineAttribute_Method()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1498,7 +1498,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub IteratorStateMachineAttribute_Lambda()
+        Public Sub IteratorStateMachineAttribute_Lambda()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1530,7 +1530,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub IteratorStateMachineAttribute_GenericStateMachineClass()
+        Public Sub IteratorStateMachineAttribute_GenericStateMachineClass()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1559,7 +1559,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub IteratorStateMachineAttribute_MetadataOnly()
+        Public Sub IteratorStateMachineAttribute_MetadataOnly()
             Dim source =
 <compilation>
     <file name="a.vb">

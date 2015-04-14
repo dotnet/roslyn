@@ -716,7 +716,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Select Case (op And UnaryOperatorKind.IntrinsicOpMask)
                         Case UnaryOperatorKind.Plus
-                        ' Nothing to do
+                            ' Nothing to do
                         Case UnaryOperatorKind.Minus
                             Debug.Assert(Not underlyingResultType.IsUnsignedIntegralType())
                             If value = Int64.MinValue Then
@@ -744,7 +744,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Select Case (op And UnaryOperatorKind.IntrinsicOpMask)
                         Case UnaryOperatorKind.Plus
-                        ' Nothing to do
+                            ' Nothing to do
                         Case UnaryOperatorKind.Minus
                             value = -value
 
@@ -769,7 +769,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Select Case (op And UnaryOperatorKind.IntrinsicOpMask)
                         Case UnaryOperatorKind.Plus
-                        ' Nothing to do
+                            ' Nothing to do
                         Case UnaryOperatorKind.Minus
                             value = Decimal.Negate(value)
 

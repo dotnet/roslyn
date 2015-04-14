@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1010,7 +1009,7 @@ Console.WriteLine(1)/*4*/;
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [catch (Exception e) { }]@10 -> [catch (IOException e) { }]@10");
+                "Update [(Exception e)]@16 -> [(IOException e)]@16");
         }
 
         [Fact]
@@ -1023,6 +1022,7 @@ Console.WriteLine(1)/*4*/;
 
             edits.VerifyEdits(
                 "Insert [catch (IOException e) { /*3*/ }]@16",
+                "Insert [(IOException e)]@22",
                 "Insert [{ /*3*/ }]@38");
         }
 
@@ -1048,6 +1048,7 @@ Console.WriteLine(1)/*4*/;
 
             edits.VerifyEdits(
                 "Delete [catch (Exception e) { }]@36",
+                "Delete [(Exception e)]@42",
                 "Delete [{ }]@56");
         }
 
@@ -1074,7 +1075,7 @@ Console.WriteLine(1)/*4*/;
             edits.VerifyEdits(
                 "Reorder [catch (Exception e) { }]@36 -> @26",
                 "Reorder [catch { }]@60 -> @10",
-                "Update [catch { }]@60 -> [catch (A e) { }]@10");
+                "Insert [(A e)]@16");
         }
 
         [Fact]
@@ -1106,8 +1107,10 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
 
             edits.VerifyEdits(
                 "Insert [catch (E e) { /*1*/ }]@79",
+                "Insert [(E e)]@85",
                 "Move [{ /*1*/ }]@29 -> @91",
-                "Delete [catch (E e) { /*1*/ }]@17");
+                "Delete [catch (E e) { /*1*/ }]@17",
+                "Delete [(E e)]@23");
         }
 
         [Fact]
@@ -1120,7 +1123,8 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
 
             edits.VerifyEdits(
                 "Move [{ /*3*/ }]@52 -> @39",
-                "Delete [catch (E2 e) { /*3*/ }]@39");
+                "Delete [catch (E2 e) { /*3*/ }]@39",
+                "Delete [(E2 e)]@45");
         }
 
         [Fact]
@@ -1133,6 +1137,7 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
 
             edits.VerifyEdits(
                 "Insert [catch (E2 e) { /*3*/ }]@39",
+                "Insert [(E2 e)]@45",
                 "Move [{ /*3*/ }]@39 -> @52");
         }
 
@@ -1183,7 +1188,7 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [catch when (e == null) { /*2*/ }]@16 -> [catch (E1 e) when (e == null) { /*2*/ }]@16");
+                "Insert [(E1 e)]@22");
         }
 
         [Fact]
@@ -1195,7 +1200,7 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [catch { /*2*/ }]@16 -> [catch (E1 e) when (e == null) { /*2*/ }]@16",
+                "Insert [(E1 e)]@22",
                 "Insert [when (e == null)]@29");
         }
 
@@ -1208,7 +1213,7 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [catch (E1 e) { /*2*/ }]@16 -> [catch { /*2*/ }]@16");
+                "Delete [(E1 e)]@22");
         }
 
         [Fact]
@@ -1232,7 +1237,7 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [catch (E1 e) when (e == null) { /*2*/ }]@16 -> [catch when (e == null) { /*2*/ }]@16");
+                "Delete [(E1 e)]@22");
         }
 
         [Fact]
@@ -1244,7 +1249,7 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [catch (E1 e) when (e == null) { /*2*/ }]@16 -> [catch { /*2*/ }]@16",
+                "Delete [(E1 e)]@22",
                 "Delete [when (e == null)]@29");
         }
 
@@ -2458,7 +2463,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
 
-        [Fact]
+        [Fact, WorkItem(1291)]
         public void Lambdas_Insert_ThisOnly_Top2()
         {
             var src1 = @"
@@ -2497,9 +2502,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "from a in new[] { 1 }", "a"),
-                Diagnostic(RudeEditKind.CapturingVariable, "x = 2", "x"),
-                Diagnostic(RudeEditKind.CapturingVariable, "from a in new[] { 1 }", "a"));
+                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
         }
 
         [Fact]
@@ -2664,19 +2667,395 @@ class C
             var insert = GetTopEdits(src1, src2);
 
             insert.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "y0", "x1"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", "lambda", "x1", "x3"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "y0", "lambda", "this", "y0"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", "lambda", "this", "x3"));
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.Lambda, "y0", "x1"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.Lambda, "x1", "x3"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "y0", CSharpFeaturesResources.Lambda, "this", "y0"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.Lambda, "this", "x3"));
 
             var delete = GetTopEdits(src2, src1);
 
             delete.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x1", "lambda", "y0", "x1"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", "lambda", "x1", "x3"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "y0", "lambda", "this", "y0"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", "lambda", "this", "x3"));
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.Lambda, "y0", "x1"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.Lambda, "x1", "x3"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "y0", CSharpFeaturesResources.Lambda, "this", "y0"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.Lambda, "this", "x3"));
         }
+
+        [Fact]
+        public void Lambdas_Insert_ForEach1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void G(Func<int, int> f) {}
+
+    void F()                       
+    {                              
+        foreach (int x0 in new[] { 1 })  // Group #0             
+        {                                // Group #1
+            int x1 = 0;                  
+                                         
+            G(a => x0);   
+            G(a => x1);
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void G(Func<int, int> f) {}
+
+    void F()                       
+    {                              
+        foreach (int x0 in new[] { 1 })  // Group #0             
+        {                                // Group #1
+            int x1 = 0;                  
+                                         
+            G(a => x0);   
+            G(a => x1);
+
+            G(a => x0 + x1);             // error: connecting previously disconnected closures
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"));
+        }
+
+        [Fact]
+        public void Lambdas_Insert_ForEach2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void G(Func<int, int> f1, Func<int, int> f2, Func<int, int> f3) {}
+
+    void F()                       
+    {               
+        int x0 = 0;                              // Group #0  
+        foreach (int x1 in new[] { 1 })          // Group #1                   
+            G(a => x0, a => x1, null);                     
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void G(Func<int, int> f1, Func<int, int> f2, Func<int, int> f3) {}
+
+    void F()                       
+    {               
+        int x0 = 0;                              // Group #0  
+        foreach (int x1 in new[] { 1 })          // Group #1            
+            G(a => x0, a => x1, a => x0 + x1);   // error: connecting previously disconnected closures            
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"));
+        }
+
+        [Fact]
+        public void Lambdas_Insert_For1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    bool G(Func<int, int> f) => true;
+
+    void F()                       
+    {                              
+        for (int x0 = 0, x1 = 0; G(a => x0) && G(a => x1);)
+        {
+            int x2 = 0;
+            G(a => x2); 
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    bool G(Func<int, int> f) => true;
+
+    void F()                       
+    {                              
+        for (int x0 = 0, x1 = 0; G(a => x0) && G(a => x1);)
+        {
+            int x2 = 0;
+            G(a => x2); 
+
+            G(a => x0 + x1);  // ok
+            G(a => x0 + x2);  // error: connecting previously disconnected closures
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x2", "lambda", "x0", "x2"));
+        }
+
+        [Fact]
+        public void Lambdas_Insert_Switch1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    bool G(Func<int> f) => true;
+
+    int a = 1;
+
+    void F()                       
+    {        
+        int x2 = 1;
+        G(() => x2);
+                      
+        switch (a)
+        {
+            case 1:
+                int x0 = 1;
+                G(() => x0);
+                break;
+
+            case 2:
+                int x1 = 1;
+                G(() => x1);
+                break;
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    bool G(Func<int> f) => true;
+
+    int a = 1;
+
+    void F()                       
+    {                
+        int x2 = 1;
+        G(() => x2);
+ 
+        switch (a)
+        {
+            case 1:
+                int x0 = 1;
+                G(() => x0);
+                goto case 2;
+
+            case 2:
+                int x1 = 1;
+                G(() => x1);
+                goto default;
+
+            default:
+                x0 = 1;
+                x1 = 2;
+                G(() => x0 + x1);       // ok
+                G(() => x0 + x2);       // error
+                break;
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x0", "lambda", "x2", "x0"));
+        }
+
+        [Fact]
+        public void Lambdas_Insert_Using1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static int F(object a, object b) => 1;
+
+    static IDisposable D() => null;
+    
+    static void F()                       
+    {                              
+        using (IDisposable x0 = D(), y0 = D())
+        {
+            int x1 = 1;
+        
+            G(() => x0);
+            G(() => y0);
+            G(() => x1);
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static int F(object a, object b) => 1;
+
+    static IDisposable D() => null;
+    
+    static void F()                       
+    {                              
+        using (IDisposable x0 = D(), y0 = D())
+        {
+            int x1 = 1;
+        
+            G(() => x0);
+            G(() => y0);
+            G(() => x1);
+
+            G(() => F(x0, y0)); // ok
+            G(() => F(x0, x1)); // error
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"));
+        }
+
+        [Fact]
+        public void Lambdas_Insert_Catch1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static int F(object a, object b) => 1;
+    
+    static void F()                       
+    {                              
+        try
+        {
+        }
+        catch (Exception x0)
+        {
+            int x1 = 1;
+            G(() => x0);
+            G(() => x1);
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static int F(object a, object b) => 1;
+    
+    static void F()                       
+    {                              
+        try
+        {
+        }
+        catch (Exception x0)
+        {
+            int x1 = 1;
+            G(() => x0);
+            G(() => x1);
+
+            G(() => x0); //ok
+            G(() => F(x0, x1)); //error
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1504"), WorkItem(1504)]
+        public void Lambdas_Insert_CatchFilter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    
+    static void F()                       
+    {                              
+        Exception x1 = null;
+    
+        try
+        {
+            G(() => x1);
+        }
+        catch (Exception x0) when (G(() => x0))
+        {
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    
+    static void F()                       
+    {                 
+        Exception x1 = null;
+             
+        try
+        {
+            G(() => x1);
+        }
+        catch (Exception x0) when (G(() => x0) && 
+                                   G(() => x0) &&    // ok
+                                   G(() => x0 != x1)) // error
+        {
+            G(() => x0); // ok
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
 
         [Fact]
         public void Lambdas_Update_CeaseCapture_This()
@@ -2747,7 +3126,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", "lambda"));
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", CSharpFeaturesResources.Lambda));
         }
 
         [Fact]
@@ -2784,7 +3163,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(a, b)", "lambda"));
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(a, b)", CSharpFeaturesResources.Lambda));
         }
 
         [Fact]
@@ -2821,7 +3200,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "a", "lambda"));
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "a", CSharpFeaturesResources.Lambda));
         }
 
         [Fact]
@@ -2894,7 +3273,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "a", "lambda"));
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "a", CSharpFeaturesResources.Lambda));
         }
 
         [Fact]
@@ -3009,7 +3388,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(int a)", "lambda"));
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(int a)", CSharpFeaturesResources.Lambda));
         }
 
         [Fact]
@@ -3052,9 +3431,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(out int a)", "lambda"));
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(out int a)", CSharpFeaturesResources.Lambda));
         }
 
+        // Add corresponding test to VB
         [Fact(Skip = "TODO")]
         public void Lambdas_Update_Signature_CustomModifiers1()
         {
@@ -3266,7 +3646,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", "lambda"));
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", CSharpFeaturesResources.Lambda));
         }
 
         [Fact]
@@ -3314,7 +3694,7 @@ namespace System
 ";
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", "lambda"));
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", CSharpFeaturesResources.Lambda));
         }
 
         [Fact]
@@ -3323,8 +3703,6 @@ namespace System
             var src1 = @"
 delegate T D1<S, T>(S a, T b);
 delegate T D2<S, T>(T a, S b);
-
-class String { }
 
 class C
 {
@@ -3340,8 +3718,6 @@ class C
             var src2 = @"
 delegate T D1<S, T>(S a, T b);
 delegate T D2<S, T>(T a, S b);
-
-class String { }
 
 class C
 {
@@ -3393,7 +3769,45 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(a, b)", "lambda"));
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(a, b)", CSharpFeaturesResources.Lambda));
+        }
+
+        [Fact]
+        public void Lambdas_Update_CapturedParameters1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F(int x1)
+    {
+        var f1 = new Func<int, int, int>((a1, a2) => 
+        {
+            var f2 = new Func<int, int>(a3 => x1 + a2);
+            return a1;
+        });
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F(int x1)
+    {
+        var f1 = new Func<int, int, int>((a1, a2) => 
+        {
+            var f2 = new Func<int, int>(a3 => x1 + a2 + 1);
+            return a1;
+        });
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -3435,7 +3849,152 @@ class C
 
             // y is no longer captured in f2
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a2", "y", "lambda"));
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a2", "y", CSharpFeaturesResources.Lambda));
+        }
+
+        [Fact]
+        public void Lambdas_Update_CeaseCapture_IndexerParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] => new Func<int, int>(a3 => a1 + a2);
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] => new Func<int, int>(a3 => a2);
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_CeaseCapture_IndexerParameter2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] { get { return new Func<int, int>(a3 => a1 + a2); } }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] { get { return new Func<int, int>(a3 => a2); } }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_CeaseCapture_MethodParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F(int a1, int a2)
+    {
+        var f2 = new Func<int, int>(a3 => a1 + a2);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F(int a1, int a2)
+    {
+        var f2 = new Func<int, int>(a3 => a1);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a2", "a2"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_CeaseCapture_MethodParameter2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1);
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a2", "a2"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_CeaseCapture_LambdaParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        var f1 = new Func<int, int, int>((a1, a2) => 
+        {
+            var f2 = new Func<int, int>(a3 => a1 + a2);
+            return a1;
+        });
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        var f1 = new Func<int, int, int>((a1, a2) => 
+        {
+            var f2 = new Func<int, int>(a3 => a2);
+            return a1;
+        });
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"));
         }
 
         [Fact]
@@ -3480,6 +4039,176 @@ class C
         }
 
         [Fact]
+        public void Lambdas_Update_Capturing_IndexerGetterParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] => new Func<int, int>(a3 => a2);
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] => new Func<int, int>(a3 => a1 + a2);
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Capturing_IndexerGetterParameter2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] { get { return new Func<int, int>(a3 => a2); } }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] { get { return new Func<int, int>(a3 => a1 + a2); } }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Capturing_IndexerSetterParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] { get { return null; } set { var f = new Func<int, int>(a3 => a2); } }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] { get { return null; } set { var f = new Func<int, int>(a3 => a1 + a2); } }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Capturing_MethodParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F(int a1, int a2)
+    {
+        var f2 = new Func<int, int>(a3 => a1);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F(int a1, int a2)
+    {
+        var f2 = new Func<int, int>(a3 => a1 + a2);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Capturing_MethodParameter2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1);
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> F(int a1, int a2) => new Func<int, int>(a3 => a1 + a2);
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Capturing_LambdaParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        var f1 = new Func<int, int, int>((a1, a2) => 
+        {
+            var f2 = new Func<int, int>(a3 => a2);
+            return a1;
+        });
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        var f1 = new Func<int, int, int>((a1, a2) => 
+        {
+            var f2 = new Func<int, int>(a3 => a1 + a2);
+            return a1;
+        });
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
+        }
+
+        [Fact]
         public void Lambdas_Update_StaticToThisOnly1()
         {
             var src1 = @"
@@ -3500,7 +4229,7 @@ using System;
 
 class C
 {
-    int x;
+    int x = 1;
    
     void F()
     {
@@ -3579,7 +4308,7 @@ using System;
 
 class C
 {
-    int x;
+    int x = 1;
    
     void F()
     {
@@ -3591,7 +4320,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a1", "this", "lambda"));
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a1", "this", CSharpFeaturesResources.Lambda));
         }
 
         [Fact]
@@ -3632,8 +4361,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", "lambda").WithFirstLine("x+ // 1"),
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", "lambda").WithFirstLine("x; // 2"));
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", CSharpFeaturesResources.Lambda).WithFirstLine("x+ // 1"),
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", CSharpFeaturesResources.Lambda).WithFirstLine("x; // 2"));
         }
 
         [Fact]
@@ -3672,7 +4401,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "y", "y", "lambda"));
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "y", "y", CSharpFeaturesResources.Lambda));
         }
 
         [Fact]
@@ -3795,7 +4524,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x0", "x0", "lambda"));
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x0", "x0", CSharpFeaturesResources.Lambda));
         }
 
         [Fact]
@@ -3849,7 +4578,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a", "x0", "lambda"));
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a", "x0", CSharpFeaturesResources.Lambda));
         }
 
         [Fact]
@@ -3905,7 +4634,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x0", "x0", "lambda"));
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x0", "x0", CSharpFeaturesResources.Lambda));
         }
 
         [Fact]
@@ -3963,15 +4692,495 @@ class C
             // TODO: "a => x + x0" is matched with "a => y1 + x0", hence we report more errors.
             // Including statement distance when matching would help.
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a", "this", "lambda").WithFirstLine("G(a => y1 + x0);   // error: connecting previously disconnected closures"),
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "y1", "y1", "lambda").WithFirstLine("G(a => y1 + x0);   // error: connecting previously disconnected closures"),
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "this", "lambda").WithFirstLine("G(a => x);         // error: disconnecting previously connected closures"),
-                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a", "y1", "lambda").WithFirstLine("G(a => x);         // error: disconnecting previously connected closures"));
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a", "this", CSharpFeaturesResources.Lambda).WithFirstLine("G(a => y1 + x0);   // error: connecting previously disconnected closures"),
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "y1", "y1", CSharpFeaturesResources.Lambda).WithFirstLine("G(a => y1 + x0);   // error: connecting previously disconnected closures"),
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "this", CSharpFeaturesResources.Lambda).WithFirstLine("G(a => x);         // error: disconnecting previously connected closures"),
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a", "y1", CSharpFeaturesResources.Lambda).WithFirstLine("G(a => x);         // error: disconnecting previously connected closures"));
         }
 
         #endregion
 
         #region Queries
+
+        [Fact]
+        public void Queries_Update_Signature_Select1()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} select a;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1.0} select a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "select", "select clause"));
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_Select2()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} select a;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} select a.ToString();
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "select", "select clause"));
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_From1()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} from b in new[] {2} select b;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from long a in new[] {1} from b in new[] {2} select b;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "from", "from clause"));
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_From2()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from System.Int64 a in new[] {1} from b in new[] {2} select b;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from long a in new[] {1} from b in new[] {2} select b;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_From3()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} from b in new[] {2} select b;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new List<int>() from b in new List<int>() select b;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_Let1()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} let b = 1 select a;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} let b = 1.0 select a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "let", "let clause"));
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_OrderBy1()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} orderby a + 1 descending, a + 2 ascending select a;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} orderby a + 1.0 descending, a + 2 ascending select a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 1.0 descending", "orderby clause"));
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_OrderBy2()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} orderby a + 1 descending, a + 2 ascending select a;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} orderby a + 1 descending, a + 2.0 ascending select a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 2.0 ascending", "orderby clause"));
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_Join1()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} join b in new[] {1} on a equals b select b;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} join b in new[] {1.0} on a equals b select b;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", "join clause"));
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_Join2()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} join b in new[] {1} on a equals b select b;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} join byte b in new[] {1} on a equals b select b;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", "join clause"));
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_Join3()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} join b in new[] {1} on a + 1 equals b select b;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} join b in new[] {1} on a + 1.0 equals b select b;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", "join clause"));
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_Join4()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} join b in new[] {1} on a equals b + 1 select b;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} join b in new[] {1} on a equals b + 1.0 select b;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", "join clause"));
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_GroupBy1()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a + 1 by a into z select z;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a + 1.0 by a into z select z;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", "groupby clause"));
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_GroupBy2()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a by a into z select z;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a by a + 1.0 into z select z;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", "groupby clause"));
+        }
 
         [Fact]
         public void Queries_FromSelect_Update1()
@@ -4248,6 +5457,337 @@ class C
             edits.VerifySemanticDiagnostics();
         }
 
+        [Fact]
+        public void Queries_CeaseCapturingTransparentIdentifiers1()
+        {
+            string src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+	int Z(Func<int> f)
+	{
+		return 1;
+	}
+
+    void F()
+    {
+		var result = from a in new[] { 1 }
+		             from b in new[] { 2 }
+		             where Z(() => a + b) > 0
+		             select a;
+    }
+}";
+            string src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+	int Z(Func<int> f)
+	{
+		return 1;
+	}
+
+    void F()
+    {
+		var result = from a in new[] { 1 }
+		             from b in new[] { 2 }
+		             where Z(() => a + 1) > 0
+		             select a;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            // TODO: better location (the variable, not the from clause)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "from b in new[] { 2 }", "b"));
+        }
+
+        [Fact]
+        public void Queries_CapturingTransparentIdentifiers1()
+        {
+            string src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+	int Z(Func<int> f)
+	{
+		return 1;
+	}
+
+    void F()
+    {
+		var result = from a in new[] { 1 }
+		             from b in new[] { 2 }
+		             where Z(() => a + 1) > 0
+		             select a;
+    }
+}";
+            string src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+	int Z(Func<int> f)
+	{
+		return 1;
+	}
+
+    void F()
+    {
+		var result = from a in new[] { 1 }
+		             from b in new[] { 2 }
+		             where Z(() => a + b) > 0
+		             select a;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "b", "b"));
+        }
+
+        [Fact]
+        public void Queries_AccessingCapturedTransparentIdentifier1()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    int Z(Func<int> f) => 1;
+
+    void F()
+    {
+        var result = from a in new[] { 1 }
+                     where Z(() => a) > 0
+                     select 1;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    int Z(Func<int> f) => 1;
+   
+    void F()
+    {
+        var result = from a in new[] { 1 } 
+                     where Z(() => a) > 0
+                     select a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "select", "select clause"));
+        }
+
+        [Fact]
+        public void Queries_AccessingCapturedTransparentIdentifier2()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    int Z(Func<int> f) => 1;
+
+    void F()
+    {
+        var result = from a in new[] { 1 }
+                     from b in new[] { 1 }
+                     where Z(() => a) > 0
+                     select b;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    int Z(Func<int> f) => 1;
+   
+    void F()
+    {
+        var result = from a in new[] { 1 } 
+                     from b in new[] { 1 }
+                     where Z(() => a) > 0
+                     select a + b;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", "select clause"));
+        }
+
+        [Fact]
+        public void Queries_AccessingCapturedTransparentIdentifier3()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    int Z(Func<int> f) => 1;
+
+    void F()
+    {
+        var result = from a in new[] { 1 }
+                     where Z(() => a) > 0
+                     select Z(() => 1);
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    int Z(Func<int> f) => 1;
+   
+    void F()
+    {
+        var result = from a in new[] { 1 } 
+                     where Z(() => a) > 0
+                     select Z(() => a);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", "select clause"),
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", "lambda"));
+        }
+
+        [Fact]
+        public void Queries_NotAccessingCapturedTransparentIdentifier1()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    int Z(Func<int> f) => 1;
+
+    void F()
+    {
+        var result = from a in new[] { 1 }
+                     from b in new[] { 1 }
+                     where Z(() => a) > 0
+                     select a + b;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    int Z(Func<int> f) => 1;
+   
+    void F()
+    {
+        var result = from a in new[] { 1 } 
+                     from b in new[] { 1 }
+                     where Z(() => a) > 0
+                     select b;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "select", "a", "select clause"));
+        }
+
+        [Fact]
+        public void Queries_NotAccessingCapturedTransparentIdentifier2()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    int Z(Func<int> f) => 1;
+
+    void F()
+    {
+        var result = from a in new[] { 1 }
+                     where Z(() => a) > 0
+                     select Z(() => 1);
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    int Z(Func<int> f) => 1;
+   
+    void F()
+    {
+        var result = from a in new[] { 1 } 
+                     where Z(() => a) > 0
+                     select Z(() => a);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", "select clause"),
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", "lambda"));
+        }
+
+        [Fact]
+        public void Queries_Insert1()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] { 1 } select a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics();
+        }
+
         #endregion
 
         #region Yield
@@ -4280,8 +5820,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "yield break;", "yield statement"),
-                Diagnostic(RudeEditKind.Update, "yield return 4;", "yield statement"));
+                Diagnostic(RudeEditKind.Update, "yield break;", CSharpFeaturesResources.YieldStatement),
+                Diagnostic(RudeEditKind.Update, "yield return 4;", CSharpFeaturesResources.YieldStatement));
         }
 
         [Fact]
@@ -4330,7 +5870,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "{", "yield statement"));
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.YieldStatement));
         }
 
         [Fact]
@@ -4382,8 +5922,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "yield return 4;", "yield statement"),
-                Diagnostic(RudeEditKind.Insert, "yield return 2;", "yield statement"));
+                Diagnostic(RudeEditKind.Insert, "yield return 4;", CSharpFeaturesResources.YieldStatement),
+                Diagnostic(RudeEditKind.Insert, "yield return 2;", CSharpFeaturesResources.YieldStatement));
         }
 
         #endregion
@@ -4549,7 +6089,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "F(2);", "await expression"));
+                Diagnostic(RudeEditKind.Delete, "F(2);", CSharpFeaturesResources.AwaitExpression));
         }
 
         [Fact]
@@ -4576,7 +6116,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "await F(1);", "await expression"));
+                Diagnostic(RudeEditKind.Delete, "await F(1);", CSharpFeaturesResources.AwaitExpression));
         }
 
         [Fact]
@@ -4597,7 +6137,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "=> await F(1)", "await expression"));
+                Diagnostic(RudeEditKind.Delete, "=> await F(1)", CSharpFeaturesResources.AwaitExpression));
         }
 
         [Fact]
@@ -4618,7 +6158,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
-                Diagnostic(RudeEditKind.Delete, "=> F(1)", "await expression"));
+                Diagnostic(RudeEditKind.Delete, "=> F(1)", CSharpFeaturesResources.AwaitExpression));
         }
 
         [Fact]
@@ -4672,8 +6212,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "await", "await expression"),
-                Diagnostic(RudeEditKind.Insert, "await", "await expression"));
+                Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.AwaitExpression),
+                Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.AwaitExpression));
         }
 
         [Fact]
@@ -4702,10 +6242,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "await", "await expression"),
-                Diagnostic(RudeEditKind.Insert, "await", "await expression"),
-                Diagnostic(RudeEditKind.Insert, "await", "await expression"),
-                Diagnostic(RudeEditKind.Insert, "await", "await expression"));
+                Diagnostic(RudeEditKind.Delete, "await", CSharpFeaturesResources.AwaitExpression),
+                Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.AwaitExpression),
+                Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.AwaitExpression),
+                Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.AwaitExpression));
         }
 
         [Fact]
@@ -4726,7 +6266,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "await", "await expression"));
+                Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.AwaitExpression));
         }
 
         [Fact]

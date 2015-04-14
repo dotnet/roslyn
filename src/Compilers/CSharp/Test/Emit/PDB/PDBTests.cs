@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Globalization;
@@ -47,9 +47,6 @@ class Program
         <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""35"" document=""0"" />
         <entry offset=""0x7"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""p"" il_index=""0"" il_start=""0x0"" il_end=""0x8"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x8"">
         <local name=""p"" il_index=""0"" il_start=""0x0"" il_end=""0x8"" attributes=""0"" />
       </scope>
@@ -117,11 +114,6 @@ class C
         <entry offset=""0x4a"" startLine=""21"" startColumn=""9"" endLine=""21"" endColumn=""10"" document=""0"" />
         <entry offset=""0x4b"" startLine=""22"" startColumn=""5"" endLine=""22"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""version"" il_index=""0"" il_start=""0x0"" il_end=""0x4c"" attributes=""0"" />
-        <local name=""foob"" il_index=""1"" il_start=""0x15"" il_end=""0x2a"" attributes=""0"" />
-        <local name=""foob1"" il_index=""2"" il_start=""0x2a"" il_end=""0x3f"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x4c"">
         <local name=""version"" il_index=""0"" il_start=""0x0"" il_end=""0x4c"" attributes=""0"" />
         <scope startOffset=""0x15"" endOffset=""0x2a"">
@@ -196,9 +188,6 @@ class Program
         <entry offset=""0x3"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""30"" document=""0"" />
         <entry offset=""0xa"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0xb"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0xb"">
         <namespace name=""System"" />
         <namespace name=""System.Diagnostics"" />
@@ -218,9 +207,6 @@ class Program
         <entry offset=""0x3"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""30"" document=""0"" />
         <entry offset=""0xa"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""y"" il_index=""0"" il_start=""0x0"" il_end=""0xb"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0xb"">
         <local name=""y"" il_index=""0"" il_start=""0x0"" il_end=""0xb"" attributes=""0"" />
       </scope>
@@ -238,9 +224,6 @@ class Program
         <entry offset=""0x3"" startLine=""25"" startColumn=""9"" endLine=""25"" endColumn=""30"" document=""0"" />
         <entry offset=""0xa"" startLine=""26"" startColumn=""5"" endLine=""26"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""z"" il_index=""0"" il_start=""0x0"" il_end=""0xb"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0xb"">
         <local name=""z"" il_index=""0"" il_start=""0x0"" il_end=""0xb"" attributes=""0"" />
       </scope>
@@ -290,7 +273,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""9"" endColumn=""7"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x16"">
         <namespace name=""System"" />
       </scope>
@@ -302,7 +284,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""66"" endLine=""7"" endColumn=""70"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.cctor&gt;b__2_0"" parameterNames=""x"">
       <customDebugInfo>
@@ -320,10 +301,6 @@ class C
         <entry offset=""0x41"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""27"" document=""0"" />
         <entry offset=""0x51"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""f"" il_index=""0"" il_start=""0x0"" il_end=""0x53"" attributes=""0"" />
-        <local name=""g"" il_index=""1"" il_start=""0x0"" il_end=""0x53"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x53"">
         <local name=""f"" il_index=""0"" il_start=""0x0"" il_end=""0x53"" attributes=""0"" />
         <local name=""g"" il_index=""1"" il_start=""0x0"" il_end=""0x53"" attributes=""0"" />
@@ -336,7 +313,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""36"" endLine=""6"" endColumn=""37"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.cctor&gt;b__2_2"" parameterNames=""h"">
       <customDebugInfo>
@@ -350,9 +326,6 @@ class C
         <entry offset=""0x0"" hidden=""true"" document=""0"" />
         <entry offset=""0xd"" startLine=""7"" startColumn=""61"" endLine=""7"" endColumn=""70"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x1e"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""0"" />
       </scope>
@@ -393,9 +366,6 @@ class C
         <entry offset=""0x1"" startLine=""4"" startColumn=""57"" endLine=""4"" endColumn=""67"" document=""0"" />
         <entry offset=""0x3"" startLine=""4"" startColumn=""79"" endLine=""4"" endColumn=""80"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x4"">
         <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
       </scope>
@@ -412,9 +382,6 @@ class C
         <entry offset=""0x1"" startLine=""5"" startColumn=""45"" endLine=""5"" endColumn=""55"" document=""0"" />
         <entry offset=""0x3"" startLine=""5"" startColumn=""67"" endLine=""5"" endColumn=""68"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x4"">
         <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
       </scope>
@@ -467,7 +434,6 @@ class C2
         <entry offset=""0x15"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""63"" document=""0"" />
         <entry offset=""0x2a"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""39"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x40"">
         <namespace name=""System"" />
       </scope>
@@ -493,7 +459,6 @@ class C2
         <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""51"" document=""0"" />
         <entry offset=""0x2a"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""39"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -579,14 +544,6 @@ class C
         <entry offset=""0x4f"" startLine=""25"" startColumn=""9"" endLine=""25"" endColumn=""10"" document=""0"" />
         <entry offset=""0x50"" startLine=""26"" startColumn=""5"" endLine=""26"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""b"" il_index=""0"" il_start=""0x0"" il_end=""0x51"" attributes=""0"" />
-        <local name=""s"" il_index=""2"" il_start=""0x8"" il_end=""0x17"" attributes=""0"" />
-        <local name=""s"" il_index=""3"" il_start=""0x19"" il_end=""0x50"" attributes=""0"" />
-        <local name=""i"" il_index=""4"" il_start=""0x19"" il_end=""0x50"" attributes=""0"" />
-        <local name=""j"" il_index=""5"" il_start=""0x25"" il_end=""0x3d"" attributes=""0"" />
-        <local name=""k"" il_index=""6"" il_start=""0x25"" il_end=""0x3d"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x51"">
         <local name=""b"" il_index=""0"" il_start=""0x0"" il_end=""0x51"" attributes=""0"" />
         <scope startOffset=""0x8"" endOffset=""0x17"">
@@ -675,7 +632,6 @@ public class SeqPointForWhile
         <entry offset=""0x5"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""24"" document=""0"" />
         <entry offset=""0xf"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x10"">
         <namespace name=""System"" />
       </scope>
@@ -699,9 +655,6 @@ public class SeqPointForWhile
         <entry offset=""0x28"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""20"" document=""0"" />
         <entry offset=""0x2f"" startLine=""35"" startColumn=""5"" endLine=""35"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""x"" il_index=""0"" il_start=""0x11"" il_end=""0x1a"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x30"">
         <scope startOffset=""0x11"" endOffset=""0x1a"">
           <local name=""x"" il_index=""0"" il_start=""0x11"" il_end=""0x1a"" attributes=""0"" />
@@ -757,9 +710,6 @@ class C
         <entry offset=""0x1c"" hidden=""true"" document=""0"" />
         <entry offset=""0x1f"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""i"" il_index=""0"" il_start=""0x1"" il_end=""0x1f"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x20"">
         <scope startOffset=""0x1"" endOffset=""0x1f"">
           <local name=""i"" il_index=""0"" il_start=""0x1"" il_end=""0x1f"" attributes=""0"" />
@@ -802,7 +752,6 @@ class C
         <entry offset=""0xb"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
         <entry offset=""0xc"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>
@@ -848,9 +797,6 @@ class C
         <entry offset=""0xe"" startLine=""7"" startColumn=""16"" endLine=""7"" endColumn=""19"" document=""0"" />
         <entry offset=""0x14"" hidden=""true"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x16"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x16"">
         <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x16"" attributes=""0"" />
       </scope>
@@ -913,7 +859,6 @@ public class C
         <entry offset=""0x1a"" startLine=""6"" startColumn=""24"" endLine=""6"" endColumn=""26"" document=""0"" />
         <entry offset=""0x23"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -977,9 +922,6 @@ public class C
         <entry offset=""0x1e"" startLine=""6"" startColumn=""24"" endLine=""6"" endColumn=""26"" document=""0"" />
         <entry offset=""0x24"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""x"" il_index=""2"" il_start=""0xd"" il_end=""0x1a"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x25"">
         <scope startOffset=""0xd"" endOffset=""0x1a"">
           <local name=""x"" il_index=""2"" il_start=""0xd"" il_end=""0x1a"" attributes=""0"" />
@@ -1109,7 +1051,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithModuleName("MODULE"));
 
             // Stepping:
             //   After "continue", step to "in".
@@ -1135,7 +1077,7 @@ class C
   IL_0003:  ldc.i4.2
   IL_0004:  newobj     ""int[*,*,*]..ctor""
   IL_0009:  dup
-  IL_000a:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.$$method0x6000001-EB196F988F4F427D318CA25B68671CF3A4510012""
+  IL_000a:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.EB196F988F4F427D318CA25B68671CF3A4510012""
   IL_000f:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0014:  stloc.0
  -IL_0015:  nop
@@ -1361,9 +1303,6 @@ class Program
         <entry offset=""0x47"" hidden=""true"" document=""0"" />
         <entry offset=""0x52"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""i"" il_index=""1"" il_start=""0x14"" il_end=""0x3d"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x53"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
@@ -1441,9 +1380,6 @@ public class SeqPointForWhile
         <entry offset=""0x7"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""24"" document=""0"" />
         <entry offset=""0x13"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""obj"" il_index=""0"" il_start=""0x0"" il_end=""0x14"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x14"">
         <namespace name=""System"" />
         <local name=""obj"" il_index=""0"" il_start=""0x0"" il_end=""0x14"" attributes=""0"" />
@@ -1479,7 +1415,6 @@ public class SeqPointForWhile
         <entry offset=""0x33"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""20"" document=""0"" />
         <entry offset=""0x3a"" startLine=""33"" startColumn=""5"" endLine=""33"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1563,7 +1498,6 @@ public class SeqPointForWhile
         <entry offset=""0x8"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""27"" document=""0"" />
         <entry offset=""0x10"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""NS.MyClass"" name="".ctor"" parameterNames=""values"">
       <customDebugInfo>
@@ -1575,7 +1509,6 @@ public class SeqPointForWhile
         <entry offset=""0x8"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""57"" document=""0"" />
         <entry offset=""0x19"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""NS.MyClass"" name=""Main"">
       <customDebugInfo>
@@ -1598,12 +1531,6 @@ public class SeqPointForWhile
         <entry offset=""0x25"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""36"" document=""0"" />
         <entry offset=""0x32"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""intI"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-        <local name=""intJ"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-        <local name=""intK"" il_index=""2"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-        <local name=""mc"" il_index=""3"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x35"">
         <local name=""intI"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
         <local name=""intJ"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
@@ -1718,7 +1645,6 @@ public class Derived : Base
         <entry offset=""0xa"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
         <entry offset=""0x12"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x13"">
         <namespace name=""System"" />
       </scope>
@@ -1734,7 +1660,6 @@ public class Derived : Base
         <entry offset=""0xa"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
         <entry offset=""0x12"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1785,7 +1710,6 @@ public partial class C
         <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""15"" document=""2"" />
         <entry offset=""0x7"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""15"" document=""1"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1886,7 +1810,6 @@ public partial class C
         <entry offset=""0x9e"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""33"" document=""1"" />
         <entry offset=""0xa9"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0xaa"">
         <namespace name=""System"" />
       </scope>
@@ -1921,7 +1844,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""50"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__1_0"" parameterNames=""z"">
       <customDebugInfo>
@@ -1930,7 +1852,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""4"" startColumn=""43"" endLine=""4"" endColumn=""44"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1959,7 +1880,6 @@ class C
         <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""14"" document=""0"" />
         <entry offset=""0x7"" startLine=""4"" startColumn=""16"" endLine=""4"" endColumn=""21"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1990,37 +1910,31 @@ public class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""4"" startColumn=""35"" endLine=""4"" endColumn=""39"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C"" name=""set_AutoProp1"" parameterNames=""value"">
       <sequencePoints>
         <entry offset=""0x0"" startLine=""4"" startColumn=""40"" endLine=""4"" endColumn=""52"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C"" name=""get_AutoProp2"">
       <sequencePoints>
         <entry offset=""0x0"" startLine=""5"" startColumn=""33"" endLine=""5"" endColumn=""37"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C"" name=""set_AutoProp2"" parameterNames=""value"">
       <sequencePoints>
         <entry offset=""0x0"" startLine=""5"" startColumn=""38"" endLine=""5"" endColumn=""42"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C"" name=""get_AutoProp3"">
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""38"" endLine=""6"" endColumn=""51"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C"" name=""set_AutoProp3"" parameterNames=""value"">
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""52"" endLine=""6"" endColumn=""56"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -2091,7 +2005,6 @@ public class C
         <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -2124,7 +2037,6 @@ public class C
         <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""16"" document=""0"" />
         <entry offset=""0x3"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -2236,10 +2148,6 @@ public class SeqPointAfterReturn
         <entry offset=""0x79"" startLine=""24"" startColumn=""9"" endLine=""24"" endColumn=""20"" document=""0"" />
         <entry offset=""0x7e"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""ret"" il_index=""0"" il_start=""0x0"" il_end=""0x81"" attributes=""0"" />
-        <local name=""rets"" il_index=""1"" il_start=""0x0"" il_end=""0x81"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x81"">
         <namespace name=""System"" />
         <local name=""ret"" il_index=""0"" il_start=""0x0"" il_end=""0x81"" attributes=""0"" />
@@ -2267,9 +2175,6 @@ public class SeqPointAfterReturn
         <entry offset=""0x26"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""10"" document=""0"" />
         <entry offset=""0x27"" startLine=""39"" startColumn=""5"" endLine=""39"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x28"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x28"">
         <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x28"" attributes=""0"" />
       </scope>
@@ -2294,9 +2199,6 @@ public class SeqPointAfterReturn
         <entry offset=""0x17"" startLine=""50"" startColumn=""13"" endLine=""50"" endColumn=""26"" document=""0"" />
         <entry offset=""0x1f"" startLine=""52"" startColumn=""5"" endLine=""52"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x21"">
         <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
       </scope>
@@ -2376,10 +2278,6 @@ class Test
         <entry offset=""0x1b"" startLine=""22"" startColumn=""13"" endLine=""22"" endColumn=""24"" document=""0"" />
         <entry offset=""0x1f"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""ret"" il_index=""0"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
-        <local name=""e"" il_index=""1"" il_start=""0xa"" il_end=""0x11"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x21"">
         <local name=""ret"" il_index=""0"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
         <scope startOffset=""0xa"" endOffset=""0x11"">
@@ -2435,9 +2333,6 @@ class Test
         <entry offset=""0x2b"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
         <entry offset=""0x2e"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""e"" il_index=""0"" il_start=""0x8"" il_end=""0x2e"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2f"">
         <scope startOffset=""0x8"" endOffset=""0x2e"">
           <local name=""e"" il_index=""0"" il_start=""0x8"" il_end=""0x2e"" attributes=""0"" />
@@ -2494,7 +2389,6 @@ class Test
         <entry offset=""0x27"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
         <entry offset=""0x2a"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -2562,10 +2456,6 @@ class Program
         <entry offset=""0x26"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""0"" />
         <entry offset=""0x29"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""str"" il_index=""0"" il_start=""0x0"" il_end=""0x2a"" attributes=""0"" />
-        <local name=""isEmpty"" il_index=""1"" il_start=""0x0"" il_end=""0x2a"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2a"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
@@ -2654,12 +2544,6 @@ class C
         <entry offset=""0x7a"" startLine=""33"" startColumn=""9"" endLine=""33"" endColumn=""10"" document=""0"" />
         <entry offset=""0x7b"" startLine=""34"" startColumn=""5"" endLine=""34"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""a"" il_index=""0"" il_start=""0x1"" il_end=""0x3c"" attributes=""0"" />
-        <local name=""b"" il_index=""1"" il_start=""0x1"" il_end=""0x3c"" attributes=""0"" />
-        <local name=""c"" il_index=""2"" il_start=""0x3c"" il_end=""0x79"" attributes=""0"" />
-        <local name=""d"" il_index=""3"" il_start=""0x3c"" il_end=""0x79"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x7c"">
         <scope startOffset=""0x1"" endOffset=""0x3c"">
           <local name=""a"" il_index=""0"" il_start=""0x1"" il_end=""0x3c"" attributes=""0"" />
@@ -2711,9 +2595,6 @@ class Program
         <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""24"" document=""0"" />
         <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x8"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x8"">
         <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x8"" attributes=""0"" />
       </scope>
@@ -2752,9 +2633,6 @@ class Program
         <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""31"" document=""0"" />
         <entry offset=""0x8"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
       </scope>
@@ -2814,10 +2692,6 @@ unsafe class C
         <entry offset=""0x17"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""32"" document=""0"" />
         <entry offset=""0x23"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x24"" attributes=""0"" />
-        <local name=""p"" il_index=""1"" il_start=""0x7"" il_end=""0x17"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x24"">
         <namespace name=""System"" />
         <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x24"" attributes=""0"" />
@@ -2870,9 +2744,6 @@ unsafe class C
         <entry offset=""0x1f"" hidden=""true"" document=""0"" />
         <entry offset=""0x21"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""p"" il_index=""0"" il_start=""0x1"" il_end=""0x21"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x22"">
         <namespace name=""System"" />
         <scope startOffset=""0x1"" endOffset=""0x21"">
@@ -2936,10 +2807,6 @@ unsafe class C
         <entry offset=""0x43"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" document=""0"" />
         <entry offset=""0x51"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x52"" attributes=""0"" />
-        <local name=""p"" il_index=""1"" il_start=""0x15"" il_end=""0x43"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x52"">
         <namespace name=""System"" />
         <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x52"" attributes=""0"" />
@@ -2955,7 +2822,6 @@ unsafe class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""26"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -3014,11 +2880,6 @@ unsafe class C
         <entry offset=""0x25"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""38"" document=""0"" />
         <entry offset=""0x38"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x39"" attributes=""0"" />
-        <local name=""p"" il_index=""1"" il_start=""0x7"" il_end=""0x25"" attributes=""0"" />
-        <local name=""q"" il_index=""2"" il_start=""0x7"" il_end=""0x25"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x39"">
         <namespace name=""System"" />
         <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x39"" attributes=""0"" />
@@ -3078,10 +2939,6 @@ unsafe class C
         <entry offset=""0x3b"" hidden=""true"" document=""0"" />
         <entry offset=""0x3f"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""p"" il_index=""0"" il_start=""0x1"" il_end=""0x3f"" attributes=""0"" />
-        <local name=""q"" il_index=""1"" il_start=""0x1"" il_end=""0x3f"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x40"">
         <namespace name=""System"" />
         <scope startOffset=""0x1"" endOffset=""0x3f"">
@@ -3154,11 +3011,6 @@ unsafe class C
         <entry offset=""0x7c"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""31"" document=""0"" />
         <entry offset=""0x8a"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x8b"" attributes=""0"" />
-        <local name=""p"" il_index=""1"" il_start=""0x23"" il_end=""0x6e"" attributes=""0"" />
-        <local name=""q"" il_index=""2"" il_start=""0x23"" il_end=""0x6e"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x8b"">
         <namespace name=""System"" />
         <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x8b"" attributes=""0"" />
@@ -3176,7 +3028,6 @@ unsafe class C
         <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""26"" document=""0"" />
         <entry offset=""0xc"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""26"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -3237,12 +3088,6 @@ unsafe class C
         <entry offset=""0x5f"" hidden=""true"" document=""0"" />
         <entry offset=""0x68"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x69"" attributes=""0"" />
-        <local name=""p"" il_index=""1"" il_start=""0x7"" il_end=""0x68"" attributes=""0"" />
-        <local name=""q"" il_index=""2"" il_start=""0x7"" il_end=""0x68"" attributes=""0"" />
-        <local name=""r"" il_index=""3"" il_start=""0x7"" il_end=""0x68"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x69"">
         <namespace name=""System"" />
         <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x69"" attributes=""0"" />
@@ -3261,7 +3106,6 @@ unsafe class C
         <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""18"" document=""0"" />
         <entry offset=""0x8"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""28"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -3306,7 +3150,6 @@ unsafe class C
         <entry offset=""0x1"" startLine=""57"" startColumn=""9"" endLine=""57"" endColumn=""26"" document=""1"" />
         <entry offset=""0x8"" startLine=""58"" startColumn=""5"" endLine=""58"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <namespace name=""System"" />
       </scope>
@@ -3350,7 +3193,6 @@ unsafe class C
         <entry offset=""0x1"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""26"" document=""0"" />
         <entry offset=""0x8"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <namespace name=""System"" />
       </scope>
@@ -3440,11 +3282,6 @@ public class C
         <entry offset=""0x94"" startLine=""19"" startColumn=""24"" endLine=""19"" endColumn=""26"" document=""0"" />
         <entry offset=""0x9c"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""x"" il_index=""2"" il_start=""0x18"" il_end=""0x25"" attributes=""0"" />
-        <local name=""x"" il_index=""5"" il_start=""0x47"" il_end=""0x57"" attributes=""0"" />
-        <local name=""x"" il_index=""8"" il_start=""0x7d"" il_end=""0x8e"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x9d"">
         <namespace name=""System"" />
         <scope startOffset=""0x18"" endOffset=""0x25"">
@@ -3500,11 +3337,6 @@ public class T
         <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <constant name=""HighSurrogateCharacter"" value=""{0}"" type=""String"" />
-        <constant name=""LowSurrogateCharacter"" value=""{0}"" type=""String"" />
-        <constant name=""MatchedSurrogateCharacters"" value=""{1}"" type=""String"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
         <constant name=""HighSurrogateCharacter"" value=""{0}"" type=""String"" />
@@ -3548,9 +3380,6 @@ public class T
         <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
         <entry offset=""0x1"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <constant name=""invalidUnicodeString"" value=""{0}"" type=""String"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
         <constant name=""invalidUnicodeString"" value=""{0}"" type=""String"" />
@@ -3607,6 +3436,121 @@ class C
              * */
         }
 
+        [Fact]
+        public void Constant_AllTypes()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class X {}
+
+public class C<S>
+{
+    enum EnumI1 : sbyte  { A }
+    enum EnumU1 : byte   { A }
+    enum EnumI2 : short  { A }
+    enum EnumU2 : ushort { A }
+    enum EnumI4 : int    { A }
+    enum EnumU4 : uint   { A }
+    enum EnumI8 : long   { A }
+    enum EnumU8 : ulong  { A }
+
+    public static void F<T>()
+    {
+        const bool B = false;
+        const char C = '\0';
+        const sbyte I1 = 0;
+        const byte U1 = 0;
+        const short I2 = 0;
+        const ushort U2 = 0;
+        const int I4 = 0;
+        const uint U4 = 0;
+        const long I8 = 0;
+        const ulong U8 = 0;
+        const float R4 = 0;
+        const double R8 = 0;
+
+        const C<int>.EnumI1 EI1 = 0;
+        const C<int>.EnumU1 EU1 = 0;
+        const C<int>.EnumI2 EI2 = 0;
+        const C<int>.EnumU2 EU2 = 0;
+        const C<int>.EnumI4 EI4 = 0;
+        const C<int>.EnumU4 EU4 = 0;
+        const C<int>.EnumI8 EI8 = 0;
+        const C<int>.EnumU8 EU8 = 0;
+
+        const string StrWithNul = ""\0"";
+        const string EmptyStr = """";
+        const string NullStr = null;
+        const object NullObject = null;
+        const dynamic NullDynamic = null;
+        const X NullTypeDef = null;
+        const Action NullTypeRef = null;
+        const Func<Dictionary<int, C<int>>, dynamic, T, List<S>> NullTypeSpec = null;
+        
+        const decimal D = 0M;
+        // DateTime const not expressible in C#
+    }
+}";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+
+            c.VerifyPdb("C`1.F", @"
+<symbols>
+  <methods>
+    <method containingType=""C`1"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
+        <dynamicLocals>
+          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""NullDynamic"" />
+          <bucket flagCount=""9"" flags=""000001000"" slotId=""0"" localName=""NullTypeSpec"" />
+        </dynamicLocals>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""53"" startColumn=""5"" endLine=""53"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <namespace name=""System"" />
+        <namespace name=""System.Collections.Generic"" />
+        <constant name=""B"" value=""0"" type=""Boolean"" />
+        <constant name=""C"" value=""0"" type=""Char"" />
+        <constant name=""I1"" value=""0"" type=""SByte"" />
+        <constant name=""U1"" value=""0"" type=""Byte"" />
+        <constant name=""I2"" value=""0"" type=""Int16"" />
+        <constant name=""U2"" value=""0"" type=""UInt16"" />
+        <constant name=""I4"" value=""0"" type=""Int32"" />
+        <constant name=""U4"" value=""0"" type=""UInt32"" />
+        <constant name=""I8"" value=""0"" type=""Int64"" />
+        <constant name=""U8"" value=""0"" type=""UInt64"" />
+        <constant name=""R4"" value=""0"" type=""Single"" />
+        <constant name=""R8"" value=""0"" type=""Double"" />
+        <constant name=""EI1"" value=""0"" signature=""15-11-10-01-08"" />
+        <constant name=""EU1"" value=""0"" signature=""15-11-14-01-08"" />
+        <constant name=""EI2"" value=""0"" signature=""15-11-18-01-08"" />
+        <constant name=""EU2"" value=""0"" signature=""15-11-1C-01-08"" />
+        <constant name=""EI4"" value=""null"" signature=""15-11-20-01-08"" />
+        <constant name=""EU4"" value=""0"" signature=""15-11-24-01-08"" />
+        <constant name=""EI8"" value=""0"" signature=""15-11-28-01-08"" />
+        <constant name=""EU8"" value=""0"" signature=""15-11-2C-01-08"" />
+        <constant name=""StrWithNul"" value=""U+0000"" type=""String"" />
+        <constant name=""EmptyStr"" value="""" type=""String"" />
+        <constant name=""NullStr"" value=""null"" type=""String"" />
+        <constant name=""NullObject"" value=""null"" type=""Object"" />
+        <constant name=""NullDynamic"" value=""null"" type=""Object"" />
+        <constant name=""NullTypeDef"" value=""null"" signature=""12-08"" />
+        <constant name=""NullTypeRef"" value=""null"" signature=""12-1D"" />
+        <constant name=""NullTypeSpec"" value=""null"" signature=""15-12-21-04-15-12-25-02-08-15-12-0C-01-08-1C-1E-00-15-12-29-01-13-00"" />
+        <constant name=""D"" value=""0"" type=""Decimal"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
         #endregion
 
         #region Nested Types
@@ -3652,7 +3596,6 @@ namespace N
         <entry offset=""0x0"" startLine=""14"" startColumn=""6"" endLine=""14"" endColumn=""26"" document=""1"" />
         <entry offset=""0x5"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x6"">
         <namespace name=""System"" />
       </scope>
@@ -3685,7 +3628,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""4"" startColumn=""21"" endLine=""4"" endColumn=""24"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -3696,7 +3638,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""18"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -3723,7 +3664,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""4"" startColumn=""31"" endLine=""4"" endColumn=""34"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -3734,7 +3674,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""18"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -3757,7 +3696,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""4"" startColumn=""21"" endLine=""4"" endColumn=""22"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -3780,7 +3718,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""4"" startColumn=""41"" endLine=""4"" endColumn=""42"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -3803,7 +3740,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""4"" startColumn=""49"" endLine=""4"" endColumn=""56"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -3849,7 +3785,6 @@ public class C
         <entry offset=""0x1"" startLine=""4"" startColumn=""9"" endLine=""4"" endColumn=""31"" document=""2"" />
         <entry offset=""0x8"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -3918,9 +3853,6 @@ public class C
         <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""23"" document=""0"" />
         <entry offset=""0x8"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
       </scope>
@@ -3942,9 +3874,6 @@ public class C
         <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""23"" document=""0"" />
         <entry offset=""0x8"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
       </scope>
@@ -3964,7 +3893,6 @@ public class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -3981,7 +3909,6 @@ public class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -4030,11 +3957,6 @@ public class C
         <entry offset=""0xeb"" startLine=""8"" startColumn=""24"" endLine=""8"" endColumn=""26"" document=""0"" />
         <entry offset=""0xf4"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0xf5"" attributes=""0"" />
-        <local name=""b"" il_index=""1"" il_start=""0x0"" il_end=""0xf5"" attributes=""0"" />
-        <local name=""x"" il_index=""4"" il_start=""0x24"" il_end=""0xe7"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0xf5"">
         <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0xf5"" attributes=""0"" />
         <local name=""b"" il_index=""1"" il_start=""0x0"" il_end=""0xf5"" attributes=""0"" />
@@ -4067,10 +3989,6 @@ public class C
         <entry offset=""0xe1"" startLine=""8"" startColumn=""24"" endLine=""8"" endColumn=""26"" document=""0"" />
         <entry offset=""0xea"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0xeb"" attributes=""0"" />
-        <local name=""b"" il_index=""1"" il_start=""0x0"" il_end=""0xeb"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0xeb"">
         <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0xeb"" attributes=""0"" />
         <local name=""b"" il_index=""1"" il_start=""0x0"" il_end=""0xeb"" attributes=""0"" />
@@ -4078,6 +3996,47 @@ public class C
     </method>
   </methods>
 </symbols>");
+        }
+
+        [Fact]
+        public void DuplicateDocuments()
+        {
+            var source1 = @"class C { static void F() { } }";
+            var source2 = @"class D { static void F() { } }";
+
+            var tree1 = Parse(source1, @"foo.cs");
+            var tree2 = Parse(source2, @"foo.cs");
+
+            var comp = CreateCompilationWithMscorlib(new[] { tree1, tree2 });
+
+            // the first file wins (checksum CB 22 ...)
+            comp.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name=""foo.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""CB, 22, D8,  3, D3, 27, 32, 64, 2C, BC, 7D, 67, 5D, E3, CB, AC, D1, 64, 25, 83, "" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""29"" endLine=""1"" endColumn=""30"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""D"" name=""F"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""29"" endLine=""1"" endColumn=""30"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>
+");
         }
     }
 }

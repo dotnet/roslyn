@@ -16,46 +16,44 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private sealed class CompilerEmitStreamProvider : Compilation.EmitStreamProvider, IDisposable
         {
-            private readonly CommonCompiler _compiler;
-            private readonly TouchedFileLogger _touchedFileLogger;
-            private readonly string _filePath;
-            private Stream _stream;
+            private static Stream s_uninitialized = Stream.Null;
 
-            internal CompilerEmitStreamProvider(CommonCompiler compiler, TouchedFileLogger touchedFileLogger, string filePath)
+            private readonly CommonCompiler _compiler;
+            private readonly string _filePath;
+
+            private Stream _lazyStream;
+
+            internal CompilerEmitStreamProvider(CommonCompiler compiler, string filePath)
             {
                 _compiler = compiler;
-                _touchedFileLogger = touchedFileLogger;
                 _filePath = filePath;
+                _lazyStream = s_uninitialized;
             }
 
             public void Dispose()
             {
-                _stream?.Dispose();
-                _stream = null;
+                if (_lazyStream != s_uninitialized)
+                {
+                    _lazyStream?.Dispose();
+                    _lazyStream = s_uninitialized;
+                }
             }
 
             public override Stream GetStream(DiagnosticBag diagnostics)
             {
-                if (_stream == null)
+                if (_lazyStream == s_uninitialized)
                 {
-                    _stream = OpenFile(_filePath, diagnostics);
+                    _lazyStream = OpenFile(_filePath, diagnostics);
                 }
 
-                return _stream;
+                return _lazyStream;
             }
 
             private Stream OpenFile(string filePath, DiagnosticBag diagnostics)
             {
                 try
                 {
-                    Stream stream = _compiler.FileOpen(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-
-                    if (_touchedFileLogger != null)
-                    {
-                        _touchedFileLogger.AddWritten(filePath);
-                    }
-
-                    return stream;
+                    return _compiler.FileOpen(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
                 }
                 catch (Exception e)
                 {

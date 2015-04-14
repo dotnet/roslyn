@@ -217,16 +217,16 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     var propertyDeclaration = ((PropertyDeclarationSyntax)newParentingNode);
                     newParentingNode = propertyDeclaration
                         .WithAccessorList(accessorList)
-                        .WithSemicolon(SyntaxFactory.Token(SyntaxKind.None))
-                        .WithTrailingTrivia(propertyDeclaration.Semicolon.TrailingTrivia);
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
+                        .WithTrailingTrivia(propertyDeclaration.SemicolonToken.TrailingTrivia);
                 }
                 else if (newParentingNode.IsKind(SyntaxKind.IndexerDeclaration))
                 {
                     var indexerDeclaration = ((IndexerDeclarationSyntax)newParentingNode);
                     newParentingNode = indexerDeclaration
                         .WithAccessorList(accessorList)
-                        .WithSemicolon(SyntaxFactory.Token(SyntaxKind.None))
-                        .WithTrailingTrivia(indexerDeclaration.Semicolon.TrailingTrivia);
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
+                        .WithTrailingTrivia(indexerDeclaration.SemicolonToken.TrailingTrivia);
                 }
             }
             else if (oldParentingNode is BaseMethodDeclarationSyntax)

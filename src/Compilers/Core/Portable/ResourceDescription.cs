@@ -59,29 +59,29 @@ namespace Microsoft.CodeAnalysis
             {
                 if (dataProvider == null)
                 {
-                    throw new ArgumentNullException("dataProvider");
+                    throw new ArgumentNullException(nameof(dataProvider));
                 }
 
                 if (resourceName == null)
                 {
-                    throw new ArgumentNullException("resourceName");
+                    throw new ArgumentNullException(nameof(resourceName));
                 }
 
                 if (!MetadataHelpers.IsValidMetadataIdentifier(resourceName))
                 {
-                    throw new ArgumentException(CodeAnalysisResources.EmptyOrInvalidResourceName, "resourceName");
+                    throw new ArgumentException(CodeAnalysisResources.EmptyOrInvalidResourceName, nameof(resourceName));
                 }
 
                 if (!isEmbedded)
                 {
                     if (fileName == null)
                     {
-                        throw new ArgumentNullException("fileName");
+                        throw new ArgumentNullException(nameof(fileName));
                     }
 
                     if (!MetadataHelpers.IsValidMetadataFileName(fileName))
                     {
-                        throw new ArgumentException(CodeAnalysisResources.EmptyOrInvalidFileName, "fileName");
+                        throw new ArgumentException(CodeAnalysisResources.EmptyOrInvalidFileName, nameof(fileName));
                     }
                 }
             }

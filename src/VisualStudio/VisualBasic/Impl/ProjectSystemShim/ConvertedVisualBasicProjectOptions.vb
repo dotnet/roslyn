@@ -43,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         ''' to cache these rather than reparse them every time we create a new <see cref="ConvertedVisualBasicProjectOptions"/>
         ''' instance. We also expect the total set of these to be small, which is why we never evict anything from this cache.
         ''' </summary>
-        Private Shared conditionalCompilationSymbolsCache As Dictionary(Of KeyValuePair(Of String, OutputKind), ImmutableArray(Of KeyValuePair(Of String, Object))) =
+        Private Shared s_conditionalCompilationSymbolsCache As Dictionary(Of KeyValuePair(Of String, OutputKind), ImmutableArray(Of KeyValuePair(Of String, Object))) =
             New Dictionary(Of KeyValuePair(Of String, OutputKind), ImmutableArray(Of KeyValuePair(Of String, Object)))
 
         Private Sub New()
@@ -177,7 +177,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Dim key = KeyValuePair.Create(str, kind)
 
             Dim result As ImmutableArray(Of KeyValuePair(Of String, Object)) = Nothing
-            If conditionalCompilationSymbolsCache.TryGetValue(key, result) Then
+            If s_conditionalCompilationSymbolsCache.TryGetValue(key, result) Then
                 Return result
             End If
 

@@ -10,15 +10,15 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
     Public Class VisualBasicCompletionSnippetNoteTests
-        Private markup As XElement = <document>
-                                         <![CDATA[Imports System
+        Private _markup As XElement = <document>
+                                          <![CDATA[Imports System
 Class Foo
     $$
 End Class]]></document>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteAddedToDescription_ExactMatch()
-            Using state = CreateVisualBasicSnippetExpansionNoteTestState(markup, "Interface")
+            Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interface")
                 state.SendTypeChars("Interfac")
                 state.AssertCompletionSession()
                 state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
@@ -29,7 +29,7 @@ End Class]]></document>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteAddedToDescription_DifferentSnippetShortcutCasing()
-            Using state = CreateVisualBasicSnippetExpansionNoteTestState(markup, "intErfaCE")
+            Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "intErfaCE")
                 state.SendTypeChars("Interfac")
                 state.AssertCompletionSession()
                 state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
@@ -40,7 +40,7 @@ End Class]]></document>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSubstringOfInsertedText()
-            Using state = CreateVisualBasicSnippetExpansionNoteTestState(markup, "Interfac")
+            Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interfac")
                 state.SendTypeChars("Interfac")
                 state.AssertCompletionSession()
                 state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
@@ -50,7 +50,7 @@ End Class]]></document>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSuperstringOfInsertedText()
-            Using state = CreateVisualBasicSnippetExpansionNoteTestState(markup, "Interfaces")
+            Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interfaces")
                 state.SendTypeChars("Interfac")
                 state.AssertCompletionSession()
                 state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
@@ -60,7 +60,7 @@ End Class]]></document>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteNotAddedToDescription_DisplayTextMatchesShortcutButInsertionTextDoesNot()
-            Using state = CreateVisualBasicSnippetExpansionNoteTestState(markup, "DisplayText")
+            Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "DisplayText")
 
                 state.SendTypeChars("DisplayTex")
                 state.AssertCompletionSession()
@@ -70,7 +70,7 @@ End Class]]></document>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteAddedToDescription_DisplayTextDoesNotMatchShortcutButInsertionTextDoes()
-            Using state = CreateVisualBasicSnippetExpansionNoteTestState(markup, "InsertionText")
+            Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "InsertionText")
 
                 state.SendTypeChars("DisplayTex")
                 state.AssertCompletionSession()

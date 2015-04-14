@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestCompletionPresenterSession
         Implements ICompletionPresenterSession
 
-        Private ReadOnly testState As IIntelliSenseTestState
+        Private ReadOnly _testState As IIntelliSenseTestState
 
         Public TriggerSpan As ITrackingSpan
         Public CompletionItems As IList(Of CompletionItem)
@@ -27,11 +27,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Event ItemCommitted As EventHandler(Of CompletionItemEventArgs) Implements ICompletionPresenterSession.ItemCommitted
 
         Public Sub New(testState As IIntelliSenseTestState)
-            Me.testState = testState
+            Me._testState = testState
         End Sub
 
         Public Sub PresentItems(triggerSpan As ITrackingSpan, completionItems As IList(Of CompletionItem), selectedItem As CompletionItem, presetBuilder As CompletionItem, suggestionMode As Boolean, isSoftSelected As Boolean) Implements ICompletionPresenterSession.PresentItems
-            testState.CurrentCompletionPresenterSession = Me
+            _testState.CurrentCompletionPresenterSession = Me
             Me.TriggerSpan = triggerSpan
             Me.CompletionItems = completionItems
             Me.SelectedItem = selectedItem
@@ -40,10 +40,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Sub Dismiss() Implements ICompletionPresenterSession.Dismiss
-            testState.CurrentCompletionPresenterSession = Nothing
+            _testState.CurrentCompletionPresenterSession = Nothing
         End Sub
 
-        Sub SetSelectedItem(item As CompletionItem)
+        Public Sub SetSelectedItem(item As CompletionItem)
             Me.SelectedItem = item
             RaiseEvent ItemSelected(Me, New CompletionItemEventArgs(item))
         End Sub
@@ -69,14 +69,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
         End Sub
 
-        Const ItemsPerPage = 9
+        Private Const s_itemsPerPage = 9
 
         Public Sub SelectPreviousPageItem() Implements ICompletionPresenterSession.SelectPreviousPageItem
-            SetSelectedItem(GetFilteredItemAt(CompletionItems.IndexOf(SelectedItem) - ItemsPerPage))
+            SetSelectedItem(GetFilteredItemAt(CompletionItems.IndexOf(SelectedItem) - s_itemsPerPage))
         End Sub
 
         Public Sub SelectNextPageItem() Implements ICompletionPresenterSession.SelectNextPageItem
-            SetSelectedItem(GetFilteredItemAt(CompletionItems.IndexOf(SelectedItem) + ItemsPerPage))
+            SetSelectedItem(GetFilteredItemAt(CompletionItems.IndexOf(SelectedItem) + s_itemsPerPage))
         End Sub
     End Class
 End Namespace

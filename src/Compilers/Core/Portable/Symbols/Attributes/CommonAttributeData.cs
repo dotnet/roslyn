@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis
                 low = unchecked((int)args[4].DecodeValue<uint>(SpecialType.System_UInt32));
             }
 
-            return Microsoft.CodeAnalysis.ConstantValue.Create(new decimal(low, mid, high, isNegative, scale));
+            return ConstantValue.Create(new decimal(low, mid, high, isNegative, scale));
         }
 
         internal ConstantValue DecodeDateTimeConstantValue()

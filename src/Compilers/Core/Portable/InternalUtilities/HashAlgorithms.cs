@@ -24,7 +24,7 @@ namespace Roslyn.Utilities
 
         static HashAlgorithm()
         {
-            Type type = GetType("System.Security.Cryptography.HashAlgorithm", new string[] { HashingAssembly, MscorlibAssembly });
+            Type type = GetType("System.Security.Cryptography.HashAlgorithm", new[] { HashingAssembly, MscorlibAssembly });
             Debug.Assert(type != null, "Could not find HashingAlgorithm");
             if (type != null)
             {
@@ -49,7 +49,7 @@ namespace Roslyn.Utilities
 
         protected static MethodInfo LoadAlgorithmCreate(string name)
         {
-            Type t = GetType("System.Security.Cryptography." + name, new string[] { HashingAlgorithmsAssembly, MscorlibAssembly });
+            Type t = GetType("System.Security.Cryptography." + name, new[] { HashingAlgorithmsAssembly, MscorlibAssembly });
             if (t != null)
             {
                 return (from m in t.GetTypeInfo().GetDeclaredMethods("Create")
@@ -111,7 +111,7 @@ namespace Roslyn.Utilities
 
     internal sealed class SHA1CryptoServiceProvider : HashAlgorithm
     {
-        private static MethodInfo s_create = LoadAlgorithmCreate("SHA1");
+        private static readonly MethodInfo s_create = LoadAlgorithmCreate("SHA1");
 
         public SHA1CryptoServiceProvider()
             : base((IDisposable)s_create.Invoke(null, null))
@@ -121,7 +121,7 @@ namespace Roslyn.Utilities
 
     internal sealed class SHA256CryptoServiceProvider : HashAlgorithm
     {
-        private static MethodInfo s_create = LoadAlgorithmCreate("SHA256");
+        private static readonly MethodInfo s_create = LoadAlgorithmCreate("SHA256");
 
         public SHA256CryptoServiceProvider()
             : base((IDisposable)s_create.Invoke(null, null))
@@ -131,7 +131,7 @@ namespace Roslyn.Utilities
 
     internal sealed class SHA384CryptoServiceProvider : HashAlgorithm
     {
-        private static MethodInfo s_create = LoadAlgorithmCreate("SHA384");
+        private static readonly MethodInfo s_create = LoadAlgorithmCreate("SHA384");
 
         public SHA384CryptoServiceProvider()
             : base((IDisposable)s_create.Invoke(null, null))
@@ -141,7 +141,7 @@ namespace Roslyn.Utilities
 
     internal sealed class SHA512CryptoServiceProvider : HashAlgorithm
     {
-        private static MethodInfo s_create = LoadAlgorithmCreate("SHA512");
+        private static readonly MethodInfo s_create = LoadAlgorithmCreate("SHA512");
 
         public SHA512CryptoServiceProvider()
             : base((IDisposable)s_create.Invoke(null, null))
@@ -151,7 +151,7 @@ namespace Roslyn.Utilities
 
     internal sealed class MD5CryptoServiceProvider : HashAlgorithm
     {
-        private static MethodInfo s_create = LoadAlgorithmCreate("MD5");
+        private static readonly MethodInfo s_create = LoadAlgorithmCreate("MD5");
 
         public MD5CryptoServiceProvider()
             : base((IDisposable)s_create.Invoke(null, null))

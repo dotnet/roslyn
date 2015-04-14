@@ -2,34 +2,33 @@
 
 using System;
 using System.Collections.Generic;
-using Xunit;
-using System.Resources;
-using System.Globalization;
-using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
+using System.Globalization;
+using System.Resources;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     public partial class DiagnosticLocalizationTests
     {
-        [Fact]
+        [Fact, WorkItem(1006, "https://github.com/dotnet/roslyn/issues/1006")]
         public void TestDiagnosticLocalization()
         {
             var resourceManager = GetTestResourceManagerInstance();
-            var enCulture = CultureInfo.CreateSpecificCulture("en-US");
             var arCulture = CultureInfo.CreateSpecificCulture("ar-SA");
-            var enResourceSet = resourceManager.GetResourceSet(enCulture, false, false);
+            var defaultCultureResourceSet = resourceManager.GetResourceSet(CustomResourceManager.DefaultCulture, false, false);
             var arResourceSet = resourceManager.GetResourceSet(arCulture, false, false);
 
             var nameOfResource1 = @"Resource1";
             var nameOfResource2 = @"Resource2";
             var nameOfResource3 = @"Resource3";
 
-            var fixedTitle = enResourceSet.GetString(nameOfResource1);
-            var fixedMessageFormat = enResourceSet.GetString(nameOfResource2);
-            var fixedDescription = enResourceSet.GetString(nameOfResource3);
+            var fixedTitle = defaultCultureResourceSet.GetString(nameOfResource1);
+            var fixedMessageFormat = defaultCultureResourceSet.GetString(nameOfResource2);
+            var fixedDescription = defaultCultureResourceSet.GetString(nameOfResource3);
 
             var localizedTitle = arResourceSet.GetString(nameOfResource1);
             var localizedMessageFormat = arResourceSet.GetString(nameOfResource2);
@@ -72,9 +71,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 Assert.Equal<string>(fixedDescription, descriptor.Description.ToString());
             }
 
-            Assert.Equal<string>(fixedTitle, descriptor.Title.ToString(enCulture));
-            Assert.Equal<string>(fixedMessageFormat, descriptor.MessageFormat.ToString(enCulture));
-            Assert.Equal<string>(fixedDescription, descriptor.Description.ToString(enCulture));
+            Assert.Equal<string>(fixedTitle, descriptor.Title.ToString(CustomResourceManager.DefaultCulture));
+            Assert.Equal<string>(fixedMessageFormat, descriptor.MessageFormat.ToString(CustomResourceManager.DefaultCulture));
+            Assert.Equal<string>(fixedDescription, descriptor.Description.ToString(CustomResourceManager.DefaultCulture));
 
             Assert.Equal(localizedTitle, descriptor.Title.ToString(arCulture));
             Assert.Equal(localizedMessageFormat, descriptor.MessageFormat.ToString(arCulture));
@@ -91,9 +90,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 Assert.Equal(fixedDescription, localizableDiagnostic.Descriptor.Description.ToString());
             }
 
-            Assert.Equal(fixedTitle, localizableDiagnostic.Descriptor.Title.ToString(enCulture));
-            Assert.Equal(fixedMessageFormat, localizableDiagnostic.GetMessage(enCulture));
-            Assert.Equal(fixedDescription, localizableDiagnostic.Descriptor.Description.ToString(enCulture));
+            Assert.Equal(fixedTitle, localizableDiagnostic.Descriptor.Title.ToString(CustomResourceManager.DefaultCulture));
+            Assert.Equal(fixedMessageFormat, localizableDiagnostic.GetMessage(CustomResourceManager.DefaultCulture));
+            Assert.Equal(fixedDescription, localizableDiagnostic.Descriptor.Description.ToString(CustomResourceManager.DefaultCulture));
 
             // Test localized title, description and message.
             Assert.Equal(localizedTitle, localizableDiagnostic.Descriptor.Title.ToString(arCulture));
@@ -106,15 +105,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var localizableResource = new LocalizableResourceString(nameOfResourceWithArguments, resourceManager, typeof(CustomResourceManager), argument);
 
             // Verify without culture
-            var enuLocalizedStringWithArguments = enResourceSet.GetString(nameOfResourceWithArguments);
-            var expected = string.Format(enuLocalizedStringWithArguments, argument);
+            var defaultCultureLocalizedStringWithArguments = defaultCultureResourceSet.GetString(nameOfResourceWithArguments);
+            var expected = string.Format(defaultCultureLocalizedStringWithArguments, argument);
 
             if (EnsureEnglishUICulture.PreferredOrNull == null)
             {
                 Assert.Equal(expected, localizableResource.ToString());
             }
 
-            Assert.Equal(expected, localizableResource.ToString(enCulture));
+            Assert.Equal(expected, localizableResource.ToString(CustomResourceManager.DefaultCulture));
 
             // Verify with loc culture
             var arLocalizedStringWithArguments = arResourceSet.GetString(nameOfResourceWithArguments);
@@ -124,12 +123,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private static CustomResourceManager GetTestResourceManagerInstance()
         {
-            var enResources = new Dictionary<string, string>()
+            var defaultCultureResources = new Dictionary<string, string>()
                 {
-                    { "Resource1", "My Resource 1 ENU string" },
-                    { "Resource2", "My Resource 2 ENU string" },
-                    { "Resource3", "My Resource 3 ENU string" },
-                    { "ResourceWithArguments", "My Resource ENU string {0}" }
+                    { "Resource1", "My Resource 1 DefaultCulture string" },
+                    { "Resource2", "My Resource 2 DefaultCulture string" },
+                    { "Resource3", "My Resource 3 DefaultCulture string" },
+                    { "ResourceWithArguments", "My Resource DefaultCulture string {0}" }
                 };
 
             var arResources = new Dictionary<string, string>()
@@ -142,7 +141,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             var resourceSetMap = new Dictionary<string, Dictionary<string, string>>()
                 {
-                    { "en-US", enResources },
+                    { CustomResourceManager.DefaultCulture.Name, defaultCultureResources },
                     { "ar-SA", arResources }
                 };
 
@@ -152,7 +151,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         private class CustomResourceManager : ResourceManager
         {
             private readonly Dictionary<string, CustomResourceSet> _resourceSetMap;
-            internal static readonly CustomResourceManager TestInstance = GetTestResourceManagerInstance();
 
             public CustomResourceManager(Dictionary<string, CustomResourceSet> resourceSetMap)
             {
@@ -169,6 +167,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     _resourceSetMap.Add(kvp.Key, resourceSet);
                 }
             }
+
+            public static CultureInfo DefaultCulture => CultureInfo.CurrentUICulture;
 
             public void VerifyResourceValue(string resourceName, string cultureName, string expectedResourceValue)
             {
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var analyzer = new MyAnalyzer(descriptor);
             var exceptionDiagnostics = new List<Diagnostic>();
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diag) => exceptionDiagnostics.Add(diag);
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, CancellationToken.None);
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, AnalyzerManager.Instance, CancellationToken.None);
             var descriptors = AnalyzerManager.Instance.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
 
             Assert.Equal(1, descriptors.Length);
@@ -295,10 +295,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         private static DiagnosticDescriptor GetDescriptorWithLocalizableResourceStringsThatThrow()
         {
             var resourceManager = GetTestResourceManagerInstance();
-            var enCulture = CultureInfo.CreateSpecificCulture("en-US");
-            var arCulture = CultureInfo.CreateSpecificCulture("ar-SA");
-            var enResourceSet = resourceManager.GetResourceSet(enCulture, false, false);
-            var arResourceSet = resourceManager.GetResourceSet(arCulture, false, false);
 
             // Test localizable title that throws.
             var localizableTitle = new LocalizableResourceString("NonExistentTitleResourceName", resourceManager, typeof(CustomResourceManager));

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 {
@@ -19,7 +18,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
     {
         public virtual IEnumerable<ClassificationSpan> ClassifyArguments(ITextSnapshot snapshot, Span argumentsSpan, Span spanToClassify)
         {
-            return SpecializedCollections.EmptyEnumerable<ClassificationSpan>();
+            return Enumerable.Empty<ClassificationSpan>();
         }
 
         public abstract Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments);

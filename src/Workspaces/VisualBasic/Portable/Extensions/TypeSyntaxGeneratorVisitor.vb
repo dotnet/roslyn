@@ -15,10 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Class TypeSyntaxGeneratorVisitor
         Inherits SymbolVisitor(Of TypeSyntax)
 
-        Private ReadOnly addGlobal As Boolean
+        Private ReadOnly _addGlobal As Boolean
 
         Public Sub New(addGlobal As Boolean)
-            Me.addGlobal = addGlobal
+            Me._addGlobal = addGlobal
         End Sub
 
         Public Overrides Function DefaultVisit(node As ISymbol) As TypeSyntax
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             ElseIf symbol.ContainingNamespace IsNot Nothing Then
                 If symbol.ContainingNamespace.IsGlobalNamespace Then
-                    If addGlobal AndAlso symbol.TypeKind <> TypeKind.[Error] Then
+                    If _addGlobal AndAlso symbol.TypeKind <> TypeKind.[Error] Then
                         Return AddInformationTo(SyntaxFactory.QualifiedName(SyntaxFactory.GlobalName(), simpleNameSyntax), symbol)
                     End If
                 Else
@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             If symbol.ContainingNamespace.IsGlobalNamespace Then
-                If addGlobal Then
+                If _addGlobal Then
                     Return AddInformationTo(SyntaxFactory.QualifiedName(SyntaxFactory.GlobalName(), result), symbol)
                 Else
                     Return result

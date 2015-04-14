@@ -60,13 +60,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                     if (!previousToken.IsCloseBraceOfExpression())
                     {
-                        if (currentToken.Kind() != SyntaxKind.SemicolonToken &&
+                        if (!currentToken.IsKind(SyntaxKind.SemicolonToken) &&
                             !currentToken.IsParenInParenthesizedExpression() &&
                             !currentToken.IsCommaInInitializerExpression() &&
                             !currentToken.IsCommaInAnyArgumentsList() &&
                             !currentToken.IsParenInArgumentList() &&
                             !currentToken.IsDotInMemberAccess() &&
-                            !currentToken.IsCloseParenInStatement())
+                            !currentToken.IsCloseParenInStatement() &&
+                            !currentToken.IsEqualsTokenInAutoPropertyInitializers())
                         {
                             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                         }

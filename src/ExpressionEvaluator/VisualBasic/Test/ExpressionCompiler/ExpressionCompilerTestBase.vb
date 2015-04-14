@@ -11,9 +11,10 @@ Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports Microsoft.DiaSymReader
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
-Imports Microsoft.VisualStudio.SymReaderInterop
+Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 Imports Xunit
@@ -23,15 +24,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
         Implements IDisposable
 
-        Private ReadOnly runtimeInstances As ArrayBuilder(Of IDisposable) = ArrayBuilder(Of IDisposable).GetInstance()
+        Private ReadOnly _runtimeInstances As ArrayBuilder(Of IDisposable) = ArrayBuilder(Of IDisposable).GetInstance()
 
         Public Overrides Sub Dispose()
             MyBase.Dispose()
 
-            For Each instance In runtimeInstances
+            For Each instance In _runtimeInstances
                 instance.Dispose()
             Next
-            runtimeInstances.Free()
+            _runtimeInstances.Free()
         End Sub
 
         Friend Function CreateRuntimeInstance(
@@ -46,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 references.AddIntrinsicAssembly(),
                 exeBytes,
-                If(includeSymbols, New SymReader(pdbBytes), Nothing))
+                If(includeSymbols, New SymReader(pdbBytes, exeBytes), Nothing))
         End Function
 
         Friend Function CreateRuntimeInstance(
@@ -71,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Friend Function CreateRuntimeInstance(modules As ImmutableArray(Of ModuleInstance)) As RuntimeInstance
             Dim instance = New RuntimeInstance(modules)
-            runtimeInstances.Add(instance)
+            _runtimeInstances.Add(instance)
             Return instance
         End Function
 
@@ -88,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             blocks = moduleInstances.SelectAsArray(Function(m) m.MetadataBlock)
 
             Dim compilation = blocks.ToCompilation()
-            Dim methodOrType = GetMethodOrTypeBySignature(Compilation, methodOrTypeName)
+            Dim methodOrType = GetMethodOrTypeBySignature(compilation, methodOrTypeName)
             Dim [module] = DirectCast(methodOrType.ContainingModule, PEModuleSymbol)
             Dim id = [module].Module.GetModuleVersionIdOrThrow()
             Dim moduleInstance = moduleInstances.First(Function(m) m.ModuleVersionId = id)
@@ -113,8 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             runtime As RuntimeInstance,
             methodName As String,
             Optional atLineNumber As Integer = -1,
-            Optional lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)) = Nothing,
-            Optional previous As VisualBasicMetadataContext = Nothing) As EvaluationContext
+            Optional lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)) = Nothing) As EvaluationContext
 
             Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
             Dim moduleVersionId As Guid = Nothing
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim ilOffset As Integer = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber)
 
             Return EvaluationContext.CreateMethodContext(
-                previous,
+                Nothing,
                 blocks,
                 If(lazyAssemblyReaders, MakeDummyLazyAssemblyReaders()),
                 symReader,

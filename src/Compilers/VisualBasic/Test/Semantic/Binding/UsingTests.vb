@@ -1645,7 +1645,7 @@ End Class
 
         <WorkItem(529046, "DevDiv")>
         <Fact>
-        Sub UsingOutOfMethod()
+        Public Sub UsingOutOfMethod()
             CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyncLockOutOfMethod">
     <file name="a.vb">
@@ -1660,7 +1660,7 @@ End Class
 
         <WorkItem(529046, "DevDiv")>
         <Fact>
-        Sub UsingOutOfMethod_1()
+        Public Sub UsingOutOfMethod_1()
             CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyncLockOutOfMethod">
     <file name="a.vb">

@@ -96,8 +96,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' PERF CRITICAL
-        Private Function PeekAheadChar(skip As Integer) As Char
-            Debug.Assert(CanGetCharAtOffset(skip))
+        Private Function Peek(skip As Integer) As Char
+            Debug.Assert(CanGet(skip))
             Debug.Assert(skip >= -MaxCharsLookBehind)
 
             Dim position = _lineBufferOffset
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' PERF CRITICAL
-        Friend Function PeekChar() As Char
+        Friend Function Peek() As Char
             Dim page = _curPage
             Dim position = _lineBufferOffset
             Dim ch = page._arr(position And s_PAGE_MASK)
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Function GetChar() As String
-            Return Intern(PeekChar())
+            Return Intern(Peek())
         End Function
 
         Friend Function GetText(start As Integer, length As Integer) As String

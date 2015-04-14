@@ -6880,6 +6880,206 @@ class C
             VerifyItemInLinkedFiles(markup, "y", expectedDescription);
         }
 
+        [WorkItem(1063403)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void MethodOverloadDifferencesIgnored()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+class C
+{
+#if ONE
+    void Do(int x){}
+#endif
+#if TWO
+    void Do(string x){}
+#endif
+
+    void Shared()
+    {
+        $$
+    }
+
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"void C.Do(int x)";
+            VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
+        }
+
+        [WorkItem(1063403)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void WarningForSymbolsOfDifferingKind()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+class C
+{
+#if ONE
+    void Do(int x){}
+#endif
+#if TWO
+    int Do;
+#endif
+
+    void Shared()
+    {
+        $$
+    }
+
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"void C.Do(int x) (+ 1 {FeaturesResources.Overload})\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}";
+            VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void MethodOverloadDifferencesIgnored_ExtensionMethod()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+class C
+{
+#if ONE
+    void Do(int x){}
+#endif
+
+    void Shared()
+    {
+        this.$$
+    }
+
+}
+
+public static class Extensions
+{
+#if TWO
+    public static void Do (this C c, string x)
+    {
+    }
+#endif
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"void C.Do(int x)";
+            VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void MethodOverloadDifferencesIgnored_ExtensionMethod2()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""TWO"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+class C
+{
+#if ONE
+    void Do(int x){}
+#endif
+
+    void Shared()
+    {
+        this.$$
+    }
+
+}
+
+public static class Extensions
+{
+#if TWO
+    public static void Do (this C c, string x)
+    {
+    }
+#endif
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""ONE"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"(extension) void C.Do(string x)";
+            VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void MethodOverloadDifferencesIgnored_ContainingType()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+class C
+{
+    void Shared()
+    {
+        var x = GetThing();
+        x.$$
+    }
+
+#if ONE
+    private Methods1 GetThing()
+    {
+        return new Methods1();
+    }
+#endif
+
+#if TWO
+    private Methods2 GetThing()
+    {
+        return new Methods2();
+    }
+#endif
+}
+
+#if ONE
+public class Methods1
+{
+    public void Do(string x) { }
+}
+#endif
+
+#if TWO
+public class Methods2
+{
+    public void Do(string x) { }
+}
+#endif
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"void Methods1.Do(string x)";
+            VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ConditionalAccessWalkUp()
         {
@@ -7199,15 +7399,15 @@ class C
             VerifyItemExists(markup, "y");
         }
 
-        [WorkItem(1029522)]
+        [WorkItem(1663, "https://github.com/dotnet/roslyn/issues/1663")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NameOfMembersListedOnlyForNamespacesAndTypes1()
+        public void NameOfMembersListedForLocals()
         {
             var markup = @"class C
 {
     void M()
     {
-        var x = nameof(T.z$$)
+        var x = nameof(T.z.$$)
     }
 }
  
@@ -7221,12 +7421,12 @@ public class U
     public int nope;
 }
 ";
-            VerifyItemIsAbsent(markup, "nope");
+            VerifyItemExists(markup, "nope");
         }
 
         [WorkItem(1029522)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NameOfMembersListedOnlyForNamespacesAndTypes2()
+        public void NameOfMembersListedForNamespacesAndTypes2()
         {
             var markup = @"class C
 {
@@ -7251,7 +7451,7 @@ public class U
 
         [WorkItem(1029522)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NameOfMembersListedOnlyForNamespacesAndTypes3()
+        public void NameOfMembersListedForNamespacesAndTypes3()
         {
             var markup = @"class C
 {
@@ -7273,7 +7473,7 @@ public class U
 
         [WorkItem(1029522)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NameOfMembersListedOnlyForNamespacesAndTypes4()
+        public void NameOfMembersListedForNamespacesAndTypes4()
         {
             var markup = @"
 using z = System;
@@ -7918,6 +8118,72 @@ class Program
 }
 ";
             VerifyItemExists(markup, "i");
+        }
+
+        [WorkItem(1277, "https://github.com/dotnet/roslyn/issues/1277")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void NoInstanceMembersInPropertyInitializer()
+        {
+            var markup = @"
+class A {
+    int abc;
+    int B { get; } = $$
+}
+";
+            VerifyItemIsAbsent(markup, "abc");
+        }
+
+        [WorkItem(1277, "https://github.com/dotnet/roslyn/issues/1277")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void StaticMembersInPropertyInitializer()
+        {
+            var markup = @"
+class A {
+    static int s_abc;
+    int B { get; } = $$
+}
+";
+            VerifyItemExists(markup, "s_abc");
+        }
+
+        [WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void NoConditionalAccessCompletionOnTypes1()
+        {
+            var markup = @"
+using A = System
+class C
+{
+    A?.$$
+}
+";
+            VerifyNoItemsExist(markup);
+        }
+
+        [WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void NoConditionalAccessCompletionOnTypes2()
+        {
+            var markup = @"
+class C
+{
+    System?.$$
+}
+";
+            VerifyNoItemsExist(markup);
+        }
+
+        [WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void NoConditionalAccessCompletionOnTypes3()
+        {
+            var markup = @"
+class C
+{
+    System.Console?.$$
+}
+";
+            VerifyNoItemsExist(markup);
         }
     }
 }

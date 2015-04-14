@@ -7,7 +7,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class ContainsChildrenGraphQueryTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub ContainsChildrenForDocument()
+        Public Sub ContainsChildrenForDocument()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -38,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub ContainsChildrenForEmptyDocument()
+        Public Sub ContainsChildrenForEmptyDocument()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -68,7 +68,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         <WorkItem(789685)>
         <WorkItem(794846)>
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub ContainsChildrenForNotYetLoadedSolution()
+        Public Sub ContainsChildrenForNotYetLoadedSolution()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">

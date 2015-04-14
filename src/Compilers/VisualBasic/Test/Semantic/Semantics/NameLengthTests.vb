@@ -12,11 +12,11 @@ Imports System.Xml.Linq
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class NameLengthTests : Inherits BasicTestBase
         ' Longest legal symbol name.
-        Private Shared ReadOnly LongSymbolName As New String("A"c, MetadataWriter.NameLengthLimit)
+        Private Shared ReadOnly s_longSymbolName As New String("A"c, MetadataWriter.NameLengthLimit)
         ' Longest legal path name.
-        Private Shared ReadOnly LongPathName As New String("A"c, MetadataWriter.PathLengthLimit)
+        Private Shared ReadOnly s_longPathName As New String("A"c, MetadataWriter.PathLengthLimit)
         ' Longest legal local name.
-        Private Shared ReadOnly LongLocalName As New String("A"c, MetadataWriter.PdbLengthLimit)
+        Private Shared ReadOnly s_longLocalName As New String("A"c, MetadataWriter.PdbLengthLimit)
 
         <Fact>
         Public Sub UnmangledMemberNames()
@@ -83,94 +83,94 @@ Class Methods
 End Class
 ]]>
 
-            Dim _longSquiggle_ As New String("~"c, LongSymbolName.Length)
-            Dim source = Format(sourceTemplate, LongSymbolName)
+            Dim _longSquiggle_ As New String("~"c, s_longSymbolName.Length)
+            Dim source = Format(sourceTemplate, s_longSymbolName)
             Dim comp = CreateCompilationWithMscorlib(source)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Dim <%= LongSymbolName %>1 As Integer  ' Too long
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Dim <%= s_longSymbolName %>1 As Integer  ' Too long
         <%= _longSquiggle_ %>~
-BC37220: Name '<%= LongSymbolName %>Event' exceeds the maximum length allowed in metadata.
-    Event <%= LongSymbolName %> as Action     ' Fine (except accessors)
+BC37220: Name '<%= s_longSymbolName %>Event' exceeds the maximum length allowed in metadata.
+    Event <%= s_longSymbolName %> as Action     ' Fine (except accessors)
           <%= _longSquiggle_ %>
-BC37220: Name 'add_<%= LongSymbolName %>' exceeds the maximum length allowed in metadata.
-    Event <%= LongSymbolName %> as Action     ' Fine (except accessors)
+BC37220: Name 'add_<%= s_longSymbolName %>' exceeds the maximum length allowed in metadata.
+    Event <%= s_longSymbolName %> as Action     ' Fine (except accessors)
           <%= _longSquiggle_ %>
-BC37220: Name 'remove_<%= LongSymbolName %>' exceeds the maximum length allowed in metadata.
-    Event <%= LongSymbolName %> as Action     ' Fine (except accessors)
+BC37220: Name 'remove_<%= s_longSymbolName %>' exceeds the maximum length allowed in metadata.
+    Event <%= s_longSymbolName %> as Action     ' Fine (except accessors)
           <%= _longSquiggle_ %>
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Event <%= LongSymbolName %>1 as Action    ' Fine (except accessors)
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Event <%= s_longSymbolName %>1 as Action    ' Fine (except accessors)
           <%= _longSquiggle_ %>~
-BC37220: Name '<%= LongSymbolName %>1Event' exceeds the maximum length allowed in metadata.
-    Event <%= LongSymbolName %>1 as Action    ' Fine (except accessors)
+BC37220: Name '<%= s_longSymbolName %>1Event' exceeds the maximum length allowed in metadata.
+    Event <%= s_longSymbolName %>1 as Action    ' Fine (except accessors)
           <%= _longSquiggle_ %>~
-BC37220: Name 'add_<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Event <%= LongSymbolName %>1 as Action    ' Fine (except accessors)
+BC37220: Name 'add_<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Event <%= s_longSymbolName %>1 as Action    ' Fine (except accessors)
           <%= _longSquiggle_ %>~
-BC37220: Name 'remove_<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Event <%= LongSymbolName %>1 as Action    ' Fine (except accessors)
+BC37220: Name 'remove_<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Event <%= s_longSymbolName %>1 as Action    ' Fine (except accessors)
           <%= _longSquiggle_ %>~
-BC37220: Name 'add_<%= LongSymbolName %>' exceeds the maximum length allowed in metadata.
+BC37220: Name 'add_<%= s_longSymbolName %>' exceeds the maximum length allowed in metadata.
         AddHandler(value As Action)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37220: Name 'remove_<%= LongSymbolName %>' exceeds the maximum length allowed in metadata.
+BC37220: Name 'remove_<%= s_longSymbolName %>' exceeds the maximum length allowed in metadata.
         RemoveHandler(value As Action)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37220: Name 'raise_<%= LongSymbolName %>' exceeds the maximum length allowed in metadata.
+BC37220: Name 'raise_<%= s_longSymbolName %>' exceeds the maximum length allowed in metadata.
         RaiseEvent()
         ~~~~~~~~~~~~
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Custom Event <%= LongSymbolName %>1 As Action         ' Too long
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Custom Event <%= s_longSymbolName %>1 As Action         ' Too long
                  <%= _longSquiggle_ %>~
-BC37220: Name 'add_<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
+BC37220: Name 'add_<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
         AddHandler(value As Action)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37220: Name 'remove_<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
+BC37220: Name 'remove_<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
         RemoveHandler(value As Action)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37220: Name 'raise_<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
+BC37220: Name 'raise_<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
         RaiseEvent()
         ~~~~~~~~~~~~
-BC37220: Name '_<%= LongSymbolName %>' exceeds the maximum length allowed in metadata.
-    Property <%= LongSymbolName %> As Integer     ' Fine (except accessors And backing field)
+BC37220: Name '_<%= s_longSymbolName %>' exceeds the maximum length allowed in metadata.
+    Property <%= s_longSymbolName %> As Integer     ' Fine (except accessors And backing field)
              <%= _longSquiggle_ %>
-BC37220: Name 'get_<%= LongSymbolName %>' exceeds the maximum length allowed in metadata.
-    Property <%= LongSymbolName %> As Integer     ' Fine (except accessors And backing field)
+BC37220: Name 'get_<%= s_longSymbolName %>' exceeds the maximum length allowed in metadata.
+    Property <%= s_longSymbolName %> As Integer     ' Fine (except accessors And backing field)
              <%= _longSquiggle_ %>
-BC37220: Name 'set_<%= LongSymbolName %>' exceeds the maximum length allowed in metadata.
-    Property <%= LongSymbolName %> As Integer     ' Fine (except accessors And backing field)
+BC37220: Name 'set_<%= s_longSymbolName %>' exceeds the maximum length allowed in metadata.
+    Property <%= s_longSymbolName %> As Integer     ' Fine (except accessors And backing field)
              <%= _longSquiggle_ %>
-BC37220: Name '_<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Property <%= LongSymbolName %>1 As Integer    ' Too long
+BC37220: Name '_<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Property <%= s_longSymbolName %>1 As Integer    ' Too long
              <%= _longSquiggle_ %>~
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Property <%= LongSymbolName %>1 As Integer    ' Too long
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Property <%= s_longSymbolName %>1 As Integer    ' Too long
              <%= _longSquiggle_ %>~
-BC37220: Name 'get_<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Property <%= LongSymbolName %>1 As Integer    ' Too long
+BC37220: Name 'get_<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Property <%= s_longSymbolName %>1 As Integer    ' Too long
              <%= _longSquiggle_ %>~
-BC37220: Name 'set_<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Property <%= LongSymbolName %>1 As Integer    ' Too long
+BC37220: Name 'set_<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Property <%= s_longSymbolName %>1 As Integer    ' Too long
              <%= _longSquiggle_ %>~
-BC37220: Name 'get_<%= LongSymbolName %>' exceeds the maximum length allowed in metadata.
+BC37220: Name 'get_<%= s_longSymbolName %>' exceeds the maximum length allowed in metadata.
         Get
         ~~~
-BC37220: Name 'set_<%= LongSymbolName %>' exceeds the maximum length allowed in metadata.
+BC37220: Name 'set_<%= s_longSymbolName %>' exceeds the maximum length allowed in metadata.
         Set(value As Integer)
         ~~~
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Property <%= LongSymbolName %>1 As Integer    ' Too long
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Property <%= s_longSymbolName %>1 As Integer    ' Too long
              <%= _longSquiggle_ %>~
-BC37220: Name 'get_<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
+BC37220: Name 'get_<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
         Get
         ~~~
-BC37220: Name 'set_<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
+BC37220: Name 'set_<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
         Set(value As Integer)
         ~~~
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Sub <%= LongSymbolName %>1()  ' Too long
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Sub <%= s_longSymbolName %>1()  ' Too long
         <%= _longSquiggle_ %>~
 </errors>)
         End Sub
@@ -185,7 +185,7 @@ Namespace {0}1  ' Too long, but not checked.
 End Namespace
 ]]>
 
-            Dim source = Format(sourceTemplate, LongSymbolName)
+            Dim source = Format(sourceTemplate, s_longSymbolName)
             Dim comp = CreateCompilationWithMscorlib(source)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors/>)
@@ -226,9 +226,9 @@ Interface {2}1(Of T)    ' Too long after appending '`1'
 End Interface
 ]]>
 
-            Dim substring0 = LongSymbolName
-            Dim substring1 = LongSymbolName.Substring(1)
-            Dim substring2 = LongSymbolName.Substring(2)
+            Dim substring0 = s_longSymbolName
+            Dim substring1 = s_longSymbolName.Substring(1)
+            Dim substring2 = s_longSymbolName.Substring(2)
             Dim _squiggle2 As New String("~"c, substring2.Length)
             Dim source = Format(sourceTemplate, substring0, substring1, substring2)
             Dim comp = CreateCompilationWithMscorlib(source)
@@ -282,23 +282,23 @@ End Class
 ]]>
 
             ' Unlike in C#, explicit interface implementation members don't have mangled names.
-            Dim source = Format(sourceTemplate, LongSymbolName)
+            Dim source = Format(sourceTemplate, s_longSymbolName)
             Dim comp = CreateCompilationWithMscorlib(source)
-            Dim _longSquiggle_ As New String("~"c, LongSymbolName.Length)
+            Dim _longSquiggle_ As New String("~"c, s_longSymbolName.Length)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Sub <%= LongSymbolName %>1()
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Sub <%= s_longSymbolName %>1()
         <%= _longSquiggle_ %>~
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-        Sub <%= LongSymbolName %>1()
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+        Sub <%= s_longSymbolName %>1()
             <%= _longSquiggle_ %>~
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Sub <%= LongSymbolName %>1() Implements I.<%= LongSymbolName %>1
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Sub <%= s_longSymbolName %>1() Implements I.<%= s_longSymbolName %>1
         <%= _longSquiggle_ %>~
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Sub <%= LongSymbolName %>1() Implements N.J(Of C).<%= LongSymbolName %>1
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Sub <%= s_longSymbolName %>1() Implements N.J(Of C).<%= s_longSymbolName %>1
         <%= _longSquiggle_ %>~
                                             </errors>)
         End Sub
@@ -336,19 +336,19 @@ Class C3
 End Class
 ]]>
 
-            Dim source = Format(sourceTemplate, LongSymbolName)
+            Dim source = Format(sourceTemplate, s_longSymbolName)
             Dim comp = CreateCompilationWithMscorlib(source)
-            Dim _longSquiggle_ As New String("~"c, LongSymbolName.Length)
+            Dim _longSquiggle_ As New String("~"c, s_longSymbolName.Length)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Shared Sub <%= LongSymbolName %>1() ' Name is too Long, entrypoint is fine.
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Shared Sub <%= s_longSymbolName %>1() ' Name is too Long, entrypoint is fine.
                <%= _longSquiggle_ %>~
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
     Shared Sub Short2()   ' Name is fine, entrypoint is too Long.
                ~~~~~~
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Shared Sub <%= LongSymbolName %>1() ' Name is too Long, entrypoint is unspecified.
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Shared Sub <%= s_longSymbolName %>1() ' Name is too Long, entrypoint is unspecified.
                <%= _longSquiggle_ %>~
 </errors>)
         End Sub
@@ -378,23 +378,23 @@ Class C
 End Class
 ]]>
 
-            Dim source = Format(sourceTemplate, LongSymbolName)
+            Dim source = Format(sourceTemplate, s_longSymbolName)
             Dim comp = CreateCompilationWithMscorlib(source)
-            Dim _longSquiggle_ As New String("~"c, LongSymbolName.Length)
+            Dim _longSquiggle_ As New String("~"c, s_longSymbolName.Length)
             comp.AssertNoDiagnostics()
             ' Second report is for Invoke method.  Not ideal, but not urgent.
             comp.AssertTheseEmitDiagnostics(<errors>
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Sub M(<%= LongSymbolName %>1 As Long)
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Sub M(<%= s_longSymbolName %>1 As Long)
           <%= _longSquiggle_ %>~
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    ReadOnly Property P(<%= LongSymbolName %>1 As Long) As Integer
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    ReadOnly Property P(<%= s_longSymbolName %>1 As Long) As Integer
                         <%= _longSquiggle_ %>~
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Delegate Sub D2(<%= LongSymbolName %>1 As Long)
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Delegate Sub D2(<%= s_longSymbolName %>1 As Long)
                     <%= _longSquiggle_ %>~
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Delegate Sub D2(<%= LongSymbolName %>1 As Long)
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Delegate Sub D2(<%= s_longSymbolName %>1 As Long)
                     <%= _longSquiggle_ %>~
 </errors>)
         End Sub
@@ -413,20 +413,20 @@ Class E
 End Class
 ]]>
 
-            Dim source = Format(sourceTemplate, LongSymbolName)
+            Dim source = Format(sourceTemplate, s_longSymbolName)
             Dim comp = CreateCompilationWithMscorlib(source)
-            Dim __longSpace___ As New String(" "c, LongSymbolName.Length)
-            Dim _longSquiggle_ As New String("~"c, LongSymbolName.Length)
+            Dim __longSpace___ As New String(" "c, s_longSymbolName.Length)
+            Dim _longSquiggle_ As New String("~"c, s_longSymbolName.Length)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-Class C(Of <%= LongSymbolName %>, <%= LongSymbolName %>1)
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+Class C(Of <%= s_longSymbolName %>, <%= s_longSymbolName %>1)
              <%= __longSpace___ %><%= _longSquiggle_ %>~
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-Delegate Sub D(Of <%= LongSymbolName %>, <%= LongSymbolName %>1)()
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+Delegate Sub D(Of <%= s_longSymbolName %>, <%= s_longSymbolName %>1)()
                     <%= __longSpace___ %><%= _longSquiggle_ %>~
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-    Sub M(Of <%= LongSymbolName %>, <%= LongSymbolName %>1)()
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+    Sub M(Of <%= s_longSymbolName %>, <%= s_longSymbolName %>1)()
                <%= __longSpace___ %><%= _longSquiggle_ %>~
 </errors>)
         End Sub
@@ -443,13 +443,13 @@ Class C
 End Class
 ]]>
 
-            Dim source = Format(sourceTemplate, LongLocalName)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, compOptions:=TestOptions.DebugDll)
-            Dim _longSquiggle_ As New String("~"c, LongLocalName.Length)
+            Dim source = Format(sourceTemplate, s_longLocalName)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, options:=TestOptions.DebugDll)
+            Dim _longSquiggle_ As New String("~"c, s_longLocalName.Length)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
-BC42373: Local name '<%= LongLocalName %>1' is too long for PDB.  Consider shortening or compiling without /debug.
-        Dim <%= LongLocalName %>1 As Long = 1
+BC42373: Local name '<%= s_longLocalName %>1' is too long for PDB.  Consider shortening or compiling without /debug.
+        Dim <%= s_longLocalName %>1 As Long = 1
             <%= _longSquiggle_ %>~
 </errors>)
         End Sub
@@ -466,13 +466,13 @@ Class C
 End Class
 ]]>
 
-            Dim source = Format(sourceTemplate, LongLocalName)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, compOptions:=TestOptions.DebugDll)
-            Dim _longSquiggle_ As New String("~"c, LongLocalName.Length)
+            Dim source = Format(sourceTemplate, s_longLocalName)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, options:=TestOptions.DebugDll)
+            Dim _longSquiggle_ As New String("~"c, s_longLocalName.Length)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
-BC42373: Local name '<%= LongLocalName %>1' is too long for PDB.  Consider shortening or compiling without /debug.
-        Const <%= LongLocalName %>1 As Long = 1
+BC42373: Local name '<%= s_longLocalName %>1' is too long for PDB.  Consider shortening or compiling without /debug.
+        Const <%= s_longLocalName %>1 As Long = 1
               <%= _longSquiggle_ %>~
 </errors>)
         End Sub
@@ -504,7 +504,7 @@ Class Async
 End Class
 ]]>
             Dim padding = GeneratedNames.MakeStateMachineTypeName("A", 1, 0).Length - 1
-            Dim longName = LongSymbolName.Substring(padding)
+            Dim longName = s_longSymbolName.Substring(padding)
             Dim longSquiggle As New String("~"c, longName.Length)
             Dim source = Format(sourceTemplate, longName)
             Dim comp = CreateCompilationWithMscorlib45(source)
@@ -522,20 +522,20 @@ BC37220: Name 'VB$StateMachine_2_<%= longName %>1' exceeds the maximum length al
             Dim resources =
             {
                 New ResourceDescription("name1", "path1", dataProvider, False),   'fine
-                New ResourceDescription(LongSymbolName, "path2", dataProvider, False), 'fine
-                New ResourceDescription("name2", LongPathName, dataProvider, False), 'fine
-                New ResourceDescription(LongSymbolName & 1, "path3", dataProvider, False), 'name error
-                New ResourceDescription("name3", LongPathName & 2, dataProvider, False), 'path error
-                New ResourceDescription(LongSymbolName & 3, LongPathName & 4, dataProvider, False) 'name And path errors
+                New ResourceDescription(s_longSymbolName, "path2", dataProvider, False), 'fine
+                New ResourceDescription("name2", s_longPathName, dataProvider, False), 'fine
+                New ResourceDescription(s_longSymbolName & 1, "path3", dataProvider, False), 'name error
+                New ResourceDescription("name3", s_longPathName & 2, dataProvider, False), 'path error
+                New ResourceDescription(s_longSymbolName & 3, s_longPathName & 4, dataProvider, False) 'name And path errors
             }
             Using assemblyStream As New System.IO.MemoryStream()
                 Using pdbStream As New System.IO.MemoryStream()
                     Dim diagnostics = comp.Emit(assemblyStream, pdbStream:=pdbStream, manifestResources:=resources).Diagnostics
                     AssertTheseDiagnostics(diagnostics, <errors>
-BC37220: Name '<%= LongPathName %>2' exceeds the maximum length allowed in metadata.
-BC37220: Name '<%= LongPathName %>4' exceeds the maximum length allowed in metadata.
-BC37220: Name '<%= LongSymbolName %>1' exceeds the maximum length allowed in metadata.
-BC37220: Name '<%= LongSymbolName %>3' exceeds the maximum length allowed in metadata.
+BC37220: Name '<%= s_longPathName %>2' exceeds the maximum length allowed in metadata.
+BC37220: Name '<%= s_longPathName %>4' exceeds the maximum length allowed in metadata.
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+BC37220: Name '<%= s_longSymbolName %>3' exceeds the maximum length allowed in metadata.
 </errors>)
                 End Using
             End Using

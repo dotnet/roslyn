@@ -5,13 +5,13 @@ Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
 
-Module Program
+Friend Module Program
 
-    Sub Main(args As String())
+    Public Sub Main(args As String())
         TestFormatterAndClassifierAsync().Wait()
     End Sub
 
-    Async Function TestFormatterAndClassifierAsync() As Task
+    Public Async Function TestFormatterAndClassifierAsync() As Task
         Dim workspace = New AdhocWorkspace()
         Dim solution = workspace.CurrentSolution
         Dim project = solution.AddProject("projectName", "assemblyName", LanguageNames.VisualBasic)
@@ -52,7 +52,7 @@ End Module")
         Console.WriteLine()
     End Function
 
-    Iterator Function FillGaps(text As SourceText, ranges As IEnumerable(Of Range)) As IEnumerable(Of Range)
+    Public Iterator Function FillGaps(text As SourceText, ranges As IEnumerable(Of Range)) As IEnumerable(Of Range)
         Const whitespaceClassification As String = Nothing
 
         Dim current As Integer = 0

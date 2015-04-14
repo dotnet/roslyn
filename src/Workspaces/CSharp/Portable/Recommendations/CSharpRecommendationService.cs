@@ -398,6 +398,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var expression = originalExpression.WalkDownParentheses();
             var leftHandBinding = context.SemanticModel.GetSymbolInfo(expression, cancellationToken);
             var container = context.SemanticModel.GetTypeInfo(expression, cancellationToken).Type.RemoveNullableIfPresent();
+
+            // If the thing on the left is a type, namespace, or alias, we shouldn't show anything in
+            // IntelliSense.
+            if (leftHandBinding.GetBestOrAllSymbols().FirstOrDefault().MatchesKind(SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Alias))
+            {
+                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+            }
+
             return GetSymbolsOffOfBoundExpression(context, originalExpression, expression, leftHandBinding, container, cancellationToken);
         }
 
@@ -497,11 +505,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // Show static and instance members.
             if (context.IsNameOfContext)
             {
-                if (symbol != null && !(symbol.MatchesKind(SymbolKind.NamedType) || symbol.MatchesKind(SymbolKind.Namespace)))
-                {
-                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
-                }
-
                 excludeInstance = false;
                 excludeStatic = false;
             }

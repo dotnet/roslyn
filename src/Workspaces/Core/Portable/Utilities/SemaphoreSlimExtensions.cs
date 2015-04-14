@@ -8,9 +8,15 @@ namespace Roslyn.Utilities
 {
     internal static class SemaphoreSlimExtensions
     {
-        public static SemaphoreDisposer DisposableWait(this SemaphoreSlim semaphore, CancellationToken cancellationToken)
+        public static SemaphoreDisposer DisposableWait(this SemaphoreSlim semaphore, CancellationToken cancellationToken = default(CancellationToken))
         {
             semaphore.Wait(cancellationToken);
+            return new SemaphoreDisposer(semaphore);
+        }
+
+        public async static Task<SemaphoreDisposer> DisposableWaitAsync(this SemaphoreSlim semaphore, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
             return new SemaphoreDisposer(semaphore);
         }
 

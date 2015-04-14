@@ -1,6 +1,7 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBUsingTests
@@ -36,13 +37,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
-
-            Dim expected =
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            compilation.VerifyPdb("C1.Main",
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -70,11 +66,6 @@ End Class
                 <entry offset="0x43" startLine="20" startColumn="9" endLine="20" endColumn="18" document="0"/>
                 <entry offset="0x54" startLine="21" startColumn="5" endLine="21" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="foo1" il_index="0" il_start="0x2" il_end="0x53" attributes="0"/>
-                <local name="foo2" il_index="1" il_start="0x2" il_end="0x53" attributes="0"/>
-                <local name="foo3" il_index="2" il_start="0x2" il_end="0x53" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x55">
                 <importsforward declaringType="MyDisposable" methodName="Dispose"/>
                 <scope startOffset="0x2" endOffset="0x53">
@@ -85,9 +76,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact>
@@ -124,7 +113,7 @@ End Class
                                <entry startLine="7" startColumn="5" endLine="7" endColumn="12"/>
                            </sequencePoints>
 
-            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
+            AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
         <Fact>
@@ -161,7 +150,7 @@ End Class
                                <entry startLine="7" startColumn="5" endLine="7" endColumn="12"/>
                            </sequencePoints>
 
-            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
+            AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
         <Fact>
@@ -202,7 +191,7 @@ End Class
                                <entry startLine="7" startColumn="5" endLine="7" endColumn="12"/>
                            </sequencePoints>
 
-            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
+            AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
         <Fact>
@@ -241,7 +230,7 @@ End Class
                                <entry startLine="7" startColumn="5" endLine="7" endColumn="12"/>
                            </sequencePoints>
 
-            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
+            AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
         <Fact>
@@ -288,7 +277,7 @@ End Class
                                <entry startLine="7" startColumn="5" endLine="7" endColumn="12"/>
                            </sequencePoints>
 
-            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
+            AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
         <Fact>
@@ -305,7 +294,7 @@ Public Interface I
     Function F() As Object
 End Interface
 "
-            Dim piaComp = CreateCompilationWithMscorlib({piaSource}, compOptions:=TestOptions.DebugDll, assemblyName:="PIA")
+            Dim piaComp = CreateCompilationWithMscorlib({piaSource}, options:=TestOptions.DebugDll, assemblyName:="PIA")
             AssertNoErrors(piaComp)
             Dim piaRef = piaComp.EmitToImageReference(embedInteropTypes:=True)
 
@@ -343,9 +332,6 @@ End Namespace
                                 <entry offset="0x1" startLine="5" startColumn="17" endLine="5" endColumn="33" document="0"/>
                                 <entry offset="0x3" startLine="6" startColumn="9" endLine="6" endColumn="16" document="0"/>
                             </sequencePoints>
-                            <locals>
-                                <local name="o" il_index="0" il_start="0x0" il_end="0x4" attributes="0"/>
-                            </locals>
                             <scope startOffset="0x0" endOffset="0x4">
                                 <defunct name="&amp;PIA"/>
                                 <currentnamespace name="N1"/>
@@ -357,7 +343,6 @@ End Namespace
                                 <entry offset="0x0" startLine="12" startColumn="9" endLine="12" endColumn="23" document="0"/>
                                 <entry offset="0x1" startLine="13" startColumn="9" endLine="13" endColumn="16" document="0"/>
                             </sequencePoints>
-                            <locals/>
                             <scope startOffset="0x0" endOffset="0x2">
                                 <defunct name="&amp;PIA"/>
                                 <currentnamespace name="N2"/>
@@ -366,7 +351,46 @@ End Namespace
                     </methods>
                 </symbols>
             Dim actual = GetPdbXml(comp)
-            AssertXmlEqual(expected, actual)
+            AssertXml.Equal(expected, actual)
         End Sub
+
+        <Fact>
+        Public Sub UnusedImports()
+            Dim source = "
+Imports X = System.Linq.Enumerable
+Imports Y = System.Linq
+
+Class C
+    Sub Main() 
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib(
+                {source},
+                {SystemCoreRef, SystemDataRef},
+                options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("System.Data.DataColumn")))
+
+            CompileAndVerify(comp, emitters:=TestEmitters.CCI, validator:=
+                Sub(peAssembly, emitters)
+                    Dim reader = peAssembly.ManifestModule.MetadataReader
+
+                    Assert.Equal(
+                        {"mscorlib",
+                         "System.Core",
+                         "System.Data"},
+                        peAssembly.AssemblyReferences.Select(Function(ai) ai.Name))
+
+                    Assert.Equal(
+                        {"CompilationRelaxationsAttribute",
+                         "RuntimeCompatibilityAttribute",
+                         "DebuggableAttribute",
+                         "DebuggingModes",
+                         "Object",
+                         "Enumerable",
+                         "DataColumn"},
+                         reader.TypeReferences.Select(Function(h) reader.GetString(reader.GetTypeReference(h).Name)))
+                End Sub)
+        End Sub
+
     End Class
 End Namespace

@@ -32,7 +32,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         ''' caching these rather than parsing them anew for each project. It is expected that the total
         ''' number of imports will be rather small, which is why we never evict anything from this cache.
         ''' </summary>
-        Private Shared _importsCache As Dictionary(Of String, GlobalImport) = New Dictionary(Of String, GlobalImport)
+        Private Shared s_importsCache As Dictionary(Of String, GlobalImport) = New Dictionary(Of String, GlobalImport)
 
         Friend Sub New(projectTracker As VisualStudioProjectTracker,
                        ProjectSystemName As String,
@@ -117,9 +117,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
                 Try
                     Dim import As GlobalImport = Nothing
-                    If Not _importsCache.TryGetValue(wszImport, import) Then
+                    If Not s_importsCache.TryGetValue(wszImport, import) Then
                         import = GlobalImport.Parse(wszImport)
-                        _importsCache(wszImport) = import
+                        s_importsCache(wszImport) = import
                     End If
 
                     _imports.Add(import)

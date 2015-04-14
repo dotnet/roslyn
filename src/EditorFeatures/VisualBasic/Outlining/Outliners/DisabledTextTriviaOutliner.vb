@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-    Class DisabledTextTriviaOutliner
+    Friend Class DisabledTextTriviaOutliner
         Inherits AbstractSyntaxTriviaOutliner
 
         Public Overrides Sub CollectOutliningSpans(document As Document, trivia As SyntaxTrivia, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)

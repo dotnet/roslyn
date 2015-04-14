@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -50,9 +50,6 @@ End Class
                 <entry offset="0x26" startLine="6" startColumn="9" endLine="6" endColumn="12" document="1"/>
                 <entry offset="0x2d" startLine="7" startColumn="5" endLine="7" endColumn="12" document="1"/>
             </sequencePoints>
-            <locals>
-                <local name="d" il_index="0" il_start="0x0" il_end="0x2e" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x2e">
                 <currentnamespace name=""/>
                 <local name="d" il_index="0" il_start="0x0" il_end="0x2e" attributes="0"/>
@@ -68,7 +65,6 @@ End Class
                 <entry offset="0x0" startLine="5" startColumn="22" endLine="5" endColumn="32" document="1"/>
                 <entry offset="0x1" startLine="5" startColumn="33" endLine="5" endColumn="34" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="C" methodName="Main"/>
             </scope>
@@ -146,11 +142,6 @@ End Module
                 <entry offset="0x32" startLine="26" startColumn="21" endLine="26" endColumn="33" document="0"/>
                 <entry offset="0x3f" startLine="27" startColumn="17" endLine="27" endColumn="24" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x40" attributes="0"/>
-                <local name="iii" il_index="1" il_start="0x0" il_end="0x40" attributes="0"/>
-                <local name="d2" il_index="2" il_start="0x0" il_end="0x40" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x40">
                 <importsforward declaringType="M1" methodName="Main"/>
                 <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x40" attributes="0"/>
@@ -186,7 +177,7 @@ end class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             Dim actual1 As XElement = GetPdbXml(compilation)
             Dim actual2 As XElement = GetPdbXml(compilation)
-            AssertXmlEqual(actual1, actual2)
+            AssertXml.Equal(actual1, actual2)
         End Sub
 
         <Fact>
@@ -225,9 +216,6 @@ End Module
                 <entry offset="0x4" startLine="7" startColumn="21" endLine="7" endColumn="29" document="0"/>
                 <entry offset="0x8" startLine="8" startColumn="12" endLine="8" endColumn="24" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="r" il_index="1" il_start="0x0" il_end="0xa" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xa">
                 <importsforward declaringType="Module1" methodName="Main"/>
                 <local name="r" il_index="1" il_start="0x0" il_end="0xa" attributes="0"/>
@@ -283,7 +271,6 @@ End Class
                 <entry offset="0x6" startLine="3" startColumn="12" endLine="3" endColumn="49" document="1"/>
                 <entry offset="0x30" startLine="3" startColumn="12" endLine="3" endColumn="49" document="2"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x5b">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -294,7 +281,6 @@ End Class
                 <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="15" document="1"/>
                 <entry offset="0x1" startLine="6" startColumn="5" endLine="6" endColumn="12" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="C" methodName=".ctor"/>
             </scope>
@@ -309,7 +295,6 @@ End Class
                 <entry offset="0x0" startLine="3" startColumn="37" endLine="3" endColumn="47" document="1"/>
                 <entry offset="0x1" startLine="3" startColumn="48" endLine="3" endColumn="49" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="C" methodName=".ctor"/>
             </scope>
@@ -324,7 +309,6 @@ End Class
                 <entry offset="0x0" startLine="3" startColumn="37" endLine="3" endColumn="47" document="2"/>
                 <entry offset="0x1" startLine="3" startColumn="48" endLine="3" endColumn="49" document="2"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="C" methodName=".ctor"/>
             </scope>
@@ -376,7 +360,6 @@ End Class
                 <entry offset="0x6" startLine="3" startColumn="12" endLine="3" endColumn="49" document="1"/>
                 <entry offset="0x30" startLine="10" startColumn="12" endLine="10" endColumn="49" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x5b">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -387,7 +370,6 @@ End Class
                 <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="15" document="1"/>
                 <entry offset="0x1" startLine="6" startColumn="5" endLine="6" endColumn="12" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="C" methodName=".ctor"/>
             </scope>
@@ -402,7 +384,6 @@ End Class
                 <entry offset="0x0" startLine="3" startColumn="37" endLine="3" endColumn="47" document="1"/>
                 <entry offset="0x1" startLine="3" startColumn="48" endLine="3" endColumn="49" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="C" methodName=".ctor"/>
             </scope>
@@ -417,7 +398,6 @@ End Class
                 <entry offset="0x0" startLine="10" startColumn="37" endLine="10" endColumn="47" document="1"/>
                 <entry offset="0x1" startLine="10" startColumn="48" endLine="10" endColumn="49" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="C" methodName=".ctor"/>
             </scope>
@@ -468,7 +448,6 @@ End Class
                 <entry offset="0x1" startLine="3" startColumn="19" endLine="3" endColumn="56" document="2"/>
                 <entry offset="0x16" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x17">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -484,7 +463,6 @@ End Class
                 <entry offset="0x0" startLine="3" startColumn="44" endLine="3" endColumn="54" document="2"/>
                 <entry offset="0x1" startLine="3" startColumn="55" endLine="3" endColumn="56" document="2"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="C2" methodName=".cctor"/>
             </scope>

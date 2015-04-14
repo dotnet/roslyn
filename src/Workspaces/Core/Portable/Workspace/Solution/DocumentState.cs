@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class DocumentState : TextDocumentState
     {
+        private static readonly Func<string, PreservationMode, string> s_fullParseLog = (path, mode) => $"{path} : {mode}";
+
         private readonly HostLanguageServices _languageServices;
         private readonly ParseOptions _options;
 
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis
             PreservationMode mode,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, s_fullParseLog, filePath, mode, cancellationToken))
             {
                 var textAndVersion = await newTextSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var text = textAndVersion.Text;
@@ -108,9 +110,9 @@ namespace Microsoft.CodeAnalysis
 
                 var tree = treeFactory.ParseSyntaxTree(filePath, options, text, cancellationToken);
 
-                if (mode == PreservationMode.PreserveValue && solutionServices.SupportsCachingRecoverableObjects)
+                var root = tree.GetRoot(cancellationToken);
+                if (mode == PreservationMode.PreserveValue && treeFactory.CanCreateRecoverableTree(root))
                 {
-                    var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                     tree = treeFactory.CreateRecoverableTree(cacheKey, tree.FilePath, tree.Options, newTextSource, text.Encoding, root);
                 }
 
@@ -418,40 +420,57 @@ namespace Microsoft.CodeAnalysis
         }
 
         // use static method so we don't capture references to this
-        private static Tuple<AsyncLazy<TextAndVersion>, TreeAndVersion> CreateRecoverableTextAndTree(
+        private static Tuple<ValueSource<TextAndVersion>, TreeAndVersion> CreateRecoverableTextAndTree(
             SyntaxNode newRoot, VersionStamp textVersion, VersionStamp treeVersion, Encoding encoding,
             DocumentInfo info, ParseOptions options, ISyntaxTreeFactoryService factory, PreservationMode mode, SolutionServices solutionServices)
         {
             string filePath = info.FilePath;
-            TreeAndVersion lazyTree = null;
+            SyntaxTree tree = null;
+            ValueSource<TextAndVersion> lazyTextAndVersion = null;
 
-            // this captures the lazyTree local
-            var lazyText = new AsyncLazy<TextAndVersion>(
-                c => GetTextAndVersionAsync(lazyTree, textVersion, encoding, filePath, c),
-                c => GetTextAndVersion(lazyTree, textVersion, encoding, filePath, c),
-                cacheResult: false);
+            if ((mode == PreservationMode.PreserveIdentity) || !factory.CanCreateRecoverableTree(newRoot))
+            {
+                // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
+                lazyTextAndVersion = new TreeTextSource(
+                    new AsyncLazy<SourceText>(
+                        c => tree.GetTextAsync(c),
+                        c => tree.GetText(c),
+                        cacheResult: true),
+                    textVersion,
+                    filePath);
 
-            lazyTree = TreeAndVersion.Create(
-                (mode == PreservationMode.PreserveIdentity) || !solutionServices.SupportsCachingRecoverableObjects
-                    ? factory.CreateSyntaxTree(GetSyntaxTreeFilePath(info), options, encoding, newRoot)
-                    : factory.CreateRecoverableTree(info.Id.ProjectId, GetSyntaxTreeFilePath(info), options, lazyText, encoding, newRoot),
-                treeVersion);
+                tree = factory.CreateSyntaxTree(GetSyntaxTreeFilePath(info), options, encoding, newRoot);
+            }
+            else
+            {
+                // uses CachedWeakValueSource so the document and tree will return the same SourceText instance across multiple accesses as long 
+                // as the text is referenced elsewhere.
+                lazyTextAndVersion = new TreeTextSource(
+                    new CachedWeakValueSource<SourceText>(
+                        new AsyncLazy<SourceText>(
+                            c => BuildRecoverableTreeTextAsync(tree, encoding, c),
+                            c => BuildRecoverableTreeText(tree, encoding, c),
+                            cacheResult: false)),
+                    textVersion,
+                    filePath);
 
-            return Tuple.Create(lazyText, lazyTree);
+                tree = factory.CreateRecoverableTree(info.Id.ProjectId, GetSyntaxTreeFilePath(info), options, lazyTextAndVersion, encoding, newRoot);
+            }
+
+            return Tuple.Create(lazyTextAndVersion, TreeAndVersion.Create(tree, treeVersion));
         }
 
-        private static TextAndVersion GetTextAndVersion(
-            TreeAndVersion treeAndVersion, VersionStamp version, Encoding encoding, string filePath, CancellationToken cancellationToken)
+        private static SourceText BuildRecoverableTreeText(SyntaxTree tree, Encoding encoding, CancellationToken cancellationToken)
         {
-            var text = treeAndVersion.Tree.GetRoot(cancellationToken).GetText(encoding);
-            return TextAndVersion.Create(text, version, filePath);
+            // build text from root, so recoverable tree won't cycle.
+            return tree.GetRoot(cancellationToken).GetText(encoding);
         }
 
-        private static async Task<TextAndVersion> GetTextAndVersionAsync(
-            TreeAndVersion treeAndVersion, VersionStamp version, Encoding encoding, string filePath, CancellationToken cancellationToken)
+        private static async Task<SourceText> BuildRecoverableTreeTextAsync(SyntaxTree tree, Encoding encoding, CancellationToken cancellationToken)
         {
-            var root = await treeAndVersion.Tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            return TextAndVersion.Create(root.GetText(encoding), version, filePath);
+            // build text from root, so recoverable tree won't cycle.
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            return root.GetText(encoding);
         }
 
         private VersionStamp GetNewerVersion()

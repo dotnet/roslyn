@@ -9,15 +9,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
     Friend Class HierarchyItemMapper
         Implements IHierarchyItemToProjectIdMap
 
-        Private ReadOnly tracker As VisualStudioProjectTracker
+        Private ReadOnly _tracker As VisualStudioProjectTracker
 
         Public Sub New(projectTracker As VisualStudioProjectTracker)
-            tracker = projectTracker
+            _tracker = projectTracker
         End Sub
 
         Public Function TryGetProjectId(hierarchyItem As IVsHierarchyItem, ByRef projectId As ProjectId) As Boolean Implements IHierarchyItemToProjectIdMap.TryGetProjectId
 
-            Dim project = tracker.Projects.
+            Dim project = _tracker.Projects.
                 Where(Function(p) p.Hierarchy Is hierarchyItem.HierarchyIdentity.NestedHierarchy).
                 Where(Function(p) p.ProjectSystemName Is hierarchyItem.CanonicalName).
                 SingleOrDefault()

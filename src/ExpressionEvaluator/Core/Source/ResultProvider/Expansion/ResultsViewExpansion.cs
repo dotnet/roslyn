@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 errorMessage = (string)value.HostObjectValue;
             }
-            else if (value.HasExceptionThrown(parent: null))
+            else if (value.HasExceptionThrown())
             {
                 errorMessage = value.GetExceptionMessage(name, formatter);
             }
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             Debug.Assert(!value.IsError());
 
-            if (value.IsNull)
+            if (value.IsNull || value.HasExceptionThrown())
             {
                 return false;
             }

@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        Sub WithTestModuleField()
+        Public Sub WithTestModuleField()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -28,7 +28,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub WithTestLineContinuation()
+        Public Sub WithTestLineContinuation()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -57,7 +57,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub WithTestNested()
+        Public Sub WithTestNested()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">

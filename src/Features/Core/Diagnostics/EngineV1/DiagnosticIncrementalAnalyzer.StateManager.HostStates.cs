@@ -2,9 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 {
                     var analyzersPerReference = _owner.AnalyzerManager.GetHostDiagnosticAnalyzersPerReference(language);
 
-                    var analyzerMap = CreateAnalyzerMap(language, analyzersPerReference.Values);
+                    var analyzerMap = CreateAnalyzerMap(_owner.AnalyzerManager, language, analyzersPerReference.Values);
                     VerifyDiagnosticStates(analyzerMap.Values);
 
                     return analyzerMap;

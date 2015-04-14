@@ -19,9 +19,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     Friend Class VisualBasicDebuggerIntelliSenseContext
         Inherits AbstractDebuggerIntelliSenseContext
 
-        Private innerMostContainingNodeIsExpression As Boolean = False
+        Private _innerMostContainingNodeIsExpression As Boolean = False
 
-        Sub New(wpfTextView As IWpfTextView,
+        Public Sub New(wpfTextView As IWpfTextView,
                 vsTextView As IVsTextView,
                 debuggerBuffer As IVsTextLines,
                 contextBuffer As ITextBuffer,
@@ -41,7 +41,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Sub
 
         ' Test constructor
-        Sub New(wpfTextView As IWpfTextView,
+        Public Sub New(wpfTextView As IWpfTextView,
                 textBuffer As ITextBuffer,
                 span As TextSpan(),
                 componentModel As IComponentModel,
@@ -65,7 +65,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                                                                              s.IsExecutableBlock()).FirstOrDefault()
             If containingNode IsNot Nothing Then
                 If TypeOf containingNode Is ExpressionSyntax AndAlso Not IsRightSideOfLocalDeclaration(containingNode) Then
-                    innerMostContainingNodeIsExpression = True
+                    _innerMostContainingNodeIsExpression = True
                     Return containingNode.Span.End
                 Else
                     Dim statement = containingNode.GetExecutableBlockStatements().FirstOrDefault()
@@ -108,7 +108,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             ' intellisense to trigger a new expression context
             Dim forceExpressionContext = ".__o("
 
-            If Not innerMostContainingNodeIsExpression Then
+            If Not _innerMostContainingNodeIsExpression Then
                 ' We're after some statement, could be a for loop, using block, try block, etc, fake a
                 ' local declaration on the following line
                 forceExpressionContext = vbCrLf + "Dim __o = "

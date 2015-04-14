@@ -1,19 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class CSharpCompilerServer : CSharpCompiler
     {
-        internal CSharpCompilerServer(string responseFile, string[] args, string baseDirectory, string libDirectory)
-            : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, libDirectory)
+        internal CSharpCompilerServer(string responseFile, string[] args, string baseDirectory, string sdkDirectory, string libDirectory)
+            : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, sdkDirectory, libDirectory)
         {
         }
 
@@ -21,15 +22,21 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string responseFileDirectory,
             string[] args,
             string baseDirectory,
+            string sdkDirectory,
             string libDirectory,
             TextWriter output,
             CancellationToken cancellationToken,
             out bool utf8output)
         {
             var responseFile = Path.Combine(responseFileDirectory, CSharpCompiler.ResponseFileName);
-            var compiler = new CSharpCompilerServer(responseFile, args, baseDirectory, libDirectory);
+            var compiler = new CSharpCompilerServer(responseFile, args, baseDirectory, sdkDirectory, libDirectory);
             utf8output = compiler.Arguments.Utf8Output;
             return compiler.Run(output, cancellationToken);
+        }
+
+        public override Assembly LoadAssembly(string fullPath)
+        {
+            return InMemoryAssemblyProvider.GetAssembly(fullPath);
         }
 
         public override int Run(TextWriter consoleOutput, CancellationToken cancellationToken = default(CancellationToken))

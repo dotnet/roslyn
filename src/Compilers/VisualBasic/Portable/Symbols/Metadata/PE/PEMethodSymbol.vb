@@ -20,33 +20,178 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
     Friend NotInheritable Class PEMethodSymbol
         Inherits MethodSymbol
 
-        Private Const s_uninitializedMethodKind As Integer = -1
-
         Private ReadOnly _handle As MethodDefinitionHandle
         Private ReadOnly _name As String
-        Private ReadOnly _implFlags As MethodImplAttributes
-        Private ReadOnly _flags As MethodAttributes
+        Private ReadOnly _implFlags As UShort
+        Private ReadOnly _flags As UShort
         Private ReadOnly _containingType As PENamedTypeSymbol
 
         Private _associatedPropertyOrEventOpt As Symbol
 
-        Private _lazyMethodKind As Integer = s_uninitializedMethodKind ' really a MethodKind, but Interlocked.CompareExchange doesn't handle those
+        Private _packedFlags As PackedFlags
 
         Private _lazyTypeParameters As ImmutableArray(Of TypeParameterSymbol)
 
-        Private _lazyDocComment As Tuple(Of CultureInfo, String)
-
         Private _lazyExplicitMethodImplementations As ImmutableArray(Of MethodSymbol)
 
-        Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
-        Private _lazyConditionalAttributeSymbols As ImmutableArray(Of String)
+        ''' <summary>
+        ''' A single field to hold optional auxiliary data.
+        ''' In many scenarios it is possible to avoid allocating this, thus saving total space in <see cref="PEModuleSymbol"/>.
+        ''' Even for lazily-computed values, it may be possible to avoid allocating <see cref="_uncommonFields"/> if
+        ''' the computed value is a well-known "empty" value. In this case, bits in <see cref="_packedFlags"/> are used
+        ''' to indicate that the lazy values have been computed and, if <see cref="_uncommonFields"/> is null, then
+        ''' the "empty" value should be inferred.
+        ''' </summary>
+        Private _uncommonFields As UncommonFields
 
-        Private _lazyUseSiteErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+        Private Structure PackedFlags
+            ' Flags are packed into a 32-bit int with the following layout:
+            ' |              h|g|f|e|d|c|b|aaaaa|
+            '
+            ' a = method kind. 5 bits
+            ' b = method kind populated. 1 bit
+            ' c = isExtensionMethod. 1 bit.
+            ' d = isExtensionMethod populated. 1 bit.
+            ' e = obsolete attribute populated. 1 bit
+            ' f = custom attributes populated. 1 bit
+            ' g = use site diagnostic populated. 1 bit
+            ' h = conditional attributes populted. 1 bit
 
-        Private _lazyIsExtensionMethod As Byte = ThreeState.Unknown
-        Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
+            Private _bits As Integer
 
-        Private _lazyMeParameter As ParameterSymbol
+            Private Const s_methodKindOffset As Integer = 0
+            Private Const s_methodKindMask As Integer = &H1F
+            Private Const s_methodKindIsPopulatedBit As Integer = 1 << 5
+            Private Const s_isExtensionMethodBit As Integer = 1 << 6
+            Private Const s_isExtensionMethodIsPopulatedBit As Integer = 1 << 7
+            Private Const s_isObsoleteAttributePopulatedBit As Integer = 1 << 8
+            Private Const s_isCustomAttributesPopulatedBit As Integer = 1 << 9
+            Private Const s_isUseSiteDiagnosticPopulatedBit As Integer = 1 << 10
+            Private Const s_isConditionalAttributePopulatedBit As Integer = 1 << 11
+
+            Public Property MethodKind As MethodKind
+                Get
+                    Return CType((_bits >> s_methodKindOffset) And s_methodKindMask, MethodKind)
+                End Get
+                Set(value As MethodKind)
+                    Debug.Assert(value = (value And s_methodKindMask))
+                    _bits = (_bits And Not (s_methodKindMask << s_methodKindOffset)) Or (value << s_methodKindOffset) Or s_methodKindIsPopulatedBit
+                End Set
+            End Property
+
+            Public ReadOnly Property MethodKindIsPopulated As Boolean
+                Get
+                    Return (_bits And s_methodKindIsPopulatedBit) <> 0
+                End Get
+            End Property
+
+            Public ReadOnly Property IsExtensionMethod As Boolean
+                Get
+                    Return (_bits And s_isExtensionMethodBit) <> 0
+                End Get
+            End Property
+
+            Public ReadOnly Property IsExtensionMethodPopulated As Boolean
+                Get
+                    Return (_bits And s_isExtensionMethodIsPopulatedBit) <> 0
+                End Get
+            End Property
+
+            Public ReadOnly Property IsObsoleteAttributePopulated As Boolean
+                Get
+                    Return (_bits And s_isObsoleteAttributePopulatedBit) <> 0
+                End Get
+            End Property
+
+            Public ReadOnly Property IsCustomAttributesPopulated As Boolean
+                Get
+                    Return (_bits And s_isCustomAttributesPopulatedBit) <> 0
+                End Get
+            End Property
+
+            Public ReadOnly Property IsUseSiteDiagnoticPopulated As Boolean
+                Get
+                    Return (_bits And s_isUseSiteDiagnosticPopulatedBit) <> 0
+                End Get
+            End Property
+
+            Public ReadOnly Property IsConditionalPopulated As Boolean
+                Get
+                    Return (_bits And s_isConditionalAttributePopulatedBit) <> 0
+                End Get
+            End Property
+
+            Private Shared Function BitsAreUnsetOrSame(bits As Integer, mask As Integer) As Boolean
+                Return (bits And mask) = 0 OrElse (bits And mask) = mask
+            End Function
+
+            Public Sub InitializeMethodKind(methodKind As MethodKind)
+                Debug.Assert(methodKind = (methodKind And s_methodKindMask))
+                Dim bitsToSet = ((methodKind And s_methodKindMask) << s_methodKindOffset) Or s_methodKindIsPopulatedBit
+                Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet))
+                ThreadSafeFlagOperations.Set(_bits, bitsToSet)
+            End Sub
+
+            Public Sub InitializeIsExtensionMethod(isExtensionMethod As Boolean)
+                Dim bitsToSet = If(isExtensionMethod, s_isExtensionMethodBit, 0) Or s_isExtensionMethodIsPopulatedBit
+                Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet))
+                ThreadSafeFlagOperations.Set(_bits, bitsToSet)
+            End Sub
+
+            Public Sub SetIsObsoleteAttributePopulated()
+                ThreadSafeFlagOperations.Set(_bits, s_isObsoleteAttributePopulatedBit)
+            End Sub
+
+            Public Sub SetIsCustomAttributesPopulated()
+                ThreadSafeFlagOperations.Set(_bits, s_isCustomAttributesPopulatedBit)
+            End Sub
+
+            Public Sub SetIsUseSiteDiagnosticPopulated()
+                ThreadSafeFlagOperations.Set(_bits, s_isUseSiteDiagnosticPopulatedBit)
+            End Sub
+
+            Public Sub SetIsConditionalAttributePopulated()
+                ThreadSafeFlagOperations.Set(_bits, s_isConditionalAttributePopulatedBit)
+            End Sub
+        End Structure
+
+        ''' <summary>
+        ''' Holds infrequently accessed fields. See <seealso cref="_uncommonFields"/> for an explanation.
+        ''' </summary>
+        Private NotInheritable Class UncommonFields
+            Public _lazyMeParameter As ParameterSymbol
+            Public _lazyDocComment As Tuple(Of CultureInfo, String)
+            Public _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
+            Public _lazyConditionalAttributeSymbols As ImmutableArray(Of String)
+            Public _lazyObsoleteAttributeData As ObsoleteAttributeData
+            Public _lazyUseSiteErrorInfo As DiagnosticInfo
+        End Class
+
+        Private Function CreateUncommonFields() As UncommonFields
+            Dim retVal = New UncommonFields
+
+            If Not _packedFlags.IsObsoleteAttributePopulated Then
+                retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
+            End If
+
+            If Not _packedFlags.IsUseSiteDiagnoticPopulated Then
+                retVal._lazyUseSiteErrorInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+            End If
+
+            If _packedFlags.IsCustomAttributesPopulated Then
+                retVal._lazyCustomAttributes = ImmutableArray(Of VisualBasicAttributeData).Empty
+            End If
+
+            If _packedFlags.IsConditionalPopulated Then
+                retVal._lazyConditionalAttributeSymbols = ImmutableArray(Of String).Empty
+            End If
+            Return retVal
+        End Function
+
+        Private Function AccessUncommonFields() As UncommonFields
+            Dim retVal = _uncommonFields
+            Return If(retVal, InterlockedOperations.Initialize(_uncommonFields, CreateUncommonFields()))
+        End Function
 
 
 #Region "Signature data"
@@ -78,14 +223,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             _containingType = containingType
 
             Try
+                Dim implFlags As MethodImplAttributes
+                Dim flags As MethodAttributes
                 Dim rva As Integer
-                moduleSymbol.Module.GetMethodDefPropsOrThrow(handle, _name, _implFlags, _flags, rva)
+                moduleSymbol.Module.GetMethodDefPropsOrThrow(handle, _name, implFlags, flags, rva)
+                _implFlags = CType(implFlags, UShort)
+                _flags = CType(flags, UShort)
             Catch mrEx As BadImageFormatException
                 If _name Is Nothing Then
                     _name = String.Empty
                 End If
 
-                _lazyUseSiteErrorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
+                InitializeUseSiteErrorInfo(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
             End Try
         End Sub
 
@@ -127,25 +276,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend ReadOnly Property MethodImplFlags As MethodImplAttributes
             Get
-                Return _implFlags
+                Return CType(_implFlags, MethodImplAttributes)
             End Get
         End Property
 
         Friend ReadOnly Property MethodFlags As MethodAttributes
             Get
-                Return _flags
+                Return CType(_flags, MethodAttributes)
             End Get
         End Property
 
         Public Overrides ReadOnly Property MethodKind As MethodKind
             Get
-                If _lazyMethodKind = s_uninitializedMethodKind Then
-                    Dim computed As MethodKind = ComputeMethodKind()
-                    Dim oldValue As Integer = Interlocked.CompareExchange(_lazyMethodKind, CType(computed, Integer), s_uninitializedMethodKind)
-                    Debug.Assert(oldValue = s_uninitializedMethodKind OrElse oldValue = computed)
+                If Not _packedFlags.MethodKindIsPopulated Then
+                    _packedFlags.InitializeMethodKind(ComputeMethodKind())
                 End If
 
-                Return CType(_lazyMethodKind, MethodKind)
+                Return _packedFlags.MethodKind
             End Get
 
         End Property
@@ -211,8 +358,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Friend Overrides Function IsParameterlessConstructor() As Boolean
-            If _lazyMethodKind <> s_uninitializedMethodKind Then
-                Return _lazyMethodKind = MethodKind.Constructor AndAlso ParameterCount = 0
+            If _packedFlags.MethodKindIsPopulated Then
+                Return _packedFlags.MethodKind = MethodKind.Constructor AndAlso ParameterCount = 0
             End If
 
             ' 10.5.1 Instance constructor
@@ -227,9 +374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                ParameterCount = 0 AndAlso
                IsSub AndAlso Arity = 0 Then
 
-                Dim oldValue As Integer = Interlocked.CompareExchange(_lazyMethodKind, MethodKind.Constructor, s_uninitializedMethodKind)
-                Debug.Assert(oldValue = s_uninitializedMethodKind OrElse oldValue = MethodKind.Constructor)
-
+                _packedFlags.MethodKind = MethodKind.Constructor
                 Return True
             End If
 
@@ -342,18 +487,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         Continue For
                     End If
 
-                    Select Case contender._lazyMethodKind
-                        Case s_uninitializedMethodKind, MethodKind.Ordinary
-                        ' Need to check against our method
-                        Case potentialMethodKind
-                            If i = 0 OrElse adjustContendersOfAdditionalName Then
-                                ' Contender was already cleared, so it cannot conflict with this operator.
+                    If contender._packedFlags.MethodKindIsPopulated Then
+                        Select Case contender._packedFlags.MethodKind
+                            Case MethodKind.Ordinary
+                                ' Need to check against our method
+                            Case potentialMethodKind
+                                If i = 0 OrElse adjustContendersOfAdditionalName Then
+                                    ' Contender was already cleared, so it cannot conflict with this operator.
+                                    Continue For
+                                End If
+                            Case Else
+                                ' Cannot be an operator of the target kind.
                                 Continue For
-                            End If
-                        Case Else
-                            ' Cannot be an operator of the target kind.
-                            Continue For
-                    End Select
+                        End Select
+                    End If
 
                     If potentialMethodKind = MethodKind.Conversion AndAlso Not outputType.IsSameTypeIgnoringCustomModifiers(contender.ReturnType) Then
                         Continue For
@@ -375,8 +522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                     ' Mark the contender too.
                     If i = 0 OrElse adjustContendersOfAdditionalName Then
-                        Dim oldValue As Integer = Interlocked.CompareExchange(contender._lazyMethodKind, MethodKind.Ordinary, s_uninitializedMethodKind)
-                        Debug.Assert(oldValue = s_uninitializedMethodKind OrElse oldValue = MethodKind.Ordinary)
+                        contender._packedFlags.InitializeMethodKind(MethodKind.Ordinary)
                     End If
                 Next
             Next
@@ -424,11 +570,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            If _lazyCustomAttributes.IsDefault Then
+            If Not _packedFlags.IsCustomAttributesPopulated Then
+                Dim attributeData As ImmutableArray(Of VisualBasicAttributeData) = Nothing
                 Dim containingPEModuleSymbol = DirectCast(ContainingModule(), PEModuleSymbol)
-                containingPEModuleSymbol.LoadCustomAttributes(Me.Handle, _lazyCustomAttributes)
+                containingPEModuleSymbol.LoadCustomAttributes(Me.Handle, attributeData)
+                Debug.Assert(Not attributeData.IsDefault)
+                If Not attributeData.IsEmpty Then
+                    attributeData = InterlockedOperations.Initialize(AccessUncommonFields()._lazyCustomAttributes, attributeData)
+                End If
+
+                _packedFlags.SetIsCustomAttributesPopulated()
+                Return attributeData
             End If
-            Return _lazyCustomAttributes
+
+            Dim uncommonFields = _uncommonFields
+            If uncommonFields Is Nothing Then
+                Return ImmutableArray(Of VisualBasicAttributeData).Empty
+            Else
+                Dim attributeData = uncommonFields._lazyCustomAttributes
+                Return If(attributeData.IsDefault,
+                    InterlockedOperations.Initialize(uncommonFields._lazyCustomAttributes, ImmutableArray(Of VisualBasicAttributeData).Empty),
+                    attributeData)
+            End If
         End Function
 
         Friend Overrides Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
@@ -437,7 +600,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property IsExtensionMethod As Boolean
             Get
-                If _lazyIsExtensionMethod = ThreeState.Unknown Then
+                If Not _packedFlags.IsExtensionMethodPopulated Then
 
                     Dim result As Boolean = False
 
@@ -453,14 +616,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         result = Not (firstParam.IsOptional OrElse firstParam.IsParamArray)
                     End If
 
-                    If result Then
-                        _lazyIsExtensionMethod = ThreeState.True
-                    Else
-                        _lazyIsExtensionMethod = ThreeState.False
-                    End If
+                    _packedFlags.InitializeIsExtensionMethod(result)
                 End If
 
-                Return _lazyIsExtensionMethod = ThreeState.True
+                Return _packedFlags.IsExtensionMethod
             End Get
         End Property
 
@@ -531,10 +690,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Throw ExceptionUtilities.Unreachable
         End Function
 
+        Private ReadOnly Property Signature As SignatureData
+            Get
+                Return If(_lazySignature, LoadSignature())
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property IsVararg As Boolean
             Get
-                EnsureSignatureIsLoaded()
-                Return _lazySignature.Header.CallingConvention = SignatureCallingConvention.VarArgs
+                Return Signature.Header.CallingConvention = SignatureCallingConvention.VarArgs
             End Get
         End Property
 
@@ -604,11 +768,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
-                Dim flagsToCheck As MethodAttributes = (_flags And
-                                                        (MethodAttributes.Virtual Or
-                                                         MethodAttributes.Final Or
-                                                         MethodAttributes.Abstract Or
-                                                         MethodAttributes.NewSlot))
+                Dim flagsToCheck = (_flags And
+                                    (MethodAttributes.Virtual Or
+                                     MethodAttributes.Final Or
+                                     MethodAttributes.Abstract Or
+                                     MethodAttributes.NewSlot))
 
                 Return flagsToCheck = (MethodAttributes.Virtual Or MethodAttributes.NewSlot) OrElse
                        (flagsToCheck = MethodAttributes.Virtual AndAlso _containingType.BaseTypeNoUseSiteDiagnostics Is Nothing)
@@ -685,34 +849,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                EnsureSignatureIsLoaded()
-                Return _lazySignature.Parameters
+                Return Signature.Parameters
             End Get
         End Property
 
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
-                EnsureSignatureIsLoaded()
-                Return _lazySignature.ReturnParam.Type
+                Return Signature.ReturnParam.Type
             End Get
         End Property
 
         Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                EnsureSignatureIsLoaded()
-                Return _lazySignature.ReturnParam.CustomModifiers
+                Return Signature.ReturnParam.CustomModifiers
             End Get
         End Property
 
         Public Overrides Function GetReturnTypeAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            EnsureSignatureIsLoaded()
-            Return _lazySignature.ReturnParam.GetAttributes()
+            Return Signature.ReturnParam.GetAttributes()
         End Function
 
         Friend ReadOnly Property ReturnParam As PEParameterSymbol
             Get
-                EnsureSignatureIsLoaded()
-                Return _lazySignature.ReturnParam
+                Return Signature.ReturnParam
             End Get
         End Property
 
@@ -738,72 +897,71 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             If Me._associatedPropertyOrEventOpt Is Nothing Then
                 Debug.Assert(propertyOrEventSymbol.ContainingType = Me.ContainingType)
                 Me._associatedPropertyOrEventOpt = propertyOrEventSymbol
-                _lazyMethodKind = CType(methodKind, Integer)
+                _packedFlags.MethodKind = methodKind
                 Return True
             End If
 
             Return False
         End Function
 
-        Private Sub EnsureSignatureIsLoaded()
-            If _lazySignature Is Nothing Then
+        Private Function LoadSignature() As SignatureData
 
-                Dim moduleSymbol = _containingType.ContainingPEModule
+            Dim moduleSymbol = _containingType.ContainingPEModule
 
-                Dim signatureHeader As SignatureHeader
-                Dim mrEx As BadImageFormatException = Nothing
-                Dim paramInfo() As ParamInfo(Of TypeSymbol) =
+            Dim signatureHeader As SignatureHeader
+            Dim mrEx As BadImageFormatException = Nothing
+            Dim paramInfo() As ParamInfo(Of TypeSymbol) =
                     (New MetadataDecoder(moduleSymbol, Me)).GetSignatureForMethod(_handle, signatureHeader, mrEx)
 
-                ' If method is not generic, let's assign empty list for type parameters
-                If Not signatureHeader.IsGeneric() AndAlso
+            ' If method is not generic, let's assign empty list for type parameters
+            If Not signatureHeader.IsGeneric() AndAlso
                     _lazyTypeParameters.IsDefault Then
-                    ImmutableInterlocked.InterlockedCompareExchange(_lazyTypeParameters,
-                                                ImmutableArray(Of TypeParameterSymbol).Empty, Nothing)
-                End If
-
-                Dim count As Integer = paramInfo.Length - 1
-                Dim params As ImmutableArray(Of ParameterSymbol)
-                Dim isBad As Boolean
-                Dim hasBadParameter As Boolean = False
-
-                If count > 0 Then
-                    Dim parameterCreation(count - 1) As ParameterSymbol
-
-                    For i As Integer = 0 To count - 1 Step 1
-                        parameterCreation(i) = New PEParameterSymbol(moduleSymbol, Me, i, paramInfo(i + 1), isBad)
-
-                        If isBad Then
-                            hasBadParameter = True
-                        End If
-                    Next
-
-                    params = parameterCreation.AsImmutableOrNull()
-                Else
-                    params = ImmutableArray(Of ParameterSymbol).Empty
-                End If
-
-                ' paramInfo(0) contains information about return "parameter"
-                Debug.Assert(Not paramInfo(0).IsByRef)
-                Dim returnParam = New PEParameterSymbol(moduleSymbol, Me, 0, paramInfo(0), isBad)
-
-                If mrEx IsNot Nothing OrElse hasBadParameter OrElse isBad Then
-                    Dim old = Interlocked.CompareExchange(_lazyUseSiteErrorInfo,
-                                                          ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)),
-                                                          ErrorFactory.EmptyErrorInfo)
-                    Debug.Assert(old Is ErrorFactory.EmptyErrorInfo OrElse
-                                 (old IsNot Nothing AndAlso old.Code = ERRID.ERR_UnsupportedMethod1))
-                End If
-
-                Dim signature As New SignatureData(signatureHeader, params, returnParam)
-                Interlocked.CompareExchange(_lazySignature, signature, Nothing)
+                ImmutableInterlocked.InterlockedInitialize(_lazyTypeParameters,
+                                                           ImmutableArray(Of TypeParameterSymbol).Empty)
             End If
-        End Sub
+
+            Dim count As Integer = paramInfo.Length - 1
+            Dim params As ImmutableArray(Of ParameterSymbol)
+            Dim isBad As Boolean
+            Dim hasBadParameter As Boolean = False
+
+            If count > 0 Then
+                Dim builder = ImmutableArray.CreateBuilder(Of ParameterSymbol)(count)
+                For i As Integer = 0 To count - 1 Step 1
+                    builder.Add(New PEParameterSymbol(moduleSymbol, Me, i, paramInfo(i + 1), isBad))
+
+                    If isBad Then
+                        hasBadParameter = True
+                    End If
+                Next
+
+                params = builder.ToImmutable()
+            Else
+                params = ImmutableArray(Of ParameterSymbol).Empty
+            End If
+
+            ' paramInfo(0) contains information about return "parameter"
+            Debug.Assert(Not paramInfo(0).IsByRef)
+            Dim returnParam = New PEParameterSymbol(moduleSymbol, Me, 0, paramInfo(0), isBad)
+
+            If mrEx IsNot Nothing OrElse hasBadParameter OrElse isBad Then
+                InitializeUseSiteErrorInfo(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+            End If
+
+            Dim signature As New SignatureData(signatureHeader, params, returnParam)
+
+            Return InterlockedOperations.Initialize(_lazySignature, signature)
+        End Function
 
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
-                EnsureTypeParametersAreLoaded()
-                Return _lazyTypeParameters
+                Dim errorInfo As DiagnosticInfo = Nothing
+                EnsureTypeParametersAreLoaded(errorInfo)
+                Dim typeParams = EnsureTypeParametersAreLoaded(errorInfo)
+                If errorInfo IsNot Nothing Then
+                    InitializeUseSiteErrorInfo(errorInfo)
+                End If
+                Return typeParams
             End Get
         End Property
 
@@ -817,90 +975,85 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Private Sub EnsureTypeParametersAreLoaded()
-
-            If _lazyTypeParameters.IsDefault Then
-
-                Dim typeParams As ImmutableArray(Of TypeParameterSymbol)
-
-                Try
-                    Dim moduleSymbol = _containingType.ContainingPEModule
-                    Dim gpHandles = moduleSymbol.Module.GetGenericParametersForMethodOrThrow(_handle)
-
-
-                    If gpHandles.Count = 0 Then
-                        typeParams = ImmutableArray(Of TypeParameterSymbol).Empty
-                    Else
-                        Dim ownedParams(gpHandles.Count - 1) As PETypeParameterSymbol
-
-                        For i = 0 To ownedParams.Length - 1
-                            ownedParams(i) = New PETypeParameterSymbol(moduleSymbol, Me, CUShort(i), gpHandles(i))
-                        Next
-
-                        typeParams = StaticCast(Of TypeParameterSymbol).From(ownedParams.AsImmutableOrNull)
-                    End If
-                Catch mrEx As BadImageFormatException
-                    Dim old = Interlocked.CompareExchange(_lazyUseSiteErrorInfo,
-                                                          ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)),
-                                                          ErrorFactory.EmptyErrorInfo)
-                    Debug.Assert(old Is ErrorFactory.EmptyErrorInfo OrElse
-                                 (old IsNot Nothing AndAlso old.Code = ERRID.ERR_UnsupportedMethod1))
-
-                    typeParams = ImmutableArray(Of TypeParameterSymbol).Empty
-                End Try
-
-                ImmutableInterlocked.InterlockedCompareExchange(_lazyTypeParameters, typeParams, Nothing)
+        Private Function EnsureTypeParametersAreLoaded(ByRef errorInfo As DiagnosticInfo) As ImmutableArray(Of TypeParameterSymbol)
+            Dim typeParams = _lazyTypeParameters
+            If Not typeParams.IsDefault Then
+                Return typeParams
             End If
 
-        End Sub
+            Return InterlockedOperations.Initialize(_lazyTypeParameters, LoadTypeParameters(errorInfo))
+        End Function
 
-        Friend Overrides ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
+        Private Function LoadTypeParameters(ByRef errorInfo As DiagnosticInfo) As ImmutableArray(Of TypeParameterSymbol)
+
+            Try
+                Dim moduleSymbol = _containingType.ContainingPEModule
+                Dim gpHandles = moduleSymbol.Module.GetGenericParametersForMethodOrThrow(_handle)
+
+
+                If gpHandles.Count = 0 Then
+                    Return ImmutableArray(Of TypeParameterSymbol).Empty
+                Else
+                    Dim ownedParams = ImmutableArray.CreateBuilder(Of TypeParameterSymbol)(gpHandles.Count)
+                    For i = 0 To gpHandles.Count - 1
+                        ownedParams.Add(New PETypeParameterSymbol(moduleSymbol, Me, CUShort(i), gpHandles(i)))
+                    Next
+
+                    Return ownedParams.ToImmutable()
+                End If
+            Catch mrEx As BadImageFormatException
+                errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
+                Return ImmutableArray(Of TypeParameterSymbol).Empty
+            End Try
+
+        End Function
+
+        Friend Overrides ReadOnly Property CallingConvention As Cci.CallingConvention
             Get
-                EnsureSignatureIsLoaded()
-                Return CType(_lazySignature.Header.RawValue, Microsoft.Cci.CallingConvention)
+                Return CType(Signature.Header.RawValue, Cci.CallingConvention)
             End Get
         End Property
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
             Get
-                If _lazyExplicitMethodImplementations.IsDefault Then
-                    Dim moduleSymbol = _containingType.ContainingPEModule
+                If Not _lazyExplicitMethodImplementations.IsDefault Then
+                    Return _lazyExplicitMethodImplementations
+                End If
 
-                    ' Context: we need the containing type of this method as context so that we can substitute appropriately into
-                    ' any generic interfaces that we might be explicitly implementing.  There is no reason to pass in the method
-                    ' context, however, because any method type parameters will belong to the implemented (i.e. interface) method,
-                    ' which we do not yet know.
-                    Dim explicitlyOverriddenMethods = New MetadataDecoder(
+                Dim moduleSymbol = _containingType.ContainingPEModule
+
+                ' Context: we need the containing type of this method as context so that we can substitute appropriately into
+                ' any generic interfaces that we might be explicitly implementing.  There is no reason to pass in the method
+                ' context, however, because any method type parameters will belong to the implemented (i.e. interface) method,
+                ' which we do not yet know.
+                Dim explicitlyOverriddenMethods = New MetadataDecoder(
                         moduleSymbol,
                         _containingType).GetExplicitlyOverriddenMethods(_containingType.Handle, Me._handle, Me.ContainingType)
 
-                    'avoid allocating a builder in the common case
-                    Dim anyToRemove = False
+                'avoid allocating a builder in the common case
+                Dim anyToRemove = False
+                For Each method In explicitlyOverriddenMethods
+                    If Not method.ContainingType.IsInterface Then
+                        anyToRemove = True
+                        Exit For
+                    End If
+
+                Next
+
+                Dim explicitImplementations = explicitlyOverriddenMethods
+                If anyToRemove Then
+                    Dim explicitInterfaceImplementationsBuilder = ArrayBuilder(Of MethodSymbol).GetInstance()
                     For Each method In explicitlyOverriddenMethods
-                        If Not method.ContainingType.IsInterface Then
-                            anyToRemove = True
-                            Exit For
+                        If method.ContainingType.IsInterface Then
+                            explicitInterfaceImplementationsBuilder.Add(method)
                         End If
 
                     Next
 
-                    Dim explicitImplementations = explicitlyOverriddenMethods
-                    If anyToRemove Then
-                        Dim explicitInterfaceImplementationsBuilder = ArrayBuilder(Of MethodSymbol).GetInstance()
-                        For Each method In explicitlyOverriddenMethods
-                            If method.ContainingType.IsInterface Then
-                                explicitInterfaceImplementationsBuilder.Add(method)
-                            End If
-
-                        Next
-
-                        explicitImplementations = explicitInterfaceImplementationsBuilder.ToImmutableAndFree()
-                    End If
-
-                    ImmutableInterlocked.InterlockedCompareExchange(_lazyExplicitMethodImplementations, explicitImplementations, Nothing)
+                    explicitImplementations = explicitInterfaceImplementationsBuilder.ToImmutableAndFree()
                 End If
 
-                Return _lazyExplicitMethodImplementations
+                Return InterlockedOperations.Initialize(_lazyExplicitMethodImplementations, explicitImplementations)
             End Get
 
         End Property
@@ -909,7 +1062,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
             ' Note: m_lazyDocComment is passed ByRef
             Return PEDocumentationCommentUtils.GetDocumentationComment(
-                Me, _containingType.ContainingPEModule, preferredCulture, cancellationToken, _lazyDocComment)
+                Me, _containingType.ContainingPEModule, preferredCulture, cancellationToken, AccessUncommonFields()._lazyDocComment)
         End Function
 
         Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
@@ -919,31 +1072,79 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If _lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
+            If Not _packedFlags.IsUseSiteDiagnoticPopulated Then
                 Dim errorInfo As DiagnosticInfo = CalculateUseSiteErrorInfo()
-                EnsureTypeParametersAreLoaded()
-                Interlocked.CompareExchange(_lazyUseSiteErrorInfo, errorInfo, ErrorFactory.EmptyErrorInfo)
+                EnsureTypeParametersAreLoaded(errorInfo)
+                Return InitializeUseSiteErrorInfo(errorInfo)
             End If
 
-            Return _lazyUseSiteErrorInfo
+            Dim uncommonFields = _uncommonFields
+            If uncommonFields Is Nothing Then
+                Return Nothing
+            Else
+                Dim result = uncommonFields._lazyUseSiteErrorInfo
+                Return If(result Is ErrorFactory.EmptyErrorInfo,
+                    InterlockedOperations.Initialize(uncommonFields._lazyUseSiteErrorInfo, Nothing, ErrorFactory.EmptyErrorInfo),
+                    result)
+            End If
+        End Function
+
+        Private Function InitializeUseSiteErrorInfo(errorInfo As DiagnosticInfo) As DiagnosticInfo
+            Debug.Assert(errorInfo IsNot ErrorFactory.EmptyErrorInfo)
+            If errorInfo IsNot Nothing Then
+                errorInfo = InterlockedOperations.Initialize(AccessUncommonFields()._lazyUseSiteErrorInfo, errorInfo, ErrorFactory.EmptyErrorInfo)
+            End If
+
+            _packedFlags.SetIsUseSiteDiagnosticPopulated()
+            Return errorInfo
         End Function
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(_lazyObsoleteAttributeData, _handle, DirectCast(ContainingModule, PEModuleSymbol))
-                Return _lazyObsoleteAttributeData
+                If Not _packedFlags.IsObsoleteAttributePopulated Then
+                    Dim result = ObsoleteAttributeHelpers.GetObsoleteDataFromMetadata(_handle, DirectCast(ContainingModule, PEModuleSymbol))
+                    If result IsNot Nothing Then
+                        result = InterlockedOperations.Initialize(AccessUncommonFields()._lazyObsoleteAttributeData, result, ObsoleteAttributeData.Uninitialized)
+                    End If
+
+                    _packedFlags.SetIsObsoleteAttributePopulated()
+                    Return result
+                End If
+
+                Dim uncommonFields = _uncommonFields
+                If uncommonFields Is Nothing Then
+                    Return Nothing
+                Else
+                    Dim result = uncommonFields._lazyObsoleteAttributeData
+                    Return If(result Is ObsoleteAttributeData.Uninitialized,
+                              InterlockedOperations.Initialize(uncommonFields._lazyObsoleteAttributeData, Nothing, ObsoleteAttributeData.Uninitialized),
+                              result)
+                End If
             End Get
         End Property
 
         Friend Overrides Function GetAppliedConditionalSymbols() As ImmutableArray(Of String)
-            If Me._lazyConditionalAttributeSymbols.IsDefaultOrEmpty Then
+            If Not _packedFlags.IsConditionalPopulated Then
                 Dim moduleSymbol As PEModuleSymbol = _containingType.ContainingPEModule
                 Dim conditionalSymbols As ImmutableArray(Of String) = moduleSymbol.Module.GetConditionalAttributeValues(_handle)
                 Debug.Assert(Not conditionalSymbols.IsDefault)
-                ImmutableInterlocked.InterlockedCompareExchange(_lazyConditionalAttributeSymbols, conditionalSymbols, Nothing)
+                If Not conditionalSymbols.IsEmpty Then
+                    conditionalSymbols = InterlockedOperations.Initialize(AccessUncommonFields()._lazyConditionalAttributeSymbols, conditionalSymbols)
+                End If
+
+                _packedFlags.SetIsConditionalAttributePopulated()
+                Return conditionalSymbols
             End If
 
-            Return Me._lazyConditionalAttributeSymbols
+            Dim uncommonFields = _uncommonFields
+            If uncommonFields Is Nothing Then
+                Return ImmutableArray(Of String).Empty
+            Else
+                Dim result = uncommonFields._lazyConditionalAttributeSymbols
+                Return If(result.IsDefault,
+                    InterlockedOperations.Initialize(uncommonFields._lazyConditionalAttributeSymbols, ImmutableArray(Of String).Empty),
+                    result)
+            End If
         End Function
 
         ''' <remarks>
@@ -956,13 +1157,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Friend Overrides Function TryGetMeParameter(<Out> ByRef meParameter As ParameterSymbol) As Boolean
-            meParameter = _lazyMeParameter
-            If meParameter IsNot Nothing OrElse Me.IsShared Then
-                Return True
+            If IsShared Then
+                meParameter = Nothing
+            Else
+                meParameter = If(_uncommonFields?._lazyMeParameter, InterlockedOperations.Initialize(AccessUncommonFields()._lazyMeParameter, New MeParameterSymbol(Me)))
             End If
-
-            Interlocked.CompareExchange(_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
-            meParameter = _lazyMeParameter
             Return True
         End Function
 

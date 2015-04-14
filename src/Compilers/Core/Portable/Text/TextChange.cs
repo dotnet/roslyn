@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (newText == null)
             {
-                throw new ArgumentNullException("newText");
+                throw new ArgumentNullException(nameof(newText));
             }
 
             this.Span = span;

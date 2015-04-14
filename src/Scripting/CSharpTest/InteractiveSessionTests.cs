@@ -1526,7 +1526,8 @@ System.Console.Write(x + y);
         {
             var commandLineArguments = CSharpCommandLineParser.Interactive.Parse(
                 new[] { "/r:" + typeof(Script).Assembly.Location }, //get corlib by default
-                Directory.GetDirectoryRoot(".")); //NOTE: any absolute path will do - we're not going to use this.
+                Directory.GetDirectoryRoot("."), //NOTE: any absolute path will do - we're not going to use this.
+                RuntimeEnvironment.GetRuntimeDirectory());
             var references = commandLineArguments.ResolveMetadataReferences(new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, metadataReferenceProvider));
             return references;
         }
@@ -1944,8 +1945,8 @@ class D
             CSharpCompilation s11 = CSharpCompilation.CreateSubmission("s11", syntaxTree: SyntaxFactory.ParseSyntaxTree("a + 1", options: TestOptions.Interactive), previousSubmission: s0, references: references, returnType: typeof(object));
             CSharpCompilation s12 = CSharpCompilation.CreateSubmission("s12", syntaxTree: SyntaxFactory.ParseSyntaxTree("a + 2", options: TestOptions.Interactive), previousSubmission: s0, references: references, returnType: typeof(object));
 
-            CompileAndVerify(s11, emitOptions: TestEmitters.CCI);
-            CompileAndVerify(s12, emitOptions: TestEmitters.CCI);
+            CompileAndVerify(s11, emitters: TestEmitters.CCI);
+            CompileAndVerify(s12, emitters: TestEmitters.CCI);
         }
 
         /// <summary>

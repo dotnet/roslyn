@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         SyntaxKind.LineContinuationTrivia,
                         SyntaxKind.DocumentationCommentExteriorTrivia
 
-                    'do nothing
+                        'do nothing
                     Case Else
                         Return False
                 End Select
@@ -448,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function MakeColonToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Debug.Assert(PeekChar() = If(charIsFullWidth, FULLWIDTH_COLON, ":"c))
+            Debug.Assert(Peek() = If(charIsFullWidth, FULLWIDTH_COLON, ":"c))
             Debug.Assert(Not precedingTrivia.Any())
 
             Dim width = _endOfTerminatorTrivia - _lineBufferOffset

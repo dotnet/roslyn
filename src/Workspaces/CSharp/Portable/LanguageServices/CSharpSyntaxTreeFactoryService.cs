@@ -48,8 +48,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CSharpSyntaxNode.DeserializeFrom(stream, cancellationToken);
             }
 
+            public override bool CanCreateRecoverableTree(SyntaxNode root)
+            {
+                var cu = root as CompilationUnitSyntax;
+                return base.CanCreateRecoverableTree(root) && cu != null && cu.AttributeLists.Count == 0;
+            }
+
             public override SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding encoding, SyntaxNode root)
             {
+                System.Diagnostics.Debug.Assert(CanCreateRecoverableTree(root));
                 return RecoverableSyntaxTree.CreateRecoverableTree(this, cacheKey, filePath, options ?? GetDefaultParseOptions(), text, encoding, (CompilationUnitSyntax)root);
             }
         }

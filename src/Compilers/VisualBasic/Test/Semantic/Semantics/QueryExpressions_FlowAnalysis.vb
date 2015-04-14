@@ -210,7 +210,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
             Assert.Equal("Me, args, q, y, q1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal("y, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -261,7 +261,7 @@ End Class
             Assert.Equal("q, y, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
             Assert.Equal("Me, args, q, y, q1, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal("y, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>

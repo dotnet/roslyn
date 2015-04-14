@@ -15,6 +15,7 @@
     <RootNamespace>System.Runtime.Analyzers</RootNamespace>
     <AssemblyName>System.Runtime.Analyzers</AssemblyName>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <RestorePackages>true</RestorePackages>
@@ -50,6 +51,10 @@
     <InternalsVisibleToTest Include="System.Runtime.Analyzers.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="System.Runtime.Analyzers.Common.props">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -63,6 +68,10 @@
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.Fixer.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.cs" />
     <Compile Include="DiagnosticCategory.cs" />
+    <Compile Include="Globalization\UseOrdinalStringComparison.Fixer.cs" />
+    <Compile Include="Globalization\UseOrdinalStringComparison.cs" />
+    <Compile Include="Performance\AvoidUnsealedAttributes.cs" />
+    <Compile Include="Performance\AvoidUnsealedAttributes.Fixer.cs" />
     <Compile Include="Shared\DiagnosticExtensions.cs" />
     <Compile Include="DocumentChangeAction.cs" />
     <Compile Include="Shared\INamedTypeSymbolExtensions.cs" />

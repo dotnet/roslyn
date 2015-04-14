@@ -45,5 +45,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace));
             }
         }
+
+        protected override bool ConsiderArgumentsForComparingDiagnostics
+        {
+            get
+            {
+                // Round tripping diagnostics from DiagnosticData causes the Arguments info stored within compiler DiagnosticWithInfo to be lost, so don't compare Arguments in IDE.
+                // NOTE: We will still compare squiggled text for the diagnostics, which is also a sufficient test.
+                return false;
+            }
+        }
     }
 }

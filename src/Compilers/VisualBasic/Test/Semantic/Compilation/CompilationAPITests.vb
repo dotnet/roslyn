@@ -612,7 +612,7 @@ End Class
 </compilation>, additionalRefs:={netModule1.EmitToImageReference(), netModule2.EmitToImageReference()})
             assembly.VerifyDiagnostics()
 
-            CompileAndVerify(assembly, emitOptions:=TestEmitters.RefEmitBug)
+            CompileAndVerify(assembly, emitters:=TestEmitters.RefEmitBug)
         End Sub
 
         <WorkItem(713356, "DevDiv")>
@@ -1498,13 +1498,13 @@ End Class
         Private Class EvolvingTestReference
             Inherits PortableExecutableReference
 
-            Private ReadOnly metadataSequence As IEnumerator(Of Metadata)
+            Private ReadOnly _metadataSequence As IEnumerator(Of Metadata)
 
             Public QueryCount As Integer
 
             Public Sub New(metadataSequence As IEnumerable(Of Metadata))
                 MyBase.New(MetadataReferenceProperties.Assembly)
-                Me.metadataSequence = metadataSequence.GetEnumerator()
+                Me._metadataSequence = metadataSequence.GetEnumerator()
             End Sub
 
             Protected Overrides Function CreateDocumentationProvider() As DocumentationProvider
@@ -1513,8 +1513,8 @@ End Class
 
             Protected Overrides Function GetMetadataImpl() As Metadata
                 QueryCount = QueryCount + 1
-                metadataSequence.MoveNext()
-                Return metadataSequence.Current
+                _metadataSequence.MoveNext()
+                Return _metadataSequence.Current
             End Function
 
             Protected Overrides Function WithPropertiesImpl(properties As MetadataReferenceProperties) As PortableExecutableReference
@@ -1524,11 +1524,11 @@ End Class
 
         <Fact>
         Public Sub MetadataConsistencyWhileEvolvingCompilation()
-            Dim md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class C : End Class"}, compOptions:=TestOptions.ReleaseDll).EmitToArray())
-            Dim md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class D : End Class"}, compOptions:=TestOptions.ReleaseDll).EmitToArray())
+            Dim md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class C : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
+            Dim md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class D : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
             Dim reference = New EvolvingTestReference({md1, md2})
 
-            Dim c1 = CreateCompilationWithMscorlib({"Public Class Main : Public Shared C As C : End Class"}, {reference, reference}, compOptions:=TestOptions.ReleaseDll)
+            Dim c1 = CreateCompilationWithMscorlib({"Public Class Main : Public Shared C As C : End Class"}, {reference, reference}, options:=TestOptions.ReleaseDll)
             Dim c2 = c1.WithAssemblyName("c2")
             Dim c3 = c2.AddSyntaxTrees(Parse("Public Class Main2 : Public Shared A As Integer : End Class"))
             Dim c4 = c3.WithOptions(New VisualBasicCompilationOptions(OutputKind.NetModule))
@@ -1556,9 +1556,9 @@ End Class
                     Dim c = VisualBasicCompilation.Create("Foo", references:={MscorlibRef, mdModule.GetReference(display:="ModuleCS00")}, options:=TestOptions.ReleaseDll)
                     c.VerifyDiagnostics(Diagnostic(ERRID.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage).WithArguments("ModuleCS00").WithLocation(1, 1))
                 End Using
-                Finally
+            Finally
                 pinnedPEImage.Free()
-                End Try
+            End Try
         End Sub
 
         <Fact>
@@ -1705,7 +1705,7 @@ End Namespace
     <file id=""3"" name=""Baz.vb"" language=""3a12d0b8-c26c-11d0-b442-00a0244a1dd2"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" & checksum4 & """ />
 </files>"
 
-            AssertXmlEqual(expected, actual)
+            AssertXml.Equal(expected, actual)
         End Sub
 
         <Fact>

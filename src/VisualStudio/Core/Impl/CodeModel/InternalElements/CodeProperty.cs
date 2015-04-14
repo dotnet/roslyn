@@ -70,9 +70,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return this.Attributes;
         }
 
-        internal override ImmutableArray<IParameterSymbol> GetParameters()
+        internal override ImmutableArray<SyntaxNode> GetParameters()
         {
-            return PropertySymbol.Parameters;
+            return ImmutableArray.CreateRange(CodeModelService.GetParameterNodes(LookupNode()));
         }
 
         protected override object GetExtenderNames()

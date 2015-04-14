@@ -3,10 +3,12 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Evaluation;
+using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1195,6 +1197,94 @@ class B
   IL_0010:  ret
 }");
             }
+        }
+
+        [WorkItem(1140387, "DevDiv")]
+        [Fact]
+        public void ReturnValueOfPointerType()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+
+            ResultProperties resultProperties;
+            string error;
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+            var testData = new CompilationTestData();
+            var result = context.CompileExpression(
+                InspectionContextFactory.Empty.Add("$ReturnValue", typeof(int*)),
+                "$ReturnValue",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData);
+            Assert.Empty(missingAssemblyIdentities);
+            var methodData = testData.GetMethodData("<>x.<>m0");
+            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtType.SpecialType);
+            methodData.VerifyIL(
+@"{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(int)""
+  IL_0006:  unbox.any  ""System.IntPtr""
+  IL_000b:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
+  IL_0010:  ret
+}");
+        }
+
+        [WorkItem(1140387, "DevDiv")]
+        [Fact]
+        public void UserVariableOfPointerType()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+
+            ResultProperties resultProperties;
+            string error;
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+            var testData = new CompilationTestData();
+            var result = context.CompileExpression(
+                InspectionContextFactory.Empty.Add("p", typeof(char*)),
+                "p",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData);
+            Assert.Empty(missingAssemblyIdentities);
+            var methodData = testData.GetMethodData("<>x.<>m0");
+            Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtType.SpecialType);
+            methodData.VerifyIL(
+@"{
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  ldstr      ""p""
+  IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
+  IL_000a:  unbox.any  ""System.IntPtr""
+  IL_000f:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
+  IL_0014:  ret
+}");
         }
     }
 }

@@ -191,6 +191,11 @@ namespace Microsoft.CodeAnalysis
                 container = SubstituteWithUnboundIfGeneric(container);
             }
 
+            for (int i = 0; i < fullName.PointerCount; i++)
+            {
+                container = MakePointerTypeSymbol(container, ImmutableArray<ModifierInfo<TypeSymbol>>.Empty);
+            }
+
             // Process any array type ranks
             if (fullName.ArrayRanks != null)
             {

@@ -59,6 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                         cbKey = nameIndexKey.Length,
                         grbit = CreateIndexGrbit.IndexUnique | CreateIndexGrbit.IndexDisallowNull | VistaGrbits.IndexDisallowTruncation,
                         ulDensity = 80,
+                        // this should be 2000 bytes Max after vista
                         cbKeyMost = SystemParameters.KeyMost
                     }
                 };

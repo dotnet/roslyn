@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (line < 0)
             {
-                throw new ArgumentOutOfRangeException("line");
+                throw new ArgumentOutOfRangeException(nameof(line));
             }
 
             if (character < 0)
             {
-                throw new ArgumentOutOfRangeException("character");
+                throw new ArgumentOutOfRangeException(nameof(character));
             }
 
             _line = line;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (character < 0)
             {
-                throw new ArgumentOutOfRangeException("character");
+                throw new ArgumentOutOfRangeException(nameof(character));
             }
 
             _line = -1;

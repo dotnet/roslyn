@@ -230,6 +230,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_CompileCancelled As Integer
+            Get
+                ' TODO: Add an error code for CompileCancelled
+                Return ERRID.ERR_None
+            End Get
+        End Property
+
         ' compilation options:
 
         Public Overrides ReadOnly Property ERR_BadCompilationOptionValue As Integer

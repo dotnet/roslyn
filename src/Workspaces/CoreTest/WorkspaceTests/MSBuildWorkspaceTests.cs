@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -312,6 +313,49 @@ class C1
 
             var project = MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
             Assert.NotEmpty(project.OutputFilePath);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_CSharp_WithoutCSharpTargetsImported_Succeeds()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject_WithoutCSharpTargetsImported.csproj")));
+
+            var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
+            var project = solution.Projects.First();
+            var documents = project.Documents.ToList();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_CSharp_WithoutCSharpTargetsImported_DocumentsArePickedUp()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject_WithoutCSharpTargetsImported.csproj")));
+
+            var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
+            var project = solution.Projects.First();
+            Assert.True(project.Documents.ToList().Any());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_VisualBasic_WithoutVBTargetsImported_Succeeds()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_WithoutVBTargetsImported.vbproj")));
+
+            var project = MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
+            var documents = project.Documents.ToList();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_VisualBasic_WithoutVBTargetsImported_DocumentsArePickedUp()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_WithoutVBTargetsImported.vbproj")));
+
+            var project = MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
+            var documents = project.Documents.ToList();
+            Assert.True(project.Documents.ToList().Any());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -628,7 +672,7 @@ class C1
         }
 
         [WorkItem(985906)]
-        [Fact(Skip = "Issue #317"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void HandleSolutionProjectTypeSolutionFolder()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -2492,7 +2536,7 @@ class C { }";
                 var project = solution.Projects.First();
 
                 var myAnalyzerPath = GetSolutionFileName(@"Analyzers\MyAnalyzer.dll");
-                var aref = new AnalyzerFileReference(myAnalyzerPath);
+                var aref = new AnalyzerFileReference(myAnalyzerPath, p => Assembly.Load(File.ReadAllBytes(p)));
 
                 // add reference to MyAnalyzer.dll
                 ws.TryApplyChanges(project.AddAnalyzerReference(aref).Solution);
