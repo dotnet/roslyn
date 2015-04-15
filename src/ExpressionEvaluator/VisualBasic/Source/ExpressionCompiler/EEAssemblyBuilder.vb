@@ -60,6 +60,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return MyBase.TranslateModule(symbol, diagnostics)
         End Function
 
+        Friend Overrides ReadOnly Property IgnoreAccessibility As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
             Get
                 Return 0
