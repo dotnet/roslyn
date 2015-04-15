@@ -1405,7 +1405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                   Optional attributes As SyntaxList(Of AttributeListSyntax) = Nothing,
                   Optional modifiers As SyntaxList(Of KeywordSyntax) = Nothing
         ) As EnumStatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.EnumKeyword, NameOf(ParseEnumStatement) & " called on the wrong token.")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.EnumKeyword, "ParseEnumStatement called on the wrong token.")
 
             Dim enumKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             Dim optionalUnderlyingType As AsClauseSyntax = Nothing
@@ -1625,7 +1625,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseNamespaceStatement(Attributes As SyntaxList(Of AttributeListSyntax), Specifiers As SyntaxList(Of KeywordSyntax)) As NamespaceStatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.NamespaceKeyword, NameOf(ParseNamespaceStatement) & " called on the wrong token.")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.NamespaceKeyword, "ParseNamespaceStatement called on the wrong token.")
 
             Dim namespaceKeyword As KeywordSyntax = ReportModifiersOnStatementError(ERRID.ERR_SpecifiersInvalidOnInheritsImplOpt, Attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
 
@@ -1658,7 +1658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseEndStatement() As StatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.EndKeyword, NameOf(ParseEndStatement) & " called on wrong token.")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.EndKeyword, "ParseEndStatement called on wrong token.")
 
             ' Dev10#708061
             ' "End" is a keyword which takes an optional next argument. Things get confusing with "End Select"...
@@ -1695,7 +1695,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 5054 - 5054
         ' .Parser::ParseGroupEndStatement( [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseGroupEndStatement() As StatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.EndKeyword, NameOf(ParseGroupEndStatement) & " called on wrong token.")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.EndKeyword, "ParseGroupEndStatement called on wrong token.")
 
             Dim endKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             Dim nextToken = PeekToken(1)
@@ -2414,7 +2414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <returns>ObjectMemberInitializer</returns>
         Private Function ParseObjectInitializerList(Optional anonymousTypeInitializer As Boolean = False, Optional anonymousTypesAllowedHere As Boolean = True) As ObjectMemberInitializerSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.WithKeyword, NameOf(ParseObjectInitializerList) & " called with wrong token")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.WithKeyword, "ParseObjectInitializerList called with wrong token")
 
             ' Handle the "With" clause in the following syntax:
             '  Dim x as new Customer With {.Id = 1, .Name = "A"}
@@ -3560,7 +3560,7 @@ checkNullable:
 
             Debug.Assert(kind = SyntaxKind.SubStatement OrElse
                          kind = SyntaxKind.SubNewStatement OrElse
-                         kind = SyntaxKind.DelegateSubStatement, "Wrong kind passed to " & NameOf(ParseSubOrDelegateStatement))
+                         kind = SyntaxKind.DelegateSubStatement, "Wrong kind passed to ParseSubOrDelegateStatement")
 
             'The current token is on the Sub or Delegate's name
 
@@ -3700,7 +3700,7 @@ checkNullable:
 
             Debug.Assert(
                 kind = SyntaxKind.FunctionStatement OrElse
-                kind = SyntaxKind.DelegateFunctionStatement, "Wrong kind passed to " & NameOf(ParseFunctionOrDelegateStatement))
+                kind = SyntaxKind.DelegateFunctionStatement, "Wrong kind passed to ParseFunctionOrDelegateStatement")
 
             'TODO - davidsch Can ParseFunctionOrDelegateDeclaration and
             'ParseSubOrDelegateDeclaration share more code? They are nearly the same.
@@ -3977,7 +3977,7 @@ checkNullable:
             modifiers As SyntaxList(Of KeywordSyntax)
         ) As PropertyStatementSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.PropertyKeyword, NameOf(ParsePropertyDefinition) & " called on the wrong token.")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.PropertyKeyword, "ParsePropertyDefinition called on the wrong token.")
 
             Dim propertyKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken() ' get off PROPERTY
@@ -4084,7 +4084,7 @@ checkNullable:
             modifiers As SyntaxList(Of KeywordSyntax)
         ) As DelegateStatementSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.DelegateKeyword, NameOf(ParseDelegateStatement) & " called on the wrong token.")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.DelegateKeyword, "ParseDelegateStatement called on the wrong token.")
 
             Dim delegateKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
 
@@ -4736,7 +4736,7 @@ checkNullable:
         Private Function ParseInheritsImplementsStatement(Attributes As SyntaxList(Of AttributeListSyntax), Specifiers As SyntaxList(Of KeywordSyntax)) As InheritsOrImplementsStatementSyntax
 
             Debug.Assert(CurrentToken.Kind = SyntaxKind.InheritsKeyword OrElse CurrentToken.Kind = SyntaxKind.ImplementsKeyword,
-                NameOf(ParseInheritsImplementsStatement) & " called on the wrong token.")
+                "ParseInheritsImplementsStatement called on the wrong token.")
 
             Dim keyword As KeywordSyntax = ReportModifiersOnStatementError(Attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
             Dim typeNames = Me._pool.AllocateSeparated(Of TypeSyntax)()
@@ -4902,7 +4902,7 @@ checkNullable:
         ' ForeignMethodDeclarationStatement* .Parser::ParseProcDeclareStatement( [ ParseTree::AttributeSpecifierList* Attributes ] [ ParseTree::SpecifierList* Specifiers ] [ _In_ Token* Start ] [ _Inout_ bool& ErrorInConstruct ] )
 
         Private Function ParseProcDeclareStatement(attributes As SyntaxList(Of AttributeListSyntax), modifiers As SyntaxList(Of KeywordSyntax)) As DeclareStatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.DeclareKeyword, NameOf(ParseProcDeclareStatement) & " called on wrong token. Must be at a Declare.")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.DeclareKeyword, "ParseProcDeclareStatement called on wrong token. Must be at a Declare.")
 
             ' Dev10_667800 we are parsing a method declaration and will need to let the scanner know that we
             ' are so the scanner can correctly identify attributes vs. xml while scanning the declaration.
@@ -5214,7 +5214,7 @@ checkNullable:
                 modifiers As SyntaxList(Of KeywordSyntax)
             ) As EventStatementSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.EventKeyword, NameOf(ParseEventDefinition) & " called on the wrong token.")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.EventKeyword, "ParseEventDefinition called on the wrong token.")
 
             Dim eventKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
 
@@ -5335,7 +5335,7 @@ checkNullable:
 
         ' TODO: this function is so complex (n^2 loop?) it times out in CC verifier.
         Private Function ParseAttributeLists(allowFileLevelAttributes As Boolean) As SyntaxList(Of AttributeListSyntax)
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanToken, NameOf(ParseAttributeLists) & " called on the wrong token.")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanToken, "ParseAttributeSpecifier called on the wrong token.")
 
             Dim attributeBlocks = _pool.Allocate(Of AttributeListSyntax)()
             Dim attributes = _pool.AllocateSeparated(Of AttributeSyntax)()
