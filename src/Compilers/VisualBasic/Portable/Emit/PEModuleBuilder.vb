@@ -302,7 +302,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         ''' <summary>
         ''' Ignore accessibility when resolving well-known type
-        ''' members, in particular for generic type arguments.
+        ''' members, in particular for generic type arguments
+        ''' (e.g.: binding to internal types in the EE).
         ''' </summary>
         Friend Overridable ReadOnly Property IgnoreAccessibility As Boolean
             Get

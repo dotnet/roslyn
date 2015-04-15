@@ -326,7 +326,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         /// <summary>
         /// Ignore accessibility when resolving well-known type
-        /// members, in particular for generic type arguments.
+        /// members, in particular for generic type arguments
+        /// (e.g.: binding to internal types in the EE).
         /// </summary>
         internal virtual bool IgnoreAccessibility
         {
