@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // if ToolTask didn't override. MSBuild uses the process directory.
             string workingDirectory = GetWorkingDirectory();
             if (string.IsNullOrEmpty(workingDirectory))
-                workingDirectory = Environment.CurrentDirectory;
+                workingDirectory = Directory.GetCurrentDirectory();
             return workingDirectory;
         }
 

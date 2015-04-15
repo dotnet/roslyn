@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function GetMatchingStartOrEndDirective(directive As DirectiveTriviaSyntax,
                                                        cancellationToken As CancellationToken) As DirectiveTriviaSyntax
             If directive Is Nothing Then
-                Throw New ArgumentNullException("directive")
+                Throw New ArgumentNullException(NameOf(directive))
             End If
 
             If directive.Kind = SyntaxKind.ElseIfDirectiveTrivia OrElse directive.Kind = SyntaxKind.ElseDirectiveTrivia Then
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function GetMatchingConditionalDirectives(directive As DirectiveTriviaSyntax,
                                                          cancellationToken As CancellationToken) As IEnumerable(Of DirectiveTriviaSyntax)
             If directive Is Nothing Then
-                Throw New ArgumentNullException("directive")
+                Throw New ArgumentNullException(NameOf(directive))
             End If
 
             Dim result As IEnumerable(Of DirectiveTriviaSyntax) = Nothing

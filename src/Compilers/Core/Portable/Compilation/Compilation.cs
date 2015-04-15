@@ -1530,7 +1530,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(peStreamProvider != null);
 
-            DiagnosticBag diagnostics = new DiagnosticBag();
+            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
             if (options != null)
             {
                 options.ValidateOptions(diagnostics, this.MessageProvider);

@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis
         internal const int Failed = 1;
         internal const int Succeeded = 0;
 
+        private readonly string _clientDirectory;
+
         public CommonMessageProvider MessageProvider { get; private set; }
         public CommandLineArguments Arguments { get; private set; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
@@ -35,20 +37,18 @@ namespace Microsoft.CodeAnalysis
         public abstract void PrintLogo(TextWriter consoleOutput);
         public abstract void PrintHelp(TextWriter consoleOutput);
         internal abstract string GetToolName();
-        internal abstract Version GetAssemblyVersion();
-        internal abstract string GetAssemblyFileVersion();
 
         protected abstract uint GetSqmAppID();
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
         protected abstract void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession);
         protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles);
 
-        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
+        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
         {
             IEnumerable<string> allArgs = args;
+            _clientDirectory = clientDirectory;
 
             Debug.Assert(null == responseFile || PathUtilities.IsAbsolute(responseFile));
-
             if (!SuppressDefaultResponseFile(args) && File.Exists(responseFile))
             {
                 allArgs = new[] { "@" + responseFile }.Concat(allArgs);
@@ -61,6 +61,23 @@ namespace Microsoft.CodeAnalysis
         internal abstract bool SuppressDefaultResponseFile(IEnumerable<string> args);
 
         public abstract Assembly LoadAssembly(string fullPath);
+
+        internal string GetAssemblyFileVersion()
+        {
+            if (_clientDirectory != null)
+            {
+                var name = $"{typeof(CommonCompiler).GetTypeInfo().Assembly.GetName().Name}.dll";
+                var filePath = Path.Combine(_clientDirectory, name);
+                return FileVersionInfo.GetVersionInfo(filePath).FileVersion;
+            }
+
+            return "";
+        }
+
+        internal Version GetAssemblyVersion()
+        {
+            return typeof(CommonCompiler).GetTypeInfo().Assembly.GetName().Version;
+        }
 
         internal virtual MetadataFileReferenceProvider GetMetadataProvider()
         {
@@ -537,16 +554,14 @@ namespace Microsoft.CodeAnalysis
                 uint sqmSession = 0u;
                 try
                 {
-                    sqm = SqmServiceProvider.TryGetSqmService();
+                    sqm = SqmServiceProvider.TryGetSqmService(_clientDirectory);
                     if (sqm != null)
                     {
                         sqm.BeginSession(this.GetSqmAppID(), false, out sqmSession);
                         sqm.SetGlobalSessionGuid(Arguments.SqmSessionGuid);
 
                         // Build Version
-                        Assembly thisAssembly = typeof(CommonCompiler).Assembly;
-                        var fileVersion = FileVersionInfo.GetVersionInfo(thisAssembly.Location).FileVersion;
-                        sqm.SetStringDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_BUILDVERSION, fileVersion);
+                        sqm.SetStringDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_BUILDVERSION, GetAssemblyFileVersion());
 
                         // Write Errors and Warnings from build
                         foreach (var diagnostic in diagnostics)

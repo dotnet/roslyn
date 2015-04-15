@@ -181,6 +181,7 @@
     <Compile Include="Binding\ForOrForEachBlockBinder.vb" />
     <Compile Include="Binding\ForEachEnumeratorInfo.vb" />
     <Compile Include="Binding\GetTypeBinder.vb" />
+    <Compile Include="Binding\IgnoreAccessibilityBinder.vb" />
     <Compile Include="Binding\IgnoreBaseClassesBinder.vb" />
     <Compile Include="Binding\ImplicitVariableBinder.vb" />
     <Compile Include="Binding\ImportAliasesBinder.vb" />
@@ -970,9 +971,7 @@
     <Compile Include="Compilation\ModuleCompilationState.vb" />
     <PublicAPI Include="PublicAPI.txt" />
     <Content Include="Symbols\SymbolsAndNoPia.docx" />
-    <ErrorCode Include="Errors\Errors.vb">
-      <Visible>false</Visible>
-    </ErrorCode>
+    <ErrorCode Include="Errors\Errors.vb" />
     <SyntaxDefinition Include="Syntax\Syntax.xml">
       <SubType>Designer</SubType>
     </SyntaxDefinition>

@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (constantValue != null)
             {
                 TypeSymbol type = node.Type;
-                if (((object)type == null || !type.IsNullableType()))
+                if (type?.IsNullableType() != true)
                 {
                     return MakeLiteral(node.Syntax, constantValue, type);
                 }

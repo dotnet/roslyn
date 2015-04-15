@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     cancellationToken As CancellationToken) As TDeclarationNode
 
             If target.HasValue AndAlso Not target.Value.IsValidAttributeTarget() Then
-                Throw New ArgumentException("target")
+                Throw New ArgumentException(NameOf(target))
             End If
 
             Dim attributeSyntaxList = AttributeGenerator.GenerateAttributeBlocks(attributes.ToImmutableArray(), options, target)
@@ -326,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function RemoveAttribute(Of TDeclarationNode As SyntaxNode)(destination As TDeclarationNode, attributeToRemove As AttributeData, options As CodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
             If attributeToRemove.ApplicationSyntaxReference Is Nothing Then
-                Throw New ArgumentException("attributeToRemove")
+                Throw New ArgumentException(NameOf(attributeToRemove))
             End If
 
             Dim attributeSyntaxToRemove = attributeToRemove.ApplicationSyntaxReference.GetSyntax(cancellationToken)
@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function RemoveAttribute(Of TDeclarationNode As SyntaxNode)(destination As TDeclarationNode, attributeToRemove As SyntaxNode, options As CodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
             If attributeToRemove Is Nothing Then
-                Throw New ArgumentException("attributeToRemove")
+                Throw New ArgumentException(NameOf(attributeToRemove))
             End If
 
             ' Removed node could be AttributeSyntax or AttributeListSyntax.

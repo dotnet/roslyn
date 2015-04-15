@@ -50,6 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     case SyntaxKind.ConstructorDeclaration:
                     case SyntaxKind.DestructorDeclaration:
                     case SyntaxKind.OperatorDeclaration:
+                    case SyntaxKind.ConversionOperatorDeclaration:
                         return GetStartPoint(text, (BaseMethodDeclarationSyntax)node, part);
                     case SyntaxKind.PropertyDeclaration:
                     case SyntaxKind.IndexerDeclaration:
@@ -95,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     case SyntaxKind.ConstructorDeclaration:
                     case SyntaxKind.DestructorDeclaration:
                     case SyntaxKind.OperatorDeclaration:
+                    case SyntaxKind.ConversionOperatorDeclaration:
                         return GetEndPoint(text, (BaseMethodDeclarationSyntax)node, part);
                     case SyntaxKind.PropertyDeclaration:
                     case SyntaxKind.IndexerDeclaration:
