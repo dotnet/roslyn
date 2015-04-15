@@ -57,8 +57,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CodeAnalysisDesktopResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="AssemblyPortabilityPolicy.cs" />
-    <Compile Include="AssemblyVersion.cs" />
     <Compile Include="CommandLine\CommandLineReference.cs" />
     <Compile Include="CommandLine\CommandLineSourceFile.cs" />
     <Compile Include="CommandLine\CommonCommandLineArguments.cs" />
@@ -80,13 +78,12 @@
     <Compile Include="CommandLine\TouchedFileLogger.cs" />
     <Compile Include="CompilerPathUtilities.cs" />
     <Compile Include="FileSystemExtensions.cs" />
-    <Compile Include="DesktopAssemblyIdentityComparer.cs" />
-    <Compile Include="DesktopAssemblyIdentityComparer.Fx.cs" />
     <Compile Include="DesktopStrongNameProvider.cs" />
     <Compile Include="CommandLineAnalyzerReference.cs" />
     <Compile Include="EncodedStringText.cs" />
     <Compile Include="FileKey.cs" />
     <Compile Include="FileUtilities.cs" />
+    <Compile Include="Forwarders.cs" />
     <Compile Include="Interop\ClrStrongName.cs" />
     <Compile Include="Interop\IClrMetaHost.cs" />
     <Compile Include="Interop\IClrRuntimeInfo.cs" />
