@@ -772,7 +772,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Else
                 Dim s = (leftValue < 0 AndAlso rightValue < 0) OrElse (leftValue > 0 AndAlso rightValue > 0)
-                If (ResultValue <= 0 AndAlso s) OrElse (ResultValue <= 0 AndAlso s) OrElse
+                If (ResultValue <= 0 AndAlso s) OrElse (ResultValue >= 0 AndAlso s) OrElse
                    (rightValue <> 0 AndAlso ResultValue / rightValue <> leftValue) Then
 
                     integerOverflow = True
