@@ -32,20 +32,10 @@ namespace Microsoft.CodeAnalysis
 
         private bool _hookedAssemblyResolve = false;
 
-        /////// <summary>
-        /////// Creates a new instance of <see cref="SimpleAnalyzerAssemblyLoader"/>.
-        /////// </summary>
-        /////// <param name="analyzerPaths">Paths to consider when loading assemblies.</param>
-        ////public SimpleAnalyzerAssemblyLoader(IEnumerable<string> analyzerPaths)
-        ////{
-        ////    if (analyzerPaths == null)
-        ////    {
-        ////        throw new ArgumentNullException(nameof(analyzerPaths));
-        ////    }
-
-        ////    _dependencyPaths = ImmutableArray.CreateRange(analyzerPaths);
-        ////}
-
+        /// <summary>
+        /// Add the path to an assembly to be considered while handling the
+        /// <see cref="AppDomain.AssemblyResolve"/> event.
+        /// </summary>
         public void AddDependencyLocation(string fullPath)
         {
             if (fullPath == null)
