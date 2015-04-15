@@ -97,8 +97,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void Decode_NonUtf8()
         {
             var utf8 = new UTF8Encoding(false, true);
-            var text = "abc def baz aeiouy " + Encoding.Default.GetString(new byte[] { 0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF });
-            var bytes = Encoding.Default.GetBytesWithPreamble(text);
+            var encoding = Encoding.GetEncoding(name: "Latin1");
+            var text = "abc def baz aeiouy " + encoding.GetString(new byte[] { 0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF });
+            var bytes = encoding.GetBytesWithPreamble(text);
 
             // Encoding.Default should not decode to UTF-8
             using (var stream = new MemoryStream(bytes))
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 var sourceText = EncodedStringText.Create(stream);
                 Assert.Equal(text, sourceText.ToString());
-                Assert.Equal(Encoding.Default, sourceText.Encoding);
+                Assert.Equal(encoding, sourceText.Encoding);
                 Assert.True(stream.CanRead);
             }
         }

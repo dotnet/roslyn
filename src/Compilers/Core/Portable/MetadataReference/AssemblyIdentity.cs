@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis
                 result.Add(hash[l - i]);
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndFree();
         }
 
         /// <summary>

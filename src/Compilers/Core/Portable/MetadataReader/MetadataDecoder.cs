@@ -326,7 +326,8 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                throw new UnsupportedSignatureContent();
+                isNoPiaLocalType = false;
+                typeSymbol = GetTypeOfTypeSpec((TypeSpecificationHandle)token);
             }
 
             Debug.Assert(typeSymbol != null);
@@ -683,35 +684,43 @@ namespace Microsoft.CodeAnalysis
 
             var locals = ArrayBuilder<LocalInfo<TypeSymbol>>.GetInstance(localCount);
             var offsets = ArrayBuilder<int>.GetInstance(localCount);
-            for (int i = 0; i < localCount; i++)
+            try
             {
-                offsets.Add(signatureReader.Offset);
-                locals.Add(DecodeLocalVariableOrThrow(ref signatureReader));
-            }
-
-            if (signatureReader.RemainingBytes > 0)
-            {
-                throw new UnsupportedSignatureContent();
-            }
-
-            // Include signatures with each local.
-            signatureReader.Reset();
-            for (int i = 0; i < localCount; i++)
-            {
-                int start = offsets[i];
-                Debug.Assert(signatureReader.Offset <= start);
-                while (signatureReader.Offset < start)
+                for (int i = 0; i < localCount; i++)
                 {
-                    signatureReader.ReadByte();
+                    offsets.Add(signatureReader.Offset);
+                    locals.Add(DecodeLocalVariableOrThrow(ref signatureReader));
                 }
 
-                int n = (i < localCount - 1) ? (offsets[i + 1] - start) : signatureReader.RemainingBytes;
-                var signature = signatureReader.ReadBytes(n);
+                if (signatureReader.RemainingBytes > 0)
+                {
+                    throw new UnsupportedSignatureContent();
+                }
 
-                locals[i] = locals[i].WithSignature(signature);
+                // Include signatures with each local.
+                signatureReader.Reset();
+                for (int i = 0; i < localCount; i++)
+                {
+                    int start = offsets[i];
+                    Debug.Assert(signatureReader.Offset <= start);
+                    while (signatureReader.Offset < start)
+                    {
+                        signatureReader.ReadByte();
+                    }
+
+                    int n = (i < localCount - 1) ? (offsets[i + 1] - start) : signatureReader.RemainingBytes;
+                    var signature = signatureReader.ReadBytes(n);
+
+                    locals[i] = locals[i].WithSignature(signature);
+                }
+
+                return locals.ToImmutable();
             }
-
-            return locals.ToImmutableAndFree();
+            finally
+            {
+                offsets.Free();
+                locals.Free();
+            }
         }
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded local variable type is invalid.</exception>

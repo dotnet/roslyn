@@ -37,28 +37,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             ' Because the VB project system lacks these hooks, we simulate the same operations that those hooks perform.
             Dim document = _project.GetCurrentDocumentFromPath(fileName)
             If document Is Nothing Then
-                Throw New ArgumentException("fileName")
+                Throw New ArgumentException(NameOf(fileName))
             End If
 
             Dim itemId = document.GetItemId()
             If itemId = VSConstants.VSITEMID.Nil Then
-                Throw New ArgumentException("fileName")
+                Throw New ArgumentException(NameOf(fileName))
                 Return Nothing
             End If
 
             Dim pvar As Object = Nothing
             If ErrorHandler.Failed(_project.Hierarchy.GetProperty(itemId, __VSHPROPID.VSHPROPID_ExtObject, pvar)) Then
-                Throw New ArgumentException("fileName")
+                Throw New ArgumentException(NameOf(fileName))
             End If
 
             Dim projectItem = TryCast(pvar, EnvDTE.ProjectItem)
             If projectItem Is Nothing Then
-                Throw New ArgumentException("fileName")
+                Throw New ArgumentException(NameOf(fileName))
             End If
 
             Dim fileCodeModel As EnvDTE.FileCodeModel = Nothing
             If ErrorHandler.Failed(_project.CreateFileCodeModel(projectItem.ContainingProject, projectItem, fileCodeModel)) Then
-                Throw New ArgumentException("fileName")
+                Throw New ArgumentException(NameOf(fileName))
             End If
 
             Return fileCodeModel

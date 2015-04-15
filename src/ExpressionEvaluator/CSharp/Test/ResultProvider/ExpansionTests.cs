@@ -6,10 +6,12 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
+using Microsoft.VisualStudio.Debugger.Symbols;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2124,52 +2126,68 @@ class D : C
         }
 
         /// <summary>
-        /// Do not copy state from parent for base or derived items.
+        /// Do not copy state from parent.
         /// </summary>
         [WorkItem(1028624)]
-        [Fact(Skip = "1028624")]
+        [Fact]
         public void DoNotCopyParentState()
         {
-            var source =
-@"class E : System.Exception
+            var sourceA =
+@"public class A
 {
-}
-public class A
-{
-}
-class B : A
-{
-    protected class C : B
-    {
-        private B F = new B();
-        protected A G = new B();
-        internal virtual B P { get { return new B(); } }
-        protected object Q { get { throw new E(); } }
-    }
+    public static object F = 1;
+    internal object G = 2;
 }";
-            var assembly = GetAssembly(source);
-            var type = assembly.GetType("B+C");
-            var value = CreateDkmClrValue(
-                Activator.CreateInstance(type),
-                alias: "1",
-                evalFlags: DkmEvaluationResultFlags.UnflushedSideEffects | DkmEvaluationResultFlags.HasObjectId | DkmEvaluationResultFlags.CanHaveObjectId);
-            var evalResult = FormatResult("o", value, new DkmClrType((TypeImpl)type.BaseType));
-            Verify(evalResult,
-                EvalResult("o", "{B.C} {$1}", "B {B.C}", "o", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.UnflushedSideEffects | DkmEvaluationResultFlags.HasObjectId | DkmEvaluationResultFlags.CanHaveObjectId));
-            var children = GetChildren(evalResult);
-            Verify(children,
-                EvalResult("[B.C]", "{B.C} {$1}", "B.C", "(B.C)o", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.HasObjectId, DkmEvaluationResultCategory.Data),
-                EvalResult("base", "{B.C} {$1}", "A {B.C}", "(A)o", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.HasObjectId, DkmEvaluationResultCategory.Data));
-            children = GetChildren(children[0]);
-            Verify(children,
-                EvalResult("base", "{B.C} {$1}", "B {B.C}", "(B)o", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.HasObjectId, DkmEvaluationResultCategory.Data),
-                EvalResult("F", "{B}", "B", "((B.C)o).F", DkmEvaluationResultFlags.Expandable),
-                EvalResult("G", "{B}", "A {B}", "((B.C)o).G", DkmEvaluationResultFlags.Expandable),
-                EvalResult("P", "{B}", "B", "((B.C)o).P", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("Q", "'((B.C)o).Q' threw an exception of type 'E'", "object {E}", "((B.C)o).Q", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown));
+            var sourceB =
+@"class B
+{
+    private A _1 = new A();
+    protected A _2 = new A();
+    internal A _3 = new A();
+    public A _4 = new A();
+}";
+            var compilationA = CSharpTestBase.CreateCompilationWithMscorlib(sourceA, options: TestOptions.ReleaseDll);
+            var bytesA = compilationA.EmitToArray();
+            var referenceA = MetadataReference.CreateFromImage(bytesA);
 
-            // Also need to check Access, StorageType, and TypeModifierFlags fields.
-            // ...
+            var compilationB = CSharpTestBase.CreateCompilationWithMscorlib(sourceB, options: TestOptions.DebugDll, references: new MetadataReference[] { referenceA });
+            var bytesB = compilationB.EmitToArray();
+            var assemblyA = ReflectionUtilities.Load(bytesA);
+            var assemblyB = ReflectionUtilities.Load(bytesB);
+
+            DkmClrRuntimeInstance runtime = null;
+            GetModuleDelegate getModule = (r, a) => (a == assemblyB) ? new DkmClrModuleInstance(r, a, new DkmModule(a.GetName().Name + ".dll")) : null;
+            runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(assemblyA, assemblyB), getModule: getModule);
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("B");
+                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                // Format with "Just my code".
+                var inspectionContext = CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers, runtimeInstance: runtime);
+                var evalResult = FormatResult("o", value, inspectionContext: inspectionContext);
+                var children = GetChildren(evalResult, inspectionContext: inspectionContext);
+                Verify(children,
+                    EvalResult("_1", "{A}", "A", "o._1", DkmEvaluationResultFlags.Expandable, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Private),
+                    EvalResult("_2", "{A}", "A", "o._2", DkmEvaluationResultFlags.Expandable, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Protected),
+                    EvalResult("_3", "{A}", "A", "o._3", DkmEvaluationResultFlags.Expandable, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Internal),
+                    EvalResult("_4", "{A}", "A", "o._4", DkmEvaluationResultFlags.Expandable, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Public));
+                var moreChildren = GetChildren(children[0], inspectionContext: inspectionContext);
+                Verify(moreChildren,
+                    EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class, DkmEvaluationResultAccessType.None),
+                    EvalResult("Non-Public members", null, "", "o._1, hidden", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.None));
+                moreChildren = GetChildren(children[1], inspectionContext: inspectionContext);
+                Verify(moreChildren,
+                    EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class, DkmEvaluationResultAccessType.None),
+                    EvalResult("Non-Public members", null, "", "o._2, hidden", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.None));
+                moreChildren = GetChildren(children[2], inspectionContext: inspectionContext);
+                Verify(moreChildren,
+                    EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class, DkmEvaluationResultAccessType.None),
+                    EvalResult("Non-Public members", null, "", "o._3, hidden", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.None));
+                moreChildren = GetChildren(children[3], inspectionContext: inspectionContext);
+                Verify(moreChildren,
+                    EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class, DkmEvaluationResultAccessType.None),
+                    EvalResult("Non-Public members", null, "", "o._4, hidden", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.None));
+            }
         }
 
         [WorkItem(1130978)]

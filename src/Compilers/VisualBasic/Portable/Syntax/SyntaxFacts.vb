@@ -745,7 +745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return "Finally"
 
                 Case Else
-                    Throw New ArgumentOutOfRangeException("kind")
+                    Throw New ArgumentOutOfRangeException(NameOf(kind))
             End Select
         End Function
 
