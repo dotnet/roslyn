@@ -565,8 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     slotAllocatorOpt: null,
                     compilationState: compilationState,
                     diagnostics: diagnostics,
-                    assignLocals: true,
-                    allowNonPublicTypeArguments: true);
+                    assignLocals: true);
 
                 // we don't need this information:
                 closureDebugInfoBuilder.Free();

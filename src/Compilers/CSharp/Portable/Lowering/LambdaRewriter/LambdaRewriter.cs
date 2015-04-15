@@ -79,9 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // expression evaluator where the original locals are left as is.
         private readonly bool _assignLocals;
 
-        // Allow type arguments of constructed methods to be non-public.
-        private readonly bool _allowNonPublicTypeArguments;
-
         // The current method or lambda being processed.
         private MethodSymbol _currentMethod;
 
@@ -131,8 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
-            bool assignLocals,
-            bool allowNonPublicTypeArguments)
+            bool assignLocals)
             : base(slotAllocatorOpt, compilationState, diagnostics)
         {
             Debug.Assert(analysis != null);
@@ -147,7 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _currentMethod = method;
             _analysis = analysis;
             _assignLocals = assignLocals;
-            _allowNonPublicTypeArguments = allowNonPublicTypeArguments;
             _currentTypeParameters = method.TypeParameters;
             _currentLambdaBodyTypeMap = TypeMap.Empty;
             _innermostFramePointer = _currentFrameThis = thisParameterOpt;
@@ -179,7 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="compilationState">The caller's buffer into which we produce additional methods to be emitted by the caller</param>
         /// <param name="diagnostics">Diagnostic bag for diagnostics</param>
         /// <param name="assignLocals">The rewritten tree should include assignments of the original locals to the lifted proxies</param>
-        /// <param name="allowNonPublicTypeArguments">Allow type arguments of constructed methods to be non-public</param>
         public static BoundStatement Rewrite(
             BoundStatement loweredBody,
             NamedTypeSymbol thisType,
@@ -191,8 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
-            bool assignLocals,
-            bool allowNonPublicTypeArguments)
+            bool assignLocals)
         {
             Debug.Assert((object)thisType != null);
             Debug.Assert(((object)thisParameter == null) || (thisParameter.Type == thisType));
@@ -220,8 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 slotAllocatorOpt,
                 compilationState,
                 diagnostics,
-                assignLocals,
-                allowNonPublicTypeArguments);
+                assignLocals);
 
             analysis.ComputeLambdaScopesAndFrameCaptures();
             rewriter.MakeFrames(closureDebugInfoBuilder);
@@ -999,7 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var newType = VisitType(node.Type);
                 var newBody = (BoundBlock)Visit(node.Body);
                 node = node.Update(node.Symbol, newBody, node.Diagnostics, node.Binder, newType);
-                var result0 = wasInExpressionLambda ? node : ExpressionLambdaRewriter.RewriteLambda(node, CompilationState, TypeMap, _allowNonPublicTypeArguments, Diagnostics);
+                var result0 = wasInExpressionLambda ? node : ExpressionLambdaRewriter.RewriteLambda(node, CompilationState, TypeMap, Diagnostics);
                 _inExpressionLambda = wasInExpressionLambda;
                 return result0;
             }
