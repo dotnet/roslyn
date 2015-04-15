@@ -9,6 +9,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal sealed class NativeViewExpansion : Expansion
     {
+        internal static readonly NativeViewExpansion Instance = new NativeViewExpansion();
+
+        private NativeViewExpansion()
+        {
+        }
+
         internal override void GetRows(
             ResultProvider resultProvider,
             ArrayBuilder<EvalResultDataItem> rows,

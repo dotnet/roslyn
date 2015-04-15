@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var typeArgument = _typeArguments[index];
             var formatSpecifiers = Formatter.NoFormatSpecifiers;
             return new EvalResultDataItem(
-                ExpansionKind.TypeVariables,
+                ExpansionKind.TypeVariable,
                 typeParameter.Name,
                 typeDeclaringMember: null,
                 declaredType: typeArgument,
