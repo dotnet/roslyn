@@ -21,7 +21,7 @@ do
     case $opt in
         -h|--help)
         usage
-        shift
+        exit 1
         ;;
         --mono-path)
         CUSTOM_MONO_PATH=$2
