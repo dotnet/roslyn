@@ -2216,6 +2216,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     StaticSyntaxLength,
                     InstanceSyntaxLength);
             }
+
+            public void Free()
+            {
+                NonTypeNonIndexerMembers.Free();
+                StaticInitializers.Free();
+                InstanceInitializers.Free();
+                IndexerDeclarations.Free();
+            }
         }
 
         private MembersAndInitializers BuildMembersAndInitializers(DiagnosticBag diagnostics)
@@ -2252,6 +2260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // of the data in the builder and would fail in an assertion if we tried to construct it from incomplete builder.
             if (_lazyMembersAndInitializers != null)
             {
+                builder.Free();
                 return null;
             }
 

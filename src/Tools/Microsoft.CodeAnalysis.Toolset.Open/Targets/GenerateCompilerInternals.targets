@@ -171,6 +171,12 @@
     <Delete Files="$(GeneratedBoundTree)" />
   </Target>
 
+  <ItemDefinitionGroup>
+    <ErrorCode>
+      <Visible>false</Visible>
+    </ErrorCode>
+  </ItemDefinitionGroup>
+
   <Target
     Name="GenerateErrorFacts"
     Inputs="@(ErrorCode);$(CSharpErrorFactsGeneratorToolPath);$(VBErrorFactsGeneratorToolPath)"

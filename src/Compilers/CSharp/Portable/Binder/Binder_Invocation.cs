@@ -849,6 +849,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     gotError = true;
                 }
 
+                if (!method.IsStatic)
+                {
+                    WarnOnAccessOfOffDefault(node.Kind() == SyntaxKind.InvocationExpression ?
+                                                ((InvocationExpressionSyntax)node).Expression :
+                                                node,
+                                             receiver,
+                                             diagnostics);
+                }
+
                 return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: false,
                             expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
                             argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, type: returnType, hasErrors: gotError);
