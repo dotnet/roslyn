@@ -266,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Function ResolveForwardedType(fullyQualifiedMetadataName As String) As NamedTypeSymbol
             If fullyQualifiedMetadataName Is Nothing Then
-                Throw New ArgumentNullException("fullyQualifiedMetadataName")
+                Throw New ArgumentNullException(NameOf(fullyQualifiedMetadataName))
             End If
 
             Dim emittedName = MetadataTypeName.FromFullName(fullyQualifiedMetadataName)
@@ -433,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function GetTypeByMetadataName(metadataName As String, includeReferences As Boolean, isWellKnownType As Boolean, Optional useCLSCompliantNameArityEncoding As Boolean = False) As NamedTypeSymbol
 
             If metadataName Is Nothing Then
-                Throw New ArgumentNullException("metadataName")
+                Throw New ArgumentNullException(NameOf(metadataName))
             End If
 
             Dim type As NamedTypeSymbol = Nothing

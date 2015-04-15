@@ -297,6 +297,7 @@ namespace Microsoft.Cci
                 }
             }
 
+            namesReversed.Free();
             return result.ToStringAndFree();
         }
     }

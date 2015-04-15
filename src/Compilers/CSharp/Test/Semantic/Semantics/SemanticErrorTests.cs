@@ -20816,13 +20816,7 @@ static class C
                 // (26,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T6' is null
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).GetHashCode").WithArguments("T6").WithLocation(26, 9),
                 // (28,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T6' is null
-                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).P").WithArguments("T6").WithLocation(28, 9),
-                // (31,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'object' is null
-                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(object).E").WithArguments("object").WithLocation(31, 9),
-                // (35,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
-                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T4).E").WithArguments("T4").WithLocation(35, 9),
-                // (37,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T6' is null
-                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).E").WithArguments("T6").WithLocation(37, 9));
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).P").WithArguments("T6").WithLocation(28, 9));
         }
 
         [Fact]
@@ -20892,6 +20886,31 @@ class C
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T3)[1]").WithLocation(37, 9), // Incorrect? See CS0131ERR_AssgLvalueExpected03 unit test.
                                                                                                     // (38,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T4)[1]").WithArguments("T4").WithLocation(38, 9));
+        }
+
+        [Fact]
+        public void CS1720WRN_DotOnDefault03()
+        {
+            var source =
+@"static class A
+{
+    static void Main()
+    {
+        System.Console.WriteLine(default(string).IsNull());
+    }
+
+    internal static bool IsNull(this string val)
+    {
+        return (object)val == null; 
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "True", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics(
+    // Do not report the following warning:
+    // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
+    //         System.Console.WriteLine(default(string).IsNull());
+    // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
+                );
         }
 
         [Fact]

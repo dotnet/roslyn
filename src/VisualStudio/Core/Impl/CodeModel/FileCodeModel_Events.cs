@@ -136,7 +136,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return result;
         }
 
-        private void GetElementsForCodeModelEvent(CodeModelEvent codeModelEvent, out EnvDTE.CodeElement element, out object parentElement)
+        // internal for testing
+        internal void GetElementsForCodeModelEvent(CodeModelEvent codeModelEvent, out EnvDTE.CodeElement element, out object parentElement)
         {
             parentElement = GetParentElementForCodeModelEvent(codeModelEvent);
 

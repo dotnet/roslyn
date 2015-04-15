@@ -192,10 +192,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim isProperties As Boolean = (GetType(TMember) Is GetType(PropertySymbol))
             Dim isMethods As Boolean = (GetType(TMember) Is GetType(MethodSymbol))
             If Not (isProperties OrElse isMethods) Then
-                Throw New ArgumentException("Must resolve overloads on PropertySymbol or MethodSymbol", "TMember")
+                Throw New ArgumentException("Must resolve overloads on PropertySymbol or MethodSymbol", NameOf(TMember))
             End If
             If isProperties And Not typeArguments.IsEmpty Then
-                Throw New ArgumentException(VBResources.PropertiesCanNotHaveTypeArguments, "typeArguments")
+                Throw New ArgumentException(VBResources.PropertiesCanNotHaveTypeArguments, NameOf(typeArguments))
             End If
 
             Dim boundArguments As ImmutableArray(Of BoundExpression) = Nothing
