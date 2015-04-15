@@ -3053,7 +3053,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x0", "lambda", "x1", "x0"));
         }
 
 
