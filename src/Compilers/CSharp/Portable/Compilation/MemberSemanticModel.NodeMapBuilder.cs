@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (map.ContainsKey(key))
                     {
-// below used to be #if DEBUG, but due to issue #1504 we are disabling these checks for now.
-#if BUG_1504_FIXED
+#if DEBUG
                         // It's possible that AddToMap was previously called with a subtree of root.  If this is the case,
                         // then we'll see an entry in the map.  Since the incremental binder should also have seen the
                         // pre-existing map entry, the entry in addition map should be identical.
@@ -103,15 +102,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
+#if BUG_1504_FIXED // due to issue #1504 we are disabling these checks for now.
                                 Debug.Assert(
                                     (object)existing[i] == added[i] || !(key is StatementSyntax),
                                     string.Format(
                                         CultureInfo.InvariantCulture,
                                         "(object)existing[{0}] == added[{0}] || !(key is StatementSyntax)", i));
+#else
+                                // A weakened form of the assertion until #1504 is fixed
+                                Debug.Assert(existing[i].Kind == added[i].Kind);
+#endif
                             }
                         }
 #endif
-                    }
+                            }
                     else
                     {
                         map[key] = additionMap[key];
