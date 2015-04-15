@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilation.GetDiagnostics(_cancellationToken);
 
             ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
-            return analyzerDiagnostics.AddRange(_exceptionDiagnostics);
+            return analyzerDiagnostics;
         }
 
         /// <summary>
@@ -102,6 +102,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetPartialDiagnosticsAsync(documentTree, _cancellationToken).ConfigureAwait(false);
             return compilerDiagnostics.AddRange(analyzerDiagnostics);
+        }
+
+        /// <summary>
+        /// Returns diagnostics produced for exceptions thrown by analyzer actions.
+        /// </summary>
+        public ImmutableArray<Diagnostic> GetExceptionDiagnostics()
+        {
+            return _exceptionDiagnostics.ToImmutableArrayOrEmpty();
         }
 
         /// <summary>

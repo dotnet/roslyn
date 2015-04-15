@@ -475,6 +475,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                     diagnostics = await _compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false);
                                 }
 
+                                diagnostics = diagnostics.AddRange(_compilationWithAnalyzers.GetExceptionDiagnostics());
                                 DistributeDiagnostics(diagnostics);
 
                                 // Enable the compilation and project to be collected.
