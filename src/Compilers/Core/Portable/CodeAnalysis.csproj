@@ -112,6 +112,10 @@
     <Compile Include="Collections\StaticCast.cs" />
     <Compile Include="Compilation.EmitStreamProvider.cs" />
     <Compile Include="Compilation\SymbolFilter.cs" />
+    <Compile Include="Desktop\AssemblyPortabilityPolicy.cs" />
+    <Compile Include="Desktop\AssemblyVersion.cs" />
+    <Compile Include="Desktop\DesktopAssemblyIdentityComparer.cs" />
+    <Compile Include="Desktop\DesktopAssemblyIdentityComparer.Fx.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostic\LocalizableResourceString.cs" />
