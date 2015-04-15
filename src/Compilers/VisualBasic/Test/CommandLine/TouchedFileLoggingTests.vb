@@ -167,11 +167,13 @@ End Class
                 folderList.Add(touchedDir.Path)
 
                 Dim outWriter = New StringWriter()
-                Dim cmd = New VisualBasicCompilerServer(Nothing,
+                Dim cmd = New VisualBasicCompilerServer(
                     {"/nologo",
                      "/touchedfiles:" + touchedBase,
                      source1},
+                    Nothing,
                     _baseDirectory,
+                    RuntimeEnvironment.GetRuntimeDirectory(),
                     s_libDirectory)
                 Dim expectedReads As List(Of String) = Nothing
                 Dim expectedWrites As List(Of String) = Nothing

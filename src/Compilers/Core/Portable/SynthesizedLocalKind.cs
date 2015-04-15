@@ -172,6 +172,22 @@ namespace Microsoft.CodeAnalysis
         XmlInExpressionLambda = 32,
 
         /// <summary>
+        /// Local variable that stores the result of an await expression (the awaiter object).
+        /// The variable is assigned the result of a call to await-expression.GetAwaiter() and subsequently used 
+        /// to check whether the task completed. Eventually the value is stored in an awaiter field.
+        /// 
+        /// The value assigned to the variable needs to be preserved when remapping the IL offset from old method body 
+        /// to new method body during EnC. If the awaiter expression is contained in an active statement and the 
+        /// containing MoveNext method changes the debugger finds the next sequence point that follows the await expression 
+        /// and transfers the execution to the new method version. This sequenec point is placed by the compiler at 
+        /// the immediately after the stloc instruction that stores the awaiter object to this variable.
+        /// The subsequent ldloc then restores it in the new method version.
+        /// 
+        /// (VB, C#).
+        /// </summary>
+        Awaiter = 33,
+
+        /// <summary>
         /// All values have to be less than or equal to <see cref="MaxValidValueForLocalVariableSerializedToDebugInformation"/> 
         /// (<see cref="EditAndContinueMethodDebugInformation"/>)
         /// </summary>

@@ -1137,5 +1137,27 @@ class Program
                 //         var d = new System.Action(() => (new object()));
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(new object())").WithLocation(6, 41));
         }
+
+        [WorkItem(1830, "https://github.com/dotnet/roslyn/issues/1830")]
+        [Fact]
+        public void FuncOfVoid()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+class Program
+{
+    void M1<T>(Func<T> f) {}
+    void Main(string[] args)
+    {
+        M1(() => { return System.Console.Beep(); });
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,27): error CS4029: Cannot return an expression of type 'void'
+                //         M1(() => { return System.Console.Beep(); });
+                Diagnostic(ErrorCode.ERR_CantReturnVoid, "System.Console.Beep()").WithLocation(8, 27)
+                );
+        }
     }
 }

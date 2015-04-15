@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CompilerServer;
 using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -212,9 +213,11 @@ public class C { }").Path;
 
                 filelist.Add(source1);
                 var outWriter = new StringWriter();
-                var cmd = new CSharpCompilerServer(null,
+                var cmd = new CSharpCompilerServer(
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
+                    null,
                     _baseDirectory,
+                    RuntimeEnvironment.GetRuntimeDirectory(),
                     s_libDirectory);
 
                 List<string> expectedReads;

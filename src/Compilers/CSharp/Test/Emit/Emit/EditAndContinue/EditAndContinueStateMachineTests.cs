@@ -1,26 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class EditAndContinueStateMachineTests : EditAndContinueTestBase
     {
-        [Fact(Skip = "1137300")]
+        [Fact(Skip = "1068894"), WorkItem(1137300, "DevDiv")]
         public void AddIteratorMethod()
         {
             var source0 =
@@ -223,19 +218,18 @@ class C
                     Handle(2, TableIndex.NestedClass));
             }
 
-            string actualPdb1 = PdbToXmlConverter.DeltaPdbToXml(diff1.PdbDelta, Enumerable.Range(1, 100).Select(rid => 0x06000000 | rid));
-
-            // TODO (tomat): bug in SymWriter.
-            // The PDB is missing debug info for G method. The info is written to the PDB but the native SymWriter 
-            // seems to ignore it. If another method is added to the class all information is written. 
-            // This happens regardless of whether we emit just the delta or full PDB.
-
-            string expectedPdb1 = @"
+            diff1.VerifyPdb(Enumerable.Range(0x06000001, 0x20), @"
 <symbols>
   <files>
     <file id=""1"" name=""a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""6E, 19, 36, 2B, 9A, 28, AB, E3, A2, DA, EB, 51, C1, 37,  1, 10, B0, 4F, CA, 84, "" />
   </files>
   <methods>
+    <method token=""0x600000c"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;G&gt;d__1#1"" />
+      </customDebugInfo>
+      <sequencePoints />
+    </method>
     <method token=""0x600000f"">
       <customDebugInfo>
         <using>
@@ -249,15 +243,12 @@ class C
         <entry offset=""0x34"" hidden=""true"" document=""1"" />
         <entry offset=""0x3b"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x3f"">
         <namespace name=""System.Collections.Generic"" />
       </scope>
     </method>
   </methods>
-</symbols>";
-
-            AssertXmlEqual(expectedPdb1, actualPdb1);
+</symbols>");
         }
 
         [Fact]
@@ -1008,7 +999,7 @@ class C
     IL_0010:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
     IL_0015:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_001a:  stloc.2
-    IL_001b:  ldloca.s   V_2
+   ~IL_001b:  ldloca.s   V_2
     IL_001d:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
     IL_0022:  brtrue.s   IL_0064
     IL_0024:  ldarg.0
@@ -1072,6 +1063,45 @@ class C
   IL_00a7:  ret
 }
 ", sequencePoints: "C+<F>d__0.MoveNext");
+
+                    v0.VerifyPdb("C+<F>d__0.MoveNext", @"
+<symbols>
+  <methods>
+    <method containingType=""C+&lt;F&gt;d__0"" name=""MoveNext"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""20"" offset=""0"" />
+          <slot kind=""33"" offset=""11"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""0"" />
+        <entry offset=""0x7"" hidden=""true"" document=""0"" />
+        <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""34"" document=""0"" />
+        <entry offset=""0x1b"" hidden=""true"" document=""0"" />
+        <entry offset=""0x74"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""0"" />
+        <entry offset=""0x78"" hidden=""true"" document=""0"" />
+        <entry offset=""0x92"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x9a"" hidden=""true"" document=""0"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xa8"">
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
+      <asyncInfo>
+        <kickoffMethod declaringType=""C"" methodName=""F"" />
+        <await yield=""0x2d"" resume=""0x48"" declaringType=""C+&lt;F&gt;d__0"" methodName=""MoveNext"" />
+      </asyncInfo>
+    </method>
+  </methods>
+</symbols>
+");
                 }
             }
         }

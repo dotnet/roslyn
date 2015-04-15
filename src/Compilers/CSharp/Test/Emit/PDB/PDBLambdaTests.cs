@@ -49,9 +49,6 @@ class C
         <entry offset=""0x21"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""13"" document=""0"" />
         <entry offset=""0x28"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x29"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x29"">
         <namespace name=""System"" />
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x29"" attributes=""0"" />
@@ -64,7 +61,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""8"" startColumn=""21"" endLine=""8"" endColumn=""37"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -122,7 +118,6 @@ class Test
         <entry offset=""0x16"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""0"" />
         <entry offset=""0x1a"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x1c"">
         <namespace name=""System"" />
       </scope>
@@ -150,10 +145,6 @@ class Test
         <entry offset=""0x1b"" startLine=""23"" startColumn=""9"" endLine=""23"" endColumn=""22"" document=""0"" />
         <entry offset=""0x25"" startLine=""24"" startColumn=""5"" endLine=""24"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
-        <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x27"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
         <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
@@ -176,10 +167,6 @@ class Test
         <entry offset=""0x29"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""26"" document=""0"" />
         <entry offset=""0x33"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-        <local name=""f2"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x35"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
         <local name=""f2"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
@@ -194,7 +181,6 @@ class Test
         <entry offset=""0x1"" startLine=""19"" startColumn=""17"" endLine=""19"" endColumn=""38"" document=""0"" />
         <entry offset=""0x1f"" startLine=""20"" startColumn=""13"" endLine=""20"" endColumn=""14"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -240,10 +226,6 @@ class Test
         <entry offset=""0x1b"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""14"" document=""0"" />
         <entry offset=""0x22"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
-        <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x23"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
         <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
@@ -256,7 +238,6 @@ class Test
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""37"" endLine=""6"" endColumn=""38"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -311,7 +292,6 @@ class Test
         <entry offset=""0x16"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""0"" />
         <entry offset=""0x1a"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x1c"">
         <namespace name=""System"" />
       </scope>
@@ -339,10 +319,6 @@ class Test
         <entry offset=""0x1b"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""22"" document=""0"" />
         <entry offset=""0x25"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
-        <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x27"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
         <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
@@ -365,10 +341,6 @@ class Test
         <entry offset=""0x29"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""26"" document=""0"" />
         <entry offset=""0x33"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-        <local name=""f2"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x35"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
         <local name=""f2"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
@@ -383,7 +355,6 @@ class Test
         <entry offset=""0x1"" startLine=""17"" startColumn=""42"" endLine=""17"" endColumn=""63"" document=""0"" />
         <entry offset=""0x1f"" startLine=""17"" startColumn=""64"" endLine=""17"" endColumn=""65"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -426,7 +397,6 @@ class C : B
         <entry offset=""0x7"" startLine=""6"" startColumn=""27"" endLine=""6"" endColumn=""28"" document=""0"" />
         <entry offset=""0x8"" startLine=""6"" startColumn=""29"" endLine=""6"" endColumn=""30"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <namespace name=""System"" />
       </scope>
@@ -435,7 +405,6 @@ class C : B
       <sequencePoints>
         <entry offset=""0x0"" startLine=""13"" startColumn=""19"" endLine=""13"" endColumn=""23"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C"" name="".ctor"">
       <customDebugInfo>
@@ -454,7 +423,6 @@ class C : B
         <entry offset=""0x70"" startLine=""14"" startColumn=""32"" endLine=""14"" endColumn=""33"" document=""0"" />
         <entry offset=""0x71"" startLine=""14"" startColumn=""33"" endLine=""14"" endColumn=""34"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C"" name="".cctor"">
       <customDebugInfo>
@@ -467,7 +435,6 @@ class C : B
       <sequencePoints>
         <entry offset=""0x0"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""35"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__5_0"">
       <customDebugInfo>
@@ -476,7 +443,6 @@ class C : B
       <sequencePoints>
         <entry offset=""0x0"" startLine=""14"" startColumn=""29"" endLine=""14"" endColumn=""30"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__5_1"">
       <customDebugInfo>
@@ -485,7 +451,6 @@ class C : B
       <sequencePoints>
         <entry offset=""0x0"" startLine=""11"" startColumn=""26"" endLine=""11"" endColumn=""27"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__5_2"">
       <customDebugInfo>
@@ -494,7 +459,6 @@ class C : B
       <sequencePoints>
         <entry offset=""0x0"" startLine=""13"" startColumn=""34"" endLine=""13"" endColumn=""38"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.cctor&gt;b__6_0"">
       <customDebugInfo>
@@ -503,7 +467,6 @@ class C : B
       <sequencePoints>
         <entry offset=""0x0"" startLine=""12"" startColumn=""33"" endLine=""12"" endColumn=""34"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -551,7 +514,6 @@ class C : B
         <entry offset=""0x7"" startLine=""6"" startColumn=""27"" endLine=""6"" endColumn=""28"" document=""0"" />
         <entry offset=""0x8"" startLine=""6"" startColumn=""29"" endLine=""6"" endColumn=""30"" document=""0"" />
       </sequencePoints>
-      <locals />
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <namespace name=""System"" />
       </scope>
@@ -583,10 +545,6 @@ class C : B
         <entry offset=""0x59"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""21"" document=""0"" />
         <entry offset=""0x6b"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x6c"" attributes=""0"" />
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x27"" il_end=""0x6b"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x6c"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x6c"" attributes=""0"" />
         <scope startOffset=""0x27"" endOffset=""0x6b"">
@@ -601,7 +559,6 @@ class C : B
       <sequencePoints>
         <entry offset=""0x0"" startLine=""17"" startColumn=""19"" endLine=""17"" endColumn=""22"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c__DisplayClass3_0"" name=""&lt;.ctor&gt;b__0"">
       <customDebugInfo>
@@ -610,7 +567,6 @@ class C : B
       <sequencePoints>
         <entry offset=""0x0"" startLine=""13"" startColumn=""41"" endLine=""13"" endColumn=""42"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c__DisplayClass3_0"" name=""&lt;.ctor&gt;b__1"">
       <customDebugInfo>
@@ -619,7 +575,6 @@ class C : B
       <sequencePoints>
         <entry offset=""0x0"" startLine=""16"" startColumn=""19"" endLine=""16"" endColumn=""20"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c__DisplayClass3_1"" name=""&lt;.ctor&gt;b__3"">
       <customDebugInfo>
@@ -628,7 +583,6 @@ class C : B
       <sequencePoints>
         <entry offset=""0x0"" startLine=""18"" startColumn=""19"" endLine=""18"" endColumn=""20"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -683,10 +637,6 @@ class C
         <entry offset=""0xe"" startLine=""9"" startColumn=""9"" endLine=""12"" endColumn=""31"" document=""0"" />
         <entry offset=""0x79"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x7a"" attributes=""0"" />
-        <local name=""x"" il_index=""1"" il_start=""0x0"" il_end=""0x7a"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x7a"">
         <namespace name=""System.Linq"" />
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x7a"" attributes=""0"" />
@@ -700,7 +650,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""10"" startColumn=""17"" endLine=""10"" endColumn=""30"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;M&gt;b__0_1"" parameterNames=""&lt;&gt;h__TransparentIdentifier0"">
       <customDebugInfo>
@@ -709,7 +658,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""11"" startColumn=""23"" endLine=""11"" endColumn=""29"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;M&gt;b__0_2"" parameterNames=""&lt;&gt;h__TransparentIdentifier0"">
       <customDebugInfo>
@@ -718,7 +666,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""12"" startColumn=""24"" endLine=""12"" endColumn=""30"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -771,9 +718,6 @@ class C
         <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""11"" endColumn=""40"" document=""0"" />
         <entry offset=""0xe6"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""result"" il_index=""0"" il_start=""0x0"" il_end=""0xe7"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0xe7"">
         <namespace name=""System.Linq"" />
         <local name=""result"" il_index=""0"" il_start=""0x0"" il_end=""0xe7"" attributes=""0"" />
@@ -786,7 +730,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""9"" startColumn=""52"" endLine=""9"" endColumn=""57"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_1"" parameterNames=""b"">
       <customDebugInfo>
@@ -795,7 +738,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""9"" startColumn=""65"" endLine=""9"" endColumn=""70"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_2"" parameterNames=""a, b"">
       <customDebugInfo>
@@ -804,7 +746,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""70"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_3"" parameterNames=""&lt;&gt;h__TransparentIdentifier0"">
       <customDebugInfo>
@@ -813,7 +754,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""10"" startColumn=""57"" endLine=""10"" endColumn=""74"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_4"" parameterNames=""&lt;&gt;h__TransparentIdentifier0"">
       <customDebugInfo>
@@ -822,7 +762,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""10"" startColumn=""33"" endLine=""10"" endColumn=""53"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_5"" parameterNames=""d"">
       <customDebugInfo>
@@ -831,7 +770,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""11"" startColumn=""34"" endLine=""11"" endColumn=""39"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -899,10 +837,6 @@ class C
         <entry offset=""0x59"" startLine=""10"" startColumn=""25"" endLine=""10"" endColumn=""27"" document=""0"" />
         <entry offset=""0x5f"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""2"" il_start=""0x11"" il_end=""0x55"" attributes=""0"" />
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""3"" il_start=""0x20"" il_end=""0x55"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x60"">
         <scope startOffset=""0x11"" endOffset=""0x55"">
           <local name=""CS$&lt;&gt;8__locals0"" il_index=""2"" il_start=""0x11"" il_end=""0x55"" attributes=""0"" />
@@ -985,10 +919,6 @@ class C
         <entry offset=""0x97"" startLine=""10"" startColumn=""25"" endLine=""10"" endColumn=""27"" document=""0"" />
         <entry offset=""0x9b"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""5"" il_start=""0x38"" il_end=""0x88"" attributes=""0"" />
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""6"" il_start=""0x4f"" il_end=""0x88"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x9c"">
         <scope startOffset=""0x38"" endOffset=""0x88"">
           <local name=""CS$&lt;&gt;8__locals0"" il_index=""5"" il_start=""0x38"" il_end=""0x88"" attributes=""0"" />
@@ -1065,10 +995,6 @@ class C
         <entry offset=""0x58"" startLine=""10"" startColumn=""25"" endLine=""10"" endColumn=""27"" document=""0"" />
         <entry offset=""0x61"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""2"" il_start=""0xc"" il_end=""0x54"" attributes=""0"" />
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""3"" il_start=""0x1f"" il_end=""0x54"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x62"">
         <scope startOffset=""0xc"" endOffset=""0x54"">
           <local name=""CS$&lt;&gt;8__locals0"" il_index=""2"" il_start=""0xc"" il_end=""0x54"" attributes=""0"" />
@@ -1145,10 +1071,6 @@ class C
         <entry offset=""0x62"" hidden=""true"" document=""0"" />
         <entry offset=""0x71"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""1"" il_start=""0xf"" il_end=""0x57"" attributes=""0"" />
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""2"" il_start=""0x22"" il_end=""0x57"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x72"">
         <scope startOffset=""0xf"" endOffset=""0x57"">
           <local name=""CS$&lt;&gt;8__locals0"" il_index=""1"" il_start=""0xf"" il_end=""0x57"" attributes=""0"" />
@@ -1223,10 +1145,6 @@ class C
         <entry offset=""0x63"" hidden=""true"" document=""0"" />
         <entry offset=""0x66"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x66"" attributes=""0"" />
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x17"" il_end=""0x39"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x67"">
         <namespace name=""System"" />
         <scope startOffset=""0x1"" endOffset=""0x66"">
@@ -1314,10 +1232,6 @@ class C
         <entry offset=""0x70"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" document=""0"" />
         <entry offset=""0x72"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x73"" attributes=""0"" />
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x21"" il_end=""0x72"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x73"">
         <namespace name=""System"" />
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x73"" attributes=""0"" />
@@ -1366,7 +1280,6 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""41"" endLine=""7"" endColumn=""42"" document=""0"" />
       </sequencePoints>
-      <locals />
     </method>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -1403,10 +1316,6 @@ class C
         <entry offset=""0x7b"" hidden=""true"" document=""0"" />
         <entry offset=""0x90"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x90"" attributes=""0"" />
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x1d"" il_end=""0x62"" attributes=""0"" />
-      </locals>
       <scope startOffset=""0x0"" endOffset=""0x91"">
         <namespace name=""System"" />
         <scope startOffset=""0x1"" endOffset=""0x90"">

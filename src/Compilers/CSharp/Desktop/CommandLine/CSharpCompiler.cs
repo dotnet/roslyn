@@ -19,14 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal const string ResponseFileName = "csc.rsp";
 
-        private readonly string _responseFile;
         private CommandLineDiagnosticFormatter _diagnosticFormatter;
 
-        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, string baseDirectory, string additionalReferencePaths)
-            : base(parser, responseFile, args, baseDirectory, additionalReferencePaths)
+        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
+            : base(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, additionalReferenceDirectories)
         {
-            Debug.Assert(responseFile == null || Path.IsPathRooted(responseFile));
-            _responseFile = responseFile;
             _diagnosticFormatter = new CommandLineDiagnosticFormatter(baseDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
         }
 
@@ -258,16 +255,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override string GetToolName()
         {
             return ErrorFacts.GetMessage(MessageID.IDS_ToolName, Culture);
-        }
-
-        internal override string GetAssemblyFileVersion()
-        {
-            return FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
-        }
-
-        internal override Version GetAssemblyVersion()
-        {
-            return Assembly.GetExecutingAssembly().GetName().Version;
         }
 
         /// <summary>

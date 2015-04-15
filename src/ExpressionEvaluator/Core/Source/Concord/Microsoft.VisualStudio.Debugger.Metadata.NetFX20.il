@@ -1,3 +1,8 @@
+.assembly extern System.Core
+{
+	.publickeytoken = (B7 7A 5C 56 19 34 E0 89)
+	.ver 3:5:0:0
+}
 .assembly extern mscorlib
 {
 	.publickeytoken = (B7 7A 5C 56 19 34 E0 89)
@@ -5,6 +10,7 @@
 }
 .assembly Microsoft.VisualStudio.Debugger.Metadata
 {
+	.custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = { }
 	.custom instance void [mscorlib]System.CLSCompliantAttribute::.ctor(bool) = { bool(false) }
 	.custom instance void [mscorlib]System.Runtime.CompilerServices.InternalsVisibleToAttribute::.ctor(string) = { string('vsdebugeng.manimpl, PublicKey=002400000480000094000000060200000024000052534131000400000100010007d1fa57c4aed9f0a32e84aa0faefd0de9e8fd6aec8f87fb03766c834c99921eb23be79ad9d5dcc1dd9ad236132102900b723cf980957fc4e177108fc607774f29e8320e92ea05ece4e821c0a5efe8f1645c4c0c93c1ab99285d622caa652c1dfad63d745d6f2de5f17e5eaf0fc4963d261c8a12436518206dc093344d5ad293') }
 	.custom instance void [mscorlib]System.Runtime.CompilerServices.InternalsVisibleToAttribute::.ctor(string) = { string('Microsoft.VisualStudio.VIL, PublicKey=002400000480000094000000060200000024000052534131000400000100010007d1fa57c4aed9f0a32e84aa0faefd0de9e8fd6aec8f87fb03766c834c99921eb23be79ad9d5dcc1dd9ad236132102900b723cf980957fc4e177108fc607774f29e8320e92ea05ece4e821c0a5efe8f1645c4c0c93c1ab99285d622caa652c1dfad63d745d6f2de5f17e5eaf0fc4963d261c8a12436518206dc093344d5ad293') }
@@ -4164,6 +4170,17 @@
 		.field static public literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode UInt16 = int32(0x00000008)
 		.field static public literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode UInt32 = int32(0x0000000A)
 		.field static public literal valuetype Microsoft.VisualStudio.Debugger.Metadata.TypeCode UInt64 = int32(0x0000000C)
+	}
+	.class public abstract sealed TypeExtensions
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = { }
+		.method public static hidebysig 
+			class [mscorlib]System.Type GetTypeInfo(class [mscorlib]System.Type 'type')
+		{
+			.custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = { }
+			ret
+		}
 	}
 	.class public sealed TypeFilter
 		extends [mscorlib]System.MulticastDelegate

@@ -101,9 +101,7 @@ namespace Roslyn.Test.PdbUtilities
             // The EE should never be calling ISymUnmanagedReader.GetSymAttribute.  
             // In order to account for EnC updates, it should always be calling 
             // ISymUnmanagedReader3.GetSymAttributeByVersion instead.
-            // TODO (DevDiv #1145183): throw ExceptionUtilities.Unreachable;
-
-            return UnversionedReader.GetSymAttribute(token, name, sizeBuffer, out lengthBuffer, buffer);
+            throw ExceptionUtilities.Unreachable;
         }
 
         public int GetSymAttributeByVersion(int methodToken, int version, string name, int bufferLength, out int count, byte[] customDebugInformation)

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CompilerServer;
 using static Microsoft.CodeAnalysis.BuildTasks.NativeMethods;
 using static Microsoft.CodeAnalysis.CompilerServer.BuildProtocolConstants;
 using static Microsoft.CodeAnalysis.CompilerServer.CompilerServerLogger;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -39,8 +40,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             string[] args,
             string clientDir,
             string workingDir,
+            string sdkDir,
             RequestLanguage language,
-            Func<string, string[], int> fallbackCompiler)
+            Func<string, string, string[], int> fallbackCompiler)
         {
             args = args.Select(arg => arg.Trim()).ToArray();
 
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            return fallbackCompiler(clientDir, parsedArgs.ToArray());
+            return fallbackCompiler(clientDir, sdkDir, parsedArgs.ToArray());
         }
 
         private static int HandleResponse(BuildResponse response)
@@ -85,27 +87,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             if (response.Type == BuildResponse.ResponseType.Completed)
             {
                 var completedResponse = (CompletedBuildResponse)response;
-                var origEncoding = Console.OutputEncoding;
-                try
-                {
-                    if (completedResponse.Utf8Output && Console.IsOutputRedirected)
+                return ConsoleUtil.RunWithOutput(
+                    completedResponse.Utf8Output,
+                    (outWriter, errorWriter) =>
                     {
-                        Console.OutputEncoding = Encoding.UTF8;
-                    }
-                    Console.Out.Write(completedResponse.Output);
-                    Console.Error.Write(completedResponse.ErrorOutput);
-                }
-                finally
-                {
-                    try
-                    {
-                        Console.OutputEncoding = origEncoding;
-                    }
-                    catch
-                    { // Try to reset the output encoding, ignore if we can't
-                    }
-                }
-                return completedResponse.ReturnCode;
+                        outWriter.Write(completedResponse.Output);
+                        errorWriter.Write(completedResponse.ErrorOutput);
+                        return completedResponse.ReturnCode;
+                    });
             }
             else
             {

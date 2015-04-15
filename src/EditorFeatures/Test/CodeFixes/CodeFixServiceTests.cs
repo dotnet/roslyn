@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 var reference = new MockAnalyzerReference();
                 var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
                 var document = project.Documents.Single();
-                var unused = fixService.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None).Result;
+                var unused = fixService.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), considerSuppressionFixes: false, cancellationToken: CancellationToken.None).Result;
 
                 var fixer1 = fixers.Single().Value as MockFixer;
                 var fixer2 = reference.Fixer as MockFixer;
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 Document document;
                 EditorLayerExtensionManager.ExtensionManager extensionManager;
                 GetDocumentAndExtensionManager(diagnosticService, workspace, out document, out extensionManager);
-                var fixes = fixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None).Result;
+                var fixes = fixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None).Result;
                 Assert.True(((TestErrorLogger)errorLogger).Messages.Count == 1);
                 string message;
                 Assert.True(((TestErrorLogger)errorLogger).Messages.TryGetValue(codefix.GetType().Name, out message));
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 var reference = new MockAnalyzerReference(codefix);
                 var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
                 document = project.Documents.Single();
-                var fixes = fixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None).Result;
+                var fixes = fixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None).Result;
 
                 Assert.True(extensionManager.IsDisabled(codefix));
                 Assert.False(extensionManager.IsIgnored(codefix));
@@ -133,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 Document document;
                 EditorLayerExtensionManager.ExtensionManager extensionManager;
                 GetDocumentAndExtensionManager(diagnosticService, workspace, out document, out extensionManager);
-                var unused = fixService.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None).Result;
+                var unused = fixService.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), considerSuppressionFixes: false, cancellationToken: CancellationToken.None).Result;
                 Assert.True(extensionManager.IsDisabled(codefix));
                 Assert.False(extensionManager.IsIgnored(codefix));
             }
@@ -198,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             public MockAnalyzerReference()
             {
-               Fixer = new MockFixer();
+                Fixer = new MockFixer();
             }
 
             public MockAnalyzerReference(CodeFixProvider codeFix)

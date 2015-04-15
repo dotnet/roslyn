@@ -1070,6 +1070,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Highlighted Written Reference.
+        /// </summary>
+        internal static string HighlightedWrittenReference {
+            get {
+                return ResourceManager.GetString("HighlightedWrittenReference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implemented By.
         /// </summary>
         internal static string ImplementedBy {
@@ -1835,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Warning.
+        ///   Looks up a localized string similar to Preview Warning.
         /// </summary>
         internal static string Warning {
             get {

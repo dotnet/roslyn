@@ -578,6 +578,8 @@
     <Compile Include="Implementation\Peek\PeekableItemSource.cs" />
     <Compile Include="Implementation\Peek\PeekableItemSourceProvider.cs" />
     <Compile Include="Implementation\Peek\PeekHelpers.cs" />
+    <Compile Include="Implementation\ReferenceHighlighting\WrittenReferenceHighlightTag.cs" />
+    <Compile Include="Implementation\ReferenceHighlighting\WrittenReferenceHighlightTagDefinition.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingCancellationCommandHandler.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTagDefinition.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTag.cs" />
@@ -727,8 +729,8 @@
     <Compile Include="Shared\Tagging\Tags\AbstractNavigatableReferenceHighlightingTag.cs" />
     <Compile Include="Shared\Tagging\Tags\ConflictTag.cs" />
     <Compile Include="Shared\Tagging\Tags\ConflictTagDefinition.cs" />
-    <Compile Include="Shared\Tagging\Tags\WarningTag.cs" />
-    <Compile Include="Shared\Tagging\Tags\WarningTagDefinition.cs" />
+    <Compile Include="Shared\Tagging\Tags\PreviewWarningTag.cs" />
+    <Compile Include="Shared\Tagging\Tags\PreviewWarningTagDefinition.cs" />
     <Compile Include="Shared\Tagging\TagSources\BufferTagSource.cs" />
     <Compile Include="Implementation\ReferenceHighlighting\ReferenceHighlightingTagSource.cs" />
     <Compile Include="Shared\Tagging\TagSources\SemanticBufferTagSource.cs" />

@@ -364,7 +364,7 @@
     <value>Rename '{0}' to '{1}'</value>
   </data>
   <data name="Warning" xml:space="preserve">
-    <value>Warning</value>
+    <value>Preview Warning</value>
   </data>
   <data name="FromMetadata" xml:space="preserve">
     <value>from metadata</value>
@@ -729,5 +729,8 @@ Do you want to proceed?</value>
   </data>
   <data name="TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable" xml:space="preserve">
     <value>The rename tracking session was cancelled and is no longer available.</value>
+  </data>
+  <data name="HighlightedWrittenReference" xml:space="preserve">
+    <value>Highlighted Written Reference</value>
   </data>
 </root>

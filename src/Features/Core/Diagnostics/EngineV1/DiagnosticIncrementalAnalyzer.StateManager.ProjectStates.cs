@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     }
 
                     var newAnalyzersPerReference = _owner.AnalyzerManager.CreateProjectDiagnosticAnalyzersPerReference(project);
-                    var newMap = StateManager.CreateAnalyzerMap(project.Language, newAnalyzersPerReference.Values);
+                    var newMap = StateManager.CreateAnalyzerMap(_owner.AnalyzerManager, project.Language, newAnalyzersPerReference.Values);
 
                     RaiseProjectAnalyzerReferenceChangedIfNeeded(project, newAnalyzersPerReference, newMap);
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         return ImmutableDictionary<DiagnosticAnalyzer, StateSet>.Empty;
                     }
 
-                    return StateManager.CreateAnalyzerMap(project.Language, analyzersPerReference.Values);
+                    return StateManager.CreateAnalyzerMap(_owner.AnalyzerManager, project.Language, analyzersPerReference.Values);
                 }
 
                 private void RaiseProjectAnalyzerReferenceChangedIfNeeded(

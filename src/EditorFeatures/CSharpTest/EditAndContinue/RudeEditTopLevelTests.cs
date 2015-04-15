@@ -3136,6 +3136,42 @@ class C
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: true);
         }
 
+        [WorkItem(1087305)]
+        [Fact]
+        public void MethodUpdate_LabeledStatement()
+        {
+            string src1 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        goto Label1;
+ 
+    Label1:
+        {
+            Console.WriteLine(1);
+        }
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        goto Label1;
+ 
+    Label1:
+        {
+            Console.WriteLine(2);
+        }
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics();
+        }
+
         #endregion
 
         #region Operators

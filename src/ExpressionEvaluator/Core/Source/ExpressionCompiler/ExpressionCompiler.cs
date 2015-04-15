@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         return new GetLocalsResult(typeName, locals, assembly);
                     },
                     out error);
-                return DkmCompiledClrLocalsQuery.Create(runtimeInstance, null, this.CompilerId, r.Assembly, r.TypeName, r.Locals);
+                return DkmCompiledClrLocalsQuery.Create(runtimeInstance, null, this.CompilerId, r.Assembly, r.TypeName, r.Locals, CustomTypeInfo: null);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {

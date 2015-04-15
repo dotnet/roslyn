@@ -80,9 +80,7 @@
     <Compile Include="Design\CSharpCA1003DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CSharpCA1024DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CSharpEnumWithFlagsDiagnosticAnalyzer.cs" />
-    <Compile Include="Globalization\CodeFixes\CA1309CSharpCodeFixProvider.cs" />
     <Compile Include="Globalization\CodeFixes\CA2101CSharpCodeFixProvider.cs" />
-    <Compile Include="Globalization\CSharpCA1309DiagnosticAnalyzer.cs" />
     <Compile Include="Performance\CSharpCA1821DiagnosticAnalyzer.cs" />
     <Compile Include="Reliability\CSharpCA2002DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CodeFixes\CA2213CSharpCodeFixProvider.cs" />
