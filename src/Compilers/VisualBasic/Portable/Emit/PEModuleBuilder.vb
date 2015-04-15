@@ -300,6 +300,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return result
         End Function
 
+        ''' <summary>
+        ''' Ignore accessibility when resolving well-known type
+        ''' members, in particular for generic type arguments.
+        ''' </summary>
+        Friend Overridable ReadOnly Property IgnoreAccessibility As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend Overridable Function TryCreateVariableSlotAllocator(method As MethodSymbol) As VariableSlotAllocator
             Return Nothing
         End Function
