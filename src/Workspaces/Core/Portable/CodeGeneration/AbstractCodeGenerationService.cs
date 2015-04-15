@@ -98,14 +98,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             if (destination == null)
             {
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
             }
 
             if (!(destination is TDeclarationNode))
             {
                 throw new ArgumentException(
                     string.Format(WorkspacesResources.InvalidDestinationNode, typeof(TDeclarationNode).Name, destination.GetType().Name),
-                    "destination");
+                    nameof(destination));
             }
         }
 
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             if (destination == null)
             {
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
             }
 
             if (!(destination is TDeclarationNode1) &&
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new ArgumentException(
                     string.Format(WorkspacesResources.InvalidDestinationNode2,
                         typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, destination.GetType().Name),
-                    "destination");
+                    nameof(destination));
             }
         }
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             if (destination == null)
             {
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
             }
 
             if (!(destination is TDeclarationNode1) &&
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new ArgumentException(
                     string.Format(WorkspacesResources.InvalidDestinationNode3,
                         typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name, destination.GetType().Name),
-                    "destination");
+                    nameof(destination));
             }
         }
 
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new ArgumentException(
                     string.Format(WorkspacesResources.InvalidDestinationNode3,
                         typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name, typeof(TDeclarationNode4).Name),
-                    "destination");
+                    nameof(destination));
             }
         }
 
