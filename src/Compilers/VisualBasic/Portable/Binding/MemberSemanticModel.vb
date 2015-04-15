@@ -545,7 +545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(identifierSyntax As ModifiedIdentifierSyntax, Optional cancellationToken As CancellationToken = Nothing) As ISymbol
             If identifierSyntax Is Nothing Then
-                Throw New ArgumentNullException("identifierSyntax")
+                Throw New ArgumentNullException(NameOf(identifierSyntax))
             End If
             If Not IsInTree(identifierSyntax) Then
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
