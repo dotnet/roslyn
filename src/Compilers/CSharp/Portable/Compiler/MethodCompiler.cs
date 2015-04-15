@@ -1200,7 +1200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lazyVariableSlotAllocator,
                     compilationState,
                     diagnostics,
-                    assignLocals: false);
+                    assignLocals: false,
+                    allowNonPublicTypeArguments: false);
             }
 
             if (bodyWithoutLambdas.HasErrors)
