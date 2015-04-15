@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TableControl;
 using Microsoft.VisualStudio.TableManager;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -181,7 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         protected string GetFileName(string original, string mapped)
         {
-            return mapped == null ? original : original == null ? mapped : Path.Combine(original, mapped);
+            return mapped == null ? original : original == null ? mapped : FilePathUtilities.Combine(original, mapped);
         }
 
         protected string GetProjectName(Workspace workspace, ProjectId projectId)

@@ -103,5 +103,18 @@ namespace Roslyn.Utilities
         {
             return string.Compare(path1, path2, StringComparison.OrdinalIgnoreCase) == 0;
         }
+
+        public static string Combine(string path1, string path2)
+        {
+            try
+            {
+                // don't throw exception when either path1 or path2 contains illegal path char
+                return Path.Combine(path1, path2);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
     }
 }
