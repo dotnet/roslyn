@@ -43,9 +43,12 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(fullPath));
             }
 
-            if (!_dependencyPaths.Contains(fullPath, StringComparer.OrdinalIgnoreCase))
+            lock (_guard)
             {
-                _dependencyPaths.Add(fullPath);
+                if (!_dependencyPaths.Contains(fullPath, StringComparer.OrdinalIgnoreCase))
+                {
+                    _dependencyPaths.Add(fullPath);
+                }
             }
         }
 
