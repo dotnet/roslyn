@@ -4154,7 +4154,7 @@ End Class"
         ''' Ignore accessibility in async rewriter.
         ''' </summary>
         <WorkItem(1813, "https://github.com/dotnet/roslyn/issues/1813")>
-        <Fact(Skip:="1813")>
+        <Fact>
         Public Sub AsyncRewriterIgnoreAccessibility()
             Const source =
 "Imports System

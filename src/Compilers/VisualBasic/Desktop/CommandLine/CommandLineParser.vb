@@ -1051,12 +1051,12 @@ lVbRuntimePlus:
             End If
 
             ' Locate default 'mscorlib.dll' or 'System.Runtime.dll', if any.
-            Dim defaultCoreLibraryReference As CommandLineReference? = LoadCoreLibraryReference(sdkPaths, baseDirectory)
+            Dim defaultCoreLibraryReference As CommandLineReference? = LoadCoreLibraryReference(sdkPaths, baseDirectory, sdkDirectory)
 
             ' If /nostdlib is not specified, load System.dll
             ' Dev12 does it through combination of CompilerHost::InitStandardLibraryList and CompilerProject::AddStandardLibraries.
             If Not noStdLib Then
-                Dim systemDllPath As String = FindFileInSdkPath(sdkPaths, "System.dll", baseDirectory)
+                Dim systemDllPath As String = FindFileInSdkPath(sdkPaths, "System.dll", baseDirectory, sdkDirectory)
                 If systemDllPath Is Nothing Then
                     AddDiagnostic(diagnostics, ERRID.WRN_CannotFindStandardLibrary1, "System.dll")
                 Else
@@ -1069,7 +1069,7 @@ lVbRuntimePlus:
             ' Add reference to 'Microsoft.VisualBasic.dll' if needed
             If includeVbRuntimeReference Then
                 If vbRuntimePath Is Nothing Then
-                    Dim msVbDllPath As String = FindFileInSdkPath(sdkPaths, "Microsoft.VisualBasic.dll", baseDirectory)
+                    Dim msVbDllPath As String = FindFileInSdkPath(sdkPaths, "Microsoft.VisualBasic.dll", baseDirectory, sdkDirectory)
                     If msVbDllPath Is Nothing Then
                         AddDiagnostic(diagnostics, ERRID.ERR_LibNotFound, "Microsoft.VisualBasic.dll")
                     Else
@@ -1209,7 +1209,7 @@ lVbRuntimePlus:
                 }
         End Function
 
-        Private Function LoadCoreLibraryReference(sdkPaths As List(Of String), baseDirectory As String) As CommandLineReference?
+        Private Function LoadCoreLibraryReference(sdkPaths As List(Of String), baseDirectory As String, sdkDirectory As String) As CommandLineReference?
             ' Load Core library in Dev11:
             ' Traditionally VB compiler has hard-coded the name of mscorlib.dll. In the Immersive profile the
             ' library is called System.Runtime.dll. Ideally we should get rid of the dependency on the name and
@@ -1219,8 +1219,8 @@ lVbRuntimePlus:
             ' There is an extra check to only pick an assembly with no other assembly refs. This is so that is an 
             ' user drops a user-defined binary called System.runtime.dll into the fx directory we still want to pick 
             ' mscorlib. 
-            Dim msCorLibPath As String = FindFileInSdkPath(sdkPaths, "mscorlib.dll", baseDirectory)
-            Dim systemRuntimePath As String = FindFileInSdkPath(sdkPaths, "System.Runtime.dll", baseDirectory)
+            Dim msCorLibPath As String = FindFileInSdkPath(sdkPaths, "mscorlib.dll", baseDirectory, sdkDirectory)
+            Dim systemRuntimePath As String = FindFileInSdkPath(sdkPaths, "System.Runtime.dll", baseDirectory, sdkDirectory)
 
             If systemRuntimePath IsNot Nothing Then
                 If msCorLibPath Is Nothing Then
@@ -1252,9 +1252,9 @@ lVbRuntimePlus:
             Return Nothing
         End Function
 
-        Private Function FindFileInSdkPath(sdkPaths As List(Of String), fileName As String, baseDirectory As String) As String
+        Private Function FindFileInSdkPath(sdkPaths As List(Of String), fileName As String, baseDirectory As String, sdkDirectory As String) As String
             For Each path In sdkPaths
-                Dim absolutePath = FileUtilities.ResolveRelativePath(If(path, RuntimeEnvironment.GetRuntimeDirectory()), baseDirectory)
+                Dim absolutePath = FileUtilities.ResolveRelativePath(If(path, sdkDirectory), baseDirectory)
                 If absolutePath IsNot Nothing Then
                     Dim filePath = PathUtilities.CombineAbsoluteAndRelativePaths(absolutePath, fileName)
                     If File.Exists(filePath) Then

@@ -581,6 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CompileSynthesizedMethods(TypeCompilationState compilationState)
         {
             Debug.Assert(_moduleBeingBuiltOpt != null);
+            Debug.Assert(compilationState.ModuleBuilderOpt == _moduleBeingBuiltOpt);
 
             if (!compilationState.HasSynthesizedMethods)
             {

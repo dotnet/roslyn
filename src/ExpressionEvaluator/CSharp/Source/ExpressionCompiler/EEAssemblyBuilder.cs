@@ -61,6 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return base.TranslateModule(symbol, diagnostics);
         }
 
+        internal override bool IgnoreAccessibility
+        {
+            get { return true; }
+        }
+
         public override int CurrentGenerationOrdinal => 0;
 
         internal override VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol symbol)
