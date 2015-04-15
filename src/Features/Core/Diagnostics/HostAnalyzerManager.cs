@@ -311,6 +311,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var builder = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var package in _hostDiagnosticAnalyzerPackages)
             {
+                if (string.IsNullOrEmpty(package.Name))
+                {
+                    continue;
+                }
+
                 foreach (var assembly in package.Assemblies)
                 {
                     if (!builder.ContainsKey(assembly))
