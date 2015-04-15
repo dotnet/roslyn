@@ -4487,11 +4487,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, boundLeft);
             }
 
-            if (boundLeft.Kind == BoundKind.DefaultOperator && boundLeft.ConstantValue == ConstantValue.Null)
-            {
-                Error(diagnostics, ErrorCode.WRN_DotOnDefault, node, leftType);
-            }
-
             var lookupResult = LookupResult.GetInstance();
             try
             {
@@ -4646,6 +4641,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             finally
             {
                 lookupResult.Free();
+            }
+        }
+
+        private static void WarnOnAccessOfOffDefault(CSharpSyntaxNode node, BoundExpression boundLeft, DiagnosticBag diagnostics)
+        {
+            if (boundLeft != null && boundLeft.Kind == BoundKind.DefaultOperator && boundLeft.ConstantValue == ConstantValue.Null)
+            {
+                Error(diagnostics, ErrorCode.WRN_DotOnDefault, node, boundLeft.Type);
             }
         }
 
@@ -5256,6 +5259,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (!fieldSymbol.IsStatic)
+            {
+                WarnOnAccessOfOffDefault(node, receiver, diagnostics);
+            }
+
             TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound);
             BoundExpression expr = new BoundFieldAccess(node, receiver, fieldSymbol, constantValueOpt, resultKind, fieldType, hasErrors: (hasErrors || hasError));
 
@@ -5320,6 +5328,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool hasError = this.CheckInstanceOrStatic(node, receiver, propertySymbol, ref lookupResult, diagnostics);
 
+            if (!propertySymbol.IsStatic)
+            {
+                WarnOnAccessOfOffDefault(node, receiver, diagnostics);
+            }
+
             return new BoundPropertyAccess(node, receiver, propertySymbol, lookupResult, propertySymbol.Type, hasErrors: (hasErrors || hasError));
         }
 
@@ -5336,6 +5349,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(node, useSiteDiagnostics);
 
             bool hasError = this.CheckInstanceOrStatic(node, receiver, eventSymbol, ref lookupResult, diagnostics);
+
+            if (!eventSymbol.IsStatic)
+            {
+                WarnOnAccessOfOffDefault(node, receiver, diagnostics);
+            }
 
             return new BoundEventAccess(node, receiver, eventSymbol, isUsableAsField, lookupResult, eventSymbol.Type, hasErrors: (hasErrors || hasError));
         }
@@ -5562,10 +5580,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return BadIndexerExpression(node, expr, analyzedArguments, null, diagnostics);
             }
-            else if (expr.Kind == BoundKind.DefaultOperator && ((BoundDefaultOperator)expr).ConstantValue == ConstantValue.Null)
-            {
-                Error(diagnostics, ErrorCode.WRN_DotOnDefault, node, expr.Type);
-            }
+
+            WarnOnAccessOfOffDefault(node, expr, diagnostics);
 
             // Did we have any errors?
             if (analyzedArguments.HasErrors || expr.HasAnyErrors)
