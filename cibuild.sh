@@ -26,6 +26,7 @@ do
         --mono-path)
         CUSTOM_MONO_PATH=$2
         shift 2
+        ;;
         *)
         usage 
         exit 1
