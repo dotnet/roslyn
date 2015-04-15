@@ -48,7 +48,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             // resolve all analyzer references.
-            var boundAnalyzerReferences = commandLineArguments.ResolveAnalyzerReferences(analyzerService.GetAnalyzer);
+            foreach (var path in commandLineArguments.AnalyzerReferences.Select(r => r.FilePath))
+            {
+                analyzerService.AddDependencyLocation(path);
+            }
+            var boundAnalyzerReferences = commandLineArguments.ResolveAnalyzerReferences(analyzerService.LoadFromPath);
             var unresolvedAnalyzerReferences = boundAnalyzerReferences.FirstOrDefault(r => r is UnresolvedAnalyzerReference);
             if (unresolvedAnalyzerReferences != null)
             {

@@ -63,6 +63,9 @@ Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer = 2 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer = 1 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.FileSystemExtensions
+Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader
+Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader.AddDependencyLocation(string fullPath) -> void
+Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader.LoadFromPath(string fullPath) -> System.Reflection.Assembly
 Microsoft.CodeAnalysis.RuleSet
 Microsoft.CodeAnalysis.RuleSet.FilePath.get -> string
 Microsoft.CodeAnalysis.RuleSet.GeneralDiagnosticOption.get -> Microsoft.CodeAnalysis.ReportDiagnostic
@@ -75,6 +78,9 @@ Microsoft.CodeAnalysis.RuleSetInclude.Action.get -> Microsoft.CodeAnalysis.Repor
 Microsoft.CodeAnalysis.RuleSetInclude.IncludePath.get -> string
 Microsoft.CodeAnalysis.RuleSetInclude.LoadRuleSet(Microsoft.CodeAnalysis.RuleSet parent) -> Microsoft.CodeAnalysis.RuleSet
 Microsoft.CodeAnalysis.RuleSetInclude.RuleSetInclude(string includePath, Microsoft.CodeAnalysis.ReportDiagnostic action) -> void
+Microsoft.CodeAnalysis.SimpleAnalyzerAssemblyLoader
+Microsoft.CodeAnalysis.SimpleAnalyzerAssemblyLoader.AddDependencyLocation(string fullPath) -> void
+Microsoft.CodeAnalysis.SimpleAnalyzerAssemblyLoader.LoadFromPath(string fullPath) -> System.Reflection.Assembly
 Microsoft.CodeAnalysis.SourceFileResolver
 Microsoft.CodeAnalysis.SourceFileResolver.BaseDirectory.get -> string
 Microsoft.CodeAnalysis.SourceFileResolver.SearchPaths.get -> System.Collections.Immutable.ImmutableArray<string>

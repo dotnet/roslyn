@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis
 {
-    internal interface IAnalyzerService : IWorkspaceService
+    public interface IAnalyzerAssemblyLoader
     {
+        Assembly LoadFromPath(string fullPath);
         void AddDependencyLocation(string fullPath);
-        Assembly LoadFromPath(string resolvedPath);
     }
 }

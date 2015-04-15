@@ -143,7 +143,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim commandLineArgs = commandLineParser.Parse(args, executedProject.Directory, RuntimeEnvironment.GetRuntimeDirectory())
                 Dim resolver = New MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)
                 metadataReferences = commandLineArgs.ResolveMetadataReferences(New AssemblyReferenceResolver(resolver, Me._metadataService.GetProvider()))
-                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(AddressOf _analyzerService.GetAnalyzer)
+
+                For Each path In commandLineArgs.AnalyzerReferences.Select(Function(r) r.FilePath)
+                    _analyzerService.AddDependencyLocation(path)
+                Next
+                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(AddressOf _analyzerService.LoadFromPath)
 
             End Sub
 

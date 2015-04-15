@@ -183,7 +183,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var resolver = new MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
                 metadataReferences = commandLineArgs.ResolveMetadataReferences(new AssemblyReferenceResolver(resolver, _metadataService.GetProvider()));
-                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(_analyzerService.GetAnalyzer);
+
+                foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
+                {
+                    _analyzerService.AddDependencyLocation(path);
+                }
+                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(_analyzerService.LoadFromPath);
             }
 
             private void InitializeFromModel(CSharpCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)

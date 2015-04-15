@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 {
     internal sealed class Csc : CSharpCompiler
     {
+        private SimpleAnalyzerAssemblyLoader _analyzerAssemblyLoader;
+
         internal Csc(string responseFile, string clientDirectory, string baseDirectory, string sdkDirectory, string[] args)
             : base(CSharpCommandLineParser.Default, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, Environment.GetEnvironmentVariable("LIB"))
         {
@@ -29,7 +31,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 
         public override Assembly LoadAssembly(string fullPath)
         {
-            return Assembly.LoadFrom(fullPath);
+            if (_analyzerAssemblyLoader == null)
+            {
+                _analyzerAssemblyLoader = new SimpleAnalyzerAssemblyLoader();
+
+                foreach (var path in Arguments.AnalyzerReferences.Select(r => r.FilePath))
+                {
+                    _analyzerAssemblyLoader.AddDependencyLocation(path);
+                }
+            }
+
+            return _analyzerAssemblyLoader.LoadFromPath(fullPath);
         }
 
         protected override uint GetSqmAppID()
