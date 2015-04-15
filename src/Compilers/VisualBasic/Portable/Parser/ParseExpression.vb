@@ -996,7 +996,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ) As ExpressionSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.DotToken OrElse
                   CurrentToken.Kind = SyntaxKind.ExclamationToken,
-                  "Must be on either a '.' or '!' when entering parseQualifiedExpr()")
+                  "Must be on either a '.' or '!' when entering " & NameOf(parseQualifiedExpr) & "()")
 
             Dim DotOrBangToken As PunctuationSyntax = DirectCast(CurrentToken, PunctuationSyntax)
 
@@ -1566,7 +1566,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Debug.Assert(CurrentToken.Kind = SyntaxKind.FunctionKeyword OrElse
                          CurrentToken.Kind = SyntaxKind.SubKeyword,
-                         "ParseFunctionLambda called on wrong token.")
+                         NameOf(ParseFunctionOrSubLambdaHeader) & " called on wrong token.")
             ' The current token is on the function or delegate's name
 
             Dim methodKeyword = DirectCast(CurrentToken, KeywordSyntax)
