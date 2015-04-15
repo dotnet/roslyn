@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (binaryOperator == BinaryOperatorKind.Addition || binaryOperator == BinaryOperatorKind.Subtraction);
 
             // save RHS to a temp, we need to use it twice:
-            if (isPossibleEventHandlerOperation && IntroducingReadCanBeObservable(loweredRight))
+            if (isPossibleEventHandlerOperation && CanChangeValueBetweenReads(loweredRight))
             {
                 BoundAssignmentOperator assignmentToTemp;
                 var temp = _factory.StoreToTemp(loweredRight, out assignmentToTemp);
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var prop = (BoundPropertyAccess)originalLHS;
 
                         // If the property is static or if the receiver is of kind "Base" or "this", then we can just generate prop = prop + value
-                        if (prop.ReceiverOpt == null || prop.PropertySymbol.IsStatic || !IntroducingReadCanBeObservable(prop.ReceiverOpt))
+                        if (prop.ReceiverOpt == null || prop.PropertySymbol.IsStatic || !CanChangeValueBetweenReads(prop.ReceiverOpt))
                         {
                             return prop;
                         }
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DynamicMemberAccess:
                     {
                         var memberAccess = (BoundDynamicMemberAccess)originalLHS;
-                        if (!IntroducingReadCanBeObservable(memberAccess.Receiver))
+                        if (!CanChangeValueBetweenReads(memberAccess.Receiver))
                         {
                             return memberAccess;
                         }
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(receiverOpt != null);
 
                         BoundExpression transformedReceiver;
-                        if (IntroducingReadCanBeObservable(receiverOpt))
+                        if (CanChangeValueBetweenReads(receiverOpt))
                         {
                             BoundExpression rewrittenReceiver = VisitExpression(receiverOpt);
 
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundExpression receiverOpt = fieldAccess.ReceiverOpt;
 
                         //If the receiver is static or is the receiver is of kind "Base" or "this", then we can just generate field = field + value
-                        if (fieldAccess.FieldSymbol.IsStatic || !IntroducingReadCanBeObservable(receiverOpt))
+                        if (fieldAccess.FieldSymbol.IsStatic || !CanChangeValueBetweenReads(receiverOpt))
                         {
                             return fieldAccess;
                         }
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var indexerAccess = (BoundDynamicIndexerAccess)originalLHS;
 
                         BoundExpression loweredReceiver;
-                        if (IntroducingReadCanBeObservable(indexerAccess.ReceiverOpt))
+                        if (CanChangeValueBetweenReads(indexerAccess.ReceiverOpt))
                         {
                             BoundAssignmentOperator assignmentToTemp;
                             var temp = _factory.StoreToTemp(VisitExpression(indexerAccess.ReceiverOpt), out assignmentToTemp);
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         for (int i = 0; i < arguments.Length; i++)
                         {
-                            if (IntroducingReadCanBeObservable(arguments[i]))
+                            if (CanChangeValueBetweenReads(arguments[i]))
                             {
                                 BoundAssignmentOperator assignmentToTemp;
                                 var temp = _factory.StoreToTemp(VisitExpression(arguments[i]), out assignmentToTemp, refKind: indexerAccess.ArgumentRefKindsOpt.RefKinds(i));
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundTempIndices = new BoundExpression[loweredIndices.Length];
             for (int i = 0; i < boundTempIndices.Length; i++)
             {
-                if (IntroducingReadCanBeObservable(loweredIndices[i]))
+                if (CanChangeValueBetweenReads(loweredIndices[i]))
                 {
                     BoundAssignmentOperator assignmentToTemp;
                     var temp = _factory.StoreToTemp(loweredIndices[i], out assignmentToTemp);
@@ -583,8 +583,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// even though l is a local, we must access it via a temp since "foo(ref l)" may change it
         /// on between accesses. 
         /// </summary>
-        internal static bool IntroducingReadCanBeObservable(BoundExpression expression, bool localsMayBeAssignedOrCaptured = true)
+        internal static bool CanChangeValueBetweenReads(
+            BoundExpression expression, 
+            bool localsMayBeAssignedOrCaptured = true)
         {
+            if (expression.IsDefaultValue())
+            {
+                return false;
+            }
+
+            if (expression.ConstantValue != null)
+            {
+                var type = expression.Type;
+                return !ConstantValueIsTrivial(type);
+            }
+
             switch (expression.Kind)
             {
                 case BoundKind.ThisReference:
@@ -592,12 +605,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
 
                 case BoundKind.Literal:
-                    // don't allocate a temp for simple primitive types:
                     var type = expression.Type;
-                    return (object)type != null &&
-                        !type.SpecialType.IsClrInteger() &&
-                        !type.IsReferenceType &&
-                        !type.IsEnumType();
+                    return !ConstantValueIsTrivial(type);
 
                 case BoundKind.Parameter:
                     return localsMayBeAssignedOrCaptured || ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
@@ -608,6 +617,62 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return true;
             }
+        }
+
+        // a simple check for common nonsideeffecting expressions
+        internal static bool ReadIsSideeffecting(
+            BoundExpression expression)
+        {
+            if (expression.ConstantValue != null)
+            {
+                return false;
+            }
+
+            if (expression.IsDefaultValue())
+            {
+                return false;
+            }
+
+            switch (expression.Kind)
+            {
+                case BoundKind.ThisReference:
+                case BoundKind.BaseReference:
+                case BoundKind.Literal:
+                case BoundKind.Parameter:
+                case BoundKind.Local:
+                case BoundKind.Lambda:
+                    return false;
+
+                case BoundKind.Conversion:
+                    var conv = (BoundConversion)expression;
+                    return conv.ConversionHasSideEffects() || 
+                        ReadIsSideeffecting(conv.Operand);
+
+                case BoundKind.ObjectCreationExpression:
+                    // common production of lowered conversions to nullable
+                    // new S?(arg)
+                    if (expression.Type.IsNullableType())
+                    {
+                        var objCreation = (BoundObjectCreationExpression)expression;
+                        return objCreation.Arguments.Length == 1 && ReadIsSideeffecting(objCreation.Arguments[0]);
+                    }
+
+                    return false;
+
+                default:
+                    return true;
+            }
+        }
+
+        // nontrivial literals do not change between reads
+        // but may require re-constructing, so it is better 
+        // to treat them as potentially changing.
+        private static bool ConstantValueIsTrivial(TypeSymbol type)
+        {
+            return (object)type == null ||
+                type.SpecialType.IsClrInteger() ||
+                type.IsReferenceType ||
+                type.IsEnumType();
         }
     }
 }
