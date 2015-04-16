@@ -5078,7 +5078,8 @@ Class C
         End Sub
 
         <WorkItem(909121)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(2048, "https://github.com/dotnet/roslyn/issues/2048")>
+        <Fact(Skip:="2048"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub CommitGenericOnParen()
             Dim text =
 <code>
