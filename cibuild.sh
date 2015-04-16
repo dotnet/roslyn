@@ -4,7 +4,6 @@
 docompile()
 {
     xbuild /v:m /p:SignAssembly=false /p:DebugSymbols=false /p:DefineConstants=COMPILERCORE,DEBUG $1 src/Compilers/CSharp/csc/csc.csproj
-    xbuild /v:m /p:SignAssembly=false /p:DebugSymbols=false src/Compilers/Test/Resources/Core/CompilerTestResources.vbproj 
 }
 
 usage()
