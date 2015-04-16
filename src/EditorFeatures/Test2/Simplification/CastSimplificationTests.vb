@@ -4200,6 +4200,59 @@ class B
 
             Test(input, expected)
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_DoNotRemove_NecessaryCastInConditionalExpression()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+public struct Subject<T>
+{
+    private readonly T _value;
+    public Subject(T value)
+    : this()
+    {
+        _value = value;
+    }
+    public T Value
+    {
+        get { return _value; }
+    }
+    public Subject<TResult>? Is<TResult>() where TResult : T
+    {
+        return _value is TResult ? {|Simplify:(Subject<TResult>?)|}new Subject<TResult>((TResult)_value) : null;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+public struct Subject<T>
+{
+    private readonly T _value;
+    public Subject(T value)
+    : this()
+    {
+        _value = value;
+    }
+    public T Value
+    {
+        get { return _value; }
+    }
+    public Subject<TResult>? Is<TResult>() where TResult : T
+    {
+        return _value is TResult ? (Subject<TResult>?)new Subject<TResult>((TResult)_value) : null;
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
 #End Region
 
 #Region "Visual Basic tests"
