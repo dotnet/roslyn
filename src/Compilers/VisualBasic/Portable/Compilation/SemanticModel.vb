@@ -2061,7 +2061,7 @@ _Default:
                 Throw New ArgumentNullException(NameOf(symbol))
             End If
 
-            Dim vbsymbol = symbol.EnsureVbSymbolOrNothing(Of symbol)(NameOf(position))
+            Dim vbsymbol = symbol.EnsureVbSymbolOrNothing(Of symbol)(NameOf(symbol))
 
             Dim binder = Me.GetEnclosingBinder(position)
             If binder IsNot Nothing Then
@@ -3312,7 +3312,7 @@ _Default:
 
         Protected NotOverridable Overrides Function AnalyzeDataFlowCore(firstStatement As SyntaxNode, lastStatement As SyntaxNode) As DataFlowAnalysis
             Return Me.AnalyzeDataFlow(SafeCastArgument(Of StatementSyntax)(firstStatement, NameOf(firstStatement)),
-                                                SafeCastArgument(Of StatementSyntax)(lastStatement, NameOf(firstStatement)))
+                                                SafeCastArgument(Of StatementSyntax)(lastStatement, NameOf(lastStatement)))
         End Function
 
         Protected NotOverridable Overrides Function AnalyzeDataFlowCore(statementOrExpression As SyntaxNode) As DataFlowAnalysis
@@ -3338,7 +3338,7 @@ _Default:
 
         Protected NotOverridable Overrides Function AnalyzeControlFlowCore(firstStatement As SyntaxNode, lastStatement As SyntaxNode) As ControlFlowAnalysis
             Return Me.AnalyzeControlFlow(SafeCastArgument(Of StatementSyntax)(firstStatement, NameOf(firstStatement)),
-                                                   SafeCastArgument(Of StatementSyntax)(lastStatement, NameOf(firstStatement)))
+                                                   SafeCastArgument(Of StatementSyntax)(lastStatement, NameOf(lastStatement)))
         End Function
 
         Protected NotOverridable Overrides Function AnalyzeControlFlowCore(statement As SyntaxNode) As ControlFlowAnalysis
