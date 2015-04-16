@@ -1375,7 +1375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(destination))
             End If
 
-            Dim vbdestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(expression))
+            Dim vbdestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(destination))
 
             ' TODO(cyrusn): Check arguments.  This is a public entrypoint, so we must do appropriate
             ' checks here.  However, no other methods in this type do any checking currently.  SO i'm
