@@ -4922,6 +4922,48 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
+        /// <summary>
+        /// Ignore inaccessible members of System.Linq.Expressions.Expression.
+        /// </summary>
+        [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
+        [Fact]
+        public void IgnoreInaccessibleExpressionMembers()
+        {
+            var source1 =
+@"namespace System.Linq.Expressions
+{
+    public class Expression
+    {
+        public static Expression Constant(object o, Type t) { return null; }
+        protected static Expression Convert(object e, Type t) { return null; }
+        public static Expression Convert(Expression e, object t) { return null; }
+        protected static void Lambda<T>(Expression e, ParameterExpression[] args) { }
+        public static Expression<T> Lambda<T>(Expression e, Expression[] args) { return null; }
+    }
+    public class Expression<T> { }
+    public class ParameterExpression : Expression { }
+}";
+            var compilation1 = CreateCompilationWithMscorlib(source1);
+            compilation1.VerifyDiagnostics();
+            var reference1 = compilation1.EmitToImageReference();
+
+            var source2 =
+@"using System.Linq.Expressions;
+delegate object D();
+class C
+{
+    static Expression<D> E = () => 1;
+}";
+            var compilation2 = CreateCompilationWithMscorlib(source2, references: new[] { reference1 });
+            compilation2.VerifyDiagnostics();
+
+            using (var stream = new MemoryStream())
+            {
+                var result = compilation2.Emit(stream);
+                result.Diagnostics.Verify();
+            }
+        }
+
         #endregion Regression Tests
 
         #region helpers
