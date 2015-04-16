@@ -16,7 +16,7 @@ The [VS2015 CTP 6](http://visualstudio.com/en-us/downloads/visual-studio-2015-ct
 | Getter-only auto-properties | `public int Y { get; } = y;` | Added | Added |
 | [Ctor assignment to getter-only autoprops](http://roslyn.codeplex.com/discussions/568824) | `Y = 15` | Added | Added |
 | Using static members | `using static System.Console; … Write(4);` | Added | Exists |
-| Dictionary initializer | `new JObject { ["x"] = 3 }` | Added | No |
+| Index initializer | `new JObject { ["x"] = 3 }` | Added | No |
 | Await in catch/finally | `try … catch { await … } finally { await … }` | Added | No |
 | Exception filters | `catch(E e) when (e.Count > 5) { … }` | Added | Exists |
 | Partial modules | `Partial Module M1` | N/A | Added |
@@ -26,7 +26,7 @@ The [VS2015 CTP 6](http://visualstudio.com/en-us/downloads/visual-studio-2015-ct
 | Line continuation comments | `Dim addrs = From c in Customers ' comment` | N/A | Added |
 | TypeOf IsNot | `If TypeOf x IsNot Customer Then …` | N/A | Added |
 | Expression-bodied members | `public double Dist => Sqrt(X * X + Y * Y);` | Added | No |
-| [Null propagation](http://roslyn.codeplex.com/discussions/540883) | `customer?.Orders?[5]` | Added | Added |
+| [Null-conditional operators](http://roslyn.codeplex.com/discussions/540883) | `customer?.Orders?[5]` | Added | Added |
 | [String interpolation](http://roslyn.codeplex.com/discussions/570292) | `$"{p.Name} is {p.Age} years old."` | Added | Added |
 | [nameof operator](http://roslyn.codeplex.com/discussions/570551) | `string s = nameof(Console.Write);` | Added | Added |
 | [#pragma](http://roslyn.codeplex.com/discussions/543476) | `#Disable Warning BC40008` | Added | Added |
