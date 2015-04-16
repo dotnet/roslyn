@@ -106,15 +106,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private Task RaiseEvent(string eventName)
             {
                 // this method name doesnt have Async since it should work as async void.
-                var handlers = _eventMap.GetEventHandlers<EventHandler>(eventName);
-                if (handlers.Length > 0)
+                if (_eventMap.HasEventHandlers<EventHandler>(eventName))
                 {
                     return _eventQueue.ScheduleTask(() =>
                     {
-                        foreach (var handler in handlers)
-                        {
-                            handler(this, EventArgs.Empty);
-                        }
+                        _eventMap.RaiseEvent<EventHandler>(eventName, handler => handler(this, EventArgs.Empty));
                     });
                 }
 

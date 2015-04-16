@@ -49,15 +49,11 @@ namespace Microsoft.CodeAnalysis.Notification
 
         protected virtual Task RaiseGlobalOperationStarted()
         {
-            var handlers = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
-            if (handlers.Length > 0)
+            if (_eventMap.HasEventHandlers<EventHandler>(GlobalOperationStartedEventName))
             {
                 return _eventQueue.ScheduleTask(() =>
                 {
-                    foreach (var handler in handlers)
-                    {
-                        handler(this, EventArgs.Empty);
-                    }
+                    _eventMap.RaiseEvent<EventHandler>(GlobalOperationStartedEventName, handler => handler(this, EventArgs.Empty));
                 });
             }
 
@@ -66,17 +62,13 @@ namespace Microsoft.CodeAnalysis.Notification
 
         protected virtual Task RaiseGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
         {
-            var handlers = _eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
-            if (handlers.Length > 0)
+            if (_eventMap.HasEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName))
             {
                 var args = new GlobalOperationEventArgs(operations, cancelled);
 
                 return _eventQueue.ScheduleTask(() =>
                 {
-                    foreach (var handler in handlers)
-                    {
-                        handler(this, args);
-                    }
+                    _eventMap.RaiseEvent<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName, handler => handler(this, args));
                 });
             }
 

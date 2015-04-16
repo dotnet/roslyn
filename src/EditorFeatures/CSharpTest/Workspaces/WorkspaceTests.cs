@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 WaitForWorkspaceOperationsToComplete(workspace);
 
                 Assert.Equal(solution, workspace.CurrentSolution);
-                Assert.False(workspaceChanged);
+                Assert.True(workspaceChanged);
             }
         }
 
