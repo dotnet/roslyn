@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -84,6 +85,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         protected virtual async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
             var changedSolution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
+            if (changedSolution == null)
+            {
+                return null;
+            }
+
             return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
         }
 
@@ -103,6 +109,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         protected async virtual Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
         {
             var changedDocument = await GetChangedDocumentAsync(cancellationToken).ConfigureAwait(false);
+            if (changedDocument == null)
+            {
+                return null;
+            }
+
             return changedDocument.Project.Solution;
         }
 
@@ -121,6 +132,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal async Task<Solution> GetChangedSolutionInternalAsync(CancellationToken cancellationToken)
         {
             var solution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
+            if (solution == null)
+            {
+                return null;
+            }
+
             return await this.PostProcessChangesAsync(solution, cancellationToken).ConfigureAwait(false);
         }
 

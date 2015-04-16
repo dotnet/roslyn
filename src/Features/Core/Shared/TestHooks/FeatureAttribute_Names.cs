@@ -34,5 +34,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string GlobalOperation = "GlobalOperation";
         public const string DiagnosticService = "DiagnosticService";
         public const string RuleSetEditor = "RuleSetEditor";
+        public const string InfoBar = "InfoBar";
     }
 }
