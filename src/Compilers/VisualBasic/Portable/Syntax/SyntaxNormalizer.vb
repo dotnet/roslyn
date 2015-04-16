@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-    Friend Class SyntaxFormatter
+    Friend Class SyntaxNormalizer
         Inherits VisualBasicSyntaxRewriter
 
         Private ReadOnly _consideredSpan As TextSpan
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Private _indentations As ArrayBuilder(Of SyntaxTrivia)
 
         ''' <summary>
-        ''' Creates a Syntax Formatter visitor
+        ''' Creates a syntax trivia normalizing visitor
         ''' </summary>
         ''' <param name="indentWhitespace">The whitespace to indent with</param>
         ''' <param name="useElasticTrivia">Whether to use elastic trivia or not</param>
@@ -47,29 +47,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Me._afterLineBreak = True
         End Sub
 
-        Friend Shared Function Format(Of TNode As SyntaxNode)(node As TNode, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False) As SyntaxNode
-            Dim formatter As New SyntaxFormatter(node.FullSpan, indentWhitespace, useElasticTrivia, useDefaultCasing)
-            Dim result As TNode = CType(formatter.Visit(node), TNode)
-            formatter.Free()
+        Friend Shared Function Normalize(Of TNode As SyntaxNode)(node As TNode, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False) As SyntaxNode
+            Dim normalizer As New SyntaxNormalizer(node.FullSpan, indentWhitespace, useElasticTrivia, useDefaultCasing)
+            Dim result As TNode = CType(normalizer.Visit(node), TNode)
+            normalizer.Free()
             Return result
         End Function
 
-        Friend Shared Function Format(token As SyntaxToken, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False) As SyntaxToken
-            Dim formatter As New SyntaxFormatter(token.FullSpan, indentWhitespace, useElasticTrivia, useDefaultCasing)
-            Dim result As SyntaxToken = formatter.VisitToken(token)
-            formatter.Free()
+        Friend Shared Function Normalize(token As SyntaxToken, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False) As SyntaxToken
+            Dim normalizer As New SyntaxNormalizer(token.FullSpan, indentWhitespace, useElasticTrivia, useDefaultCasing)
+            Dim result As SyntaxToken = normalizer.VisitToken(token)
+            normalizer.Free()
             Return result
         End Function
 
-        Friend Shared Function Format(trivia As SyntaxTriviaList, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False) As SyntaxTriviaList
-            Dim formatter = New SyntaxFormatter(trivia.FullSpan, indentWhitespace, useElasticTrivia, useDefaultCasing)
-            Dim result As SyntaxTriviaList = formatter.RewriteTrivia(trivia,
-                                            formatter.GetIndentationDepth(),
+        Friend Shared Function Normalize(trivia As SyntaxTriviaList, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False) As SyntaxTriviaList
+            Dim normalizer = New SyntaxNormalizer(trivia.FullSpan, indentWhitespace, useElasticTrivia, useDefaultCasing)
+            Dim result As SyntaxTriviaList = normalizer.RewriteTrivia(trivia,
+                                            normalizer.GetIndentationDepth(),
                                             isTrailing:=False,
                                             mustBeIndented:=False,
                                             mustHaveSeparator:=False,
                                             lineBreaksAfter:=0, lineBreaksBefore:=0)
-            formatter.Free()
+            normalizer.Free()
             Return result
         End Function
 

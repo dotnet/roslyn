@@ -637,7 +637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function NormalizeWhitespaceCore(indentation As String, elasticTrivia As Boolean) As SyntaxNode
-            Return SyntaxFormatter.Format(Me, indentation, elasticTrivia, useDefaultCasing:=False)
+            Return SyntaxNormalizer.Normalize(Me, indentation, elasticTrivia, useDefaultCasing:=False)
         End Function
 #End Region
 

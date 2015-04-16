@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    internal class SyntaxFormatter : CSharpSyntaxRewriter
+    internal class SyntaxNormalizer : CSharpSyntaxRewriter
     {
         private readonly TextSpan _consideredSpan;
         private readonly int _initialDepth;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         // of the values between indentations[0] and indentations[initialDepth] (exclusive).
         private ArrayBuilder<SyntaxTrivia> _indentations;
 
-        private SyntaxFormatter(TextSpan consideredSpan, int initialDepth, string indentWhitespace, bool useElasticTrivia)
+        private SyntaxNormalizer(TextSpan consideredSpan, int initialDepth, string indentWhitespace, bool useElasticTrivia)
             : base(visitIntoStructuredTrivia: true)
         {
             _consideredSpan = consideredSpan;
@@ -38,34 +38,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             _afterLineBreak = true;
         }
 
-        internal static TNode Format<TNode>(TNode node, string indentWhitespace, bool useElasticTrivia = false)
+        internal static TNode Normalize<TNode>(TNode node, string indentWhitespace, bool useElasticTrivia = false)
             where TNode : SyntaxNode
         {
-            var formatter = new SyntaxFormatter(node.FullSpan, GetDeclarationDepth(node), indentWhitespace, useElasticTrivia);
-            var result = (TNode)formatter.Visit(node);
-            formatter.Free();
+            var normalizer = new SyntaxNormalizer(node.FullSpan, GetDeclarationDepth(node), indentWhitespace, useElasticTrivia);
+            var result = (TNode)normalizer.Visit(node);
+            normalizer.Free();
             return result;
         }
 
-        internal static SyntaxToken Format(SyntaxToken token, string indentWhitespace, bool useElasticTrivia = false)
+        internal static SyntaxToken Normalize(SyntaxToken token, string indentWhitespace, bool useElasticTrivia = false)
         {
-            var formatter = new SyntaxFormatter(token.FullSpan, GetDeclarationDepth(token), indentWhitespace, useElasticTrivia);
-            var result = formatter.VisitToken(token);
-            formatter.Free();
+            var normalizer = new SyntaxNormalizer(token.FullSpan, GetDeclarationDepth(token), indentWhitespace, useElasticTrivia);
+            var result = normalizer.VisitToken(token);
+            normalizer.Free();
             return result;
         }
 
-        internal static SyntaxTriviaList Format(SyntaxTriviaList trivia, string indentWhitespace, bool useElasticTrivia = false)
+        internal static SyntaxTriviaList Normalize(SyntaxTriviaList trivia, string indentWhitespace, bool useElasticTrivia = false)
         {
-            var formatter = new SyntaxFormatter(trivia.FullSpan, GetDeclarationDepth(trivia.Token), indentWhitespace, useElasticTrivia);
-            var result = formatter.RewriteTrivia(
+            var normalizer = new SyntaxNormalizer(trivia.FullSpan, GetDeclarationDepth(trivia.Token), indentWhitespace, useElasticTrivia);
+            var result = normalizer.RewriteTrivia(
                 trivia,
                 GetDeclarationDepth((SyntaxToken)trivia.ElementAt(0).Token),
                 isTrailing: false,
                 mustBeIndented: false,
                 mustHaveSeparator: false,
                 lineBreaksAfter: 0);
-            formatter.Free();
+            normalizer.Free();
             return result;
         }
 
