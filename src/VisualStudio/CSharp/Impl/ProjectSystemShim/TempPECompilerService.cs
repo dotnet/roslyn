@@ -59,7 +59,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                     .WithXmlReferenceResolver(XmlFileResolver.Default)
                     .WithMetadataReferenceResolver(metadataResolver));
 
-            compilation.Emit(pszOutputFileName);
+            var result = compilation.Emit(pszOutputFileName);
+
+            Contract.ThrowIfFalse(result.Success);
         }
 
         private CSharpCommandLineArguments ParseCommandLineArguments(string baseDirectory, string[] optionNames, object[] optionValues)
