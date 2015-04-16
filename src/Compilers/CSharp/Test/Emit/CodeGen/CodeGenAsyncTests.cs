@@ -3288,5 +3288,45 @@ class Test
 }",
             sequencePoints: "Test+<F>d__2.MoveNext");
         }
+
+        [Fact, WorkItem(1942, "https://github.com/dotnet/roslyn/issues/1942")]
+        public void HoistStructure()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+namespace ConsoleApp
+{
+    struct TestStruct
+    {
+        public long i;
+        public long j;
+    }
+    class Program
+    {
+        static async Task TestAsync()
+        {
+            TestStruct t;
+            t.i = 12;
+            Console.WriteLine(""Before {0}"", t.i); // emits ""Before 12"" 
+            await Task.Delay(100);
+            Console.WriteLine(""After {0}"", t.i); // emits ""After 0"" expecting ""After 12"" 
+        }
+        static void Main(string[] args)
+        {
+            TestAsync().Wait();
+        }
+    }
+}";
+
+            var expectedOutput = @"Before 12
+After 12";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: expectedOutput);
+        }
     }
 }

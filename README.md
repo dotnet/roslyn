@@ -1,6 +1,6 @@
 ## Welcome to the .NET Compiler Platform ("Roslyn")
 
-|Windows|Linux|Mac|
+|Windows|Linux|Mac OSX|
 |:--:|:--:|:--:|
 |[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_mac/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_mac/)|
 
