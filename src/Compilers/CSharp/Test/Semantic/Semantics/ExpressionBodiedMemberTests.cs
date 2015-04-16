@@ -731,5 +731,32 @@ public class C
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
+        [Fact, WorkItem(971, "https://github.com/dotnet/roslyn/issues/971")]
+        public void LookupSymbols()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    Func<int, int> U() => delegate (int y0) { return 0; } 
+    int V(int y1) => 1;  
+}
+
+Func<int, int> W() => delegate (int y2) { return 2; } 
+");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+
+            Assert.Equal(3, nodes.Length);
+
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                Assert.Equal($"{i}", nodes[i].ToString());
+                Assert.Equal($"System.Int32 y{i}", model.LookupSymbols(nodes[i].SpanStart, name: $"y{i}").Single().ToTestDisplayString());
+            }
+        }
+
     }
 }
