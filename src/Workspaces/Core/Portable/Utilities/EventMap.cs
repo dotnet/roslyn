@@ -24,8 +24,8 @@ namespace Roslyn.Utilities
             using (_guard.DisposableWait())
             {
                 var registries = GetRegistries_NoLock<TEventHandler>(eventName);
-                var newHandlers = registries.Add(new Registry<TEventHandler>(eventHandler));
-                SetRegistries_NoLock(eventName, newHandlers);
+                var newRegistries = registries.Add(new Registry<TEventHandler>(eventHandler));
+                SetRegistries_NoLock(eventName, newRegistries);
             }
         }
 
@@ -95,12 +95,12 @@ namespace Roslyn.Utilities
             return ImmutableArray.Create<Registry<TEventHandler>>();
         }
 
-        private void SetRegistries_NoLock<TEventHandler>(string name, ImmutableArray<Registry<TEventHandler>> events)
+        private void SetRegistries_NoLock<TEventHandler>(string eventName, ImmutableArray<Registry<TEventHandler>> registries)
             where TEventHandler : class
         {
             _guard.AssertHasLock();
 
-            _eventNameToRegistries[name] = events;
+            _eventNameToRegistries[eventName] = registries;
         }
 
         private class Registry<TEventHandler> : IEquatable<Registry<TEventHandler>>
