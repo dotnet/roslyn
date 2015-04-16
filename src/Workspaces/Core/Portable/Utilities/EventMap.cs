@@ -43,9 +43,9 @@ namespace Roslyn.Utilities
                 {
                     // disable all registrations of this handler (so pending raise events can be squelched)
                     // This does not guarantee no race condition between Raise and Remove but greatly reduces it.
-                    foreach (var registery in registries.Where(r => r.HasHandler(eventHandler)))
+                    foreach (var registry in registries.Where(r => r.HasHandler(eventHandler)))
                     {
-                        registery.Unregister();
+                        registry.Unregister();
                     }
 
                     SetRegistries_NoLock(eventName, newRegistries);
