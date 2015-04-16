@@ -14,6 +14,7 @@
     <StartupObject>Microsoft.CodeAnalysis.VisualBasic.Internal.VBErrorFactsGenerator.Program</StartupObject>
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Internal.VBErrorFactsGenerator</RootNamespace>
     <AssemblyName>VBErrorFactsGenerator</AssemblyName>
+    <VBRuntime>Embed</VBRuntime>
     <OptionExplicit>On</OptionExplicit>
     <OptionCompare>Binary</OptionCompare>
     <OptionStrict>On</OptionStrict>
