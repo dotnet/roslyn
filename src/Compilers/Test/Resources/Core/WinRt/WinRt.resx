@@ -130,21 +130,21 @@
     <value>WB.winmd;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="WB_Version1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>wb_version1.winmd;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>WB_Version1.winmd;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="Windows" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>windows.winmd;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>Windows.winmd;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="Windows_dump" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>windows.ildump;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>Windows.ildump;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="Windows_Languages_WinRTTest" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Windows.Languages.WinRTTest.winmd;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="WinMDPrefixing" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>winmdprefixing.winmd;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>WinMDPrefixing.winmd;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="WinMDPrefixing_dump" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>winmdprefixing.ildump;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>WinMDPrefixing.ildump;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>
