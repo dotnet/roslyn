@@ -1179,11 +1179,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode outerLambda = GetOutermostLambdaOrQuery(innerLambda);
                 Debug.Assert(outerLambda != null);
                 Debug.Assert(outerLambda != this.Root);
-                CSharpSyntaxNode outerExpression = GetBindingRoot(outerLambda);
+                CSharpSyntaxNode nodeToBind = GetBindingRoot(outerLambda);
+
+                var statementBinder = GetEnclosingBinder(nodeToBind, position);
+                Binder incrementalBinder = new IncrementalBinder(this, statementBinder);
 
                 using (_nodeMapLock.DisposableWrite())
                 {
-                    BoundNode boundOuterExpression = this.Bind(GetEnclosingBinder(outerExpression, position), outerExpression, _ignoredDiagnostics);
+                    BoundNode boundOuterExpression = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
                     GuardedAddBoundTreeAndGetBoundNodeFromMap(innerLambda, boundOuterExpression);
                 }
             }

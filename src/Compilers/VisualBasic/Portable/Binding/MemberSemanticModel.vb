@@ -1777,7 +1777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' In this case, however, we only add the single bound node we found to the map, not any child bound nodes,
             ' to avoid duplicates in the map if a parent of this node comes through this code path also.
             If TypeOf node Is ExpressionSyntax OrElse TypeOf node Is StatementSyntax Then
-                Dim binder = GetEnclosingBinder(node)
+                Dim binder = New IncrementalBinder(Me, GetEnclosingBinder(node))
 
                 _rwLock.EnterWriteLock()
                 Try

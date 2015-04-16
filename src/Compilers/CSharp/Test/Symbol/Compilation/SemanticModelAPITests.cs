@@ -3327,6 +3327,89 @@ namespace Microsoft.Conformance.Expressions
                 );
         }
 
+        [Fact, WorkItem(1504, "https://github.com/dotnet/roslyn/issues/1504")]
+        public void ContainingSymbol02()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static void F()
+    {
+        Exception x1 = null;
+        try
+        {
+            G(() => x1);
+        }
+        catch (Exception x2) when (G(() => x2))
+        {
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+            for (var match = System.Text.RegularExpressions.Regex.Match(source, " => x"); match.Success; match = match.NextMatch())
+            {
+                var discarded = model.GetEnclosingSymbol(match.Index);
+            }
+        }
+
+        [Fact, WorkItem(1504, "https://github.com/dotnet/roslyn/issues/1504")]
+        public void ContainingSymbol03()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static void F()
+    {
+        Exception x1 = null, x2 = null;
+        do
+        {
+            G(() => x1);
+        }
+        while (G(() => x2));
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            for (var match = System.Text.RegularExpressions.Regex.Match(source, " => x"); match.Success; match = match.NextMatch())
+            {
+                var x = tree.GetRoot().FindToken(match.Index + 4).Parent;
+                var discarded = model.GetEnclosingSymbol(match.Index);
+                var disc = model.GetSymbolInfo(x);
+            }
+        }
+
+        [Fact, WorkItem(1504, "https://github.com/dotnet/roslyn/issues/1504")]
+        public void ContainingSymbol04()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static void F()
+    {
+        Exception x1 = null, x2 = null;
+        if (G(() => x1));
+        {
+            G(() => x2);
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+            var discarded1 = model.GetEnclosingSymbol(source.LastIndexOf(" => x"));
+            var discarded2 = model.GetEnclosingSymbol(source.IndexOf(" => x"));
+        }
+
         #region "regression helper"
         private void Regression(string text)
         {
