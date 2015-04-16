@@ -1652,6 +1652,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub SymbolDeclaredEvent(symbol As Symbol)
             If EventQueue IsNot Nothing Then
                 ' In the IDE, the "My." stuff can result in attempting to declare symbols after completion.
+                ' After a fix to not generate compilation events for My. stuff goes in, the If test can be replaced with
+                '     Debug.Assert(Not EventQueue.IsCompleted)
                 If Not EventQueue.IsCompleted Then
                     EventQueue.Enqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
                 End If
