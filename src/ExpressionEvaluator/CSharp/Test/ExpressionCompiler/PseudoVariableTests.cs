@@ -70,15 +70,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
     }
 }";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+
             ResultProperties resultProperties;
             string error;
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.M",
-                expr: "this.$exception",
-                resultProperties: out resultProperties,
-                error: out error);
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+            context.CompileExpression(
+                DefaultInspectionContext.Instance,
+                "this.$exception",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData: null);
+            AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
             Assert.Equal(error, "error CS1061: 'C' does not contain a definition for '$exception' and no extension method '$exception' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)");
         }
 

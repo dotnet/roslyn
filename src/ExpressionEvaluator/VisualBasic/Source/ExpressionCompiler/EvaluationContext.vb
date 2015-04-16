@@ -632,6 +632,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             ' across different versions of (desktop) windows.
                             Dim identity = New AssemblyIdentity($"{containingNamespace.ToDisplayString}.{namespaceName}", contentType:=AssemblyContentType.WindowsRuntime)
                             Return ImmutableArray.Create(identity)
+                        Else
+                            ' Maybe it's a missing Linq extension method.  Let's try adding System.Core and see if that helps.
+                            Return ImmutableArray.Create(SystemCoreIdentity)
                         End If
                     End If
                 Case ERRID.ERR_UndefinedType1
