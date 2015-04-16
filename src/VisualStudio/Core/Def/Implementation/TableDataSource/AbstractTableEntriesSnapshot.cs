@@ -182,7 +182,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         protected string GetFileName(string original, string mapped)
         {
-            return mapped == null ? original : original == null ? mapped : FilePathUtilities.Combine(original, mapped);
+            return mapped == null ? original : original == null ? mapped : Combine(original, mapped);
+        }
+
+        private string Combine(string path1, string path2)
+        {
+            string result;
+            if (FilePathUtilities.TryCombine(path1, path2, out result))
+            {
+                return result;
+            }
+
+            return string.Empty;
         }
 
         protected string GetProjectName(Workspace workspace, ProjectId projectId)
