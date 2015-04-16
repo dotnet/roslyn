@@ -35,6 +35,11 @@ do
 done
 
 if [ "$CUSTOM_MONO_PATH" != "" ]; then
+    if [ ! -d "$CUSTOM_MONO_PATH" ]; then
+        echo "Not a valid directory $CUSTOM_MONO_PATH"
+        exit 1
+    fi
+
     echo "Using mono path $CUSTOM_MONO_PATH"
     PATH=$CUSTOM_MONO_PATH:$PATH
 else
