@@ -6593,5 +6593,69 @@ True");
 }");
         }
 
+        [WorkItem(1)]
+        [Fact]
+        public void Bug1()
+        {
+            var source = @"
+using System;
+
+class Test
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        M1(c1);
+        M2(c1);
+    }
+    static void M1(C1 c1)
+    {
+        if (c1?.P == 1) Console.WriteLine(1);
+    }
+    static void M2(C1 c1)
+    {
+        if (c1 != null && c1.P == 1) Console.WriteLine(1);
+    }
+}
+class C1
+{
+    public int P => 1;
+}
+
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"1
+1");
+            comp.VerifyIL("Test.M1", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0012
+  IL_0003:  ldarg.0
+  IL_0004:  call       ""int C1.P.get""
+  IL_0009:  ldc.i4.1
+  IL_000a:  bne.un.s   IL_0012
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       ""void System.Console.WriteLine(int)""
+  IL_0012:  ret
+}
+");
+            comp.VerifyIL("Test.M2", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0012
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""int C1.P.get""
+  IL_0009:  ldc.i4.1
+  IL_000a:  bne.un.s   IL_0012
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       ""void System.Console.WriteLine(int)""
+  IL_0012:  ret
+}
+");
+        }
+
     }
 }
