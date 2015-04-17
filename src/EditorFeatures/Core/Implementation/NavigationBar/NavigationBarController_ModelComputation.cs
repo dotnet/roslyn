@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             var cancellationToken = _modelTaskCancellationSource.Token;
 
             // Enqueue a new computation for the model
-            var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".StartModelUpdateTask");
+            var asyncToken = _asyncListener.BeginAsyncOperation("StartModelUpdateAndSelectedItemUpdateTasks");
             _modelTask =
                 Task.Delay(modelUpdateDelay, cancellationToken)
                     .SafeContinueWithFromAsync(

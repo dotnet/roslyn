@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly Document _triggerDocument;
         private readonly IWpfTextView _triggerView;
         private readonly IDisposable _inlineRenameSessionDurationLogBlock;
+        private readonly SimpleTaskQueue _eventQueue;
 
         private bool _dismissed;
         private bool _isApplyingEdit;
@@ -86,6 +87,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             IAsynchronousOperationListener asyncListener) : base(assertIsForeground: true)
         {
+            _eventQueue = new SimpleTaskQueue(ForegroundTaskScheduler);
+
             // This should always be touching a symbol since we verified that upon invocation
             _renameInfo = renameInfo;
 
@@ -305,6 +308,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
         {
+            if (args.NewSolution.Workspace != _workspace)
+            {
+                return;
+            }
+
+            if (args.Kind != WorkspaceChangeKind.DocumentChanged)
+            {
+                var token = _asyncListener.BeginAsyncOperation("OnWorkspaceChanged.Cancel");
+                _eventQueue.ScheduleTask(() => OnWorkspaceChangedOnForegroundThread(args)).CompletesAsyncOperation(token);
+            }
+        }
+
+        private void OnWorkspaceChangedOnForegroundThread(WorkspaceChangeEventArgs args)
+        {
             if (args.Kind != WorkspaceChangeKind.DocumentChanged)
             {
                 if (!_dismissed)
@@ -386,7 +403,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             else
             {
                 // When responding to a text edit, we delay propagating the edit until the first transaction completes.
-                Dispatcher.CurrentDispatcher.BeginInvoke(propagateEditAction, DispatcherPriority.Send, null);
+                var token = _asyncListener.BeginAsyncOperation("ApplyReplacementText");
+                var operation = Dispatcher.CurrentDispatcher.BeginInvoke(propagateEditAction, DispatcherPriority.Send, null);
+                operation.Task.CompletesAsyncOperation(token);
             }
 
             UpdateConflictResolutionTask();

@@ -110,9 +110,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Function
 
         Public Sub WaitForRename(workspace As TestWorkspace)
-            workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter) _
-                .Select(Function(waiter) waiter.CreateWaitTask()) _
-                .PumpingWaitAll()
+            Dim waiters = workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter).ToList()
+
+            ' first one is for workspace waiter
+            waiters.Select(Function(waiter) waiter.CreateWaitTask()).PumpingWaitAll()
+
+            ' second one is for rename waiter
+            waiters.Select(Function(waiter) waiter.CreateWaitTask()).PumpingWaitAll()
         End Sub
 
         Public Function CreateRenameTrackingTagger(workspace As TestWorkspace, document As TestHostDocument) As ITagger(Of RenameTrackingTag)

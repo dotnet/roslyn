@@ -9,12 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -36,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private readonly IWaitIndicator _waitIndicator;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly WorkspaceRegistration _workspaceRegistration;
+        private readonly SimpleTaskQueue _eventQueue;
 
         /// <summary>
         /// If we have pushed a full list to the presenter in response to a focus event, this
@@ -53,6 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             IWaitIndicator waitIndicator,
             IAsynchronousOperationListener asyncListener)
         {
+            _eventQueue = new SimpleTaskQueue(ForegroundTaskScheduler);
+
             _presenter = presenter;
             _subjectBuffer = subjectBuffer;
             _waitIndicator = waitIndicator;
@@ -152,6 +150,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 return;
             }
 
+            // workspace event fires from background, explicitly move it to foreground
+            if ((args.Kind == WorkspaceChangeKind.ProjectChanged && args.ProjectId != null) ||
+                (args.Kind == WorkspaceChangeKind.DocumentChanged && args.OldSolution == args.NewSolution))
+            {
+                var token = _asyncListener.BeginAsyncOperation("OnWorkspaceChanged");
+                _eventQueue.ScheduleTask(() => OnWorkspaceChangedOnForegroundThread(args)).CompletesAsyncOperation(token);
+            }
+        }
+
+        private void OnWorkspaceChangedOnForegroundThread(WorkspaceChangeEventArgs args)
+        {
             // If the displayed project is being renamed, retrigger the update
             if (args.Kind == WorkspaceChangeKind.ProjectChanged && args.ProjectId != null)
             {
@@ -169,8 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 }
             }
 
-            if (args.Kind == WorkspaceChangeKind.DocumentChanged &&
-                args.OldSolution == args.NewSolution)
+            if (args.Kind == WorkspaceChangeKind.DocumentChanged && args.OldSolution == args.NewSolution)
             {
                 var currentContextDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
                 if (currentContextDocumentId != null && currentContextDocumentId == args.DocumentId)
