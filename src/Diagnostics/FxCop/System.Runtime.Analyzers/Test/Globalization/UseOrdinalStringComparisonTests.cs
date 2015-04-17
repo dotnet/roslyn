@@ -9,7 +9,7 @@ using Xunit;
 namespace System.Runtime.Analyzers.UnitTests
 {
     [WorkItem(858659, "DevDiv")]
-    public class CA1309Tests : DiagnosticAnalyzerTestBase
+    public class UseOrdinalStringComparisonTests : DiagnosticAnalyzerTestBase
     {
         #region Helper methods
 

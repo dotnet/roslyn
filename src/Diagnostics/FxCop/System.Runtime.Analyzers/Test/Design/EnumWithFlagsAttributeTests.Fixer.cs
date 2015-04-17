@@ -1,35 +1,34 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace System.Runtime.Analyzers.UnitTests
 {
-    public class EnumWithFlagsAttributesRulesFixerTests : CodeFixTestBase
+    public class EnumWithFlagsAttributeFixerTests : CodeFixTestBase
     {
         protected override CodeFixProvider GetBasicCodeFixProvider()
         {
-            return new EnumWithFlagsBasicCodeFixProvider();
+            return new EnumWithFlagsAttributeFixer();
         }
 
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return new BasicEnumWithFlagsDiagnosticAnalyzer();
+            return new EnumWithFlagsAttributeAnalyzer();
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new EnumWithFlagsCSharpCodeFixProvider();
+            return new EnumWithFlagsAttributeFixer();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CSharpEnumWithFlagsDiagnosticAnalyzer();
+            return new EnumWithFlagsAttributeAnalyzer();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]

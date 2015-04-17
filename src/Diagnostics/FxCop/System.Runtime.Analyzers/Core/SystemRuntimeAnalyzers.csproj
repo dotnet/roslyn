@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Design\AssemblyAttributesDiagnosticAnalyzer.cs" />
+    <Compile Include="Design\EnumWithFlagsAttribute.Fixer.cs" />
     <Compile Include="Design\MarkAllAssembliesWithComVisible.cs" />
     <Compile Include="Design\OverrideMethodsOnComparableTypes.cs" />
     <Compile Include="Design\DefineAccessorsForAttributeArguments.cs" />
@@ -68,12 +69,14 @@
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.Fixer.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.cs" />
     <Compile Include="DiagnosticCategory.cs" />
+    <Compile Include="Design\EnumWithFlagsAttribute.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparison.Fixer.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparison.cs" />
     <Compile Include="Performance\AvoidUnsealedAttributes.cs" />
     <Compile Include="Performance\AvoidUnsealedAttributes.Fixer.cs" />
     <Compile Include="Shared\DiagnosticExtensions.cs" />
     <Compile Include="DocumentChangeAction.cs" />
+    <Compile Include="Shared\DiagnosticHelpers.cs" />
     <Compile Include="Shared\INamedTypeSymbolExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SystemRuntimeAnalyzersResources.Designer.cs">

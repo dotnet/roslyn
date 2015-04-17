@@ -110,8 +110,6 @@
     <Compile Include="Design\CA1060DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CodeFixes\CA1008CodeFixProviderBase.cs" />
     <Compile Include="Design\CodeFixes\CA1012CodeFixProvider.cs" />
-    <Compile Include="Design\CodeFixes\EnumWithFlagsCodeFixProviderBase.cs" />
-    <Compile Include="Design\EnumWithFlagsDiagnosticAnalyzer.cs" />
     <Compile Include="Design\StaticTypeRulesDiagnosticAnalyzer.cs" />
     <Compile Include="DiagnosticKind.cs" />
     <Compile Include="DocumentChangeAction.cs" />

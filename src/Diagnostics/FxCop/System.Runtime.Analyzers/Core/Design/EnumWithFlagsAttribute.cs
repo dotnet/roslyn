@@ -6,11 +6,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+namespace System.Runtime.Analyzers
 {
     /// <summary>
     /// Implements CA1027 and CA2217
@@ -28,49 +28,50 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// An externally visible enumeration is marked with FlagsAttribute and it has one or more values that are not powers of two or
     /// a combination of the other defined values on the enumeration.
     /// </summary>
-    public abstract class EnumWithFlagsDiagnosticAnalyzer : AbstractNamedTypeAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class EnumWithFlagsAttributeAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleIdMarkEnumsWithFlags = "CA1027";
         internal const string RuleIdDoNotMarkEnumsWithFlags = "CA2217";
         internal const string RuleNameForExportAttribute = "EnumWithFlagsAttributeRules";
 
-        private static LocalizableString s_localizableTitleCA1027 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkEnumsWithFlags), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableMessageCA1027 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkEnumsWithFlagsMessage), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableDescriptionCA1027 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkEnumsWithFlagsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitleCA1027 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkEnumsWithFlags), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static LocalizableString s_localizableMessageCA1027 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkEnumsWithFlagsMessage), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static LocalizableString s_localizableDescriptionCA1027 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkEnumsWithFlagsDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
         internal static DiagnosticDescriptor Rule1027 = new DiagnosticDescriptor(RuleIdMarkEnumsWithFlags,
                                                                              s_localizableTitleCA1027,
                                                                              s_localizableMessageCA1027,
-                                                                             FxCopDiagnosticCategory.Design,
+                                                                             DiagnosticCategory.Design,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescriptionCA1027,
                                                                              helpLinkUri: "http://msdn.microsoft.com/library/ms182159.aspx",
-                                                                             customTags: DiagnosticCustomTags.Microsoft);
+                                                                             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        private static LocalizableString s_localizableTitleCA2217 = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotMarkEnumsWithFlags), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableMessageCA2217 = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotMarkEnumsWithFlagsMessage), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableDescriptionCA2217 = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotMarkEnumsWithFlagsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitleCA2217 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DoNotMarkEnumsWithFlags), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static LocalizableString s_localizableMessageCA2217 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DoNotMarkEnumsWithFlagsMessage), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static LocalizableString s_localizableDescriptionCA2217 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DoNotMarkEnumsWithFlagsDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
         internal static DiagnosticDescriptor Rule2217 = new DiagnosticDescriptor(RuleIdDoNotMarkEnumsWithFlags,
                                                                              s_localizableTitleCA2217,
                                                                              s_localizableMessageCA2217,
-                                                                             FxCopDiagnosticCategory.Usage,
+                                                                             DiagnosticCategory.Usage,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescriptionCA2217,
                                                                              helpLinkUri: "http://msdn.microsoft.com/library/ms182335.aspx",
-                                                                             customTags: DiagnosticCustomTags.Microsoft);
+                                                                             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        private static readonly ImmutableArray<DiagnosticDescriptor> s_supportedDiagnostics = ImmutableArray.Create(Rule1027, Rule2217);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule1027, Rule2217);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override void Initialize(AnalysisContext context)
         {
-            get
+            context.RegisterSymbolAction(symbolContext =>
             {
-                return s_supportedDiagnostics;
-            }
+                AnalyzeSymbol((INamedTypeSymbol)symbolContext.Symbol, symbolContext.Compilation, symbolContext.ReportDiagnostic, symbolContext.CancellationToken);
+            }, SymbolKind.NamedType);
         }
 
-        protected override void AnalyzeSymbol(INamedTypeSymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        private void AnalyzeSymbol(INamedTypeSymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
         {
             if (symbol != null &&
                 symbol.TypeKind == TypeKind.Enum &&
@@ -95,8 +96,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                             Debug.Assert(missingValues != null);
 
                             var missingValuesString = missingValues.Select(v => v.ToString()).Aggregate((i, j) => i + ", " + j);
-                            var location = GetDiagnosticLocation(symbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken));
-                            addDiagnostic(location.CreateDiagnostic(Rule2217, symbol.Name, missingValuesString));
+                            addDiagnostic(symbol.CreateDiagnostic(Rule2217, symbol.Name, missingValuesString));
                         }
                     }
                     else
@@ -105,15 +105,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                         // Ignore continguous value enums to reduce noise.
                         if (!IsContiguous(memberValues) && ShouldBeFlags(memberValues))
                         {
-                            var location = GetDiagnosticLocation(symbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken));
-                            addDiagnostic(location.CreateDiagnostic(Rule1027, symbol.Name));
+                            addDiagnostic(symbol.CreateDiagnostic(Rule1027, symbol.Name));
                         }
                     }
                 }
             }
         }
-
-        protected abstract Location GetDiagnosticLocation(SyntaxNode type);
 
         private static bool IsContiguous(IList<ulong> list)
         {
@@ -121,7 +118,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
             bool first = true;
             ulong previous = 0;
-            foreach (var element in list.Order())
+            foreach (var element in list.OrderBy(t =>t))
             {
                 if (first)
                 {
