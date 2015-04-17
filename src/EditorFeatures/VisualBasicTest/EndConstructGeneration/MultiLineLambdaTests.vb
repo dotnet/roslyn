@@ -374,5 +374,45 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                            "End Class"},
                    afterCaret:={3, 27})
         End Sub
+
+        <WorkItem(1922, "https://github.com/dotnet/roslyn/issues/1922")>
+        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530683)>
+        Public Sub VerifySingleLineFunctionLambdaToMultiLineInsideXMLTag()
+            VerifyStatementEndConstructApplied(
+                before:={"Class C",
+                         "    Sub s()",
+                         "        Dim x = <xml><%= Function()%></xml>",
+                         "    End Sub",
+                         "End Class"},
+                   beforeCaret:={2, 35},
+                   after:={"Class C",
+                           "    Sub s()",
+                           "        Dim x = <xml><%= Function()",
+                           "",
+                           "                         End Function %></xml>",
+                           "    End Sub",
+                           "End Class"},
+                   afterCaret:={3, -1})
+        End Sub
+
+        <WorkItem(1922, "https://github.com/dotnet/roslyn/issues/1922")>
+        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530683)>
+        Public Sub VerifySingleLineSubLambdaToMultiLineInsideXMLTag()
+            VerifyStatementEndConstructApplied(
+                before:={"Class C",
+                         "    Sub s()",
+                         "        Dim x = <xml><%= Sub()%></xml>",
+                         "    End Sub",
+                         "End Class"},
+                   beforeCaret:={2, 30},
+                   after:={"Class C",
+                           "    Sub s()",
+                           "        Dim x = <xml><%= Sub()",
+                           "",
+                           "                         End Sub %></xml>",
+                           "    End Sub",
+                           "End Class"},
+                   afterCaret:={3, -1})
+        End Sub
     End Class
 End Namespace

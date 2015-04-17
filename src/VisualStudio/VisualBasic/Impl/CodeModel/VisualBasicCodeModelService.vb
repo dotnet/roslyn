@@ -831,7 +831,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
         Public Overrides Function GetName(node As SyntaxNode) As String
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             Debug.Assert(TypeOf node Is SyntaxNode)
@@ -906,7 +906,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
         Public Overrides Function SetName(node As SyntaxNode, name As String) As SyntaxNode
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             Dim identifier As SyntaxToken = SyntaxFactory.Identifier(name)
@@ -953,7 +953,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
         Public Overrides Function GetNodeWithName(node As SyntaxNode) As SyntaxNode
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             If node.Kind = SyntaxKind.OperatorBlock Then
@@ -2428,8 +2428,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      MethodKind.DeclareMethod
                     Return If(symbol.ReturnsVoid, EnvDTE.vsCMFunction.vsCMFunctionSub, EnvDTE.vsCMFunction.vsCMFunctionFunction)
 
-                Case MethodKind.Constructor
-                Case MethodKind.StaticConstructor
+                Case MethodKind.Constructor,
+                     MethodKind.StaticConstructor
                     Return EnvDTE.vsCMFunction.vsCMFunctionConstructor
 
                 Case MethodKind.UserDefinedOperator

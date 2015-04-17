@@ -2908,15 +2908,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // Check that the returned expression is not void. "return void" is not allowed anywhere outside
-                // expression-lambdas.
-                //
-                // Note: in the case of "return void" in non-async lambdas used in return-type-inference,
-                // simply return "void" as the inferred return type and give an error if that didn't work.
-                // We can't follow the same route in async methods, since empty-return-operands become a "Task"
-                // return type.
-
-                if ((object)arg?.Type != null && IsInAsyncMethod() && arg.Type.SpecialType == SpecialType.System_Void)
+                // Check that the returned expression is not void.
+                if ((object)arg?.Type != null && arg.Type.SpecialType == SpecialType.System_Void)
                 {
                     Error(diagnostics, ErrorCode.ERR_CantReturnVoid, expressionSyntax);
                 }

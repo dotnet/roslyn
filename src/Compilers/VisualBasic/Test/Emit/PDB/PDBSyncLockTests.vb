@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
@@ -125,10 +125,6 @@ End Class
                 <entry offset="0x4a" startLine="19" startColumn="9" endLine="19" endColumn="16" document="0"/>
                 <entry offset="0x4b" startLine="20" startColumn="5" endLine="20" endColumn="12" document="0"/>
             </sequencePoints>
-            <locals>
-                <local name="lock" il_index="0" il_start="0x2" il_end="0x3c" attributes="0"/>
-                <local name="x" il_index="3" il_start="0x21" il_end="0x29" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x4c">
                 <importsforward declaringType="C1" methodName="Something" parameterNames="x"/>
                 <scope startOffset="0x2" endOffset="0x3c">

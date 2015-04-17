@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         internal readonly DkmClrModuleInstance[] Modules;
         private readonly DkmClrModuleInstance _defaultModule;
         private readonly DkmClrAppDomain _appDomain; // exactly one for now
-        private readonly GetMemberValueDelegate _getMemberValue;
+        internal readonly GetMemberValueDelegate GetMemberValue;
 
         internal DkmClrRuntimeInstance(
             Assembly[] assemblies,
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             this.Modules = assemblies.Select(a => getModule(this, a)).Where(m => m != null).ToArray();
             _defaultModule = getModule(this, null);
             _appDomain = new DkmClrAppDomain(this);
-            _getMemberValue = getMemberValue;
+            this.GetMemberValue = getMemberValue;
         }
 
         internal DkmClrModuleInstance DefaultModule
@@ -86,15 +86,6 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         internal DkmClrModuleInstance FindClrModuleInstance(Guid mvid)
         {
             return this.Modules.FirstOrDefault(m => m.Mvid == mvid) ?? _defaultModule;
-        }
-
-        internal DkmClrValue GetMemberValue(DkmClrValue value, string memberName)
-        {
-            if (_getMemberValue != null)
-            {
-                return _getMemberValue(value, memberName);
-            }
-            return null;
         }
     }
 }

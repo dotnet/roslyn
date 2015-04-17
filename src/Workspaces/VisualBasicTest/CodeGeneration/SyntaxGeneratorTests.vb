@@ -323,6 +323,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
         End Sub
 
         <Fact>
+        Public Sub TestAwaitExpressions()
+            VerifySyntax(Of AwaitExpressionSyntax)(_g.AwaitExpression(_g.IdentifierName("x")), "Await x")
+        End Sub
+
+        <Fact>
         Public Sub TestReturnStatements()
             VerifySyntax(Of ReturnStatementSyntax)(_g.ReturnStatement(), "Return")
             VerifySyntax(Of ReturnStatementSyntax)(_g.ReturnStatement(_g.IdentifierName("x")), "Return x")

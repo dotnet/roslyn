@@ -945,12 +945,12 @@ public class B
             }
         }
 
-        [Fact, WorkItem(252, "https://github.com/dotnet/roslyn/issues/252")]
+        [Fact, WorkItem(252, "https://github.com/dotnet/roslyn/issues/252"), WorkItem(1392, "https://github.com/dotnet/roslyn/issues/1392")]
         public void TestReportingUnsupportedDiagnostic()
         {
             string source = @"";
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerReportingUnsupportedDiagnostic() };
-            string message = new ArgumentException("Reported diagnostic with ID 'ID_2' is not supported by the analyzer.", "diagnostic").Message;
+            string message = new ArgumentException(string.Format(AnalyzerDriverResources.UnsupportedDiagnosticReported, AnalyzerReportingUnsupportedDiagnostic.UnsupportedDescriptor.Id), "diagnostic").Message;
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
@@ -1032,6 +1032,23 @@ class C
                         Diagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, "M").WithArguments("M").WithLocation(4, 17),
                         Diagnostic(CodeBlockActionAnalyzer.CodeBlockPerCompilationRule.Id, "M").WithArguments("M").WithLocation(4, 17)
                     });
+        }
+
+        [Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")]
+        public void TestCodeBlockAction_OnlyStatelessAction()
+        {
+            string source = @"
+class C
+{
+    public void M() {}
+}";
+            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockActionAnalyzer(onlyStatelessAction: true) };
+
+            // Verify, code block action diagnostics.
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
+                    expected: Diagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, "M").WithArguments("M").WithLocation(4, 17));
         }
     }
 }

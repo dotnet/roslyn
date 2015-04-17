@@ -19,7 +19,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.34-rc\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -80,9 +80,7 @@
     <Compile Include="Design\CSharpCA1003DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CSharpCA1024DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CSharpEnumWithFlagsDiagnosticAnalyzer.cs" />
-    <Compile Include="Globalization\CodeFixes\CA1309CSharpCodeFixProvider.cs" />
     <Compile Include="Globalization\CodeFixes\CA2101CSharpCodeFixProvider.cs" />
-    <Compile Include="Globalization\CSharpCA1309DiagnosticAnalyzer.cs" />
     <Compile Include="Performance\CSharpCA1821DiagnosticAnalyzer.cs" />
     <Compile Include="Reliability\CSharpCA2002DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CodeFixes\CA2235CSharpCodeFixProvider.cs" />

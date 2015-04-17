@@ -1927,6 +1927,49 @@ namespace ConsoleApplication1
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; using A ; class Program { public B B { get { return B . Instance ; } } } namespace A { public class B { public static readonly B Instance ; } } ");
         }
 
+        [WorkItem(1893, "https://github.com/dotnet/roslyn/issues/1893")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNameSimplification()
+        {
+            // Generated using directive must be simplified from "using A.B;" to "using B;" below.
+            Test(
+@"
+namespace A.B
+{
+    class T1 { }
+}
+namespace A.C
+{
+    using System;
+    class T2
+    {
+        void Test()
+        {
+            Console.WriteLine();
+            [|T1|] t1;
+        }
+    }
+}",
+@"
+namespace A.B
+{
+    class T1 { }
+}
+namespace A.C
+{
+    using System;
+    using B;
+    class T2
+    {
+        void Test()
+        {
+            Console.WriteLine();
+            T1 t1;
+        }
+    }
+}");
+        }
+
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)

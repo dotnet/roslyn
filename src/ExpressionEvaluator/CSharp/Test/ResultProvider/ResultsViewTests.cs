@@ -1460,8 +1460,7 @@ class C
                         "\"Exception of type 'E' was thrown.\"",
                         "string",
                         null,
-                        DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly,
-                        DkmEvaluationResultCategory.Other));
+                        DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
             }
         }
 
@@ -1615,7 +1614,7 @@ class C
                         "S",
                         DkmEvaluationResultFlags.RawString,
                         DkmEvaluationResultCategory.Other,
-                        "\"\""));
+                       editableValue: "\"\""));
 
                 // array (unchanged)
                 evalResult = FormatPropertyValue(runtime, value, "T");

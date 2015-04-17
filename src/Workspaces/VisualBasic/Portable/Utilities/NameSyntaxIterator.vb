@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
         Public Sub New(name As NameSyntax)
             If name Is Nothing Then
-                Throw New ArgumentNullException("name")
+                Throw New ArgumentNullException(NameOf(name))
             End If
 
             Me._name = name

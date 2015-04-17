@@ -129,9 +129,6 @@
   <data name="StaticHolderTypeIsNotStatic" xml:space="preserve">
     <value>Type '{0}' is a static holder type but is neither static nor NotInheritable</value>
   </data>
-  <data name="StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase" xml:space="preserve">
-    <value>String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase</value>
-  </data>
   <data name="RethrowException" xml:space="preserve">
     <value>Re-throwing caught exception changes stack information.</value>
   </data>
@@ -278,9 +275,6 @@
   </data>
   <data name="SpecifyMarshalingForPInvokeStringArgumentsDescription" xml:space="preserve">
     <value>When marshaling strings as ANSI (or as Auto on Win9x), some characters may be changed. If best-fit mapping is on, strings that appear different in Unicode will be marshaled to identical ANSI strings, which may lead to incorrect security decisions. Turning best-fit mapping off reduces this risk, as all characters without equivalents are mapped to '?'. Also, note that CharSet.Ansi is the default setting for all string marshaling; Unicode marshaling must be specified explicitly, either as a CharSet setting of DllImport or StructLayout, or as a MarshalAs attribute with a Unicode (or system-dependent) UnmanagedType.</value>
-  </data>
-  <data name="StringComparisonShouldBeOrdinalDescription" xml:space="preserve">
-    <value>For non-linguistic comparisons, StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase should be used instead of the linguistically-sensitive StringComparison.InvariantCulture.</value>
   </data>
   <data name="CategoryDesign" xml:space="preserve">
     <value>Design</value>

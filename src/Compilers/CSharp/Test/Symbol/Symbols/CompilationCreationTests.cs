@@ -2726,7 +2726,7 @@ System.Diagnostics.Process.GetCurrentProcess();
                 Diagnostic(ErrorCode.ERR_ReferenceDirectiveOnlyAllowedInScripts, @"#r ""System.Core"""));
         }
 
-        private static readonly string s_resolvedPath = Path.GetPathRoot(Environment.CurrentDirectory) + "RESOLVED";
+        private static readonly string s_resolvedPath = Path.GetPathRoot(Directory.GetCurrentDirectory()) + "RESOLVED";
 
         private class DummyFileProvider : MetadataFileReferenceProvider
         {

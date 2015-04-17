@@ -15,13 +15,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         <Extension()>
         Public Function WithAnnotations(Of TNode As VisualBasicSyntaxNode)(node As TNode, ParamArray annotations() As SyntaxAnnotation) As TNode
-            If annotations Is Nothing Then Throw New ArgumentNullException("annotations")
+            If annotations Is Nothing Then Throw New ArgumentNullException(NameOf(annotations))
             Return CType(node.SetAnnotations(annotations), TNode)
         End Function
 
         <Extension()>
         Public Function WithAdditionalAnnotations(Of TNode As VisualBasicSyntaxNode)(node As TNode, ParamArray annotations() As SyntaxAnnotation) As TNode
-            If annotations Is Nothing Then Throw New ArgumentNullException("annotations")
+            If annotations Is Nothing Then Throw New ArgumentNullException(NameOf(annotations))
             Return CType(node.SetAnnotations(node.GetAnnotations().Concat(annotations).ToArray()), TNode)
         End Function
 
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         <Extension()>
         Private Function AddLeadingTrivia(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, trivia As SyntaxList(Of VisualBasicSyntaxNode)) As TSyntax
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             If Not trivia.Any Then
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         <Extension()>
         Friend Function AddTrailingTrivia(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, trivia As SyntaxList(Of VisualBasicSyntaxNode)) As TSyntax
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             Dim tk = TryCast(node, SyntaxToken)
@@ -352,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Return the index within the trivia of what would be considered trailing
         ''' single-line trivia by the Scanner. This behavior must match ScanSingleLineTrivia.
         ''' In short, search walks backwards and stops at the second terminator
-        ''' (colon or EOL) from the end, ignoring EOLs preceeded by line continuations.
+        ''' (colon or EOL) from the end, ignoring EOLs preceded by line continuations.
         ''' </summary>
         <Extension()>
         Private Function GetIndexOfEndOfTrivia(trivia As SyntaxList(Of VisualBasicSyntaxNode)) As Integer

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -213,12 +214,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitRefValueOperator((BoundRefValueOperator)expression, used);
                     break;
 
-                case BoundKind.ConditionalAccess:
-                    EmitConditionalAccessExpression((BoundConditionalAccess)expression, used);
+                case BoundKind.LoweredConditionalAccess:
+                    EmitLoweredConditionalAccessExpression((BoundLoweredConditionalAccess)expression, used);
                     break;
 
                 case BoundKind.ConditionalReceiver:
                     EmitConditionalReceiver((BoundConditionalReceiver)expression, used);
+                    break;
+
+                case BoundKind.ComplexConditionalReceiver:
+                    EmitComplexConditionalReceiver((BoundComplexConditionalReceiver)expression, used);
                     break;
 
                 case BoundKind.PseudoVariable:
@@ -234,7 +239,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitConditionalAccessExpression(BoundConditionalAccess expression, bool used)
+        private void EmitComplexConditionalReceiver(BoundComplexConditionalReceiver expression, bool used)
+        {
+            Debug.Assert(!expression.Type.IsReferenceType);
+            Debug.Assert(!expression.Type.IsValueType);
+
+            var receiverType = expression.Type;
+
+            var whenValueTypeLabel = new object();
+            var doneLabel = new object();
+
+            EmitInitObj(receiverType, true, expression.Syntax);
+            EmitBox(receiverType, expression.Syntax);
+            _builder.EmitBranch(ILOpCode.Brtrue, whenValueTypeLabel);
+
+            EmitExpression(expression.ReferenceTypeReceiver, used);
+            _builder.EmitBranch(ILOpCode.Br, doneLabel);
+            _builder.AdjustStack(-1);
+
+            _builder.MarkLabel(whenValueTypeLabel);
+            EmitExpression(expression.ValueTypeReceiver, used);
+
+            _builder.MarkLabel(doneLabel);
+        }
+
+        private void EmitLoweredConditionalAccessExpression(BoundLoweredConditionalAccess expression, bool used)
         {
             var receiver = expression.Receiver;
 
@@ -253,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 // const but not default
                 receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: !receiverType.IsReferenceType);
-                EmitExpression(expression.AccessExpression, used);
+                EmitExpression(expression.WhenNotNull, used);
                 if (receiverTemp != null)
                 {
                     FreeTemp(receiverTemp);
@@ -269,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // we need a copy if we deal with nonlocal value (to capture the value)
             // or if we have a ref-constrained T (to do box just once)
             // or if we deal with stack local (reads are destructive)
-            var nullCheckOnCopy = LocalRewriter.IntroducingReadCanBeObservable(receiver, localsMayBeAssignedOrCaptured: false) ||
+            var nullCheckOnCopy = LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                    (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ||
                                    (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
 
@@ -329,7 +358,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.EmitOpCode(ILOpCode.Pop);
             }
 
-            EmitDefaultValue(expression.Type, used, expression.Syntax);
+            var whenNull = expression.WhenNullOpt;
+            if (whenNull == null)
+            {
+                EmitDefaultValue(expression.Type, used, expression.Syntax);
+            }
+            else
+            {
+                EmitExpression(whenNull, used);
+            }
+
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
 
             if (nullCheckOnCopy)
@@ -356,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert(receiverTemp == null);
             }
 
-            EmitExpression(expression.AccessExpression, used);
+            EmitExpression(expression.WhenNotNull, used);
             _builder.MarkLabel(doneLabel);
 
             if (temp != null)

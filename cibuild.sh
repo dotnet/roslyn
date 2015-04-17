@@ -6,11 +6,49 @@ docompile()
     xbuild /v:m /p:SignAssembly=false /p:DebugSymbols=false /p:DefineConstants=COMPILERCORE,DEBUG $1 src/Compilers/CSharp/csc/csc.csproj
 }
 
-echo Changing mono snapshot
-. mono-snapshot mono/20150316155603
-if [ $? -ne 0 ]; then
-    echo Could not set mono snapshot 
-    exit 1
+usage()
+{
+    echo "Runs our integration suite on Linux"
+    echo "usage: cibuild.sh [options]"
+    echo ""
+    echo "Options"
+    echo "  --mono-path <path>  Path to the mono installation to use for the run" 
+}
+
+while [[ $# > 0 ]]
+do
+    opt="$1"
+    case $opt in
+        -h|--help)
+        usage
+        exit 1
+        ;;
+        --mono-path)
+        CUSTOM_MONO_PATH=$2
+        shift 2
+        ;;
+        *)
+        usage 
+        exit 1
+        ;;
+    esac
+done
+
+if [ "$CUSTOM_MONO_PATH" != "" ]; then
+    if [ ! -d "$CUSTOM_MONO_PATH" ]; then
+        echo "Not a valid directory $CUSTOM_MONO_PATH"
+        exit 1
+    fi
+
+    echo "Using mono path $CUSTOM_MONO_PATH"
+    PATH=$CUSTOM_MONO_PATH:$PATH
+else
+    echo Changing mono snapshot
+    . mono-snapshot mono/20150316155603
+    if [ $? -ne 0 ]; then
+        echo Could not set mono snapshot 
+        exit 1
+    fi
 fi
 
 # NuGet on mono crashes about every 5th time we run it.  This is causing

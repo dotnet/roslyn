@@ -151,6 +151,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         Protected MustOverride Function GetName(codeElement As TCodeElement) As String
         Protected MustOverride Function GetNameSetter(codeElement As TCodeElement) As Action(Of String)
 
+        Protected Overridable Function GetNamespace(codeElement As TCodeElement) As EnvDTE.CodeNamespace
+            Throw New NotSupportedException
+        End Function
+
         Protected Overridable Function GetAccess(codeElement As TCodeElement) As EnvDTE.vsCMAccess
             Throw New NotSupportedException
         End Function
@@ -1065,6 +1069,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Dim text = state.GetDocumentAtCursor().GetTextAsync().Result.ToString()
 
                 Assert.Equal(expectedCode.NormalizedValue.Trim(), text.Trim())
+            End Using
+        End Sub
+
+        Protected Sub TestNamespaceName(Code As XElement, name As String)
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(Code))
+                Dim codeElement = state.GetCodeElementAtCursor(Of TCodeElement)()
+                Assert.NotNull(codeElement)
+
+                Dim codeNamespaceElement = GetNamespace(codeElement)
+                Assert.NotNull(codeNamespaceElement)
+
+                Assert.Equal(name, codeNamespaceElement.Name)
             End Using
         End Sub
 

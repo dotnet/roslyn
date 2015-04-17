@@ -57,7 +57,7 @@ namespace System.Runtime.Analyzers
 
         protected abstract class AbstractAnalyzer
         {
-            private INamedTypeSymbol _disposableType;
+            protected INamedTypeSymbol _disposableType;
             private ConcurrentDictionary<IFieldSymbol, bool> _fieldDisposedMap = new ConcurrentDictionary<IFieldSymbol, bool>();
 
             public AbstractAnalyzer(INamedTypeSymbol disposableType)

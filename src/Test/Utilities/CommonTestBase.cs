@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         static CommonTestBase()
         {
             var configFileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location) + ".config";
-            var configFilePath = Path.Combine(Environment.CurrentDirectory, configFileName);
+            var configFilePath = Path.Combine(Directory.GetCurrentDirectory(), configFileName);
 
             if (File.Exists(configFilePath))
             {

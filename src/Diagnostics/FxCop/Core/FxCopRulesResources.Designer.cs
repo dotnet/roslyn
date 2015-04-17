@@ -538,24 +538,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to For non-linguistic comparisons, StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase should be used instead of the linguistically-sensitive StringComparison.InvariantCulture..
-        /// </summary>
-        internal static string StringComparisonShouldBeOrdinalDescription {
-            get {
-                return ResourceManager.GetString("StringComparisonShouldBeOrdinalDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase.
-        /// </summary>
-        internal static string StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase {
-            get {
-                return ResourceManager.GetString("StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; is abstract but has public constructors.
         /// </summary>
         internal static string TypeIsAbstractButHasPublicConstructors {

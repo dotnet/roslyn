@@ -332,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
                     Return String.Join(vbCrLf, lines)
 
                 Case Else
-                    Throw New ArgumentException("Unexpected testSource XML tag.", "testSource")
+                    Throw New ArgumentException("Unexpected testSource XML tag.", NameOf(testSource))
             End Select
         End Function
     End Module

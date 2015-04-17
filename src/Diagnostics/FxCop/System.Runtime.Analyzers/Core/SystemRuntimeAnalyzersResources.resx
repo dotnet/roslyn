@@ -222,6 +222,12 @@
   <data name="AvoidUnsealedAttributesCodeFix" xml:space="preserve">
     <value>Seal attribute type.</value>
   </data>
+  <data name="StringComparisonShouldBeOrdinalDescription" xml:space="preserve">
+    <value>For non-linguistic comparisons, StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase should be used instead of the linguistically-sensitive StringComparison.InvariantCulture.</value>
+  </data>
+  <data name="StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase" xml:space="preserve">
+    <value>String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase</value>
+  </data>
   <data name="DisposableFieldsShouldBeDisposed" xml:space="preserve">
     <value>Disposable fields should be disposed</value>
   </data>

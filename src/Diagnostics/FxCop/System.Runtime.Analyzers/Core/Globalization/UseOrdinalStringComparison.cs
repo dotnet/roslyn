@@ -1,27 +1,26 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
+namespace System.Runtime.Analyzers
 {
-    public abstract class CA1309DiagnosticAnalyzer : DiagnosticAnalyzer
+    public abstract class UseOrdinalStringComparisonAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1309";
 
-        private static LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(FxCopRulesResources.StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.StringComparisonShouldBeOrdinalDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.StringComparisonShouldBeOrdinalDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                              s_localizableMessageAndTitle,
                                                                              s_localizableMessageAndTitle,
-                                                                             FxCopDiagnosticCategory.Globalization,
+                                                                             DiagnosticCategory.Globalization,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: "http://msdn.microsoft.com/library/bb385972.aspx",
-                                                                             customTags: DiagnosticCustomTags.Microsoft);
+                                                                             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal const string CompareMethodName = "Compare";
         internal const string EqualsMethodName = "Equals";
@@ -32,13 +31,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
 
         protected abstract void GetAnalyzer(CompilationStartAnalysisContext context, INamedTypeSymbol stringComparisonType);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return ImmutableArray.Create(Rule);
-            }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext analysisContext)
         {

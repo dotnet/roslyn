@@ -40,7 +40,7 @@ Microsoft.CodeAnalysis.CommandLineArguments.Win32Manifest.get -> string
 Microsoft.CodeAnalysis.CommandLineArguments.Win32ResourceFile.get -> string
 Microsoft.CodeAnalysis.CommandLineParser
 Microsoft.CodeAnalysis.CommandLineParser.IsInteractive.get -> bool
-Microsoft.CodeAnalysis.CommandLineParser.Parse(System.Collections.Generic.IEnumerable<string> args, string baseDirectory, string additionalReferencePaths) -> Microsoft.CodeAnalysis.CommandLineArguments
+Microsoft.CodeAnalysis.CommandLineParser.Parse(System.Collections.Generic.IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories) -> Microsoft.CodeAnalysis.CommandLineArguments
 Microsoft.CodeAnalysis.CommandLineReference
 Microsoft.CodeAnalysis.CommandLineReference.Equals(Microsoft.CodeAnalysis.CommandLineReference other) -> bool
 Microsoft.CodeAnalysis.CommandLineReference.Properties.get -> Microsoft.CodeAnalysis.MetadataReferenceProperties
@@ -48,7 +48,6 @@ Microsoft.CodeAnalysis.CommandLineReference.Reference.get -> string
 Microsoft.CodeAnalysis.CommandLineSourceFile
 Microsoft.CodeAnalysis.CommandLineSourceFile.IsScript.get -> bool
 Microsoft.CodeAnalysis.CommandLineSourceFile.Path.get -> string
-Microsoft.CodeAnalysis.DesktopAssemblyIdentityComparer
 Microsoft.CodeAnalysis.DesktopStrongNameProvider
 Microsoft.CodeAnalysis.DesktopStrongNameProvider.DesktopStrongNameProvider(System.Collections.Immutable.ImmutableArray<string> keyFileSearchPaths = default(System.Collections.Immutable.ImmutableArray<string>)) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference
@@ -113,12 +112,10 @@ readonly Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.ErrorCo
 readonly Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.Exception -> System.Exception
 readonly Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.TypeName -> string
 static Microsoft.CodeAnalysis.CommandLineParser.SplitCommandLineIntoArguments(string commandLine, bool removeHashComments) -> System.Collections.Generic.IEnumerable<string>
-static Microsoft.CodeAnalysis.DesktopAssemblyIdentityComparer.LoadFromXml(System.IO.Stream input) -> Microsoft.CodeAnalysis.DesktopAssemblyIdentityComparer
 static Microsoft.CodeAnalysis.FileSystemExtensions.Emit(this Microsoft.CodeAnalysis.Compilation compilation, string outputPath, string pdbPath = null, string xmlDocPath = null, string win32ResourcesPath = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription> manifestResources = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitResult
 static Microsoft.CodeAnalysis.RuleSet.GetDiagnosticOptionsFromRulesetFile(string rulesetFileFullPath, out System.Collections.Generic.Dictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> specificDiagnosticOptions) -> Microsoft.CodeAnalysis.ReportDiagnostic
 static Microsoft.CodeAnalysis.RuleSet.GetEffectiveIncludesFromFile(string filePath) -> System.Collections.Immutable.ImmutableArray<string>
 static Microsoft.CodeAnalysis.RuleSet.LoadEffectiveRuleSetFromFile(string filePath) -> Microsoft.CodeAnalysis.RuleSet
-static readonly Microsoft.CodeAnalysis.DesktopAssemblyIdentityComparer.Default -> Microsoft.CodeAnalysis.DesktopAssemblyIdentityComparer
 static readonly Microsoft.CodeAnalysis.SourceFileResolver.Default -> Microsoft.CodeAnalysis.SourceFileResolver
 static readonly Microsoft.CodeAnalysis.XmlFileResolver.Default -> Microsoft.CodeAnalysis.XmlFileResolver
 virtual Microsoft.CodeAnalysis.SourceFileResolver.FileExists(string resolvedPath) -> bool

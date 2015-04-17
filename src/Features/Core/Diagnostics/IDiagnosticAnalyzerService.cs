@@ -81,5 +81,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Check whether given diagnostic is compiler diagnostic or not
         /// </summary>
         bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic);
+
+        /// <summary>
+        /// Get compiler analyzer for the given language
+        /// </summary>
+        DiagnosticAnalyzer GetCompilerDiagnosticAnalyzer(string language);
+
+        /// <summary>
+        /// Check whether given <see cref="DiagnosticAnalyzer"/> is compiler analyzer for the language or not.
+        /// </summary>
+        bool IsCompilerDiagnosticAnalyzer(string language, DiagnosticAnalyzer analyzer);
     }
 }

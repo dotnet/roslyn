@@ -28,12 +28,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override string RegularFileExtension { get { return ".cs"; } }
         protected override string ScriptFileExtension { get { return ".csx"; } }
 
-        internal sealed override CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string additionalReferencePaths)
+        internal sealed override CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
         {
-            return Parse(args, baseDirectory, additionalReferencePaths);
+            return Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
-        public new CSharpCommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string additionalReferencePaths = null)
+        /// <summary>
+        /// Parses a command line.
+        /// </summary>
+        /// <param name="args">A collection of strings representing the command line arguments.</param>
+        /// <param name="baseDirectory">The base directory used for qualifying file locations.</param>
+        /// <param name="sdkDirectory">The directory to search for mscorlib.</param>
+        /// <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
+        /// <returns>a commandlinearguments object representing the parsed command line.</returns>
+        public new CSharpCommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories = null)
         {
             List<Diagnostic> diagnostics = new List<Diagnostic>();
             List<string> flattenedArgs = new List<string>();
@@ -968,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!noStdLib)
             {
-                metadataReferences.Insert(0, new CommandLineReference(typeof(object).Assembly.Location, MetadataReferenceProperties.Assembly));
+                metadataReferences.Insert(0, new CommandLineReference(Path.Combine(sdkDirectory, "mscorlib.dll"), MetadataReferenceProperties.Assembly));
             }
 
             if (!platform.Requires64Bit())
@@ -981,12 +989,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // add additional reference paths if specified
-            if (!string.IsNullOrWhiteSpace(additionalReferencePaths))
+            if (!string.IsNullOrWhiteSpace(additionalReferenceDirectories))
             {
-                ParseAndResolveReferencePaths(null, additionalReferencePaths, baseDirectory, libPaths, MessageID.IDS_LIB_ENV, diagnostics);
+                ParseAndResolveReferencePaths(null, additionalReferenceDirectories, baseDirectory, libPaths, MessageID.IDS_LIB_ENV, diagnostics);
             }
 
-            ImmutableArray<string> referencePaths = BuildSearchPaths(libPaths);
+            ImmutableArray<string> referencePaths = BuildSearchPaths(sdkDirectory, libPaths);
 
             ValidateWin32Settings(win32ResourceFile, win32IconFile, win32ManifestFile, outputKind, diagnostics);
 
@@ -1218,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static ImmutableArray<string> BuildSearchPaths(List<string> libPaths)
+        private static ImmutableArray<string> BuildSearchPaths(string sdkDirectory, List<string> libPaths)
         {
             var builder = ArrayBuilder<string>.GetInstance();
 
@@ -1228,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // current folder first -- base directory is searched by default
 
             // SDK path is specified or current runtime directory
-            builder.Add(RuntimeEnvironment.GetRuntimeDirectory());
+            builder.Add(sdkDirectory);
 
             // libpath
             builder.AddRange(libPaths);

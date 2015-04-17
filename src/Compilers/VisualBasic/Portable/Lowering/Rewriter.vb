@@ -24,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             isBodySynthesized As Boolean) As BoundBlock
 
             Debug.Assert(Not body.HasErrors)
+            Debug.Assert(compilationState.ModuleBuilderOpt IsNot Nothing)
 
             ' performs node-specific lowering.
             Dim sawLambdas As Boolean
@@ -88,6 +89,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        diagnostics As DiagnosticBag,
                                                        slotAllocatorOpt As VariableSlotAllocator,
                                                        <Out> ByRef stateMachineTypeOpt As StateMachineTypeSymbol) As BoundBlock
+
+            Debug.Assert(compilationState.ModuleBuilderOpt IsNot Nothing)
 
             Dim iteratorStateMachine As IteratorStateMachine = Nothing
             Dim bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas,

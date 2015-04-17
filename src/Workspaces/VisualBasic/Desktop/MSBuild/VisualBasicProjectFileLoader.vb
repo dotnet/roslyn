@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Host
@@ -139,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim commandLineParser = VisualBasicCommandLineParser.Default
-                Dim commandLineArgs = commandLineParser.Parse(args, executedProject.Directory)
+                Dim commandLineArgs = commandLineParser.Parse(args, executedProject.Directory, RuntimeEnvironment.GetRuntimeDirectory())
                 Dim resolver = New MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)
                 metadataReferences = commandLineArgs.ResolveMetadataReferences(New AssemblyReferenceResolver(resolver, Me._metadataService.GetProvider()))
                 analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(AddressOf _analyzerService.GetAnalyzer)
