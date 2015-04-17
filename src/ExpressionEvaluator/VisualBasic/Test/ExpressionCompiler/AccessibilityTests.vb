@@ -1,9 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -31,16 +33,24 @@ Class C
 End Class
 "
 
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim Runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(Runtime, "C.M")
+
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
-            Dim testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName:="C.M",
-                expr:="Me.get_P()",
-                resultProperties:=resultProperties,
-                errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30456: 'get_P' is not a member of 'C'.", errorMessage)
+            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+            context.CompileExpression(
+                DefaultInspectionContext.Instance,
+                "Me.get_P()",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                resultProperties,
+                errorMessage,
+                missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData:=Nothing)
+            Assert.Equal("(1,2): error BC30456: 'get_P' is not a member of 'C'.", errorMessage)
         End Sub
 
         <Fact>
