@@ -436,7 +436,7 @@ End Class
                     numRetries += 1
                     Assert.InRange(numRetries, 0, 2) ' We don't want to loop forever... 
                     diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssembly3, missingIdentity, "MissingType"), Location.None))
-                    Return DirectCast(Nothing, CompileResult)
+                    Return Nothing
                 End Function,
                 Function(assemblyIdentity, ByRef uSize)
                     uSize = CUInt(missingModule.MetadataLength)
