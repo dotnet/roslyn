@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 workerTasks[i] = Task.Run(async () =>
                     {
-                        var result = await ProcessCompilationEventsCoreAsync(cancellationToken).ConfigureAwait(false);
+                        var result = await ProcessCompilationEventsCoreAsync(runToCompletion, cancellationToken).ConfigureAwait(false);
                         if (result != null)
                         {
                             completedEvent = result;
@@ -401,11 +401,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }, cancellationToken);
             }
 
-            // Kick off tasks to execute syntax tree actions.
-            var syntaxTreeActionsTask = ExecuteSyntaxTreeActions(cancellationToken);
-
             // Wait for all worker threads to complete processing events.
-            await Task.WhenAll(workerTasks.Concat(syntaxTreeActionsTask)).ConfigureAwait(false);
+            await Task.WhenAll(workerTasks).ConfigureAwait(false);
 
             // Finally process the compilation completed event, if any.
             if (completedEvent != null)
@@ -414,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task<CompilationCompletedEvent> ProcessCompilationEventsCoreAsync(CancellationToken cancellationToken)
+        private async Task<CompilationCompletedEvent> ProcessCompilationEventsCoreAsync(bool runToCompletion, CancellationToken cancellationToken)
         {
             while ((runToCompletion && !CompilationEventQueue.IsCompleted) || CompilationEventQueue.Count > 0)
             {
