@@ -163,6 +163,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="System.Composition.AttributedModel, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
@@ -320,8 +321,10 @@
     <Compile Include="Diagnostics\DiagnosticTableDataSourceTests.vb" />
     <Compile Include="Diagnostics\ExternalDiagnosticUpdateSourceTests.vb" />
     <Compile Include="Diagnostics\MiscDiagnosticUpdateSourceTests.vb" />
+    <Compile Include="Diagnostics\MockExtensionManager.vb" />
     <Compile Include="Diagnostics\TestTableManagerProvider.vb" />
     <Compile Include="Diagnostics\TodoListTableDataSourceTests.vb" />
+    <Compile Include="Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderServiceTests.vb" />
     <Compile Include="EditAndContinue\EditAndContinueTestHelper.vb" />
     <Compile Include="EditAndContinue\EditAndContinueWorkspaceServiceTests.vb" />
     <Compile Include="EditAndContinue\VsReadOnlyDocumentTrackerTests.vb" />
