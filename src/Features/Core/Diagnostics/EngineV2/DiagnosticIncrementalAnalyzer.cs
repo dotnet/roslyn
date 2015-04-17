@@ -311,6 +311,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         // CompilationResults represents the compilations and associated diagnostics for up to two versions
         // (one complete and one current) of a project.
+        // ToDo: It will probably be necessary to place a cap on the number of active CompilationResult objects that have not completed analysis.
+        // Otherwise, running out of memory when analyzing large solutions seems likely.
         private class CompilationResults
         {
             // CompletedCompilation represents the most recent compilation of a project for which analysis came to full completion.
@@ -366,6 +368,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     return completedCompilation;
                 }
+
+                // ToDo: The set of analyzers might also be considered in determining whether or not create a new CompilationWithAnalyzers.
 
                 CompilationResult currentCompilation = results.CurrentCompilation;
                 if (currentCompilation.ProjectVersion != projectVersion)
