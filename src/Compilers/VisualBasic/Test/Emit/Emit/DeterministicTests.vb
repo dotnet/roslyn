@@ -1,5 +1,4 @@
-﻿
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Generic
@@ -19,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
             Dim compilation = CreateCompilationWithMscorlib({source}, assemblyName:="DeterminismTest", options:=options)
 
-            ' The resolution of the PE header time date stamp Is seconds, And we want to make sure that has an opportunity to change
-            ' between calls to Emit.
+            ' The resolution of the PE header time date stamp is seconds, and we want to make sure
+            ' that has an opportunity to change between calls to Emit.
             Thread.Sleep(TimeSpan.FromSeconds(1))
 
             Return compilation.EmitToArray()
