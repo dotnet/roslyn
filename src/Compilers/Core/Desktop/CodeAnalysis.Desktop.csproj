@@ -84,7 +84,6 @@
     <Compile Include="FileKey.cs" />
     <Compile Include="FileUtilities.cs" />
     <Compile Include="Forwarders.cs" />
-    <Compile Include="IAnalyzerAssemblyLoader.cs" />
     <Compile Include="Interop\ClrStrongName.cs" />
     <Compile Include="Interop\IClrMetaHost.cs" />
     <Compile Include="Interop\IClrRuntimeInfo.cs" />
@@ -95,6 +94,7 @@
     <Compile Include="MetadataFileReferenceResolver.cs" />
     <Compile Include="PathKind.cs" />
     <Compile Include="PathUtilities.cs" />
+    <Compile Include="ShadowCopyAnalyzerAssemblyLoader.cs" />
     <Compile Include="SimpleAnalyzerAssemblyLoader.cs" />
     <Compile Include="SourceFileResolver.cs" />
     <Compile Include="SqmServiceProvider.cs" />

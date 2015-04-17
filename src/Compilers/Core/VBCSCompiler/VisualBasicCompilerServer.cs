@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class VisualBasicCompilerServer : VisualBasicCompiler
     {
-        internal VisualBasicCompilerServer(string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string libDirectory)
-            : base(VisualBasicCommandLineParser.Default, clientDirectory != null ? Path.Combine(clientDirectory, ResponseFileName) : null, args, clientDirectory, baseDirectory, sdkDirectory, libDirectory)
+        internal VisualBasicCompilerServer(string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string libDirectory, IAnalyzerAssemblyLoader analyzerLoader)
+            : base(VisualBasicCommandLineParser.Default, clientDirectory != null ? Path.Combine(clientDirectory, ResponseFileName) : null, args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader)
         {
         }
 
@@ -26,11 +26,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string baseDirectory,
             string sdkDirectory,
             string libDirectory,
+            IAnalyzerAssemblyLoader analyzerLoader,
             TextWriter output,
             CancellationToken cancellationToken,
             out bool utf8output)
         {
-            var compiler = new VisualBasicCompilerServer(args, clientDirectory, baseDirectory, sdkDirectory, libDirectory);
+            var compiler = new VisualBasicCompilerServer(args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader);
             utf8output = compiler.Arguments.Utf8Output;
             return compiler.Run(output, cancellationToken);
         }
@@ -42,11 +43,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             runResult = base.Run(consoleOutput, cancellationToken);
             CompilerServerLogger.Log("****VB Compilation complete.\r\n****Return code: {0}\r\n****Output:\r\n{1}\r\n", runResult, consoleOutput.ToString());
             return runResult;
-        }
-
-        public override Assembly LoadAssembly(string fullPath)
-        {
-            return InMemoryAssemblyProvider.GetAssembly(fullPath); 
         }
 
         internal override MetadataFileReferenceProvider GetMetadataProvider()

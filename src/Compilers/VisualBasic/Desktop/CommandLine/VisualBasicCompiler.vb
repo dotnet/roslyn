@@ -18,8 +18,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _responseFile As String
         Private ReadOnly _diagnosticFormatter As CommandLineDiagnosticFormatter
 
-        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), clientDirectory As String, baseDirectory As String, sdkDirectory As String, additionalReferenceDirectories As String)
-            MyBase.New(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, additionalReferenceDirectories)
+        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), clientDirectory As String, baseDirectory As String, sdkDirectory As String, additionalReferenceDirectories As String, analyzerLoader As IAnalyzerAssemblyLoader)
+            MyBase.New(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, additionalReferenceDirectories, analyzerLoader)
+
             _diagnosticFormatter = New CommandLineDiagnosticFormatter(baseDirectory)
         End Sub
 
@@ -190,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function ResolveAnalyzersFromArguments(diagnostics As List(Of DiagnosticInfo), messageProvider As CommonMessageProvider, touchedFiles As TouchedFileLogger) As ImmutableArray(Of DiagnosticAnalyzer)
-            Return Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, touchedFiles, AddressOf LoadAssembly)
+            Return Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, touchedFiles, AnalyzerLoader)
         End Function
     End Class
 End Namespace

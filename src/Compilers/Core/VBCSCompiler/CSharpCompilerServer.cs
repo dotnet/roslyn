@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class CSharpCompilerServer : CSharpCompiler
     {
-        internal CSharpCompilerServer(string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string libDirectory)
-            : base(CSharpCommandLineParser.Default, clientDirectory != null ? Path.Combine(clientDirectory, ResponseFileName) : null, args, clientDirectory, baseDirectory, sdkDirectory, libDirectory)
+        internal CSharpCompilerServer(string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string libDirectory, IAnalyzerAssemblyLoader analyzerLoader)
+            : base(CSharpCommandLineParser.Default, clientDirectory != null ? Path.Combine(clientDirectory, ResponseFileName) : null, args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader)
         {
         }
 
@@ -24,18 +24,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string baseDirectory,
             string sdkDirectory,
             string libDirectory,
+            IAnalyzerAssemblyLoader analyzerLoader,
             TextWriter output,
             CancellationToken cancellationToken,
             out bool utf8output)
         {
-            var compiler = new CSharpCompilerServer(args, clientDirectory, baseDirectory, sdkDirectory, libDirectory);
+            var compiler = new CSharpCompilerServer(args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader);
             utf8output = compiler.Arguments.Utf8Output;
             return compiler.Run(output, cancellationToken);
-        }
-
-        public override Assembly LoadAssembly(string fullPath)
-        {
-            return InMemoryAssemblyProvider.GetAssembly(fullPath);
         }
 
         public override int Run(TextWriter consoleOutput, CancellationToken cancellationToken = default(CancellationToken))

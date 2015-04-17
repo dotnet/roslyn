@@ -118,6 +118,7 @@
     <Compile Include="Desktop\DesktopAssemblyIdentityComparer.Fx.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.cs" />
+    <Compile Include="DiagnosticAnalyzer\IAnalyzerAssemblyLoader.cs" />
     <Compile Include="Diagnostic\LocalizableResourceString.cs" />
     <Compile Include="Diagnostic\LocalizableResourceString.FixedLocalizableString.cs" />
     <Compile Include="Diagnostic\LocalizableString.cs" />

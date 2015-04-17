@@ -19,8 +19,8 @@ namespace CSharpInteractive
     {
         private const string InteractiveResponseFileName = "csi.rsp";
 
-        internal Csi(string responseFile, string baseDirectory, string[] args)
-            : base(CSharpCommandLineParser.Interactive, responseFile, args, Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null /* TODO: what to pass as additionalReferencePaths? */)
+        internal Csi(string responseFile, string baseDirectory, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
+            : base(CSharpCommandLineParser.Interactive, responseFile, args, Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null /* TODO: what to pass as additionalReferencePaths? */, analyzerLoader))
         {
         }
 
@@ -29,18 +29,13 @@ namespace CSharpInteractive
             try
             {
                 var responseFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, InteractiveResponseFileName);
-                return ScriptCompilerUtil.RunInteractive(new Csi(responseFile, Directory.GetCurrentDirectory(), args), Console.Out);
+                return ScriptCompilerUtil.RunInteractive(new Csi(responseFile, Directory.GetCurrentDirectory(), args, new SimpleAnalyzerAssemblyLoader()), Console.Out);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
                 return 1;
             }
-        }
-
-        public override Assembly LoadAssembly(string fullPath)
-        {
-            return InMemoryAssemblyProvider.GetAssembly(fullPath);
         }
 
         internal override MetadataFileReferenceResolver GetExternalMetadataResolver(TouchedFileLogger touchedFiles)

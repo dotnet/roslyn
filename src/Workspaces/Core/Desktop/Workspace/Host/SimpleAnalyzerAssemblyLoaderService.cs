@@ -13,14 +13,9 @@ namespace Microsoft.CodeAnalysis.Host
     {
         private SimpleAnalyzerAssemblyLoader _loader = new SimpleAnalyzerAssemblyLoader();
 
-        public Assembly LoadFromPath(string fullPath)
+        public IAnalyzerAssemblyLoader GetLoader()
         {
-            return _loader.LoadFromPath(fullPath);
-        }
-
-        public void AddDependencyLocation(string fullPath)
-        {
-            _loader.AddDependencyLocation(fullPath);
+            return _loader;
         }
     }
 }

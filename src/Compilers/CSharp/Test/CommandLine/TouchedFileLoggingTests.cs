@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 using static Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -218,7 +219,8 @@ public class C { }").Path;
                     null,
                     _baseDirectory,
                     RuntimeEnvironment.GetRuntimeDirectory(),
-                    s_libDirectory);
+                    s_libDirectory,
+                    new TestAnalyzerAssemblyLoader());
 
                 List<string> expectedReads;
                 List<string> expectedWrites;
@@ -283,6 +285,19 @@ public class C { }").Path;
             expected = expectedWrites.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
             Assert.Equal(string.Join("\r\n", expected),
                          File.ReadAllText(touchedWritesPath).Trim());
+        }
+
+        private class TestAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
+        {
+            public void AddDependencyLocation(string fullPath)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Assembly LoadFromPath(string fullPath)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

@@ -400,6 +400,8 @@ Microsoft.CodeAnalysis.Host.HostServices
 Microsoft.CodeAnalysis.Host.HostWorkspaceServices
 Microsoft.CodeAnalysis.Host.HostWorkspaceServices.GetRequiredService<TWorkspaceService>() -> TWorkspaceService
 Microsoft.CodeAnalysis.Host.HostWorkspaceServices.MetadataFilter
+Microsoft.CodeAnalysis.Host.IAnalyzerService
+Microsoft.CodeAnalysis.Host.IAnalyzerService.GetLoader() -> Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader
 Microsoft.CodeAnalysis.Host.ICompilationFactoryService
 Microsoft.CodeAnalysis.Host.ICompilationFactoryService.CreateCompilation(string assemblyName, Microsoft.CodeAnalysis.CompilationOptions options) -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.Host.ICompilationFactoryService.CreateSubmissionCompilation(string assemblyName, Microsoft.CodeAnalysis.CompilationOptions options, System.Type hostObjectType) -> Microsoft.CodeAnalysis.Compilation
