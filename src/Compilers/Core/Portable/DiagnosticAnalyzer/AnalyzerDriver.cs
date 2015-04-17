@@ -455,20 +455,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task ProcessEventAsync(CompilationEvent e, CancellationToken cancellationToken)
         {
-                try
-                {
+            try
+            {
                 var processEventTask = ProcessEventCoreAsync(e, cancellationToken);
-                    if (processEventTask != null)
-                    {
-                        await processEventTask.ConfigureAwait(false);
-                    }
-                }
-                catch (OperationCanceledException)
+                if (processEventTask != null)
                 {
-                    // when just a single operation is cancelled, we continue processing events.
-                    // TODO: what is the desired behavior in this case?
+                    await processEventTask.ConfigureAwait(false);
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // when just a single operation is cancelled, we continue processing events.
+                // TODO: what is the desired behavior in this case?
+            }
+        }
 
         private Task ProcessEventCoreAsync(CompilationEvent e, CancellationToken cancellationToken)
         {
