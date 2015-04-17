@@ -1,8 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Extensions;
@@ -11,24 +10,27 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using VS = Microsoft.VisualStudio.Progression;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal class VisualStudioErrorReportingService : IErrorReportingService
     {
-        private readonly VisualStudioWorkspaceImpl _workspace;
-        private readonly IForegroundNotificationService _foregroundNotificationService;
-        private readonly IDocumentTrackingService _documentTrackingService;
         private readonly static InfoBarButton EnableItem = new InfoBarButton(ServicesVSResources.Enable);
         private readonly static InfoBarButton EnableAndIgnoreItem = new InfoBarButton(ServicesVSResources.EnableAndIgnore);
 
-        public VisualStudioErrorReportingService(VisualStudioWorkspaceImpl workspace, IForegroundNotificationService foregroundNotificationService)
+        private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly IForegroundNotificationService _foregroundNotificationService;
+        private readonly IAsynchronousOperationListener _listener;
+        private readonly IDocumentTrackingService _documentTrackingService;
+
+        public VisualStudioErrorReportingService(
+            VisualStudioWorkspaceImpl workspace, IForegroundNotificationService foregroundNotificationService, IAsynchronousOperationListener listener)
         {
             _workspace = workspace;
             _foregroundNotificationService = foregroundNotificationService;
-            _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
+            _listener = listener;
 
+            _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
         }
 
         public void ShowErrorInfoForCodeFix(string codefixName, Action OnEnableClicked, Action OnEnableAndIgnoreClicked)
@@ -36,7 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var documentId = _documentTrackingService.GetActiveDocument();
 
             // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
-            var waiter = new InfoBarWaiter();
             _foregroundNotificationService.RegisterNotification(() =>
             {
                 IVsWindowFrame frame;
@@ -45,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     CreateInfoBar(codefixName, OnEnableClicked, OnEnableAndIgnoreClicked, frame, factory);
                 }
-            }, waiter.BeginAsyncOperation("Show InfoBar"));
+            }, _listener.BeginAsyncOperation("Show InfoBar"));
         }
 
         private void CreateInfoBar(string name, Action onEnableClicked, Action onEnableAndIgnoreClicked, IVsWindowFrame frame, IVsInfoBarUIFactory factory)
@@ -69,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     isCloseButtonVisible: true);
 
                 IVsInfoBarUIElement infoBarUI;
-                if (TryCreateInfoBarUI(infoBarModel, factory, out infoBarUI))
+                if (TryCreateInfoBarUI(factory, infoBarModel, out infoBarUI))
                 {
                     uint? infoBarCookie = null;
                     InfoBarEvents eventSink = new InfoBarEvents(onEnableClicked, onEnableAndIgnoreClicked, () =>
@@ -79,16 +80,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                             infoBarUI.Unadvise(infoBarCookie.Value);
                         }
                     });
+
                     uint cookie;
                     infoBarUI.Advise(eventSink, out cookie);
                     infoBarCookie = cookie;
+
                     IVsInfoBarHost host = (IVsInfoBarHost)unknown;
                     host.AddInfoBar(infoBarUI);
                 }
             }
         }
 
-        private static bool TryCreateInfoBarUI(IVsInfoBar infoBar, IVsInfoBarUIFactory infoBarUIFactory, out IVsInfoBarUIElement uiElement)
+        private static bool TryCreateInfoBarUI(IVsInfoBarUIFactory infoBarUIFactory, IVsInfoBar infoBar, out IVsInfoBarUIElement uiElement)
         {
             uiElement = infoBarUIFactory.CreateInfoBar(infoBar);
             return uiElement != null;
@@ -127,7 +130,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 onClosed();
             }
         }
-
-        internal class InfoBarWaiter : AsynchronousOperationListener { }
     }
 }

@@ -830,7 +830,7 @@ Microsoft.CodeAnalysis.WorkspaceRegistration.WorkspaceChanged -> System.EventHan
 abstract Microsoft.CodeAnalysis.CodeActions.CodeAction.Title.get -> string
 abstract Microsoft.CodeAnalysis.CodeActions.CodeActionWithOptions.ComputeOperationsAsync(object options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeActions.CodeActionOperation>>
 abstract Microsoft.CodeAnalysis.CodeActions.CodeActionWithOptions.GetOptions(System.Threading.CancellationToken cancellationToken) -> object
-abstract Microsoft.CodeAnalysis.CodeActions.PreviewOperation.GetPreview() -> object
+abstract Microsoft.CodeAnalysis.CodeActions.PreviewOperation.GetPreviewAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<object>
 abstract Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.FixableDiagnosticIds.get -> System.Collections.Immutable.ImmutableArray<string>
 abstract Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.RegisterCodeFixesAsync(Microsoft.CodeAnalysis.CodeFixes.CodeFixContext context) -> System.Threading.Tasks.Task
 abstract Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.GetFixAsync(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction>
@@ -855,6 +855,7 @@ abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AsPublicInterfaceImpleme
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AssignmentStatement(Microsoft.CodeAnalysis.SyntaxNode left, Microsoft.CodeAnalysis.SyntaxNode right) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.Attribute(Microsoft.CodeAnalysis.SyntaxNode name, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> attributeArguments = null) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AttributeArgument(string name, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AwaitExpression(Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.BaseExpression() -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.BitwiseAndExpression(Microsoft.CodeAnalysis.SyntaxNode left, Microsoft.CodeAnalysis.SyntaxNode right) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.BitwiseNotExpression(Microsoft.CodeAnalysis.SyntaxNode operand) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -1078,8 +1079,8 @@ static Microsoft.CodeAnalysis.CodeActions.ConflictAnnotation.GetDescription(Micr
 static Microsoft.CodeAnalysis.CodeActions.RenameAnnotation.Create() -> Microsoft.CodeAnalysis.SyntaxAnnotation
 static Microsoft.CodeAnalysis.CodeActions.WarningAnnotation.Create(string description) -> Microsoft.CodeAnalysis.SyntaxAnnotation
 static Microsoft.CodeAnalysis.CodeActions.WarningAnnotation.GetDescription(Microsoft.CodeAnalysis.SyntaxAnnotation annotation) -> string
-static Microsoft.CodeAnalysis.DocumentId.CreateNewId(Microsoft.CodeAnalysis.ProjectId projectId, string debugName = null) -> Microsoft.CodeAnalysis.DocumentId
 static Microsoft.CodeAnalysis.DocumentId.CreateFromSerialized(Microsoft.CodeAnalysis.ProjectId projectId, System.Guid id, string debugName = null) -> Microsoft.CodeAnalysis.DocumentId
+static Microsoft.CodeAnalysis.DocumentId.CreateNewId(Microsoft.CodeAnalysis.ProjectId projectId, string debugName = null) -> Microsoft.CodeAnalysis.DocumentId
 static Microsoft.CodeAnalysis.DocumentId.operator !=(Microsoft.CodeAnalysis.DocumentId left, Microsoft.CodeAnalysis.DocumentId right) -> bool
 static Microsoft.CodeAnalysis.DocumentId.operator ==(Microsoft.CodeAnalysis.DocumentId left, Microsoft.CodeAnalysis.DocumentId right) -> bool
 static Microsoft.CodeAnalysis.DocumentInfo.Create(Microsoft.CodeAnalysis.DocumentId id, string name, System.Collections.Generic.IEnumerable<string> folders = null, Microsoft.CodeAnalysis.SourceCodeKind sourceCodeKind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, Microsoft.CodeAnalysis.TextLoader loader = null, string filePath = null, bool isGenerated = false) -> Microsoft.CodeAnalysis.DocumentInfo
@@ -1167,8 +1168,8 @@ static Microsoft.CodeAnalysis.Host.Mef.MefHostServices.DefaultHost.get -> Micros
 static Microsoft.CodeAnalysis.Options.Option<T>.implicit operator Microsoft.CodeAnalysis.Options.OptionKey(Microsoft.CodeAnalysis.Options.Option<T> option) -> Microsoft.CodeAnalysis.Options.OptionKey
 static Microsoft.CodeAnalysis.Options.OptionKey.operator !=(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool
 static Microsoft.CodeAnalysis.Options.OptionKey.operator ==(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool
-static Microsoft.CodeAnalysis.ProjectId.CreateNewId(string debugName = null) -> Microsoft.CodeAnalysis.ProjectId
 static Microsoft.CodeAnalysis.ProjectId.CreateFromSerialized(System.Guid id, string debugName = null) -> Microsoft.CodeAnalysis.ProjectId
+static Microsoft.CodeAnalysis.ProjectId.CreateNewId(string debugName = null) -> Microsoft.CodeAnalysis.ProjectId
 static Microsoft.CodeAnalysis.ProjectId.operator !=(Microsoft.CodeAnalysis.ProjectId left, Microsoft.CodeAnalysis.ProjectId right) -> bool
 static Microsoft.CodeAnalysis.ProjectId.operator ==(Microsoft.CodeAnalysis.ProjectId left, Microsoft.CodeAnalysis.ProjectId right) -> bool
 static Microsoft.CodeAnalysis.ProjectInfo.Create(Microsoft.CodeAnalysis.ProjectId id, Microsoft.CodeAnalysis.VersionStamp version, string name, string assemblyName, string language, string filePath = null, string outputFilePath = null, Microsoft.CodeAnalysis.CompilationOptions compilationOptions = null, Microsoft.CodeAnalysis.ParseOptions parseOptions = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> documents = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference> projectReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> metadataReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> additionalDocuments = null, bool isSubmission = false, System.Type hostObjectType = null) -> Microsoft.CodeAnalysis.ProjectInfo

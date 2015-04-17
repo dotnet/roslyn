@@ -23,8 +23,24 @@ namespace Microsoft.CodeAnalysis.Interop
             var clrStrongNameGuid = new Guid(0x9FD93CCF, 0x3280, 0x4391, 0xB3, 0xA9, 0x96, 0xE1, 0xCD, 0xE7, 0x7C, 0x8D);
 
             var metaHost = (IClrMetaHost)nCreateInterface(metaHostClsid, metaHostGuid);
-            var runtime = (IClrRuntimeInfo)metaHost.GetRuntime(RuntimeEnvironment.GetSystemVersion(), clrRuntimeInfoGuid);
+            var runtime = (IClrRuntimeInfo)metaHost.GetRuntime(GetRuntimeVersion(), clrRuntimeInfoGuid);
             return (IClrStrongName)runtime.GetInterface(clrStrongNameClsid, clrStrongNameGuid);
+        }
+
+        internal static string GetRuntimeVersion()
+        {
+            // When running in a complus environment we must respect the specified CLR version.  This 
+            // important to keeping internal builds runnning. 
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("COMPLUS_InstallRoot")))
+            {
+                var version = Environment.GetEnvironmentVariable("COMPLUS_Version");
+                if (!string.IsNullOrEmpty(version))
+                {
+                    return version;
+                }
+            }
+
+            return "v4.0.30319";
         }
     }
 }

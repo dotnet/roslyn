@@ -324,6 +324,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return result;
         }
 
+        /// <summary>
+        /// Ignore accessibility when resolving well-known type
+        /// members, in particular for generic type arguments
+        /// (e.g.: binding to internal types in the EE).
+        /// </summary>
+        internal virtual bool IgnoreAccessibility
+        {
+            get { return false; }
+        }
+
         internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method)
         {
             return null;

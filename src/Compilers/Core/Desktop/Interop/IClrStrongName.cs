@@ -8,7 +8,7 @@ using System.Security;
 
 namespace Microsoft.CodeAnalysis.Interop
 {
-    [ComImport, ComConversionLoss, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("9FD93CCF-3280-4391-B3A9-96E1CDE77C8D"), SuppressUnmanagedCodeSecurity]
+    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("9FD93CCF-3280-4391-B3A9-96E1CDE77C8D"), SuppressUnmanagedCodeSecurity]
     internal interface IClrStrongName
     {
         void GetHashFromAssemblyFile(

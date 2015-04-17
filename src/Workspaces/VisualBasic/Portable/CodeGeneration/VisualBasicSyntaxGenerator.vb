@@ -13,6 +13,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Inherits SyntaxGenerator
 
 #Region "Expressions and Statements"
+
+        Public Overrides Function AwaitExpression(expression As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.AwaitExpression(DirectCast(expression, ExpressionSyntax))
+        End Function
+
         Private Function Parenthesize(expression As SyntaxNode) As ParenthesizedExpressionSyntax
             Return DirectCast(expression, ExpressionSyntax).Parenthesize()
         End Function

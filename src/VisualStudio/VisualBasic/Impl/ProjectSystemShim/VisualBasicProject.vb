@@ -87,7 +87,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 If project Is Nothing Then
                     ' Hmm, we got a project which isn't from ourselves. That's somewhat odd, and we really can't do anything
                     ' with it.
-                    Throw New ArgumentException("Unknown type of IVbCompilerProject.", "pReferencedCompilerProject")
+                    Throw New ArgumentException("Unknown type of IVbCompilerProject.", NameOf(pReferencedCompilerProject))
                 End If
 
                 MyBase.AddProjectReference(New ProjectReference(project.Id, embedInteropTypes:=True))
@@ -140,7 +140,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 If project Is Nothing Then
                     ' Hmm, we got a project which isn't from ourselves. That's somewhat odd, and we really can't do anything
                     ' with it.
-                    Throw New ArgumentException("Unknown type of IVbCompilerProject.", "pReferencedCompilerProject")
+                    Throw New ArgumentException("Unknown type of IVbCompilerProject.", NameOf(pReferencedCompilerProject))
                 End If
 
                 MyBase.AddProjectReference(New ProjectReference(project.Id))
@@ -328,11 +328,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 If project Is Nothing Then
                     ' Hmm, we got a project which isn't from ourselves. That's somewhat odd, and we really can't do anything
                     ' with it.
-                    Throw New ArgumentException("Unknown type of IVbCompilerProject.", "pReferencedCompilerProject")
+                    Throw New ArgumentException("Unknown type of IVbCompilerProject.", NameOf(pReferencedCompilerProject))
                 End If
 
                 If Not Me.CurrentProjectReferencesContains(project.Id) Then
-                    Throw New ArgumentException("Project reference to remove is not referenced by this project.", "pReferencedCompilerProject")
+                    Throw New ArgumentException("Project reference to remove is not referenced by this project.", NameOf(pReferencedCompilerProject))
                 End If
 
                 Dim projectReference = GetCurrentProjectReferences().Single(Function(r) r.ProjectId Is project.Id)

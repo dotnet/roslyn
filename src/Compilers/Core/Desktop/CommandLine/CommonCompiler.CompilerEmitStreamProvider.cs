@@ -16,49 +16,35 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private sealed class CompilerEmitStreamProvider : Compilation.EmitStreamProvider, IDisposable
         {
-            private static Stream s_uninitialized = Stream.Null;
-
             private readonly CommonCompiler _compiler;
             private readonly string _filePath;
-
-            private Stream _lazyStream;
+            private Stream _streamToDispose;
 
             internal CompilerEmitStreamProvider(CommonCompiler compiler, string filePath)
             {
                 _compiler = compiler;
                 _filePath = filePath;
-                _lazyStream = s_uninitialized;
             }
 
             public void Dispose()
             {
-                if (_lazyStream != s_uninitialized)
-                {
-                    _lazyStream?.Dispose();
-                    _lazyStream = s_uninitialized;
-                }
+                _streamToDispose?.Dispose();
             }
 
-            public override Stream GetStream(DiagnosticBag diagnostics)
-            {
-                if (_lazyStream == s_uninitialized)
-                {
-                    _lazyStream = OpenFile(_filePath, diagnostics);
-                }
+            public override Stream Stream => null;
 
-                return _lazyStream;
-            }
-
-            private Stream OpenFile(string filePath, DiagnosticBag diagnostics)
+            public override Stream CreateStream(DiagnosticBag diagnostics)
             {
+                Debug.Assert(_streamToDispose == null);
+
                 try
                 {
-                    return _compiler.FileOpen(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+                    return _streamToDispose = _compiler.FileOpen(_filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
                 }
                 catch (Exception e)
                 {
                     var messageProvider = _compiler.MessageProvider;
-                    diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_CantOpenFileWrite, Location.None, filePath, e.Message));
+                    diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_CantOpenFileWrite, Location.None, _filePath, e.Message));
                     return null;
                 }
             }

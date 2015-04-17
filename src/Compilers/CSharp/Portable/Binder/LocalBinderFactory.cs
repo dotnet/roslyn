@@ -120,6 +120,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
+        {
+            // Do nothing, expressions do not need special binders.
+        }
+
         public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
         {
             VisitBlock(node.Block);

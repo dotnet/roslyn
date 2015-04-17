@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         public string GetTypeName(DkmClrType clrType, ReadOnlyCollection<string> formatSpecifiers, DkmClrCustomTypeInfo CustomTypeInfo)
         {
             // The real version does some sort of dynamic dispatch that ultimately calls this method.
-            return _formatter.GetTypeName(this, clrType, formatSpecifiers, customTypeInfo: null);
+            return _formatter.GetTypeName(this, clrType, formatSpecifiers, CustomTypeInfo);
         }
     }
 }

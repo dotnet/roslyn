@@ -18,10 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _responseFile As String
         Private ReadOnly _diagnosticFormatter As CommandLineDiagnosticFormatter
 
-        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), baseDirectory As String, sdkDirectory As String, additionalReferenceDirectories As String)
-            MyBase.New(parser, responseFile, args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
-            Debug.Assert(responseFile Is Nothing OrElse Path.IsPathRooted(responseFile))
-            _responseFile = responseFile
+        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), clientDirectory As String, baseDirectory As String, sdkDirectory As String, additionalReferenceDirectories As String)
+            MyBase.New(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, additionalReferenceDirectories)
             _diagnosticFormatter = New CommandLineDiagnosticFormatter(baseDirectory)
         End Sub
 
@@ -177,14 +175,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function GetToolName() As String
             Return ErrorFactory.IdToString(ERRID.IDS_ToolName, Culture)
-        End Function
-
-        Friend Overrides Function GetAssemblyFileVersion() As String
-            Return FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion
-        End Function
-
-        Friend Overrides Function GetAssemblyVersion() As Version
-            Return Assembly.GetExecutingAssembly().GetName().Version
         End Function
 
         ''' <summary>

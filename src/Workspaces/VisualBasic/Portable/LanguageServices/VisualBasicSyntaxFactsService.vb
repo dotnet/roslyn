@@ -492,11 +492,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetContainingTypeDeclaration(root As SyntaxNode, position As Integer) As SyntaxNode Implements ISyntaxFactsService.GetContainingTypeDeclaration
             If root Is Nothing Then
-                Throw New ArgumentNullException("root")
+                Throw New ArgumentNullException(NameOf(root))
             End If
 
             If position < 0 OrElse position > root.Span.End Then
-                Throw New ArgumentOutOfRangeException("position")
+                Throw New ArgumentOutOfRangeException(NameOf(position))
             End If
 
             Return root.
@@ -507,7 +507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetContainingVariableDeclaratorOfFieldDeclaration(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetContainingVariableDeclaratorOfFieldDeclaration
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             Dim parent = node.Parent
@@ -579,8 +579,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetContainingMemberDeclaration(root As SyntaxNode, position As Integer) As SyntaxNode Implements ISyntaxFactsService.GetContainingMemberDeclaration
-            Contract.ThrowIfNull(root, "root")
-            Contract.ThrowIfTrue(position < 0 OrElse position > root.FullSpan.End, "position")
+            Contract.ThrowIfNull(root, NameOf(root))
+            Contract.ThrowIfTrue(position < 0 OrElse position > root.FullSpan.End, NameOf(position))
 
             Dim [end] = root.FullSpan.End
             If [end] = 0 Then

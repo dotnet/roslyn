@@ -8386,6 +8386,43 @@ End Class
    at C.VB$StateMachine_2_M.MoveNext()")
         End Sub
 
+        <Fact, WorkItem(1942, "https://github.com/dotnet/roslyn/issues/1942")>
+        Public Sub HoistStructure()
+            Dim source =
+<compilation name="Async">
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Structure TestStruct
+    Public i As Long
+    Public j As Long
+End Structure
+
+Class Program
+    Shared Async Function TestAsync() As Task
+        Dim t As TestStruct
+        t.i = 12
+        Console.WriteLine("Before {0}", t.i)
+        Await Task.Delay(100)
+        Console.WriteLine("After {0}", t.i)
+    End Function
+
+    Shared Sub Main()
+        TestAsync().Wait()
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim expectedOutput = <![CDATA[Before 12
+After 12]]>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=Me.LatestReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
     End Class
 End Namespace
 

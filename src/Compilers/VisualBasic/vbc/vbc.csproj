@@ -64,9 +64,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Collections.Immutable, Version=1.1.34.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\..\packages\System.Collections.Immutable.1.1.34-rc\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -81,6 +81,9 @@
     </Compile>
     <Compile Include="..\..\Core\VBCSCompiler\CompilerServerLogger.cs">
       <Link>CompilerServerLogger.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Helpers\ConsoleUtil.cs">
+      <Link>ConsoleUtil.cs</Link>
     </Compile>
     <Compile Include="Vbc.cs" />
     <Compile Include="Program.cs" />

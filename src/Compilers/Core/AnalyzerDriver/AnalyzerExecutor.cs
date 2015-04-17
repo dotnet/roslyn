@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
         private readonly AnalyzerManager _analyzerManager;
         private readonly Func<DiagnosticAnalyzer, bool> _isCompilerAnalyzer;
+        private readonly ImmutableDictionary<DiagnosticAnalyzer, object> _singleThreadedAnalyzerToGateMap;
+
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -40,6 +42,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="isCompilerAnalyzer">Delegate to determine if the given analyzer is compiler analyzer. 
         /// We need to special case the compiler analyzer at few places for performance reasons.</param>
         /// <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
+        /// <param name="singleThreadedAnalyzerToGateMap">Map from non-thread safe analyzers to unique gate objects. 
+        /// All analyzer callbacks for these analyzers will be guarded with a lock on the gate.
+        /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor Create(
             Compilation compilation,
@@ -48,9 +53,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerManager analyzerManager,
-            CancellationToken cancellationToken)
+            ImmutableDictionary<DiagnosticAnalyzer, object> singleThreadedAnalyzerToGateMap = default(ImmutableDictionary<DiagnosticAnalyzer, object>),
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            return new AnalyzerExecutor(compilation, analyzerOptions, addDiagnostic, onAnalyzerException, isCompilerAnalyzer, analyzerManager, cancellationToken);
+            return new AnalyzerExecutor(compilation, analyzerOptions, addDiagnostic, onAnalyzerException, isCompilerAnalyzer, analyzerManager, singleThreadedAnalyzerToGateMap, cancellationToken);
         }
 
         /// <summary>
@@ -72,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzerOptions: null,
                 addDiagnostic: null,
                 isCompilerAnalyzer: null,
+                singleThreadedAnalyzerToGateMap: ImmutableDictionary<DiagnosticAnalyzer, object>.Empty,
                 onAnalyzerException: onAnalyzerException,
                 analyzerManager: analyzerManager,
                 cancellationToken: cancellationToken);
@@ -84,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerManager analyzerManager,
+            ImmutableDictionary<DiagnosticAnalyzer, object> singleThreadedAnalyzerToGateMap,
             CancellationToken cancellationToken)
         {
             _compilation = compilation;
@@ -92,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _onAnalyzerException = onAnalyzerException;
             _isCompilerAnalyzer = isCompilerAnalyzer;
             _analyzerManager = analyzerManager;
+            _singleThreadedAnalyzerToGateMap = singleThreadedAnalyzerToGateMap ?? ImmutableDictionary<DiagnosticAnalyzer, object>.Empty;
             _cancellationToken = cancellationToken;
         }
 
@@ -141,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _cancellationToken.ThrowIfCancellationRequested();
                 ExecuteAndCatchIfThrows(endAction.Analyzer,
-                    () => endAction.Action(new CompilationAnalysisContext(_compilation, _analyzerOptions, _addDiagnostic, 
+                    () => endAction.Action(new CompilationAnalysisContext(_compilation, _analyzerOptions, _addDiagnostic,
                         d => IsSupportedDiagnostic(endAction.Analyzer, d), _cancellationToken)));
             }
         }
@@ -183,6 +192,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var action = symbolAction.Action;
                 var kinds = symbolAction.Kinds;
+
                 if (kinds.Contains(symbol.Kind))
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
@@ -466,7 +476,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void ExecuteAndCatchIfThrows(DiagnosticAnalyzer analyzer, Action analyze)
         {
-            ExecuteAndCatchIfThrows(analyzer, analyze, _onAnalyzerException, _cancellationToken);
+            object gate;
+            if (_singleThreadedAnalyzerToGateMap.TryGetValue(analyzer, out gate))
+            {
+                lock(gate)
+                {
+                    ExecuteAndCatchIfThrows(analyzer, analyze, _onAnalyzerException, _cancellationToken);
+                }
+            }
+            else
+            {
+                ExecuteAndCatchIfThrows(analyzer, analyze, _onAnalyzerException, _cancellationToken);
+            }
         }
 
         private static void ExecuteAndCatchIfThrows(
@@ -544,7 +565,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            return exceptionDiagnostic.Id == other.Id && 
+            return exceptionDiagnostic.Id == other.Id &&
                 exceptionDiagnostic.Severity == other.Severity &&
                 exceptionDiagnostic.GetMessage() == other.GetMessage();
         }

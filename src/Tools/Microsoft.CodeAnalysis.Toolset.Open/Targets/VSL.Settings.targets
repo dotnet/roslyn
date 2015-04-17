@@ -54,8 +54,8 @@
   <!-- Import the global NuGet packages -->
   <PropertyGroup>
     <ToolsetCompilerPackageName>Microsoft.Net.ToolsetCompilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.ToolsetCompilers.1.0.0-rc2-20150319-05\build\Microsoft.Net.ToolsetCompilers.props</ToolsetCompilerPropsFilePath>
-    <RoslynDiagnosticsPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.0.0-rc2-20150319-05\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <ToolsetCompilerPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.ToolsetCompilers.1.0.0-rc2-20150415-05\build\Microsoft.Net.ToolsetCompilers.props</ToolsetCompilerPropsFilePath>
+    <RoslynDiagnosticsPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.0.0-rc2-20150415-05\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
   </PropertyGroup>
 

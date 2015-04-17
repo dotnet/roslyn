@@ -61,8 +61,5 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 
         [ExportOption]
         public static readonly Option<bool> EsentPerformanceMonitor = new Option<bool>(OptionName, "Esent PerfMon", defaultValue: false);
-
-        [ExportOption]
-        public static readonly Option<bool> EnhancedPreviewPane = new Option<bool>(OptionName, "Enhanced Preview Pane", defaultValue: true);
     }
 }
