@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 {
@@ -38,12 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             get { return _associatedViewService; }
         }
 
-        public object GetPreview(Workspace workspace, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken, DocumentId preferredDocumentId = null, ProjectId preferredProjectId = null)
-        {
-            var previewObjects = GetPreviews(workspace, operations, cancellationToken);
-            return previewObjects == null ? null : previewObjects.TakeNextPreview(preferredDocumentId, preferredProjectId);
-        }
-
         public SolutionPreviewResult GetPreviews(Workspace workspace, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
         {
             if (operations == null)
@@ -53,6 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
             foreach (var op in operations)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var applyChanges = op as ApplyChangesOperation;
                 if (applyChanges != null)
                 {
@@ -70,17 +66,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 var previewOp = op as PreviewOperation;
                 if (previewOp != null)
                 {
-                    var customPreview = previewOp.GetPreview();
-                    if (customPreview != null)
-                    {
-                        return new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(null, null, new Lazy<object>(() => customPreview)) });
-                    }
+                    return new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(projectId: null, documentId: null, lazyPreview: c => previewOp.GetPreviewAsync(c)) });
                 }
 
                 var title = op.Title;
                 if (title != null)
                 {
-                    return new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(null, null, new Lazy<object>(() => title)) });
+                    return new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(projectId: null, documentId: null, lazyPreview: c => Task.FromResult<object>(title)) });
                 }
             }
 
