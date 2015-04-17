@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         protected static void AddAnalyzerActionsExecutor(IDictionary<DiagnosticAnalyzer, ArrayBuilder<Action>> map, DiagnosticAnalyzer analyzer, Action executeAnalyzerActions)
-            {
+        {
             ArrayBuilder<Action> currentActions;
             if (!map.TryGetValue(analyzer, out currentActions))
             {
@@ -693,9 +693,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
                         if (analyzerActions != null)
                         {
-                        allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
+                            allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
+                        }
                     }
-                }
                 }
 
                 return allAnalyzerActions;
