@@ -20,7 +20,7 @@ namespace CSharpInteractive
         private const string InteractiveResponseFileName = "csi.rsp";
 
         internal Csi(string responseFile, string baseDirectory, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
-            : base(CSharpCommandLineParser.Interactive, responseFile, args, Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null /* TODO: what to pass as additionalReferencePaths? */, analyzerLoader))
+            : base(CSharpCommandLineParser.Interactive, responseFile, args, Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null /* TODO: what to pass as additionalReferencePaths? */, analyzerLoader)
         {
         }
 

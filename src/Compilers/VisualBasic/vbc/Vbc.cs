@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
     internal sealed class Vbc : VisualBasicCompiler
     {
         internal Vbc(string responseFile, string clientDirectory, string baseDirectory, string sdkDirectory, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
-            : base(VisualBasicCommandLineParser.Default, responseFile, args, bclientDirectory, aseDirectory, sdkDirectory, Environment.GetEnvironmentVariable("LIB"), analyzerLoader)
+            : base(VisualBasicCommandLineParser.Default, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, Environment.GetEnvironmentVariable("LIB"), analyzerLoader)
         {
         }
 
