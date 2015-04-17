@@ -322,6 +322,7 @@
     <Compile Include="CodeGeneration\CodeGenerationOptions.cs" />
     <Compile Include="CodeGeneration\CodeGenerationSymbolFactory.cs" />
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
+    <Compile Include="Differencing\SyntaxComparer.cs" />
     <Compile Include="Editing\DeclarationKind.cs" />
     <Compile Include="Editing\DocumentEditor.cs" />
     <Compile Include="CodeGeneration\ICodeGenerationService.cs" />

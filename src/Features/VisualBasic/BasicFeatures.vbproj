@@ -344,7 +344,6 @@
     <Compile Include="DocumentationCommentFormatting\DocumentationCommentUtilities.vb" />
     <Compile Include="DocumentationCommentFormatting\VisualBasicDocumentationCommentFormattingService.vb" />
     <Compile Include="EditAndContinue\StatementSyntaxComparer.vb" />
-    <Compile Include="EditAndContinue\SyntaxComparer.vb" />
     <Compile Include="EditAndContinue\SyntaxUtilities.vb" />
     <Compile Include="EditAndContinue\TopSyntaxComparer.vb" />
     <Compile Include="EditAndContinue\VisualBasicEditAndContinueAnalyzer.vb" />

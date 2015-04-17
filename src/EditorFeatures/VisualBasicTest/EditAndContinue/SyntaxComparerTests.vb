@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Differencing
+Imports Microsoft.CodeAnalysis.VisualBasic.Differencing
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class SyntaxComparerTests
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Fact>
         Public Sub GetSequenceEdits1()
-            Dim edits = SyntaxComparer.GetSequenceEdits(
+            Dim edits = VisualBasicSyntaxComparer.GetSequenceEdits(
                 {MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)},
                 {MakeLiteral(1), MakeLiteral(3)})
 
@@ -28,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Fact>
         Public Sub GetSequenceEdits2()
-            Dim edits = SyntaxComparer.GetSequenceEdits(
+            Dim edits = VisualBasicSyntaxComparer.GetSequenceEdits(
                 ImmutableArray.Create(MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)),
                 ImmutableArray.Create(MakeLiteral(1), MakeLiteral(3)))
 
@@ -43,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Fact>
         Public Sub GetSequenceEdits3()
-            Dim edits = SyntaxComparer.GetSequenceEdits(
+            Dim edits = VisualBasicSyntaxComparer.GetSequenceEdits(
                  {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)},
                  {SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)})
 
@@ -58,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Fact>
         Public Sub GetSequenceEdits4()
-            Dim edits = SyntaxComparer.GetSequenceEdits(
+            Dim edits = VisualBasicSyntaxComparer.GetSequenceEdits(
                 ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)),
                 ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)))
 
@@ -73,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Fact>
         Public Sub ComputeDistance1()
-            Dim distance = SyntaxComparer.ComputeDistance(
+            Dim distance = VisualBasicSyntaxComparer.ComputeDistance(
                  {MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)},
                  {MakeLiteral(1), MakeLiteral(3)})
 
@@ -82,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Fact>
         Public Sub ComputeDistance2()
-            Dim distance = SyntaxComparer.ComputeDistance(
+            Dim distance = VisualBasicSyntaxComparer.ComputeDistance(
                 ImmutableArray.Create(MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)),
                 ImmutableArray.Create(MakeLiteral(1), MakeLiteral(3)))
 
@@ -91,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Fact>
         Public Sub ComputeDistance3()
-            Dim distance = SyntaxComparer.ComputeDistance(
+            Dim distance = VisualBasicSyntaxComparer.ComputeDistance(
                  {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)},
                  {SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)})
 
@@ -100,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Fact>
         Public Sub ComputeDistance4()
-            Dim distance = SyntaxComparer.ComputeDistance(
+            Dim distance = VisualBasicSyntaxComparer.ComputeDistance(
                 ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)),
                 ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)))
 
@@ -109,49 +110,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Fact>
         Public Sub ComputeDistance_Token()
-            Dim distance = SyntaxComparer.ComputeDistance(SyntaxFactory.Literal("abc", "abc"), SyntaxFactory.Literal("acb", "acb"))
+            Dim distance = VisualBasicSyntaxComparer.ComputeDistance(SyntaxFactory.Literal("abc", "abc"), SyntaxFactory.Literal("acb", "acb"))
             Assert.Equal(0.33, Math.Round(distance, 2))
         End Sub
 
         <Fact>
         Public Sub ComputeDistance_Node()
-            Dim distance = SyntaxComparer.ComputeDistance(MakeLiteral(101), MakeLiteral(150))
+            Dim distance = VisualBasicSyntaxComparer.ComputeDistance(MakeLiteral(101), MakeLiteral(150))
             Assert.Equal(1, Math.Round(distance, 2))
         End Sub
 
         <Fact>
         Public Sub ComputeDistance_Null()
-            Dim distance = SyntaxComparer.ComputeDistance(
+            Dim distance = VisualBasicSyntaxComparer.ComputeDistance(
                 Nothing,
                 ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
 
             Assert.Equal(1, Math.Round(distance, 2))
 
-            distance = SyntaxComparer.ComputeDistance(
+            distance = VisualBasicSyntaxComparer.ComputeDistance(
                 Nothing,
                 ImmutableArray.Create(MakeLiteral(0)))
 
             Assert.Equal(1, Math.Round(distance, 2))
 
-            distance = SyntaxComparer.ComputeDistance(
+            distance = VisualBasicSyntaxComparer.ComputeDistance(
                 Nothing,
                 SpecializedCollections.EmptyArray(Of SyntaxNode))
 
             Assert.Equal(0, Math.Round(distance, 2))
 
-            distance = SyntaxComparer.ComputeDistance(
+            distance = VisualBasicSyntaxComparer.ComputeDistance(
                 SpecializedCollections.EmptyArray(Of SyntaxNode),
                 Nothing)
 
             Assert.Equal(0, Math.Round(distance, 2))
 
-            distance = SyntaxComparer.ComputeDistance(
+            distance = VisualBasicSyntaxComparer.ComputeDistance(
                 Nothing,
                 SpecializedCollections.EmptyArray(Of SyntaxToken))
 
             Assert.Equal(0, Math.Round(distance, 2))
 
-            distance = SyntaxComparer.ComputeDistance(
+            distance = VisualBasicSyntaxComparer.ComputeDistance(
                 SpecializedCollections.EmptyArray(Of SyntaxToken),
                 Nothing)
 

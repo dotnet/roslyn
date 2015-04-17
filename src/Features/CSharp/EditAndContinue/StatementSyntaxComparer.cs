@@ -3,12 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Differencing;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
-    internal sealed class StatementSyntaxComparer : SyntaxComparer
+    internal sealed class StatementSyntaxComparer : CSharpSyntaxComparer
     {
         internal static readonly StatementSyntaxComparer Default = new StatementSyntaxComparer();
 

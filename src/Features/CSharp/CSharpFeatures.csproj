@@ -295,7 +295,6 @@
     <Compile Include="DocumentationCommentFormatting\DocumentationCommentUtilities.cs" />
     <Compile Include="EditAndContinue\CSharpEditAndContinueAnalyzer.cs" />
     <Compile Include="EditAndContinue\StatementSyntaxComparer.cs" />
-    <Compile Include="EditAndContinue\SyntaxComparer.cs" />
     <Compile Include="EditAndContinue\SyntaxUtilities.cs" />
     <Compile Include="EditAndContinue\TopSyntaxComparer.cs" />
     <Compile Include="EncapsulateField\CSharpEncapsulateFieldService.cs" />

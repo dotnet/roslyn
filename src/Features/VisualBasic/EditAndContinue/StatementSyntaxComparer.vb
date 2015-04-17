@@ -1,12 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.VisualBasic.Differencing
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
     Friend NotInheritable Class StatementSyntaxComparer
-        Inherits SyntaxComparer
+        Inherits VisualBasicSyntaxComparer
 
         Friend Shared ReadOnly [Default] As StatementSyntaxComparer = New StatementSyntaxComparer()
 

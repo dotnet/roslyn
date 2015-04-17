@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
+namespace Microsoft.CodeAnalysis.Differencing
 {
     internal abstract class SyntaxComparer : TreeComparer<SyntaxNode>
     {
@@ -15,8 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         protected const double ExactMatchDist = 0.0;
         protected const double EpsilonDist = 0.00001;
 
-        protected SyntaxComparer()
+        protected readonly ISyntaxEquivalentChecker Checker;
+
+        protected SyntaxComparer(ISyntaxEquivalentChecker checker)
         {
+            Checker = checker;
         }
 
         protected internal sealed override bool TreesEqual(SyntaxNode oldNode, SyntaxNode newNode)
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             double weightedDistance;
             if (TryComputeWeightedDistance(oldNode, newNode, out weightedDistance))
             {
-                if (weightedDistance == ExactMatchDist && !SyntaxFactory.AreEquivalent(oldNode, newNode))
+                if (weightedDistance == ExactMatchDist && !Checker.AreEquivalent(oldNode, newNode))
                 {
                     weightedDistance = EpsilonDist;
                 }
@@ -57,24 +60,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return weightedDistance;
             }
 
-            return ComputeValueDistance(oldNode, newNode);
+            return ComputeValueDistance(oldNode, newNode, Checker);
         }
 
-        internal static double ComputeValueDistance(SyntaxNode oldNode, SyntaxNode newNode)
+        internal static double ComputeValueDistance(SyntaxNode oldNode, SyntaxNode newNode, ISyntaxEquivalentChecker checker)
         {
-            if (SyntaxFactory.AreEquivalent(oldNode, newNode))
+            if (checker.AreEquivalent(oldNode, newNode))
             {
                 return ExactMatchDist;
             }
 
-            double distance = ComputeDistance(oldNode, newNode);
+            double distance = ComputeDistance(oldNode, newNode, checker);
 
             // We don't want to return an exact match, because there
             // must be something different, since we got here 
             return (distance == ExactMatchDist) ? EpsilonDist : distance;
         }
 
-        internal static double ComputeDistance(SyntaxNodeOrToken oldNodeOrToken, SyntaxNodeOrToken newNodeOrToken)
+        internal static double ComputeDistance(SyntaxNodeOrToken oldNodeOrToken, SyntaxNodeOrToken newNodeOrToken, ISyntaxEquivalentChecker checker)
         {
             Debug.Assert(newNodeOrToken.IsToken == oldNodeOrToken.IsToken);
 
@@ -85,18 +88,33 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 var rightToken = newNodeOrToken.AsToken();
 
                 distance = ComputeDistance(leftToken, rightToken);
-                Debug.Assert(!SyntaxFactory.AreEquivalent(leftToken, rightToken) || distance == ExactMatchDist);
+                Debug.Assert(!checker.AreEquivalent(leftToken, rightToken) || distance == ExactMatchDist);
             }
             else
             {
                 var leftNode = oldNodeOrToken.AsNode();
                 var rightNode = newNodeOrToken.AsNode();
 
-                distance = ComputeDistance(leftNode, rightNode);
-                Debug.Assert(!SyntaxFactory.AreEquivalent(leftNode, rightNode) || distance == ExactMatchDist);
+                distance = ComputeDistance(leftNode, rightNode, checker);
+                Debug.Assert(!checker.AreEquivalent(leftNode, rightNode) || distance == ExactMatchDist);
             }
 
             return distance;
+        }
+
+        /// <summary>
+        /// Enumerates tokens of all nodes in the list. Doesn't include separators.
+        /// </summary>
+        internal static IEnumerable<SyntaxToken> GetDescendantTokensIgnoringSeparators<TSyntaxNode>(SyntaxList<TSyntaxNode> list)
+            where TSyntaxNode : SyntaxNode
+        {
+            foreach (var node in list)
+            {
+                foreach (var token in node.DescendantTokens())
+                {
+                    yield return token;
+                }
+            }
         }
 
         /// <summary>
@@ -120,14 +138,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the nodes are. 
         /// </remarks>
-        public static double ComputeDistance(SyntaxNode oldNode, SyntaxNode newNode)
+        public static double ComputeDistance(SyntaxNode oldNode, SyntaxNode newNode, ISyntaxEquivalentChecker checker)
         {
             if (oldNode == null || newNode == null)
             {
                 return (oldNode == newNode) ? 0.0 : 1.0;
             }
 
-            return ComputeDistance(oldNode.DescendantTokens(), newNode.DescendantTokens());
+            return ComputeDistance(oldNode.DescendantTokens(), newNode.DescendantTokens(), checker);
         }
 
         /// <summary>
@@ -138,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </remarks>
         public static double ComputeDistance(SyntaxToken oldToken, SyntaxToken newToken)
         {
-            return LongestCommonSubstring.ComputeDistance(oldToken.Text, newToken.Text);
+            return LongestCommonSubstring.ComputeDistance(oldToken.ValueText, newToken.ValueText);
         }
 
         /// <summary>
@@ -147,9 +165,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
-        public static double ComputeDistance(IEnumerable<SyntaxToken> oldTokens, IEnumerable<SyntaxToken> newTokens)
+        public static double ComputeDistance(IEnumerable<SyntaxToken> oldTokens, IEnumerable<SyntaxToken> newTokens, ISyntaxEquivalentChecker checker)
         {
-            return LcsTokens.Instance.ComputeDistance(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
+            return ComputeDistance(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty(), checker);
         }
 
         /// <summary>
@@ -158,9 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
-        public static double ComputeDistance(ImmutableArray<SyntaxToken> oldTokens, ImmutableArray<SyntaxToken> newTokens)
+        public static double ComputeDistance(ImmutableArray<SyntaxToken> oldTokens, ImmutableArray<SyntaxToken> newTokens, ISyntaxEquivalentChecker checker)
         {
-            return LcsTokens.Instance.ComputeDistance(oldTokens.NullToEmpty(), newTokens.NullToEmpty());
+            return checker.LcsTokens.ComputeDistance(oldTokens.NullToEmpty(), newTokens.NullToEmpty());
         }
 
         /// <summary>
@@ -169,9 +187,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
-        public static double ComputeDistance(IEnumerable<SyntaxNode> oldNodes, IEnumerable<SyntaxNode> newNodes)
+        public static double ComputeDistance(IEnumerable<SyntaxNode> oldNodes, IEnumerable<SyntaxNode> newNodes, ISyntaxEquivalentChecker checker)
         {
-            return LcsNodes.Instance.ComputeDistance(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
+            return ComputeDistance(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty(), checker);
         }
 
         /// <summary>
@@ -180,63 +198,82 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
-        public static double ComputeDistance(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes)
+        public static double ComputeDistance(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes, ISyntaxEquivalentChecker checker)
         {
-            return LcsNodes.Instance.ComputeDistance(oldNodes.NullToEmpty(), newNodes.NullToEmpty());
+            return checker.LcsNodes.ComputeDistance(oldNodes.NullToEmpty(), newNodes.NullToEmpty());
         }
 
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax nodes to another, disregarding trivia.
         /// </summary>
-        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxNode> oldNodes, IEnumerable<SyntaxNode> newNodes)
+        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxNode> oldNodes, IEnumerable<SyntaxNode> newNodes, ISyntaxEquivalentChecker checker)
         {
-            return LcsNodes.Instance.GetEdits(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
+            return GetSequenceEdits(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty(), checker);
         }
 
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax nodes to another, disregarding trivia.
         /// </summary>
-        public static IEnumerable<SequenceEdit> GetSequenceEdits(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes)
+        public static IEnumerable<SequenceEdit> GetSequenceEdits(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes, ISyntaxEquivalentChecker checker)
         {
-            return LcsNodes.Instance.GetEdits(oldNodes.NullToEmpty(), newNodes.NullToEmpty());
+            return checker.LcsNodes.GetEdits(oldNodes.NullToEmpty(), newNodes.NullToEmpty());
         }
 
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax tokens to another, disregarding trivia.
         /// </summary>
-        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxToken> oldTokens, IEnumerable<SyntaxToken> newTokens)
+        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxToken> oldTokens, IEnumerable<SyntaxToken> newTokens, ISyntaxEquivalentChecker checker)
         {
-            return LcsTokens.Instance.GetEdits(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
+            return GetSequenceEdits(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty(), checker);
         }
 
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax tokens to another, disregarding trivia.
         /// </summary>
-        public static IEnumerable<SequenceEdit> GetSequenceEdits(ImmutableArray<SyntaxToken> oldTokens, ImmutableArray<SyntaxToken> newTokens)
+        public static IEnumerable<SequenceEdit> GetSequenceEdits(ImmutableArray<SyntaxToken> oldTokens, ImmutableArray<SyntaxToken> newTokens, ISyntaxEquivalentChecker checker)
         {
-            return LcsTokens.Instance.GetEdits(oldTokens.NullToEmpty(), newTokens.NullToEmpty());
+            return checker.LcsTokens.GetEdits(oldTokens.NullToEmpty(), newTokens.NullToEmpty());
         }
 
-        private sealed class LcsTokens : LongestCommonImmutableArraySubsequence<SyntaxToken>
+        internal sealed class LcsTokens : LongestCommonImmutableArraySubsequence<SyntaxToken>
         {
-            internal static readonly LcsTokens Instance = new LcsTokens();
+            private readonly Func<SyntaxToken, SyntaxToken, bool> _equivalentChecker;
+
+            public LcsTokens(Func<SyntaxToken, SyntaxToken, bool> equivalentChecker)
+            {
+                _equivalentChecker = equivalentChecker;
+            }
 
             protected override bool Equals(SyntaxToken oldElement, SyntaxToken newElement)
             {
-                return SyntaxFactory.AreEquivalent(oldElement, newElement);
+                return _equivalentChecker(oldElement, newElement);
             }
         }
 
-        private sealed class LcsNodes : LongestCommonImmutableArraySubsequence<SyntaxNode>
+        internal sealed class LcsNodes : LongestCommonImmutableArraySubsequence<SyntaxNode>
         {
-            internal static readonly LcsNodes Instance = new LcsNodes();
+            private readonly Func<SyntaxNode, SyntaxNode, bool> _equivalentChecker;
+
+            public LcsNodes(Func<SyntaxNode, SyntaxNode, bool> equivalentChecker)
+            {
+                _equivalentChecker = equivalentChecker;
+            }
 
             protected override bool Equals(SyntaxNode oldElement, SyntaxNode newElement)
             {
-                return SyntaxFactory.AreEquivalent(oldElement, newElement);
+                return _equivalentChecker(oldElement, newElement);
             }
         }
 
         #endregion
+
+        internal interface ISyntaxEquivalentChecker
+        {
+            bool AreEquivalent(SyntaxNode left, SyntaxNode right);
+            bool AreEquivalent(SyntaxToken left, SyntaxToken right);
+
+            LcsNodes LcsNodes { get; }
+            LcsTokens LcsTokens { get; }
+        }
     }
 }

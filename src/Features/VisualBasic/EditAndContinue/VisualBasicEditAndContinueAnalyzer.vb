@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Differencing
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
@@ -601,7 +602,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #Region "Syntax And Semantic Utils"
 
         Protected Overrides Function GetSyntaxSequenceEdits(oldNodes As ImmutableArray(Of SyntaxNode), newNodes As ImmutableArray(Of SyntaxNode)) As IEnumerable(Of SequenceEdit)
-            Return SyntaxComparer.GetSequenceEdits(oldNodes, newNodes)
+            Return VisualBasicSyntaxComparer.GetSequenceEdits(oldNodes, newNodes)
         End Function
 
         Friend Overrides ReadOnly Property EmptyCompilationUnit As SyntaxNode
