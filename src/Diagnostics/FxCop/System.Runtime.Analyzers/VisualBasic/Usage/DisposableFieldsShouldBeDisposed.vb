@@ -28,19 +28,35 @@ Namespace System.Runtime.Analyzers
                     Case SyntaxKind.SimpleMemberAccessExpression
                         ' NOTE: This cannot be optimized based on memberAccess.Name because a given method
                         ' may be an explicit interface implementation of IDisposable.Dispose.
+                        ' If the right hand side of the member access binds to IDisposable.Dispose
                         Dim memberAccess = DirectCast(context.Node, MemberAccessExpressionSyntax)
                         Dim methodSymbol = TryCast(context.SemanticModel.GetSymbolInfo(memberAccess.Name).Symbol, IMethodSymbol)
                         If methodSymbol IsNot Nothing AndAlso
                             (methodSymbol.MetadataName = Dispose OrElse methodSymbol.ExplicitInterfaceImplementations.Any(Function(m) m.MetadataName = Dispose)) Then
-                            Dim exp = RemoveParentheses(memberAccess.Expression)
-                            Dim fieldSymbol = TryCast(context.SemanticModel.GetSymbolInfo(exp).Symbol, IFieldSymbol)
-                            If fieldSymbol IsNot Nothing Then
-                                NoteFieldDisposed(fieldSymbol)
+
+                            Dim recieverType = context.SemanticModel.GetTypeInfo(memberAccess.Expression).Type
+                            If (recieverType.Inherits(_iDisposableType)) Then
+                                Dim exp = RemoveParentheses(memberAccess.Expression)
+                                ' this can be simply x.Dispose() where x is the field.
+                                Dim fieldSymbol = TryCast(context.SemanticModel.GetSymbolInfo(exp).Symbol, IFieldSymbol)
+                                If fieldSymbol IsNot Nothing Then
+                                    NoteFieldDisposed(fieldSymbol)
+                                Else
+                                    ' Or it can be an explicit interface dispatch like DirectCast(f, IDisposable).Dispose()
+                                    Dim expression = RemoveParentheses(memberAccess.Expression)
+                                    If (expression.IsKind(SyntaxKind.DirectCastExpression) OrElse expression.IsKind(SyntaxKind.TryCastExpression)) OrElse expression.IsKind(SyntaxKind.CTypeExpression) Then
+                                        Dim castExpression = DirectCast(expression, CastExpressionSyntax)
+                                        fieldSymbol = TryCast(context.SemanticModel.GetSymbolInfo(castExpression.Expression).Symbol, IFieldSymbol)
+                                        If (fieldSymbol IsNot Nothing) Then
+                                            NoteFieldDisposed(fieldSymbol)
+                                        End If
+                                    End If
+                                End If
                             End If
                         End If
 
                     Case SyntaxKind.UsingStatement
-                        Dim usingStatementExpression = RemoveParentheses(DirectCast(context.Node, UsingStatementSyntax).Expression)
+                            Dim usingStatementExpression = RemoveParentheses(DirectCast(context.Node, UsingStatementSyntax).Expression)
                         If usingStatementExpression IsNot Nothing Then
                             Dim fieldSymbol = TryCast(context.SemanticModel.GetSymbolInfo(usingStatementExpression).Symbol, IFieldSymbol)
                             If fieldSymbol IsNot Nothing Then

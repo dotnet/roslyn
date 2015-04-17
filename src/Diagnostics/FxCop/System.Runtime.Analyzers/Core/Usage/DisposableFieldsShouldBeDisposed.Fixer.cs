@@ -34,7 +34,7 @@ namespace System.Runtime.Analyzers
 
             // find a Dispose method
             var iDisposableType = model.Compilation.GetSpecialType(SpecialType.System_IDisposable);
-            var iDisposable_Dispose = model.Compilation.GetSpecialType(SpecialType.System_IDisposable).GetMembers(DisposableFieldsShouldBeDisposedAnalyzer.Dispose).Single();
+            var iDisposable_Dispose = (iDisposableType?.GetMembers(DisposableFieldsShouldBeDisposedAnalyzer.Dispose))?.Single();
             if (iDisposableType == null || iDisposable_Dispose == null)
             {
                 return;
@@ -61,7 +61,7 @@ namespace System.Runtime.Analyzers
             await editor.EditOneDeclarationAsync(disposeMethod, (docEditor, disposeMethodNode) => 
             {
                 var generator = docEditor.Generator;
-                // handle the case where a local in the Dipose method exists with the same name by generating this (or ClassName) and simplifying it
+                // handle the case where a local in the Dispose method exists with the same name by generating this (or ClassName) and simplifying it
                 var path = fieldSymbol.IsStatic
                                 ? generator.IdentifierName(fieldSymbol.ContainingType.MetadataName)
                                 : generator.ThisExpression();

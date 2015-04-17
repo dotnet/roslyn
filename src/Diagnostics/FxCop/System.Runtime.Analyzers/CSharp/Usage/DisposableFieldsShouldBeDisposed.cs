@@ -34,13 +34,43 @@ namespace System.Runtime.Analyzers
                     var memberAccess = (MemberAccessExpressionSyntax)context.Node;
                     if (memberAccess.Name != null && memberAccess.Name.Identifier.ValueText == Dispose)
                     {
+                        // If the right hand side of the member access binds to IDisposable.Dispose
                         var methodSymbol = context.SemanticModel.GetSymbolInfo(memberAccess.Name).Symbol as IMethodSymbol;
                         if (methodSymbol != null && methodSymbol.MetadataName == Dispose)
                         {
-                            var fieldSymbol = context.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol as IFieldSymbol;
-                            if (fieldSymbol != null)
+                            var recieverType = context.SemanticModel.GetTypeInfo(memberAccess.Expression).Type;
+                            if (recieverType.Inherits(_iDisposableType))
                             {
-                                NoteFieldDisposed(fieldSymbol);
+                                // this can be simply x.Dispose() where x is the field.
+                                var fieldSymbol = context.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol as IFieldSymbol;
+                                if (fieldSymbol != null)
+                                {
+                                    NoteFieldDisposed(fieldSymbol);
+                                }
+                                else
+                                {
+                                    // or it can be an explicit interface dispatch like ((IDisposable)f).Dispose()
+                                    var expression = RemoveParentheses(memberAccess.Expression);
+
+                                    ExpressionSyntax fieldExpression = null;
+                                    if (expression.IsKind(SyntaxKind.CastExpression))
+                                    {
+                                        fieldExpression = ((CastExpressionSyntax)expression).Expression;
+                                    }
+                                    else if (expression.IsKind(SyntaxKind.AsExpression))
+                                    {
+                                        fieldExpression = ((BinaryExpressionSyntax)expression).Left;
+                                    }
+
+                                    if (fieldExpression != null)
+                                    {
+                                        fieldSymbol = context.SemanticModel.GetSymbolInfo(fieldExpression).Symbol as IFieldSymbol;
+                                        if (fieldSymbol != null)
+                                        {
+                                            NoteFieldDisposed(fieldSymbol);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -57,6 +87,16 @@ namespace System.Runtime.Analyzers
                         }
                     }
                 }
+            }
+
+            private static ExpressionSyntax RemoveParentheses(ExpressionSyntax expression)
+            {
+                while (expression.IsKind(SyntaxKind.ParenthesizedExpression))
+                {
+                    expression = ((ParenthesizedExpressionSyntax)expression).Expression;
+                }
+
+                return expression;
             }
         }
     }

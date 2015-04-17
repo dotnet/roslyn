@@ -209,6 +209,81 @@ public class B : IDisposable
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA2213CSharpTestExplicitInterfaceImplementation()
+        {
+            VerifyCSharp(@"
+using System;
+
+public class A : IDisposable
+{
+    void IDisposable.Dispose()
+    {
+    }
+}
+
+public class B : IDisposable
+{
+    A a = new A();
+
+    public void Dispose()
+    {
+        ((IDisposable)a).Dispose();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA2213CSharpTestExplicitInterfaceImplementationAs()
+        {
+            VerifyCSharp(@"
+using System;
+
+public class A : IDisposable
+{
+    void IDisposable.Dispose()
+    {
+    }
+}
+
+public class B : IDisposable
+{
+    A a = new A();
+
+    public void Dispose()
+    {
+        (a as IDisposable).Dispose();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA2213CSharpTestNonDisposableDispose()
+        {
+            VerifyCSharp(@"
+using System;
+
+public class A
+{
+    public void Dispose()
+    {
+    }
+}
+
+public class B : IDisposable
+{
+    A a = new A();
+
+    public void Dispose()
+    {
+        a.Dispose();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CA2213CSharpTestUsingDisposeDisposableFields()
         {
             VerifyCSharp(@"
@@ -516,6 +591,84 @@ Public Class B
 
     Public Overloads Sub Dispose() Implements IDisposable.Dispose
         a.Dispose()
+    End Sub 'Dispose
+End Class
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA2213BasicTestExplicitInterfaceDispatchDirectCast()
+        {
+            VerifyBasic(@"
+Imports System
+Imports System.IO
+
+Public Class A
+    Implements IDisposable
+
+    Public Overloads Sub Dispose1() Implements IDisposable.Dispose
+    End Sub
+End Class
+
+Public Class B
+    Implements IDisposable
+
+    Dim a As A = New A()
+
+    Public Overloads Sub Dispose() Implements IDisposable.Dispose
+        DirectCast(a, IDisposable).Dispose()
+    End Sub 'Dispose
+End Class
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA2213BasicTestExplicitInterfaceDispatchTryCast()
+        {
+            VerifyBasic(@"
+Imports System
+Imports System.IO
+
+Public Class A
+    Implements IDisposable
+
+    Public Overloads Sub Dispose1() Implements IDisposable.Dispose
+    End Sub
+End Class
+
+Public Class B
+    Implements IDisposable
+
+    Dim a As A = New A()
+
+    Public Overloads Sub Dispose() Implements IDisposable.Dispose
+        TryCast(a, IDisposable).Dispose()
+    End Sub 'Dispose
+End Class
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA2213BasicTestExplicitInterfaceDispatchCType()
+        {
+            VerifyBasic(@"
+Imports System
+Imports System.IO
+
+Public Class A
+    Implements IDisposable
+
+    Public Overloads Sub Dispose1() Implements IDisposable.Dispose
+    End Sub
+End Class
+
+Public Class B
+    Implements IDisposable
+
+    Dim a As A = New A()
+
+    Public Overloads Sub Dispose() Implements IDisposable.Dispose
+        CType(a, IDisposable).Dispose()
     End Sub 'Dispose
 End Class
 ");

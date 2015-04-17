@@ -119,6 +119,50 @@ public class B : IDisposable
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA2213CSharpCodeFixDisposeMethodCallsExplicitImplementation()
+        {
+            VerifyCSharpFix(@"
+using System;
+
+public class A : IDisposable
+{
+    void IDisposable.Dispose()
+    {
+    }
+}
+
+public class B : IDisposable
+{
+    A a = new A();
+
+    void IDisposable.Dispose()
+    {
+    }
+}
+",
+@"
+using System;
+
+public class A : IDisposable
+{
+    void IDisposable.Dispose()
+    {
+    }
+}
+
+public class B : IDisposable
+{
+    A a = new A();
+
+    void IDisposable.Dispose()
+    {
+        ((IDisposable)a).Dispose();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CA2213CSharpCodeFixDisposeMethodHasConflictNames()
         {
             VerifyCSharpFix(@"
