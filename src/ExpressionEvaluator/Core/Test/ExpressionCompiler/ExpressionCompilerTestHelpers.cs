@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ImmutableArray<MetadataBlock> metadataBlocks,
             string expr,
             ExpressionCompiler.CreateContextDelegate createContext,
+            DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtr,
             out string errorMessage,
             out CompilationTestData testData)
         {
@@ -122,8 +123,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         td);
                     return new CompileExpressionResult(compileResult, td);
                 },
-                getMetaDataBytesPtr: null,
-                errorMessage: out errorMessage);
+                getMetaDataBytesPtr,
+                out errorMessage);
             testData = r.TestData;
             return r.CompileResult;
         }

@@ -387,22 +387,22 @@ public class B
                 var contextFactory = CreateTypeContextFactory(moduleVersionId, typeToken);
 
                 // Duplicate type in namespace, at type scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new N.C1()", contextFactory, out errorMessage, out testData);
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new N.C1()", contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
                 Assert.True(errorMessage.StartsWith("error CS0433: The type 'C1' exists in both "));
 
                 GetContextState(runtime, "B.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
                 contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken);
 
                 // Duplicate type in namespace, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C1()", contextFactory, out errorMessage, out testData);
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C1()", contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
                 Assert.True(errorMessage.StartsWith("error CS0433: The type 'C1' exists in both "));
 
                 // Duplicate type in global namespace, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C2()", contextFactory, out errorMessage, out testData);
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C2()", contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
                 Assert.True(errorMessage.StartsWith("error CS0433: The type 'C2' exists in both "));
 
                 // Duplicate extension method, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, out errorMessage, out testData);
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
                 Assert.Equal(errorMessage, "(1,3): error CS0121: The call is ambiguous between the following methods or properties: 'N.E.F(A)' and 'N.E.F(A)'");
 
                 // Same tests as above but in library that does not directly reference duplicates.
@@ -410,7 +410,7 @@ public class B
                 contextFactory = CreateTypeContextFactory(moduleVersionId, typeToken);
 
                 // Duplicate type in namespace, at type scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new N.C1()", contextFactory, out errorMessage, out testData);
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new N.C1()", contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
                 Assert.Null(errorMessage);
                 var methodData = testData.GetMethodData("<>x.<>m0");
                 methodData.VerifyIL(
@@ -426,7 +426,7 @@ public class B
                 contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken);
 
                 // Duplicate type in global namespace, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C2()", contextFactory, out errorMessage, out testData);
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C2()", contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
                 Assert.Null(errorMessage);
                 methodData = testData.GetMethodData("<>x.<>m0");
                 methodData.VerifyIL(
@@ -441,7 +441,7 @@ public class B
                 Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName());
 
                 // Duplicate extension method, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, out errorMessage, out testData);
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
                 Assert.Null(errorMessage);
                 methodData = testData.GetMethodData("<>x.<>m0");
                 methodData.VerifyIL(
