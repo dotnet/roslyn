@@ -31,7 +31,8 @@ namespace System.Runtime.Analyzers
 
             var model = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             var typeSymbol = model.GetDeclaredSymbol(declaration) as INamedTypeSymbol;
-            if (typeSymbol == null)
+            if (typeSymbol?.TypeKind != TypeKind.Class &&
+                typeSymbol?.TypeKind != TypeKind.Struct)
             {
                 return;
             }
