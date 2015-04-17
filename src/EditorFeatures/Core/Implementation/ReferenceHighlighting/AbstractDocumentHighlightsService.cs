@@ -130,12 +130,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             bool addAllDefinitions = true;
 
             // Add definitions
+            // Filter out definitions that cannot be highlighted. e.g: alias symbols defined via project property pages.
             if (symbol.Kind == SymbolKind.Alias &&
                 symbol.Locations.Length > 0)
             {
-                // For alias symbol we want to get the tag only for the alias definition, not the target symbol's definition.
-                await AddLocationSpan(symbol.Locations.First(), solution, spanSet, tagMap, HighlightSpanKind.Definition, cancellationToken).ConfigureAwait(false);
                 addAllDefinitions = false;
+
+                if (symbol.Locations.First().IsInSource)
+                {
+                    // For alias symbol we want to get the tag only for the alias definition, not the target symbol's definition.
+                    await AddLocationSpan(symbol.Locations.First(), solution, spanSet, tagMap, HighlightSpanKind.Definition, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             // Add references and definitions
