@@ -75,6 +75,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>
@@ -122,6 +123,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpWorkspaceResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Differencing\CSharpSyntaxComparer.cs" />
+    <Compile Include="Differencing\CSharpTreeNodeComparer.cs" />
     <Compile Include="Editing\CSharpImportAdder.cs" />
     <Compile Include="Extensions\ArgumentSyntaxExtensions.cs" />
     <Compile Include="Extensions\BaseArgumentListSyntaxExtensions.cs" />
@@ -206,6 +209,7 @@
     <Compile Include="LanguageServices\CSharpCompilationFactoryService.cs" />
     <Compile Include="LanguageServices\CSharpSemanticFactsService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDeclarationService.cs" />
+    <Compile Include="LanguageServices\CSharpSyntaxDiffService.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxFactsService.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactory.PathSyntaxReference.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.cs" />

@@ -323,6 +323,7 @@
     <Compile Include="CodeGeneration\CodeGenerationSymbolFactory.cs" />
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
     <Compile Include="Differencing\SyntaxComparer.cs" />
+    <Compile Include="Differencing\TreeNodeComparer.cs" />
     <Compile Include="Editing\DeclarationKind.cs" />
     <Compile Include="Editing\DocumentEditor.cs" />
     <Compile Include="CodeGeneration\ICodeGenerationService.cs" />
@@ -378,6 +379,7 @@
     <Compile Include="FindSymbols\DeclaredSymbolInfo.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeDeclarationInfo.cs" />
+    <Compile Include="LanguageServices\SyntaxDiffService\ISyntaxDiffService.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileMergeSessionResult.cs" />
     <Compile Include="LinkedFileDiffMerging\DefaultDocumentTextDifferencingService.cs" />
     <Compile Include="Log\AggregateLogger.cs" />
@@ -397,6 +399,7 @@
     <Compile Include="Shared\Utilities\XmlFragmentParser.cs" />
     <Compile Include="Simplification\SimplificationOptionProvider.cs" />
     <Compile Include="Simplification\SimplifyTypeNameCodeAction.cs" />
+    <Compile Include="Differencing\TreeNode.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
