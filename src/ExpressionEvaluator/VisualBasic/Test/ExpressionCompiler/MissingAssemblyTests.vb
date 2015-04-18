@@ -463,7 +463,7 @@ End Class
         End Sub
 
         <WorkItem(1154988)>
-        <Fact(Skip:="Failing in Release")>
+        <Fact>
         Public Sub CompileWithRetrySameErrorReported()
             Dim source = " 
 Class C 
