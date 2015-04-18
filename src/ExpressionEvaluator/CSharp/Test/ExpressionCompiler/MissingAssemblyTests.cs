@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ErrorsRequiringSystemCore()
         {
             var identity = EvaluationContextBase.SystemCoreIdentity;
+            Assert.Same(identity, GetMissingAssemblyIdentity(ErrorCode.ERR_NoSuchMemberOrExtension));
             Assert.Same(identity, GetMissingAssemblyIdentity(ErrorCode.ERR_DynamicAttributeMissing));
             Assert.Same(identity, GetMissingAssemblyIdentity(ErrorCode.ERR_DynamicRequiredTypesMissing));
             Assert.Same(identity, GetMissingAssemblyIdentity(ErrorCode.ERR_QueryNoProviderStandard));
@@ -134,6 +135,120 @@ public class C
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData: null);
             Assert.Equal(expectedError, actualError);
+            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+        }
+
+        [WorkItem(1151888, "DevDiv")]
+        [Fact]
+        public void ERR_NoSuchMemberOrExtension_CompilationReferencesSystemCore()
+        {
+            var source = @"
+using System.Linq;
+
+public class C
+{
+    public void M(int[] array)
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef);
+
+            var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
+            var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
+
+            ResultProperties resultProperties;
+            string actualError;
+            ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
+
+            context.CompileExpression(
+                DefaultInspectionContext.Instance,
+                "array.Count()",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out actualError,
+                out actualMissingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData: null);
+            Assert.Equal(string.Format(expectedErrorTemplate, "Count"), actualError);
+            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+
+            context.CompileExpression(
+                DefaultInspectionContext.Instance,
+                "array.NoSuchMethod()",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out actualError,
+                out actualMissingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData: null);
+            Assert.Equal(string.Format(expectedErrorTemplate, "NoSuchMethod"), actualError);
+            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+        }
+
+        /// <remarks>
+        /// The fact that the compilation does not reference System.Core has no effect since
+        /// this test only covers our ability to identify an assembly to attempt to load, not
+        /// our ability to actually load or consume it.
+        /// </remarks>
+        [WorkItem(1151888, "DevDiv")]
+        [Fact]
+        public void ERR_NoSuchMemberOrExtension_CompilationDoesNotReferenceSystemCore()
+        {
+            var source = @"
+using System.Linq;
+
+public class C
+{
+    public void M(int[] array)
+    {
+    }
+}
+
+namespace System.Linq
+{
+    public class Dummy
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef);
+
+            var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
+            var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
+
+            ResultProperties resultProperties;
+            string actualError;
+            ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
+
+            context.CompileExpression(
+                DefaultInspectionContext.Instance,
+                "array.Count()",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out actualError,
+                out actualMissingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData: null);
+            Assert.Equal(string.Format(expectedErrorTemplate, "Count"), actualError);
+            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+
+            context.CompileExpression(
+                DefaultInspectionContext.Instance,
+                "array.NoSuchMethod()",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out actualError,
+                out actualMissingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData: null);
+            Assert.Equal(string.Format(expectedErrorTemplate, "NoSuchMethod"), actualError);
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
         }
 

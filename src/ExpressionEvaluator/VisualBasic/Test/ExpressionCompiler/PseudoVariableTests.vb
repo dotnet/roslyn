@@ -22,17 +22,60 @@ End Class
 
         <Fact>
         Public Sub UnrecognizedVariable()
-            VerifyError("$v", "(1) : error BC30451: '$v' is not declared. It may be inaccessible due to its protection level.")
+            Dim resultProperties As ResultProperties = Nothing
+            Dim errorMessage As String = Nothing
+            Evaluate(
+                s_simpleSource,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName:="C.M",
+                expr:="$v",
+                resultProperties:=resultProperties,
+                errorMessage:=errorMessage)
+            Assert.Equal("(1) : error BC30451: '$v' is not declared. It may be inaccessible due to its protection level.", errorMessage)
         End Sub
 
         <Fact>
         Public Sub GlobalName()
-            VerifyError("Global.$v", "(1) : error BC30456: '$v' is not a member of 'Global'.")
+            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, options:=TestOptions.DebugDll)
+            Dim Runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(Runtime, "C.M")
+
+            Dim resultProperties As ResultProperties = Nothing
+            Dim errorMessage As String = Nothing
+            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+            context.CompileExpression(
+                DefaultInspectionContext.Instance,
+                "Global.$v",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                resultProperties,
+                errorMessage,
+                missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData:=Nothing)
+            Assert.Equal("(1,2): error BC30456: '$v' is not a member of 'Global'.", errorMessage)
         End Sub
 
         <Fact>
         Public Sub Qualified()
-            VerifyError("Me.$v", "(1) : error BC30456: '$v' is not a member of 'C'.")
+            Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, options:=TestOptions.DebugDll)
+            Dim Runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(Runtime, "C.M")
+
+            Dim resultProperties As ResultProperties = Nothing
+            Dim errorMessage As String = Nothing
+            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+            context.CompileExpression(
+                DefaultInspectionContext.Instance,
+                "Me.$v",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                resultProperties,
+                errorMessage,
+                missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData:=Nothing)
+            Assert.Equal("(1,2): error BC30456: '$v' is not a member of 'C'.", errorMessage)
         End Sub
 
         Private Sub VerifyError(expr As String, expectedErrorMessage As String)
