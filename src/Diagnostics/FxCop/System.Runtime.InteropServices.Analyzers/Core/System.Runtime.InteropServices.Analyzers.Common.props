@@ -8,17 +8,9 @@
   -->
   <PropertyGroup>
     <CodeAnalysisRuleSetOverrides>$(CodeAnalysisRuleSetOverrides);
-      -Microsoft.Design#CA1008;
-      -Microsoft.Design#CA1012;
-      -Microsoft.Design#CA1052;
-      -Microsoft.Design#CA1053;
-
-      -Microsoft.Naming#CA1708;
-      -Microsoft.Naming#CA1715;
-
-      -Microsoft.Usage#CA2229;
-      -Microsoft.Usage#CA2235;
-      -Microsoft.Usage#CA2237;
+      -Microsoft.Design#CA1060;
+      -Microsoft.Interoperability#CA1401;
+      -Microsoft.Globalization#CA2101;
     </CodeAnalysisRuleSetOverrides>
   </PropertyGroup>
 </Project>

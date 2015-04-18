@@ -403,33 +403,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Move P/Invokes to native methods class.
-        /// </summary>
-        internal static string MovePInvokesToNativeMethodsClass {
-            get {
-                return ResourceManager.GetString("MovePInvokesToNativeMethodsClass", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to P/Invoke method &apos;{0}&apos; should not be visible.
-        /// </summary>
-        internal static string PInvokeMethodShouldNotBeVisible {
-            get {
-                return ResourceManager.GetString("PInvokeMethodShouldNotBeVisible", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to P/Invokes should not be visible..
-        /// </summary>
-        internal static string PInvokesShouldNotBeVisible {
-            get {
-                return ResourceManager.GetString("PInvokesShouldNotBeVisible", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove empty finalizers.
         /// </summary>
         internal static string RemoveEmptyFinalizers {
@@ -489,24 +462,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         internal static string SerializationCtorAccessibilityForUnSealedType {
             get {
                 return ResourceManager.GetString("SerializationCtorAccessibilityForUnSealedType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Specify marshaling for P/Invoke string arguments.
-        /// </summary>
-        internal static string SpecifyMarshalingForPInvokeStringArguments {
-            get {
-                return ResourceManager.GetString("SpecifyMarshalingForPInvokeStringArguments", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to When marshaling strings as ANSI (or as Auto on Win9x), some characters may be changed. If best-fit mapping is on, strings that appear different in Unicode will be marshaled to identical ANSI strings, which may lead to incorrect security decisions. Turning best-fit mapping off reduces this risk, as all characters without equivalents are mapped to &apos;?&apos;. Also, note that CharSet.Ansi is the default setting for all string marshaling; Unicode marshaling must be specified explicitly, either as a CharSet setting of  [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string SpecifyMarshalingForPInvokeStringArgumentsDescription {
-            get {
-                return ResourceManager.GetString("SpecifyMarshalingForPInvokeStringArgumentsDescription", resourceCulture);
             }
         }
         

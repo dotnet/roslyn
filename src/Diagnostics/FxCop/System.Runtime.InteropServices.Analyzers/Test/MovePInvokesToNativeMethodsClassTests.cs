@@ -1,34 +1,34 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Design;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Design
+namespace System.Runtime.InteropServices.Analyzers.UnitTests
 {
-    public class CA1060Tests : DiagnosticAnalyzerTestBase
+    public class MovePInvokesToNativeMethodsClassTests : DiagnosticAnalyzerTestBase
     {
         #region Verifiers
 
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return new CA1060DiagnosticAnalyzer();
+            return new MovePInvokesToNativeMethodsClassAnalyzer();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CA1060DiagnosticAnalyzer();
+            return new MovePInvokesToNativeMethodsClassAnalyzer();
         }
 
         private static DiagnosticResult CSharpResult(int line, int column)
         {
-            return GetCSharpResultAt(line, column, CA1060DiagnosticAnalyzer.Rule.Id, CA1060DiagnosticAnalyzer.Rule.MessageFormat.ToString());
+            return GetCSharpResultAt(line, column, MovePInvokesToNativeMethodsClassAnalyzer.Rule.Id, MovePInvokesToNativeMethodsClassAnalyzer.Rule.MessageFormat.ToString());
         }
 
         private static DiagnosticResult BasicResult(int line, int column)
         {
-            return GetBasicResultAt(line, column, CA1060DiagnosticAnalyzer.Rule.Id, CA1060DiagnosticAnalyzer.Rule.MessageFormat.ToString());
+            return GetBasicResultAt(line, column, MovePInvokesToNativeMethodsClassAnalyzer.Rule.Id, MovePInvokesToNativeMethodsClassAnalyzer.Rule.MessageFormat.ToString());
         }
 
         #endregion
